@@ -175,7 +175,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (ListingId.Equals(other.ListingId)) && StartingPrice == other.StartingPrice;
+            return (ListingId.Equals(other.ListingId)) && global::System.Object.Equals(StartingPrice, other.StartingPrice);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -241,7 +241,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (ListingId.Equals(other.ListingId)) && Price == other.Price;
+            return (ListingId.Equals(other.ListingId)) && global::System.Object.Equals(Price, other.Price);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -688,6 +688,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("ListingsPayload", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -704,6 +709,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var listings = new global::System.Collections.Generic.List<global::Foo.Bar.State.IListingData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -716,6 +726,11 @@ namespace Foo.Bar.State
         private global::Foo.Bar.State.IListingData Deserialize_NonNullableIListingData(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -741,12 +756,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _iDParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

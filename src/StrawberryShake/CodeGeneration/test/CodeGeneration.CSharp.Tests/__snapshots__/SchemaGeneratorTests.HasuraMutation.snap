@@ -122,7 +122,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Affected_rows == other.Affected_rows);
+            return (global::System.Object.Equals(Affected_rows, other.Affected_rows));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -2314,7 +2314,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && ((_ilike is null && other._ilike is null) || _ilike != null && _ilike.Equals(other._ilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && ((_iregex is null && other._iregex is null) || _iregex != null && _iregex.Equals(other._iregex)) && _is_null == other._is_null && ((_like is null && other._like is null) || _like != null && _like.Equals(other._like)) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && ((_nilike is null && other._nilike is null) || _nilike != null && _nilike.Equals(other._nilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin) && ((_niregex is null && other._niregex is null) || _niregex != null && _niregex.Equals(other._niregex)) && ((_nlike is null && other._nlike is null) || _nlike != null && _nlike.Equals(other._nlike)) && ((_nregex is null && other._nregex is null) || _nregex != null && _nregex.Equals(other._nregex)) && ((_nsimilar is null && other._nsimilar is null) || _nsimilar != null && _nsimilar.Equals(other._nsimilar)) && ((_regex is null && other._regex is null) || _regex != null && _regex.Equals(other._regex)) && ((_similar is null && other._similar is null) || _similar != null && _similar.Equals(other._similar));
+            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && ((_ilike is null && other._ilike is null) || _ilike != null && _ilike.Equals(other._ilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && ((_iregex is null && other._iregex is null) || _iregex != null && _iregex.Equals(other._iregex)) && global::System.Object.Equals(_is_null, other._is_null) && ((_like is null && other._like is null) || _like != null && _like.Equals(other._like)) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && ((_nilike is null && other._nilike is null) || _nilike != null && _nilike.Equals(other._nilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin) && ((_niregex is null && other._niregex is null) || _niregex != null && _niregex.Equals(other._niregex)) && ((_nlike is null && other._nlike is null) || _nlike != null && _nlike.Equals(other._nlike)) && ((_nregex is null && other._nregex is null) || _nregex != null && _nregex.Equals(other._nregex)) && ((_nsimilar is null && other._nsimilar is null) || _nsimilar != null && _nsimilar.Equals(other._nsimilar)) && ((_regex is null && other._regex is null) || _regex != null && _regex.Equals(other._regex)) && ((_similar is null && other._similar is null) || _similar != null && _similar.Equals(other._similar));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2935,7 +2935,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && _is_null == other._is_null && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin);
+            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && global::System.Object.Equals(_is_null, other._is_null) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -3928,6 +3928,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("people_mutation_response", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3940,6 +3945,11 @@ namespace Foo.Bar.State
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

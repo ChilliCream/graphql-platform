@@ -270,6 +270,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
                     Create(obj.Type));
+                ((ObjectType)obj.Type).Definition!.Interfaces.Add(_errorInterfaceTypeRef!);
             }
 
             if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(_errorInterfaceTypeRef!, out _))

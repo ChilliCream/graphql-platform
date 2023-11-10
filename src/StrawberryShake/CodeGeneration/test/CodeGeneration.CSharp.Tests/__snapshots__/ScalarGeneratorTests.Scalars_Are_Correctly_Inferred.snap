@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (NumberFloat == other.NumberFloat) && NumberInt == other.NumberInt;
+            return (global::System.Object.Equals(NumberFloat, other.NumberFloat)) && global::System.Object.Equals(NumberInt, other.NumberInt);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -454,6 +454,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var offers = new global::System.Collections.Generic.List<global::Foo.Bar.State.OfferData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -466,6 +471,11 @@ namespace Foo.Bar.State
         private global::Foo.Bar.State.OfferData Deserialize_NonNullableIGetAll_Listings(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -486,12 +496,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _floatParser.Parse(obj.Value.GetDouble()!);
         }
 
         private global::System.Int32? Deserialize_Int32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }

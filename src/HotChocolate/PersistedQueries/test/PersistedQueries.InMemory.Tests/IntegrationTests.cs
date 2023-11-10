@@ -41,7 +41,7 @@ public class IntegrationTests
         var cache = services.GetRequiredService<IMemoryCache>();
         var executor = await services.GetRequestExecutorAsync();
 
-        await cache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(document)));
+        await cache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(document)))!;
 
         // act
         var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));

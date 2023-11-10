@@ -19,7 +19,7 @@ internal sealed class AzureHeaderDictionary : IHeaderDictionary
 
     public void Add(KeyValuePair<string, StringValues> item)
     {
-        _response.Headers.Add(item.Key, item.Value);
+        _response.Headers.Append(item.Key, item.Value);
         _responseData.Headers.Add(item.Key, (IEnumerable<string>)item.Value);
     }
 
@@ -52,7 +52,7 @@ internal sealed class AzureHeaderDictionary : IHeaderDictionary
 
     public void Add(string key, StringValues value)
     {
-        _response.Headers.Add(key, value);
+        _response.Headers.Append(key, value);
         _responseData.Headers.Add(key, (IEnumerable<string>)value);
     }
 

@@ -106,7 +106,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Stars == other.Stars);
+            return (global::System.Object.Equals(Stars, other.Stars));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -250,7 +250,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Stars == other.Stars);
+            return (global::System.Object.Equals(Stars, other.Stars));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -720,6 +720,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Review", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -732,6 +737,11 @@ namespace Foo.Bar.State
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -775,6 +785,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Review", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -787,6 +802,11 @@ namespace Foo.Bar.State
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

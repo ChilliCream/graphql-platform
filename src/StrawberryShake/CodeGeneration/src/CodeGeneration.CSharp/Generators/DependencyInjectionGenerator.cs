@@ -51,7 +51,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Guid"] = UUIDSerializer,
         ["URL"] = UrlSerializer,
         ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer
+        ["URI"] = UrlSerializer,
+        ["JSON"] = JsonSerializer,
+        ["Json"] = JsonSerializer
     };
 
     protected override void Generate(

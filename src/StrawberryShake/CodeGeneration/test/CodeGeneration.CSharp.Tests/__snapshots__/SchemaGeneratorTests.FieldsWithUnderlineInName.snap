@@ -356,7 +356,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TimeUnit.Equals(other.TimeUnit)) && Factor == other.Factor;
+            return (TimeUnit.Equals(other.TimeUnit)) && global::System.Object.Equals(Factor, other.Factor);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -431,7 +431,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_inventoryItemId is null && other._inventoryItemId is null) || _inventoryItemId != null && _inventoryItemId.Equals(other._inventoryItemId))) && ((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name)) && ((Completeness is null && other.Completeness is null) || Completeness != null && Completeness.Equals(other.Completeness)) && LowerBound == other.LowerBound && UpperBound == other.UpperBound;
+            return (((_inventoryItemId is null && other._inventoryItemId is null) || _inventoryItemId != null && _inventoryItemId.Equals(other._inventoryItemId))) && ((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name)) && ((Completeness is null && other.Completeness is null) || Completeness != null && Completeness.Equals(other.Completeness)) && global::System.Object.Equals(LowerBound, other.LowerBound) && global::System.Object.Equals(UpperBound, other.UpperBound);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -520,7 +520,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (FromPeriod == other.FromPeriod) && ToPeriod == other.ToPeriod;
+            return (global::System.Object.Equals(FromPeriod, other.FromPeriod)) && global::System.Object.Equals(ToPeriod, other.ToPeriod);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -597,7 +597,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Timestamp.Equals(other.Timestamp)) && Value == other.Value && Flag.Equals(other.Flag);
+            return (Timestamp.Equals(other.Timestamp)) && global::System.Object.Equals(Value, other.Value) && Flag.Equals(other.Flag);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -2357,7 +2357,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((All is null && other.All is null) || All != null && All.Equals(other.All))) && ((None is null && other.None is null) || None != null && None.Equals(other.None)) && ((Some is null && other.Some is null) || Some != null && Some.Equals(other.Some)) && Any == other.Any;
+            return (((All is null && other.All is null) || All != null && All.Equals(other.All))) && ((None is null && other.None is null) || None != null && None.Equals(other.None)) && ((Some is null && other.Some is null) || Some != null && Some.Equals(other.Some)) && global::System.Object.Equals(Any, other.Any);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2780,7 +2780,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TimeUnit.Equals(other.TimeUnit)) && Factor == other.Factor;
+            return (TimeUnit.Equals(other.TimeUnit)) && global::System.Object.Equals(Factor, other.Factor);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -3710,6 +3710,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Bwr_TimeSeriesConnection", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3726,6 +3731,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var bwr_TimeSeriess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -3738,6 +3748,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityId? Update_IGetBwr_TimeSeries_Bwr_TimeSeries_NodesEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3768,12 +3783,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::Foo.Bar.State.ResolutionData? Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3794,6 +3819,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _timeUnitParser.Parse(obj.Value.GetString()!);
         }
 
@@ -3804,12 +3834,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteriaEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3840,12 +3880,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _decimalParser.Parse(obj.Value.GetDecimal()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecificationEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3876,12 +3926,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.DataPointData>? Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3902,6 +3962,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("DataPoint", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3918,6 +3983,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
 
@@ -3928,12 +3998,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _floatParser.Parse(obj.Value.GetDouble()!);
         }
 
         private global::Foo.Bar.DataFlag Deserialize_NonNullableDataFlag(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

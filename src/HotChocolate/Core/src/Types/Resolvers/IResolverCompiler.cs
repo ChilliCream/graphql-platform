@@ -23,6 +23,9 @@ public interface IResolverCompiler : IDisposable
     /// <param name="sourceType">
     /// The source type.
     /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
     /// <param name="parameterExpressionBuilders">
     /// Field level parameter expression builders.
     /// </param>
@@ -70,6 +73,9 @@ public interface IResolverCompiler : IDisposable
     /// <param name="resolverType">
     /// The resolver type.
     /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
     /// <param name="parameterExpressionBuilders">
     /// Field level parameter expression builders.
     /// </param>
@@ -94,6 +100,12 @@ public interface IResolverCompiler : IDisposable
     /// </param>
     /// <param name="resolverType">
     /// The resolver type.
+    /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
+    /// <param name="parameterExpressionBuilders">
+    /// Field level parameter expression builders.
     /// </param>
     /// <returns>
     /// Returns the compiled subscribe resolver.

@@ -191,7 +191,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && ActionType.Equals(other.ActionType);
+            return (Name.Equals(other.Name)) && global::System.Object.Equals(Level, other.Level) && global::System.Object.Equals(CanBeLearnedMoreThanOnce, other.CanBeLearnedMoreThanOnce) && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -742,6 +742,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -758,6 +763,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var feats = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -770,6 +780,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityId? Update_IGetFeatsPage_Feats_ItemsEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -800,12 +815,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -820,12 +845,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _booleanParser.Parse(obj.Value.GetBoolean()!);
         }
 
         private global::StrawberryShake.EntityId Update_NonNullableIGetFeatsPage_Feats_Items_ActionTypeEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

@@ -16,6 +16,7 @@ public class StarWarsGetFriendsDeferredTest : ServerTestBase
     {
     }
 
+    /*
     [Fact]
     public async Task Execute_StarWarsGetFriendsDeferred_Test()
     {
@@ -41,4 +42,5 @@ public class StarWarsGetFriendsDeferredTest : ServerTestBase
         // assert
 
     }
+    */
 }

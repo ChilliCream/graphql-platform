@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
@@ -24,6 +25,16 @@ public class Query
     public ICharacter GetHero(Episode episode)
     {
         return _repository.GetHero(episode);
+    }
+
+    /// <summary>
+    /// Retrieve a hero by a particular their traits.
+    /// </summary>
+    /// <param name="traits">The traits to look up by.</param>
+    /// <returns>The character.</returns>
+    public ICharacter GetHeroByTraits(JsonElement traits)
+    {
+        return _repository.GetHeroByTraits(traits);
     }
 
     /// <summary>
