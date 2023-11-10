@@ -191,7 +191,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && ActionType.Equals(other.ActionType);
+            return (Name.Equals(other.Name)) && global::System.Object.Equals(Level, other.Level) && global::System.Object.Equals(CanBeLearnedMoreThanOnce, other.CanBeLearnedMoreThanOnce) && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

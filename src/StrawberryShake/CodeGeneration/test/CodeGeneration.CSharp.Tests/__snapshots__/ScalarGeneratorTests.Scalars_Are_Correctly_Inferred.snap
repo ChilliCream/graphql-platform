@@ -113,7 +113,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (NumberFloat == other.NumberFloat) && NumberInt == other.NumberInt;
+            return (global::System.Object.Equals(NumberFloat, other.NumberFloat)) && global::System.Object.Equals(NumberInt, other.NumberInt);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

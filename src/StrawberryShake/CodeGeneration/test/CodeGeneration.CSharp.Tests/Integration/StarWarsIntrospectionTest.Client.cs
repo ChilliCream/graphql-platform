@@ -678,7 +678,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && OnOperation == other.OnOperation && OnFragment == other.OnFragment && OnField == other.OnField;
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && global::System.Object.Equals(OnOperation, other.OnOperation) && global::System.Object.Equals(OnFragment, other.OnFragment) && global::System.Object.Equals(OnField, other.OnField);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -771,7 +771,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && Type.Equals(other.Type) && IsDeprecated == other.IsDeprecated && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && Type.Equals(other.Type) && global::System.Object.Equals(IsDeprecated, other.IsDeprecated) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1033,7 +1033,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && IsDeprecated == other.IsDeprecated && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::System.Object.Equals(IsDeprecated, other.IsDeprecated) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

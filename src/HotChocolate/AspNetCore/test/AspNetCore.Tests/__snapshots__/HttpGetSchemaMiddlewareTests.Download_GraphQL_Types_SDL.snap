@@ -1,5 +1,6 @@
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: JSON!): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
