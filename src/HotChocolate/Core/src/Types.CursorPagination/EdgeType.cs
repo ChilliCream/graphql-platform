@@ -73,10 +73,6 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     public IOutputType NodeType { get; private set; } = default!;
 
     /// <inheritdoc />
-    [Obsolete("Use NodeType.")]
-    public IOutputType EntityType => NodeType;
-
-    /// <inheritdoc />
     public override bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
         if (resolverResult is IEdge { Node: not null } edge)

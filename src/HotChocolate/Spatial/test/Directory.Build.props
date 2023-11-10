@@ -3,7 +3,8 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <Warn>0</Warn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

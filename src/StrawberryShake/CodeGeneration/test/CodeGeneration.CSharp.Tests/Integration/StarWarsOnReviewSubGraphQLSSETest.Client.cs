@@ -200,7 +200,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
                 return false;
             }
 
-            return (__typename.Equals(other.__typename)) && Stars == other.Stars && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+            return (__typename.Equals(other.__typename)) && global::System.Object.Equals(Stars, other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)

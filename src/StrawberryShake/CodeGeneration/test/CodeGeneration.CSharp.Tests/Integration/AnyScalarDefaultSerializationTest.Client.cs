@@ -105,12 +105,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetJsonResult : global::System.IEquatable<GetJsonResult>, IGetJsonResult
     {
-        public GetJsonResult(global::System.Text.Json.JsonDocument json)
+        public GetJsonResult(global::System.Text.Json.JsonElement json)
         {
             Json = json;
         }
 
-        public global::System.Text.Json.JsonDocument Json { get; }
+        public global::System.Text.Json.JsonElement Json { get; }
 
         public virtual global::System.Boolean Equals(GetJsonResult? other)
         {
@@ -129,7 +129,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
                 return false;
             }
 
-            return (Json == other.Json);
+            return (global::System.Object.Equals(Json, other.Json));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -167,7 +167,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetJsonResult
     {
-        public global::System.Text.Json.JsonDocument Json { get; }
+        public global::System.Text.Json.JsonElement Json { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -331,14 +331,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-        public GetJsonResultInfo(global::System.Text.Json.JsonDocument json, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
+        public GetJsonResultInfo(global::System.Text.Json.JsonElement json, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             Json = json;
             _entityIds = entityIds ?? throw new global::System.ArgumentNullException(nameof(entityIds));
             _version = version;
         }
 
-        public global::System.Text.Json.JsonDocument Json { get; }
+        public global::System.Text.Json.JsonElement Json { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
@@ -354,13 +354,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument> _anyParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonElement> _anyParser;
         public GetJsonBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization.IGetJsonResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             ResultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _anyParser = serializerResolver.GetLeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonDocument>("Any") ?? throw new global::System.ArgumentException("No serializer for type `Any` found.");
+            _anyParser = serializerResolver.GetLeafValueParser<global::System.Text.Json.JsonElement, global::System.Text.Json.JsonElement>("Any") ?? throw new global::System.ArgumentException("No serializer for type `Any` found.");
         }
 
         protected override global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization.IGetJsonResult> ResultDataFactory { get; }
@@ -373,12 +373,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
             {
                 snapshot = session.CurrentSnapshot;
             });
-            return new GetJsonResultInfo(Deserialize_NonNullableJsonDocument(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "json")), entityIds, snapshot.Version);
+            return new GetJsonResultInfo(Deserialize_NonNullableJsonElement(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "json")), entityIds, snapshot.Version);
         }
 
-        private global::System.Text.Json.JsonDocument Deserialize_NonNullableJsonDocument(global::System.Text.Json.JsonElement? obj)
+        private global::System.Text.Json.JsonElement Deserialize_NonNullableJsonElement(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

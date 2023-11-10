@@ -197,7 +197,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
                 return false;
             }
 
-            return (__typename.Equals(other.__typename)) && Stars == other.Stars && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+            return (__typename.Equals(other.__typename)) && global::System.Object.Equals(Stars, other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -478,6 +478,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Review", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -494,6 +499,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
@@ -504,12 +514,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubN
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::System.String? Deserialize_String(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }

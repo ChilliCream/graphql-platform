@@ -16,10 +16,4 @@ public interface IEdgeType : IObjectType
     /// Gets the item type of the node field on the edge type.
     /// </summary>
     IOutputType NodeType { get; }
-
-    /// <summary>
-    /// Gets the item type of the node field on the edge type.
-    /// </summary>
-    [Obsolete("Use NodeType.")]
-    IOutputType EntityType { get; }
 }

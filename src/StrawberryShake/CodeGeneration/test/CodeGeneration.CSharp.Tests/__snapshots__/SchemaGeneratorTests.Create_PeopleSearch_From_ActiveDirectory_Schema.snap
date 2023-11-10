@@ -122,7 +122,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TotalCount == other.TotalCount) && PageInfo.Equals(other.PageInfo) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
+            return (global::System.Object.Equals(TotalCount, other.TotalCount)) && PageInfo.Equals(other.PageInfo) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Items, other.Items);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -205,7 +205,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (HasNextPage == other.HasNextPage) && HasPreviousPage == other.HasPreviousPage;
+            return (global::System.Object.Equals(HasNextPage, other.HasNextPage)) && global::System.Object.Equals(HasPreviousPage, other.HasPreviousPage);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -310,7 +310,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName)) && IsActive == other.IsActive && ((Department is null && other.Department is null) || Department != null && Department.Equals(other.Department)) && ((Image is null && other.Image is null) || Image != null && Image.Equals(other.Image)) && Title.Equals(other.Title) && ((Manager is null && other.Manager is null) || Manager != null && Manager.Equals(other.Manager));
+            return (Id.Equals(other.Id)) && global::System.Object.Equals(Key, other.Key) && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName)) && global::System.Object.Equals(IsActive, other.IsActive) && ((Department is null && other.Department is null) || Department != null && Department.Equals(other.Department)) && ((Image is null && other.Image is null) || Image != null && Image.Equals(other.Image)) && Title.Equals(other.Title) && ((Manager is null && other.Manager is null) || Manager != null && Manager.Equals(other.Manager));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -476,7 +476,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName));
+            return (Id.Equals(other.Id)) && global::System.Object.Equals(Key, other.Key) && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1229,6 +1229,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -1245,12 +1250,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::Foo.Bar.State.CollectionSegmentInfoData Deserialize_NonNullableIPeopleSearch_People_PageInfo(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -1271,12 +1286,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _booleanParser.Parse(obj.Value.GetBoolean()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? Update_IPeopleSearch_People_ItemsEntityNonNullableArray(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1293,6 +1318,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityId Update_NonNullableIPeopleSearch_People_ItemsEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -1323,12 +1353,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _iDParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Int64 Deserialize_NonNullableInt64(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -1343,12 +1383,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IPeopleSearch_People_Items_DepartmentEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1379,12 +1429,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _urlParser.Parse(obj.Value.GetString()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IPeopleSearch_People_Items_ManagerEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }

@@ -134,7 +134,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Amount == other.Amount && Date.Equals(other.Date) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && Category.Equals(other.Category) && PaymentMethod.Equals(other.PaymentMethod) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Tags, other.Tags);
+            return (Id.Equals(other.Id)) && global::System.Object.Equals(Amount, other.Amount) && Date.Equals(other.Date) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && Category.Equals(other.Category) && PaymentMethod.Equals(other.PaymentMethod) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Tags, other.Tags);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -747,6 +747,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var expenses = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -759,6 +764,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityId? Update_IAllExpenses_ExpenseEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -789,12 +799,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _uUIDParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Decimal Deserialize_NonNullableDecimal(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -809,12 +829,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.String? Deserialize_String(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -829,6 +859,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _expenseCategoryParser.Parse(obj.Value.GetString()!);
         }
 
@@ -839,12 +874,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _paymentMethodParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? Deserialize_IAllExpenses_Expense_TagsArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -861,6 +906,11 @@ namespace Foo.Bar.State
         private global::Foo.Bar.State.TagData? Deserialize_IAllExpenses_Expense_Tags(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }

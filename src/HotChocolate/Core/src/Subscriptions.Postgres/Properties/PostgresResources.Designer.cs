@@ -98,5 +98,11 @@ namespace HotChocolate.Subscriptions.Postgres {
                 return ResourceManager.GetString("ChannelWriter_FailedToSend", resourceCulture);
             }
         }
+        
+        internal static string PostgresMessageEnvelope_PayloadTooLarge {
+            get {
+                return ResourceManager.GetString("PostgresMessageEnvelope_PayloadTooLarge", resourceCulture);
+            }
+        }
     }
 }

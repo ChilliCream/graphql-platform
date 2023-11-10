@@ -1071,6 +1071,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
     }

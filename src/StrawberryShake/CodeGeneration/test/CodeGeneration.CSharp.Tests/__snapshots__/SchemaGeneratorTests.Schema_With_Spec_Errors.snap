@@ -112,7 +112,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Count == other.Count);
+            return (global::System.Object.Equals(Count, other.Count));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -430,6 +430,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("ListingsPayload", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -442,6 +447,11 @@ namespace Foo.Bar.State
         private global::System.Int32 Deserialize_NonNullableInt32(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }

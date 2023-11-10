@@ -678,7 +678,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && OnOperation == other.OnOperation && OnFragment == other.OnFragment && OnField == other.OnField;
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && global::System.Object.Equals(OnOperation, other.OnOperation) && global::System.Object.Equals(OnFragment, other.OnFragment) && global::System.Object.Equals(OnField, other.OnField);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -771,7 +771,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && Type.Equals(other.Type) && IsDeprecated == other.IsDeprecated && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(Args, other.Args) && Type.Equals(other.Type) && global::System.Object.Equals(IsDeprecated, other.IsDeprecated) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -1033,7 +1033,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return false;
             }
 
-            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && IsDeprecated == other.IsDeprecated && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
+            return (Name.Equals(other.Name)) && ((Description is null && other.Description is null) || Description != null && Description.Equals(other.Description)) && global::System.Object.Equals(IsDeprecated, other.IsDeprecated) && ((DeprecationReason is null && other.DeprecationReason is null) || DeprecationReason != null && DeprecationReason.Equals(other.DeprecationReason));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -3832,6 +3832,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Schema", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3844,6 +3849,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData Deserialize_NonNullableIIntrospectionQuery___schema_QueryType(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -3864,12 +3874,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? Deserialize_IIntrospectionQuery___schema_MutationType(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3890,6 +3910,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3902,6 +3927,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData> Deserialize_NonNullableIIntrospectionQuery___schema_TypesNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -3922,6 +3952,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3938,12 +3973,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return ___TypeKindParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__FieldData>? Deserialize_IIntrospectionQuery___schema_Types_FieldsNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3964,6 +4009,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Field", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3980,12 +4030,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData> Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields_ArgsNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -4006,6 +4066,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__InputValue", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4018,6 +4083,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData Deserialize_NonNullableIIntrospectionQuery___schema_Types_InputFields_Type(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -4038,6 +4108,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4050,6 +4125,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData? Deserialize_IIntrospectionQuery___schema_Types_Interfaces_OfType_OfType(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -4070,6 +4150,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4082,6 +4167,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData Deserialize_NonNullableIIntrospectionQuery___schema_Types_Fields_Type(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -4102,12 +4192,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _booleanParser.Parse(obj.Value.GetBoolean()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>? Deserialize_IIntrospectionQuery___schema_Types_InputFieldsNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -4128,6 +4228,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__InputValue", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4140,6 +4245,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>? Deserialize_IIntrospectionQuery___schema_Types_InterfacesNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -4160,6 +4270,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4172,6 +4287,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__EnumValueData>? Deserialize_IIntrospectionQuery___schema_Types_EnumValuesNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -4192,6 +4312,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__EnumValue", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4204,6 +4329,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__TypeData>? Deserialize_IIntrospectionQuery___schema_Types_PossibleTypesNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -4224,6 +4354,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Type", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4236,6 +4371,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__DirectiveData> Deserialize_NonNullableIIntrospectionQuery___schema_DirectivesNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -4256,6 +4396,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("__Directive", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -4272,6 +4417,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var __InputValues = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -4284,6 +4434,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection.State.__InputValueData Deserialize_NonNullableIIntrospectionQuery___schema_Directives_Args(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
