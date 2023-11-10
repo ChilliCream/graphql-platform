@@ -36,8 +36,17 @@ internal static class GraphQLHttpEventStreamProcessor
         var bufferMemory = new Memory<byte>(buffer);
 #endif
 
+#if NET6_0_OR_GREATER
+        await using var tokenRegistration = ct.Register(
+            static writer => ((PipeWriter)writer!).CancelPendingFlush(), 
+            state: writer, 
+            useSynchronizationContext: false);
+#else 
         using var tokenRegistration = ct.Register(
-            static writer => ((PipeWriter)writer!).CancelPendingFlush(), writer, false);
+            static writer => ((PipeWriter)writer!).CancelPendingFlush(), 
+            state: writer, 
+            useSynchronizationContext: false);
+#endif
 
         while (true)
         {
@@ -53,18 +62,24 @@ internal static class GraphQLHttpEventStreamProcessor
                 {
                     break;
                 }
-
+                
+#if NET6_0_OR_GREATER
+                var memory = writer.GetMemory(bytesRead);
+                buffer.AsSpan()[..bytesRead].CopyTo(memory.Span);
+                writer.Advance(bytesRead);
+#else
                 var memory = writer.GetMemory(bytesRead);
                 buffer.AsSpan().Slice(0, bytesRead).CopyTo(memory.Span);
                 writer.Advance(bytesRead);
+#endif
             }
             catch
             {
                 break;
             }
-
+            
+            // ReSharper disable once RedundantArgumentDefaultValue
             var result = await writer.FlushAsync(default).ConfigureAwait(false);
-
             if (result.IsCompleted || result.IsCanceled)
             {
                 break;
@@ -80,11 +95,21 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         using var message = new ArrayWriter();
 
+#if NET6_0_OR_GREATER
+        await using var tokenRegistration = ct.Register(
+            static reader => ((PipeReader)reader!).CancelPendingRead(), 
+            state: reader, 
+            useSynchronizationContext: false);
+#else
         using var tokenRegistration = ct.Register(
-            static reader => ((PipeReader)reader!).CancelPendingRead(), reader, false);
+            static reader => ((PipeReader)reader!).CancelPendingRead(), 
+            state: reader, 
+            useSynchronizationContext: false);
+#endif
 
         while (true)
         {
+            // ReSharper disable once RedundantArgumentDefaultValue
             var result = await reader.ReadAsync(default).ConfigureAwait(false);
             if (result.IsCanceled)
             {
@@ -98,24 +123,26 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 position = buffer.PositionOf((byte) '\n');
 
-                if (position != null)
+                if (position == null)
                 {
-                    WriteToMessage(message, buffer.Slice(0, position.Value));
-
-                    if (IsMessageComplete(message))
-                    {
-                        if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
-                        {
-                            await reader.CompleteAsync().ConfigureAwait(false);
-                            yield break;
-                        }
-                        
-                        message.Reset();
-                        yield return operationResult;
-                    }
-
-                    buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                    continue;
                 }
+                
+                WriteToMessage(message, buffer.Slice(0, position.Value));
+
+                if (IsMessageComplete(message))
+                {
+                    if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
+                    {
+                        await reader.CompleteAsync().ConfigureAwait(false);
+                        yield break;
+                    }
+                        
+                    message.Reset();
+                    yield return operationResult;
+                }
+
+                buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
             } while (position != null);
 
             reader.AdvanceTo(buffer.Start, buffer.End);
