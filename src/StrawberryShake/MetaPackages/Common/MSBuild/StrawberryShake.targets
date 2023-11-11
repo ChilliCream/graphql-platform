@@ -31,23 +31,17 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="_ParseVersion">
-    <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
-    </Exec>
-  </Target>
-
   <Target
     Name="_GenerateGraphQLCode"
     Inputs="@(GenerateGraphQLCodeItems)"
     Outputs="$(MSBuildProjectDirectory)\$(IntermediateOutputPath)berry\.build.info"
-    DependsOnTargets="_ParseVersion;_GraphQLCodeGenerationRoot"
+    DependsOnTargets="_GraphQLCodeGenerationRoot"
     Condition="'@(GraphQL)' != ''">
 
     <PropertyGroup>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 6))">6</DotNetMajor>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 7))">7</DotNetMajor>
-      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 8))">8</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">6</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">7</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">8</DotNetMajor>
     </PropertyGroup>
 
     <Error
