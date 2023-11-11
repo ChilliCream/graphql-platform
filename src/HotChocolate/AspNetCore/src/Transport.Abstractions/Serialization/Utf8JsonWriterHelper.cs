@@ -194,11 +194,6 @@ internal static class Utf8JsonWriterHelper
 
         foreach (var item in dict)
         {
-            if (item.Value is null)
-            {
-                continue;
-            }
-
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
         }
