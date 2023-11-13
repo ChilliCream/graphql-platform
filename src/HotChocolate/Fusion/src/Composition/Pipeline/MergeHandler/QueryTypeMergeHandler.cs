@@ -80,7 +80,7 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
 
             // if we find a query field that returns an object type,
             // we need to check if the query field can be used as an entity resolver.
-            if (targetField.Type.NamedType().Kind == TypeKind.Object)
+            if (targetField.Type.NamedType().Kind is TypeKind.Object)
             {
                 TryExtractAnnotationBasedEntityResolver(context, sourceSchema, sourceField, targetField);
             }
@@ -135,7 +135,7 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
         }
 
         List<EntitySourceArgument>? arguments = null;
-        ResolverKind kind = ResolverKind.Fetch;
+        var kind = ResolverKind.Fetch;
         
         foreach (var argument in sourceField.Arguments)
         {
