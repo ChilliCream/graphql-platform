@@ -37,7 +37,7 @@
     </Exec>
 
     <PropertyGroup>
-      <DotNetVersion>%(DotNetVersion.Identity)</DotNetVersion>
+      <DotNetVersion Condition="$([System.Text.RegularExpressions.Regex]::Match(%(Identity),'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$').Success)">@(DotNetVersion)</DotNetVersion>
     </PropertyGroup>
   </Target>
 
