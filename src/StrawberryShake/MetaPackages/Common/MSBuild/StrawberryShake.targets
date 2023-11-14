@@ -33,8 +33,12 @@
 
   <Target Name="_ParseVersion">
     <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
+      <Output TaskParameter="ConsoleOutput" ItemName="DotNetVersion" />
     </Exec>
+
+    <PropertyGroup>
+      <DotNetVersion>%(DotNetVersion.Identity)</DotNetVersion>
+    </PropertyGroup>
   </Target>
 
   <Target
