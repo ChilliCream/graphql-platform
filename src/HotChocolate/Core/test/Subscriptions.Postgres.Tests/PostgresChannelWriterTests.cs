@@ -62,7 +62,7 @@ public class PostgresChannelWriterTests
 
         // Act
         await Parallel.ForEachAsync(Enumerable.Range(0, 1000),
-            new ParallelOptions() { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10 },
             async (_, _) =>
             {
                 await postgresChannelWriter.SendAsync(message, CancellationToken.None);
