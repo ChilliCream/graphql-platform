@@ -2964,7 +2964,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Bwr_TimeSeries on bwr_TimeSeries {
     ///   inventoryId: _inventoryItemId
     ///   area
@@ -3002,7 +3002,7 @@ namespace Foo.Bar
     ///     flag
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Bwr_ValidationCriteria on bwr_ValidationCriteria {
     ///   _inventoryItemId
     ///   name
@@ -3049,7 +3049,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Bwr_TimeSeries on bwr_TimeSeries {
     ///   inventoryId: _inventoryItemId
     ///   area
@@ -3087,7 +3087,7 @@ namespace Foo.Bar
     ///     flag
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Bwr_ValidationCriteria on bwr_ValidationCriteria {
     ///   _inventoryItemId
     ///   name
@@ -3180,7 +3180,7 @@ namespace Foo.Bar
     ///     }
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Bwr_TimeSeries on bwr_TimeSeries {
     ///   inventoryId: _inventoryItemId
     ///   area
@@ -3218,7 +3218,7 @@ namespace Foo.Bar
     ///     flag
     ///   }
     /// }
-    /// 
+    ///
     /// fragment Bwr_ValidationCriteria on bwr_ValidationCriteria {
     ///   _inventoryItemId
     ///   name
@@ -4343,7 +4343,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_TimeSeriesEntity, global::Foo.Bar.GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries>, global::Foo.Bar.State.GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeriesFrombwr_TimeSeriesEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, global::Foo.Bar.GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria>, global::Foo.Bar.State.GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper>(services);

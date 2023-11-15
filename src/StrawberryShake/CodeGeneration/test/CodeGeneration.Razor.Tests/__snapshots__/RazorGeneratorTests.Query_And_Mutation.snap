@@ -1157,7 +1157,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.GetBars_Bars_Bar>, global::Foo.Bar.State.GetBars_Bars_BarFromBarEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.SaveBars_SaveBar_Bar>, global::Foo.Bar.State.SaveBars_SaveBar_BarFromBarEntityMapper>(services);

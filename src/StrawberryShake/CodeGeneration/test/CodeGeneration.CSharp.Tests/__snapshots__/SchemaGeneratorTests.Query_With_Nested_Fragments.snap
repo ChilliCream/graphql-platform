@@ -351,7 +351,7 @@ namespace Foo.Bar
     ///     ... ListingsPayload
     ///   }
     /// }
-    /// 
+    ///
     /// fragment ListingsPayload on ListingsPayload {
     ///   items {
     ///     __typename
@@ -360,15 +360,15 @@ namespace Foo.Bar
     ///     ... Auction
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HasListingId on Listing {
     ///   listingId
     /// }
-    /// 
+    ///
     /// fragment Offer on Offer {
     ///   price
     /// }
-    /// 
+    ///
     /// fragment Auction on Auction {
     ///   startingPrice
     /// }
@@ -405,7 +405,7 @@ namespace Foo.Bar
     ///     ... ListingsPayload
     ///   }
     /// }
-    /// 
+    ///
     /// fragment ListingsPayload on ListingsPayload {
     ///   items {
     ///     __typename
@@ -414,15 +414,15 @@ namespace Foo.Bar
     ///     ... Auction
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HasListingId on Listing {
     ///   listingId
     /// }
-    /// 
+    ///
     /// fragment Offer on Offer {
     ///   price
     /// }
-    /// 
+    ///
     /// fragment Auction on Auction {
     ///   startingPrice
     /// }
@@ -476,7 +476,7 @@ namespace Foo.Bar
     ///     ... ListingsPayload
     ///   }
     /// }
-    /// 
+    ///
     /// fragment ListingsPayload on ListingsPayload {
     ///   items {
     ///     __typename
@@ -485,15 +485,15 @@ namespace Foo.Bar
     ///     ... Auction
     ///   }
     /// }
-    /// 
+    ///
     /// fragment HasListingId on Listing {
     ///   listingId
     /// }
-    /// 
+    ///
     /// fragment Offer on Offer {
     ///   price
     /// }
-    /// 
+    ///
     /// fragment Auction on Auction {
     ///   startingPrice
     /// }
@@ -898,7 +898,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+                return clientFactory.CreateHttpConnection("FooClient");
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);

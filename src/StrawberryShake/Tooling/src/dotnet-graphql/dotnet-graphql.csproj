@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
     <ProjectReference Include="..\Configuration\StrawberryShake.Tools.Configuration.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />

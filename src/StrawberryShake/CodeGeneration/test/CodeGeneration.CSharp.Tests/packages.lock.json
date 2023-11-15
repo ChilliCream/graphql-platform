@@ -1776,6 +1776,7 @@
       "strawberryshake.tools.configuration": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Extensions.Http": "[6.0.0, )",
           "Newtonsoft.Json": "[13.0.2, )"
         }
       },
@@ -3607,6 +3608,7 @@
       "strawberryshake.tools.configuration": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Extensions.Http": "[7.0.0, )",
           "Newtonsoft.Json": "[13.0.2, )"
         }
       },
@@ -5505,6 +5507,7 @@
       "strawberryshake.tools.configuration": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.Extensions.Http": "[8.0.0-rc.2.23479.6, )",
           "Newtonsoft.Json": "[13.0.2, )"
         }
       },

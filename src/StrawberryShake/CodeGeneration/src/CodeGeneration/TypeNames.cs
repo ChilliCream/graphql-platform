@@ -219,6 +219,7 @@ public static class TypeNames
         "global::Microsoft.AspNetCore.Components.ParameterAttribute";
 
     public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
+    public const string IHttpConnectionFactory = "global::StrawberryShake.Transport.Http.IHttpConnectionFactory";
     public const string TryAddSingleton = DependencyInjectionExtensions + "TryAddSingleton";
     public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";
     public const string StrawberryShakeNamespace = "global::StrawberryShake.";

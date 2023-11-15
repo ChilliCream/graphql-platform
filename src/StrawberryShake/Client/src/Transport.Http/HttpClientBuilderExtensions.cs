@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using StrawberryShake;
 using StrawberryShake.Transport.Http;
+using Microsoft.Extensions.Http;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
