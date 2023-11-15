@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.7" Condition="'$(TargetFramework)' == 'net6.0'"/>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.0" Condition="'$(TargetFramework)' == 'net7.0'"/>
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.0-rc.2.23480.2" Condition="'$(TargetFramework)' == 'net8.0'"/>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.0" Condition="'$(TargetFramework)' == 'net8.0'"/>
     <PackageReference Include="coverlet.msbuild" Version="3.1.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
