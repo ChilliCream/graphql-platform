@@ -514,13 +514,13 @@
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "QLTBDvE/E05Xl2UVFXOBFIW0VLn/mMJ8DSbTyK6ODsO3sqDs0fyPqydACTnX/nbGZRrTMeud3XDbUrt24ab1EA=="
+        "resolved": "8.0.0",
+        "contentHash": "cjWrLkJXK0rs4zofsK4bSdg+jhDLTaxrkXu4gS6Y7MAlCvRyNNgwY/lJi5RDlQOnSZweHqoyvgvbdvQsRIW+hg=="
       },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23480.2",
-        "contentHash": "iL9VcNK4dbMOLqAHInwcmVxzr+5sXp70m5Tt1uyIkc5SfJUTuFN6VaxrZy3k91oquTtYrkK9DbE5IP18iJUrtw=="
+        "resolved": "8.0.0",
+        "contentHash": "4pm+XgxSukskwjzDDfSjG4KNUIOdFF2VaqZZDtTzoyQMOVSnlV6ZM8a9aVu5dg9LVZTB//utzSc8fOi0b0Mb2Q=="
       },
       "Microsoft.SourceLink.Common": {
         "type": "Transitive",
@@ -529,8 +529,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "+iYjFMCIQMT7FCkZgiYY4Xk9fYCmmiPtCLNn3qqMTJ7Jeqa6SfYdFKsAk4XHTPK81Ov0LsFbKKSMDGFggTc+ZA=="
+        "resolved": "8.0.0",
+        "contentHash": "AurL6Y5BA1WotzlEvVaIDpqzpIPvYnnldxru8oXJU2yFxFUy3+pNXjXd1ymO+RA0rq0+590Q8gaz2l3Sr7fmqg=="
       },
       "System.ComponentModel.Annotations": {
         "type": "Transitive",
@@ -544,22 +544,22 @@
       },
       "System.Text.Encodings.Web": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "n66ZIJjetmrMq9hJ61Xed2cp9O2zr/VdzhhURjkLDEFOZ38/VpOWnvM3CWCXA18NbM7x0tdKZYex9rj0NimpPA=="
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
       },
       "System.Text.Json": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "SXMjrmm/e0Om+731AEUgm+81dC+i9mV54nKJGOq9+zTYpzujMCmSQSMS1sgQb0gmiiAfTfRC5WgD3l92cfAP+g==",
+        "resolved": "8.0.0",
+        "contentHash": "OdrZO2WjkiEG6ajEFRABTRCi/wuXQPxeV6g8xvUJqdxMvvuCCEk86zPla8UiIQJz3durtUEbNyY/3lIhS0yZvQ==",
         "dependencies": {
-          "System.Text.Encodings.Web": "8.0.0-rc.2.23479.6"
+          "System.Text.Encodings.Web": "8.0.0"
         }
       },
       "hotchocolate.abstractions": {
         "type": "Project",
         "dependencies": {
           "HotChocolate.Language": "[0.0.0, )",
-          "System.Collections.Immutable": "[8.0.0-rc.2.23479.6, )"
+          "System.Collections.Immutable": "[8.0.0, )"
         }
       },
       "hotchocolate.language": {
@@ -574,7 +574,7 @@
       "hotchocolate.language.syntaxtree": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )"
+          "Microsoft.Extensions.ObjectPool": "[8.0.0, )"
         }
       },
       "hotchocolate.language.utf8": {
@@ -601,10 +601,10 @@
           "HotChocolate.Abstractions": "[0.0.0, )",
           "HotChocolate.Types.Shared": "[0.0.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.0-rc.2.23479.6, )",
-          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "[8.0.0, )",
+          "Microsoft.Extensions.ObjectPool": "[8.0.0, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
-          "System.Text.Json": "[8.0.0-rc.2.23479.6, )"
+          "System.Text.Json": "[8.0.0, )"
         }
       },
       "hotchocolate.types.shared": {

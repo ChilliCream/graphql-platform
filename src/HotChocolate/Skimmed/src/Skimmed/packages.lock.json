@@ -79,9 +79,9 @@
     "net8.0": {
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
-        "requested": "[8.0.0-rc.2.23479.6, )",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "neRDuxVI/tdf5yz/rLyD1kP3DkWx8uHTvb1wcqbjDn4QQDHmYHwcuHBnVVPYtBzMFmlVNmJMa91weUEhHx2z5A=="
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "B3etT5XQ2nlWkZGO2m/ytDYrOmSsQG1XNBaM6ZYlX5Ch/tDrMFadr0/mK6gjZwaQc55g+5+WZMw4Cz3m8VEF7g=="
       },
       "Microsoft.SourceLink.GitHub": {
         "type": "Direct",
@@ -100,8 +100,8 @@
       },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23480.2",
-        "contentHash": "iL9VcNK4dbMOLqAHInwcmVxzr+5sXp70m5Tt1uyIkc5SfJUTuFN6VaxrZy3k91oquTtYrkK9DbE5IP18iJUrtw=="
+        "resolved": "8.0.0",
+        "contentHash": "4pm+XgxSukskwjzDDfSjG4KNUIOdFF2VaqZZDtTzoyQMOVSnlV6ZM8a9aVu5dg9LVZTB//utzSc8fOi0b0Mb2Q=="
       },
       "Microsoft.SourceLink.Common": {
         "type": "Transitive",
@@ -110,14 +110,14 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "+iYjFMCIQMT7FCkZgiYY4Xk9fYCmmiPtCLNn3qqMTJ7Jeqa6SfYdFKsAk4XHTPK81Ov0LsFbKKSMDGFggTc+ZA=="
+        "resolved": "8.0.0",
+        "contentHash": "AurL6Y5BA1WotzlEvVaIDpqzpIPvYnnldxru8oXJU2yFxFUy3+pNXjXd1ymO+RA0rq0+590Q8gaz2l3Sr7fmqg=="
       },
       "hotchocolate.abstractions": {
         "type": "Project",
         "dependencies": {
           "HotChocolate.Language": "[0.0.0, )",
-          "System.Collections.Immutable": "[8.0.0-rc.2.23479.6, )"
+          "System.Collections.Immutable": "[8.0.0, )"
         }
       },
       "hotchocolate.language": {
@@ -132,7 +132,7 @@
       "hotchocolate.language.syntaxtree": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )"
+          "Microsoft.Extensions.ObjectPool": "[8.0.0, )"
         }
       },
       "hotchocolate.language.utf8": {
