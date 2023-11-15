@@ -47,6 +47,31 @@ namespace HotChocolate.Fusion.Composition
             directive = new PrivateDirective();
             return true;
         }
+        
+        /// <summary>
+        /// Gets all @private directives from the specified member.
+        /// </summary>
+        /// <param name="member">
+        /// The member that shall be checked.
+        /// </param>
+        /// <param name="context">
+        /// The fusion type context that provides the directive names.
+        /// </param>
+        /// <returns>
+        /// Returns all @private directives.
+        /// </returns>
+        public static IEnumerable<PrivateDirective> GetAllFrom(
+            IHasDirectives member,
+            IFusionTypeContext context)
+        {
+            foreach (var directive in member.Directives[context.PrivateDirective.Name])
+            {
+                if (TryParse(directive, context, out var privateDirective))
+                {
+                    yield return privateDirective;
+                }
+            }
+        }
 
         /// <summary>
         /// Creates the private directive type.

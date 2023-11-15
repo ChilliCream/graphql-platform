@@ -82,7 +82,10 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
             // we need to check if the query field can be used as an entity resolver.
             if (targetField.Type.NamedType().Kind is TypeKind.Object)
             {
-                TryExtractAnnotationBasedEntityResolver(context, sourceSchema, sourceField, targetField);
+                if (!TryExtractAnnotationBasedEntityResolver(context, sourceSchema, sourceField, targetField))
+                {
+                    TryExtractNameBasedEntityResolver(context, sourceSchema, sourceField, targetField);
+                }
             }
         }
     }
@@ -121,9 +124,62 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
             
         var resolver = new ResolverDirective(operation, ResolverKind.Fetch, sourceSchema.Name);
         targetField.Directives.Add(resolver.ToDirective(context.FusionTypes));
+        SourceDirective.RemoveFrom(targetField, context.FusionTypes, sourceSchema.Name);
     }
 
-    private static void TryExtractAnnotationBasedEntityResolver(
+    private static bool TryExtractAnnotationBasedEntityResolver(
+        CompositionContext context,
+        Schema sourceSchema, 
+        OutputField sourceField, 
+        OutputField targetField)
+    {
+        if (sourceField.Arguments.Count == 0)
+        {
+            return false;
+        }
+
+        List<EntitySourceArgument>? arguments = null;
+        var kind = ResolverKind.Fetch;
+        
+        foreach (var argument in sourceField.Arguments)
+        {
+            if (kind is ResolverKind.Fetch && argument.Type.IsListType())
+            {
+                kind = ResolverKind.Batch;
+            }
+            
+            if (!IsDirective.ExistsIn(argument, context.FusionTypes))
+            {
+                return false;
+            }
+
+            var directive = IsDirective.TryGetFrom(argument, context.FusionTypes);
+            
+            if (directive is null)
+            {
+                // TODO : ERROR
+                context.Log.Write(
+                    new LogEntry(
+                        "The is directive must have a value for coordinate or field.",
+                        severity: LogSeverity.Error));
+                return false;
+            }
+            
+            (arguments ??= new()).Add(new EntitySourceArgument(argument, directive));
+        }
+        
+        context.EntityResolverInfos.Add(
+            new EntityResolverInfo(
+                targetField.Type.NamedType().Name,
+                sourceField.Type.NamedType().GetOriginalName(),
+                kind,
+                targetField,
+                new EntitySourceField(sourceSchema, sourceField),
+                arguments!));
+        return true;
+    }
+    
+    private static void TryExtractNameBasedEntityResolver(
         CompositionContext context,
         Schema sourceSchema, 
         OutputField sourceField, 

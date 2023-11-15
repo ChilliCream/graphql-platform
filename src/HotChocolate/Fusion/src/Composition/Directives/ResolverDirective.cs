@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Composition
     ///     subgraph: Name!
     /// ) repeatable on OBJECT | FIELD_DEFINITION`.
     /// </summary>
-    internal sealed class ResolverDirective
+    internal sealed class ResolverDirective : IHasSubgraphName
     {
         public ResolverDirective(OperationDefinitionNode operation, ResolverKind kind, string subgraph)
         {
@@ -66,7 +66,7 @@ namespace HotChocolate.Fusion.Composition
                 return false;
             }
 
-            var kindString = directiveNode.Arguments.GetValueOrDefault(KindArg)?.ExpectStringLiteral().Value;
+            var kindString = directiveNode.Arguments.GetValueOrDefault(KindArg)?.ExpectEnumLiteral().Value;
             if(kindString is null || !Enum.TryParse<ResolverKind>(kindString, ignoreCase: true, out var kind))
             {
                 directive = null;

@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Composition
     ///     subgraph: Name!
     /// ) repeatable on OBJECT | FIELD_DEFINITION`.
     /// </summary>
-    internal sealed class VariableDirective : IEquatable<VariableDirective>
+    internal sealed class VariableDirective : IHasSubgraphName, IEquatable<VariableDirective>
     {
         public VariableDirective(string name, FieldNode select, string subgraph)
         {

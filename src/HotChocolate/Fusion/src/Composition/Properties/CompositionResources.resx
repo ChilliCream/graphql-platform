@@ -99,4 +99,7 @@ Source Arguments: {2}</value>
   <data name="NodeDirective_TypesCannotBeNullOrEmpty" xml:space="preserve">
     <value>Node types list cannot be null or empty.</value>
   </data>
+  <data name="DirectivesHelpers_ExpectEnumLiteral_Message" xml:space="preserve">
+    <value>The value node must be a enum value literal.</value>
+  </data>
 </root>

@@ -51,6 +51,20 @@ internal static class DirectivesHelpers
             CompositionResources.DirectiveHelpers_ExpectStringLiteral_Message,
             nameof(valueNode));
     }
+    
+    public static EnumValueNode ExpectEnumLiteral(this IValueNode valueNode)
+    {
+        ArgumentNullException.ThrowIfNull(valueNode);
+
+        if (valueNode is EnumValueNode enumValue)
+        {
+            return enumValue;
+        }
+
+        throw new ArgumentException(
+            CompositionResources.DirectivesHelpers_ExpectEnumLiteral_Message,
+            nameof(valueNode));
+    }
 
     public static FieldNode ExpectFieldSelection(this IValueNode valueNode)
     {

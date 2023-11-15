@@ -1,7 +1,5 @@
-using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
-using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -37,9 +35,6 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
         string subgraphName,
         List<SchemaCoordinate> coordinates)
     {
-        var source = types.SourceDirective.Name;
-        var resolver = types.ResolverDirective.Name;
-
         foreach (var group in coordinates.GroupBy(t => t.Name))
         {
             if (!fusionGraph.Types.TryGetType<ComplexType>(group.Key, out var type))
@@ -58,14 +53,23 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
                 short moreThanOne = 0;
                 Directive? matchingDir = null;
 
-                foreach (var directive in field.Directives[source])
+                foreach (var directive in field.Directives)
                 {
+                    ResolverDirective? resolverDirective = null;
+
+                    if (!SourceDirective.TryParse(directive, types, out var sourceDirective) &&
+                        !ResolverDirective.TryParse(directive, types, out resolverDirective))
+                    {
+                        continue;
+                    }
+
                     if (moreThanOne < 2)
                     {
                         moreThanOne++;
                     }
 
-                    if (!match && ((StringValueNode)directive.Arguments[SubgraphArg]).Value.EqualsOrdinal(subgraphName))
+                    var directiveWithSubgraphName = sourceDirective ?? (IHasSubgraphName)resolverDirective!;
+                    if (!match && directiveWithSubgraphName.Subgraph.EqualsOrdinal(subgraphName))
                     {
                         matchingDir = directive;
                         match = true;
@@ -76,33 +80,7 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
                         break;
                     }
                 }
-
-                if (!match)
-                {
-                    match = false;
-                    moreThanOne = 0;
-                    matchingDir = null;
-                    
-                    foreach (var directive in field.Directives[resolver])
-                    {
-                        if (moreThanOne < 2)
-                        {
-                            moreThanOne++;
-                        }
-
-                        if (!match && ((StringValueNode)directive.Arguments[SubgraphArg]).Value.EqualsOrdinal(subgraphName))
-                        {
-                            matchingDir = directive;
-                            match = true;
-                        }
-
-                        if (match && moreThanOne > 1)
-                        {
-                            break;
-                        }
-                    }
-                }
-
+                
                 if (matchingDir is not null)
                 {
                     field.Directives.Remove(matchingDir);
@@ -114,6 +92,8 @@ internal sealed class ApplyPrivateDirectiveMiddleware : IMergeMiddleware
                 }
             }
         }
+        
+        
     }
 
     private class CollectPrivateFieldsVisitor : SchemaVisitor<PrivateContext>

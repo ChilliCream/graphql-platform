@@ -13,7 +13,7 @@ namespace HotChocolate.Fusion.Composition;
 ///     name: Name
 ///  ) repeatable on OBJECT | FIELD_DEFINITION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION | SCALAR`.
 /// </summary>
-internal sealed class SourceDirective
+internal sealed class SourceDirective : IHasSubgraphName
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="SourceDirective"/> class.
@@ -23,7 +23,7 @@ internal sealed class SourceDirective
     public SourceDirective(string subgraph, string? name = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(subgraph);
-        
+
         Subgraph = subgraph;
         Name = name;
     }
@@ -45,8 +45,10 @@ internal sealed class SourceDirective
     public Directive ToDirective(IFusionTypeContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        
-        var args = Name is null ? new Argument[1] : new Argument[2];
+
+        var args = Name is null
+            ? new Argument[1]
+            : new Argument[2];
 
         args[0] = new Argument(SubgraphArg, Subgraph);
 
@@ -87,7 +89,7 @@ internal sealed class SourceDirective
         directive = new SourceDirective(subgraph.Value, name?.Value);
         return true;
     }
-    
+
     /// <summary>
     /// Gets all @source directives from the specified member.
     /// </summary>
@@ -112,7 +114,7 @@ internal sealed class SourceDirective
             }
         }
     }
-    
+
     /// <summary>
     /// Checks if the specified member has a @source directive.
     /// </summary>
@@ -129,8 +131,70 @@ internal sealed class SourceDirective
     {
         ArgumentNullException.ThrowIfNull(nameof(member));
         ArgumentNullException.ThrowIfNull(nameof(context));
-        
+
         return member.Directives.ContainsName(context.SourceDirective.Name);
+    }
+
+    public static void RemoveFrom(
+        IHasDirectives member,
+        IFusionTypeContext context,
+        string? subgraph = null,
+        bool skipIfHasName = true)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(member));
+        ArgumentNullException.ThrowIfNull(nameof(context));
+
+        Directive? item = null;
+        List<Directive>? list = null;
+
+        foreach (var directive in member.Directives[context.SourceDirective.Name])
+        {
+            SourceDirective? sourceDirective = null;
+
+            if (subgraph is not null &&
+                (!TryParse(directive, context, out sourceDirective) ||
+                    !sourceDirective.Subgraph.EqualsOrdinal(subgraph)))
+            {
+                continue;
+            }
+
+            if (skipIfHasName &&
+                (sourceDirective is not null ||
+                    TryParse(directive, context, out sourceDirective)) &&
+                !string.IsNullOrEmpty(sourceDirective.Name))
+            {
+                continue;
+            }
+
+            if (list is not null)
+            {
+                list.Add(directive);
+                continue;
+            }
+
+            if (item is null)
+            {
+                item = directive;
+                continue;
+            }
+
+            list = new List<Directive> { item };
+            item = null;
+        }
+
+        if (item is not null)
+        {
+            member.Directives.Remove(item);
+            return;
+        }
+
+        if (list is not null)
+        {
+            foreach (var directive in list)
+            {
+                member.Directives.Remove(directive);
+            }
+        }
     }
 
     /// <summary>
@@ -139,15 +203,15 @@ internal sealed class SourceDirective
     public static DirectiveType CreateType()
     {
         var nameType = new MissingType(FusionTypeBaseNames.Name);
-        
+
         var directiveType = new DirectiveType(FusionTypeBaseNames.SourceDirective)
         {
-            Locations = DirectiveLocation.Object | 
-                DirectiveLocation.FieldDefinition | 
-                DirectiveLocation.Enum | 
-                DirectiveLocation.EnumValue | 
-                DirectiveLocation.InputObject | 
-                DirectiveLocation.InputFieldDefinition | 
+            Locations = DirectiveLocation.Object |
+                DirectiveLocation.FieldDefinition |
+                DirectiveLocation.Enum |
+                DirectiveLocation.EnumValue |
+                DirectiveLocation.InputObject |
+                DirectiveLocation.InputFieldDefinition |
                 DirectiveLocation.Scalar,
             IsRepeatable = true,
             Arguments =

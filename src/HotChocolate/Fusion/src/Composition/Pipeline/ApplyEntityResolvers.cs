@@ -54,6 +54,7 @@ internal sealed class ApplyEntityResolvers : IMergeMiddleware
             foreach (var resolver in resolvers.OrderBy(t => t.Subgraph))
             {
                 type.Directives.Add(resolver.ToDirective(context.FusionTypes));
+                SourceDirective.RemoveFrom(type, context.FusionTypes, resolver.Subgraph);
             }
         }
         

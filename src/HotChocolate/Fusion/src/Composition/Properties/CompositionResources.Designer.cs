@@ -200,5 +200,11 @@ namespace HotChocolate.Fusion.Composition.Properties {
                 return ResourceManager.GetString("NodeDirective_TypesCannotBeNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string DirectivesHelpers_ExpectEnumLiteral_Message {
+            get {
+                return ResourceManager.GetString("DirectivesHelpers_ExpectEnumLiteral_Message", resourceCulture);
+            }
+        }
     }
 }
