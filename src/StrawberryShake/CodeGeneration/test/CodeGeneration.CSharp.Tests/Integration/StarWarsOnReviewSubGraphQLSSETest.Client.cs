@@ -16,8 +16,7 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class StarWarsOnReviewSubGraphQLSSEClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.State.StarWarsOnReviewSubGraphQLSSEClientStoreAccessor> AddStarWarsOnReviewSubGraphQLSSEClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
@@ -101,8 +100,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSubResult : global::System.IEquatable<OnReviewSubResult>, IOnReviewSubResult
     {
         public OnReviewSubResult(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSub_OnReview onReview)
@@ -163,8 +161,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSub_OnReview_Review : global::System.IEquatable<OnReviewSub_OnReview_Review>, IOnReviewSub_OnReview_Review
     {
         public OnReviewSub_OnReview_Review(global::System.String __typename, global::System.Int32 stars, global::System.String? commentary)
@@ -240,15 +237,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IOnReviewSubResult
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSub_OnReview OnReview { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IOnReviewSub_OnReview
     {
         /// <summary>
@@ -261,13 +256,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         public global::System.String? Commentary { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IOnReviewSub_OnReview_Review : IOnReviewSub_OnReview
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the OnReviewSub GraphQL operation
     /// <code>
@@ -280,7 +273,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSubSubscriptionDocument : global::StrawberryShake.IDocument
     {
         private OnReviewSubSubscriptionDocument()
@@ -301,7 +294,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the OnReviewSub GraphQL operation
     /// <code>
@@ -314,7 +306,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSubSubscription : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSubSubscription
     {
         private readonly global::StrawberryShake.IOperationExecutor<IOnReviewSubResult> _operationExecutor;
@@ -346,7 +338,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the OnReviewSub GraphQL operation
     /// <code>
@@ -359,17 +350,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IOnReviewSubSubscription : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the StarWarsOnReviewSubGraphQLSSEClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarWarsOnReviewSubGraphQLSSEClient : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IStarWarsOnReviewSubGraphQLSSEClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSubSubscription _onReviewSub;
@@ -382,11 +372,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSubSubscription OnReviewSub => _onReviewSub;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the StarWarsOnReviewSubGraphQLSSEClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IStarWarsOnReviewSubGraphQLSSEClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSubSubscription OnReviewSub { get; }
@@ -395,8 +384,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSubResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.OnReviewSubResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -442,8 +430,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSubResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -465,8 +452,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OnReviewSubBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE.IOnReviewSubResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -562,7 +548,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewData
     {
@@ -580,8 +565,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         public global::System.String? Commentary { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarWarsOnReviewSubGraphQLSSEClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -602,8 +586,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubG
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarWarsOnReviewSubGraphQLSSEClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public StarWarsOnReviewSubGraphQLSSEClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
