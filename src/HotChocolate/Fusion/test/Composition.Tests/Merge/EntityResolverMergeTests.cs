@@ -6,101 +6,101 @@ namespace HotChocolate.Fusion.Composition;
 public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTestBase(output)
 {
     [Fact]
-    public async Task Extract_Entity_Resolvers_With_Annotations()
-        => await Succeed(
-                """
-                type Query {
-                  entity(id: ID! @is(field: "id")): Entity!
-                }
+    public Task Extract_Entity_Resolvers_With_Annotations()
+        => Succeed(
+            """
+            type Query {
+              entity(id: ID! @is(field: "id")): Entity!
+            }
 
-                type Entity {
-                  id: ID!
-                  field1: String!
-                }
-                """,
-                """
-                type Query {
-                  entity(id: ID! @is(field: "id")): Entity!
-                }
+            type Entity {
+              id: ID!
+              field1: String!
+            }
+            """,
+            """
+            type Query {
+              entity(id: ID! @is(field: "id")): Entity!
+            }
 
-                type Entity {
-                  id: ID!
-                  field2: String!
-                }
-                """)
-            .MatchInlineSnapshotAsync(
-                """
-                type Entity
-                  @variable(name: "Entity_id", select: "id", subgraph: "A")
-                  @variable(name: "Entity_id", select: "id", subgraph: "B")
-                  @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "A")
-                  @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
-                  field1: String!
-                    @source(subgraph: "A")
-                  field2: String!
-                    @source(subgraph: "B")
-                  id: ID!
-                    @source(subgraph: "A")
-                    @source(subgraph: "B")
-                }
+            type Entity {
+              id: ID!
+              field2: String!
+            }
+            """)
+          .MatchInlineSnapshotAsync(
+            """
+            type Entity
+              @variable(name: "Entity_id", select: "id", subgraph: "A")
+              @variable(name: "Entity_id", select: "id", subgraph: "B")
+              @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
+              field1: String!
+                @source(subgraph: "A")
+              field2: String!
+                @source(subgraph: "B")
+              id: ID!
+                @source(subgraph: "A")
+                @source(subgraph: "B")
+            }
 
-                type Query {
-                  entity(id: ID!): Entity!
-                    @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "A")
-                    @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
-                }
-                """);
+            type Query {
+              entity(id: ID!): Entity!
+                @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "A")
+                @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
+            }
+            """);
 
     [Fact]
-    public async Task Extract_Entity_Resolvers_With_Annotations_Batch()
-        => await Succeed(
-                """
-                type Query {
-                  entities(id: [ID!]! @is(field: "id")): [Entity!]
-                }
+    public Task Extract_Entity_Resolvers_With_Annotations_Batch()
+        => Succeed(
+            """
+            type Query {
+              entities(id: [ID!]! @is(field: "id")): [Entity!]
+            }
 
-                type Entity {
-                  id: ID!
-                  field1: String!
-                }
-                """,
-                """
-                type Query {
-                  entity(id: ID! @is(field: "id")): Entity!
-                }
+            type Entity {
+              id: ID!
+              field1: String!
+            }
+            """,
+            """
+            type Query {
+              entity(id: ID! @is(field: "id")): Entity!
+            }
 
-                type Entity {
-                  id: ID!
-                  field2: String!
-                }
-                """)
-            .MatchInlineSnapshotAsync(
-                """
-                type Entity
-                  @variable(name: "Entity_id", select: "id", subgraph: "A")
-                  @variable(name: "Entity_id", select: "id", subgraph: "B")
-                  @resolver(operation: "query($Entity_id: [ID!]!) { entities(id: $Entity_id) }", kind: BATCH, subgraph: "A")
-                  @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
-                  field1: String!
-                    @source(subgraph: "A")
-                  field2: String!
-                    @source(subgraph: "B")
-                  id: ID!
-                    @source(subgraph: "A")
-                    @source(subgraph: "B")
-                }
-                
-                type Query {
-                  entities(id: [ID!]!): [Entity!]
-                    @resolver(operation: "query($id: [ID!]!) { entities(id: $id) }", kind: FETCH, subgraph: "A")
-                  entity(id: ID!): Entity!
-                    @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
-                }
-                """);
+            type Entity {
+              id: ID!
+              field2: String!
+            }
+            """)
+          .MatchInlineSnapshotAsync(
+            """
+            type Entity
+              @variable(name: "Entity_id", select: "id", subgraph: "A")
+              @variable(name: "Entity_id", select: "id", subgraph: "B")
+              @resolver(operation: "query($Entity_id: [ID!]!) { entities(id: $Entity_id) }", kind: BATCH, subgraph: "A")
+              @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
+              field1: String!
+                @source(subgraph: "A")
+              field2: String!
+                @source(subgraph: "B")
+              id: ID!
+                @source(subgraph: "A")
+                @source(subgraph: "B")
+            }
+
+            type Query {
+              entities(id: [ID!]!): [Entity!]
+                @resolver(operation: "query($id: [ID!]!) { entities(id: $id) }", kind: FETCH, subgraph: "A")
+              entity(id: ID!): Entity!
+                @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
+            }
+            """);
     
     [Fact]
-    public async Task Extract_Entity_Resolvers_With_Annotations_Composite_Id()
-      => await Succeed(
+    public Task Extract_Entity_Resolvers_With_Annotations_Composite_Id()
+      => Succeed(
           """
           type Query {
             entity2(id: ID! @is(field: "id") id2: String @is(field: "id2")): Entity!
@@ -140,7 +140,7 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
             id2: String
               @source(subgraph: "B")
           }
-          
+
           type Query {
             entity(id: ID!): Entity!
               @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
@@ -150,8 +150,8 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
           """);
     
     [Fact]
-    public async Task Extract_Entity_Resolvers_With_Annotations_Composite_Id_Batch()
-      => await Succeed(
+    public Task Extract_Entity_Resolvers_With_Annotations_Composite_Id_Batch()
+      => Succeed(
           """
           type Query {
             entity2(id: [ID!]! @is(field: "id") id2: [String]! @is(field: "id2")): [Entity!]
@@ -191,7 +191,7 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
             id2: String
               @source(subgraph: "B")
           }
-          
+
           type Query {
             entity(id: ID!): Entity!
               @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
@@ -201,8 +201,8 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
           """);
     
     [Fact]
-    public async Task Extract_Entity_Resolvers_With_Annotations_Composite_Id_Group()
-      => await Succeed(
+    public Task Extract_Entity_Resolvers_With_Annotations_Composite_Id_Group()
+      => Succeed(
           """
           type Query {
             entity2(id: [ID!]! @is(field: "id") id2: String @is(field: "id2")): [Entity!]
@@ -242,7 +242,7 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
             id2: String
               @source(subgraph: "B")
           }
-          
+
           type Query {
             entity(id: ID!): Entity!
               @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
@@ -252,8 +252,8 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
           """);
     
     [Fact]
-    public async Task Extract_Entity_Resolvers_From_Private_Field()
-      => await Succeed(
+    public Task Extract_Entity_Resolvers_From_Private_Field()
+      => Succeed(
           """
           type Query {
             entity2(id: [ID!]! @is(field: "id") id2: String @is(field: "id2")): [Entity!] @private
@@ -301,8 +301,8 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
           """);
     
     [Fact]
-    public async Task Extract_Entity_Resolver_But_Do_Not_Map_As_Root_Resolver()
-      => await Succeed(
+    public Task Extract_Entity_Resolver_But_Do_Not_Map_As_Root_Resolver()
+      => Succeed(
           """
           type Query {
             entity(id: ID! @is(field: "id")): Entity! @private
@@ -346,52 +346,98 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
           """);
     
     // [Fact]
-    public async Task Extract_Entity_Resolvers_With_Annotations_Abstract_Type()
-        => await Succeed(
-                """
-                type Query {
-                  entity(id: ID! @is(field: "id")): Abstract!
-                }
+    public Task Extract_Entity_Resolvers_With_Annotations_Abstract_Type()
+        => Succeed(
+            """
+            type Query {
+              entity(id: ID! @is(field: "id")): Abstract!
+            }
 
-                type Entity implements Abstract {
-                  id: ID!
-                  field1: String!
-                }
+            type Entity implements Abstract {
+              id: ID!
+              field1: String!
+            }
 
-                interface Abstract {
-                  id: ID!
-                }
-                """,
-                """
-                type Query {
-                  entity(id: ID! @is(field: "id")): Entity!
-                }
+            interface Abstract {
+              id: ID!
+            }
+            """,
+            """
+            type Query {
+              entity(id: ID! @is(field: "id")): Entity!
+            }
 
-                type Entity {
-                  id: ID!
-                  field2: String!
-                }
-                """)
-            .MatchInlineSnapshotAsync(
-                """
-                type Entity
-                  @variable(name: "Entity_id", select: "id", subgraph: "A")
-                  @variable(name: "Entity_id", select: "id", subgraph: "B")
-                  @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "A")
-                  @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
-                  field1: String!
-                    @source(subgraph: "A")
-                  field2: String!
-                    @source(subgraph: "B")
-                  id: ID!
-                    @source(subgraph: "A")
-                    @source(subgraph: "B")
-                }
+            type Entity {
+              id: ID!
+              field2: String!
+            }
+            """)
+          .MatchInlineSnapshotAsync(
+            """
+            type Entity
+              @variable(name: "Entity_id", select: "id", subgraph: "A")
+              @variable(name: "Entity_id", select: "id", subgraph: "B")
+              @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "query($Entity_id: ID!) { entity(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
+              field1: String!
+                @source(subgraph: "A")
+              field2: String!
+                @source(subgraph: "B")
+              id: ID!
+                @source(subgraph: "A")
+                @source(subgraph: "B")
+            }
 
-                type Query {
-                  entity(id: ID!): Entity!
-                    @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "A")
-                    @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
-                }
-                """);
+            type Query {
+              entity(id: ID!): Entity!
+                @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "A")
+                @resolver(operation: "query($id: ID!) { entity(id: $id) }", kind: FETCH, subgraph: "B")
+            }
+            """);
+    
+    [Fact]
+    public Task Extract_Entity_Resolvers_By_Name_Annotations()
+      => Succeed(
+          """
+          type Query {
+            entityById(id: ID!): Entity!
+          }
+
+          type Entity {
+            id: ID!
+            field1: String!
+          }
+          """,
+          """
+          type Query {
+            entityById(id: ID!): Entity!
+          }
+
+          type Entity {
+            id: ID!
+            field2: String!
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type Entity
+            @variable(name: "Entity_id", select: "id", subgraph: "A")
+            @variable(name: "Entity_id", select: "id", subgraph: "B")
+            @resolver(operation: "query($Entity_id: ID!) { entityById(id: $Entity_id) }", kind: FETCH, subgraph: "A")
+            @resolver(operation: "query($Entity_id: ID!) { entityById(id: $Entity_id) }", kind: FETCH, subgraph: "B") {
+            field1: String!
+              @source(subgraph: "A")
+            field2: String!
+              @source(subgraph: "B")
+            id: ID!
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+          }
+
+          type Query {
+            entityById(id: ID!): Entity!
+              @resolver(operation: "query($id: ID!) { entityById(id: $id) }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "query($id: ID!) { entityById(id: $id) }", kind: FETCH, subgraph: "B")
+          }
+          """);
 }

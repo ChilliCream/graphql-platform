@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
@@ -10,14 +12,19 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 /// A type handler that is responsible for merging input object types into a single distributed
 /// input object type on the fusion graph.
 /// </summary>
-internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
+internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
 {
+    [GeneratedRegex("^(.*?[a-z0-9])(By)([A-Z].*)$")]
+    private static partial Regex CreateRegex();
+
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Object;
-    
+
     /// <inheritdoc />
     public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
+        Regex regex = CreateRegex();
+
         // If any type in the group is not an input object type, skip merging
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Object))
         {
@@ -32,7 +39,7 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
         foreach (var part in typeGroup.Parts)
         {
             var source = (ObjectType)part.Type;
-            MergeType(context, source, part.Schema, target, context.FusionGraph);
+            MergeType(context, source, part.Schema, target, context.FusionGraph, CreateRegex());
         }
 
         return MergeStatus.Completed;
@@ -43,12 +50,13 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
         ObjectType source,
         Schema sourceSchema,
         ObjectType target,
-        Schema targetSchema)
+        Schema targetSchema,
+        Regex byFieldPattern)
     {
         // If the target input object type doesn't have a description, use the source input
         // object type's description
         target.MergeDescriptionWith(source);
-        
+
         // Add all of the interfaces that the source type implements to the target type.
         foreach (var interfaceType in source.Implements)
         {
@@ -84,7 +92,13 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
             {
                 if (!TryExtractAnnotationBasedEntityResolver(context, sourceSchema, sourceField, targetField))
                 {
-                    TryExtractNameBasedEntityResolver(context, sourceSchema, sourceField, targetField);
+                    TryExtractNameBasedEntityResolver(
+                        context,
+                        sourceField,
+                        targetField,
+                        (ObjectType)sourceField.Type.NamedType(),
+                        sourceSchema,
+                        byFieldPattern);
                 }
             }
         }
@@ -92,8 +106,8 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
 
     private static void AddRootResolver(
         CompositionContext context,
-        Schema sourceSchema, 
-        OutputField sourceField, 
+        Schema sourceSchema,
+        OutputField sourceField,
         OutputField targetField)
     {
         var arguments = new List<ArgumentNode>();
@@ -115,13 +129,13 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
             arguments.Add(new ArgumentNode(arg.Name, variable));
             variables.Add(new VariableDefinitionNode(variable, variableType, null, Array.Empty<DirectiveNode>()));
         }
-            
+
         var operation = new OperationDefinitionNode(
-            OperationType.Query, 
-            variables, 
-            Array.Empty<DirectiveNode>(), 
+            OperationType.Query,
+            variables,
+            Array.Empty<DirectiveNode>(),
             new SelectionSetNode(selection));
-            
+
         var resolver = new ResolverDirective(operation, ResolverKind.Fetch, sourceSchema.Name);
         targetField.Directives.Add(resolver.ToDirective(context.FusionTypes));
         SourceDirective.RemoveFrom(targetField, context.FusionTypes, sourceSchema.Name);
@@ -129,8 +143,8 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
 
     private static bool TryExtractAnnotationBasedEntityResolver(
         CompositionContext context,
-        Schema sourceSchema, 
-        OutputField sourceField, 
+        Schema sourceSchema,
+        OutputField sourceField,
         OutputField targetField)
     {
         if (sourceField.Arguments.Count == 0)
@@ -140,21 +154,31 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
 
         List<EntitySourceArgument>? arguments = null;
         var kind = ResolverKind.Fetch;
-        
+
         foreach (var argument in sourceField.Arguments)
         {
             if (kind is ResolverKind.Fetch && argument.Type.IsListType())
             {
+                if (!sourceField.Type.IsListType())
+                {
+                    // TODO : ERROR
+                    context.Log.Write(
+                        new LogEntry(
+                            "The annotated field looks like a batch field but has only a single return value.",
+                            severity: LogSeverity.Warning));
+                    return false;
+                }
+
                 kind = ResolverKind.Batch;
             }
-            
+
             if (!IsDirective.ExistsIn(argument, context.FusionTypes))
             {
                 return false;
             }
 
             var directive = IsDirective.TryGetFrom(argument, context.FusionTypes);
-            
+
             if (directive is null)
             {
                 // TODO : ERROR
@@ -164,10 +188,10 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
                         severity: LogSeverity.Error));
                 return false;
             }
-            
+
             (arguments ??= new()).Add(new EntitySourceArgument(argument, directive));
         }
-        
+
         context.EntityResolverInfos.Add(
             new EntityResolverInfo(
                 targetField.Type.NamedType().Name,
@@ -178,55 +202,273 @@ internal sealed class QueryTypeMergeHandler : ITypeMergeHandler
                 arguments!));
         return true;
     }
-    
+
     private static void TryExtractNameBasedEntityResolver(
         CompositionContext context,
-        Schema sourceSchema, 
-        OutputField sourceField, 
-        OutputField targetField)
+        OutputField entityResolverField,
+        OutputField entityResolverTargetField,
+        ObjectType entityType,
+        Schema schema,
+        Regex byFieldPattern)
     {
-        if (sourceField.Arguments.Count == 0)
+        var originalTypeName = entityType.GetOriginalName();
+
+        if (entityResolverField.Name.StartsWith(originalTypeName, StringComparison.OrdinalIgnoreCase))
+        {
+            var splits = byFieldPattern.Split(entityResolverField.Name);
+
+            if (splits.Length == 5)
+            {
+                var typeName = splits[1];
+                var fieldName = splits[3];
+                var isList = entityResolverField.Type.IsListType();
+
+                if (!isList && typeName.Equals(originalTypeName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (entityType.Fields.TryGetField(fieldName, StringComparison.OrdinalIgnoreCase, out var keyField))
+                    {
+                        TryRegisterEntityResolver(
+                            context,
+                            entityResolverField,
+                            entityResolverTargetField,
+                            entityType,
+                            keyField,
+                            schema);
+                    }
+                }
+                else if (isList && typeName.Equals(originalTypeName, StringComparison.OrdinalIgnoreCase) ||
+                    (typeName.Length - 1 == originalTypeName.Length &&
+                        typeName.AsSpan()[typeName.Length - 1] == 's'))
+                {
+                    if (!entityType.Fields.TryGetField(fieldName, out var field))
+                    {
+                        var fieldPlural = fieldName[..^1];
+                        entityType.Fields.TryGetField(fieldPlural, out field);
+                    }
+
+                    if (field is not null)
+                    {
+                        /*
+                        TryRegisterBatchEntityResolver(
+                            entity,
+                            type,
+                            entityResolver,
+                            field,
+                            schema,
+                            context.FusionTypes);
+                            */
+                    }
+                }
+            }
+        }
+    }
+
+    private static void TryRegisterEntityResolver(
+        CompositionContext context,
+        OutputField entityResolverField,
+        OutputField entityResolverTargetField,
+        ObjectType entityType,
+        OutputField keyField,
+        Schema schema)
+    {
+        if (!TryResolveKeyArgument(entityResolverField, keyField, context.FusionTypes, out var keyArg))
         {
             return;
         }
 
-        List<EntitySourceArgument>? arguments = null;
-        var kind = ResolverKind.Fetch;
-        
-        foreach (var argument in sourceField.Arguments)
+        if (entityResolverField.Type == entityType ||
+            (entityResolverField.Type.Kind is TypeKind.NonNull &&
+                entityResolverField.Type.InnerType() == entityType))
         {
-            if (kind is ResolverKind.Fetch && argument.Type.IsListType())
+            context.EntityResolverInfos.Add(
+                new EntityResolverInfo(
+                    entityType.Name,
+                    entityType.GetOriginalName(),
+                    ResolverKind.Fetch,
+                    entityResolverTargetField,
+                    new EntitySourceField(schema, entityResolverField),
+                    new List<EntitySourceArgument>
+                    {
+                        new(keyArg, new IsDirective(keyField.Name))
+                    }));
+        }
+    }
+
+    private static bool TryResolveKeyArgument(
+        OutputField entityResolverField,
+        OutputField keyField,
+        IFusionTypeContext context,
+        [NotNullWhen(true)] out InputField? keyArgument)
+    {
+        if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
+        {
+            return !IsDirective.ExistsIn(keyArgument, context) &&
+                keyArgument.Type.Equals(keyField.Type, TypeComparison.Structural);
+        }
+
+        if (entityResolverField.Arguments.Count == 1)
+        {
+            keyArgument = entityResolverField.Arguments.First();
+        }
+        else
+        {
+            foreach (var argument in entityResolverField.Arguments)
             {
-                kind = ResolverKind.Batch;
+                if (keyArgument is null)
+                {
+                    keyArgument = argument;
+                    continue;
+                }
+
+                if (argument.Type.Kind is not TypeKind.NonNull)
+                {
+                    continue;
+                }
+
+                if (argument.DefaultValue is null)
+                {
+                    keyArgument = null;
+                    return false;
+                }
             }
-            
-            if (!IsDirective.ExistsIn(argument, context.FusionTypes))
+        }
+
+        return (keyArgument?.Type.Equals(keyField.Type, TypeComparison.Structural) ?? false) &&
+            !IsDirective.ExistsIn(keyArgument, context);
+    }
+
+    /*
+    private static void TryRegisterBatchEntityResolver(
+        EntityGroup entity,
+        ObjectType entityType,
+        OutputField entityResolverField,
+        OutputField keyField,
+        Schema schema,
+        IFusionTypeContext context)
+    {
+        if (!TryResolveBatchKeyArgument(entityResolverField, keyField, context, out var keyArg))
+        {
+            return;
+        }
+
+        var returnType = entityResolverField.Type;
+
+        if (returnType.Kind is TypeKind.NonNull)
+        {
+            returnType = returnType.InnerType();
+        }
+
+        if(returnType.Kind != TypeKind.List)
+        {
+            return;
+        }
+
+        returnType = returnType.InnerType();
+
+        if (returnType == entityType ||
+            (returnType.Kind is TypeKind.NonNull &&
+                returnType.InnerType() == entityType))
+        {
+            var arguments = new List<ArgumentNode>();
+
+            // Create a new FieldNode for the entity resolver
+            var selection = new FieldNode(
+                null,
+                new NameNode(entityResolverField.GetOriginalName()),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                arguments,
+                null);
+
+            // Create a new SelectionSetNode for the entity resolver
+            var selectionSet = new SelectionSetNode(new[] { selection });
+
+            // Create a new EntityResolver for the entity
+            var resolver = new EntityResolver(
+                EntityResolverKind.Batch,
+                selectionSet,
+                entityType.Name,
+                schema.Name);
+
+            var keyFieldNode = new FieldNode(
+                null,
+                new NameNode(keyField.Name),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null);
+
+            var keyFieldDirective = new IsDirective(keyFieldNode);
+            var var = entityType.CreateVariableName(keyFieldDirective);
+            arguments.Add(new ArgumentNode(keyArg.Name, new VariableNode(var)));
+            resolver.Variables.Add(var, keyArg.CreateVariableField(keyFieldDirective, var));
+
+            // Add the new EntityResolver to the entity metadata
+            entity.Metadata.EntityResolvers.TryAdd(resolver);
+        }
+    }
+
+    private static bool TryResolveBatchKeyArgument(
+        OutputField entityResolverField,
+        OutputField keyField,
+        IFusionTypeContext context,
+        [NotNullWhen(true)] out InputField? keyArgument)
+    {
+        if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
+        {
+            if (keyArgument.Type.IsListType() && !IsDirective.ExistsIn(keyArgument, context))
             {
-                return;
+                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
             }
 
-            var directive = IsDirective.TryGetFrom(argument, context.FusionTypes);
-            
-            if (directive is null)
-            {
-                // TODO : ERROR
-                context.Log.Write(
-                    new LogEntry(
-                        "The is directive must have a value for coordinate or field.",
-                        severity: LogSeverity.Error));
-                return;
-            }
-            
-            (arguments ??= new()).Add(new EntitySourceArgument(argument, directive));
+            keyArgument = null;
+            return false;
         }
-        
-        context.EntityResolverInfos.Add(
-            new EntityResolverInfo(
-                targetField.Type.NamedType().Name,
-                sourceField.Type.NamedType().GetOriginalName(),
-                kind,
-                targetField,
-                new EntitySourceField(sourceSchema, sourceField),
-                arguments!));
+
+        if (entityResolverField.Arguments.Count == 1)
+        {
+            keyArgument = entityResolverField.Arguments.First();
+
+            if (keyArgument.Type.IsListType() && !IsDirective.ExistsIn(keyArgument, context))
+            {
+                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+            }
+
+            keyArgument = null;
+            return false;
+        }
+
+        foreach (var argument in entityResolverField.Arguments)
+        {
+            if (keyArgument is null)
+            {
+                keyArgument = argument;
+                continue;
+            }
+
+            if (argument.Type.Kind is not TypeKind.NonNull)
+            {
+                continue;
+            }
+
+            if (argument.DefaultValue is null)
+            {
+                keyArgument = null;
+                return false;
+            }
+        }
+
+        if (keyArgument?.Type.IsListType() is true &&
+            keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural) &&
+            !IsDirective.ExistsIn(keyArgument, context))
+        {
+            return true;
+        }
+
+        keyArgument = null;
+        return false;
     }
+    */
 }

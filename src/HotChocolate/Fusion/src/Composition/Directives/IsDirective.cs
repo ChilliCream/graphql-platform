@@ -24,7 +24,28 @@ internal sealed class IsDirective : IEquatable<IsDirective>
     /// </param>
     public IsDirective(SchemaCoordinate coordinate)
     {
+        ArgumentException.ThrowIfNullOrEmpty(coordinate.Name, nameof(coordinate));
         Coordinate = coordinate;
+    }
+    
+    /// <summary>
+    /// Creates a new instance of <see cref="IsDirective"/> that a field syntax to refer to field.
+    /// </summary>
+    /// <param name="field">
+    /// The field selection syntax that refers to another field.
+    /// </param>
+    public IsDirective(string field)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(field);
+        
+        Field = new FieldNode(
+            null,
+            new NameNode(field),
+            null,
+            null,
+            Array.Empty<DirectiveNode>(),
+            Array.Empty<ArgumentNode>(),
+            null);
     }
 
     /// <summary>
@@ -35,6 +56,7 @@ internal sealed class IsDirective : IEquatable<IsDirective>
     /// </param>
     public IsDirective(FieldNode field)
     {
+        ArgumentNullException.ThrowIfNull(field);
         Field = field;
     }
 
