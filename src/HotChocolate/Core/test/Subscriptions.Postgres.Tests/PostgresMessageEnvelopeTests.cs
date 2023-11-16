@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -5,16 +6,19 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresMessageEnvelopeTests
 {
+    private readonly PostgresSubscriptionOptions _options = new();
+
     [Theory]
     [InlineData("test", "test")]
     [InlineData("sometopic", """ { ""test"": ""test"" } """)]
     public void Should_FormatAndParse(string topic, string payload)
     {
         // arrange
-        var envelope = new PostgresMessageEnvelope(topic, payload);
+        var envelope =
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize);
 
         // act
-        var formatted = envelope.Format();
+        var formatted = envelope.FormattedPayload;
         var parsingResult = PostgresMessageEnvelope
             .TryParse(formatted, out var parsedTopic, out var parsedPayload);
 
@@ -36,10 +40,11 @@ public class PostgresMessageEnvelopeTests
         string formatted)
     {
         // arrange
-        var envelope = new PostgresMessageEnvelope(topic, payload);
+        var envelope =
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize);
 
         // act
-        var result = envelope.Format();
+        var result = envelope.FormattedPayload;
 
         // assert
         Assert.Equal(formatted, result[25..]);
@@ -54,10 +59,11 @@ public class PostgresMessageEnvelopeTests
         for (var i = 0; i < 10_000; i++)
         {
             // arrange
-            var envelope = new PostgresMessageEnvelope("test", "test");
+            var envelope =
+                PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
 
             // act
-            var id = envelope.Format()[..24];
+            var id = envelope.FormattedPayload[..24];
 
             // assert
             var bytes = Encoding.UTF8.GetBytes(id);
@@ -78,59 +84,38 @@ public class PostgresMessageEnvelopeTests
     }
 
     [Fact]
-    public void Should_FormatAndParseWithBigPayload()
+    public void Format_ShouldThrow_WithBigPayload()
     {
         // arrange
         var topic = "test";
         var payload = new string('a', 100_000);
-        var envelope = new PostgresMessageEnvelope(topic, payload);
 
-        // act
-        var formatted = envelope.Format();
-        var parsingResult = PostgresMessageEnvelope
-            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
-
-        // assert
-        Assert.True(parsingResult);
-        Assert.Equal(topic, parsedTopic);
-        Assert.Equal(payload, parsedPayload);
+        // act, assert
+        Assert.Throws<ArgumentException>(() =>
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize));
     }
 
     [Fact]
-    public void Should_FormatAndParseWithBigTopic()
+    public void Format_ShouldThrow_WithBigTopic()
     {
         // arrange
         var topic = new string('a', 100_000);
         var payload = "test";
-        var envelope = new PostgresMessageEnvelope(topic, payload);
 
-        // act
-        var formatted = envelope.Format();
-        var parsingResult = PostgresMessageEnvelope
-            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
-
-        // assert
-        Assert.True(parsingResult);
-        Assert.Equal(topic, parsedTopic);
-        Assert.Equal(payload, parsedPayload);
+        // act, assert
+        Assert.Throws<ArgumentException>(() =>
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize));
     }
 
     [Fact]
-    public void Should_FormatAndParseWithBigTopicAndPayload()
+    public void Format_ShouldThrow_WithBigTopicAndPayload()
     {
         // arrange
         var topic = new string('a', 100_000);
         var payload = new string('a', 100_000);
-        var envelope = new PostgresMessageEnvelope(topic, payload);
 
-        // act
-        var formatted = envelope.Format();
-        var parsingResult = PostgresMessageEnvelope
-            .TryParse(formatted, out var parsedTopic, out var parsedPayload);
-
-        // assert
-        Assert.True(parsingResult);
-        Assert.Equal(topic, parsedTopic);
-        Assert.Equal(payload, parsedPayload);
+        // act, assert
+        Assert.Throws<ArgumentException>(() =>
+            PostgresMessageEnvelope.Create(topic, payload, _options.MaxMessagePayloadSize));
     }
 }

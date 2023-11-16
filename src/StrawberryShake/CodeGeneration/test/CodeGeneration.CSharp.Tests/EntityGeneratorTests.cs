@@ -1,5 +1,4 @@
 using ChilliCream.Testing;
-using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -14,7 +13,7 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
     }
-#if !NETCOREAPP3_1
+
     [Fact]
     public void Generate_ChatClient_ConnectionNotAnEntity_With_Records()
     {
@@ -24,7 +23,6 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
     }
-#endif
 
     [Fact]
     public void Generate_ChatClient_MapperMapsEntityOnRootCorrectly()
@@ -34,8 +32,7 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
     }
-
-#if !NETCOREAPP3_1
+    
     [Fact]
     public void Generate_ChatClient_MapperMapsEntityOnRootCorrectly_With_Records()
     {
@@ -45,7 +42,6 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("ChatSchema.graphql"));
     }
-#endif
 
     [Fact]
     public void Generate_BookClient_DataOnly_UnionDataTypes()
@@ -55,8 +51,7 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
     }
-
-#if !NETCOREAPP3_1
+    
     [Fact]
     public void Generate_BookClient_DataOnly_UnionDataTypes_With_Records()
     {
@@ -66,7 +61,6 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
     }
-#endif
 
     [Fact]
     public void Generate_BookClient_DataOnly_InterfaceDataTypes()
@@ -77,7 +71,6 @@ public class EntityGeneratorTests
             FileResource.Open("BookSchema.graphql"));
     }
 
-#if !NETCOREAPP3_1
     [Fact]
     public void Generate_BookClient_DataOnly_InterfaceDataTypes_With_Records()
     {
@@ -87,7 +80,6 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
     }
-#endif
 
     [Fact]
     public void Generate_BookClient_DataInEntity_UnionDataTypes()
@@ -98,7 +90,6 @@ public class EntityGeneratorTests
             FileResource.Open("BookSchema.graphql"));
     }
 
-#if !NETCOREAPP3_1
     [Fact]
     public void Generate_BookClient_DataInEntity_UnionDataTypes_With_Records()
     {
@@ -108,7 +99,6 @@ public class EntityGeneratorTests
             FileResource.Open("Schema.extensions.graphql"),
             FileResource.Open("BookSchema.graphql"));
     }
-#endif
 
     [Fact(Skip = "We are postponing the defer feature until the spec is more stable.")]
     public void Generate_StarWars_Client_With_Defer()

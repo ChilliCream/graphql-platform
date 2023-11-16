@@ -20,7 +20,7 @@
     BeforeTargets="BeforeBuild"
     DependsOnTargets="_GraphQLCodeGenerationRoot; _GenerateGraphQLCode">
     <ItemGroup>
-      <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" />
+      <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" Condition="'$(GraphQLCodeGenerationRoot)' != ''"/>
     </ItemGroup>
   </Target>
 
@@ -33,8 +33,12 @@
 
   <Target Name="_ParseVersion">
     <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
+      <Output TaskParameter="ConsoleOutput" ItemName="DotNetVersion" />
     </Exec>
+
+    <PropertyGroup>
+      <DotNetVersion Condition="$([System.Text.RegularExpressions.Regex]::Match(%(Identity),'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$').Success)">@(DotNetVersion)</DotNetVersion>
+    </PropertyGroup>
   </Target>
 
   <Target

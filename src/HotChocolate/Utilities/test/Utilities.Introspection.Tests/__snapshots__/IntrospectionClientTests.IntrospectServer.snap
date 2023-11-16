@@ -6,6 +6,7 @@
 
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: JSON!): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
@@ -36,6 +37,7 @@ type Human implements Character {
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
+  traits: JSON
 }
 
 type Droid implements Character {
@@ -45,6 +47,7 @@ type Droid implements Character {
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   height(unit: Unit): Float
   primaryFunction: String
+  traits: JSON
 }
 
 enum Episode {
@@ -58,6 +61,7 @@ interface Character {
   name: String!
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   appearsIn: [Episode]
+  traits: JSON
   height(unit: Unit): Float
 }
 
@@ -87,6 +91,8 @@ enum Unit {
   FOOT
   METERS
 }
+
+scalar JSON
 
 type Starship {
   id: ID!
@@ -119,4 +125,5 @@ scalar Long
 
 directive @export(as: String) on FIELD
 
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+"The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
+directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

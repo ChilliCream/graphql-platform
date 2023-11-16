@@ -16,11 +16,10 @@
 
 namespace Foo.Bar
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// mutation root
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeopleResult : global::System.IEquatable<InsertPeopleResult>, IInsertPeopleResult
     {
         public InsertPeopleResult(global::Foo.Bar.IInsertPeople_Insert_people? insert_People)
@@ -88,11 +87,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// response of any mutation on the table "people"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeople_Insert_people_people_mutation_response : global::System.IEquatable<InsertPeople_Insert_people_people_mutation_response>, IInsertPeople_Insert_people_people_mutation_response
     {
         public InsertPeople_Insert_people_people_mutation_response(global::System.Int32 affected_Rows)
@@ -122,7 +120,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Affected_rows == other.Affected_rows);
+            return (global::System.Object.Equals(Affected_rows, other.Affected_rows));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -156,11 +154,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// mutation root
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IInsertPeopleResult
     {
         /// <summary>
@@ -169,11 +166,10 @@ namespace Foo.Bar
         public global::Foo.Bar.IInsertPeople_Insert_people? Insert_people { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// response of any mutation on the table "people"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IInsertPeople_Insert_people
     {
         /// <summary>
@@ -182,17 +178,15 @@ namespace Foo.Bar
         public global::System.Int32 Affected_rows { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// response of any mutation on the table "people"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IInsertPeople_Insert_people_people_mutation_response : IInsertPeople_Insert_people
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Arr_Rel_Insert_InputFormatter = default !;
@@ -293,7 +287,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting data into table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_insert_input : global::Foo.Bar.State.IPeople_insert_inputInfo, global::System.IEquatable<people_insert_input>
@@ -421,8 +414,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IPeople_insert_inputInfo.IsLastNameSet => _set_lastName;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_arr_rel_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Insert_InputFormatter = default !;
@@ -496,7 +488,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting array relation for remote table "cars"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_arr_rel_insert_input : global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo, global::System.IEquatable<cars_arr_rel_insert_input>
@@ -589,8 +580,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo.IsOn_conflictSet => _set_on_Conflict;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
@@ -691,7 +681,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting data into table "cars"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_insert_input : global::Foo.Bar.State.ICars_insert_inputInfo, global::System.IEquatable<cars_insert_input>
@@ -819,8 +808,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.ICars_insert_inputInfo.IsPersonSet => _set_person;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_obj_rel_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Insert_InputFormatter = default !;
@@ -883,7 +871,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting object relation for remote table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_obj_rel_insert_input : global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo, global::System.IEquatable<people_obj_rel_insert_input>
@@ -972,8 +959,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo.IsOn_conflictSet => _set_on_Conflict;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_on_conflictInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_ConstraintFormatter = default !;
@@ -1056,7 +1042,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>on conflict condition type for table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_on_conflict : global::Foo.Bar.State.IPeople_on_conflictInfo, global::System.IEquatable<people_on_conflict>
@@ -1165,8 +1150,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IPeople_on_conflictInfo.IsWhereSet => _set_where;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_bool_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Bool_ExpFormatter = default !;
@@ -1342,7 +1326,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to filter rows from the table "people". All fields are combined with a logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_bool_exp : global::Foo.Bar.State.IPeople_bool_expInfo, global::System.IEquatable<people_bool_exp>
@@ -1530,8 +1513,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.IsLastNameSet => _set_lastName;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_bool_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Bool_ExpFormatter = default !;
@@ -1707,7 +1689,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to filter rows from the table "cars". All fields are combined with a logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_bool_exp : global::Foo.Bar.State.ICars_bool_expInfo, global::System.IEquatable<cars_bool_exp>
@@ -1895,8 +1876,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsPersonSet => _set_person;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class String_comparison_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
@@ -2272,7 +2252,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class String_comparison_exp : global::Foo.Bar.State.IString_comparison_expInfo, global::System.IEquatable<String_comparison_exp>
@@ -2314,7 +2293,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && ((_ilike is null && other._ilike is null) || _ilike != null && _ilike.Equals(other._ilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && ((_iregex is null && other._iregex is null) || _iregex != null && _iregex.Equals(other._iregex)) && _is_null == other._is_null && ((_like is null && other._like is null) || _like != null && _like.Equals(other._like)) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && ((_nilike is null && other._nilike is null) || _nilike != null && _nilike.Equals(other._nilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin) && ((_niregex is null && other._niregex is null) || _niregex != null && _niregex.Equals(other._niregex)) && ((_nlike is null && other._nlike is null) || _nlike != null && _nlike.Equals(other._nlike)) && ((_nregex is null && other._nregex is null) || _nregex != null && _nregex.Equals(other._nregex)) && ((_nsimilar is null && other._nsimilar is null) || _nsimilar != null && _nsimilar.Equals(other._nsimilar)) && ((_regex is null && other._regex is null) || _regex != null && _regex.Equals(other._regex)) && ((_similar is null && other._similar is null) || _similar != null && _similar.Equals(other._similar));
+            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && ((_ilike is null && other._ilike is null) || _ilike != null && _ilike.Equals(other._ilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && ((_iregex is null && other._iregex is null) || _iregex != null && _iregex.Equals(other._iregex)) && global::System.Object.Equals(_is_null, other._is_null) && ((_like is null && other._like is null) || _like != null && _like.Equals(other._like)) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && ((_nilike is null && other._nilike is null) || _nilike != null && _nilike.Equals(other._nilike)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin) && ((_niregex is null && other._niregex is null) || _niregex != null && _niregex.Equals(other._niregex)) && ((_nlike is null && other._nlike is null) || _nlike != null && _nlike.Equals(other._nlike)) && ((_nregex is null && other._nregex is null) || _nregex != null && _nregex.Equals(other._nregex)) && ((_nsimilar is null && other._nsimilar is null) || _nsimilar != null && _nsimilar.Equals(other._nsimilar)) && ((_regex is null && other._regex is null) || _regex != null && _regex.Equals(other._regex)) && ((_similar is null && other._similar is null) || _similar != null && _similar.Equals(other._similar));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2686,8 +2665,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IString_comparison_expInfo.Is_similarSet => _set__similar;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class uuid_comparison_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
@@ -2893,7 +2871,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class uuid_comparison_exp : global::Foo.Bar.State.IUuid_comparison_expInfo, global::System.IEquatable<uuid_comparison_exp>
@@ -2935,7 +2912,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && _is_null == other._is_null && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin);
+            return (((_eq is null && other._eq is null) || _eq != null && _eq.Equals(other._eq))) && ((_gt is null && other._gt is null) || _gt != null && _gt.Equals(other._gt)) && ((_gte is null && other._gte is null) || _gte != null && _gte.Equals(other._gte)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_in, other._in) && global::System.Object.Equals(_is_null, other._is_null) && ((_lt is null && other._lt is null) || _lt != null && _lt.Equals(other._lt)) && ((_lte is null && other._lte is null) || _lte != null && _lte.Equals(other._lte)) && ((_neq is null && other._neq is null) || _neq != null && _neq.Equals(other._neq)) && global::StrawberryShake.Internal.ComparisonHelper.SequenceEqual(_nin, other._nin);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -3117,8 +3094,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IUuid_comparison_expInfo.Is_ninSet => _set__nin;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_on_conflictInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_ConstraintFormatter = default !;
@@ -3201,7 +3177,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>on conflict condition type for table "cars"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class cars_on_conflict : global::Foo.Bar.State.ICars_on_conflictInfo, global::System.IEquatable<cars_on_conflict>
@@ -3310,11 +3285,10 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.ICars_on_conflictInfo.IsWhereSet => _set_where;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
     /// <summary>
     /// unique or primary key constraints on table "people"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum People_constraint
     {
         /// <summary>
@@ -3323,8 +3297,7 @@ namespace Foo.Bar
         PeoplePkey
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class People_constraintSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, People_constraint>
     {
         public global::System.String TypeName => "People_constraint";
@@ -3345,11 +3318,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
     /// <summary>
     /// update columns of table "people"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum People_update_column
     {
         /// <summary>
@@ -3366,8 +3338,7 @@ namespace Foo.Bar
         Lastname
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class People_update_columnSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, People_update_column>
     {
         public global::System.String TypeName => "People_update_column";
@@ -3392,11 +3363,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
     /// <summary>
     /// unique or primary key constraints on table "cars"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum Cars_constraint
     {
         /// <summary>
@@ -3405,8 +3375,7 @@ namespace Foo.Bar
         CarsPkey
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Cars_constraintSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Cars_constraint>
     {
         public global::System.String TypeName => "Cars_constraint";
@@ -3427,11 +3396,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
     /// <summary>
     /// update columns of table "cars"
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum Cars_update_column
     {
         /// <summary>
@@ -3448,8 +3416,7 @@ namespace Foo.Bar
         Ownerid
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Cars_update_columnSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Cars_update_column>
     {
         public global::System.String TypeName => "Cars_update_column";
@@ -3474,7 +3441,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
@@ -3486,7 +3452,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeopleMutationDocument : global::StrawberryShake.IDocument
     {
         private InsertPeopleMutationDocument()
@@ -3507,7 +3473,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
@@ -3519,7 +3484,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeopleMutation : global::Foo.Bar.IInsertPeopleMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> _operationExecutor;
@@ -3582,7 +3547,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
@@ -3594,18 +3558,17 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IInsertPeopleMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IInsertPeopleMutation _insertPeople;
@@ -3618,11 +3581,10 @@ namespace Foo.Bar
         public global::Foo.Bar.IInsertPeopleMutation InsertPeople => _insertPeople;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IInsertPeopleMutation InsertPeople { get; }
@@ -3631,8 +3593,7 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeopleResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.InsertPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -3683,8 +3644,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeopleResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -3709,7 +3669,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IPeople_insert_inputInfo
     {
@@ -3722,7 +3681,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsLastNameSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface ICars_arr_rel_insert_inputInfo
     {
@@ -3731,7 +3689,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsOn_conflictSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface ICars_insert_inputInfo
     {
@@ -3744,7 +3701,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsPersonSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IPeople_obj_rel_insert_inputInfo
     {
@@ -3753,7 +3709,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsOn_conflictSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IPeople_on_conflictInfo
     {
@@ -3764,7 +3719,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsWhereSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IPeople_bool_expInfo
     {
@@ -3783,7 +3737,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsLastNameSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface ICars_bool_expInfo
     {
@@ -3802,7 +3755,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsPersonSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IString_comparison_expInfo
     {
@@ -3845,7 +3797,6 @@ namespace Foo.Bar.State
         global::System.Boolean Is_similarSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IUuid_comparison_expInfo
     {
@@ -3868,7 +3819,6 @@ namespace Foo.Bar.State
         global::System.Boolean Is_ninSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface ICars_on_conflictInfo
     {
@@ -3879,8 +3829,7 @@ namespace Foo.Bar.State
         global::System.Boolean IsWhereSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class InsertPeopleBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IInsertPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -3928,6 +3877,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("people_mutation_response", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3944,11 +3898,15 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>response of any mutation on the table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class people_mutation_responseData
@@ -3965,8 +3923,7 @@ namespace Foo.Bar.State
         public global::System.Int32? Affected_rows { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -3987,8 +3944,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -3999,8 +3955,7 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)

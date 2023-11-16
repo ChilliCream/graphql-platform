@@ -147,7 +147,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
         _json.WriteTo(writer);
         writer.Flush();
 
-        var json = JsonDocument.Parse(buffer.Body);
+        var json = JsonDocument.Parse(buffer.GetWrittenMemory());
 
         return new Response<JsonDocument>(
             json,

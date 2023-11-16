@@ -120,6 +120,14 @@ internal static class Utf8JsonWriterHelper
                 WriteList(writer, list);
                 break;
 
+            case JsonDocument doc:
+                doc.RootElement.WriteTo(writer);
+                break;
+
+            case JsonElement element:
+                element.WriteTo(writer);
+                break;
+
             case string s:
                 writer.WriteStringValue(s);
                 break;
@@ -186,11 +194,6 @@ internal static class Utf8JsonWriterHelper
 
         foreach (var item in dict)
         {
-            if (item.Value is null)
-            {
-                continue;
-            }
-
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
         }
