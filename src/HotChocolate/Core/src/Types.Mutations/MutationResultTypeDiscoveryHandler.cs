@@ -2,14 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-internal sealed class MutationResultTypeDiscoveryHandler : TypeDiscoveryHandler
+internal sealed class MutationResultTypeDiscoveryHandler(ITypeInspector typeInspector) : TypeDiscoveryHandler
 {
-    private readonly ITypeInspector _typeInspector;
-
-    public MutationResultTypeDiscoveryHandler(ITypeInspector typeInspector)
-    {
-        _typeInspector = typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
-    }
+    private readonly ITypeInspector _typeInspector = typeInspector ?? 
+        throw new ArgumentNullException(nameof(typeInspector));
 
     public override bool TryInferType(
         TypeReference typeReference,

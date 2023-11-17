@@ -8,24 +8,17 @@ namespace HotChocolate.Types;
 /// This middleware ensures that the rewritten argument structure is remapped so that the
 /// resolver can request the arguments in the original structure.
 /// </summary>
-internal sealed class MutationConventionMiddleware
+internal sealed class MutationConventionMiddleware(
+    FieldDelegate next,
+    string inputArgumentName,
+    IReadOnlyList<ResolverArgument> resolverArguments)
 {
-    private readonly FieldDelegate _next;
-    private readonly string _inputArgumentName;
-    private readonly IReadOnlyList<ResolverArgument> _resolverArguments;
-
-    public MutationConventionMiddleware(
-        FieldDelegate next,
-        string inputArgumentName,
-        IReadOnlyList<ResolverArgument> resolverArguments)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _inputArgumentName = inputArgumentName ??
-            throw new ArgumentNullException(nameof(inputArgumentName));
-        _resolverArguments = resolverArguments ??
-            throw new ArgumentNullException(nameof(resolverArguments));
-    }
+    private readonly FieldDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+    private readonly string _inputArgumentName = inputArgumentName ??
+        throw new ArgumentNullException(nameof(inputArgumentName));
+    private readonly IReadOnlyList<ResolverArgument> _resolverArguments = resolverArguments ??
+        throw new ArgumentNullException(nameof(resolverArguments));
 
     public async ValueTask InvokeAsync(IMiddlewareContext context)
     {
