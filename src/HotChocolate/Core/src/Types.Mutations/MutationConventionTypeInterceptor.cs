@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
@@ -191,7 +192,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         if (mutation.Member is not null)
         {
-            var argumentNameMap = new Dictionary<ParameterInfo, string>();
+            var argumentNameMap = TypeMemHelper.RentArgumentNameMap();
 
             foreach (var arg in mutation.Arguments)
             {
@@ -207,6 +208,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     mutation.SourceType,
                     mutation.ResolverType,
                     argumentNameMap);
+            
+            TypeMemHelper.Return(argumentNameMap);
         }
 
         var inputTypeName = options.FormatInputTypeName(mutation.Name);
