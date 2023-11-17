@@ -14,8 +14,8 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 public static partial class FederationSchemaPrinter
 {
-    private static readonly HashSet<string> _builtInDirectives = new()
-    {
+    private static readonly HashSet<string> _builtInDirectives =
+    [
         WellKnownTypeNames.External,
         WellKnownTypeNames.Requires,
         WellKnownTypeNames.Provides,
@@ -26,7 +26,7 @@ public static partial class FederationSchemaPrinter
         WellKnownDirectives.Include,
         WellKnownDirectives.Deprecated,
         SpecifiedByDirectiveType.Names.SpecifiedBy
-    };
+    ];
 
     /// <summary>
     /// Creates a <see cref="string" /> representation of the given
