@@ -1213,26 +1213,29 @@ public class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     """
-                        mutation {
-                            doSomething_Named(input: { name_Named: "coco" }) {
-                                user_Named {
-                                    id_Named
-                                    name_Named
-                                }
+                    mutation {
+                        doSomething_Named(input: { name_Named: "coco" }) {
+                            user_Named {
+                                id_Named
+                                name_Named
                             }
                         }
-                        """);
+                    }
+                    """);
 
         result.MatchInlineSnapshot(
             """
-                {
-                  "data": {
-                    "doSomething_Named": {
-                      "name_Named": "coco"
-                    }
+            {
+              "data": {
+                "doSomething_Named": {
+                  "user_Named": {
+                    "id_Named": "00000000-0000-0000-0000-000000000000",
+                    "name_Named": "coco"
                   }
                 }
-                """);
+              }
+            }
+            """);
     }
 
     public class SimpleMutation

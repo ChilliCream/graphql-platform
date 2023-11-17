@@ -1,8 +1,6 @@
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.ErrorContextDataKeys;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>

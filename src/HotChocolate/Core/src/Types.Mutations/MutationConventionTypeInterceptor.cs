@@ -8,8 +8,6 @@ using static HotChocolate.Types.ThrowHelper;
 using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownContextData;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
@@ -99,7 +97,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // on the mutations.
         if (_mutationTypeDef is not null)
         {
-            HashSet<MutationContextData> unprocessed = new(_mutations);
+            HashSet<MutationContextData> unprocessed = [.._mutations];
             var defLookup = _mutations.ToDictionary(t => t.Definition);
             var nameLookup = _mutations.ToDictionary(t => t.Name);
             var rootOptions = CreateOptions(_context.ContextData);
@@ -137,7 +135,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     // if the mutation options indicate that we shall apply the mutation
                     // conventions we will start rewriting the field.
                     ApplyResultMiddleware(mutationField);
-                    TryApplyInputConvention(mutationField, mutationOptions);
+                    TryApplyInputConvention(_context.ResolverCompiler, mutationField, mutationOptions);
                     TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
             }
@@ -181,11 +179,34 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         mutation.MiddlewareDefinitions.Insert(0, middlewareDef);
     }
 
-    private void TryApplyInputConvention(ObjectFieldDefinition mutation, Options options)
+    private void TryApplyInputConvention(
+        IResolverCompiler resolverCompiler,
+        ObjectFieldDefinition mutation, 
+        Options options)
     {
         if (mutation.Arguments.Count is 0)
         {
             return;
+        }
+
+        if (mutation.Member is not null)
+        {
+            var argumentNameMap = new Dictionary<ParameterInfo, string>();
+
+            foreach (var arg in mutation.Arguments)
+            {
+                if (arg.Parameter is not null)
+                {
+                    argumentNameMap.Add(arg.Parameter, arg.Name);
+                }
+            }
+
+            mutation.Resolvers =
+                resolverCompiler.CompileResolve(
+                    mutation.Member,
+                    mutation.SourceType,
+                    mutation.ResolverType,
+                    argumentNameMap);
         }
 
         var inputTypeName = options.FormatInputTypeName(mutation.Name);
