@@ -11,7 +11,8 @@ exclude:
   - name: NotAccessedPositionalProperty.Global
 
 bootstrap: |
-  curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --jsonfile /data/project/global.json -i /usr/share/dotnet
+  curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --jsonfile ./global.json -i /usr/share/dotnet
   sh ./init.sh
+
 dotnet:
     solution: All.sln
