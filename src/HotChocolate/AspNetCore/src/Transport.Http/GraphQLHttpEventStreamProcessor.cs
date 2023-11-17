@@ -36,46 +36,57 @@ internal static class GraphQLHttpEventStreamProcessor
         var bufferMemory = new Memory<byte>(buffer);
 #endif
 
-        try
-        {
-            while (true)
-            {
-                try
-                {
 #if NET6_0_OR_GREATER
-                    var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
-#else
-                    var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
+        await using var tokenRegistration = ct.Register(
+            static writer => ((PipeWriter)writer!).CancelPendingFlush(), 
+            state: writer, 
+            useSynchronizationContext: false);
+#else 
+        using var tokenRegistration = ct.Register(
+            static writer => ((PipeWriter)writer!).CancelPendingFlush(), 
+            state: writer, 
+            useSynchronizationContext: false);
 #endif
 
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-
-                    var memory = writer.GetMemory(bytesRead);
-                    buffer.AsSpan().CopyTo(memory.Span);
-                    writer.Advance(bytesRead);
-                }
-                catch
-                {
-                    break;
-                }
-
-                var result = await writer.FlushAsync(ct).ConfigureAwait(false);
-
-                if (result.IsCompleted)
-                {
-                    break;
-                }
-            }
-
-            await writer.CompleteAsync().ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
+        while (true)
         {
-            // we were canceled and stop executing.
+            try
+            {
+#if NET6_0_OR_GREATER
+                var bytesRead = await stream.ReadAsync(bufferMemory, ct).ConfigureAwait(false);
+#else
+                var bytesRead = await stream.ReadAsync(buffer, 0, bufferSize, ct).ConfigureAwait(false);
+#endif
+
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+                
+#if NET6_0_OR_GREATER
+                var memory = writer.GetMemory(bytesRead);
+                buffer.AsSpan()[..bytesRead].CopyTo(memory.Span);
+                writer.Advance(bytesRead);
+#else
+                var memory = writer.GetMemory(bytesRead);
+                buffer.AsSpan().Slice(0, bytesRead).CopyTo(memory.Span);
+                writer.Advance(bytesRead);
+#endif
+            }
+            catch
+            {
+                break;
+            }
+            
+            // ReSharper disable once RedundantArgumentDefaultValue
+            var result = await writer.FlushAsync(default).ConfigureAwait(false);
+            if (result.IsCompleted || result.IsCanceled)
+            {
+                break;
+            }
         }
+
+        await writer.CompleteAsync().ConfigureAwait(false);
     }
 
     private static async IAsyncEnumerable<OperationResult> ReadMessagesPipeAsync(
@@ -84,17 +95,25 @@ internal static class GraphQLHttpEventStreamProcessor
     {
         using var message = new ArrayWriter();
 
+#if NET6_0_OR_GREATER
+        await using var tokenRegistration = ct.Register(
+            static reader => ((PipeReader)reader!).CancelPendingRead(), 
+            state: reader, 
+            useSynchronizationContext: false);
+#else
+        using var tokenRegistration = ct.Register(
+            static reader => ((PipeReader)reader!).CancelPendingRead(), 
+            state: reader, 
+            useSynchronizationContext: false);
+#endif
+
         while (true)
         {
-            ReadResult result;
-
-            try
+            // ReSharper disable once RedundantArgumentDefaultValue
+            var result = await reader.ReadAsync(default).ConfigureAwait(false);
+            if (result.IsCanceled)
             {
-                result = await reader.ReadAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                yield break;
+                break;
             }
 
             var buffer = result.Buffer;
@@ -104,24 +123,26 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 position = buffer.PositionOf((byte) '\n');
 
-                if (position != null)
+                if (position == null)
                 {
-                    WriteToMessage(message, buffer.Slice(0, position.Value));
-
-                    if (IsMessageComplete(message))
-                    {
-                        if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
-                        {
-                            await reader.CompleteAsync().ConfigureAwait(false);
-                            yield break;
-                        }
-                        
-                        message.Reset();
-                        yield return operationResult;
-                    }
-
-                    buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                    continue;
                 }
+                
+                WriteToMessage(message, buffer.Slice(0, position.Value));
+
+                if (IsMessageComplete(message))
+                {
+                    if (!TryReadMessage(message.GetWrittenMemory(), out var operationResult))
+                    {
+                        await reader.CompleteAsync().ConfigureAwait(false);
+                        yield break;
+                    }
+                        
+                    message.Reset();
+                    yield return operationResult;
+                }
+
+                buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
             } while (position != null);
 
             reader.AdvanceTo(buffer.Start, buffer.End);
@@ -154,7 +175,7 @@ internal static class GraphQLHttpEventStreamProcessor
             {
                 var size = segment.Span.Length;
                 var span = message.GetSpan(size);
-                buffer.First.Span.CopyTo(span);
+                segment.Span.CopyTo(span);
                 message.Advance(size);
             }
         }

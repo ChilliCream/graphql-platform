@@ -984,6 +984,33 @@
               "DeprecationReason": null
             },
             {
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "JSON",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "Interface",
+                "Name": "Character",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -1420,6 +1447,18 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -1569,6 +1608,18 @@
               "Type": {
                 "Kind": "Scalar",
                 "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1747,6 +1798,18 @@
                   "Name": "Episode",
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -1995,6 +2058,16 @@
               "DeprecationReason": null
             }
           ],
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Scalar",
+          "Name": "JSON",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
           "PossibleTypes": null
         },
         {
@@ -2333,11 +2406,11 @@
         },
         {
           "Name": "tag",
-          "Description": null,
+          "Description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
           "Args": [
             {
               "Name": "name",
-              "Description": null,
+              "Description": "The name of the tag.",
               "Type": {
                 "Kind": "NonNull",
                 "Name": null,
@@ -4083,6 +4156,56 @@
             },
             {
               "__typename": "__Field",
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "JSON",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Character",
+                "Kind": "Interface",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -4890,6 +5013,26 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -5150,6 +5293,26 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5440,6 +5603,26 @@
                   "PossibleTypes": null,
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -5853,6 +6036,18 @@
               "DeprecationReason": null
             }
           ],
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
+          "Name": "JSON",
+          "Kind": "Scalar",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
           "PossibleTypes": null,
           "OfType": null
         },
@@ -6420,12 +6615,12 @@
         {
           "__typename": "__Directive",
           "Name": "tag",
-          "Description": null,
+          "Description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
           "Args": [
             {
               "__typename": "__InputValue",
               "Name": "name",
-              "Description": null,
+              "Description": "The name of the tag.",
               "Type": {
                 "__typename": "__Type",
                 "Name": null,

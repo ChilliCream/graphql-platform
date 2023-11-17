@@ -291,10 +291,10 @@ internal static class ClassBuilderExtensions
             {
                 NonNullTypeDescriptor d =>
                     BuildPropertyInternal(d.InnerType, false),
-                ILeafTypeDescriptor d when d.SerializationType.IsValueType =>
+                ILeafTypeDescriptor { SerializationType.IsValueType: true } =>
                     CodeInlineBuilder
                         .New()
-                        .SetText($"{propertyName} == {other}.{propertyName}"),
+                        .SetText($"global::System.Object.{nameof(Equals)}({propertyName}, {other}.{propertyName})"),
                 INamedTypeDescriptor when isNullable =>
                     ConditionBuilder
                         .New()

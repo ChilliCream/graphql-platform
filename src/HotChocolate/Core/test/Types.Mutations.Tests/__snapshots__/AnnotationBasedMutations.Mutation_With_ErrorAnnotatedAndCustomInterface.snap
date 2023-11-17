@@ -1,0 +1,48 @@
+schema {
+  query: Query
+  mutation: MutationWithErrorInterface
+}
+
+interface IErrorInterface {
+  message: String!
+}
+
+interface IInterfaceError {
+  name: String!
+}
+
+interface IInterfaceError2 {
+  name: String!
+}
+
+type AnnotatedPayload {
+  boolean: Boolean
+  errors: [AnnotatedError!]
+}
+
+type ErrorAnnotated implements IErrorInterface & IInterfaceError {
+  message: String!
+  name: String!
+}
+
+type ErrorAnnotatedAndNot implements IErrorInterface & IInterfaceError2 {
+  message: String!
+  name: String!
+}
+
+type MutationWithErrorInterface {
+  annotated(input: AnnotatedInput!): AnnotatedPayload!
+}
+
+type Query {
+  abc: String
+}
+
+union AnnotatedError = ErrorAnnotated | ErrorAnnotatedAndNot
+
+input AnnotatedInput {
+  something: String!
+}
+
+"The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
+directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

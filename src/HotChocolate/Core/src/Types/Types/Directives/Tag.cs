@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// The @tag directive is used to applies arbitrary string
+/// The @tag directive is used to apply arbitrary string
 /// metadata to a schema location. Custom tooling can use
 /// this metadata during any step of the schema delivery flow,
 /// including composition, static analysis, and documentation.
