@@ -2249,9 +2249,9 @@
       },
       "System.Diagnostics.DiagnosticSource": {
         "type": "Direct",
-        "requested": "[8.0.0-rc.2.23479.6, )",
-        "resolved": "8.0.0-rc.2.23479.6",
-        "contentHash": "D1Fi5wRyRVwriEdlSniYlo2kW8SCGaSCM/alsY8R7eXcW+xCPRB7gohE45X00EiNkhdUrJ3yNfltV8lLK0HoWQ=="
+        "requested": "[8.0.0, )",
+        "resolved": "8.0.0",
+        "contentHash": "c9xLpVz6PL9lp/djOWtk5KPDZq3cSYpmXoJQY524EOtuFl5z9ZtsotpsyrDW40U1DRnQSYvcPKEUV0X//u6gkQ=="
       },
       "xunit": {
         "type": "Direct",
@@ -2290,8 +2290,8 @@
       },
       "Microsoft.Extensions.ObjectPool": {
         "type": "Transitive",
-        "resolved": "8.0.0-rc.2.23480.2",
-        "contentHash": "iL9VcNK4dbMOLqAHInwcmVxzr+5sXp70m5Tt1uyIkc5SfJUTuFN6VaxrZy3k91oquTtYrkK9DbE5IP18iJUrtw=="
+        "resolved": "8.0.0",
+        "contentHash": "4pm+XgxSukskwjzDDfSjG4KNUIOdFF2VaqZZDtTzoyQMOVSnlV6ZM8a9aVu5dg9LVZTB//utzSc8fOi0b0Mb2Q=="
       },
       "Microsoft.NETCore.Platforms": {
         "type": "Transitive",
@@ -3273,8 +3273,8 @@
       "greendonut": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )",
-          "System.Diagnostics.DiagnosticSource": "[8.0.0-rc.2.23479.6, )",
+          "Microsoft.Extensions.ObjectPool": "[8.0.0, )",
+          "System.Diagnostics.DiagnosticSource": "[8.0.0, )",
           "System.Threading.Tasks.Extensions": "[4.5.0, )"
         }
       }
