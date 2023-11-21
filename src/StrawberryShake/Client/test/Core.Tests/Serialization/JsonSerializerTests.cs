@@ -35,6 +35,22 @@ public class JsonSerializerTests
     }
 
     [Fact]
+    public void UseAfterDispose()
+    {
+        // arrange
+        var json = JsonDocument.Parse(@"{ ""abc"": {""def"":""def""} }");
+        var element = json.RootElement.EnumerateObject().First().Value;
+
+        // act
+        var serialized = _serializer.Parse(element);
+        var expected = element.ToString();
+        json.Dispose();
+
+        // assert
+        Assert.Equal(expected, serialized.ToString());
+    }
+
+    [Fact]
     public void Format()
     {
         // arrange
