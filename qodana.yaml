@@ -11,10 +11,10 @@ exclude:
   - name: NotAccessedPositionalProperty.Global
 
 bootstrap: |
-  bash wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-  bash chmod 755 ./dotnet-install.sh
-  bash ./dotnet-install.sh --jsonfile ./global.json -i /usr/share/dotnet
-  bash ./init.sh
+  sh wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+  sh chmod 755 ./dotnet-install.sh
+  sh ./dotnet-install.sh --jsonfile ./global.json -i /usr/share/dotnet
+  sh ./init.sh
 
 dotnet:
     solution: All.sln
