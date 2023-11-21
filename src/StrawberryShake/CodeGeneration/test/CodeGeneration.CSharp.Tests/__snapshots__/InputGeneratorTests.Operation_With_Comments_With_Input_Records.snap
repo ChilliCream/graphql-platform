@@ -1,4 +1,4 @@
-// ReSharper disable BuiltInTypeReferenceStyle
+﻿// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable UnusedType.Global
@@ -675,6 +675,11 @@ namespace Foo.Bar.State
         private global::System.String? Deserialize_String(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
