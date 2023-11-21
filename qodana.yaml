@@ -11,7 +11,9 @@ exclude:
   - name: NotAccessedPositionalProperty.Global
 
 bootstrap: |
-  curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --jsonfile ./global.json -i /usr/share/dotnet
+  wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+  chmod 755 ./dotnet-install.sh
+  ./dotnet-install.sh --jsonfile ./global.json -i /usr/share/dotnet
   sh ./init.sh
 
 dotnet:
