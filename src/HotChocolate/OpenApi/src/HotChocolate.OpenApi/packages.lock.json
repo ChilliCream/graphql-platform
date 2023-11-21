@@ -16,17 +16,17 @@
       },
       "Microsoft.OpenApi": {
         "type": "Direct",
-        "requested": "[1.6.6, )",
-        "resolved": "1.6.6",
-        "contentHash": "7SE3RTGpdXUN+PkVN4xRrtsATgBI7BpsBvbjg6SykurEinA69vIl4S8DWPeGLaBykaCDq87/Ebf2Ashoh7Ky/g=="
+        "requested": "[1.6.10, )",
+        "resolved": "1.6.10",
+        "contentHash": "bMisSbhJ/YUM0USGLuuFFnBBrrKPVC8JGv1L5zlM5CFD4VatXs6krWia/OSBiTgJeNW/kZ8Jb+ZB3yK7BJhnQw=="
       },
       "Microsoft.OpenApi.Readers": {
         "type": "Direct",
-        "requested": "[1.6.6, )",
-        "resolved": "1.6.6",
-        "contentHash": "yWNvjxTS1lN9Ix91b0+zoOCSTHr2haZSm5qokko7qRKBiVQo+EDqlY+d93pxtCLcIj6LdHe+8AdfPGi7eAwtGA==",
+        "requested": "[1.6.10, )",
+        "resolved": "1.6.10",
+        "contentHash": "KcXwktDYGKFI+lqGdxmOWCqsMOXlAchmXiI/zXEsbFHYYRiCA9whq4SeuRsslwQJJiS9vdC4tS1w5FqfprsUzQ==",
         "dependencies": {
-          "Microsoft.OpenApi": "1.6.6",
+          "Microsoft.OpenApi": "1.6.10",
           "SharpYaml": "2.1.0"
         }
       },
@@ -323,17 +323,17 @@
       },
       "Microsoft.OpenApi": {
         "type": "Direct",
-        "requested": "[1.6.6, )",
-        "resolved": "1.6.6",
-        "contentHash": "7SE3RTGpdXUN+PkVN4xRrtsATgBI7BpsBvbjg6SykurEinA69vIl4S8DWPeGLaBykaCDq87/Ebf2Ashoh7Ky/g=="
+        "requested": "[1.6.10, )",
+        "resolved": "1.6.10",
+        "contentHash": "bMisSbhJ/YUM0USGLuuFFnBBrrKPVC8JGv1L5zlM5CFD4VatXs6krWia/OSBiTgJeNW/kZ8Jb+ZB3yK7BJhnQw=="
       },
       "Microsoft.OpenApi.Readers": {
         "type": "Direct",
-        "requested": "[1.6.6, )",
-        "resolved": "1.6.6",
-        "contentHash": "yWNvjxTS1lN9Ix91b0+zoOCSTHr2haZSm5qokko7qRKBiVQo+EDqlY+d93pxtCLcIj6LdHe+8AdfPGi7eAwtGA==",
+        "requested": "[1.6.10, )",
+        "resolved": "1.6.10",
+        "contentHash": "KcXwktDYGKFI+lqGdxmOWCqsMOXlAchmXiI/zXEsbFHYYRiCA9whq4SeuRsslwQJJiS9vdC4tS1w5FqfprsUzQ==",
         "dependencies": {
-          "Microsoft.OpenApi": "1.6.6",
+          "Microsoft.OpenApi": "1.6.10",
           "SharpYaml": "2.1.0"
         }
       },
