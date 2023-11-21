@@ -11,7 +11,7 @@ exclude:
   - name: NotAccessedPositionalProperty.Global
 
 bootstrap: |
-  sh ./build.sh restore
+  sh ./restore.sh
 
 dotnet:
     solution: All.sln
