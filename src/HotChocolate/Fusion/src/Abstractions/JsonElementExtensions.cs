@@ -11,7 +11,8 @@ internal static class JsonElementExtensions
         using var jsonWriter = new Utf8JsonWriter(writer);
 
         element.WriteTo(jsonWriter);
-        var reader = new Utf8JsonReader(writer.GetSpan(), true, default);
+        jsonWriter.Flush();
+        var reader = new Utf8JsonReader(writer.GetWrittenSpan(), true, default);
 
         return JsonElement.ParseValue(ref reader);
     }
