@@ -42,6 +42,22 @@ public static class TypeExtensions
             _ => type
         };
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IType ElementType(this IType type)
+    {
+        if(type.Kind == TypeKind.NonNull)
+        {
+            type = ((NonNullType)type).NullableType;
+        }
+
+        if (type.Kind == TypeKind.List)
+        {
+            return ((ListType)type).ElementType;
+        }
+        
+        throw new ArgumentException("The type is not a list type.", nameof(type));
+    }
+
     public static INamedType NamedType(this IType type)
     {
         while (true)

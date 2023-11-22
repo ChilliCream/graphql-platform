@@ -23,8 +23,6 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
     /// <inheritdoc />
     public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
-        Regex regex = CreateRegex();
-
         // If any type in the group is not an input object type, skip merging
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Object))
         {
@@ -90,16 +88,27 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
             // we need to check if the query field can be used as an entity resolver.
             if (targetField.Type.NamedType().Kind is TypeKind.Object)
             {
-                if (!TryExtractAnnotationBasedEntityResolver(context, sourceSchema, sourceField, targetField))
+                if (TryExtractAnnotationBasedEntityResolver(
+                    context, 
+                    sourceSchema, 
+                    sourceField, 
+                    targetField))
                 {
-                    TryExtractNameBasedEntityResolver(
-                        context,
-                        sourceField,
-                        targetField,
-                        (ObjectType)sourceField.Type.NamedType(),
-                        sourceSchema,
-                        byFieldPattern);
+                    continue;
                 }
+
+                if (TryExtractNameBasedEntityResolver(
+                    context,
+                    sourceField,
+                    targetField,
+                    (ObjectType)sourceField.Type.NamedType(),
+                    sourceSchema,
+                    byFieldPattern))
+                {
+                    continue;
+                }
+                
+                
             }
         }
     }
@@ -203,7 +212,7 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
         return true;
     }
 
-    private static void TryExtractNameBasedEntityResolver(
+    private static bool TryExtractNameBasedEntityResolver(
         CompositionContext context,
         OutputField entityResolverField,
         OutputField entityResolverTargetField,
@@ -212,55 +221,111 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
         Regex byFieldPattern)
     {
         var originalTypeName = entityType.GetOriginalName();
+        var originalFieldName = entityResolverField.GetOriginalName();
 
-        if (entityResolverField.Name.StartsWith(originalTypeName, StringComparison.OrdinalIgnoreCase))
+        if (!PossibleTypeNameMatch(originalTypeName, originalFieldName))
         {
-            var splits = byFieldPattern.Split(entityResolverField.Name);
+            return false;
+        }
+        
+        var splits = byFieldPattern.Split(originalFieldName);
 
-            if (splits.Length == 5)
+        if (splits.Length == 5)
+        {
+            var typeName = splits[1];
+            var fieldName = splits[3];
+            var isList = entityResolverField.Type.IsListType();
+
+            if (!isList && typeName.Equals(originalTypeName, StringComparison.OrdinalIgnoreCase))
             {
-                var typeName = splits[1];
-                var fieldName = splits[3];
-                var isList = entityResolverField.Type.IsListType();
-
-                if (!isList && typeName.Equals(originalTypeName, StringComparison.OrdinalIgnoreCase))
+                if (entityType.Fields.TryGetField(fieldName, StringComparison.OrdinalIgnoreCase, out var keyField))
                 {
-                    if (entityType.Fields.TryGetField(fieldName, StringComparison.OrdinalIgnoreCase, out var keyField))
-                    {
-                        TryRegisterEntityResolver(
-                            context,
-                            entityResolverField,
-                            entityResolverTargetField,
-                            entityType,
-                            keyField,
-                            schema);
-                    }
+                    TryRegisterEntityResolver(
+                        context,
+                        entityResolverField,
+                        entityResolverTargetField,
+                        entityType,
+                        keyField,
+                        schema);
                 }
-                else if (isList && typeName.Equals(originalTypeName, StringComparison.OrdinalIgnoreCase) ||
-                    (typeName.Length - 1 == originalTypeName.Length &&
-                        typeName.AsSpan()[typeName.Length - 1] == 's'))
+            }
+            else if (isList && DoesTypeNameMatch(originalTypeName, typeName))
+            {
+                if (!entityType.Fields.TryGetField(fieldName, StringComparison.OrdinalIgnoreCase, out var keyField))
                 {
-                    if (!entityType.Fields.TryGetField(fieldName, out var field))
-                    {
-                        var fieldPlural = fieldName[..^1];
-                        entityType.Fields.TryGetField(fieldPlural, out field);
-                    }
+                    var fieldPlural = fieldName[..^1];
+                    entityType.Fields.TryGetField(fieldPlural, StringComparison.OrdinalIgnoreCase, out keyField);
+                }
 
-                    if (field is not null)
-                    {
-                        /*
-                        TryRegisterBatchEntityResolver(
-                            entity,
-                            type,
-                            entityResolver,
-                            field,
-                            schema,
-                            context.FusionTypes);
-                            */
-                    }
+                if (keyField is not null)
+                {
+                    TryRegisterBatchEntityResolver(
+                        context,
+                        entityResolverField,
+                        entityResolverTargetField,
+                        entityType,
+                        keyField,
+                        schema);
                 }
             }
         }
+    }
+    
+    private static bool TryExtractEntityResolverFromNodeField(
+        CompositionContext context,
+        Schema sourceSchema,
+        OutputField sourceField,
+        OutputField targetField)
+    {
+        
+        return true;
+    }
+    
+    private static bool PossibleTypeNameMatch(ReadOnlySpan<char> typeName, ReadOnlySpan<char> fieldName)
+    {
+        if (fieldName.StartsWith(typeName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var end = typeName.Length;
+        if (typeName.EndsWith("y", StringComparison.Ordinal) &&
+            fieldName.Slice(end - 1, 3).Equals("ies", StringComparison.Ordinal) &&
+                typeName[..(end - 1)].Equals(fieldName[..(end - 1)], StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        
+        return true;
+    }
+
+    private static bool DoesTypeNameMatch(ReadOnlySpan<char> typeName, ReadOnlySpan<char> fieldTypeName)
+    {
+        if (fieldTypeName.Equals(typeName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (fieldTypeName.Length - 1 == typeName.Length)
+        {
+            if (fieldTypeName[^1].Equals('s') && 
+                fieldTypeName[..^1].Equals(typeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        if (typeName.EndsWith("y", StringComparison.Ordinal) && 
+            fieldTypeName.Length - 2 == typeName.Length)
+        {
+            if(fieldTypeName.EndsWith("ies", StringComparison.Ordinal) &&
+                fieldTypeName[..^3].Equals(typeName[..^1], StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void TryRegisterEntityResolver(
@@ -293,7 +358,52 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
                     }));
         }
     }
+    
+    private static void TryRegisterBatchEntityResolver(
+        CompositionContext context,
+        OutputField entityResolverField,
+        OutputField entityResolverTargetField,
+        ObjectType entityType,
+        OutputField keyField,
+        Schema schema)
+    {
+        if (!TryResolveBatchKeyArgument(entityResolverField, keyField, context.FusionTypes, out var keyArg))
+        {
+            return;
+        }
 
+        var returnType = entityResolverField.Type;
+
+        if (returnType.Kind is TypeKind.NonNull)
+        {
+            returnType = returnType.InnerType();
+        }
+
+        if(returnType.Kind != TypeKind.List)
+        {
+            return;
+        }
+
+        returnType = returnType.InnerType();
+
+        if (returnType == entityType ||
+            (returnType.Kind is TypeKind.NonNull &&
+                returnType.InnerType() == entityType))
+        {
+            context.EntityResolverInfos.Add(
+                new EntityResolverInfo(
+                    entityType.Name,
+                    entityType.GetOriginalName(),
+                    ResolverKind.Batch,
+                    entityResolverTargetField,
+                    new EntitySourceField(schema, entityResolverField),
+                    new List<EntitySourceArgument>
+                    {
+                        new(keyArg, new IsDirective(keyField.Name))
+                    }));
+        }
+    }
+    
     private static bool TryResolveKeyArgument(
         OutputField entityResolverField,
         OutputField keyField,
@@ -337,79 +447,6 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
             !IsDirective.ExistsIn(keyArgument, context);
     }
 
-    /*
-    private static void TryRegisterBatchEntityResolver(
-        EntityGroup entity,
-        ObjectType entityType,
-        OutputField entityResolverField,
-        OutputField keyField,
-        Schema schema,
-        IFusionTypeContext context)
-    {
-        if (!TryResolveBatchKeyArgument(entityResolverField, keyField, context, out var keyArg))
-        {
-            return;
-        }
-
-        var returnType = entityResolverField.Type;
-
-        if (returnType.Kind is TypeKind.NonNull)
-        {
-            returnType = returnType.InnerType();
-        }
-
-        if(returnType.Kind != TypeKind.List)
-        {
-            return;
-        }
-
-        returnType = returnType.InnerType();
-
-        if (returnType == entityType ||
-            (returnType.Kind is TypeKind.NonNull &&
-                returnType.InnerType() == entityType))
-        {
-            var arguments = new List<ArgumentNode>();
-
-            // Create a new FieldNode for the entity resolver
-            var selection = new FieldNode(
-                null,
-                new NameNode(entityResolverField.GetOriginalName()),
-                null,
-                null,
-                Array.Empty<DirectiveNode>(),
-                arguments,
-                null);
-
-            // Create a new SelectionSetNode for the entity resolver
-            var selectionSet = new SelectionSetNode(new[] { selection });
-
-            // Create a new EntityResolver for the entity
-            var resolver = new EntityResolver(
-                EntityResolverKind.Batch,
-                selectionSet,
-                entityType.Name,
-                schema.Name);
-
-            var keyFieldNode = new FieldNode(
-                null,
-                new NameNode(keyField.Name),
-                null,
-                null,
-                Array.Empty<DirectiveNode>(),
-                Array.Empty<ArgumentNode>(),
-                null);
-
-            var keyFieldDirective = new IsDirective(keyFieldNode);
-            var var = entityType.CreateVariableName(keyFieldDirective);
-            arguments.Add(new ArgumentNode(keyArg.Name, new VariableNode(var)));
-            resolver.Variables.Add(var, keyArg.CreateVariableField(keyFieldDirective, var));
-
-            // Add the new EntityResolver to the entity metadata
-            entity.Metadata.EntityResolvers.TryAdd(resolver);
-        }
-    }
-
     private static bool TryResolveBatchKeyArgument(
         OutputField entityResolverField,
         OutputField keyField,
@@ -420,7 +457,7 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
         {
             if (keyArgument.Type.IsListType() && !IsDirective.ExistsIn(keyArgument, context))
             {
-                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+                return keyArgument.Type.ElementType().Equals(keyField.Type, TypeComparison.Structural);
             }
 
             keyArgument = null;
@@ -433,7 +470,7 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
 
             if (keyArgument.Type.IsListType() && !IsDirective.ExistsIn(keyArgument, context))
             {
-                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+                return keyArgument.Type.ElementType().Equals(keyField.Type, TypeComparison.Structural);
             }
 
             keyArgument = null;
@@ -461,7 +498,7 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
         }
 
         if (keyArgument?.Type.IsListType() is true &&
-            keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural) &&
+            keyArgument.Type.ElementType().Equals(keyField.Type, TypeComparison.Structural) &&
             !IsDirective.ExistsIn(keyArgument, context))
         {
             return true;
@@ -470,5 +507,4 @@ internal sealed partial class QueryTypeMergeHandler : ITypeMergeHandler
         keyArgument = null;
         return false;
     }
-    */
 }

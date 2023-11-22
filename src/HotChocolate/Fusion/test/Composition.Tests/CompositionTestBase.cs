@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using CookieCrumble;
 using HotChocolate.Fusion.Composition.Pipeline;
 using HotChocolate.Fusion.Shared;
@@ -9,7 +10,7 @@ namespace HotChocolate.Fusion.Composition;
 public abstract class CompositionTestBase
 {
     private readonly Func<ICompositionLog> _logFactory;
-    private readonly ITypeMergeHandler[] _typeMergeHandler = 
+    private readonly ITypeMergeHandler[] _typeMergeHandler =
     {
         new ObjectTypeMergeHandler(),
         new InterfaceTypeMergeHandler(),
@@ -113,13 +114,13 @@ public abstract class CompositionTestBase
             {
                 expectedErrorCodesSet.Remove(error.Code);
             }
-            
+
             snapshot.Add(error.Message);
         }
-        
+
         Assert.True(hasError, "No error found!");
         Assert.True(
-            expectedErrorCodesSet.Count is 0, 
+            expectedErrorCodesSet.Count is 0,
             $"The following error codes where not raised {string.Join(",", expectedErrorCodesSet)}");
         await snapshot.MatchAsync();
     }

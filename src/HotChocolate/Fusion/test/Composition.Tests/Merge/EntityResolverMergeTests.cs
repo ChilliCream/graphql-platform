@@ -440,4 +440,134 @@ public class EntityResolverMergeTests(ITestOutputHelper output) : CompositionTes
               @resolver(operation: "query($id: ID!) { entityById(id: $id) }", kind: FETCH, subgraph: "B")
           }
           """);
+    
+    [Fact]
+    public Task Extract_Entity_Batch_Resolvers_By_Name_Annotations()
+      => Succeed(
+          """
+          type Query {
+            foosById(ids: [ID!]!): [Foo!]
+          }
+
+          type Foo {
+            id: ID!
+            field1: String!
+          }
+          """,
+          """
+          type Query {
+            foosById(ids: [ID!]!): [Foo!]
+          }
+
+          type Foo {
+            id: ID!
+            field2: String!
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type Foo
+            @variable(name: "Foo_id", select: "id", subgraph: "A")
+            @variable(name: "Foo_id", select: "id", subgraph: "B")
+            @resolver(operation: "query($Foo_id: [ID!]!) { foosById(ids: $Foo_id) }", kind: BATCH, subgraph: "A")
+            @resolver(operation: "query($Foo_id: [ID!]!) { foosById(ids: $Foo_id) }", kind: BATCH, subgraph: "B") {
+            field1: String!
+              @source(subgraph: "A")
+            field2: String!
+              @source(subgraph: "B")
+            id: ID!
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+          }
+          
+          type Query {
+            foosById(ids: [ID!]!): [Foo!]
+              @resolver(operation: "query($ids: [ID!]!) { foosById(ids: $ids) }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "query($ids: [ID!]!) { foosById(ids: $ids) }", kind: FETCH, subgraph: "B")
+          }
+          """);
+    
+    [Fact]
+    public Task Extract_Entity_Batch_Resolvers_By_Name_Annotations_2()
+      => Succeed(
+          """
+          type Query {
+            entitiesById(ids: [ID!]!): [Entity!]
+          }
+
+          type Entity {
+            id: ID!
+            field1: String!
+          }
+          """,
+          """
+          type Query {
+            entitiesById(ids: [ID!]!): [Entity!]
+          }
+
+          type Entity {
+            id: ID!
+            field2: String!
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          type Entity
+            @variable(name: "Entity_id", select: "id", subgraph: "A")
+            @variable(name: "Entity_id", select: "id", subgraph: "B")
+            @resolver(operation: "query($Entity_id: [ID!]!) { entitiesById(ids: $Entity_id) }", kind: BATCH, subgraph: "A")
+            @resolver(operation: "query($Entity_id: [ID!]!) { entitiesById(ids: $Entity_id) }", kind: BATCH, subgraph: "B") {
+            field1: String!
+              @source(subgraph: "A")
+            field2: String!
+              @source(subgraph: "B")
+            id: ID!
+              @source(subgraph: "A")
+              @source(subgraph: "B")
+          }
+          
+          type Query {
+            entitiesById(ids: [ID!]!): [Entity!]
+              @resolver(operation: "query($ids: [ID!]!) { entitiesById(ids: $ids) }", kind: FETCH, subgraph: "A")
+              @resolver(operation: "query($ids: [ID!]!) { entitiesById(ids: $ids) }", kind: FETCH, subgraph: "B")
+          }
+          """);
+    
+    [Fact]
+    public Task Extract_Entity_Resolvers_From_Relay_Pattern()
+      => Succeed(
+          """
+          type Query {
+            entity(id: ID!): Entity!
+            node(id: ID!): Node
+          }
+
+          type Entity implements Node {
+            id: ID!
+            field1: String!
+          }
+          
+          interface Node {
+            id: ID!
+          }
+          """,
+          """
+          type Query {
+            entity(id: ID!): Entity!
+            node(id: ID!): Node
+          }
+
+          type Entity implements Node {
+            id: ID!
+            field2: String!
+          }
+          
+          interface Node {
+            id: ID!
+          }
+          """)
+        .MatchInlineSnapshotAsync(
+          """
+          
+          """);
 }
