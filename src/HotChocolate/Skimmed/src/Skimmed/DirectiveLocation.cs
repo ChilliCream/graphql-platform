@@ -104,7 +104,7 @@ public enum DirectiveLocation
     /// </summary>
     InputFieldDefinition = 0x20000,
 
-    // see: http://spec.graphql.org/draft/#ExecutableDirectiveLocation
+    // see: https://spec.graphql.org/draft/#ExecutableDirectiveLocation
     Executable =
         Query |
         Mutation |
@@ -115,7 +115,7 @@ public enum DirectiveLocation
         InlineFragment |
         VariableDefinition,
 
-    // see: http://spec.graphql.org/draft/#TypeSystemDirectiveLocation
+    // see: https://spec.graphql.org/draft/#TypeSystemDirectiveLocation
     TypeSystem =
         Schema |
         Scalar |

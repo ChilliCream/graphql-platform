@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -128,7 +128,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -246,7 +246,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -364,7 +364,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
     "Exception": null,
     "SyntaxNode": {

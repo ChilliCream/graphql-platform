@@ -27,7 +27,7 @@
       "variable": "intArg",
       "variableType": "Int",
       "locationType": "Boolean",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
     },
     "Exception": null,
     "SyntaxNode": {

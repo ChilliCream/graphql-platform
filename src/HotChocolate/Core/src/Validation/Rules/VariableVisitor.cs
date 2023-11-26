@@ -12,14 +12,14 @@ namespace HotChocolate.Validation.Rules;
 /// it is ambiguous and invalid. It is invalid even if the type of the
 /// duplicate variable is the same.
 ///
-/// http://spec.graphql.org/June2018/#sec-Validation.Variables
+/// https://spec.graphql.org/June2018/#sec-Validation.Variables
 ///
 /// AND
 ///
 /// Variables can only be input types. Objects,
 /// unions, and interfaces cannot be used as inputs.
 ///
-/// http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
+/// https://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types
 ///
 /// AND
 ///
@@ -28,7 +28,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// Unused variables cause a validation error.
 ///
-/// http://spec.graphql.org/June2018/#sec-All-Variables-Used
+/// https://spec.graphql.org/June2018/#sec-All-Variables-Used
 ///
 /// AND
 ///
@@ -36,7 +36,7 @@ namespace HotChocolate.Validation.Rules;
 /// any variable used within the context of an operation must be defined
 /// at the top level of that operation
 ///
-/// http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
+/// https://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined
 ///
 /// AND
 ///
@@ -47,7 +47,7 @@ namespace HotChocolate.Validation.Rules;
 /// of types that are complete mismatches, or if a nullable type in a
 ///  variable is passed to a non‐null argument type.
 ///
-/// http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
+/// https://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed
 /// </summary>
 internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
 {

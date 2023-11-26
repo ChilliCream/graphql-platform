@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "type": "ExampleInput",
-        "specifiedBy": "http://spec.graphql.org/draft/#sec-Oneof\u2013Input-Objects-Have-Exactly-One-Field",
+        "specifiedBy": "https://spec.graphql.org/draft/#sec-Oneof\u2013Input-Objects-Have-Exactly-One-Field",
         "rfc": "https://github.com/graphql/graphql-spec/pull/825"
       }
     },
@@ -30,7 +30,7 @@
       ],
       "extensions": {
         "field": "c",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
       }
     }
   ]
