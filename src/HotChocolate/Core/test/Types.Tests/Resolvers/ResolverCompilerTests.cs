@@ -1527,9 +1527,9 @@ public class ResolverCompilerTests
         }
     }
 
-    public class Entity { }
+    public class Entity;
 
-    public class MyService { }
+    public class MyService;
 
     public class QueryWithScopedExpressionBuilder
     {
