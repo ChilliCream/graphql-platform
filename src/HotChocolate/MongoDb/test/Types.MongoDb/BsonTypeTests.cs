@@ -1206,15 +1206,15 @@ public class BsonTypeTests
 
         public BsonObjectId ObjectId => new BsonObjectId(new ObjectId("6124e80f3f5fc839830c1f6b"));
 
-        public BsonBinaryData Binary => new BsonBinaryData(new byte[]
-        {
+        public BsonBinaryData Binary => new BsonBinaryData(
+        [
             1,
             2,
             3,
             4,
             5,
             6
-        });
+        ]);
 
         public BsonDecimal128 Decimal => new(42.123456789123456789123456789123456789123456789m);
 
@@ -1241,15 +1241,15 @@ public class BsonTypeTests
             ["DateTime"] = new BsonDateTime(1638147536),
             ["Timestamp"] = new BsonTimestamp(1638147536),
             ["ObjectId"] = new BsonObjectId(new ObjectId("6124e80f3f5fc839830c1f6b")),
-            ["BinaryData"] = new BsonBinaryData(new byte[]
-            {
+            ["BinaryData"] = new BsonBinaryData(
+            [
                 1,
                 2,
                 3,
                 4,
                 5,
                 6
-            }),
+            ]),
             ["Double"] = new BsonDouble(42.23),
             ["Double"] = new BsonDouble(42.23),
             ["Boolean"] = new BsonBoolean(true),

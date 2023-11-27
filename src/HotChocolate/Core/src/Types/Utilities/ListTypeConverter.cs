@@ -54,7 +54,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             {
                 var converterMethod =
                     _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
-                converter = s => converterMethod.Invoke(null, new[] { s, elementConverter });
+                converter = s => converterMethod.Invoke(null, [s, elementConverter]);
                 return true;
             }
 
@@ -65,7 +65,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 if (typeDefinition == typeof(ISet<>))
                 {
                     var converterMethod = _setConvert.MakeGenericMethod(targetElement);
-                    converter = s => converterMethod.Invoke(null, new[] { s, elementConverter });
+                    converter = s => converterMethod.Invoke(null, [s, elementConverter]);
                     return true;
                 }
 
@@ -92,7 +92,7 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 IsGenericCollection(target))
             {
                 var converterMethod = _collectionConvert.MakeGenericMethod(targetElement);
-                converter = s => converterMethod.Invoke(null, new[] { s, target, elementConverter });
+                converter = s => converterMethod.Invoke(null, [s, target, elementConverter]);
                 return true;
             }
         }

@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -50,10 +50,10 @@ public class QueryableFilterVisitorObjectTests
                 ObjectArray = null,
             }
         }
-    };
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -107,7 +107,7 @@ public class QueryableFilterVisitorObjectTests
                 ObjectArray = null
             }
         }
-    };
+    ];
 
     private readonly SchemaCache _cache;
 

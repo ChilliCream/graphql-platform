@@ -9,7 +9,7 @@ public class QueryableFilterVisitorListTests
     : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             FooNested = new[]
@@ -55,7 +55,7 @@ public class QueryableFilterVisitorListTests
                 new FooNested { Bar = "b" }
             }
         }
-    };
+    ];
 
     private readonly SchemaCache _cache;
 

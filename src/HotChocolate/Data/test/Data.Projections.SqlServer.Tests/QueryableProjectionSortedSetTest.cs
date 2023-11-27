@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionSortedSetTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -42,7 +42,7 @@ public class QueryableProjectionSortedSetTests
                 }
             }
         }
-    };
+    ];
 
     private readonly SchemaCache _cache = new();
 

@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Sorting.Expressions;
 public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -65,10 +65,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 ObjectArray = null,
             }
         }
-    };
+    ];
 
     private static readonly BarNullable?[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -152,7 +152,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
             Foo =null
         },
         null
-    };
+    ];
 
     private readonly SchemaCache _cache;
 

@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionFilterTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -42,10 +42,10 @@ public class QueryableProjectionFilterTests
                 }
             }
         }
-    };
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -99,10 +99,10 @@ public class QueryableProjectionFilterTests
                 ObjectArray = null
             }
         }
-    };
+    ];
 
     private static readonly BarNullable[] _barWithoutRelation =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -117,7 +117,7 @@ public class QueryableProjectionFilterTests
         },
         new() { Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 } },
         new()
-    };
+    ];
 
     private readonly SchemaCache _cache = new();
 

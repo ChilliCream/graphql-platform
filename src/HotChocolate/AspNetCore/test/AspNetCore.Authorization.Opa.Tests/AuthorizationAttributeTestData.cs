@@ -15,10 +15,10 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         [Authorize(Policy = Policies.HasDefinedAge)]
         public string GetAge() => "foo";
 
-        [Authorize(Roles = new[] { "a" })]
+        [Authorize(Roles = ["a"])]
         public string GetRoles() => "foo";
 
-        [Authorize(Roles = new[] { "a", "b" })]
+        [Authorize(Roles = ["a", "b"])]
         [GraphQLName("roles_ab")]
         public string GetRolesAb() => "foo";
 

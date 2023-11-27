@@ -30,10 +30,10 @@ public class GeoJsonLineStringSerializerTests
 
     private readonly object _geometryParsed = new[]
     {
-            new[] { 30.0, 10.0 },
-            new[] { 10.0, 30.0 },
-            new[] { 40.0, 40.0 }
-        };
+        new[] { 30.0, 10.0 },
+        [10.0, 30.0],
+        [40.0, 40.0]
+    };
 
     [Theory]
     [InlineData(GeometryTypeName)]

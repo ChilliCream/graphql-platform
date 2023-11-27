@@ -28,7 +28,7 @@ public class RavenFilterExpressionBuilder
     {
         return Expression.Call(
             _inMethod.MakeGenericMethod(genericType),
-            new[] { property, Expression.Constant(parsedValue), });
+            [property, Expression.Constant(parsedValue), ]);
     }
 
     public static Expression IsMatch(
@@ -39,6 +39,6 @@ public class RavenFilterExpressionBuilder
 
         return Expression.Call(
             _isMatch,
-            new[] { property, Expression.Constant(parsedValue), });
+            [property, Expression.Constant(parsedValue), ]);
     }
 }

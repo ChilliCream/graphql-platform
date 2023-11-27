@@ -522,7 +522,7 @@ public static class SchemaFormatter
 
             var arguments = reason is null
                 ? Array.Empty<ArgumentNode>()
-                : new[] { new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason) };
+                : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason)];
 
             return new DirectiveNode(
                 null,

@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Projections;
 public class ProjectToTests
 {
     private static readonly Blog[] _blogEntries =
-    {
+    [
         new()
         {
             Name = "TestA",
@@ -89,7 +89,7 @@ public class ProjectToTests
                 }
             }
         },
-    };
+    ];
 
     [Fact]
     public async Task Execute_ManyToOne()

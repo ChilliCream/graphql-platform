@@ -11,16 +11,16 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionVisitorPagingTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
+    [
         new() { Bar = true, Baz = "a" },
         new() { Bar = null, Baz = null },
         new() { Bar = false, Baz = "c" }
-    };
+    ];
 
     private readonly SchemaCache _cache = new SchemaCache();
 

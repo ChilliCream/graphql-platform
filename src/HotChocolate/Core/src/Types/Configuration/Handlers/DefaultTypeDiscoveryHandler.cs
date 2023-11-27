@@ -103,7 +103,7 @@ internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
             return false;
         }
 
-        schemaTypeRefs = new[] { schemaType };
+        schemaTypeRefs = [schemaType];
         return true;
     }
 

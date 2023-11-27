@@ -29,10 +29,10 @@ public class MethodCallBuilder : ICode
 
     public MethodCallBuilder SetMethodName(string methodName)
     {
-        _methodName = new[]
-        {
+        _methodName =
+        [
             methodName
-        };
+        ];
         return this;
     }
 

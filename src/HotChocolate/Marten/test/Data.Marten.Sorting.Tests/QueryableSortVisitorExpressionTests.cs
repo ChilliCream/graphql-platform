@@ -10,13 +10,13 @@ namespace HotChocolate.Data;
 public class QueryableSortVisitorExpressionTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>() },
         new Foo
         {
             Name = "Foo", LastName = "Galoo", Bars = new List<Bar>() { new() { Value = "A" } }
         }
-    };
+    ];
 
     private readonly SchemaCache _cache;
 

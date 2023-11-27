@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             Name = "Foo",
@@ -25,7 +25,7 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             LastName = "Sampleman",
             Bars = Array.Empty<Bar>()
         }
-    };
+    ];
 
     private readonly SchemaCache _cache;
 

@@ -8,17 +8,17 @@ namespace HotChocolate.Data;
 public class QueryableFilterVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new() { Bar = "testatest" },
         new() { Bar = "testbtest" }
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = "testatest" }, 
-        new() { Bar = "testbtest" }, 
+    [
+        new() { Bar = "testatest" },
+        new() { Bar = "testbtest" },
         new() { Bar = null }
-    };
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -39,7 +39,7 @@ public class QueryableFilterVisitorStringTests
                 .SetQuery(
                     """
                     {
-                      root(where: { bar: { eq: "testatest"}}) { 
+                      root(where: { bar: { eq: "testatest"}}) {
                         bar
                       }
                     }

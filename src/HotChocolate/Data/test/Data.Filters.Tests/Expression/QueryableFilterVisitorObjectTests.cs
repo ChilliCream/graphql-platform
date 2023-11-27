@@ -259,10 +259,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { ScalarArray = new[] { "c", "d", "a" } } };
+        var a = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "a"] } };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { ScalarArray = new[] { "c", "d", "b" } } };
+        var b = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "b"] } };
         Assert.False(func(b));
     }
 
@@ -278,7 +278,7 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { ScalarArray = new[] { "c", "d", "a" } } };
+        var a = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "a"] } };
         Assert.True(func(a));
 
         var b = new Bar { Foo = new Foo { ScalarArray = new string[0] } };
@@ -304,13 +304,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                ScalarArray = new[] { "c", "d", "a" }
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            ScalarArray = ["c", "d", "a"]
                         }
                     }
+                ]
             }
         };
         Assert.True(func(a));
@@ -319,13 +322,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                ScalarArray = new[] { "c", "d", "b" }
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            ScalarArray = ["c", "d", "b"]
                         }
                     }
+                ]
             }
         };
         Assert.False(func(b));
@@ -347,13 +353,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                ScalarArray = new[] { "c", "d", "a" }
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            ScalarArray = ["c", "d", "a"]
                         }
                     }
+                ]
             }
         };
         Assert.True(func(a));
@@ -362,13 +371,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                ScalarArray = new string[0]
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            ScalarArray = new string[0]
                         }
                     }
+                ]
             }
         };
         Assert.False(func(b));
@@ -377,13 +389,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                ScalarArray = null
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            ScalarArray = null
                         }
                     }
+                ]
             }
         };
         Assert.False(func(c));
@@ -405,13 +420,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                BarString = "a"
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            BarString = "a"
                         }
                     }
+                ]
             }
         };
         Assert.True(func(a));
@@ -420,13 +438,16 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
-                            Foo = new Foo {
-                                BarString = "b"
-                            }
+                ObjectArray =
+                [
+                    new Bar
+                    {
+                        Foo = new Foo
+                        {
+                            BarString = "b"
                         }
                     }
+                ]
             }
         };
         Assert.False(func(b));

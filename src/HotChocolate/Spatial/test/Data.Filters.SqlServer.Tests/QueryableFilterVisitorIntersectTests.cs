@@ -31,10 +31,10 @@ public class QueryableFilterVisitorIntersectsTests
         }));
 
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new() { Id = 1, Bar = _truePolygon },
         new() { Id = 2, Bar = _falsePolygon }
-    };
+    ];
 
     public QueryableFilterVisitorIntersectsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)

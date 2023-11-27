@@ -55,20 +55,20 @@ public class GeoJsonMultiLineStringSerializerTests
 
     private readonly object _geometryParsed = new[]
     {
-            new[]
-            {
-                new[] { 10.0, 10.0 },
-                new[] { 20.0, 20.0 },
-                new[] { 10.0, 40.0 }
-            },
-            new[]
-            {
-                new[] { 40.0, 40.0 },
-                new[] { 30.0, 30.0 },
-                new[] { 40.0, 20.0 },
-                new[] { 30.0, 10.0 }
-            }
-        };
+        new[]
+        {
+            new[] { 10.0, 10.0 },
+            [20.0, 20.0],
+            [10.0, 40.0]
+        },
+        new[]
+        {
+            new[] { 40.0, 40.0 },
+            [30.0, 30.0],
+            [40.0, 20.0],
+            [30.0, 10.0]
+        }
+    };
 
     [Theory]
     [InlineData(GeometryTypeName)]

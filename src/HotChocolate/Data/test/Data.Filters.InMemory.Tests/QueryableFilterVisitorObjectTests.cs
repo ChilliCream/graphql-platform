@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Filters.Expressions;
 public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -62,10 +62,10 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 ObjectArray = null
             }
         }
-    };
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -141,7 +141,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         {
             Foo = null
         }
-    };
+    ];
 
     private readonly SchemaCache _cache;
 
