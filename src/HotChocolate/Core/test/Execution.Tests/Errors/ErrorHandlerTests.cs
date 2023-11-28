@@ -206,7 +206,7 @@ public class ErrorHandlerTests
         }
     }
 
-    public class SomeService { }
+    public class SomeService;
 
     public class AggregateErrorFilter : IErrorFilter
     {

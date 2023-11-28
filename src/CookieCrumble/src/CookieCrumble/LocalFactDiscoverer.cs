@@ -6,7 +6,7 @@ using Xunit.Sdk;
 namespace CookieCrumble;
 
 [XunitTestCaseDiscoverer("LocalFactDiscoverer", "YourTestAssemblyName")]
-public class LocalFactAttribute : FactAttribute { }
+public class LocalFactAttribute : FactAttribute;
 
 public class LocalFactDiscoverer : FactDiscoverer
 {
