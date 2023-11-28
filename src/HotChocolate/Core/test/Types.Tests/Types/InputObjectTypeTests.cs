@@ -836,7 +836,7 @@ public class InputObjectTypeTests : TypeTestBase
         }
     }
 
-    public class FooDirective { }
+    public class FooDirective;
 
     public class QueryType : ObjectType
     {

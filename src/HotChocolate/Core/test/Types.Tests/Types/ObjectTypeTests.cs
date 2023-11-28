@@ -2324,7 +2324,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     public class MyList
-        : MyListBase { }
+        : MyListBase;
 
     public class MyListBase
         : IQueryable<Bar>
