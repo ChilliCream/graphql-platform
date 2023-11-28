@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -60,11 +61,14 @@ public static class FilterExpressionBuilder
         Type genericType,
         object? parsedValue)
     {
+        var enumerableType = typeof(IEnumerable<>);
+        var enumerableGenericType = enumerableType.MakeGenericType(genericType);
+
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Contains),
             new Type[] { genericType },
-            Expression.Constant(parsedValue),
+            CreateParameter(parsedValue, enumerableGenericType),
             property);
     }
 

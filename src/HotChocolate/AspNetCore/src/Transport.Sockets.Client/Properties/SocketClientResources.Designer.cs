@@ -44,11 +44,5 @@ namespace HotChocolate.Transport.Sockets.Client.Properties {
                 resourceCulture = value;
             }
         }
-        
-        internal static string OperationRequest_QueryOrPersistedQueryId {
-            get {
-                return ResourceManager.GetString("OperationRequest_QueryOrPersistedQueryId", resourceCulture);
-            }
-        }
     }
 }

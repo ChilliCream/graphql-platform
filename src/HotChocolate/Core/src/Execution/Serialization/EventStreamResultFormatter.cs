@@ -64,8 +64,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         if (result.Kind is SingleResult)
         {
-            await WriteNextMessageAsync((IQueryResult)result, outputStream, ct)
-                .ConfigureAwait(false);
+            await WriteNextMessageAsync((IQueryResult)result, outputStream, ct).ConfigureAwait(false);
             await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
             await WriteCompleteMessage(outputStream, ct).ConfigureAwait(false);
             await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
@@ -84,12 +83,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
             // we await all tasks so that we can catch all exceptions.
             await Task.WhenAll(
-                ProcessResponseStreamAsync(
-                    synchronization,
-                    completion,
-                    responseStream,
-                    outputStream,
-                    ct),
+                ProcessResponseStreamAsync(synchronization, completion, responseStream, outputStream, ct),
                 SendKeepAliveMessagesAsync(synchronization, completion, outputStream, ct));
         }
 
@@ -133,9 +127,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-        await foreach (var queryResult in responseStream.ReadResultsAsync()
-                           .WithCancellation(ct)
-                           .ConfigureAwait(false))
+        await foreach (var queryResult in responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
         {
             // we do not need try-finally here because we dispose the semaphore in the parent
             // method.
@@ -144,8 +136,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
             try
             {
-                await WriteNextMessageAsync(queryResult, outputStream, ct)
-                    .ConfigureAwait(false);
+                await WriteNextMessageAsync(queryResult, outputStream, ct).ConfigureAwait(false);
             }
             finally
             {
@@ -171,7 +162,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_nextEvent, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
@@ -182,39 +173,29 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 #endif
 
         using var bufferWriter = new ArrayWriter();
-        await using (var writer = new Utf8JsonWriter(bufferWriter, _options))
-        {
-            _payloadFormatter.Format(result, writer);
-        }
+        FormatPayload(bufferWriter, result);
 
-        var read = 0;
-        while (read < bufferWriter.Length)
-        {
-            var buffer = bufferWriter.GetWrittenMemory().Slice(read);
-            if (buffer.Span.IndexOf(_newLine) is var newLineIndex && newLineIndex != -1)
-            {
-                buffer = buffer.Slice(0, newLineIndex);
-            }
-
-#if NETCOREAPP3_1_OR_GREATER
-            await outputStream.WriteAsync(_dataField, ct).ConfigureAwait(false);
-            await outputStream.WriteAsync(buffer, ct).ConfigureAwait(false);
-            await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
+#if NET6_0_OR_GREATER
+        await outputStream.WriteAsync(_dataField, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(bufferWriter.GetWrittenMemory(), ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
-            await outputStream.WriteAsync(_dataField, 0, _dataField.Length, ct)
-                .ConfigureAwait(false);
-            await outputStream.WriteAsync(bufferWriter.GetInternalBuffer(), read, buffer.Length, ct)
-                .ConfigureAwait(false);
-            await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
+        var buffer = bufferWriter.GetInternalBuffer();
+        await outputStream.WriteAsync(_dataField, 0, _dataField.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(buffer, 0, bufferWriter.Length, ct).ConfigureAwait(false);
+        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
 #endif
+    }
 
-            read += buffer.Length + 1;
-        }
+    private void FormatPayload(ArrayWriter bufferWriter, IQueryResult result)
+    {
+        using var writer = new Utf8JsonWriter(bufferWriter, _options);
+        _payloadFormatter.Format(result, writer);
     }
 
     private static async ValueTask WriteCompleteMessage(Stream outputStream, CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_completeEvent, ct).ConfigureAwait(false);
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
@@ -229,7 +210,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
 #else
         await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
@@ -241,7 +222,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         Stream outputStream,
         CancellationToken ct)
     {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         await outputStream.WriteAsync(_keepAlive, ct).ConfigureAwait(false);
 #else
         await outputStream.WriteAsync(_keepAlive, 0, _keepAlive.Length, ct).ConfigureAwait(false);

@@ -33,7 +33,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query GetUser_1 { users { name __fusion_exports__1: id } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -46,18 +51,20 @@ QueryPlan
         "subgraph": "Reviews",
         "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name reviews { body author { name __fusion_exports__2: id } } __fusion_exports__3: id } } __fusion_exports__1: id } } }",
         "selectionSetId": 1,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__1",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
         ],
         "requires": [
           {
             "variable": "__fusion_exports__1"
+          }
+        ],
+        "provides": [
+          {
+            "variable": "__fusion_exports__2"
+          },
+          {
+            "variable": "__fusion_exports__3"
           }
         ]
       },
@@ -73,16 +80,10 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
-            "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on User { birthdate __fusion_exports__2: id } } }",
+            "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { usersById(ids: $__fusion_exports__2) { birthdate __fusion_exports__2: id } }",
             "selectionSetId": 5,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__2",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
-              "nodes"
+              "usersById"
             ],
             "requires": [
               {
@@ -93,16 +94,10 @@ QueryPlan
           {
             "type": "ResolveByKeyBatch",
             "subgraph": "Accounts",
-            "document": "query GetUser_4($__fusion_exports__3: [ID!]!) { nodes(ids: $__fusion_exports__3) { ... on User { birthdate __fusion_exports__3: id } } }",
+            "document": "query GetUser_4($__fusion_exports__3: [ID!]!) { usersById(ids: $__fusion_exports__3) { birthdate __fusion_exports__3: id } }",
             "selectionSetId": 3,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__3",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
-              "nodes"
+              "usersById"
             ],
             "requires": [
               {
@@ -115,11 +110,16 @@ QueryPlan
       {
         "type": "Compose",
         "selectionSetIds": [
-          5,
-          3
+          3,
+          5
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id",
+    "__fusion_exports__3": "User_id"
   }
 }
 ---------------

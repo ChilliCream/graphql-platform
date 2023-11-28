@@ -16,7 +16,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
     where TRuntimeType : struct
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="IntToStructBaseType"/>.
+    /// Initializes a new instance of <see cref="IntToStructBaseType{TRuntimeType}"/>.
     /// </summary>
     /// <param name="name">
     /// The name of the scalar.

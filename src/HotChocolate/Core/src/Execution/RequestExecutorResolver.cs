@@ -243,6 +243,10 @@ internal sealed partial class RequestExecutorResolver
             typeModuleChangeMonitor.Register(typeModule);
         }
 
+        // we allow newer type modules to apply configurations.
+        await typeModuleChangeMonitor.ConfigureAsync(context, cancellationToken)
+            .ConfigureAwait(false);
+
         serviceCollection.AddSingleton<IApplicationServiceProvider>(
             _ => new DefaultApplicationServiceProvider(_applicationServices));
 
@@ -316,6 +320,7 @@ internal sealed partial class RequestExecutorResolver
                 sp.GetRequiredService<RequestDelegate>(),
                 sp.GetRequiredService<BatchExecutor>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
+                sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
         OnConfigureSchemaServices(context, serviceCollection, setup);
@@ -517,6 +522,20 @@ internal sealed partial class RequestExecutorResolver
         {
             typeModule.TypesChanged += EvictRequestExecutor;
             _typeModules.Add(typeModule);
+        }
+
+        internal async ValueTask ConfigureAsync(
+            ConfigurationContext context,
+            CancellationToken cancellationToken)
+        {
+            foreach (var item in _typeModules)
+            {
+                if (item is TypeModule typeModule)
+                {
+                    await typeModule.ConfigureAsync(context, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
         }
 
         public IAsyncEnumerable<ITypeSystemMember> CreateTypesAsync(IDescriptorContext context)

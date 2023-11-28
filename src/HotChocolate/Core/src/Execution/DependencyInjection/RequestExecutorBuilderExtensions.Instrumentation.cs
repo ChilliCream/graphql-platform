@@ -51,7 +51,7 @@ public static partial class RequestExecutorBuilderExtensions
         else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.TryAddSingleton<T>();
-            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
+            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetRequiredService<T>());
         }
         else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
         {
@@ -61,7 +61,7 @@ public static partial class RequestExecutorBuilderExtensions
                 typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
             {
                 var listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
-                builder.Services.AddSingleton(listener, s => s.GetService<T>());
+                builder.Services.AddSingleton(listener, s => s.GetRequiredService<T>());
             }
         }
         else

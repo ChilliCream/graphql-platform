@@ -29,18 +29,18 @@ public static class DownloadCommand
             "Custom headers used in request to Graph QL server. " +
             "Can be used multiple times. Example: --headers key1=value1 --headers key2=value2",
             CommandOptionType.MultipleValue);
+        
+        var depthArg = download.Option(
+            "-d|--typeDepth",
+            "The type depth used for the introspection request.",
+            CommandOptionType.SingleOrNoValue);
 
         var authArguments = download.AddAuthArguments();
 
         download.OnExecuteAsync(cancellationToken =>
         {
-            var arguments = new DownloadCommandArguments(
-                uriArg,
-                fileNameArg,
-                authArguments,
-                headersArg);
-            var handler =
-                CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
+            var arguments = new DownloadCommandArguments(uriArg, fileNameArg, authArguments, headersArg, depthArg);
+            var handler = CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
             return handler.ExecuteAsync(arguments, cancellationToken);
         });
     }

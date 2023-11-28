@@ -158,6 +158,12 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
     }
 
     /// <summary>
+    /// Gets the buffer as an <see cref="ArraySegment{T}"/>
+    /// </summary>
+    /// <returns></returns>
+    public ArraySegment<byte> ToArraySegment() => new(_buffer, 0, _start);
+
+    /// <summary>
     /// Ensures that the internal buffer has the needed capacity.
     /// </summary>
     /// <param name="neededCapacity">
@@ -177,7 +183,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
 
             // if that new buffer size is not enough to satisfy the needed capacity
             // we add the needed capacity to the doubled buffer capacity.
-            if (neededCapacity > newSize)
+            if (neededCapacity > newSize - _start)
             {
                 newSize += neededCapacity;
             }
@@ -196,6 +202,12 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
             // last but not least we return the original buffer to the array pool.
             ArrayPool<byte>.Shared.Return(buffer);
         }
+    }
+
+    public void Reset()
+    {
+        _capacity = _buffer.Length;
+        _start = 0;
     }
 
     /// <inheritdoc/>

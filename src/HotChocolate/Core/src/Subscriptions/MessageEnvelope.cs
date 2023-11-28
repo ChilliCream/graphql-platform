@@ -17,6 +17,9 @@ public readonly struct MessageEnvelope<TBody>
     /// <param name="kind">The message kind.</param>
     public MessageEnvelope(TBody? body = default, MessageKind kind = MessageKind.Default)
     {
+        Body = body;
+        Kind = kind;
+        
         if (kind is MessageKind.Default && body is null)
         {
             throw new ArgumentException(
@@ -24,15 +27,10 @@ public readonly struct MessageEnvelope<TBody>
                 nameof(body));
         }
 
-        if(kind is not MessageKind.Default && body is not null)
+        if(kind is MessageKind.Completed)
         {
-            throw new ArgumentException(
-                MessageEnvelope_UnsubscribeAndComplete_DoNotHaveBody,
-                nameof(body));
+            Body = default;
         }
-
-        Body = body;
-        Kind = kind;
     }
 
     /// <summary>

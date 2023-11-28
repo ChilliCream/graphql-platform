@@ -24,6 +24,7 @@ public sealed partial class OperationCompiler
 {
     private static readonly ImmutableList<ISelectionSetOptimizer> _emptyOptimizers =
         ImmutableList<ISelectionSetOptimizer>.Empty;
+
     private readonly InputParser _parser;
     private readonly CreateFieldPipeline _createFieldPipeline;
     private readonly Stack<BacklogItem> _backlog = new();
@@ -65,7 +66,8 @@ public sealed partial class OperationCompiler
         ObjectType operationType,
         DocumentNode document,
         ISchema schema,
-        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null)
+        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null,
+        bool enableNullBubbling = true)
     {
         if (string.IsNullOrEmpty(operationId))
         {
@@ -112,7 +114,7 @@ public sealed partial class OperationCompiler
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
-            var context = new CompilerContext(schema, document);
+            var context = new CompilerContext(schema, document, enableNullBubbling);
             context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
             CompileSelectionSet(context);
 
@@ -218,7 +220,7 @@ public sealed partial class OperationCompiler
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
                 variantsStart.Complete();
-                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
 
 #if NET5_0_OR_GREATER
@@ -229,7 +231,7 @@ public sealed partial class OperationCompiler
             while (Unsafe.IsAddressLessThan(ref optStart, ref optEnd))
             {
                 optStart.OptimizeOperation(context);
-                optStart = ref Unsafe.Add(ref optStart, 1);
+                optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
 #else
             for (var i = 0; i < _operationOptimizers.Count; i++)
@@ -241,13 +243,13 @@ public sealed partial class OperationCompiler
             CompleteResolvers(schema);
 
             variantsSpan = variants.AsSpan();
-            variantsStart = ref GetReference(variantsSpan);
-            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
+            variantsStart = ref GetReference(variantsSpan)!;
+            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length)!;
 
             while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
                 variantsStart.Seal();
-                variantsStart = ref Unsafe.Add(ref variantsStart, 1);
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
         }
 
@@ -341,7 +343,8 @@ public sealed partial class OperationCompiler
                 isConditional = true;
             }
 
-            if (fieldType.IsCompositeType())
+            // Determines if the type is a composite type.
+            if (fieldType.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
             {
                 if (selection.SelectionSet is null)
                 {
@@ -377,19 +380,19 @@ public sealed partial class OperationCompiler
                 // For now we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
-                     var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
-                     var nullValue = NullValueNode.Default;
-                     var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
-                     long ifConditionFlags = 0;
+                    var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
+                    var nullValue = NullValueNode.Default;
+                    var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                    long ifConditionFlags = 0;
 
-                     if (ifValue.Kind is not SyntaxKind.NullValue)
-                     {
-                         var ifCondition = new IncludeCondition(ifValue, nullValue);
-                         ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
-                     }
+                    if (ifValue.Kind is not SyntaxKind.NullValue)
+                    {
+                        var ifCondition = new IncludeCondition(ifValue, nullValue);
+                        ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
+                    }
 
-                     selection.MarkAsStream(ifConditionFlags);
-                     _hasIncrementalParts = true;
+                    selection.MarkAsStream(ifConditionFlags);
+                    _hasIncrementalParts = true;
                 }
             }
 
@@ -448,21 +451,21 @@ public sealed partial class OperationCompiler
             case SyntaxKind.Field:
                 ResolveField(
                     context,
-                    (FieldNode)selection,
+                    (FieldNode) selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.InlineFragment:
                 ResolveInlineFragment(
                     context,
-                    (InlineFragmentNode)selection,
+                    (InlineFragmentNode) selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.FragmentSpread:
                 ResolveFragmentSpread(
                     context,
-                    (FragmentSpreadNode)selection,
+                    (FragmentSpreadNode) selection,
                     includeCondition);
                 break;
         }
@@ -480,7 +483,9 @@ public sealed partial class OperationCompiler
 
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            var fieldType = field.Type.RewriteNullability(selection.Required);
+            var fieldType = context.EnableNullBubbling
+                ? field.Type.RewriteNullability(selection.Required)
+                : field.Type.RewriteToNullableType();
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
@@ -515,7 +520,9 @@ public sealed partial class OperationCompiler
                     responseName: responseName,
                     isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
-                    includeConditions: includeCondition == 0 ? null : new[] { includeCondition });
+                    includeConditions: includeCondition == 0
+                        ? null
+                        : new[] { includeCondition });
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -585,6 +592,7 @@ public sealed partial class OperationCompiler
                 var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
 
                 long ifConditionFlags = 0;
+
                 if (ifValue.Kind is not SyntaxKind.NullValue)
                 {
                     var ifCondition = new IncludeCondition(ifValue, nullValue);
@@ -636,8 +644,8 @@ public sealed partial class OperationCompiler
         => typeCondition.Kind switch
         {
             TypeKind.Object => ReferenceEquals(typeCondition, current),
-            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
-            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
+            TypeKind.Interface => current.IsImplementing((InterfaceType) typeCondition),
+            TypeKind.Union => ((UnionType) typeCondition).Types.ContainsKey(current.Name),
             _ => false
         };
 
@@ -788,7 +796,7 @@ public sealed partial class OperationCompiler
     {
         if (_deferContext is null)
         {
-            return new CompilerContext(context.Schema, context.Document);
+            return new CompilerContext(context.Schema, context.Document, context.EnableNullBubbling);
         }
 
         var temp = _deferContext;
@@ -861,4 +869,4 @@ public sealed partial class OperationCompiler
         public override int GetHashCode()
             => HashCode.Combine(SelectionSet, Path);
     }
-} 
+}

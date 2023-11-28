@@ -149,4 +149,17 @@ public class SchemaParserTests
         // assert
         document.ToString().MatchSnapshot();
     }
+
+    [Fact]
+    public void Parse_Directive_With_VariableDefinition()
+    {
+        // arrange
+        const string sourceText = "directive @foo(a: String) on VARIABLE_DEFINITION";
+
+        // act
+        var document = Utf8GraphQLParser.Parse(sourceText);
+
+        // assert
+        document.ToString().MatchSnapshot();
+    }
 }

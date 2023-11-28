@@ -81,11 +81,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.BadRequest;
 
-#if NET5_0_OR_GREATER
             var errors = headerResult.ErrorResult.Errors!;
-#else
-            var errors = headerResult.ErrorResult!.Errors!;
-#endif
             result = headerResult.ErrorResult;
             DiagnosticEvents.HttpRequestError(context, errors[0]);
             goto HANDLE_RESULT;

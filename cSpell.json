@@ -41,7 +41,9 @@
     "cypher",
     "sublicensable",
     "meros",
-    "Structs"
+    "Structs",
+    "reencode",
+    "WunderGraph"
   ],
   "ignoreWords": [
     "Badurina",
@@ -71,7 +73,6 @@
     "Postgraphile",
     "Normen",
     "typeof",
-    // youtube
     "Ufjn",
     "Wguo",
     "Ymgw",

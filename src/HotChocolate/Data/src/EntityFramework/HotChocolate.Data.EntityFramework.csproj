@@ -20,6 +20,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Update="Properties\EntityFrameworkResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

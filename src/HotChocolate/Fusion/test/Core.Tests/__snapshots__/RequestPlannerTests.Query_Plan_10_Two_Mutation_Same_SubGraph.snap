@@ -33,7 +33,15 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Reviews",
         "document": "mutation AddReviews_1 { a: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { __fusion_exports__1: id } } } b: addReview(input: { body: \u0022foo\u0022, authorId: 1, upc: 1 }) { review { body author { id __fusion_exports__2: id } } } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          },
+          {
+            "variable": "__fusion_exports__2"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -77,11 +85,15 @@ QueryPlan
       {
         "type": "Compose",
         "selectionSetIds": [
-          6,
-          3
+          3,
+          6
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id"
   }
 }
 ---------------

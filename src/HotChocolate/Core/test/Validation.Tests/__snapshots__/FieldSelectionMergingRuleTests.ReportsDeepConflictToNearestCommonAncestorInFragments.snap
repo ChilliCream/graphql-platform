@@ -5,12 +5,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 13,
-        "Column": 29
+        "Line": 12,
+        "Column": 13
       },
       {
-        "Line": 16,
-        "Column": 29
+        "Line": 15,
+        "Column": 13
       }
     ],
     "Extensions": {
@@ -30,10 +30,10 @@
       "Alias": {
         "Kind": "Name",
         "Location": {
-          "Start": 397,
-          "End": 399,
-          "Line": 16,
-          "Column": 29
+          "Start": 156,
+          "End": 158,
+          "Line": 15,
+          "Column": 13
         },
         "Value": "x"
       },
@@ -41,18 +41,18 @@
       "Required": null,
       "SelectionSet": null,
       "Location": {
-        "Start": 397,
-        "End": 427,
-        "Line": 16,
-        "Column": 29
+        "Start": 156,
+        "End": 170,
+        "Line": 15,
+        "Column": 13
       },
       "Name": {
         "Kind": "Name",
         "Location": {
-          "Start": 400,
-          "End": 427,
-          "Line": 16,
-          "Column": 32
+          "Start": 159,
+          "End": 170,
+          "Line": 15,
+          "Column": 16
         },
         "Value": "b"
       },
@@ -65,12 +65,12 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 16,
-        "Column": 29
+        "Line": 15,
+        "Column": 13
       },
       {
-        "Line": 13,
-        "Column": 29
+        "Line": 12,
+        "Column": 13
       }
     ],
     "Extensions": {
@@ -90,10 +90,10 @@
       "Alias": {
         "Kind": "Name",
         "Location": {
-          "Start": 309,
-          "End": 311,
-          "Line": 13,
-          "Column": 29
+          "Start": 116,
+          "End": 118,
+          "Line": 12,
+          "Column": 13
         },
         "Value": "x"
       },
@@ -101,18 +101,18 @@
       "Required": null,
       "SelectionSet": null,
       "Location": {
-        "Start": 309,
-        "End": 339,
-        "Line": 13,
-        "Column": 29
+        "Start": 116,
+        "End": 130,
+        "Line": 12,
+        "Column": 13
       },
       "Name": {
         "Kind": "Name",
         "Location": {
-          "Start": 312,
-          "End": 339,
-          "Line": 13,
-          "Column": 32
+          "Start": 119,
+          "End": 130,
+          "Line": 12,
+          "Column": 16
         },
         "Value": "a"
       },

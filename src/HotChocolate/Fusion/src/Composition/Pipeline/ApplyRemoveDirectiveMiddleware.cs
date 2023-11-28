@@ -31,7 +31,7 @@ internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
     }
 }
 
-static file class ApplyRemoveDirectiveMiddlewareExtensions
+file static class ApplyRemoveDirectiveMiddlewareExtensions
 {
     public static IEnumerable<RemoveDirective> GetRemoveDirectives(
         this Schema schema,

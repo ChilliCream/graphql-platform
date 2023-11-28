@@ -291,14 +291,8 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            Assert.Throws<SchemaException>(Action)
-                .Errors.Single().Message.MatchSnapshot(
-                    new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         Assert.Throws<SchemaException>(Action)
             .Errors.Single().Message.MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -671,7 +665,7 @@ public class EnumTypeTests : TypeTestBase
         Bar2
     }
 
-    public class Bar { }
+    public class Bar;
 
     public enum FooObsolete
     {

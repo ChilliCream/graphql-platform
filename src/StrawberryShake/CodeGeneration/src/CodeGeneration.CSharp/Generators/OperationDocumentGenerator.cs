@@ -33,6 +33,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .AddImplements(TypeNames.IDocument)
             .SetComment(

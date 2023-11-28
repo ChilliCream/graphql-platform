@@ -1,11 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("Fusion");
 
 builder.Services
-    .AddFusionGatewayServer(
-        "./gateway.fgp",
-        watchFileForUpdates: true);
+    .AddFusionGatewayServer()
+    .ConfigureFromFile("./gateway.fgp");
 
 var app = builder.Build();
 

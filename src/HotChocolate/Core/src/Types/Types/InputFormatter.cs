@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
@@ -10,7 +9,7 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types;
 
-public class InputFormatter
+public sealed class InputFormatter
 {
     private readonly ITypeConverter _converter;
 
@@ -73,7 +72,7 @@ public class InputFormatter
         {
             var field = type.Fields[i];
             var fieldValue = fieldValues[i];
-            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+            var fieldPath = path.Append(field.Name);
 
             if (field.IsOptional)
             {
@@ -106,9 +105,8 @@ public class InputFormatter
 
             for (var i = 0; i < runtimeList.Count; i++)
             {
-                Path newPath = PathFactory.Instance.Append(path, i);
-                items.Add(
-                    FormatValueInternal(runtimeList[i], type.ElementType, newPath));
+                var newPath = path.Append(i);
+                items.Add(FormatValueInternal(runtimeList[i], type.ElementType, newPath));
             }
 
             return new ListValueNode(items);
@@ -121,7 +119,7 @@ public class InputFormatter
 
             foreach (var item in enumerable)
             {
-                Path newPath = PathFactory.Instance.Append(path, i);
+                var newPath = path.Append(i);
                 items.Add(FormatValueInternal(item, type.ElementType, newPath));
             }
 
@@ -161,7 +159,7 @@ public class InputFormatter
             throw new ArgumentNullException(nameof(type));
         }
 
-        path ??= PathFactory.Instance.Append(Path.Root, type.Name);
+        path ??= Path.Root.Append(type.Name);
 
         var fields = new List<ArgumentNode>();
         var fieldValues = new object?[type.Arguments.Count];
@@ -171,7 +169,7 @@ public class InputFormatter
         {
             var field = type.Arguments[i];
             var fieldValue = fieldValues[i];
-            Path fieldPath = PathFactory.Instance.Append(path, field.Name);
+            var fieldPath = path.Append(field.Name);
 
             if (field.IsOptional)
             {
@@ -298,7 +296,7 @@ public class InputFormatter
 
             for (var i = 0; i < resultList.Count; i++)
             {
-                Path newPath = PathFactory.Instance.Append(path, i);
+                var newPath = path.Append(i);
                 items.Add(FormatResultInternal(resultList[i], type.ElementType, newPath));
             }
 

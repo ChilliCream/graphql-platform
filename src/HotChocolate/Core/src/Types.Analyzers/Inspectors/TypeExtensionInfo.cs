@@ -29,6 +29,21 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
 
         return Name == other.Name;
     }
+    
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is TypeExtensionInfo info && Equals(info);
+    }
 
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||

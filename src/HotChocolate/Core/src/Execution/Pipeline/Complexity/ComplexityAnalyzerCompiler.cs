@@ -136,6 +136,11 @@ internal sealed class ComplexityAnalyzerCompiler : TypeDocumentValidatorVisitor
 
     private Expression Combine(IReadOnlyList<Expression> expressions)
     {
+        if (expressions.Count > 2048)
+        {
+            throw new GraphQLException(ErrorHelper.MaxComplexityReached());
+        }
+        
         var combinedComplexity = expressions[0];
 
         for (var i = 1; i < expressions.Count; i++)

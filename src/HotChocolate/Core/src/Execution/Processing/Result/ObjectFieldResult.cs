@@ -23,6 +23,18 @@ public sealed class ObjectFieldResult
         _flags = isNullable ? Flags.InitializedAndNullable : Flags.Initialized;
     }
 
+    internal bool TrySetNull()
+    {
+        _value = null;
+        
+        if ((_flags & Flags.InitializedAndNullable) == Flags.InitializedAndNullable)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     internal void Reset()
     {
         _name = default!;

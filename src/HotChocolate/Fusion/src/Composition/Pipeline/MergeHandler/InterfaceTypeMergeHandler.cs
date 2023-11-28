@@ -44,18 +44,14 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         context.TryApplySource(source, sourceSchema, target);
 
         // If the target type does not have a description, use the source type's description.
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            source.Description = target.Description;
-        }
+        target.MergeDescriptionWith(source);
 
         // Add all of the interfaces that the source type implements to the target type.
         foreach (var interfaceType in source.Implements)
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
-                target.Implements.Add(
-                    (InterfaceType)context.FusionGraph.Types[interfaceType.Name]);
+                target.Implements.Add((InterfaceType)context.FusionGraph.Types[interfaceType.Name]);
             }
         }
 

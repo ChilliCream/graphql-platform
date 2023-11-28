@@ -8,67 +8,6 @@ namespace HotChocolate.Types.Relay;
 
 public class NodeFieldSupportTests
 {
-    [Obsolete]
-    [Fact]
-    public async Task NodeId_Is_Correctly_Formatted()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .AsNode()
-                .IdField(t => t.Id)
-                .NodeResolver((_, id) => Task.FromResult(new Bar { Id = id })))
-            .Create();
-
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync("{ bar { id } }");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Obsolete]
-    [Fact]
-    public async Task Node_Type_Is_Correctly_In_Context()
-    {
-        // arrange
-        string type = null;
-
-        var schema = SchemaBuilder.New()
-            .EnableRelaySupport()
-            .AddQueryType<Foo>()
-            .AddObjectType<Bar>(d => d
-                .AsNode()
-                .IdField(t => t.Id)
-                .NodeResolver((_, id) => Task.FromResult(new Bar { Id = id })))
-            .Use(next => async ctx =>
-            {
-                await next(ctx);
-
-                if (ctx.LocalContextData.TryGetValue(
-                    WellKnownContextData.InternalTypeName,
-                    out var value))
-                {
-                    type = (string)value;
-                }
-            })
-            .Create();
-
-        var executor = schema.MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
-
-        // assert
-        Assert.Equal("Bar", type);
-        result.MatchSnapshot();
-    }
-
     [Fact]
     public async Task Node_Resolve_Separated_Resolver()
     {

@@ -1001,7 +1001,7 @@ public class AnnotationBasedAuthorizationTests
     public sealed record City(string? Value) : ICityOrStreet;
 
     [UnionType]
-    public interface ICityOrStreet { }
+    public interface ICityOrStreet;
 
     [Node]
     [ExtendObjectType<Street>]
@@ -1090,7 +1090,7 @@ public class AnnotationBasedAuthorizationTests
     }
 
     [DirectiveType(DirectiveLocation.Object)]
-    public sealed class FooDirective { }
+    public sealed class FooDirective;
 
     public sealed class FooDirectiveAttribute : ObjectTypeDescriptorAttribute
     {

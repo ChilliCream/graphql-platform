@@ -74,10 +74,6 @@ public class EnumValueDescriptor
         return this;
     }
 
-    [Obsolete("Use `Deprecated`.")]
-    public IEnumValueDescriptor DeprecationReason(string reason) =>
-        Deprecated(reason);
-
     public IEnumValueDescriptor Deprecated(string reason)
     {
         if (string.IsNullOrEmpty(reason))

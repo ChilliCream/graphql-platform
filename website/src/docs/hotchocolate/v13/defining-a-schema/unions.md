@@ -41,7 +41,7 @@ Unions can be defined like the following.
 <ExampleTabs>
 <Annotation>
 
-We can use a marker interface to define object types as part of a union.
+We can use a marker interface (or an abstract class) to define object types as part of a union.
 
 ```csharp
 [UnionType("PostContent")]

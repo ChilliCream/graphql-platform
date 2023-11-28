@@ -40,6 +40,7 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
         var classBuilder =
             ClassBuilder
                 .New()
+                .SetAccessModifier(settings.AccessModifier)
                 .SetName(fileName)
                 .AddImplements(
                     TypeNames.IOperationResultDataFactory.WithGeneric(descriptor.RuntimeType));

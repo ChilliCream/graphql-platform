@@ -1,39 +1,64 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
+using HotChocolate.Transport.Http;
+using static HotChocolate.Utilities.Introspection.CapabilityInspector;
+using static HotChocolate.Utilities.Introspection.IntrospectionQueryHelper;
 
 namespace HotChocolate.Utilities.Introspection;
 
-public class IntrospectionClient : IIntrospectionClient
+/// <summary>
+/// A utility for inspecting GraphQL server feature support and for introspecting a GraphQL server.
+/// </summary>
+public static class IntrospectionClient
 {
-    private const string _jsonContentType = "application/json";
-    private static readonly JsonSerializerOptions _serializerOptions;
-
-#pragma warning disable CA1810
-    static IntrospectionClient()
+    private static readonly JsonSerializerOptions _serializerOptions = new()
     {
-        var options = new JsonSerializerOptions();
-        options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.Converters.Add(new JsonStringEnumConverter());
-        _serializerOptions = options;
-    }
-#pragma warning restore CA1810
-
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
+    };
+    
     internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
 
-    public static IntrospectionClient Default { get; } = new();
-
-    public async Task DownloadSchemaAsync(
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and returns the schema syntax tree.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
+    public static Task<DocumentNode> IntrospectServerAsync(
         HttpClient client,
-        Stream stream,
+        CancellationToken cancellationToken = default)
+        => IntrospectServerAsync(client, default, cancellationToken);
+    
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and returns the schema syntax tree.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="options">
+    /// The introspection options.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
+    public static Task<DocumentNode> IntrospectServerAsync(
+        HttpClient client, 
+        IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
         if (client is null)
@@ -41,22 +66,51 @@ public class IntrospectionClient : IIntrospectionClient
             throw new ArgumentNullException(nameof(client));
         }
 
-        if (stream is null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
-
-        var document = await DownloadSchemaAsync(
-                client, cancellationToken)
-            .ConfigureAwait(false);
-
-        await document
-            .PrintToAsync(stream, true, cancellationToken)
-            .ConfigureAwait(false);
+        return IntrospectServerInternalAsync(client, options, cancellationToken);
+    }
+    
+    private static async Task<DocumentNode> IntrospectServerInternalAsync(
+        HttpClient client, 
+        IntrospectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        using var internalClient = GraphQLHttpClient.Create(client, disposeHttpClient: false);
+        return await IntrospectServerInternalAsync(internalClient, options, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<DocumentNode> DownloadSchemaAsync(
-        HttpClient client,
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and returns the schema syntax tree.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
+    public static Task<DocumentNode> IntrospectServerAsync(
+        GraphQLHttpClient client,
+        CancellationToken cancellationToken = default)
+        => IntrospectServerAsync(client, default, cancellationToken);
+
+    /// <summary>
+    /// Downloads the schema information from a GraphQL server
+    /// and returns the schema syntax tree.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="options">
+    /// The introspection options.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
+    public static Task<DocumentNode> IntrospectServerAsync(
+        GraphQLHttpClient client,
+        IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
         if (client is null)
@@ -64,22 +118,54 @@ public class IntrospectionClient : IIntrospectionClient
             throw new ArgumentNullException(nameof(client));
         }
 
-        var features = await GetSchemaFeaturesAsync(
-                client, cancellationToken)
-            .ConfigureAwait(false);
-
-        var request = IntrospectionQueryHelper.CreateIntrospectionQuery(features);
-
-        var result = await ExecuteIntrospectionAsync(
-                client, request, cancellationToken)
-            .ConfigureAwait(false);
+        return IntrospectServerInternalAsync(client, options, cancellationToken);
+    }
+    
+    private static async Task<DocumentNode> IntrospectServerInternalAsync(
+        GraphQLHttpClient client,
+        IntrospectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        var capabilities = await InspectServerAsync(client, options, cancellationToken).ConfigureAwait(false);
+        var result = await IntrospectAsync(client, capabilities, options, cancellationToken).ConfigureAwait(false);
+        
         EnsureNoGraphQLErrors(result);
 
-        return IntrospectionDeserializer.Deserialize(result).RemoveBuiltInTypes();
+        return IntrospectionFormatter.Format(result).RemoveBuiltInTypes();
     }
 
-    public async Task<ISchemaFeatures> GetSchemaFeaturesAsync(
+    /// <summary>
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
         HttpClient client,
+        CancellationToken cancellationToken = default)
+        => InspectServerAsync(client, default, cancellationToken);
+        
+    
+    /// <summary>
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The HttpClient that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="options">
+    /// The introspection options.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
+        HttpClient client, 
+        IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
         if (client is null)
@@ -87,62 +173,104 @@ public class IntrospectionClient : IIntrospectionClient
             throw new ArgumentNullException(nameof(client));
         }
 
-        var request = IntrospectionQueryHelper.CreateFeatureQuery();
-
-        var result = await ExecuteIntrospectionAsync(
-                client, request, cancellationToken)
-            .ConfigureAwait(false);
-        EnsureNoGraphQLErrors(result);
-
-        return SchemaFeatures.FromIntrospectionResult(result);
+        return InspectServerInternalAsync(client, options, cancellationToken);
+    }
+    
+    private static async Task<ServerCapabilities> InspectServerInternalAsync(
+        HttpClient client, 
+        IntrospectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        using var internalClient = GraphQLHttpClient.Create(client, disposeHttpClient: false);
+        return await InspectAsync(internalClient, options, cancellationToken).ConfigureAwait(false);
     }
 
-    private void EnsureNoGraphQLErrors(IntrospectionResult result)
-    {
-        if (result.Errors is { })
-        {
-            var message = new StringBuilder();
+    /// <summary>
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
+        GraphQLHttpClient client,
+        CancellationToken cancellationToken = default)
+        => InspectServerAsync(client, default, cancellationToken);
 
-            for (var i = 0; i < result.Errors.Count; i++)
+    /// <summary>
+    /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
+    /// </summary>
+    /// <param name="client">
+    /// The <see cref="GraphQLHttpClient"/> that shall be used to execute the introspection query.
+    /// </param>
+    /// <param name="options">
+    /// The introspection options.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
+    public static Task<ServerCapabilities> InspectServerAsync(
+        GraphQLHttpClient client,
+        IntrospectionOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        if (client is null)
+        {
+            throw new ArgumentNullException(nameof(client));
+        }
+
+        return InspectAsync(client, options, cancellationToken);
+    }
+
+    private static void EnsureNoGraphQLErrors(IntrospectionResult result)
+    {
+        if (result.Errors is null)
+        {
+            return;
+        }
+        
+        var message = new StringBuilder();
+
+        for (var i = 0; i < result.Errors.Count; i++)
+        {
+            if (i > 0)
             {
-                if (i > 0)
-                {
-                    message.AppendLine();
-                }
-                message.AppendLine(result.Errors[i].Message);
+                message.AppendLine();
             }
-
-            throw new IntrospectionException(message.ToString());
+            message.AppendLine(result.Errors[i].Message);
         }
+
+        throw new IntrospectionException(message.ToString());
     }
 
-    private static async Task<IntrospectionResult> ExecuteIntrospectionAsync(
-        HttpClient client,
-        HttpQueryRequest request,
+    private static async Task<IntrospectionResult> IntrospectAsync(
+        GraphQLHttpClient client,
+        ServerCapabilities features,
+        IntrospectionOptions options,
         CancellationToken cancellationToken)
     {
-        var serializedRequest = JsonSerializer.SerializeToUtf8Bytes(
-            request, _serializerOptions);
+        var request = CreateIntrospectionRequest(features, options);
 
-        var content = new ByteArrayContent(serializedRequest);
-        content.Headers.ContentType = new MediaTypeHeaderValue(_jsonContentType);
+        using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var result = await response.ReadAsResultAsync(cancellationToken).ConfigureAwait(false);
+        
+        IntrospectionData? data = null;
+        IReadOnlyList<IntrospectionError>? errors = null;
 
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, client.BaseAddress)
+        if (result.Data.ValueKind is JsonValueKind.Object)
         {
-            Content = content
-        };
+            data = result.Data.Deserialize<IntrospectionData>(_serializerOptions);
+        }
+        
+        if (result.Errors.ValueKind is JsonValueKind.Array)
+        {
+            errors = result.Errors.Deserialize<IntrospectionError[]>(_serializerOptions);
+        }
 
-        using var httpResponse =
-            await client.SendAsync(httpRequest, cancellationToken)
-                .ConfigureAwait(false);
-        httpResponse.EnsureSuccessStatusCode();
-
-        using var stream =
-            await httpResponse.Content.ReadAsStreamAsync()
-                .ConfigureAwait(false);
-
-        return (await JsonSerializer.DeserializeAsync<IntrospectionResult>(
-                stream, _serializerOptions, cancellationToken)
-            .ConfigureAwait(false))!;
+        return new IntrospectionResult(data, errors);
     }
 }

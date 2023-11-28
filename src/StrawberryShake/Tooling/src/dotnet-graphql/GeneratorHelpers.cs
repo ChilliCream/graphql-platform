@@ -62,6 +62,7 @@ internal static class GeneratorHelpers
         {
             ClientName = configSettings.Name,
             Namespace = configSettings.Namespace ?? args.RootNamespace ?? rootNamespace,
+            AccessModifier = GetAccessModifier(configSettings.AccessModifier),
             StrictSchemaValidation =
                 configSettings.StrictSchemaValidation ?? args.StrictSchemaValidation,
             NoStore = configSettings.NoStore ?? args.NoStore,
@@ -72,6 +73,21 @@ internal static class GeneratorHelpers
             RequestStrategy = configSettings.RequestStrategy ?? args.Strategy,
             HashProvider = GetHashProvider(configSettings.HashAlgorithm ?? args.HashAlgorithm),
             TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles),
+        };
+    }
+
+    private static AccessModifier GetAccessModifier(string? accessModifier)
+    {
+        if (string.IsNullOrWhiteSpace(accessModifier))
+        {
+            return AccessModifier.Public;
+        }
+
+        return accessModifier switch
+        {
+            "public" => AccessModifier.Public,
+            "internal" => AccessModifier.Internal,
+            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported.")
         };
     }
 

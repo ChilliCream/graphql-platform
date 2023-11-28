@@ -7,18 +7,32 @@
     <Description>Contains an introspection client to download a GraphQL schema over HTTP.</Description>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Queries\introspection_phase_1.graphql" />
-    <None Remove="Queries\introspection_phase_2.graphql" />
-    <EmbeddedResource Include="Queries\introspection_phase_1.graphql" />
-    <EmbeddedResource Include="Queries\introspection_phase_2.graphql" />
+    <None Remove="Queries\inspect_argument_deprecation.graphql" />
+    <EmbeddedResource Include="Queries\inspect_argument_deprecation.graphql" />
+    <None Remove="Queries\inspect_directive_type.graphql" />
+    <EmbeddedResource Include="Queries\inspect_directive_type.graphql" />
+    <None Remove="Queries\inspect_directives.graphql" />
+    <EmbeddedResource Include="Queries\inspect_directives.graphql" />
+    <None Remove="Queries\inspect_schema.graphql" />
+    <EmbeddedResource Include="Queries\inspect_schema.graphql" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.Shared\HotChocolate.Types.Shared.csproj" />
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
   </ItemGroup>
 

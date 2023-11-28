@@ -16,8 +16,7 @@
 
 namespace Foo.Bar
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeriesResult : global::System.IEquatable<GetBwr_TimeSeriesResult>, IGetBwr_TimeSeriesResult
     {
         public GetBwr_TimeSeriesResult(global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries? bwr_TimeSeries)
@@ -82,11 +81,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Bwr_TimeSeriesConnection : global::System.IEquatable<GetBwr_TimeSeries_Bwr_TimeSeries_Bwr_TimeSeriesConnection>, IGetBwr_TimeSeries_Bwr_TimeSeries_Bwr_TimeSeriesConnection
     {
         public GetBwr_TimeSeries_Bwr_TimeSeries_Bwr_TimeSeriesConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes?>? nodes)
@@ -160,8 +158,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries : global::System.IEquatable<GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries>, IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries
     {
         public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries(global::System.String? inventoryId, global::System.String? area, global::System.String? source, global::System.String? type, global::System.String? name, global::System.String? category, global::System.String? specification, global::System.String? commodity, global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution? resolution, global::System.String? unit, global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria? validationCriteria, global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification? importSpecification, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>? _dataPoints)
@@ -325,8 +322,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution : global::System.IEquatable<GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution>, IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution
     {
         public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution(global::Foo.Bar.TimeUnit timeUnit, global::System.Int32 factor)
@@ -356,7 +352,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TimeUnit.Equals(other.TimeUnit)) && Factor == other.Factor;
+            return (TimeUnit.Equals(other.TimeUnit)) && global::System.Object.Equals(Factor, other.Factor);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -391,8 +387,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria : global::System.IEquatable<GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria>, IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria
     {
         public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria(global::System.String? _inventoryItemId, global::System.String? name, global::System.String? completeness, global::System.Decimal? lowerBound, global::System.Decimal? upperBound)
@@ -431,7 +426,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((_inventoryItemId is null && other._inventoryItemId is null) || _inventoryItemId != null && _inventoryItemId.Equals(other._inventoryItemId))) && ((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name)) && ((Completeness is null && other.Completeness is null) || Completeness != null && Completeness.Equals(other.Completeness)) && LowerBound == other.LowerBound && UpperBound == other.UpperBound;
+            return (((_inventoryItemId is null && other._inventoryItemId is null) || _inventoryItemId != null && _inventoryItemId.Equals(other._inventoryItemId))) && ((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name)) && ((Completeness is null && other.Completeness is null) || Completeness != null && Completeness.Equals(other.Completeness)) && global::System.Object.Equals(LowerBound, other.LowerBound) && global::System.Object.Equals(UpperBound, other.UpperBound);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -489,8 +484,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification : global::System.IEquatable<GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification>, IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification
     {
         public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification(global::System.Int32? fromPeriod, global::System.Int32? toPeriod)
@@ -520,7 +514,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (FromPeriod == other.FromPeriod) && ToPeriod == other.ToPeriod;
+            return (global::System.Object.Equals(FromPeriod, other.FromPeriod)) && global::System.Object.Equals(ToPeriod, other.ToPeriod);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -563,8 +557,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint : global::System.IEquatable<GetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint>, IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint
     {
         public GetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint(global::System.DateTimeOffset timestamp, global::System.Double @value, global::Foo.Bar.DataFlag flag)
@@ -597,7 +590,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Timestamp.Equals(other.Timestamp)) && Value == other.Value && Flag.Equals(other.Flag);
+            return (Timestamp.Equals(other.Timestamp)) && global::System.Object.Equals(Value, other.Value) && Flag.Equals(other.Flag);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -633,18 +626,16 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeriesResult
     {
         public global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries? Bwr_TimeSeries { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries
     {
         /// <summary>
@@ -653,17 +644,15 @@ namespace Foo.Bar
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes?>? Nodes { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Bwr_TimeSeriesConnection : IGetBwr_TimeSeries_Bwr_TimeSeries
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IBwr_TimeSeries
     {
         public global::System.String? InventoryId { get; }
@@ -693,20 +682,17 @@ namespace Foo.Bar
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints>? _dataPoints { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes : IBwr_TimeSeries
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries : IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution
     {
         public global::Foo.Bar.TimeUnit TimeUnit { get; }
@@ -714,14 +700,12 @@ namespace Foo.Bar
         public global::System.Int32 Factor { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution_Resolution : IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IBwr_ValidationCriteria
     {
         public global::System.String? _inventoryItemId { get; }
@@ -735,20 +719,17 @@ namespace Foo.Bar
         public global::System.Decimal? UpperBound { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria : IBwr_ValidationCriteria
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria : IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification
     {
         public global::System.Int32? FromPeriod { get; }
@@ -756,14 +737,12 @@ namespace Foo.Bar
         public global::System.Int32? ToPeriod { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification : IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints
     {
         public global::System.DateTimeOffset Timestamp { get; }
@@ -773,14 +752,12 @@ namespace Foo.Bar
         public global::Foo.Bar.DataFlag Flag { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints_DataPoint : IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPoints
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class bwr_TimeSeriesFilterInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _bwr_TimeSeriesFilterInputFormatter = default !;
@@ -1092,7 +1069,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class bwr_TimeSeriesFilterInput : global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo, global::System.IEquatable<bwr_TimeSeriesFilterInput>
     {
@@ -1423,8 +1399,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IBwr_TimeSeriesFilterInputInfo.Is_inventoryItemIdSet => _set__inventoryItemId;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StringOperationFilterInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringOperationFilterInputFormatter = default !;
@@ -1707,7 +1682,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StringOperationFilterInput : global::Foo.Bar.State.IStringOperationFilterInputInfo, global::System.IEquatable<StringOperationFilterInput>
     {
@@ -1996,8 +1970,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IStringOperationFilterInputInfo.IsNendsWithSet => _set_nendsWith;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReferenceTyOfbwr_TimeSeriesFilterInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _referenceTyOfbwr_TimeSeriesFilterInputFormatter = default !;
@@ -2101,7 +2074,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReferenceTyOfbwr_TimeSeriesFilterInput : global::Foo.Bar.State.IReferenceTyOfbwr_TimeSeriesFilterInputInfo, global::System.IEquatable<ReferenceTyOfbwr_TimeSeriesFilterInput>
     {
@@ -2216,8 +2188,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IReferenceTyOfbwr_TimeSeriesFilterInputInfo.Is_inventoryItemIdSet => _set__inventoryItemId;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ListRefFilterTyOfbwr_TimeSeriesFilterInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _referenceTyOfbwr_TimeSeriesFilterInputFormatter = default !;
@@ -2316,7 +2287,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ListRefFilterTyOfbwr_TimeSeriesFilterInput : global::Foo.Bar.State.IListRefFilterTyOfbwr_TimeSeriesFilterInputInfo, global::System.IEquatable<ListRefFilterTyOfbwr_TimeSeriesFilterInput>
     {
@@ -2357,7 +2327,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((All is null && other.All is null) || All != null && All.Equals(other.All))) && ((None is null && other.None is null) || None != null && None.Equals(other.None)) && ((Some is null && other.Some is null) || Some != null && Some.Equals(other.Some)) && Any == other.Any;
+            return (((All is null && other.All is null) || All != null && All.Equals(other.All))) && ((None is null && other.None is null) || None != null && None.Equals(other.None)) && ((Some is null && other.Some is null) || Some != null && Some.Equals(other.Some)) && global::System.Object.Equals(Any, other.Any);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2443,8 +2413,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IListRefFilterTyOfbwr_TimeSeriesFilterInputInfo.IsAnySet => _set_any;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReadDataInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
@@ -2550,7 +2519,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReadDataInput : global::Foo.Bar.State.IReadDataInputInfo, global::System.IEquatable<ReadDataInput>
     {
@@ -2687,8 +2655,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IReadDataInputInfo.IsAggregationSet => _set_aggregation;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ResolutionInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _timeUnitFormatter = default !;
@@ -2739,7 +2706,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ResolutionInput : global::Foo.Bar.State.IResolutionInputInfo, global::System.IEquatable<ResolutionInput>
     {
@@ -2780,7 +2746,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (TimeUnit.Equals(other.TimeUnit)) && Factor == other.Factor;
+            return (TimeUnit.Equals(other.TimeUnit)) && global::System.Object.Equals(Factor, other.Factor);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2822,8 +2788,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IResolutionInputInfo.IsFactorSet => _set_factor;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum TimeUnit
     {
         Millisecond,
@@ -2837,8 +2802,7 @@ namespace Foo.Bar
         Year
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class TimeUnitSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, TimeUnit>
     {
         public global::System.String TypeName => "TimeUnit";
@@ -2875,8 +2839,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum Aggregation
     {
         Avg,
@@ -2885,8 +2848,7 @@ namespace Foo.Bar
         Max
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class AggregationSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Aggregation>
     {
         public global::System.String TypeName => "Aggregation";
@@ -2913,8 +2875,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum DataFlag
     {
         NoValue,
@@ -2922,8 +2883,7 @@ namespace Foo.Bar
         Missing
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DataFlagSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, DataFlag>
     {
         public global::System.String TypeName => "DataFlag";
@@ -2948,7 +2908,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetBwr_TimeSeries GraphQL operation
     /// <code>
@@ -3012,7 +2971,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeriesQueryDocument : global::StrawberryShake.IDocument
     {
         private GetBwr_TimeSeriesQueryDocument()
@@ -3033,7 +2992,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetBwr_TimeSeries GraphQL operation
     /// <code>
@@ -3097,7 +3055,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeriesQuery : global::Foo.Bar.IGetBwr_TimeSeriesQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetBwr_TimeSeriesResult> _operationExecutor;
@@ -3164,7 +3122,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetBwr_TimeSeries GraphQL operation
     /// <code>
@@ -3228,18 +3185,17 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetBwr_TimeSeriesQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> ExecuteAsync(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBwr_TimeSeriesResult>> Watch(global::Foo.Bar.bwr_TimeSeriesFilterInput? @where, global::Foo.Bar.ReadDataInput readDataInput, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IGetBwr_TimeSeriesQuery _getBwr_TimeSeries;
@@ -3252,11 +3208,10 @@ namespace Foo.Bar
         public global::Foo.Bar.IGetBwr_TimeSeriesQuery GetBwr_TimeSeries => _getBwr_TimeSeries;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IGetBwr_TimeSeriesQuery GetBwr_TimeSeries { get; }
@@ -3265,7 +3220,6 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class bwr_TimeSeriesEntity
     {
@@ -3313,7 +3267,6 @@ namespace Foo.Bar.State
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.DataPointData>? _dataPoints { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class bwr_ValidationCriteriaEntity
     {
@@ -3337,7 +3290,6 @@ namespace Foo.Bar.State
         public global::System.Decimal? UpperBound { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class bwr_ImportSpecificationEntity
     {
@@ -3352,8 +3304,7 @@ namespace Foo.Bar.State
         public global::System.Int32? ToPeriod { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeriesResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetBwr_TimeSeriesResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -3522,8 +3473,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeriesResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -3545,7 +3495,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IBwr_TimeSeriesFilterInputInfo
     {
@@ -3580,7 +3529,6 @@ namespace Foo.Bar.State
         global::System.Boolean Is_inventoryItemIdSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IStringOperationFilterInputInfo
     {
@@ -3609,7 +3557,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsNendsWithSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IReferenceTyOfbwr_TimeSeriesFilterInputInfo
     {
@@ -3620,7 +3567,6 @@ namespace Foo.Bar.State
         global::System.Boolean Is_inventoryItemIdSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IListRefFilterTyOfbwr_TimeSeriesFilterInputInfo
     {
@@ -3633,7 +3579,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsAnySet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IReadDataInputInfo
     {
@@ -3648,7 +3593,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsAggregationSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IResolutionInputInfo
     {
@@ -3657,8 +3601,7 @@ namespace Foo.Bar.State
         global::System.Boolean IsFactorSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeriesBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetBwr_TimeSeriesResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -3710,6 +3653,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Bwr_TimeSeriesConnection", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3726,6 +3674,11 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             var bwr_TimeSeriess = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
@@ -3738,6 +3691,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityId? Update_IGetBwr_TimeSeries_Bwr_TimeSeries_NodesEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3768,12 +3726,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::Foo.Bar.State.ResolutionData? Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_Resolution(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3794,6 +3762,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _timeUnitParser.Parse(obj.Value.GetString()!);
         }
 
@@ -3804,12 +3777,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteriaEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3840,12 +3823,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _decimalParser.Parse(obj.Value.GetDecimal()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecificationEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3876,12 +3869,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.DataPointData>? Deserialize_IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes__dataPointsNonNullableArray(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -3902,6 +3905,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("DataPoint", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -3918,12 +3926,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _dateTimeParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.Double Deserialize_NonNullableDouble(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -3938,11 +3956,15 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _dataFlagParser.Parse(obj.Value.GetString()!);
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Bwr_TimeSeriesConnectionData
@@ -3959,7 +3981,6 @@ namespace Foo.Bar.State
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ResolutionData
     {
@@ -3977,7 +3998,6 @@ namespace Foo.Bar.State
         public global::System.Int32? Factor { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DataPointData
     {
@@ -3998,8 +4018,7 @@ namespace Foo.Bar.State
         public global::Foo.Bar.DataFlag? Flag { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeriesFrombwr_TimeSeriesEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_TimeSeriesEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_bwr_TimeSeries>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -4104,8 +4123,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteriaFrombwr_ValidationCriteriaEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ValidationCriteriaEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ValidationCriteria_bwr_ValidationCriteria>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -4125,8 +4143,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecificationFrombwr_ImportSpecificationEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.bwr_ImportSpecificationEntity, GetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -4146,8 +4163,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -4225,8 +4241,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -4237,8 +4252,7 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
