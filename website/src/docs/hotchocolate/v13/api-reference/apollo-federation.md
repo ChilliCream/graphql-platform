@@ -32,17 +32,17 @@ Now that the API is ready to support Apollo Federation, we'll need to define an 
 <ExampleTabs>
 <Annotation>
 
-  ```csharp
-  public class Product
-  {
-      [ID]
-      public string Id { get; set; }
+```csharp
+public class Product
+{
+    [ID]
+    public string Id { get; set; }
 
-      public string Name { get; set; }
+    public string Name { get; set; }
 
-      public float Price { get; set; }
-  }
-  ```
+    public float Price { get; set; }
+}
+```
 
 </Annotation>
 
@@ -145,7 +145,7 @@ Next, we'll need to define an [entity reference resolver](https://www.apollograp
 
 <Annotation>
 
-In an annotation-based implementation, a reference resolver will work just like a [regular resolver](docs/hotchocolate/v12/fetching-data/resolvers) with some key differences:
+In an annotation-based implementation, a reference resolver will work just like a [regular resolver](/docs/hotchocolate/v12/fetching-data/resolvers) with some key differences:
 
 1. It must be annotated with the `[ReferenceResolver]` attribute
 1. It must be a `public static` method _within_ the type it is resolving
@@ -208,7 +208,7 @@ public class Product
 
 <Code>
 
-We'll now chain a `ResolveReferenceWith()` method call off of the `Key()` method call from the previous step. This will create a [resolver](docs/hotchocolate/v12/fetching-data/resolvers) that the Hot Chocolate engine can invoke.
+We'll now chain a `ResolveReferenceWith()` method call off of the `Key()` method call from the previous step. This will create a [resolver](/docs/hotchocolate/v12/fetching-data/resolvers) that the Hot Chocolate engine can invoke.
 
 ```csharp
 public class Product
@@ -281,6 +281,7 @@ public class ProductType : ObjectType<Product>
 </ExampleTabs>
 
 > #### A note about reference resolvers
+>
 > It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
 
 ## Register the entity
@@ -376,7 +377,7 @@ In our new subgraph API we'll need to start by creating the `Product`. When crea
 
 - The _GraphQL type name_ **must match**. Often, this can be accomplished by using the same class name between the projects, but you can also use tools like the `[GraphQLName(string)]` attribute or `IObjectTypeDescriptor<T>.Name(string)` method to explicitly set a GraphQL name.
 - The extended type must include _at least one_ key that matches in both name and GraphQL type from the source graph.
-    - In our example, we'll be referencing the `id: ID!` field that was defined on our `Product`
+  - In our example, we'll be referencing the `id: ID!` field that was defined on our `Product`
 
 <ExampleTabs>
 
@@ -518,12 +519,14 @@ services.AddGraphQLServer()
 </ExampleTabs>
 
 In the above snippet two things may pop out as strnage to you:
+
 1. Why did we explictly ignore the `ProductId` property?
-    - The `ProductId` is, in essence, a "foreign key" to the other graph. Instead of presenting that data as a field of the `Review` type, we're presenting it through the `product: Product!` GraphQL field that is produced by the `GetProduct()` method. This allows the Apollo supergraph to stitch the `Review` and `Product` types together and represent that a query can traverse from the `Review` to the `Product` it is reviewing and make the API more graph-like. With that said, it is not strictly necessary to ignore the `ProductId` or any other external entity Id property.
+   - The `ProductId` is, in essence, a "foreign key" to the other graph. Instead of presenting that data as a field of the `Review` type, we're presenting it through the `product: Product!` GraphQL field that is produced by the `GetProduct()` method. This allows the Apollo supergraph to stitch the `Review` and `Product` types together and represent that a query can traverse from the `Review` to the `Product` it is reviewing and make the API more graph-like. With that said, it is not strictly necessary to ignore the `ProductId` or any other external entity Id property.
 2. Why does the `GetProduct()` method instantiate its own `new Product { Id = ProductId }` object?
-    - Since our goal with Apollo Federation is decomposition and [concern-based separation](https://www.apollographql.com/docs/federation/#concern-based-separation), a second subgraph is likely to have that "foreign key" reference to the type that is reference from the other subgraph. However, this graph does not "own" the actual data of the entity itself. This is why our sample simply performs a `new Product { Id = ProductId }` statement for the resolver: it's not opinionated about how the other data of a `Product` is resolved from its owning graph.
+   - Since our goal with Apollo Federation is decomposition and [concern-based separation](https://www.apollographql.com/docs/federation/#concern-based-separation), a second subgraph is likely to have that "foreign key" reference to the type that is reference from the other subgraph. However, this graph does not "own" the actual data of the entity itself. This is why our sample simply performs a `new Product { Id = ProductId }` statement for the resolver: it's not opinionated about how the other data of a `Product` is resolved from its owning graph.
 
 With our above changes, we can successfully connect these two subgraphs into a single query within an Apollo supergraph, allowing our API users to send a query like the following.
+
 ```graphql
 query {
   # Example - not explicitly defined in our tutorial
@@ -689,7 +692,8 @@ query {
       name
       price
       reviews {
-        id content
+        id
+        content
       }
     }
   }
@@ -699,7 +703,8 @@ query {
     name
     price
     reviews {
-      id content
+      id
+      content
     }
   }
 }
