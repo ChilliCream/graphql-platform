@@ -6,4 +6,4 @@ namespace HotChocolate.Subscriptions.Diagnostics;
 /// and they will all be notified in the registration order.
 /// </summary>
 /// <seealso cref="SubscriptionDiagnosticEventsListener"/>
-public interface ISubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvents { }
+public interface ISubscriptionDiagnosticEventsListener : ISubscriptionDiagnosticEvents;

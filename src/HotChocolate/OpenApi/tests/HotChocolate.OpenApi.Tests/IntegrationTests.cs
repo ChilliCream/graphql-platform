@@ -1,13 +1,8 @@
-using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
-using Xunit;
 using static System.IO.Path;
-
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace HotChocolate.OpenApi.Tests;
 

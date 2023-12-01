@@ -248,4 +248,18 @@ public class ArrayWriterTests
         writer.Advance (0x2000) ;
         writer.GetSpan (0x7000) ;
     }
+
+    [Fact]
+    public void ShouldResetCapacity()
+    {
+        // Arrange
+        using var writer = new ArrayWriter();
+
+        // Act
+        writer.GetSpan(1000);
+        writer.Advance(1000);
+        writer.Reset();
+        writer.GetSpan(2000);
+        writer.Advance(2000);
+    }
 }

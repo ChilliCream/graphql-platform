@@ -294,4 +294,4 @@ public static class DataLoaderResolverContextExtensions
     }
 }
 
-internal sealed class GetDataLoaderAttribute : Attribute { }
+internal sealed class GetDataLoaderAttribute : Attribute;

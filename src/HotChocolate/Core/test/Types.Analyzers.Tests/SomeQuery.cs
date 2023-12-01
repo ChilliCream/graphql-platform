@@ -102,6 +102,6 @@ public static class DataLoaderGen
     }
 }
 
-public class SomeService { }
+public class SomeService;
 
-public class GenericService<T> { }
+public class GenericService<T>;
