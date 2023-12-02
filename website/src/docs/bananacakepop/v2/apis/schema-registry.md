@@ -47,7 +47,7 @@ Examples are:
 - Changing the type of a field
 - Change a non-null field to a nullable field
 
-Breaking changes need to be managed with care to avoid disruptions to the service. It's important to ensure that all clients can handle these changes before they are introduced. This can be accomplished by versioning your clients and managing the lifecycle of client versions, as described in the section [Understanding Clients](#understanding-clients)].
+Breaking changes need to be managed with care to avoid disruptions to the service. It's important to ensure that all clients can handle these changes before they are introduced. This can be accomplished by versioning your clients and managing the lifecycle of client versions, as described in the section [Understanding Clients](/docs/bananacakepop/v2/apis/client-registry#understanding-clients)].
 
 ## Extracting the Schema 
 
