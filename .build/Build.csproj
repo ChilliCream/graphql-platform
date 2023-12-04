@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageDownload Include="Microsoft.VisualStudio.SlnGen.Tool" Version="[11.1.0]" />
     <PackageDownload Include="NuGet.CommandLine" Version="[6.5.0]" />
     <PackageDownload Include="dotnet-sonarscanner" Version="[5.13.0]" />
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
