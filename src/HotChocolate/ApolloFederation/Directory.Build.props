@@ -3,6 +3,6 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(Library3TargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 </Project>
