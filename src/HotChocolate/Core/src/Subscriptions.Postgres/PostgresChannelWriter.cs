@@ -103,11 +103,11 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
 
                 var channel = new NpgsqlParameter("channel", DbType.String)
                 {
-                    Value = _channelName
+                    Value = _channelName,
                 };
                 var msg = new NpgsqlParameter("message", DbType.String)
                 {
-                    Value = message.FormattedPayload
+                    Value = message.FormattedPayload,
                 };
                 command.Parameters.Add(channel);
                 command.Parameters.Add(msg);

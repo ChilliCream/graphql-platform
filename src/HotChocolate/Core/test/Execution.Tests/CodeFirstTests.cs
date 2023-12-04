@@ -505,7 +505,7 @@ public class CodeFirstTests
     public enum DrinkKind
     {
         BlackTea,
-        Water
+        Water,
     }
 
     public class FooBarUnionType : UnionType

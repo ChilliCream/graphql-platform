@@ -61,23 +61,23 @@ public class EnumFlagsTests
             schema {
               query: Query
             }
-            
+
             type FooBarBazFlags {
               isFoo: Boolean!
               isBar: Boolean!
               isBaz: Boolean!
             }
-            
+
             type Query {
               foo(input: FooBarBazFlagsInput!): FooBarBazFlags!
             }
-            
+
             input FooBarBazFlagsInput {
               isFoo: Boolean
               isBar: Boolean
               isBaz: Boolean
             }
-            
+
             "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
             directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
@@ -94,6 +94,6 @@ public class EnumFlagsTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 }

@@ -169,5 +169,5 @@ public enum TypeKind
     /// </para>
     /// <para>https://spec.graphql.org/draft/#sec-Type-System.Directives</para>
     /// </summary>
-    Directive = 128
+    Directive = 128,
 }

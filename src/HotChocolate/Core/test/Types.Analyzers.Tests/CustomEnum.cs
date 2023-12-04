@@ -4,5 +4,5 @@ namespace HotChocolate.Types;
 public enum MyEnum
 {
     Abc,
-    Def
+    Def,
 }

@@ -45,7 +45,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
 
             TimeSpan ts => ParseValue(ts),
 
-            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this),
         };
     }
 
@@ -154,7 +154,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
                     { new TimeSpan(12, 0, 0), "+12:00" },
                     { new TimeSpan(12, 45, 0), "+12:45" },
                     { new TimeSpan(13, 0, 0), "+13:00" },
-                    { new TimeSpan(14, 0, 0), "+14:00" }
+                    { new TimeSpan(14, 0, 0), "+14:00" },
                 };
 
             var offsetToTimeSpan = _timeSpanToOffset

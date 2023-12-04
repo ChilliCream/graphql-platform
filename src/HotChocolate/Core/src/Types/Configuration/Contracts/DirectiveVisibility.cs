@@ -13,5 +13,5 @@ public enum DirectiveVisibility
     /// <summary>
     /// Directive is internal and only visible within the type system.
     /// </summary>
-    Internal
+    Internal,
 }

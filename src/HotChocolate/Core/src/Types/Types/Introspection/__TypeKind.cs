@@ -24,7 +24,7 @@ internal sealed class __TypeKind : EnumType
                 new(Names.InputObject, TypeKind_InputObject, TypeKind.InputObject),
                 new(Names.List, TypeKind_List, TypeKind.List),
                 new(Names.NonNull, TypeKind_NonNull, TypeKind.NonNull),
-            }
+            },
         };
 
     public static class Names

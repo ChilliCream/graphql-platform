@@ -32,7 +32,7 @@ public class DefaultJsonMessageSerializerTests
         // assert
         Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
     }
-    
+
     [Fact]
     public void DeserializeCompleteMessage_With_Enum_Body()
     {
@@ -46,7 +46,7 @@ public class DefaultJsonMessageSerializerTests
         // assert
         Assert.Equal(MessageKind.Completed, messageEnvelope.Kind);
     }
-    
+
     [Fact]
     public void DeserializeCompleteMessage_With_Int_Body()
     {
@@ -77,9 +77,9 @@ public class DefaultJsonMessageSerializerTests
             .Add(serializedMessage)
             .MatchInline("{\"body\":\"abc\",\"kind\":0}");
     }
-    
+
     public enum Foo
     {
-        Bar
+        Bar,
     }
 }

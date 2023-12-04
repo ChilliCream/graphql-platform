@@ -85,7 +85,7 @@ internal abstract class RequestDocumentFormatter
     }
 
     private SelectionSetNode CreateRootLevelQuery(
-        SelectionPath path, 
+        SelectionPath path,
         SelectionSetNode selectionSet)
     {
         var current = path;
@@ -95,9 +95,9 @@ internal abstract class RequestDocumentFormatter
             selectionSet = new SelectionSetNode(
                 new[]
                 {
-                    current.Selection.SyntaxNode.WithSelectionSet(selectionSet)
+                    current.Selection.SyntaxNode.WithSelectionSet(selectionSet),
                 });
-            
+
             current = current.Parent;
         }
 

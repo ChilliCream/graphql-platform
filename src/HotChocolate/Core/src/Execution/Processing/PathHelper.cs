@@ -13,7 +13,7 @@ internal static class PathHelper
         {
             ObjectResult => CreatePath(parent, selection.ResponseName),
             ListResult => CreatePath(parent, index),
-            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type.")
+            _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type."),
         };
 
     private static Path CreatePath(ResultData parent, object segmentValue)
@@ -23,16 +23,16 @@ internal static class PathHelper
         var length = Build(segments, parent);
         var path = CreatePath(parent.PatchPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
-        return path;   
+        return path;
     }
-    
+
     private static Path CreatePath(ResultData parent)
     {
         var segments = ArrayPool<object>.Shared.Rent(64);
         var length = Build(segments, parent, 0);
         var path = CreatePath(parent.PatchPath, segments, length);
         ArrayPool<object>.Shared.Return(segments);
-        return path;   
+        return path;
     }
 
     private static Path CreatePath(Path? patchPath, object[] segments, int length)
@@ -48,14 +48,14 @@ internal static class PathHelper
                 {
                     string s => path.Append(s),
                     int n => path.Append(n),
-                    _ => path
+                    _ => path,
                 };
             }
         }
 
         return path;
     }
-    
+
     private static int Build(object[] segments, ResultData parent, int start = 1)
     {
         var segment = start;

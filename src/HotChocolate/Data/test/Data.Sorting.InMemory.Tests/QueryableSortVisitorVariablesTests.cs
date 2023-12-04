@@ -15,7 +15,7 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
     private static readonly Foo[] _fooEntities =
     {
         new() { Bar = true },
-        new() { Bar = false }
+        new() { Bar = false },
     };
 
     [Fact]

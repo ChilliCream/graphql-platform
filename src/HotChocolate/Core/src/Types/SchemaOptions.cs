@@ -255,7 +255,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTrueNullability = options.EnableTrueNullability,
-            EnableTag = options.EnableTag
+            EnableTag = options.EnableTag,
         };
     }
 }

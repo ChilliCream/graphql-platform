@@ -45,8 +45,8 @@ internal sealed class __Type : ObjectType
                         {
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,
-                        }
-                    }
+                        },
+                    },
                 },
                 new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
                 new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
@@ -60,8 +60,8 @@ internal sealed class __Type : ObjectType
                             Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,
-                        }
-                    }
+                        },
+                    },
                 },
                 new(Names.InputFields,
                     type: inputValueListType,
@@ -75,15 +75,15 @@ internal sealed class __Type : ObjectType
                             Type = booleanType,
                             DefaultValue = BooleanValueNode.False,
                             RuntimeDefaultValue = false,
-                        }
-                    }
+                        },
+                    },
                 },
                 new(Names.OfType, type: typeType, pureResolver: Resolvers.OfType),
                 new(Names.SpecifiedByUrl,
                     TypeResources.Type_SpecifiedByUrl_Description,
                     stringType,
-                    pureResolver: Resolvers.SpecifiedBy)
-            }
+                    pureResolver: Resolvers.SpecifiedBy),
+            },
         };
 
         if (context.DescriptorContext.Options.EnableOneOf)
@@ -160,7 +160,7 @@ internal sealed class __Type : ObjectType
             {
                 ListType lt => lt.ElementType,
                 NonNullType nnt => nnt.Type,
-                _ => null
+                _ => null,
             };
 
         public static object? OneOf(IPureResolverContext context)

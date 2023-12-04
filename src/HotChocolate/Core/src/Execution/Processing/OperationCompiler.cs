@@ -646,7 +646,7 @@ public sealed partial class OperationCompiler
             TypeKind.Object => ReferenceEquals(typeCondition, current),
             TypeKind.Interface => current.IsImplementing((InterfaceType) typeCondition),
             TypeKind.Union => ((UnionType) typeCondition).Types.ContainsKey(current.Name),
-            _ => false
+            _ => false,
         };
 
     private FragmentDefinitionNode GetFragmentDefinition(

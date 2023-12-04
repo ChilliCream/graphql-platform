@@ -173,7 +173,7 @@ internal sealed class ComposeCommand : Command
         features.Add(
             new TransportFeature
             {
-                DefaultClientName = settings.Transport.DefaultClientName
+                DefaultClientName = settings.Transport.DefaultClientName,
             });
 
         if (settings.NodeField.Enabled)

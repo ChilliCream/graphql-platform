@@ -28,7 +28,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -65,7 +65,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -111,7 +111,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -143,7 +143,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -175,7 +175,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -214,7 +214,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -256,7 +256,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -301,7 +301,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -338,7 +338,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -383,7 +383,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -429,7 +429,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -474,7 +474,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -508,7 +508,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -543,7 +543,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -577,7 +577,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -614,7 +614,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -653,7 +653,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -692,7 +692,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -780,7 +780,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -1068,7 +1068,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Authors.ToConfiguration(),
-                demoProject.Books.ToConfiguration()
+                demoProject.Books.ToConfiguration(),
             });
 
         // act
@@ -1135,7 +1135,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
         {
             new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
-            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null),
         });
 
         // act
@@ -1193,7 +1193,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
         {
             new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
-            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null),
         });
 
         // act
@@ -1253,7 +1253,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
         {
             new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
-            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null),
         });
 
         // act
@@ -1316,6 +1316,6 @@ public class RequestPlannerTests
     private static IClientConfiguration[] CreateClients()
         => new IClientConfiguration[]
         {
-            new HttpClientConfiguration(new Uri("http://nothing"))
+            new HttpClientConfiguration(new Uri("http://nothing")),
         };
 }

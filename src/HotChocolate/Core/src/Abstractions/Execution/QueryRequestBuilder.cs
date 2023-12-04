@@ -342,7 +342,7 @@ public class QueryRequestBuilder : IQueryRequestBuilder
             _readOnlyContextData = request.ContextData,
             _readOnlyExtensions = request.Extensions,
             _services = request.Services,
-            _flags = request.Flags
+            _flags = request.Flags,
         };
 
         if (builder._query is null && builder._queryName is null)

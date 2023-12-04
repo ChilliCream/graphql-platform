@@ -50,7 +50,7 @@ internal sealed class DirectiveVisitor : DocumentValidatorVisitor
     public DirectiveVisitor()
         : base(new SyntaxVisitorOptions
         {
-            VisitDirectives = true
+            VisitDirectives = true,
         })
     {
     }

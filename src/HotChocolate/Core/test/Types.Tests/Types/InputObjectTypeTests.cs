@@ -895,7 +895,7 @@ public class InputObjectTypeTests : TypeTestBase
             {
                 IsBarSet = input.Bar.HasValue,
                 Bar = input.Bar,
-                Baz = input.Baz
+                Baz = input.Baz,
             };
         }
     }
@@ -982,6 +982,6 @@ public class InputObjectTypeTests : TypeTestBase
     public enum FooEnum
     {
         Bar,
-        Baz
+        Baz,
     }
 }

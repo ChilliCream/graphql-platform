@@ -94,7 +94,7 @@ public class QueryableDefaultFieldHandler
 
                 null => throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
 
-                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
+                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field),
             };
         }
 

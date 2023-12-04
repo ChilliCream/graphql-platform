@@ -172,7 +172,7 @@ public static class FilterObjectFieldDescriptorExtensions
                     var argumentDefinition = new ArgumentDefinition
                     {
                         Name = argumentPlaceholder,
-                        Type = argumentTypeReference
+                        Type = argumentTypeReference,
                     };
 
                     definition.Arguments.Add(argumentDefinition);
@@ -220,7 +220,7 @@ public static class FilterObjectFieldDescriptorExtensions
         var middleware = (FieldMiddleware)factory.Invoke(null,
             new object[]
             {
-                    convention
+                    convention,
             })!;
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =
