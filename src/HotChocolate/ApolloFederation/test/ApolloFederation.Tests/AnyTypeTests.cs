@@ -1,7 +1,6 @@
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -33,43 +32,41 @@ public class AnyTypeTests
         var representationObject = type.Deserialize(serialized);
 
         // assert
-        Assert.IsType<Representation>(representationObject);
-        if (representationObject is Representation representation)
-        {
-            Assert.Equal("test", representation.TypeName);
-            Assert.Collection(representation.Data.Fields,
-                node =>
-                {
-                    Assert.Equal(
-                        AnyType.TypeNameField,
-                        node.Name.Value);
+        var representation = Assert.IsType<Representation>(representationObject);
 
-                    Assert.Equal(
-                        "test",
-                        node.Value.Value);
-                },
-                node =>
-                {
-                    Assert.Equal(
-                        "faa",
-                        node.Name.Value);
+        Assert.Equal("test", representation.TypeName);
+        Assert.Collection(representation.Data.Fields,
+            node =>
+            {
+                Assert.Equal(
+                    AnyType.TypeNameField,
+                    node.Name.Value);
 
-                    Assert.Equal(
-                        "foo",
-                        node.Value.Value);
-                },
-                node =>
-                {
-                    Assert.Equal(
-                        "foo",
-                        node.Name.Value);
+                Assert.Equal(
+                    "test",
+                    node.Value.Value);
+            },
+            node =>
+            {
+                Assert.Equal(
+                    "faa",
+                    node.Name.Value);
 
-                    Assert.Equal(
-                        "bar",
-                        node.Value.Value);
-                }
-            );
-        }
+                Assert.Equal(
+                    "foo",
+                    node.Value.Value);
+            },
+            node =>
+            {
+                Assert.Equal(
+                    "foo",
+                    node.Name.Value);
+
+                Assert.Equal(
+                    "bar",
+                    node.Value.Value);
+            }
+        );
     }
 
     [Fact]
