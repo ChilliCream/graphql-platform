@@ -30,7 +30,7 @@ public static partial class FederationSchemaPrinter
             return new ObjectTypeExtensionNode(
                 null,
                 new NameNode(objectType.Name),
-                directives,
+                directives.ReadOnlyList,
                 interfaces,
                 fields);
         }
@@ -39,7 +39,7 @@ public static partial class FederationSchemaPrinter
             null,
             new NameNode(objectType.Name),
             SerializeDescription(objectType.Description),
-            directives,
+            directives.ReadOnlyList,
             interfaces,
             fields);
     }
@@ -58,7 +58,7 @@ public static partial class FederationSchemaPrinter
             null,
             new NameNode(interfaceType.Name),
             SerializeDescription(interfaceType.Description),
-            directives,
+            directives.ReadOnlyList,
             Array.Empty<NamedTypeNode>(),
             fields);
     }
@@ -77,7 +77,7 @@ public static partial class FederationSchemaPrinter
             null,
             new NameNode(unionType.Name),
             SerializeDescription(unionType.Description),
-            directives,
+            directives.ReadOnlyList,
             types);
     }
 
@@ -94,25 +94,16 @@ public static partial class FederationSchemaPrinter
         if (field.IsDeprecated)
         {
             var deprecateDirective = DeprecatedDirective.CreateNode(field.DeprecationReason);
-
-            if(directives.Count == 0)
-            {
-                directives = new[] { deprecateDirective };
-            }
-            else
-            {
-                var temp = directives.ToList();
-                temp.Add(deprecateDirective);
-                directives = temp;
-            }
+            var temp = directives.GetOrCreateList();
+            temp.Add(deprecateDirective);
         }
 
         return new FieldDefinitionNode(
-            null,
+            location: null,
             new NameNode(field.Name),
             SerializeDescription(field.Description),
             arguments,
             SerializeType(field.Type, context),
-            directives);
+            directives.ReadOnlyList);
     }
 }
