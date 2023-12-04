@@ -9,9 +9,6 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 rulers = 120
 
-# ReSharper inspection severities
-resharper_arrange_trailing_comma_in_multiline_lists_highlighting = error
-
 [*.md]
 trim_trailing_whitespace = false
 
@@ -105,12 +102,56 @@ dotnet_style_require_accessibility_modifiers = always
 dotnet_diagnostic.rs0016.severity = warning
 
 # Require braces on all control statements
-resharper_csharp_braces_for_ifelse = required
-resharper_csharp_braces_for_for = required
-resharper_csharp_braces_for_foreach = required
-resharper_csharp_braces_for_while = required
-resharper_csharp_braces_for_using = required
-resharper_csharp_braces_for_lock = required
-resharper_csharp_braces_for_fixed = required
+resharper_braces_for_for = required
+resharper_braces_for_foreach = required
+resharper_braces_for_ifelse = required
+resharper_braces_for_while = required
 
-# Trailing commas
+# ReSharper inspection severities
+resharper_arrange_trailing_comma_in_multiline_lists_highlighting = error
+resharper_enforce_do_while_statement_braces_highlighting = error
+resharper_enforce_fixed_statement_braces_highlighting = error
+resharper_enforce_foreach_statement_braces_highlighting = error
+resharper_enforce_for_statement_braces_highlighting = error
+resharper_enforce_if_statement_braces_highlighting = error
+resharper_enforce_lock_statement_braces_highlighting = error
+resharper_enforce_using_statement_braces_highlighting = error
+resharper_enforce_while_statement_braces_highlighting = error
+
+# Non-default naming for private static fields
+dotnet_naming_rule.private_constants_rule.import_to_resharper = as_predefined
+dotnet_naming_rule.private_constants_rule.resharper_style = _ + aaBb
+dotnet_naming_rule.private_constants_rule.severity = error
+dotnet_naming_rule.private_constants_rule.style = private_static_field_style
+dotnet_naming_rule.private_constants_rule.symbols = private_constants_symbols
+dotnet_naming_symbols.private_constants_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_constants_symbols.required_modifiers = const
+
+dotnet_naming_rule.private_static_fields_rule.import_to_resharper = as_predefined
+dotnet_naming_rule.private_static_fields_rule.resharper_style = _ + aaBb
+dotnet_naming_rule.private_static_fields_rule.severity = error
+dotnet_naming_rule.private_static_fields_rule.style = private_static_field_style
+dotnet_naming_rule.private_static_fields_rule.symbols = private_static_fields_symbols
+dotnet_naming_symbols.private_static_fields_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields_symbols.required_modifiers = static
+
+dotnet_naming_rule.private_static_readonly_rule.import_to_resharper = as_predefined
+dotnet_naming_rule.private_static_readonly_rule.resharper_style = _ + aaBb
+dotnet_naming_rule.private_static_readonly_rule.severity = error
+dotnet_naming_rule.private_static_readonly_rule.style = private_static_field_style
+dotnet_naming_rule.private_static_readonly_rule.symbols = private_static_readonly_symbols
+dotnet_naming_symbols.private_static_readonly_symbols.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly_symbols.required_modifiers = static,readonly
+
+dotnet_naming_style.private_static_field_style.capitalization = camel_case
+dotnet_naming_style.private_static_field_style.required_prefix = _
+
+# ReSharper properties
+resharper_align_multiline_binary_expressions_chain = false
+resharper_trailing_comma_in_multiline_lists = true
+resharper_wrap_before_binary_pattern_op = false
+resharper_wrap_chained_binary_expressions = chop_if_long
+resharper_wrap_chained_binary_patterns = chop_if_long
