@@ -18,10 +18,10 @@ public static partial class FederationSchemaPrinter
             .ToList();
 
         return new EnumTypeDefinitionNode(
-            null,
+            location: null,
             new NameNode(enumType.Name),
             SerializeDescription(enumType.Description),
-            directives,
+            directives.ReadOnlyList,
             values);
     }
 
@@ -34,24 +34,15 @@ public static partial class FederationSchemaPrinter
         if (enumValue.IsDeprecated)
         {
             var deprecateDirective = DeprecatedDirective.CreateNode(enumValue.DeprecationReason);
-
-            if(directives.Count == 0)
-            {
-                directives = new List<DirectiveNode> { deprecateDirective };
-            }
-            else
-            {
-                var temp = directives.ToList();
-                temp.Add(deprecateDirective);
-                directives = temp;
-            }
+            var temp = directives.GetOrCreateList();
+            temp.Add(deprecateDirective);
         }
 
         return new EnumValueDefinitionNode(
-            null,
+            location: null,
             new NameNode(enumValue.Name),
             SerializeDescription(enumValue.Description),
-            directives);
+            directives.ReadOnlyList);
     }
 
     private static ScalarTypeDefinitionNode SerializeScalarType(
@@ -62,9 +53,7 @@ public static partial class FederationSchemaPrinter
 
         if (scalarType.SpecifiedBy is not null)
         {
-            var copy = directives as List<DirectiveNode> ?? directives.ToList();
-            directives = copy;
-            copy.Add(
+            directives.GetOrCreateList().Add(
                 new DirectiveNode(
                     SpecifiedBy,
                     new ArgumentNode(
@@ -73,9 +62,9 @@ public static partial class FederationSchemaPrinter
         }
 
         return new(
-            null,
+            location: null,
             new NameNode(scalarType.Name),
             SerializeDescription(scalarType.Description),
-            directives);
+            directives.ReadOnlyList);
     }
 }

@@ -16,10 +16,10 @@ public static partial class FederationSchemaPrinter
             .ToList();
 
         return new InputObjectTypeDefinitionNode(
-            null,
+            location: null,
             new NameNode(inputObjectType.Name),
             SerializeDescription(inputObjectType.Description),
-            directives,
+            directives.ReadOnlyList,
             fields);
     }
 
@@ -35,6 +35,6 @@ public static partial class FederationSchemaPrinter
             SerializeDescription(inputValue.Description),
             SerializeType(inputValue.Type, context),
             inputValue.DefaultValue,
-            directives);
+            directives.ReadOnlyList);
     }
 }

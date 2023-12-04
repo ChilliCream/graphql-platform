@@ -126,13 +126,37 @@ public static partial class FederationSchemaPrinter
         return new NamedTypeNode(null, new NameNode(namedType.Name));
     }
 
-    private static IReadOnlyList<DirectiveNode> SerializeDirectives(
+    internal struct MaybeList<T>
+    {
+        public MaybeList(List<T>? list)
+        {
+            _list = list;
+        }
+
+        private List<T>? _list;
+        public List<T> GetOrCreateList() => _list ??= new();
+        public IReadOnlyList<T> ReadOnlyList
+        {
+            get
+            {
+                if (_list is not null)
+                {
+                    return _list;
+                }
+                return Array.Empty<T>();
+            }
+        }
+
+        public bool IsEmpty => _list is null;
+    }
+
+    private static MaybeList<DirectiveNode> SerializeDirectives(
         IReadOnlyCollection<Directive> directives,
         Context context)
     {
         if (directives.Count == 0)
         {
-            return Array.Empty<DirectiveNode>();
+            return default;
         }
 
         List<DirectiveNode>? directiveNodes = null;
@@ -141,16 +165,17 @@ public static partial class FederationSchemaPrinter
         {
             if (context.DirectiveNames.Contains(directive.Type.Name))
             {
-                (directiveNodes ??= new()).Add(directive.AsSyntaxNode(true));
+                var node = directive.AsSyntaxNode(removeDefaults: true);
+                (directiveNodes ??= new()).Add(node);
             }
         }
 
         if (directiveNodes is not null)
         {
-            return directiveNodes;
+            return new(directiveNodes);
         }
 
-        return Array.Empty<DirectiveNode>();
+        return default;
     }
 
     private static StringValueNode? SerializeDescription(string? description)
