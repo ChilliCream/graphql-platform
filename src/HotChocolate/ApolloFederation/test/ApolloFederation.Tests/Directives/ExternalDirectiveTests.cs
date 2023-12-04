@@ -63,13 +63,12 @@ public class ExternalDirectiveTests : FederationTypesTestBase
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        field(a: Int): String
-                            @external
-                    }
-                    "
-            )
+                """
+                type Query {
+                    field(a: Int): String
+                        @external
+                }
+                """)
             .AddDirectiveType<ExternalDirectiveType>()
             .Use(_ => _ => default)
             .Create();
