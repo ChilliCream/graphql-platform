@@ -80,7 +80,7 @@ partial class Build : NukeBuild
                 .Select(p => new TestProject
                 {
                     Name = Path.GetFileNameWithoutExtension(p.Path),
-                    Path = Path.GetRelativePath(RootDirectory, p.Path)
+                    Path = Path.GetRelativePath(RootDirectory, p.Path!),
                 })
                 .OrderBy(p => p.Name)
                 .ToList();
