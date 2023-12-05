@@ -78,8 +78,7 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
         CancellationToken cancellationToken)
     {
         var configFilePath = Combine(clientDirectory, WellKnownFiles.Config);
-        var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
-        var json = Encoding.UTF8.GetString(buffer);
+        var json = File.ReadAllText(configFilePath);
         var configuration = GraphQLConfig.FromJson(json);
 
         if (await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
