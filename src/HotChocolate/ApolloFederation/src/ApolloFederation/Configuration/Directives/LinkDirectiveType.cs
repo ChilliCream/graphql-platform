@@ -56,7 +56,7 @@ public sealed class Link
     /// <param name="import">
     /// Optional list of imported elements.
     /// </param>
-    public Link(string url, List<string?>? import)
+    public Link(string url, List<string>? import)
     {
         Url = url;
         Import = import;
@@ -70,6 +70,5 @@ public sealed class Link
     /// <summary>
     /// Gets optional list of imported element names.
     /// </summary>
-
-    public List<string?>? Import { get; }
+    public List<string>? Import { get; }
 }

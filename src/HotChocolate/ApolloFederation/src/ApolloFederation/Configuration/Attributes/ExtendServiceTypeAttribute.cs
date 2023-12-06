@@ -11,6 +11,7 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Class |
     AttributeTargets.Struct |
     AttributeTargets.Interface)]
+[Obsolete("Use ExtendsAttribute instead")]
 public sealed class ExtendServiceTypeAttribute : ObjectTypeDescriptorAttribute
 {
     protected override void OnConfigure(

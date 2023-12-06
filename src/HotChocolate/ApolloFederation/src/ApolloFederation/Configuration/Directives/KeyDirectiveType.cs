@@ -7,7 +7,7 @@ namespace HotChocolate.ApolloFederation;
 /// <code>
 /// directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
 /// </code>
-/// 
+///
 /// The @key directive is used to indicate a combination of fields that can be used to uniquely
 /// identify and fetch an object or interface. The specified field set can represent single field (e.g. "id"),
 /// multiple fields (e.g. "id name") or nested selection sets (e.g. "id user { name }"). Multiple keys can
@@ -27,5 +27,8 @@ public sealed class KeyDirectiveType : DirectiveType
             .Description(FederationResources.KeyDirective_Description)
             .Location(DirectiveLocation.Object | DirectiveLocation.Interface)
             .Repeatable()
-            .FieldsArgument();
+            .FieldsArgument()
+            .Argument(WellKnownArgumentNames.Resolvable)
+            .Type<BooleanType>()
+            .DefaultValue(true);
 }

@@ -1,5 +1,5 @@
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
-using static HotChocolate.ApolloFederation.Constants.WellKnownTypeNames;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -11,6 +11,6 @@ public sealed class EntityType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)
         => descriptor
-            .Name(Entity)
+            .Name(WellKnownTypeNames.Entity)
             .Description(FederationResources.EntityType_Description);
 }
