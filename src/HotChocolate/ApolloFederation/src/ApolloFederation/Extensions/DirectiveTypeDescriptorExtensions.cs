@@ -1,26 +1,15 @@
-using static HotChocolate.ApolloFederation.Constants.WellKnownArgumentNames;
-using FieldSetTypeV1 = HotChocolate.ApolloFederation.FieldSetType;
-using FieldSetTypeV2 = HotChocolate.ApolloFederation.FieldSetType;
+using HotChocolate.ApolloFederation.Constants;
 
 namespace HotChocolate.ApolloFederation;
 
 internal static class DirectiveTypeDescriptorExtensions
 {
-    public static IDirectiveTypeDescriptor FieldsArgumentV1(
+    public static IDirectiveTypeDescriptor FieldsArgument(
         this IDirectiveTypeDescriptor descriptor)
     {
         descriptor
-            .Argument(Fields)
-            .Type<NonNullType<FieldSetTypeV1>>();
-        return descriptor;
-    }
-
-    public static IDirectiveTypeDescriptor FieldsArgumentV2(
-        this IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
-            .Argument(Fields)
-            .Type<NonNullType<FieldSetTypeV2>>();
+            .Argument(WellKnownArgumentNames.Fields)
+            .Type<NonNullType<FieldSetType>>();
         return descriptor;
     }
 }
