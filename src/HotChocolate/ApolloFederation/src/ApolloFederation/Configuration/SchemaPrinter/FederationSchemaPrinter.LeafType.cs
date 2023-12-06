@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using static HotChocolate.Types.SpecifiedByDirectiveType.Names;

@@ -1,4 +1,3 @@
-using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -6,9 +5,6 @@ namespace HotChocolate.ApolloFederation;
 
 /// <summary>
 /// <code>
-/// # federation v1 definition
-/// directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
-///
 /// # federation v2 definition
 /// directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 /// </code>
@@ -32,18 +28,18 @@ namespace HotChocolate.ApolloFederation;
 ///   id: ID!
 /// }
 /// </example>
-/// <see cref="NonResolvableKeyAttribute"/>
+/// <see cref="KeyAttribute"/>
 /// </summary>
-public sealed class KeyAttribute : DescriptorAttribute
+public sealed class NonResolvableKeyAttribute : ObjectTypeDescriptorAttribute
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="KeyAttribute"/>.
+    /// Initializes a new instance of <see cref="NonResolvableKeyAttribute"/>.
     /// </summary>
     /// <param name="fieldSet">
     /// The field set that describes the key.
     /// Grammatically, a field set is a selection set minus the braces.
     /// </param>
-    public KeyAttribute(string? fieldSet = default)
+    public NonResolvableKeyAttribute(string fieldSet)
     {
         FieldSet = fieldSet;
     }
@@ -52,30 +48,14 @@ public sealed class KeyAttribute : DescriptorAttribute
     /// Gets the field set that describes the key.
     /// Grammatically, a field set is a selection set minus the braces.
     /// </summary>
-    public string? FieldSet { get; }
+    public string FieldSet { get; }
 
-    protected internal override void TryConfigure(
-        IDescriptorContext context,
-        IDescriptor descriptor,
-        ICustomAttributeProvider element)
+    protected override void OnConfigure(IDescriptorContext context, IObjectTypeDescriptor descriptor, Type type)
     {
-        if (descriptor is IObjectTypeDescriptor objectTypeDescriptor &&
-            element is Type objectType)
+        if (string.IsNullOrEmpty(FieldSet))
         {
-            if (string.IsNullOrEmpty(FieldSet))
-            {
-                throw Key_FieldSet_CannotBeEmpty(objectType);
-            }
-
-            objectTypeDescriptor.Key(FieldSet);
+            throw Key_FieldSet_CannotBeEmpty(type);
         }
-
-        if (descriptor is IObjectFieldDescriptor objectFieldDescriptor &&
-            element is MemberInfo)
-        {
-            objectFieldDescriptor
-                .Extend()
-                .OnBeforeCreate(d => d.ContextData[Constants.WellKnownContextData.KeyMarker] = true);
-        }
+        descriptor.Key(FieldSet, false);
     }
 }
