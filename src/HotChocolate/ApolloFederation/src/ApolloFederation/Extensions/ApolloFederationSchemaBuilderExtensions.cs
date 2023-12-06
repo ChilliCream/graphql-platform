@@ -1,4 +1,5 @@
 using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation;
 using AnyType = HotChocolate.ApolloFederation.AnyType;
 
 namespace HotChocolate;
@@ -20,18 +21,29 @@ public static class ApolloFederationSchemaBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    internal static ISchemaBuilder AddApolloFederation(
+    public static ISchemaBuilder AddApolloFederation(
         this ISchemaBuilder builder)
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
+        // disable hot chocolate tag directive
+        // specify default Query type name if not specified
+        builder.ModifyOptions(opt =>
+        {
+            opt.EnableTag = false;
+            if (opt.QueryTypeName is null)
+            {
+                opt.QueryTypeName = "Query";
+            }
+        });
 
         builder.AddType<AnyType>();
         builder.AddType<EntityType>();
-        builder.AddType<ServiceType>();
+        builder.AddType(new ServiceType());
         builder.AddType<FieldSetType>();
+        builder.AddType<ExtendsDirectiveType>();
         builder.AddType<ExternalDirectiveType>();
         builder.AddType<ProvidesDirectiveType>();
         builder.AddType<KeyDirectiveType>();
