@@ -1,7 +1,6 @@
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Resolvers;
-using FederationSchemaPrinter = HotChocolate.ApolloFederation.FederationSchemaPrinter;
 
 namespace HotChocolate.ApolloFederation;
 

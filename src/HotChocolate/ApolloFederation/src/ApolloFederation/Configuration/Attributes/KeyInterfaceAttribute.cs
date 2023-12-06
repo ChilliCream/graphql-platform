@@ -1,4 +1,3 @@
-using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -32,50 +31,55 @@ namespace HotChocolate.ApolloFederation;
 ///   id: ID!
 /// }
 /// </example>
-/// <see cref="NonResolvableKeyAttribute"/>
 /// </summary>
-public sealed class KeyAttribute : DescriptorAttribute
+public sealed class KeyInterfaceAttribute : InterfaceTypeDescriptorAttribute
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="KeyAttribute"/>.
+    /// Initializes a new instance of <see cref="KeyInterfaceAttribute"/>.
     /// </summary>
     /// <param name="fieldSet">
     /// The field set that describes the key.
     /// Grammatically, a field set is a selection set minus the braces.
     /// </param>
-    public KeyAttribute(string? fieldSet = default)
+    public KeyInterfaceAttribute(string fieldSet)
     {
         FieldSet = fieldSet;
+        Resolvable = null;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="KeyInterfaceAttribute"/>.
+    /// </summary>
+    /// <param name="fieldSet">
+    /// The field set that describes the key.
+    /// Grammatically, a field set is a selection set minus the braces.
+    /// </param>
+    /// <param name="resolvable">
+    /// Boolean flag to indicate whether this entity is resolvable locally.
+    /// </param>
+    public KeyInterfaceAttribute(string fieldSet, bool? resolvable = null)
+    {
+        FieldSet = fieldSet;
+        Resolvable = resolvable;
     }
 
     /// <summary>
     /// Gets the field set that describes the key.
     /// Grammatically, a field set is a selection set minus the braces.
     /// </summary>
-    public string? FieldSet { get; }
+    public string FieldSet { get; }
 
-    protected internal override void TryConfigure(
-        IDescriptorContext context,
-        IDescriptor descriptor,
-        ICustomAttributeProvider element)
+    /// <summary>
+    /// Gets the resolvable flag.
+    /// </summary>
+    public bool? Resolvable { get; }
+
+    protected override void OnConfigure(IDescriptorContext context, IInterfaceTypeDescriptor descriptor, Type type)
     {
-        if (descriptor is IObjectTypeDescriptor objectTypeDescriptor &&
-            element is Type objectType)
+        if (string.IsNullOrEmpty(FieldSet))
         {
-            if (string.IsNullOrEmpty(FieldSet))
-            {
-                throw Key_FieldSet_CannotBeEmpty(objectType);
-            }
-
-            objectTypeDescriptor.Key(FieldSet);
+            throw Key_FieldSet_CannotBeEmpty(type);
         }
-
-        if (descriptor is IObjectFieldDescriptor objectFieldDescriptor &&
-            element is MemberInfo)
-        {
-            objectFieldDescriptor
-                .Extend()
-                .OnBeforeCreate(d => d.ContextData[Constants.WellKnownContextData.KeyMarker] = true);
-        }
+        descriptor.Key(FieldSet, Resolvable);
     }
 }
