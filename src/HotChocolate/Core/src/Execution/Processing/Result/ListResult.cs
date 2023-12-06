@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace HotChocolate.Execution.Processing;
@@ -15,71 +16,84 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     private int _capacity;
     private int _count;
 
+    /// <summary>
+    /// Gets the number of elements this list can hold.
+    /// </summary>
     public int Capacity => _capacity;
 
-    /// <inheritdoc cref="IReadOnlyCollection{T}.Count"/>
+    /// <summary>
+    /// Gets the number of elements in this list.
+    /// </summary>
     public int Count => _count;
 
     /// <inheritdoc cref="IReadOnlyList{T}.this"/>
-    public object? this[int index]
-    {
-        get
-        {
-            return _buffer[index];
-        }
-    }
+    public object? this[int index] => _buffer[index];
 
     /// <summary>
     /// Defines if the elements of this list are nullable.
     /// </summary>
     internal bool IsNullable { get; set; }
 
-    internal void AddUnsafe(object? item)
-        => _buffer[_count++] = item;
-
-    internal void AddUnsafe(ResultData? item)
+    internal int AddUnsafe(object? item)
     {
-        if (item is not null)
-        {
-            item.Parent = this;
-        }
+        var index = _count++;
+        _buffer[index] = item;
+        return index;
+    }
 
-        _buffer[_count++] = item;
+    internal int AddUnsafe(ResultData? item)
+    {
+        var index = _count++;
+        item?.SetParent(this, index);
+        _buffer[index] = item;
+        return index;
     }
 
     internal void SetUnsafe(int index, object? item)
-        => _buffer[index] = item;
+    {
+        _buffer[index] = item;
+    }
 
     internal void SetUnsafe(int index, ResultData? item)
     {
-        if (item is not null)
+        item?.SetParent(this, index);
+        _buffer[index] = item;
+    }
+
+    internal bool TrySetNull(int index)
+    {
+        if (_count > index)
         {
-            item.Parent = this;
+            _buffer[index] = null;
+            return IsNullable;
         }
 
-        _buffer[index] = item;
+        return false;
     }
 
     /// <summary>
     /// Ensures that the result object has enough capacity on the buffer
     /// to store the expected fields.
     /// </summary>
-    /// <param name="capacity">
+    /// <param name="requiredCapacity">
     /// The capacity needed.
     /// </param>
-    internal void EnsureCapacity(int capacity)
+    internal void EnsureCapacity(int requiredCapacity)
     {
+        // If this list has a capacity specified we will reset it.
+        // The capacity is only set when the list is rented out,
+        // Once the item is returned the capacity is reset to zero.
         if (_capacity > 0)
         {
             Reset();
         }
 
-        if (_buffer.Length < capacity)
+        if (_buffer.Length < requiredCapacity)
         {
-            Array.Resize(ref _buffer, capacity);
+            Array.Resize(ref _buffer, requiredCapacity);
         }
 
-        _capacity = capacity;
+        _capacity = requiredCapacity;
     }
 
     /// <summary>
@@ -109,6 +123,12 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
             _capacity = 0;
             _count = 0;
         }
+
+        IsInvalidated = false;
+        ParentIndex = 0;
+        Parent = null;
+        PatchId = 0;
+        PatchPath = null;
     }
 
     internal ref object? GetReference()
@@ -117,7 +137,7 @@ public sealed class ListResult : ResultData, IReadOnlyList<object?>
     /// <inheritdoc cref="IEnumerable{T}.GetEnumerator"/>
     public IEnumerator<object?> GetEnumerator()
     {
-        for (var i = 0; i < _capacity; i++)
+        for (var i = 0; i < _count; i++)
         {
             yield return _buffer[i];
         }

@@ -93,36 +93,14 @@ public class CustomResolverCompilerTests
     }
 
     [Fact]
-    [Obsolete]
-    public async Task AddWellKnownService()
-    {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddSingleton<SayHelloService>()
-            .AddGraphQL()
-            .AddQueryType<QueryWellKnownService>()
-            .ConfigureResolverCompiler(c =>
-            {
-                c.AddService<SayHelloService>();
-            })
-            .ExecuteRequestAsync("{ sayHello }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    [Obsolete]
-    public async Task AddWellKnownState()
+    public async Task AddWellKnownState_New()
     {
         Snapshot.FullName();
 
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryWellKnownState>()
-            .ConfigureResolverCompiler(c =>
-            {
-                c.AddParameter(ctx => (SayHelloState)ctx.ContextData["someState"]!);
-            })
+            .AddParameterExpressionBuilder(ctx => (SayHelloState)ctx.ContextData["someState"]!)
             .ExecuteRequestAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ sayHello }")
@@ -132,56 +110,11 @@ public class CustomResolverCompilerTests
     }
 
     [Fact]
-    [Obsolete]
-    public void AddParameterEnsureBuilderIsNotNull()
+    public void AddParameterEnsureBuilderIsNotNull_New()
     {
         void Configure()
-            => default(IResolverCompilerBuilder)!
-                .AddParameter(ctx => ctx.Operation.Document);
-
-        Assert.Throws<ArgumentNullException>(Configure);
-    }
-
-    [Fact]
-    [Obsolete]
-    public void AddParameterEnsureExpressionIsNotNull()
-    {
-        var mock = new Mock<IResolverCompilerBuilder>();
-
-        void Configure()
-            => mock.Object.AddParameter<string>(null!);
-
-        Assert.Throws<ArgumentNullException>(Configure);
-    }
-
-    [Fact]
-    [Obsolete]
-    public void AddServiceEnsureBuilderIsNotNull()
-    {
-        void Configure()
-            => default(IResolverCompilerBuilder)!
-                .AddService<SayHelloService>();
-
-        Assert.Throws<ArgumentNullException>(Configure);
-    }
-
-    [Fact]
-    [Obsolete]
-    public void EnsureRequestExecutorBuilderIsNotNull()
-    {
-        void Configure()
-            => default(IRequestExecutorBuilder)!.ConfigureResolverCompiler(_ => { });
-
-        Assert.Throws<ArgumentNullException>(Configure);
-    }
-
-    [Fact]
-    [Obsolete]
-    public void EnsureConfigureIsNotNull()
-    {
-        var mock = new Mock<IRequestExecutorBuilder>();
-
-        void Configure() => mock.Object.ConfigureResolverCompiler(null!);
+            => default(IRequestExecutorBuilder)!
+                .AddParameterExpressionBuilder(ctx => ctx.Operation.Document);
 
         Assert.Throws<ArgumentNullException>(Configure);
     }

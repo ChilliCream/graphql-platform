@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
@@ -25,6 +27,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
+    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = new();
 
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.
@@ -107,7 +110,13 @@ public class ActivityEnricher
         if (request.Query is not null &&
             (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            activity.SetTag("graphql.http.request.query.body", request.Query.Print());
+            if (!_queryCache.TryGetValue(request.Query, out var query))
+            {
+                query = request.Query.Print();
+                _queryCache.Add(request.Query, query);
+            }
+
+            activity.SetTag("graphql.http.request.query.body", query);
         }
 
         if (request.OperationName is not null &&
@@ -579,6 +588,13 @@ public class ActivityEnricher
 
     public virtual void EnrichResolverError(
         IMiddlewareContext context,
+        IError error,
+        Activity activity)
+        => EnrichError(error, activity);
+
+    public virtual void EnrichResolverError(
+        IRequestContext context,
+        ISelection selection,
         IError error,
         Activity activity)
         => EnrichError(error, activity);

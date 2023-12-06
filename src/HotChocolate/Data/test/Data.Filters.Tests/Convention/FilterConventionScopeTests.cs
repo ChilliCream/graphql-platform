@@ -37,22 +37,6 @@ public class FilterConventionScopeTests
         schema.MatchSnapshot();
     }
 
-    [Fact]
-    public void FilterConvention_Should_Work_When_ConfiguredWithCustomizedType()
-    {
-        // arrange
-        // act
-        var schema = SchemaBuilder.New()
-            .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
-            .AddQueryType<CustomizedQueryType>()
-            .AddFiltering()
-            .ModifyOptions(x => x.RemoveUnreachableTypes = true)
-            .Create();
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
     public class QueryType : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -64,22 +48,6 @@ public class FilterConventionScopeTests
             descriptor.Field("foosBar")
                 .Resolve(Array.Empty<Foo>().AsQueryable())
                 .UseFiltering("Bar");
-        }
-    }
-
-    public class CustomizedQueryType : ObjectType
-    {
-        protected override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            descriptor
-                .Field("foos")
-                .Resolve(Array.Empty<Foo>().AsQueryable())
-                .UseFiltering<Foo>(d => d.Field(x => x.Bar).AllowContains());
-
-            descriptor
-                .Field("foosBar")
-                .Resolve(Array.Empty<Foo>().AsQueryable())
-                .UseFiltering<Foo>(d => d.Field(x => x.Bar).AllowContains(), "Bar");
         }
     }
 

@@ -163,7 +163,7 @@ In this case we add the `TypeConversion` instance to our dependency injection an
 
 We already provided an API for writing _DataLoader_ but due to feedback from the community we rewrote our implementation to make it easier to use. You can now write _DataLoader_ with a single line of code by providing us with a delegate that fetches your data.
 
-An example project that shows the new _DataLoader_ can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/DataLoader).
+An example project that shows the new _DataLoader_ can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/DataLoader).
 
 Or head over to our documentation [here](https://hotchocolate.io/docs/dataloaders).
 
@@ -229,4 +229,3 @@ We now support NuGet source code link. This means that you can debug into the Ho
 Version 7 was a big release with a lot of new features that make it very easy to setup a GraphQL schema in .Net. With this release out we now focus on Version 8 which will focus on schema stitching. We will introduce capabilities like auto-stitching and auto-mocking. We already started working on the new schema stitching stories and if you think you would like to contribute ideas or code or documentation just feel free to talk to us. We are quite happy for any help.
 
 After the schema stitching enhancements we will focus on the new schema builder with Version 9. The schema builder will bring in completely new capabilities that let you extend the schema building process. We are basically opening up the schema building process like we did with the execution engine.
-

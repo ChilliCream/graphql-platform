@@ -16,7 +16,7 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
         }
         set
         {
-            var holder = _requestContextCurrent.Value;
+            RequestContextHolder? holder = _requestContextCurrent.Value;
 
             if (holder is null)
             {
@@ -28,7 +28,7 @@ internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
         }
     }
 
-    private sealed class RequestContextHolder
+    private class RequestContextHolder
     {
         public IRequestContext Context = default!;
     }

@@ -11,7 +11,7 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
 
     public string Name { get; }
 
-    public bool IsStatic { get;  }
+    public bool IsStatic { get; }
 
     public OperationType Type { get; }
 
@@ -28,6 +28,21 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
         }
 
         return Name == other.Name;
+    }
+    
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is TypeExtensionInfo info && Equals(info);
     }
 
     public override bool Equals(object? obj)

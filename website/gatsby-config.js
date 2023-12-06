@@ -1,15 +1,17 @@
+const SITE_URL = `https://chillicream.com`;
+
 /** @type import('gatsby').GatsbyConfig */
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,
-    description: `We're building the ultimate GraphQL platform`,
+    description: `We help companies and developers to build next level APIs with GraphQL by providing them the right tooling.`,
     author: `Chilli_Cream`,
     company: "ChilliCream",
-    siteUrl: `https://chillicream.com`,
-    repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
+    siteUrl: SITE_URL,
+    repositoryUrl: `https://github.com/ChilliCream/graphql-platform`,
     tools: {
       bcp: `https://eat.bananacakepop.com`,
-      github: `https://github.com/ChilliCream/hotchocolate`,
+      github: `https://github.com/ChilliCream/graphql-platform`,
       linkedIn: `https://www.linkedin.com/company/chillicream`,
       shop: `https://store.chillicream.com`,
       slack: `https://slack.chillicream.com/`,
@@ -69,6 +71,13 @@ module.exports = {
       resolve: `gatsby-plugin-react-redux`,
       options: {
         pathToCreateStoreModule: `./src/state`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `basic`,
+        path: `${__dirname}/src/basic`,
       },
     },
     {
@@ -148,29 +157,29 @@ module.exports = {
       },
     },
     {
-      resolve: "gatsby-plugin-google-tagmanager",
-      options: {
-        id: "G-RSKJWN1W8V",
-        includeInDevelopment: false,
-        defaultDataLayer: {
-          platform: "gatsby",
-        },
-        enableWebVitalsTracking: true,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-google-analytics`,
-      options: {
-        trackingId: "UA-72800164-1",
-        anonymize: true,
-      },
-    },
-    {
       resolve: `gatsby-plugin-sitemap`,
       options: {
         resolvePagePath({ path }) {
           return `${path}/`.replace("//", "/");
         },
+      },
+    },
+    {
+      resolve: `gatsby-plugin-robots-txt`,
+      options: {
+        host: SITE_URL,
+        sitemap: `${SITE_URL}/sitemap-index.xml`,
+        policy: [
+          {
+            userAgent: `*`,
+            allow: `/`,
+            disallow: [`/docs/hotchocolate/v10/`, `/docs/hotchocolate/v11/`],
+          },
+          {
+            userAgent: `Algolia Crawler`,
+            allow: `/`,
+          },
+        ],
       },
     },
     {

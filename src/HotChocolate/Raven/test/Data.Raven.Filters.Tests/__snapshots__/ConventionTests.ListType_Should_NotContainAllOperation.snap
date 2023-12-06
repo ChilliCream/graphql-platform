@@ -1,0 +1,56 @@
+schema {
+  query: Query
+}
+
+type ListItem {
+  id: String
+  foo: String
+}
+
+type Query {
+  root(where: TypeWithListFilterInput): [TypeWithList]
+  rootExecutable(where: TypeWithListFilterInput): [TypeWithList]
+}
+
+type TypeWithList {
+  id: String
+  list: [ListItem!]
+}
+
+input ListFilterInputTypeOfListItemFilterInput {
+  none: ListItemFilterInput
+  some: ListItemFilterInput
+  any: Boolean
+}
+
+input ListItemFilterInput {
+  and: [ListItemFilterInput!]
+  or: [ListItemFilterInput!]
+  id: StringOperationFilterInput
+  foo: StringOperationFilterInput
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input TypeWithListFilterInput {
+  and: [TypeWithListFilterInput!]
+  or: [TypeWithListFilterInput!]
+  id: StringOperationFilterInput
+  list: ListFilterInputTypeOfListItemFilterInput
+}
+
+"The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
+directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

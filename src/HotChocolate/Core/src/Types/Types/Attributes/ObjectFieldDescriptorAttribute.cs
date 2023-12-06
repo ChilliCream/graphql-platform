@@ -24,7 +24,7 @@ public abstract class ObjectFieldDescriptorAttribute : DescriptorAttribute
         }
     }
 
-    public abstract void OnConfigure(
+    protected abstract void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member);

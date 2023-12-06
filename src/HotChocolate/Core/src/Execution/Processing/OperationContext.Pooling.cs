@@ -19,7 +19,7 @@ internal sealed partial class OperationContext
     private readonly WorkScheduler _workScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
-    private readonly PooledPathFactory _pathFactory;
+    private IRequestContext _requestContext = default!;
     private ISchema _schema = default!;
     private IErrorHandler _errorHandler = default!;
     private IActivator _activator = default!;
@@ -37,12 +37,10 @@ internal sealed partial class OperationContext
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
-        PooledPathFactory pathFactory,
         ResultBuilder resultBuilder,
         ITypeConverter typeConverter)
     {
         _resolverTaskFactory = resolverTaskFactory;
-        _pathFactory = pathFactory;
         _workScheduler = new(this);
         _deferredWorkScheduler = new();
         _resultBuilder = resultBuilder;
@@ -60,6 +58,7 @@ internal sealed partial class OperationContext
         object? rootValue,
         Func<object?> resolveQueryRootValue)
     {
+        _requestContext = requestContext;
         _schema = requestContext.Schema;
         _errorHandler = requestContext.ErrorHandler;
         _activator = requestContext.Activator;
@@ -78,11 +77,12 @@ internal sealed partial class OperationContext
         IncludeFlags = _operation.CreateIncludeFlags(variables);
         _workScheduler.Initialize(batchDispatcher);
         _deferredWorkScheduler.Initialize(this);
-        _resultBuilder.Initialize(_operation, _errorHandler, _diagnosticEvents);
+        _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
     }
 
     public void InitializeFrom(OperationContext context)
     {
+        _requestContext = context._requestContext;
         _schema = context._schema;
         _errorHandler = context._errorHandler;
         _activator = context._activator;
@@ -101,17 +101,17 @@ internal sealed partial class OperationContext
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
         _workScheduler.Initialize(_batchDispatcher);
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
-        _resultBuilder.Initialize(_operation, _errorHandler, _diagnosticEvents);
+        _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
     }
 
     public void Clean()
     {
         if (_isInitialized)
         {
-            _pathFactory.Clear();
             _workScheduler.Clear();
             _resultBuilder.Clear();
             _deferredWorkScheduler.Clear();
+            _requestContext = default!;
             _schema = default!;
             _errorHandler = default!;
             _activator = default!;

@@ -3,39 +3,32 @@ using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using static HotChocolate.Utilities.ThrowHelper;
+using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
 
 namespace HotChocolate.Configuration;
 
-internal sealed class TypeRegistrar : ITypeRegistrar
+internal sealed partial class TypeRegistrar(
+    IDescriptorContext context,
+    TypeRegistry typeRegistry,
+    TypeLookup typeLookup,
+    TypeInterceptor typeInterceptor)
+    : ITypeRegistrar
 {
-    private readonly ServiceFactory _serviceFactory = new();
-    private readonly HashSet<ITypeReference> _unresolved = new();
+    private readonly HashSet<TypeReference> _unresolved = new();
     private readonly HashSet<RegisteredType> _handled = new();
-    private readonly TypeRegistry _typeRegistry;
-    private readonly TypeLookup _typeLookup;
-    private readonly IDescriptorContext _context;
-    private readonly TypeInterceptor _interceptor;
-
-    public TypeRegistrar(
-        IDescriptorContext context,
-        TypeRegistry typeRegistry,
-        TypeLookup typeLookup,
-        TypeInterceptor typeInterceptor)
-    {
-        _context = context ??
-            throw new ArgumentNullException(nameof(context));
-        _typeRegistry = typeRegistry ??
-            throw new ArgumentNullException(nameof(typeRegistry));
-        _typeLookup = typeLookup ??
-            throw new ArgumentNullException(nameof(typeLookup));
-        _interceptor = typeInterceptor ??
-            throw new ArgumentNullException(nameof(typeInterceptor));
-        _serviceFactory.Services = context.Services;
-    }
+    private readonly TypeRegistry _typeRegistry = typeRegistry ??
+        throw new ArgumentNullException(nameof(typeRegistry));
+    private readonly TypeLookup _typeLookup = typeLookup ??
+        throw new ArgumentNullException(nameof(typeLookup));
+    private readonly IDescriptorContext _context = context ??
+        throw new ArgumentNullException(nameof(context));
+    private readonly TypeInterceptor _interceptor = typeInterceptor ?? 
+        throw new ArgumentNullException(nameof(typeInterceptor));
+    private readonly IServiceProvider _schemaServices = context.Services;
+    private readonly IServiceProvider? _applicationServices = 
+        context.Services.GetService<IApplicationServiceProvider>();
 
     public void Register(
         TypeSystemObjectBase obj,
@@ -52,28 +45,34 @@ internal sealed class TypeRegistrar : ITypeRegistrar
 
         configure?.Invoke(registeredType);
 
-        if (registeredType.References.Count > 0)
+        if (registeredType.References.Count <= 0)
         {
-            RegisterTypeAndResolveReferences(registeredType);
-
-            if (obj is IHasRuntimeType hasRuntimeType
-                && hasRuntimeType.RuntimeType != typeof(object))
-            {
-                var runtimeTypeRef =
-                    _context.TypeInspector.GetTypeRef(
-                        hasRuntimeType.RuntimeType,
-                        SchemaTypeReference.InferTypeContext(obj),
-                        scope);
-
-                var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
-
-                if (!explicitBind)
-                {
-                    MarkResolved(runtimeTypeRef);
-                    _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
-                }
-            }
+            return;
         }
+        
+        RegisterTypeAndResolveReferences(registeredType);
+
+        if (obj is not IHasRuntimeType hasRuntimeType || 
+            hasRuntimeType.RuntimeType == typeof(object))
+        {
+            return;
+        }
+            
+        var runtimeTypeRef =
+            _context.TypeInspector.GetTypeRef(
+                hasRuntimeType.RuntimeType,
+                SchemaTypeReference.InferTypeContext(obj),
+                scope);
+
+        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
+
+        if (explicitBind)
+        {
+            return;
+        }
+                
+        MarkResolved(runtimeTypeRef);
+        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
     }
 
     private void RegisterTypeAndResolveReferences(RegisteredType registeredType)
@@ -86,7 +85,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
         }
     }
 
-    public void MarkUnresolved(ITypeReference typeReference)
+    public void MarkUnresolved(TypeReference typeReference)
     {
         if (typeReference is null)
         {
@@ -96,7 +95,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
         _unresolved.Add(typeReference);
     }
 
-    public void MarkResolved(ITypeReference typeReference)
+    public void MarkResolved(TypeReference typeReference)
     {
         if (typeReference is null)
         {
@@ -106,7 +105,7 @@ internal sealed class TypeRegistrar : ITypeRegistrar
         _unresolved.Remove(typeReference);
     }
 
-    public bool IsResolved(ITypeReference typeReference)
+    public bool IsResolved(TypeReference typeReference)
     {
         if (typeReference is null)
         {
@@ -116,25 +115,13 @@ internal sealed class TypeRegistrar : ITypeRegistrar
         return _typeRegistry.IsRegistered(typeReference);
     }
 
-    public TypeSystemObjectBase CreateInstance(Type namedSchemaType)
-    {
-        try
-        {
-            return (TypeSystemObjectBase)_serviceFactory.CreateInstance(namedSchemaType)!;
-        }
-        catch (Exception ex)
-        {
-            throw TypeRegistrar_CreateInstanceFailed(namedSchemaType, ex);
-        }
-    }
+    public IReadOnlyCollection<TypeReference> Unresolved => _unresolved;
 
-    public IReadOnlyCollection<ITypeReference> Unresolved => _unresolved;
-
-    public IReadOnlyCollection<ITypeReference> GetUnhandled()
+    public IReadOnlyCollection<TypeReference> GetUnhandled()
     {
         // we are having a list and the hashset here to keep the order.
-        var unhandled = new List<ITypeReference>();
-        var registered = new HashSet<ITypeReference>();
+        var unhandled = new List<TypeReference>();
+        var registered = new HashSet<TypeReference>();
 
         foreach (var type in _typeRegistry.Types)
         {
@@ -142,9 +129,9 @@ internal sealed class TypeRegistrar : ITypeRegistrar
             {
                 foreach (var typeDep in type.Dependencies)
                 {
-                    if (registered.Add(typeDep.TypeReference))
+                    if (registered.Add(typeDep.Type))
                     {
-                        unhandled.Add(typeDep.TypeReference);
+                        unhandled.Add(typeDep.Type);
                     }
                 }
             }
@@ -201,16 +188,22 @@ internal sealed class TypeRegistrar : ITypeRegistrar
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
-                hasTypeIdentity.TypeIdentity is not null)
+            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(
-                        hasTypeIdentity.TypeIdentity,
+                        typeIdentity,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope);
 
                 registeredType.References.TryAdd(reference);
+            }
+
+            if (registeredType.IsDirectiveType && registeredType.RuntimeType != typeof(object))
+            {
+                var runtimeType = _context.TypeInspector.GetType(registeredType.RuntimeType);
+                var runtimeTypeRef = TypeReference.CreateDirective(runtimeType);
+                registeredType.References.TryAdd(runtimeTypeRef);
             }
 
             if (_interceptor.TryCreateScope(

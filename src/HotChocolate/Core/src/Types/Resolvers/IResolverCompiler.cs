@@ -23,6 +23,9 @@ public interface IResolverCompiler : IDisposable
     /// <param name="sourceType">
     /// The source type.
     /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
     /// <param name="parameterExpressionBuilders">
     /// Field level parameter expression builders.
     /// </param>
@@ -35,6 +38,7 @@ public interface IResolverCompiler : IDisposable
     FieldResolverDelegates CompileResolve<TResolver>(
         Expression<Func<TResolver, object?>> propertyOrMethod,
         Type? sourceType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
 
     /// <summary>
@@ -69,6 +73,9 @@ public interface IResolverCompiler : IDisposable
     /// <param name="resolverType">
     /// The resolver type.
     /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
     /// <param name="parameterExpressionBuilders">
     /// Field level parameter expression builders.
     /// </param>
@@ -79,6 +86,7 @@ public interface IResolverCompiler : IDisposable
         MemberInfo member,
         Type? sourceType = null,
         Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
 
     /// <summary>
@@ -93,13 +101,21 @@ public interface IResolverCompiler : IDisposable
     /// <param name="resolverType">
     /// The resolver type.
     /// </param>
+    /// <param name="argumentNames">
+    /// The parameter argument name lookup.
+    /// </param>
+    /// <param name="parameterExpressionBuilders">
+    /// Field level parameter expression builders.
+    /// </param>
     /// <returns>
     /// Returns the compiled subscribe resolver.
     /// </returns>
     SubscribeResolverDelegate CompileSubscribe(
         MemberInfo member,
         Type? sourceType = null,
-        Type? resolverType = null);
+        Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null);
 
     /// <summary>
     /// Filters the specified arguments and returns only the parameters

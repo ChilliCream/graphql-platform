@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 #nullable enable
 
@@ -37,6 +38,7 @@ public static class Scalars
         { typeof(DateOnly), typeof(DateType) },
         { typeof(TimeOnly), typeof(TimeSpanType) },
 #endif
+        { typeof(JsonElement), typeof(JsonType) },
     };
 
     private static readonly Dictionary<string, Type> _nameLookup = new()
@@ -61,6 +63,7 @@ public static class Scalars
 
         { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
+        { ScalarNames.JSON, typeof(JsonType) },
 
         // legacy support
         { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
@@ -96,10 +99,10 @@ public static class Scalars
     };
 
     internal static bool TryGetScalar(
-        Type clrType,
+        Type runtimeType,
         [NotNullWhen(true)] out Type? schemaType) =>
         _lookup.TryGetValue(
-            clrType ?? throw new ArgumentNullException(nameof(clrType)),
+            runtimeType ?? throw new ArgumentNullException(nameof(runtimeType)),
             out schemaType);
 
     internal static bool TryGetScalar(

@@ -63,7 +63,7 @@ Try a query like the following to get started:
 }
 ```
 
-The template source code is located [here](https://github.com/ChilliCream/hotchocolate/tree/master/examples).
+The template source code is located [here](https://github.com/ChilliCream/graphql-platform/tree/master/examples).
 
 # Code-First
 

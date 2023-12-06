@@ -43,10 +43,11 @@ public class InMemoryConnection : IInMemoryConnection
         public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            IInMemoryClient client = await _createClientAsync(cancellationToken);
+            var client = await _createClientAsync(cancellationToken);
 
             Exception? exception = null;
             IExecutionResult? result = null;
+
             try
             {
                 result = await client.ExecuteAsync(_request, cancellationToken);
@@ -58,12 +59,16 @@ public class InMemoryConnection : IInMemoryConnection
 
             if (exception is not null || result is null)
             {
-                yield return new Response<JsonDocument>(null, exception);
+                exception ??= new InvalidOperationException("No result found!");
+
+                yield return new Response<JsonDocument>(
+                    ResponseHelper.CreateBodyFromException(exception),
+                    exception);
                 yield break;
             }
 
-            await foreach (Response<JsonDocument> response in
-                ProcessResultAsync(result, cancellationToken).ConfigureAwait(false))
+            await foreach (var response in ProcessResultAsync(result, cancellationToken)
+                .ConfigureAwait(false))
             {
                 yield return response;
             }
@@ -80,29 +85,30 @@ public class InMemoryConnection : IInMemoryConnection
                 case IQueryResult queryResult:
                 {
                     queryResult.WriteTo(writer);
-                    yield return new Response<JsonDocument>(Parse(writer.Body), null);
+                    yield return new Response<JsonDocument>(Parse(writer.GetWrittenMemory()), null);
                     break;
                 }
 
                 case HotChocolate.Execution.ResponseStream streamResult:
                 {
-                    await foreach (IQueryResult result in
-                        streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
+                    await foreach (var result in streamResult.ReadResultsAsync().WithCancellation(cancellationToken))
                     {
                         result.WriteTo(writer);
-                        JsonDocument document = Parse(writer.Body);
-                        writer.Clear();
+                        var document = Parse(writer.GetWrittenMemory());
+                        writer.Reset();
 
                         yield return new Response<JsonDocument>(document, null);
                     }
                 }
 
                     break;
+
                 default:
                 {
+                    var ex = new GraphQLClientException(InMemoryConnection_InvalidResponseFormat);
                     yield return new Response<JsonDocument>(
-                        null,
-                        new GraphQLClientException(InMemoryConnection_InvalidResponseFormat));
+                        ResponseHelper.CreateBodyFromException(ex),
+                        ex);
                     yield break;
                 }
             }

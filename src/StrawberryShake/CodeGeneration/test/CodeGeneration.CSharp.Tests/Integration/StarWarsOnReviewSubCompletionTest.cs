@@ -35,21 +35,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
 
             // act
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            IStarWarsOnReviewSubCompletionClient client = services.GetRequiredService<IStarWarsOnReviewSubCompletionClient>();
+            var client = services.GetRequiredService<IStarWarsOnReviewSubCompletionClient>();
 
             string? commentary = null;
-            bool completionTriggered = false;
+            var completionTriggered = false;
 
             var sub = client.OnReviewSub.Watch();
             var session = sub.Subscribe(
-                result => commentary = result.Data?.OnReview?.Commentary,
+                result => commentary = result.Data?.OnReview.Commentary,
                 () => completionTriggered = true);
 
             var topic = Episode.NewHope;
 
             // try to send message 10 times
             // make sure the subscription connection is successful
-            for(int times = 0; commentary is null && times < 10; times++)
+            for(var times = 0; commentary is null && times < 10; times++)
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
@@ -61,13 +61,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             await topicEventSender.CompleteAsync($"{OnReview}_{topic}");
 
             // waiting for completion message sent
-            for (int times = 0; !completionTriggered && times < 10; times++)
+            for (var times = 0; !completionTriggered && times < 10; times++)
             {
                 await Task.Delay(1_000);
             }
 
             // assert
-            Assert.True(commentary is not null && completionTriggered);
+            Assert.True(completionTriggered);
+            Assert.NotNull(commentary);
 
             session.Dispose();
         }
@@ -76,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         public async Task Watch_StarWarsOnReviewSubCompletionPassively_Test()
         {
             // arrange
-            using IWebHost host = TestServerHelper.CreateServer(
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var topicEventSender = host.Services.GetRequiredService<ITopicEventSender>();
@@ -93,10 +94,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
 
             // act
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            IStarWarsOnReviewSubCompletionClient client = services.GetRequiredService<IStarWarsOnReviewSubCompletionClient>();
+            var client = services.GetRequiredService<IStarWarsOnReviewSubCompletionClient>();
 
             string? commentary = null;
-            bool completionTriggered = false;
+            var completionTriggered = false;
 
             var sub = client.OnReviewSub.Watch();
             var session = sub.Subscribe(
@@ -107,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
 
             // try to send message 10 times
             // make sure the subscription connection is successful
-            for (int times = 0; commentary is null && times < 10; times++)
+            for (var times = 0; commentary is null && times < 10; times++)
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
@@ -122,7 +123,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             //await host.StopAsync();
 
             // waiting for completion message sent
-            for (int times = 0; !completionTriggered && times < 10; times++)
+            for (var times = 0; !completionTriggered && times < 10; times++)
             {
                 await Task.Delay(1_000);
             }

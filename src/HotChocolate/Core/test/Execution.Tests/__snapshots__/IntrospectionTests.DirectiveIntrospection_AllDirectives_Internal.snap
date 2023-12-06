@@ -1,4 +1,4 @@
-﻿{
+{
   "data": {
     "__schema": {
       "types": [
@@ -184,9 +184,6 @@
               "appliedDirectives": []
             }
           ]
-        },
-        {
-          "fields": null
         },
         {
           "fields": null

@@ -75,7 +75,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchBatchDataLoader<TKey, TValue> Loader()
             => new(
@@ -87,38 +87,6 @@ public static class DataLoaderResolverContextExtensions
         return dataLoaderName is null
             ? reg.GetOrRegister(Loader)
             : reg.GetOrRegister(dataLoaderName, Loader);
-    }
-
-    /// <summary>
-    /// Creates a new batch DataLoader with the specified <paramref name="fetch"/> logic.
-    /// </summary>
-    /// <param name="context">
-    /// The resolver context.
-    /// </param>
-    /// <param name="dataLoaderName">
-    /// The optional DataLoader name.
-    /// </param>
-    /// <param name="fetch">
-    /// The batch fetch logic.
-    /// </param>
-    /// <returns>
-    /// Returns the DataLoader.
-    /// </returns>
-    [Obsolete]
-    public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
-        this IResolverContext context,
-        string dataLoaderName,
-        FetchBatch<TKey, TValue> fetch)
-        where TKey : notnull
-    {
-        if (string.IsNullOrEmpty(dataLoaderName))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(dataLoaderName));
-        }
-
-        return BatchDataLoader(context, fetch, dataLoaderName);
     }
 
     /// <summary>
@@ -181,7 +149,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchGroupedDataLoader<TKey, TValue> Loader()
             => new(
@@ -193,38 +161,6 @@ public static class DataLoaderResolverContextExtensions
         return dataLoaderName is null
             ? reg.GetOrRegister(Loader)
             : reg.GetOrRegister(dataLoaderName, Loader);
-    }
-
-    /// <summary>
-    /// Creates a new GroupDataLoader with the specified <paramref name="fetch"/> logic.
-    /// </summary>
-    /// <param name="context">
-    /// The resolver context.
-    /// </param>
-    /// <param name="dataLoaderName">
-    /// The optional DataLoader name.
-    /// </param>
-    /// <param name="fetch">
-    /// The batch fetch logic for the GroupDataLoader.
-    /// </param>
-    /// <returns>
-    /// Returns the DataLoader.
-    /// </returns>
-    [Obsolete]
-    public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
-        this IResolverContext context,
-        string dataLoaderName,
-        FetchGroup<TKey, TValue> fetch)
-        where TKey : notnull
-    {
-        if (string.IsNullOrEmpty(dataLoaderName))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(dataLoaderName));
-        }
-
-        return GroupDataLoader(context, fetch, dataLoaderName);
     }
 
     /// <summary>
@@ -272,7 +208,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(fetch));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         FetchCacheDataLoader<TKey, TValue> Loader()
             => new(
@@ -283,23 +219,6 @@ public static class DataLoaderResolverContextExtensions
         return key is null
             ? reg.GetOrRegister(Loader)
             : reg.GetOrRegister(key, Loader);
-    }
-
-    [Obsolete]
-    public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
-        this IResolverContext context,
-        string key,
-        FetchCache<TKey, TValue> fetch)
-        where TKey : notnull
-    {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
-        }
-
-        return CacheDataLoader(context, fetch, key);
     }
 
     public static Task<TValue> CacheAsync<TValue>(
@@ -330,41 +249,6 @@ public static class DataLoaderResolverContextExtensions
             .LoadAsync("default", context.RequestAborted);
     }
 
-    [Obsolete]
-    public static Task<TValue> FetchOnceAsync<TValue>(
-        this IResolverContext context,
-        string key,
-        Func<CancellationToken, Task<TValue>> fetch)
-    {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
-        }
-
-        return FetchOnceAsync(context, fetch, key);
-    }
-
-    [GetDataLoaderWithKey]
-    public static T DataLoader<T>(this IResolverContext context, string key)
-        where T : IDataLoader
-    {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
-        if (key is null)
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        var services = context.Services;
-        var reg = services.GetRequiredService<IDataLoaderRegistry>();
-        return reg.GetOrRegister(key, () => CreateDataLoader<T>(services));
-    }
-
     [GetDataLoader]
     public static T DataLoader<T>(this IResolverContext context)
         where T : IDataLoader
@@ -374,7 +258,7 @@ public static class DataLoaderResolverContextExtensions
             throw new ArgumentNullException(nameof(context));
         }
 
-        var services = context.Services;
+        var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderRegistry>();
         return reg.GetOrRegister(() => CreateDataLoader<T>(services));
     }
@@ -410,6 +294,4 @@ public static class DataLoaderResolverContextExtensions
     }
 }
 
-internal sealed class GetDataLoaderWithKeyAttribute : Attribute { }
-
-internal sealed class GetDataLoaderAttribute : Attribute { }
+internal sealed class GetDataLoaderAttribute : Attribute;

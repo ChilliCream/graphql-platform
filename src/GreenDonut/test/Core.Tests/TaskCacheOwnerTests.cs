@@ -9,7 +9,7 @@ public class TaskCacheOwnerTests
     {
         // arrange
         var cacheOwner1 = new TaskCacheOwner();
-        ITaskCache cache = cacheOwner1.Cache;
+        var cache = cacheOwner1.Cache;
         cacheOwner1.Dispose();
 
         // act

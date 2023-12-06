@@ -87,7 +87,7 @@ null
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060all\u0060 of type FooNestedFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `all` of type FooNestedFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,

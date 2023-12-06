@@ -1,12 +1,10 @@
 ﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Types;
 
-public class EnumTypeDescriptorTests
-    : DescriptorTestBase
+public class EnumTypeDescriptorTests : DescriptorTestBase
 {
     [Fact]
     public void InferNameFromType()
@@ -109,7 +107,7 @@ public class EnumTypeDescriptorTests
         var description = descriptor.CreateDefinition();
         Assert.Collection(
             description.Directives,
-            t => Assert.Equal("Bar", t.ParsedDirective?.Name.Value));
+            t => Assert.Equal("Bar", Assert.IsType<DirectiveNode>(t.Value).Name.Value));
     }
 
     [Fact]
@@ -125,7 +123,7 @@ public class EnumTypeDescriptorTests
         // assert
         var description = descriptor.CreateDefinition();
         Assert.Collection(description.Directives,
-            t => Assert.Equal("Bar", t.ParsedDirective.Name.Value));
+            t => Assert.Equal("Bar", Assert.IsType<DirectiveNode>(t.Value).Name.Value));
     }
 
     [Fact]
@@ -144,8 +142,9 @@ public class EnumTypeDescriptorTests
         Assert.Collection(description.Directives,
             t =>
             {
-                Assert.Equal("Bar", t.ParsedDirective.Name.Value);
-                Assert.Collection(t.ParsedDirective.Arguments,
+                Assert.Equal("Bar", Assert.IsType<DirectiveNode>(t.Value).Name.Value);
+                Assert.Collection(
+                    Assert.IsType<DirectiveNode>(t.Value).Arguments,
                     x =>
                     {
                         Assert.Equal("a", x.Name.Value);

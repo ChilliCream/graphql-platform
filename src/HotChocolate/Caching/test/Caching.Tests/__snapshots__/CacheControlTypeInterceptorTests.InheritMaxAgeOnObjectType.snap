@@ -1,0 +1,6 @@
+﻿{
+  "message": "Can not specify `inheritMaxAge: true` for the @cacheControl directive on the type ObjectType.",
+  "type": "ObjectType",
+  "extensions": {}
+}
+

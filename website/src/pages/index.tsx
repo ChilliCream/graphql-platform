@@ -4,9 +4,10 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 
 import { BananaCakePop } from "@/components/images/banana-cake-pop";
-import { BlogPostBananaCakePopCloud } from "@/components/images/blog-post-banana-cake-pop-cloud";
+import { BlogPostBananaCakePopApis } from "@/components/images/blog-post-banana-cake-pop-apis";
 import { BlogPostEFMeetsGraphQL } from "@/components/images/blog-post-ef-meets-graphql";
-import { BlogPostHotChocolate12 } from "@/components/images/blog-post-hot-chocolate-12";
+import { BlogPostHotChocolate13 } from "@/components/images/blog-post-hot-chocolate-13";
+import { BlogPostGraphQLFusion } from "@/components/images/blog-post-graphql-fusion";
 import { Layout } from "@/components/layout";
 import { Link } from "@/components/misc/link";
 import {
@@ -44,8 +45,20 @@ const IndexPage: FC = () => {
           }
         }
       }
+      docNav: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
     }
   `);
+  const latestHcVersion = data.docNav?.products?.find(
+    (product) => product?.path === "hotchocolate"
+  )?.latestStableVersion;
 
   return (
     <Layout>
@@ -63,8 +76,18 @@ const IndexPage: FC = () => {
           showThumbs={false}
         >
           <Slide>
-            <Link to="/blog/2021/11/22/banana-cake-pop-cloud">
-              <BlogPostBananaCakePopCloud />
+            <Link to="/blog/2023/08/15/graphql-fusion">
+              <BlogPostGraphQLFusion />
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2023/02/08/new-in-hot-chocolate-13">
+              <BlogPostHotChocolate13 />
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2023/03/15/banana-cake-pop-graphql-apis">
+              <BlogPostBananaCakePopApis />
             </Link>
           </Slide>
           <Slide>
@@ -77,11 +100,6 @@ const IndexPage: FC = () => {
                   deep performance insights.
                 </SlideDescription>
               </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2021/09/27/hot-chocolate-12">
-              <BlogPostHotChocolate12 />
             </Link>
           </Slide>
           <Slide>
@@ -129,13 +147,12 @@ const IndexPage: FC = () => {
               out our startup guide and see how simple it is to create your
               first API.
             </p>
-            <Link to="/docs/hotchocolate">
+            <Link to={`/docs/hotchocolate/${latestHcVersion}`}>
               Learn more<SrOnly> on how to build GraphQL .NET APIs</SrOnly>
             </Link>
           </ContentContainer>
         </SectionRow>
       </Section>
-      <MostRecentBlogPostsSection />
       <CompaniesSection />
       <Section>
         <SectionRow>
@@ -160,6 +177,7 @@ const IndexPage: FC = () => {
           </ContentContainer>
         </SectionRow>
       </Section>
+      <MostRecentBlogPostsSection />
     </Layout>
   );
 };

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AuthorizeMiddleware_NoDefaultPolicy" xml:space="preserve">
+    <value>The default authorization policy does not exist.</value>
+  </data>
+  <data name="AuthorizeMiddleware_NotAuthorized" xml:space="preserve">
+    <value>The current user is not authorized to access this resource.</value>
+  </data>
+  <data name="AuthorizeMiddleware_PolicyNotFound" xml:space="preserve">
+    <value>The `{0}` authorization policy does not exist.</value>
+  </data>
+  <data name="AuthorizeMiddleware_PoliciesMissing" xml:space="preserve">
+    <value>Found missing authorization policies!</value>
+  </data>
+  <data name="ThrowHelper_StateNotInitialized" xml:space="preserve">
+    <value>The state must be initialized for query authorization to be applied.</value>
+  </data>
+  <data name="ThrowHelper_UnauthorizedType" xml:space="preserve">
+    <value>{0}: Invalid schema state for authorization.</value>
+  </data>
+  <data name="ThrowHelper_UnableToResolveTypeReg" xml:space="preserve">
+    <value>Unable to resolve a type registration.</value>
+  </data>
+</root>

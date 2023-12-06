@@ -47,6 +47,7 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(
                 XmlCommentBuilder
                     .New()

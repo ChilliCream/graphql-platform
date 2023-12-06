@@ -1,11 +1,13 @@
 using CookieCrumble;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Sorting;
+namespace HotChocolate.Data;
 
-public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableSortVisitorExpressionTests
 {
     private static readonly Foo[] _fooEntities =
     {

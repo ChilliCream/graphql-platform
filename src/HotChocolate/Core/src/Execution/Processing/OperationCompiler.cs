@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+#if NET6_0_OR_GREATER
+using static System.Runtime.InteropServices.CollectionsMarshal;
+#endif
 using static System.Runtime.InteropServices.MemoryMarshal;
 using static System.StringComparer;
 using static HotChocolate.Execution.Properties.Resources;
@@ -21,7 +24,9 @@ public sealed partial class OperationCompiler
 {
     private static readonly ImmutableList<ISelectionSetOptimizer> _emptyOptimizers =
         ImmutableList<ISelectionSetOptimizer>.Empty;
+
     private readonly InputParser _parser;
+    private readonly CreateFieldPipeline _createFieldPipeline;
     private readonly Stack<BacklogItem> _backlog = new();
     private readonly Dictionary<Selection, SelectionSetInfo[]> _selectionLookup = new();
     private readonly Dictionary<SelectionSetRef, int> _selectionSetIdLookup = new();
@@ -31,6 +36,8 @@ public sealed partial class OperationCompiler
     private readonly List<IOperationOptimizer> _operationOptimizers = new();
     private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
     private readonly List<Selection> _selections = new();
+    private readonly HashSet<string> _directiveNames = new(Ordinal);
+    private readonly List<FieldMiddleware> _pipelineComponents = new();
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
@@ -42,6 +49,15 @@ public sealed partial class OperationCompiler
     public OperationCompiler(InputParser parser)
     {
         _parser = parser ?? throw new ArgumentNullException(nameof(parser));
+
+        _createFieldPipeline =
+            (schema, field, selection)
+                => CreateFieldPipeline(
+                    schema,
+                    field,
+                    selection,
+                    _directiveNames,
+                    _pipelineComponents);
     }
 
     public IOperation Compile(
@@ -50,7 +66,8 @@ public sealed partial class OperationCompiler
         ObjectType operationType,
         DocumentNode document,
         ISchema schema,
-        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null)
+        IReadOnlyList<IOperationCompilerOptimizer>? optimizers = null,
+        bool enableNullBubbling = true)
     {
         if (string.IsNullOrEmpty(operationId))
         {
@@ -97,7 +114,7 @@ public sealed partial class OperationCompiler
             var variants = GetOrCreateSelectionVariants(id);
             SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
 
-            var context = new CompilerContext(schema, document);
+            var context = new CompilerContext(schema, document, enableNullBubbling);
             context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
             CompileSelectionSet(context);
 
@@ -141,6 +158,8 @@ public sealed partial class OperationCompiler
             _operationOptimizers.Clear();
             _selectionSetOptimizers.Clear();
             _selections.Clear();
+            _directiveNames.Clear();
+            _pipelineComponents.Clear();
 
             _includeConditions = Array.Empty<IncludeCondition>();
             _deferContext = null;
@@ -183,19 +202,36 @@ public sealed partial class OperationCompiler
                 variants,
                 _includeConditions,
                 _contextData,
-                _hasIncrementalParts);
+                _hasIncrementalParts,
+                _createFieldPipeline);
 
             foreach (var item in _selectionVariants)
             {
                 variants[item.Key] = item.Value;
             }
 
-#if NET5_0_OR_GREATER
-            ref var optSpace = ref GetReference(CollectionsMarshal.AsSpan(_operationOptimizers));
+            // we will complete the selection variants, sets and selections
+            // without sealing them so that analyzers in this step can fully
+            // inspect them.
+            var variantsSpan = variants.AsSpan();
+            ref var variantsStart = ref GetReference(variantsSpan);
+            ref var variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length);
 
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                Unsafe.Add(ref optSpace, i).OptimizeOperation(context);
+                variantsStart.Complete();
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
+            }
+
+#if NET5_0_OR_GREATER
+            var optSpan = AsSpan(_operationOptimizers);
+            ref var optStart = ref GetReference(optSpan);
+            ref var optEnd = ref Unsafe.Add(ref optStart, optSpan.Length);
+
+            while (Unsafe.IsAddressLessThan(ref optStart, ref optEnd))
+            {
+                optStart.OptimizeOperation(context);
+                optStart = ref Unsafe.Add(ref optStart, 1)!;
             }
 #else
             for (var i = 0; i < _operationOptimizers.Count; i++)
@@ -206,11 +242,14 @@ public sealed partial class OperationCompiler
 
             CompleteResolvers(schema);
 
-            ref var varSpace = ref GetReference(variants.AsSpan());
+            variantsSpan = variants.AsSpan();
+            variantsStart = ref GetReference(variantsSpan)!;
+            variantsEnd = ref Unsafe.Add(ref variantsStart, variantsSpan.Length)!;
 
-            for (var i = 0; i < _operationOptimizers.Count; i++)
+            while (Unsafe.IsAddressLessThan(ref variantsStart, ref variantsEnd))
             {
-                Unsafe.Add(ref varSpace, i).Seal();
+                variantsStart.Seal();
+                variantsStart = ref Unsafe.Add(ref variantsStart, 1)!;
             }
         }
 
@@ -227,8 +266,8 @@ public sealed partial class OperationCompiler
 
     private void CompleteResolvers(ISchema schema)
     {
-#if NET5_0_OR_GREATER
-        ref var searchSpace = ref GetReference(CollectionsMarshal.AsSpan(_selections));
+#if NET6_0_OR_GREATER
+        ref var searchSpace = ref GetReference(AsSpan(_selections));
 
         for (var i = 0; i < _selections.Count; i++)
         {
@@ -238,8 +277,13 @@ public sealed partial class OperationCompiler
             {
                 var field = selection.Field;
                 var syntaxNode = selection.SyntaxNode;
-                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
-                var pureResolver = TryCreatePureField(field, syntaxNode);
+                var resolver = CreateFieldPipeline(
+                    schema,
+                    field,
+                    syntaxNode,
+                    _directiveNames,
+                    _pipelineComponents);
+                var pureResolver = TryCreatePureField(schema, field, syntaxNode);
                 selection.SetResolvers(resolver, pureResolver);
             }
         }
@@ -251,8 +295,13 @@ public sealed partial class OperationCompiler
             {
                 var field = selection.Field;
                 var syntaxNode = selection.SyntaxNode;
-                var resolver = CreateFieldMiddleware(schema, field, syntaxNode);
-                var pureResolver = TryCreatePureField(field, syntaxNode);
+                var resolver = CreateFieldPipeline(
+                    schema,
+                    field,
+                    syntaxNode,
+                    _directiveNames,
+                    _pipelineComponents);
+                var pureResolver = TryCreatePureField(schema, field, syntaxNode);
                 selection.SetResolvers(resolver, pureResolver);
             }
         }
@@ -294,7 +343,8 @@ public sealed partial class OperationCompiler
                 isConditional = true;
             }
 
-            if (fieldType.IsCompositeType())
+            // Determines if the type is a composite type.
+            if (fieldType.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
             {
                 if (selection.SelectionSet is null)
                 {
@@ -330,19 +380,19 @@ public sealed partial class OperationCompiler
                 // For now we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
-                     var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
-                     var nullValue = NullValueNode.Default;
-                     var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
-                     long ifConditionFlags = 0;
+                    var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
+                    var nullValue = NullValueNode.Default;
+                    var ifValue = streamDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
+                    long ifConditionFlags = 0;
 
-                     if (ifValue.Kind is not SyntaxKind.NullValue)
-                     {
-                         var ifCondition = new IncludeCondition(ifValue, nullValue);
-                         ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
-                     }
+                    if (ifValue.Kind is not SyntaxKind.NullValue)
+                    {
+                        var ifCondition = new IncludeCondition(ifValue, nullValue);
+                        ifConditionFlags = GetSelectionIncludeCondition(ifCondition, 0);
+                    }
 
-                     selection.MarkAsStream(ifConditionFlags);
-                     _hasIncrementalParts = true;
+                    selection.MarkAsStream(ifConditionFlags);
+                    _hasIncrementalParts = true;
                 }
             }
 
@@ -401,21 +451,21 @@ public sealed partial class OperationCompiler
             case SyntaxKind.Field:
                 ResolveField(
                     context,
-                    (FieldNode)selection,
+                    (FieldNode) selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.InlineFragment:
                 ResolveInlineFragment(
                     context,
-                    (InlineFragmentNode)selection,
+                    (InlineFragmentNode) selection,
                     includeCondition);
                 break;
 
             case SyntaxKind.FragmentSpread:
                 ResolveFragmentSpread(
                     context,
-                    (FragmentSpreadNode)selection,
+                    (FragmentSpreadNode) selection,
                     includeCondition);
                 break;
         }
@@ -433,7 +483,9 @@ public sealed partial class OperationCompiler
 
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
-            var fieldType = field.Type.RewriteNullability(selection.Required);
+            var fieldType = context.EnableNullBubbling
+                ? field.Type.RewriteNullability(selection.Required)
+                : field.Type.RewriteToNullableType();
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
@@ -455,7 +507,7 @@ public sealed partial class OperationCompiler
             {
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
-                preparedSelection = new Selection(
+                preparedSelection = new Selection.Sealed(
                     GetNextSelectionId(),
                     context.Type,
                     field,
@@ -468,7 +520,9 @@ public sealed partial class OperationCompiler
                     responseName: responseName,
                     isParallelExecutable: field.IsParallelExecutable,
                     arguments: CoerceArgumentValues(field, selection, responseName),
-                    includeConditions: includeCondition == 0 ? null : new[] { includeCondition });
+                    includeConditions: includeCondition == 0
+                        ? null
+                        : new[] { includeCondition });
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -538,6 +592,7 @@ public sealed partial class OperationCompiler
                 var ifValue = deferDirective?.GetIfArgumentValueOrDefault() ?? nullValue;
 
                 long ifConditionFlags = 0;
+
                 if (ifValue.Kind is not SyntaxKind.NullValue)
                 {
                     var ifCondition = new IncludeCondition(ifValue, nullValue);
@@ -589,8 +644,8 @@ public sealed partial class OperationCompiler
         => typeCondition.Kind switch
         {
             TypeKind.Object => ReferenceEquals(typeCondition, current),
-            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
-            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
+            TypeKind.Interface => current.IsImplementing((InterfaceType) typeCondition),
+            TypeKind.Union => ((UnionType) typeCondition).Types.ContainsKey(current.Name),
             _ => false
         };
 
@@ -686,7 +741,8 @@ public sealed partial class OperationCompiler
             _includeConditions[pos] = condition;
         }
 
-        long selectionIncludeCondition = 2 ^ pos;
+        long selectionIncludeCondition = 1;
+        selectionIncludeCondition <<= pos;
 
         if (parentIncludeCondition == 0)
         {
@@ -724,7 +780,8 @@ public sealed partial class OperationCompiler
             _includeConditions[pos] = condition;
         }
 
-        long selectionIncludeCondition = 2 ^ pos;
+        long selectionIncludeCondition = 1;
+        selectionIncludeCondition <<= pos;
 
         if (parentIncludeCondition == 0)
         {
@@ -739,7 +796,7 @@ public sealed partial class OperationCompiler
     {
         if (_deferContext is null)
         {
-            return new CompilerContext(context.Schema, context.Document);
+            return new CompilerContext(context.Schema, context.Document, context.EnableNullBubbling);
         }
 
         var temp = _deferContext;
@@ -788,54 +845,6 @@ public sealed partial class OperationCompiler
             var selectionSetInfo = new SelectionSetInfo(newSelection.SelectionSet!, 0);
             _selectionLookup.Add(newSelection, new[] { selectionSetInfo });
         }
-    }
-
-    internal sealed class SelectionPath : IEquatable<SelectionPath>
-    {
-        private SelectionPath(string name, SelectionPath? parent = null)
-        {
-            Name = name;
-            Parent = parent;
-        }
-
-        public string Name { get; }
-
-        public SelectionPath? Parent { get; }
-
-        public static SelectionPath Root { get; } = new("$root");
-
-        public SelectionPath Append(string name) => new(name, this);
-
-        public bool Equals(SelectionPath? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (Name.EqualsOrdinal(other.Name))
-            {
-                if (ReferenceEquals(Parent, other.Parent))
-                {
-                    return true;
-                }
-
-                return Equals(Parent, other.Parent);
-            }
-
-            return false;
-        }
-
-        public override bool Equals(object? obj)
-            => ReferenceEquals(this, obj) || (obj is SelectionPath other && Equals(other));
-
-        public override int GetHashCode()
-            => HashCode.Combine(Name, Parent);
     }
 
     private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>

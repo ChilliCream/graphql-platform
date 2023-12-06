@@ -13,7 +13,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
 {
     internal EdgeType(
         string connectionName,
-        ITypeReference nodeType)
+        TypeReference nodeType)
     {
         if (nodeType is null)
         {
@@ -35,7 +35,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 ApplyConfigurationOn.BeforeCompletion));
     }
 
-    internal EdgeType(ITypeReference nodeType)
+    internal EdgeType(TypeReference nodeType)
     {
         if (nodeType is null)
         {
@@ -56,7 +56,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 Definition,
                 ApplyConfigurationOn.BeforeNaming,
                 nodeType,
-                TypeDependencyKind.Named));
+                TypeDependencyFulfilled.Named));
         Definition.Configurations.Add(
             new CompleteConfiguration(
                 (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
@@ -71,10 +71,6 @@ internal sealed class EdgeType : ObjectType, IEdgeType
 
     /// <inheritdoc />
     public IOutputType NodeType { get; private set; } = default!;
-
-    /// <inheritdoc />
-    [Obsolete("Use NodeType.")]
-    public IOutputType EntityType => NodeType;
 
     /// <inheritdoc />
     public override bool IsInstanceOfType(IResolverContext context, object resolverResult)
@@ -100,7 +96,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
         return false;
     }
 
-    private static ObjectTypeDefinition CreateTypeDefinition(ITypeReference nodeType)
+    private static ObjectTypeDefinition CreateTypeDefinition(TypeReference nodeType)
         => new()
         {
             Description = EdgeType_Description,

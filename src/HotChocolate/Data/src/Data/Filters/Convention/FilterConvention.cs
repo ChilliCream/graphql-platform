@@ -28,7 +28,7 @@ public class FilterConvention
     private INamingConventions _namingConventions = default!;
     private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
     private IDictionary<Type, Type> _bindings = default!;
-    private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
+    private IDictionary<TypeReference, List<ConfigureFilterInputType>> _configs = default!;
 
     private string _argumentName = default!;
     private IFilterProvider _provider = default!;
@@ -138,6 +138,7 @@ public class FilterConvention
             runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
         {
             var genericName = _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+
             return genericName + "OperationFilterInput";
         }
 
@@ -152,8 +153,7 @@ public class FilterConvention
         }
 
         if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
-            runtimeType.GenericTypeArguments.Length == 1 &&
-            runtimeType.GetGenericTypeDefinition() == typeof(ListFilterInputType<>))
+            runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
             string genericName;
@@ -192,35 +192,6 @@ public class FilterConvention
         }
 
         return name;
-    }
-
-    /// <inheritdoc />
-    public string GetTypeName(
-        IFilterInputType parentType,
-        FilterFieldDefinition fieldDefinition)
-    {
-        const string operationInputPostFix = $"Operation{_inputPostFix}";
-        const string operationInputTypePostFix = $"Operation{_inputTypePostFix}";
-
-        var parentName = parentType.Name;
-        if (parentName.EndsWith(_inputPostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - _inputPostFix.Length);
-        }
-        else if (parentName.EndsWith(operationInputPostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - operationInputPostFix.Length);
-        }
-        else if (parentName.EndsWith(_inputTypePostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - _inputTypePostFix.Length);
-        }
-        else if (parentName.EndsWith(operationInputTypePostFix, StringComparison.Ordinal))
-        {
-            parentName = parentName.Remove(parentName.Length - operationInputTypePostFix.Length);
-        }
-
-        return parentName + NameHelpers.UppercaseFirstLetter(fieldDefinition.Name) + _inputPostFix;
     }
 
     /// <inheritdoc />
@@ -278,12 +249,12 @@ public class FilterConvention
 
     /// <inheritdoc cref="IFilterConvention"/>
     public void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor)
     {
         if (_configs.TryGetValue(
-            typeReference,
-            out var configurations))
+                typeReference,
+                out var configurations))
         {
             foreach (var configure in configurations)
             {
@@ -319,11 +290,13 @@ public class FilterConvention
             if (filterFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
             {
                 handler = filterFieldHandler;
+
                 return true;
             }
         }
 
         handler = null;
+
         return false;
     }
 
@@ -333,7 +306,7 @@ public class FilterConvention
         IFilterFieldDefinition fieldDefinition)
         => _provider.CreateMetaData(context, typeDefinition, fieldDefinition);
 
-    private bool TryCreateFilterType(
+    protected bool TryCreateFilterType(
         IExtendedType runtimeType,
         [NotNullWhen(true)] out Type? type)
     {
@@ -348,6 +321,7 @@ public class FilterConvention
                 TryCreateFilterType(runtimeType.ElementType, out var elementType))
             {
                 type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
+
                 return true;
             }
         }
@@ -355,17 +329,26 @@ public class FilterConvention
         if (runtimeType.Type.IsEnum)
         {
             type = typeof(EnumOperationFilterInputType<>).MakeGenericType(runtimeType.Source);
+
             return true;
         }
 
-        if (runtimeType.Type.IsClass ||
-            runtimeType.Type.IsInterface)
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
+        {
+            type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
+
+            return true;
+        }
+
+        if (runtimeType.Type.IsClass || runtimeType.Type.IsInterface)
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Source);
+
             return true;
         }
 
         type = null;
+
         return false;
     }
 
@@ -378,8 +361,8 @@ public class FilterConvention
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
             if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
-                extensionType,
-                out var createdExtension))
+                    extensionType,
+                    out var createdExtension))
             {
                 extensions.Add(createdExtension);
             }

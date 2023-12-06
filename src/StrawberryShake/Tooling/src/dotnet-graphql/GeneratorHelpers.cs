@@ -9,33 +9,47 @@ namespace StrawberryShake.Tools;
 
 internal static class GeneratorHelpers
 {
-    public static string[] GetConfigFiles(string path)
+    public static string[] GetConfigFiles(string path, IReadOnlyList<string> buildArtifacts)
     {
         const string pattern = "**/.graphqlrc.json";
-        var binPath = Combine(path, "bin");
-        var bin = Files(binPath, pattern).Select(t => Combine(binPath, t)).ToArray();
-        var objPath = Combine(path, "obj");
-        var obj = Files(objPath, pattern).Select(t => Combine(objPath, t)).ToArray();
         var files = Files(path, pattern).Select(t => Combine(path, t)).ToHashSet();
-
-        files.ExceptWith(bin);
-        files.ExceptWith(obj);
-
+        files.ExceptWith(buildArtifacts);
         return files.ToArray();
     }
 
-    public static string[] GetGraphQLDocuments(string path, string pattern)
+    public static string[] GetGraphQLDocuments(
+        string path,
+        string pattern,
+        IReadOnlyList<string> buildArtifacts)
     {
-        var binPath = Combine(path, "bin");
-        var bin = Files(binPath, pattern).Select(t => Combine(binPath, t)).ToArray();
-        var objPath = Combine(path, "obj");
-        var obj = Files(objPath, pattern).Select(t => Combine(objPath, t)).ToArray();
         var files = Files(path, pattern).Select(t => Combine(path, t)).ToHashSet();
-
-        files.ExceptWith(bin);
-        files.ExceptWith(obj);
-
+        files.ExceptWith(buildArtifacts);
         return files.ToArray();
+    }
+
+    public static IReadOnlyList<string> GetBuildArtifacts(string path)
+    {
+        var artifacts = new List<string>();
+        var objDir = Combine(path, "obj");
+        var binDir = Combine(path, "bin");
+
+        if (Directory.Exists(objDir))
+        {
+            artifacts.AddRange(
+                Directory.GetFiles(
+                    objDir, "*.*",
+                    SearchOption.AllDirectories));
+        }
+
+        if (Directory.Exists(binDir))
+        {
+            artifacts.AddRange(
+                Directory.GetFiles(
+                    binDir, "*.*",
+                    SearchOption.AllDirectories));
+        }
+
+        return artifacts;
     }
 
     public static CSharpGeneratorSettings CreateSettings(
@@ -48,6 +62,7 @@ internal static class GeneratorHelpers
         {
             ClientName = configSettings.Name,
             Namespace = configSettings.Namespace ?? args.RootNamespace ?? rootNamespace,
+            AccessModifier = GetAccessModifier(configSettings.AccessModifier),
             StrictSchemaValidation =
                 configSettings.StrictSchemaValidation ?? args.StrictSchemaValidation,
             NoStore = configSettings.NoStore ?? args.NoStore,
@@ -58,6 +73,21 @@ internal static class GeneratorHelpers
             RequestStrategy = configSettings.RequestStrategy ?? args.Strategy,
             HashProvider = GetHashProvider(configSettings.HashAlgorithm ?? args.HashAlgorithm),
             TransportProfiles = MapTransportProfiles(configSettings.TransportProfiles),
+        };
+    }
+
+    private static AccessModifier GetAccessModifier(string? accessModifier)
+    {
+        if (string.IsNullOrWhiteSpace(accessModifier))
+        {
+            return AccessModifier.Public;
+        }
+
+        return accessModifier switch
+        {
+            "public" => AccessModifier.Public,
+            "internal" => AccessModifier.Internal,
+            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported.")
         };
     }
 

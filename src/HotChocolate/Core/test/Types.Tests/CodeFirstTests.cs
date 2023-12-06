@@ -4,12 +4,10 @@ using System;
 using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate;
 
@@ -74,7 +72,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType("Url", out INamedType _);
+        var exists = schema.TryGetType<INamedType>("Url", out _);
         Assert.False(exists);
     }
 
@@ -104,51 +102,111 @@ public class CodeFirstTests
     [Fact]
     public async Task Default_Type_Resolution_Shall_Be_Exact()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }");
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
-                d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
-            })
-            .AddType<Dog>()
-            .AddType<Cat>()
-            .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }")
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
     public async Task Default_Type_Resolution_Shall_Be_Exact_Schema()
     {
-        Snapshot.FullName();
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
-                d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
-            })
-            .AddType<Dog>()
-            .AddType<Cat>()
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Structureal_Equality_Is_Ignored()
+    public async Task Structural_Equality_Is_Ignored()
     {
-        Snapshot.FullName();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryStructEquals>()
+                .BuildSchemaAsync();
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<QueryStructEquals>()
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Comparison_Is_Ignored()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryComparableEntity>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Allow_PascalCasedArguments_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<PascalCaseQuery>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Allow_PascalCasedArguments()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<PascalCaseQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        testResolver(testArgument: "abc")
+                    }
+                    """);
+
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "testResolver": "abc"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Infer_Nullability_From_Nested_Classes()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryNestedClassNullableString>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     public class Query
@@ -273,15 +331,64 @@ public class CodeFirstTests
 
     public class QueryStructEquals
     {
-        public Example Foo(Example example) => example;
+        public EquatableExample Foo(EquatableExample example) => example;
     }
 
-    public class Example : IStructuralEquatable
+    public class EquatableExample : IStructuralEquatable
     {
         public string Some { get; set; } = default!;
 
         public bool Equals(object? other, IEqualityComparer comparer) => throw new NotImplementedException();
 
         public int GetHashCode(IEqualityComparer comparer) => throw new NotImplementedException();
+    }
+
+    public class QueryComparableEntity
+    {
+        public ComparableExample Foo(ComparableExample example) => example;
+    }
+
+    public class ComparableExample : IComparable, IComparable<EquatableExample>
+    {
+        public string Some { get; set; } = default!;
+
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(EquatableExample? other)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class PascalCaseQuery
+    {
+        public string TestResolver(string TestArgument) => "abc";
+    }
+
+    public sealed class QueryNestedClassNullableString
+    {
+        public class Outer
+        {
+            public string? shouldBeNullable { get; set; }
+        }
+
+        public class Example
+        {
+            public class Inner
+            {
+                public string? shouldAlsoBeNullable { get; set; }
+            }
+
+            public Inner? inner { get; set; } = new();
+            public Outer? outer { get; set; } = new();
+        }
+
+        public Example NestedClassNullableString()
+        {
+            return new Example();
+        }
     }
 }

@@ -145,7 +145,7 @@ public static class PagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = nodeType is not null
+                TypeReference? typeRef = nodeType is not null
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
@@ -200,7 +200,7 @@ public static class PagingObjectFieldDescriptorExtensions
                             : null;
                 }
 
-                ITypeReference? typeRef = nodeType is not null
+                TypeReference? typeRef = nodeType is not null
                     ? c.TypeInspector.GetTypeRef(nodeType)
                     : null;
 
@@ -298,7 +298,7 @@ public static class PagingObjectFieldDescriptorExtensions
         this IList<ArgumentDefinition> arguments,
         string name,
         string description,
-        ITypeReference type)
+        TypeReference type)
     {
         var argument = arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(name));
 
@@ -312,11 +312,11 @@ public static class PagingObjectFieldDescriptorExtensions
         argument.Type = type;
     }
 
-    private static ITypeReference CreateConnectionTypeRef(
+    private static TypeReference CreateConnectionTypeRef(
         IDescriptorContext context,
         MemberInfo? resolverMember,
         string? connectionName,
-        ITypeReference? nodeType,
+        TypeReference? nodeType,
         PagingOptions options)
     {
         var typeInspector = context.TypeInspector;
@@ -363,6 +363,22 @@ public static class PagingObjectFieldDescriptorExtensions
                     : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
             PagingProviderEntry? defaultEntry = null;
 
+            // if we find an application service provider we will prefer that one.
+            var applicationServices = services.GetService<IApplicationServiceProvider>();
+
+            if (applicationServices is not null)
+            {
+                foreach (var entry in applicationServices.GetServices<PagingProviderEntry>())
+                {
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+            }
 
             foreach (var entry in services.GetServices<PagingProviderEntry>())
             {
@@ -390,9 +406,9 @@ public static class PagingObjectFieldDescriptorExtensions
         return new QueryableCursorPagingProvider();
     }
 
-    private static ITypeReference CreateConnectionType(
+    private static TypeReference CreateConnectionType(
         string? connectionName,
-        ITypeReference nodeType,
+        TypeReference nodeType,
         bool withTotalCount)
     {
         return connectionName is null

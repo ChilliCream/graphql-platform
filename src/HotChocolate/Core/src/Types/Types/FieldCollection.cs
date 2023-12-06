@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 #nullable enable
 
@@ -21,6 +22,12 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
         {
             _fieldsLookup.Add(field.Name, field);
         }
+    }
+
+    private FieldCollection(Dictionary<string, T> fieldsLookup, T[] fields)
+    {
+        _fieldsLookup = fieldsLookup;
+        _fields = fields;
     }
 
     public T this[string fieldName] => _fieldsLookup[fieldName];
@@ -58,6 +65,13 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 
     internal ReadOnlySpan<T> AsSpan() => _fields;
 
+    internal ref T GetReference()
+#if NET6_0_OR_GREATER
+        => ref MemoryMarshal.GetArrayDataReference(_fields);
+#else
+        => ref MemoryMarshal.GetReference(_fields.AsSpan());
+#endif
+
     public IEnumerator<T> GetEnumerator()
         => _fields.Length == 0
             ? EmptyFieldEnumerator.Instance
@@ -66,6 +80,40 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+
+    internal static FieldCollection<T> TryCreate(T[] fields, out IReadOnlyCollection<string>? duplicateFieldNames)
+    {
+        var internalFields = fields ?? throw new ArgumentNullException(nameof(fields));
+        var internalLookup = new Dictionary<string, T>(internalFields.Length, StringComparer.Ordinal);
+        HashSet<string>? duplicates = null;
+
+        foreach (var field in internalFields)
+        {
+#if NET6_0_OR_GREATER
+            if (!internalLookup.TryAdd(field.Name, field))
+            {
+                (duplicates ??= new()).Add(field.Name);
+            }
+#else
+            if (internalLookup.ContainsKey(field.Name))
+            {
+                (duplicates ??= new()).Add(field.Name);
+                continue;
+            }
+            
+            internalLookup.Add(field.Name, field);
+#endif
+        }
+
+        if (duplicates?.Count > 0)
+        {
+            duplicateFieldNames = duplicates;
+            return Empty;
+        }
+
+        duplicateFieldNames = null;
+        return new FieldCollection<T>(internalLookup, fields);
+    }
 
     private sealed class FieldEnumerator : IEnumerator<T>
     {

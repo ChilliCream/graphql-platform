@@ -243,4 +243,4 @@ I hope you are as exited as I am about this. Happy Thanksgiving :) and get a sup
 If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate
+[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

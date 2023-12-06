@@ -108,15 +108,18 @@ public static class GenerateCommand
             CancellationToken cancellationToken)
         {
             using var activity = Output.WriteActivity("Generate C# Clients");
-            var statusCode = 0;
 
-            foreach (var configFileName in GetConfigFiles(args.Path))
+            var statusCode = 0;
+            var buildArtifacts = GetBuildArtifacts(args.Path);
+
+            foreach (var configFileName in GetConfigFiles(args.Path, buildArtifacts))
             {
+                var configDir = Path.GetDirectoryName(configFileName)!;
                 var configBody = await File.ReadAllTextAsync(configFileName, cancellationToken);
                 var config = GraphQLConfig.FromJson(configBody);
                 var clientName = config.Extensions.StrawberryShake.Name;
                 var rootNamespace = args.RootNamespace ?? $"{clientName}NS";
-                var documents = GetGraphQLDocuments(args.Path, config.Documents);
+                var documents = GetGraphQLDocuments(configDir, config.Documents, buildArtifacts);
                 var settings = CreateSettings(config, args, rootNamespace);
                 var result = GenerateClient(settings.ClientName, documents, settings);
                 var outputDir = args.OutputDir ??
@@ -158,7 +161,7 @@ public static class GenerateCommand
             CSharpGeneratorSettings settings)
         {
             using var activity = Output.WriteActivity($"Generate {clientName}");
-            return CSharpGenerator.Generate(documents, settings);
+            return CSharpGenerator.GenerateAsync(documents, settings).Result;
         }
 
         private async Task WriteCodeFilesAsync(

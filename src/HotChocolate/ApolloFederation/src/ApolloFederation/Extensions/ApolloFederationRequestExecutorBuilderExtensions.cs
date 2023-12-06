@@ -28,7 +28,7 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
         {
             throw new ArgumentNullException(nameof(builder));
         }
-
-        return builder.ConfigureSchema(s => ApolloFederationSchemaBuilderExtensions.AddApolloFederation(s));
+        
+        return builder.ConfigureSchema(s => s.AddApolloFederation());
     }
 }

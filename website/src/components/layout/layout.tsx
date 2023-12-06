@@ -11,7 +11,9 @@ import {
 } from "@/components/mdx/example-tabs";
 import { InlineCode } from "@/components/mdx/inline-code";
 import { PackageInstallation } from "@/components/mdx/package-installation";
+import { Video } from "@/components/mdx/video";
 import { CookieConsent } from "@/components/misc/cookie-consent";
+import { Promo } from "@/components/misc/promo";
 import { GlobalStyle } from "@/components/misc/global-style";
 import { Header } from "./header";
 import { Main } from "./main";
@@ -26,6 +28,7 @@ export const Layout: FC<PropsWithChildren<unknown>> = ({ children }) => {
     Code,
     Schema,
     PackageInstallation,
+    Video,
   };
 
   return (
@@ -36,6 +39,7 @@ export const Layout: FC<PropsWithChildren<unknown>> = ({ children }) => {
         <Main>{children}</Main>
       </MDXProvider>
       <CookieConsent />
+      <Promo />
     </>
   );
 };

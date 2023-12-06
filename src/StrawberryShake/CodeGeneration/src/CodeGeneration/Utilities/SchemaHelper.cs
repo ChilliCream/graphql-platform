@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Utilities;
 
 public static class SchemaHelper
 {
-    private static string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
+    private const string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
 
     public static ISchema Load(
         IReadOnlyCollection<GraphQLFile> schemaFiles,
@@ -73,6 +73,14 @@ public static class SchemaHelper
                             scalar.Name.Value,
                             scalar.Description?.Value));
                     }
+                    else if (scalar.Name.Value == ScalarNames.Any)
+                    {
+                        builder.AddType(new AnyType());
+                    }
+                    else if (scalar.Name.Value == ScalarNames.JSON)
+                    {
+                        builder.AddType(new JsonType());
+                    }
                 }
 
                 builder.AddDocument(document);
@@ -82,6 +90,16 @@ public static class SchemaHelper
         AddDefaultScalarInfos(builder, leafTypes);
 
         return builder
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                    o.EnableTag = false;
+                    o.EnableOneOf = false;
+                    o.EnableFlagEnums = false;
+                    o.EnableTrueNullability = false;
+                })
             .SetSchema(d => d.Extend().OnBeforeCreate(
                 c => c.ContextData.Add(_typeInfosKey, typeInfos)))
             .TryAddTypeInterceptor(
@@ -105,9 +123,7 @@ public static class SchemaHelper
     {
         foreach (var scalarTypeExtension in scalarTypeExtensions)
         {
-            if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out var scalarInfo))
+            if (!leafTypes.TryGetValue(scalarTypeExtension.Name.Value, out var scalarInfo))
             {
                 var runtimeType = GetRuntimeType(scalarTypeExtension);
                 var serializationType = GetSerializationType(scalarTypeExtension);
@@ -205,12 +221,9 @@ public static class SchemaHelper
     {
         foreach (var objectTypeExtension in objectTypeExtensions)
         {
-            if (TryGetKeys(objectTypeExtension, out var selectionSet) &&
-                !entityPatterns.ContainsKey(objectTypeExtension.Name.Value))
+            if (TryGetKeys(objectTypeExtension, out var selectionSet))
             {
-                entityPatterns.Add(
-                    objectTypeExtension.Name.Value,
-                    selectionSet);
+                entityPatterns.TryAdd(objectTypeExtension.Name.Value, selectionSet);
             }
         }
     }
@@ -246,7 +259,17 @@ public static class SchemaHelper
         TryAddLeafType(
             leafTypes,
             typeName: ScalarNames.Any,
-            runtimeType: TypeNames.JsonDocument,
+            runtimeType: TypeNames.JsonElement,
+            serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: ScalarNames.JSON,
+            runtimeType: TypeNames.JsonElement,
+            serializationType: TypeNames.JsonElement);
+        TryAddLeafType(
+            leafTypes,
+            typeName: "Json",
+            runtimeType: TypeNames.JsonElement,
             serializationType: TypeNames.JsonElement);
         TryAddLeafType(
             leafTypes,

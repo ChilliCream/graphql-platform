@@ -2,22 +2,26 @@ using System;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
+using static HotChocolate.Execution.Processing.PathHelper;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static partial class ValueCompletion
 {
     private static object? CompleteLeafValue(
-        OperationContext operationContext,
-        MiddlewareContext resolverContext,
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
-        IType fieldType,
+        IType type,
+        ResultData parent,
+        int index,
         object? result)
     {
+        var operationContext = context.OperationContext;
+        var resolverContext = context.ResolverContext;
+        
         try
         {
-            var leafType = (ILeafType)fieldType;
+            var leafType = (ILeafType)type;
             var runtimeType = leafType.RuntimeType;
 
             if (!runtimeType.IsInstanceOfType(result) &&
@@ -30,16 +34,18 @@ internal static partial class ValueCompletion
         }
         catch (SerializationException ex)
         {
-            var error = InvalidLeafValue(ex, selection.SyntaxNode, path);
+            var errorPath = CreatePathFromContext(selection, parent, index);
+            var error = InvalidLeafValue(ex, selection.SyntaxNode, errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
         catch (Exception ex)
         {
+            var errorPath = CreatePathFromContext(selection, parent, index);
             var error = UnexpectedLeafValueSerializationError(
                 ex,
                 operationContext.ErrorHandler,
                 selection.SyntaxNode,
-                path);
+                errorPath);
             operationContext.ReportError(error, resolverContext, selection);
         }
 

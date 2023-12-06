@@ -172,25 +172,6 @@ public class ObjectTypeExtensionTests
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
-    [Fact]
-    public async Task ObjectTypeExtension_DeprecateField_Obsolete()
-    {
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<FooType>()
-            .AddTypeExtension(new ObjectTypeExtension(d => d
-                .Name("Foo")
-                .Field("description")
-                .Type<StringType>()
-                .DeprecationReason("Foo")))
-            .BuildSchemaAsync();
-
-        var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["description"].IsDeprecated);
-        Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
-    }
-
     [Fact]
     public async Task ObjectTypeExtension_DeprecateField_With_Reason()
     {
@@ -303,7 +284,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Directives.Contains("dummy"));
+        Assert.True(type.Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -320,8 +301,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"]
-            .Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -338,8 +318,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"]
-            .Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -358,7 +337,7 @@ public class ObjectTypeExtensionTests
         var type = schema.GetType<ObjectType>("Foo");
         var value = type.Fields["name"].Arguments["a"]
             .Directives["dummy_arg"]
-            .First().GetArgument<string>("a");
+            .First().GetArgumentValue<string>("a");
         Assert.Equal("b", value);
     }
 
@@ -439,7 +418,7 @@ public class ObjectTypeExtensionTests
             .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
+        Assert.True(type.Fields["name"].Arguments["a"].Directives.ContainsDirective("dummy"));
     }
 
     [Fact]
@@ -730,6 +709,45 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(result);
     }
 
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_And_Generic_Schema()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQuery>()
+                .AddTypeExtension(typeof(StaticFooQueryExtensions))
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task Query_Extension_With_Static_Members_And_Generic()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQuery>()
+                .AddTypeExtension(typeof(StaticFooQueryExtensions))
+                .ExecuteRequestAsync("{ hello }");
+
+        SnapshotExtensions.MatchSnapshot(result);
+    }
+
+    [Fact]
+    public async Task ExtendObjectTypeAttribute_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddTypeExtension<QueryExtensions>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -751,8 +769,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class GenericFooTypeExtension
-        : ObjectTypeExtension<FooExtension>
+    public class GenericFooTypeExtension : ObjectTypeExtension<FooExtension>
     {
         protected override void Configure(
             IObjectTypeDescriptor<FooExtension> descriptor)
@@ -763,7 +780,7 @@ public class ObjectTypeExtensionTests
 
     public class Foo
     {
-        public string? Description { get; } = "hello";
+        public string? Description => "hello";
 
         public string? GetName(string? a) => default!;
     }
@@ -781,8 +798,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class DummyDirective
-        : DirectiveType
+    public class DummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -794,8 +810,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class DummyWithArgDirective
-        : DirectiveType
+    public class DummyWithArgDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -808,8 +823,7 @@ public class ObjectTypeExtensionTests
         }
     }
 
-    public class RepeatableDummyDirective
-        : DirectiveType
+    public class RepeatableDummyDirective : DirectiveType
     {
         protected override void Configure(
             IDirectiveTypeDescriptor descriptor)
@@ -1072,7 +1086,7 @@ public class ObjectTypeExtensionTests
 
     public class FooAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
@@ -1104,5 +1118,32 @@ public class ObjectTypeExtensionTests
     {
         public static string Hello()
             => "abc";
+    }
+
+    public class FooQuery
+    {
+        public string Abc { get; } = "def";
+    }
+
+    [ExtendObjectType<FooQuery>]
+    public static class StaticFooQueryExtensions
+    {
+        public static string Hello([Parent] FooQuery query)
+            => query.Abc;
+    }
+
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query");
+            descriptor.Field("foo").Resolve("bar");
+        }
+    }
+
+    [ExtendObjectType<QueryType>]
+    public class QueryExtensions
+    {
+        public string Bar() => "baz";
     }
 }

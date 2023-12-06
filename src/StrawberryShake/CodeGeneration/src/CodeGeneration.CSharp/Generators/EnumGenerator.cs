@@ -19,6 +19,7 @@ public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
 
         var enumBuilder = EnumBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetComment(descriptor.Documentation)
             .SetName(descriptor.RuntimeType.Name)
             .SetUnderlyingType(descriptor.UnderlyingType);

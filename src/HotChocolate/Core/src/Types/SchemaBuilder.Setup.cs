@@ -43,6 +43,12 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(TypeValidationTypeInterceptor));
                 }
 
+                if (context.Options.EnableFlagEnums &&
+                    !builder._typeInterceptors.Contains(typeof(FlagsEnumInterceptor)))
+                {
+                    builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
+                }
+
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,
@@ -51,7 +57,7 @@ public partial class SchemaBuilder
                 ((AggregateTypeInterceptor)context.TypeInterceptor)
                     .SetInterceptors(typeInterceptors);
 
-                context.TypeInterceptor.OnBeforeCreateSchema(context, builder);
+                context.TypeInterceptor.OnBeforeCreateSchemaInternal(context, builder);
 
                 var typeReferences = CreateTypeReferences(builder, context);
                 var typeRegistry = InitializeTypes(builder, context, typeReferences);
@@ -78,7 +84,7 @@ public partial class SchemaBuilder
             var typeInterceptor = new AggregateTypeInterceptor();
 
             var context = DescriptorContext.Create(
-                builder._options,
+                () => builder._options,
                 services,
                 builder._conventions,
                 builder._contextData,
@@ -88,11 +94,11 @@ public partial class SchemaBuilder
             return context;
         }
 
-        private static IReadOnlyList<ITypeReference> CreateTypeReferences(
+        private static IReadOnlyList<TypeReference> CreateTypeReferences(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<ITypeReference>();
+            var types = new List<TypeReference>();
 
             foreach (var typeRef in builder._types)
             {
@@ -111,11 +117,11 @@ public partial class SchemaBuilder
             return types;
         }
 
-        private static IEnumerable<ITypeReference> ParseDocuments(
+        private static IEnumerable<TypeReference> ParseDocuments(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
-            var types = new List<ITypeReference>();
+            var types = new List<TypeReference>();
             var documents = new List<DocumentNode>();
             context.ContextData[WellKnownContextData.SchemaDocuments] = documents;
 
@@ -184,7 +190,7 @@ public partial class SchemaBuilder
         private static TypeRegistry InitializeTypes(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> types)
+            IReadOnlyList<TypeReference> types)
         {
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             var initializer =
@@ -196,7 +202,7 @@ public partial class SchemaBuilder
         private static TypeInitializer CreateTypeInitializer(
             SchemaBuilder builder,
             IDescriptorContext context,
-            IReadOnlyList<ITypeReference> typeReferences,
+            IReadOnlyList<TypeReference> typeReferences,
             TypeRegistry typeRegistry)
         {
             var operations =
@@ -264,7 +270,7 @@ public partial class SchemaBuilder
         private static RootTypeKind GetOperationKind(
             TypeSystemObjectBase type,
             ITypeInspector typeInspector,
-            Dictionary<OperationType, ITypeReference> operations)
+            Dictionary<OperationType, TypeReference> operations)
         {
             if (type is ObjectType objectType)
             {
@@ -303,7 +309,7 @@ public partial class SchemaBuilder
             ObjectType objectType,
             OperationType operationType,
             ITypeInspector typeInspector,
-            Dictionary<OperationType, ITypeReference> operations)
+            Dictionary<OperationType, TypeReference> operations)
         {
             if (operations.TryGetValue(operationType, out var typeRef))
             {
@@ -359,7 +365,7 @@ public partial class SchemaBuilder
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
-            context.TypeInterceptor.OnAfterCreateSchema(context, schema);
+            context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);
             return schema;
         }
 
@@ -401,7 +407,7 @@ public partial class SchemaBuilder
 
         private static void ResolveOperations(
             SchemaTypesDefinition schemaDef,
-            Dictionary<OperationType, ITypeReference> operations,
+            Dictionary<OperationType, TypeReference> operations,
             TypeRegistry typeRegistry)
         {
             if (operations.Count == 0)

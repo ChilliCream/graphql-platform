@@ -48,6 +48,12 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                                 c => c.GetRequiredService<PersistedQueryCache>())
                             .AddSingleton<IWriteStoredQueries>(
                                 c => c.GetRequiredService<PersistedQueryCache>()))
+                    .ModifyOptions(
+                        o =>
+                        {
+                            o.EnableDefer = true;
+                            o.EnableStream = true;
+                        })
                     .AddGraphQLServer("StarWars")
                     .AddStarWarsTypes()
                     .AddGraphQLServer("evict")
@@ -90,7 +96,12 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .UseEndpoints(
                     endpoints =>
                     {
-                        var builder = endpoints.MapGraphQL(pattern);
+                        var builder = endpoints.MapGraphQL(pattern)
+                            .WithOptions(new GraphQLServerOptions
+                            {
+                                EnableBatching = true,
+                                AllowedGetOperations = AllowedGetOperations.Query | AllowedGetOperations.Subscription
+                            });
 
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
@@ -98,6 +109,12 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
+                        endpoints.MapGraphQL("/batching").
+                            WithOptions(new GraphQLServerOptions
+                            {
+                                // with defaults
+                                // EnableBatching = false
+                            });
                     }));
     }
 
@@ -113,7 +130,13 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()
                 .AddExportDirectiveType()
-                .AddStarWarsRepositories(),
+                .AddStarWarsRepositories()
+                .ModifyOptions(
+                    o =>
+                    {
+                        o.EnableDefer = true;
+                        o.EnableStream = true;
+                    }),
             app => app
                 .UseWebSockets()
                 .UseRouting()

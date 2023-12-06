@@ -13,6 +13,7 @@ import {
   ArticleContent,
   ArticleHeader,
   ArticleTitle,
+  ScrollContainer,
 } from "@/components/articles/article-elements";
 import { ArticleSections } from "@/components/articles/article-sections";
 import { TabGroupProvider } from "@/components/mdx/tabs";
@@ -39,11 +40,7 @@ import {
 import { Aside, DocPageAside } from "./doc-page-aside";
 import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
-import {
-  DocPageNavigation,
-  Navigation,
-  ScrollContainer,
-} from "./doc-page-navigation";
+import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
 export interface DocPageProps {
   readonly data: DocPageFragment;
@@ -57,6 +54,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
   const title = frontmatter!.title!;
+  const description = frontmatter!.description;
 
   const product = useProductInformation(slug, data.productsConfig?.products);
 
@@ -119,6 +117,7 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
+                {description && <p>{description}</p>}
                 <MDXRenderer>{body}</MDXRenderer>
                 <ArticleContentFooter
                   lastUpdated={fields!.lastUpdated!}
@@ -154,6 +153,7 @@ export const DocPageGraphQLFragment = graphql`
         }
         frontmatter {
           title
+          description
         }
         body
         ...ArticleSections

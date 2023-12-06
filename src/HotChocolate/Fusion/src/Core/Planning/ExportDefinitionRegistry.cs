@@ -7,37 +7,58 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExportDefinitionRegistry
 {
+    private readonly HashSet<string> _temp = new();
     private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
-    private readonly Dictionary<string, ExportDefinition> _exportDefinitions = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ExportDefinition> _exportLookup = new(StringComparer.Ordinal);
+    private readonly List<ExportDefinition> _exports = new();
     private readonly string _groupKey = "_fusion_exports_";
     private int _stateId;
 
-    public IReadOnlyCollection<ExportDefinition> All => _exportDefinitions.Values;
+    public IReadOnlyCollection<ExportDefinition> All => _exportLookup.Values;
 
     public string Register(
         ISelectionSet selectionSet,
         FieldVariableDefinition variableDefinition,
-        IExecutionStep executionStep)
+        ExecutionStep providingExecutionStep)
     {
-        var exportDefinition = new ExportDefinition(
-            $"_{_groupKey}_{++_stateId}",
-            selectionSet,
-            variableDefinition,
-            executionStep);
-        _exportDefinitions.Add(exportDefinition.StateKey, exportDefinition);
-        _stateKeyLookup.Add((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
+        if (_stateKeyLookup.TryGetValue((selectionSet, variableDefinition.Name), out var stateKey) &&
+            _exportLookup.TryGetValue(stateKey, out var registeredExportDefinition) &&
+            ReferenceEquals(registeredExportDefinition.ExecutionStep, providingExecutionStep))
+        {
+            return stateKey;
+        }
+
+        var key = $"_{_groupKey}_{++_stateId}";
+        var exportDefinition = new ExportDefinition(key, selectionSet, variableDefinition, providingExecutionStep);
+        _exportLookup.Add(exportDefinition.StateKey, exportDefinition);
+        _stateKeyLookup.TryAdd((selectionSet, variableDefinition.Name), exportDefinition.StateKey);
+        _exports.Add(exportDefinition);
         return exportDefinition.StateKey;
+    }
+
+    public void RegisterAdditionExport(
+        FieldVariableDefinition variableDefinition,
+        ExecutionStep providingExecutionStep,
+        string stateKey)
+    {
+        var originalExport = _exportLookup[stateKey];
+        var exportDefinition = new ExportDefinition(
+            stateKey,
+            originalExport.SelectionSet,
+            variableDefinition,
+            providingExecutionStep);
+        _exports.Add(exportDefinition);
     }
 
     public bool TryGetStateKey(
         ISelectionSet selectionSet,
         string variableName,
         [NotNullWhen(true)] out string? stateKey,
-        [NotNullWhen(true)] out IExecutionStep? executionStep)
+        [NotNullWhen(true)] out ExecutionStep? executionStep)
     {
         if (_stateKeyLookup.TryGetValue((selectionSet, variableName), out stateKey))
         {
-            executionStep = _exportDefinitions[stateKey].ExecutionStep;
+            executionStep = _exportLookup[stateKey].ExecutionStep;
             return true;
         }
 
@@ -47,40 +68,55 @@ internal sealed class ExportDefinitionRegistry
     }
 
     public IReadOnlyList<VariableDefinitionNode> CreateVariableDefinitions(
-        IReadOnlyCollection<string> stateKeys)
+        IReadOnlySet<VariableDefinitionNode> forwardedVariables,
+        IReadOnlyCollection<string> stateKeys,
+        IReadOnlyDictionary<string, ITypeNode>? argumentTypes)
     {
-        if (stateKeys.Count == 0)
+        if (forwardedVariables.Count == 0 && (stateKeys.Count == 0 || argumentTypes is null))
         {
             return Array.Empty<VariableDefinitionNode>();
         }
 
-        var definitions = new VariableDefinitionNode[stateKeys.Count];
+        var definitions = new VariableDefinitionNode[stateKeys.Count + forwardedVariables.Count];
         var index = 0;
 
-        foreach (var stateKey in stateKeys)
+        if (stateKeys.Count != 0 && argumentTypes is not null)
         {
-            var variableDefinition = _exportDefinitions[stateKey].VariableDefinition;
-            definitions[index++] = new VariableDefinitionNode(
-                null,
-                new VariableNode(stateKey),
-                variableDefinition.Type,
-                null,
-                Array.Empty<DirectiveNode>());
+            foreach (var stateKey in stateKeys)
+            {
+                var variableDefinition = _exportLookup[stateKey].VariableDefinition;
+                definitions[index++] = new VariableDefinitionNode(
+                    null,
+                    new VariableNode(stateKey),
+                    argumentTypes[variableDefinition.Name],
+                    null,
+                    Array.Empty<DirectiveNode>());
+            }
+        }
+
+        if (forwardedVariables.Count > 0)
+        {
+            foreach (var variableDefinitionNode in forwardedVariables)
+            {
+                definitions[index++] = variableDefinitionNode;
+            }
         }
 
         return definitions;
     }
 
     public IEnumerable<ISelectionNode> GetExportSelections(
-        IExecutionStep executionStep,
+        ExecutionStep executionStep,
         ISelectionSet selectionSet)
     {
-        foreach (var exportDefinition in _exportDefinitions.Values)
+        _temp.Clear();
+
+        foreach (var exportDefinition in _exports)
         {
             if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
-                ReferenceEquals(exportDefinition.SelectionSet, selectionSet))
+                ReferenceEquals(exportDefinition.SelectionSet, selectionSet) &&
+                _temp.Add(exportDefinition.StateKey))
             {
-                // TODO : we need to transform this for better selection during execution
                 var selection = exportDefinition.VariableDefinition.Select;
                 var stateKey = exportDefinition.StateKey;
                 yield return selection.WithAlias(new NameNode(stateKey));
@@ -88,4 +124,39 @@ internal sealed class ExportDefinitionRegistry
         }
     }
 
+    public IEnumerable<string> GetExportKeys(ExecutionStep executionStep)
+    {
+        _temp.Clear();
+
+        foreach (var exportDefinition in _exports)
+        {
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
+                _temp.Add(exportDefinition.StateKey))
+            {
+                yield return exportDefinition.StateKey;
+            }
+        }
+    }
+
+    public IEnumerable<string> GetExportKeys(SelectionExecutionStep executionStep)
+    {
+        _temp.Clear();
+
+        if (executionStep.Variables.Count > 0)
+        {
+            foreach (var (_, key) in executionStep.Variables)
+            {
+                _temp.Add(key);
+            }
+        }
+
+        foreach (var exportDefinition in _exports)
+        {
+            if (ReferenceEquals(exportDefinition.ExecutionStep, executionStep) &&
+                _temp.Add(exportDefinition.StateKey))
+            {
+                yield return exportDefinition.StateKey;
+            }
+        }
+    }
 }

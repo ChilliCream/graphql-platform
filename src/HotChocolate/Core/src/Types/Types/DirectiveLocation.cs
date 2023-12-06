@@ -2,6 +2,8 @@ using System;
 
 namespace HotChocolate.Types;
 
+// note: when adding a member here we need to ensure that the location extensions
+// still work: internal static IEnumerable<DirectiveLocation> EnumerateLocations(...
 /// <summary>
 /// A Directive can be adjacent to many parts of the GraphQL language,
 /// a DirectiveLocation describes one such possible adamancies.
@@ -102,5 +104,40 @@ public enum DirectiveLocation
     /// <summary>
     /// Location adjacent to an input object field definition.
     /// </summary>
-    InputFieldDefinition = 0x20000
+    InputFieldDefinition = 0x20000,
+
+    // see: http://spec.graphql.org/draft/#ExecutableDirectiveLocation
+    Executable =
+        Query |
+        Mutation |
+        Subscription |
+        Field |
+        FragmentDefinition |
+        FragmentSpread |
+        InlineFragment |
+        VariableDefinition,
+
+    // see: http://spec.graphql.org/draft/#TypeSystemDirectiveLocation
+    TypeSystem =
+        Schema |
+        Scalar |
+        Object |
+        FieldDefinition |
+        ArgumentDefinition |
+        Interface |
+        Union |
+        Enum |
+        EnumValue |
+        InputObject |
+        InputFieldDefinition,
+
+    Operation =
+        Query |
+        Mutation |
+        Subscription,
+
+    Fragment =
+        InlineFragment |
+        FragmentSpread |
+        FragmentDefinition,
 }

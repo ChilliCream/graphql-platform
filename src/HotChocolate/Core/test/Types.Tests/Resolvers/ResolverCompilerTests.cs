@@ -16,7 +16,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -1295,7 +1294,7 @@ public class ResolverCompilerTests
         // assert
         var context = new Mock<IResolverContext>();
         context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-        context.SetupGet(t => t.Path).Returns(PathFactory.Instance.New("FOO"));
+        context.SetupGet(t => t.Path).Returns(Path.Root.Append("FOO"));
 
         var result = (bool)(await resolver(context.Object))!;
         Assert.True(result);
@@ -1528,9 +1527,9 @@ public class ResolverCompilerTests
         }
     }
 
-    public class Entity { }
+    public class Entity;
 
-    public class MyService { }
+    public class MyService;
 
     public class QueryWithScopedExpressionBuilder
     {
@@ -1546,7 +1545,7 @@ public class ResolverCompilerTests
 
     public class UseSomeStateAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

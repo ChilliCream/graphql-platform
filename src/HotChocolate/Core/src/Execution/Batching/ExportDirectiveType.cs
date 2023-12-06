@@ -11,10 +11,10 @@ public sealed class ExportDirectiveType : DirectiveType<ExportDirective>
 
         descriptor.Argument(t => t.As).Type<StringType>();
 
-        descriptor.Use(next => async context =>
+        descriptor.Use((next, directive) => async context =>
         {
             await next(context).ConfigureAwait(false);
-            context.ExportValueAsVariable();
+            context.ExportValueAsVariable(directive.AsValue<ExportDirective>());
         });
     }
 }

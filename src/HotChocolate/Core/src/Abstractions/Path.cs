@@ -2,7 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using HotChocolate.Execution;
+using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -11,20 +14,63 @@ namespace HotChocolate;
 /// </summary>
 public abstract class Path : IEquatable<Path>
 {
+    private readonly Path? _parent;
+
+    protected Path()
+    {
+        _parent = null;
+        Length = 0;
+    }
+    
+    protected Path(Path parent)
+    {
+        _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+        Length = parent.Length + 1;
+    }
+
     /// <summary>
     /// Gets the parent path segment.
     /// </summary>
-    public Path Parent { get; internal set; } = Root;
+    public Path Parent => _parent!;
 
     /// <summary>
     /// Gets the count of segments this path contains.
     /// </summary>
-    public int Length { get; protected internal set; }
+    public int Length { get; }
 
     /// <summary>
     /// Returns true if the Path is the root element
     /// </summary>
     public bool IsRoot => ReferenceEquals(this, Root);
+
+    public Path Append(string name)
+        => new NamePathSegment(this, name);
+
+    /// <summary>
+    /// Appends an indexer to this path and returns the new path segment.
+    /// </summary>
+    /// <param name="index">
+    /// The index.
+    /// </param>
+    /// <returns>
+    /// Returns the new path segment.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Appending a indexer on the root segment is not allowed.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The index must be greater than or equal to zero.
+    /// </exception>
+    public Path Append(int index)
+    {
+        if (this is RootPathSegment)
+        {
+            throw new InvalidOperationException(
+                "Appending a indexer on the root segment is not allowed.");
+        }
+        
+        return new IndexerPathSegment(this, index);
+    }
 
     /// <summary>
     /// Generates a string that represents the current path.
@@ -32,7 +78,41 @@ public abstract class Path : IEquatable<Path>
     /// <returns>
     /// Returns a string that represents the current path.
     /// </returns>
-    public abstract string Print();
+    public string Print()
+    {
+        if (this is RootPathSegment)
+        {
+            return "/";
+        }
+        
+        var sb = new StringBuilder();
+        var current = this;
+
+        while (current is not RootPathSegment)
+        {
+            switch (current)
+            {
+                case IndexerPathSegment indexer:
+                    var numberValue = indexer.Index.ToString();
+                    sb.Insert(0, '[');
+                    sb.Insert(1, numberValue);
+                    sb.Insert(1 + numberValue.Length, ']');
+                    break;
+
+                case NamePathSegment name:
+                    sb.Insert(0, '/');
+                    sb.Insert(1, name.Name);
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+            
+            current = current.Parent;
+        }
+
+        return sb.ToString();
+    }
 
     /// <summary>
     /// Creates a new list representing the current <see cref="Path"/>.
@@ -76,12 +156,21 @@ public abstract class Path : IEquatable<Path>
     /// <returns>A string that represents the current <see cref="Path"/>.</returns>
     public override string ToString() => Print();
 
-    public abstract bool Equals(Path? other);
+    public virtual bool Equals(Path? other)
+    {
+        if (ReferenceEquals(other, null))
+        {
+            return false;
+        }
 
-    /// <summary>
-    /// Clones the path
-    /// </summary>
-    public abstract Path Clone();
+        if (Length.Equals(other.Length) &&
+            Parent.Equals(other.Parent))
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     public sealed override bool Equals(object? obj)
         => obj switch
@@ -97,10 +186,11 @@ public abstract class Path : IEquatable<Path>
     /// <returns>
     /// A hash code for the current <see cref="Path"/>.
     /// </returns>
-    public abstract override int GetHashCode();
+    public override int GetHashCode()
+        => HashCode.Combine(Parent, Length);
 
-    internal static Path FromList(params object[] elements) =>
-        FromList((IReadOnlyList<object>)elements);
+    internal static Path FromList(params object[] elements) 
+        => FromList((IReadOnlyList<object>)elements);
 
     internal static Path FromList(IReadOnlyList<object> path)
     {
@@ -114,14 +204,14 @@ public abstract class Path : IEquatable<Path>
             return Root;
         }
 
-        Path segment = PathFactory.Instance.New(path[0] is string s ? s : (string)path[0]);
+        var segment = Root;
 
-        for (var i = 1; i < path.Count; i++)
+        for (var i = 0; i < path.Count; i++)
         {
             segment = path[i] switch
             {
-                string n => PathFactory.Instance.Append(segment, n),
-                int n => PathFactory.Instance.Append(segment, n),
+                string n => segment.Append(n),
+                int n => segment.Append(n),
                 _ => throw new NotSupportedException()
             };
         }
@@ -135,11 +225,7 @@ public abstract class Path : IEquatable<Path>
     {
         private RootPathSegment()
         {
-            Length = -1;
         }
-
-        /// <inheritdoc />
-        public override string Print() => "/";
 
         /// <inheritdoc />
         public override bool Equals(Path? other)
@@ -153,15 +239,8 @@ public abstract class Path : IEquatable<Path>
         }
 
         /// <inheritdoc />
-        public override Path Clone() => this;
-
-        /// <inheritdoc />
         public override int GetHashCode()
-        {
-            // ReSharper disable NonReadonlyMemberInGetHashCode
-            return HashCode.Combine(Parent, Length);
-            // ReSharper restore NonReadonlyMemberInGetHashCode
-        }
+            => 0;
 
         public static RootPathSegment Instance { get; } = new();
     }

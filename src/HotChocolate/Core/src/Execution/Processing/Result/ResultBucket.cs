@@ -66,16 +66,18 @@ internal sealed class ResultBucket<T> where T : class
         }
 
         ref var mem = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+        ref var end = ref Unsafe.Add(ref mem, _index);
 
-        for (var i = 0; i < _index; i++)
+        while (Unsafe.IsAddressLessThan(ref mem, ref end))
         {
-            ref var element = ref Unsafe.Add(ref mem, i);
-
-            if (element is not null && !_policy.Return(element))
+            if (mem is not null && !_policy.Return(mem))
             {
-                element = default;
+                mem = default;
             }
+            
+            mem = ref Unsafe.Add(ref mem, 1);
         }
+        
         _index = 0;
     }
 }

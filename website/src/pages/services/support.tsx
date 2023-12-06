@@ -2,7 +2,13 @@ import React, { FC } from "react";
 import styled from "styled-components";
 
 import { Layout } from "@/components/layout";
-import { Link } from "@/components/misc/link";
+import {
+  ActionLink,
+  Card,
+  CardDetails,
+  CardOffer,
+  CardsContainer,
+} from "@/components/misc/cards";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -21,6 +27,7 @@ import ContactUsSvg from "@/images/artwork/contact-us.svg";
 // Icons
 import CheckSvg from "@/images/check.svg";
 import NoneSvg from "@/images/none.svg";
+import { THEME_COLORS } from "@/shared-style";
 
 interface Plans {
   readonly title: string;
@@ -144,9 +151,7 @@ const SupportPage: FC = () => {
               <Card key={title}>
                 <CardOffer>
                   <header>
-                    <h2>
-                      <strong>{title}</strong>
-                    </h2>
+                    <h2>{title}</h2>
                     <div>
                       <strong>{price}</strong>
                       {!!billed && <small> {billed}</small>}
@@ -390,12 +395,13 @@ const SupportPage: FC = () => {
           <ContentContainer>
             <SectionTitle>Get in Touch</SectionTitle>
             <p>
-              Want to learn more? Get the right help for your team and reach out
-              to us today. Write us an{" "}
+              {
+                "Want to learn more? Get the right help for your team and reach out to us today. Write us an  "
+              }
               <a href="mailto:contact@chillicream.com?subject=Support">
                 <EnvelopeIcon />
-              </a>{" "}
-              and we will come back to you shortly!
+              </a>
+              {" and we will come back to you shortly!"}
             </p>
           </ContentContainer>
         </SectionRow>
@@ -405,160 +411,6 @@ const SupportPage: FC = () => {
 };
 
 export default SupportPage;
-
-const CardsContainer = styled.div`
-  display: grid;
-  grid-template-columns: minmax(250px, 300px);
-  gap: 1rem;
-  align-items: stretch;
-  justify-content: center;
-  overflow: visible;
-
-  @media only screen and (min-width: 400px) {
-    grid-template-columns: minmax(300px, 350px);
-  }
-
-  @media only screen and (min-width: 600px) {
-    grid-template-columns: repeat(2, minmax(225px, 275px));
-  }
-
-  @media only screen and (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(250px, 350px));
-  }
-
-  @media only screen and (min-width: 992px) {
-    grid-template-columns: repeat(3, minmax(250px, 300px));
-  }
-
-  @media only screen and (min-width: 1320px) {
-    grid-template-columns: repeat(3, minmax(275px, 375px));
-  }
-`;
-
-const Card = styled.div`
-  background: #ffffff;
-  box-shadow: rgb(46 41 51 / 8%) 0px 1px 2px, rgb(71 63 79 / 8%) 0px 2px 4px;
-  margin: 0px;
-  box-sizing: border-box;
-  position: relative;
-  flex-direction: column;
-  border: 1px solid #d9d7e0;
-  border-radius: var(--border-radius);
-  padding: 0px;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  cursor: default;
-  transition: border 0.5s ease-out 0s;
-
-  &:hover {
-    border-color: #1d5185;
-  }
-`;
-
-const CardOffer = styled.div`
-  padding: 1.5rem 1.5rem 0;
-
-  & header {
-    min-height: 5em;
-  }
-
-  & h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    line-height: 1.75em;
-    color: #000000;
-  }
-
-  & strong {
-    font-size: 1.125em;
-    color: #232129;
-  }
-
-  & small {
-    font-size: 0.75em;
-    color: #635e69;
-  }
-
-  & p {
-    font-weight: normal;
-    font-size: 1rem;
-    line-height: 1.5;
-    margin: 0 0 1.25rem;
-    min-height: 5rem;
-    color: #36313d;
-  }
-`;
-
-const CardDetails = styled.div`
-  padding: 1.5rem 1.5rem 2rem;
-  border-radius: 0 0 var(--border-radius) var(--border-radius);
-  color: #36313d;
-  background: #f5f5f5;
-
-  & h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 1.25;
-    color: #232129;
-  }
-
-  & ul {
-    list-style: none;
-    padding: 0;
-    margin: 0.625rem 0 0;
-    font-size: 1rem;
-    line-height: 1.5;
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  & li {
-    margin: 0;
-    display: grid;
-    grid-template-columns: auto 1fr;
-  }
-
-  & svg {
-    height: 1em;
-    width: auto;
-    margin-right: 0.5em;
-    transform: translateY(0.25em);
-    fill: #3d5f9f;
-  }
-
-  & span {
-    line-height: 1.5;
-  }
-`;
-
-const ActionLink = styled(Link)`
-  align-items: center;
-  border-radius: 6px;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  transition: background 250ms ease 0s, border 250ms ease 0s,
-    color 250ms ease 0s;
-  line-height: 1;
-  text-decoration: none;
-  background: transparent;
-  border: 1px solid #3d5f9f;
-  color: #3d5f9f;
-  font-size: 1rem;
-  min-height: calc(2.25rem);
-  min-width: calc(2.25rem);
-  padding: 0.25rem 1rem;
-  margin-bottom: 1.25rem;
-
-  &:hover {
-    border-color: #364cf8;
-    color: #1d5185;
-    background: #fafafa;
-  }
-`;
 
 const FeatureContainer = styled.div`
   display: flex;
@@ -581,7 +433,7 @@ const FeatureHeader = styled.div`
   padding: 0;
   border: 0;
   border-bottom: 1px solid #d2d2d7;
-  color: var(--cc-text-color);
+  color: ${THEME_COLORS.text};
   font-size: 1.25em;
   line-height: 2;
   margin: 2em 0 0.5em;
@@ -641,7 +493,7 @@ const FeatureMatrix = styled.div`
     grid-template-columns: repeat(6, 1fr);
     min-width: 960px;
     min-height: 2.5em;
-    background-color: var(--cc-background-color);
+    background-color: ${THEME_COLORS.background};
     cursor: default;
   }
 
@@ -667,7 +519,7 @@ const FeatureMatrix = styled.div`
     margin: 0;
     font-size: 0.825rem;
     line-height: 1;
-    color: #36313d;
+    color: ${THEME_COLORS.text};
   }
 
   & dd {
@@ -688,7 +540,7 @@ const FeatureMatrix = styled.div`
 
   & dd strong {
     font-size: 1em;
-    color: #232129;
+    color: ${THEME_COLORS.primary};
   }
 
   & dd p {
@@ -696,11 +548,11 @@ const FeatureMatrix = styled.div`
     font-size: 1rem;
     font-weight: 600;
     line-height: 1;
-    color: #36313d;
+    color: ${THEME_COLORS.secondary};
   }
 
   & small {
     font-size: 0.75em;
-    color: #36313d;
+    color: ${THEME_COLORS.text};
   }
 `;

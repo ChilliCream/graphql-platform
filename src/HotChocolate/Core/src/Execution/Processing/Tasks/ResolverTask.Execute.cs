@@ -17,6 +17,10 @@ internal sealed partial class ResolverTask
         {
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
+                // we initialize the field here so we are able to propagate non-null violations
+                // through the result tree.
+                _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
+                
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
 
@@ -30,12 +34,12 @@ internal sealed partial class ResolverTask
                         break;
 
                     default:
-                        #if NET6_0_OR_GREATER
+#if NET6_0_OR_GREATER
                         _operationContext.Scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
-                        #else
+#else
                         _operationContext.Scheduler.Register(_taskBuffer);
-                        #endif
+#endif
                         break;
                 }
             }
@@ -174,21 +178,24 @@ internal sealed partial class ResolverTask
                 break;
 
             case IQueryable queryable:
-                _context.Result = await Task.Run(() =>
-                {
-                    var items = new List<object?>();
-                    foreach (var o in queryable)
+                _context.Result = await Task.Run(
+                    () =>
                     {
-                        items.Add(o);
+                        var items = new List<object?>();
 
-                        if (cancellationToken.IsCancellationRequested)
+                        foreach (var o in queryable)
                         {
-                            break;
-                        }
-                    }
+                            items.Add(o);
 
-                    return items;
-                }, cancellationToken);
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                break;
+                            }
+                        }
+
+                        return items;
+                    },
+                    cancellationToken);
                 break;
         }
     }
@@ -229,7 +236,7 @@ internal sealed partial class ResolverTask
                     new DeferredStream(
                         Selection,
                         streamDirective.Label,
-                        _context.Path.Clone(),
+                        _context.Path,
                         _context.Parent<object>(),
                         count - 1,
                         enumerator,
@@ -267,13 +274,15 @@ internal sealed partial class ResolverTask
     }
 
     /// <summary>
+    /// <para>
     /// In most cases a resolver task is rented and returned to its pool after execution.
     /// The execute method itself will return the task.
-    ///
+    /// </para>
+    /// <para>
     /// But there are a couple of edge cases where we rent a dummy task and do not execute it.
     /// In these we do want to return it manually.
-    ///
-    /// Caution: This method is unsafe and could lead to double returns to the pool.
+    /// </para>
+    /// <para>Caution: This method is unsafe and could lead to double returns to the pool.</para>
     /// </summary>
     public async ValueTask CompleteUnsafeAsync()
     {

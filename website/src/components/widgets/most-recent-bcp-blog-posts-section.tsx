@@ -10,6 +10,7 @@ import {
   SectionRow,
   SectionTitle,
 } from "@/components/misc/marketing-elements";
+import { SrOnly } from "@/components/misc/sr-only";
 import { GetMostRecentBcpBlogPostsDataQuery } from "@/graphql-types";
 import { THEME_COLORS } from "@/shared-style";
 
@@ -54,7 +55,13 @@ export const MostRecentBcpBlogPostsSection: FC = () => {
     <Section>
       <SectionRow>
         <ContentContainer noImage>
-          <SectionTitle centerAlways>From Our Blog</SectionTitle>
+          <SectionTitle centerAlways>
+            Latest News about Banana Cake Pop
+          </SectionTitle>
+          <SrOnly>
+            Here you find the latest news about Banana Cake Pop the GraphQL IDE
+            to explore and test any GraphQL API.
+          </SrOnly>
           <Articles>
             {data.allMdx.edges.map(({ node }) => {
               const featuredImage =
@@ -105,6 +112,7 @@ const Article = styled.li`
   margin: 20px 0 0;
   width: 100%;
   border-radius: var(--border-radius);
+  background-color: #ffffff;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
   > a {

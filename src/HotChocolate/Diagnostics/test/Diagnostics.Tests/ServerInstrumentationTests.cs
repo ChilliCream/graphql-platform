@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
@@ -439,5 +438,11 @@ public class ServerInstrumentationTests : ServerTestBase
                 configureServices: services =>
                     services
                         .AddGraphQLServer()
-                        .AddInstrumentation(options));
+                        .AddInstrumentation(options)
+                        .ModifyOptions(
+                            o =>
+                            {
+                                o.EnableDefer = true;
+                                o.EnableStream = true;
+                            }));
 }

@@ -1,0 +1,19 @@
+{
+  "data": {
+    "offset": {
+      "items": [
+        {
+          "id": "cars/3-A",
+          "name": "Telsa",
+          "engine": {
+            "cylinderCount": 0
+          }
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": true
+      }
+    }
+  }
+}

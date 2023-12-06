@@ -30,7 +30,7 @@ type Product {
 }
 ```
 
-This scalar represent a Boolean value, which can be either `true` or `false`.
+This scalar represents a Boolean value, which can be either `true` or `false`.
 
 It is automatically inferred from the usage of the .NET [bool type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool).
 
@@ -190,9 +190,7 @@ The DateTime scalar is based RFC3339.
 scalar DateTime @specifiedBy(url: "https://www.graphql-scalars.com/date-time/")
 ```
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/gO3bNKBmXZM"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="gO3bNKBmXZM" />
 
 # .NET Scalars
 
@@ -217,8 +215,8 @@ The `Uuid` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |
-| N (default) | 00000000000000000000000000000000                                     |
-| D           | 00000000-0000-0000-0000-000000000000                                 |
+| N           | 00000000000000000000000000000000                                     |
+| D (default) | 00000000-0000-0000-0000-000000000000                                 |
 | B           | {00000000-0000-0000-0000-000000000000}                               |
 | P           | (00000000-0000-0000-0000-000000000000)                               |
 | X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
@@ -644,4 +642,4 @@ public class CreditCardNumberType : ScalarType
 }
 ```
 
-The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/hotchocolate/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.
+The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/graphql-platform/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.

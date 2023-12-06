@@ -14,7 +14,7 @@ internal class SchemaSyntaxVisitorContext : ISyntaxVisitorContext
         DirectiveContext = directiveContext;
     }
 
-    public List<ITypeReference> Types { get; } = new();
+    public List<TypeReference> Types { get; } = new();
 
     public IReadOnlyCollection<DirectiveNode>? Directives { get; set; }
 

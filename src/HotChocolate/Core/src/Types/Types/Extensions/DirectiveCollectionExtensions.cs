@@ -20,7 +20,7 @@ public static class DirectiveCollectionExtensions
         {
             if (typeof(T).IsAssignableFrom(directive.Type.RuntimeType))
             {
-                return directive.ToObject<T>();
+                return directive.AsValue<T>();
             }
         }
 

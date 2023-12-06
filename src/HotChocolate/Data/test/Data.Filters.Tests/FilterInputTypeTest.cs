@@ -46,6 +46,19 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     [Fact]
+    public void FilterInputType_Struct()
+    {
+        // arrange
+        // act
+        var schema = CreateSchema(
+            s => s
+                .AddType(new FilterInputType<FilterWithStruct>()));
+
+        // assert
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public void FilterInput_AddDirectives_NameArgs()
     {
         // arrange
@@ -82,7 +95,8 @@ public class FilterInputTypeTest : FilterTestBase
         var schema = CreateSchema(s => s
             .AddDirectiveType<FooDirectiveType>()
             .AddType(new FilterInputType<Foo>(d => d
-                .Directive(new DirectiveNode("foo")).Field(x => x.Bar))));
+                .Directive(new DirectiveNode("foo"))
+                .Field(x => x.Bar))));
 
         // assert
         schema.MatchSnapshot();
@@ -366,360 +380,14 @@ public class FilterInputTypeTest : FilterTestBase
         schema.MatchSnapshot();
     }
 
-    [Fact]
-    public void FilterInputType_Inline_AllowOnlyCertainOperations()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Foo>(
-            x => x.BindFieldsExplicitly()
-                .Field(x => x.Bar)
-                .AllowOperation(DefaultFilterOperations.NotEquals)
-                .AllowOperation(DefaultFilterOperations.Equals));
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ConfigureNestedType()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(x => x
-            .BindFieldsExplicitly()
-            .Field(x => x.Author, d => d.Field(x => x.Name)));
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ConfigureNestedTypeWithNestedAllows()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(x => x
-            .BindFieldsExplicitly()
-            .Field(x => x.Author, d => d.Field(x => x.Name).AllowEquals().AllowNotEquals()));
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_RenameTypes()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters, d => d.Name("ChaptersInput")).AllowEquals();
-            descriptor.Field(
-                x => x.Author,
-                d => d.Name("AuthorInput").Field(x => x.Id));
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_AllowAndAllowOr()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters).AllowAnd().AllowOr();
-            descriptor.Field(
-                x => x.Author,
-                d => d.AllowAnd().AllowOr().Field(x => x.Id));
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_OnlyConfigureNameOfOperation()
-    {
-        // arrange
-        // act
-        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters, x => x.Name("OperationName"));
-        });
-
-        // assert
-        var ex = Assert.Throws<SchemaException>(Call);
-        ex.Errors
-            .Single(x => x.Code == ErrorCodes.Data.InlineFilterTypeNoFields)
-            .Message
-            .MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_AddDirective()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters, d => d.Directive("Foobar")).AllowEquals();
-            descriptor.Field( x => x.Author, d => d.Directive("Foobar").Field(x => x.Id));
-        }, x => x.AddDirectiveType(
-            new DirectiveType(x => x
-                .Name("Foobar")
-                .Location(Types.DirectiveLocation.InputObject))));
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_SetTypeDescription()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters, d => d.Description("Test")).AllowEquals();
-            descriptor.Field(
-                x => x.Author,
-                d => d.Description("Test").Field(x => x.Id));
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_SwitchToImplicit()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Author, d => d.BindFieldsImplicitly());
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ConfigureDeepNestedTypeWithNestedAllows()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters).AllowEquals().AllowNotEquals();
-            descriptor.Field(x => x.Author, authorDescriptor =>
-            {
-                authorDescriptor.Field(x => x.Id).AllowEquals().AllowNotEquals();
-                authorDescriptor.Field(x => x.Name).AllowIn().AllowNotIn().AllowContains();
-                authorDescriptor.Field(x => x.Address, descriptor =>
-                {
-                    descriptor.Field(x => x.PostalCode).AllowEquals().AllowNotEquals();
-                    descriptor.Field(
-                        x => x.Country,
-                        descriptor => descriptor.Field(x => x.Name).AllowIn());
-                });
-            });
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ObjectList()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(
-                x => x.CoAuthors,
-                descriptor => descriptor.AllowAll(d => d.Field(y => y.Name).AllowEquals()));
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ObjectList_AllOperations()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(
-                x => x.CoAuthors,
-                descriptor =>
-                {
-                    descriptor.AllowAll(d => d.Field(y => y.Name).AllowEquals());
-                    descriptor.AllowAny();
-                    descriptor.AllowNone(d => d.Field(y => y.Name).AllowEquals());
-                    descriptor.AllowSome(d => d.Field(y => y.Name).AllowEquals());
-                    descriptor.AllowAnd();
-                    descriptor.AllowOr();
-                });
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ScalarList()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(
-                x => x.LinesPerPage,
-                descriptor => descriptor.AllowAll().AllowEquals());
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Inline_ScalarList_AllOperations()
-    {
-        // arrange
-        // act
-        var schema = CreateSchemaWithFilter<Book>(descriptor =>
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(
-                x => x.LinesPerPage,
-                descriptor =>
-                {
-                    descriptor.AllowAll().AllowEquals();
-                    descriptor.AllowAny();
-                    descriptor.AllowNone().AllowEquals();
-                    descriptor.AllowSome().AllowEquals();
-                    descriptor.AllowAnd();
-                    descriptor.AllowOr();
-                });
-        });
-
-        // assert
-        schema.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Should_Assert_When_TryToCustomizeNonFilterType()
-    {
-        // arrange
-        // act
-        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
-             descriptor.Operation(DefaultFilterOperations.Data).Type<StringType>().AllowEquals());
-
-        // assert
-        var ex = Assert.Throws<SchemaException>(Call);
-        ex.Errors.Single().Message.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Should_Assert_When_NoTypeWasDefined()
-    {
-        // arrange
-        // act
-        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
-             descriptor.Operation(DefaultFilterOperations.Data).AllowEquals());
-
-        // assert
-        var ex = Assert.Throws<SchemaException>(Call);
-        ex.Errors.Single().Message.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Should_Assert_When_NoFieldsOnOperationType()
-    {
-        // arrange
-        // act
-        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
-             descriptor.Operation(DefaultFilterOperations.Data).AllowEquals());
-
-        // assert
-        var ex = Assert.Throws<SchemaException>(Call);
-        ex.Errors.Single().Message.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Should_Assert_When_CustomOperationFieldDoesNotAllowAnyOperations()
-    {
-        // arrange
-        // act
-        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
-             descriptor.Field(x => x.Title, x => x.Name("CustomName")));
-
-        // assert
-        var ex = Assert.Throws<SchemaException>(Call);
-        ex.Errors.Single().Message.MatchSnapshot();
-    }
-
-    [Fact]
-    public void FilterInputType_Should_Assert_When_CustomnFieldDoesNotAllowAnyFields()
-    {
-        // arrange
-        // act
-        void Call() => CreateSchemaWithFilter<Book>(descriptor =>
-             descriptor.Field(x => x.Author, x => x.Name("CustomName")));
-
-        // assert
-        var ex = Assert.Throws<SchemaException>(Call);
-        ex.Errors.Single().Message.MatchSnapshot();
-    }
-
     public class FooDirectiveType
         : DirectiveType<FooDirective>
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<FooDirective> descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<FooDirective> descriptor)
         {
             descriptor.Name("foo");
             descriptor.Location(Types.DirectiveLocation.InputObject)
                 .Location(Types.DirectiveLocation.InputFieldDefinition);
-        }
-    }
-
-    public class ExampleFilterinputType : FilterInputType<Book>
-    {
-        protected override void Configure(IFilterInputTypeDescriptor<Book> descriptor)
-        {
-            descriptor.BindFieldsExplicitly();
-            descriptor.Field(x => x.Chapters, x => x.Name("asd")).AllowEquals().AllowNotEquals();
-            descriptor.Field(x => x.Author, authorDescriptor =>
-            {
-                authorDescriptor.Field(x => x!.Id).AllowEquals().AllowNotEquals();
-                authorDescriptor.Field(x => x!.Name).AllowIn().AllowNotIn().AllowContains();
-                authorDescriptor.Field(x => x!.Address, descriptor =>
-                {
-                    descriptor.Field(x => x!.PostalCode).AllowEquals().AllowNotEquals();
-                    descriptor.Field(
-                        x => x!.Country,
-                        descriptor => descriptor.Field(x => x.Name).AllowIn());
-                });
-            });
         }
     }
 
@@ -753,6 +421,7 @@ public class FilterInputTypeTest : FilterTestBase
         public string? Title { get; set; }
 
         public int Pages { get; set; }
+
         public int Chapters { get; set; }
 
         public int[] LinesPerPage { get; set; } = Array.Empty<int>();
@@ -777,8 +446,11 @@ public class FilterInputTypeTest : FilterTestBase
     public class Address
     {
         public string? Street { get; set; }
+
         public string? PostalCode { get; set; }
+
         public string? City { get; set; }
+
         public Country? Country { get; set; }
     }
 
@@ -799,6 +471,7 @@ public class FilterInputTypeTest : FilterTestBase
     public interface ITest
     {
         public string? Prop { get; set; }
+
         public string? Prop2 { get; set; }
     }
 
@@ -901,4 +574,13 @@ public class FilterInputTypeTest : FilterTestBase
             throw new NotImplementedException();
         }
     }
+
+    public class FilterWithStruct
+    {
+        public ExampleValueType ValueType { get; set; }
+
+        public ExampleValueType? ValueTypeNullable { get; set; }
+    }
+
+    public record struct ExampleValueType(string Foo, string Bar);
 }

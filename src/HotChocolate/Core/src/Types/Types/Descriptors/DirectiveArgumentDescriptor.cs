@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.MemberKind;
 
 #nullable enable
 
@@ -34,8 +33,10 @@ public class DirectiveArgumentDescriptor
         PropertyInfo property)
         : base(context)
     {
-        Definition.Name = context.Naming.GetMemberName(property, DirectiveArgument);
-        Definition.Description = context.Naming.GetMemberDescription(property, DirectiveArgument);
+        Definition.Name = context.Naming.GetMemberName(
+            property, MemberKind.DirectiveArgument);
+        Definition.Description = context.Naming.GetMemberDescription(
+            property, MemberKind.DirectiveArgument);
         Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
         Definition.Property = property;
 

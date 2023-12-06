@@ -25,22 +25,6 @@ public interface IFilterConvention : IConvention
     string GetTypeName(Type runtimeType);
 
     /// <summary>
-    /// Gets the GraphQL type name for a inline type based on the field definition and the
-    /// parent type name.
-    /// </summary>
-    /// <param name="parentType">
-    /// The parent type of the field that references the new type.
-    /// </param>
-    /// <param name="fieldDefinition">
-    /// The definition of the field that references the new type.
-    /// </param>
-    /// <returns>
-    /// Returns the GraphQL type name that was inferred from the <paramref name="parentType"/> and
-    /// the <paramref name="fieldDefinition"/>.
-    /// </returns>
-    string GetTypeName(IFilterInputType parentType, FilterFieldDefinition fieldDefinition);
-
-    /// <summary>
     /// Gets the GraphQL type description from a runtime type.
     /// </summary>
     /// <param name="runtimeType">
@@ -126,7 +110,7 @@ public interface IFilterConvention : IConvention
     /// The descriptor to which the configurations shall be applied to.
     /// </param>
     void ApplyConfigurations(
-        ITypeReference typeReference,
+        TypeReference typeReference,
         IFilterInputTypeDescriptor descriptor);
 
     bool TryGetHandler(

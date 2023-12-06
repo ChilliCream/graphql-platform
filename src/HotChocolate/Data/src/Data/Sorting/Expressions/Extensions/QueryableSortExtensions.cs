@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Data.Sorting.Expressions;
+namespace HotChocolate.Data;
 
 /// <summary>
 /// Extensions for sorting for <see cref="IEnumerable{T}"/> and <see cref="IQueryable{T}"/>

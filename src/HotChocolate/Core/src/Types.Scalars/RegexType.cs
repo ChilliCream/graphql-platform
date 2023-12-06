@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class RegexType : StringType
 {
-    private const int _defaultRegexTimeoutInMs = 100;
+    protected internal const int DefaultRegexTimeoutInMs = 200;
 
     private readonly Regex _validationRegex;
 
@@ -28,7 +28,7 @@ public class RegexType : StringType
             new Regex(
                 pattern,
                 regexOptions,
-                TimeSpan.FromMilliseconds(_defaultRegexTimeoutInMs)),
+                TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs)),
             description,
             bind)
     {
@@ -49,15 +49,11 @@ public class RegexType : StringType
 
     /// <inheritdoc />
     protected override bool IsInstanceOfType(string runtimeValue)
-    {
-        return _validationRegex.IsMatch(runtimeValue);
-    }
+        => _validationRegex.IsMatch(runtimeValue);
 
     /// <inheritdoc />
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-    {
-        return _validationRegex.IsMatch(valueSyntax.Value);
-    }
+        => _validationRegex.IsMatch(valueSyntax.Value);
 
     /// <inheritdoc />
     public override bool TrySerialize(object? runtimeValue, out object? resultValue)
@@ -101,13 +97,9 @@ public class RegexType : StringType
 
     /// <inheritdoc />
     protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
-    }
+        => ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
 
     /// <inheritdoc />
     protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
-    }
+        => ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
 }

@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "Flags need to have at least one selection. Type: FlagsEnumFlagsInput"
+    }
+  ],
+  "data": {
+    "test": null
+  }
+}

@@ -2,9 +2,9 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Sockets.Client.Helpers;
+using HotChocolate.Transport.Serialization;
+using HotChocolate.Utilities;
 using static System.Net.WebSockets.WebSocketMessageType;
-using static HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Utf8MessageProperties;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
 
@@ -16,21 +16,21 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(TypeProp, Utf8Messages.ConnectionInitialize);
+        jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.ConnectionInitialize);
 
         if (payload is not null)
         {
-            jsonWriter.WritePropertyName(PayloadProp);
-            JsonSerializer.Serialize(jsonWriter, payload, JsonDefaults.SerializerOptions);
+            jsonWriter.WritePropertyName(Utf8MessageProperties.PayloadProp);
+            JsonSerializer.Serialize(jsonWriter, payload, JsonOptionDefaults.SerializerOptions);
         }
-        
+
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
 #else
         await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
@@ -43,21 +43,26 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(IdProp, operationSessionId);
-        jsonWriter.WriteString(TypeProp, Utf8Messages.Subscribe);
-        jsonWriter.WritePropertyName(PayloadProp);
-        JsonSerializer.Serialize(jsonWriter, request, JsonDefaults.SerializerOptions);
+        jsonWriter.WriteString(Utf8MessageProperties.IdProp, operationSessionId);
+        jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Subscribe);
+        jsonWriter.WritePropertyName(Utf8MessageProperties.PayloadProp);
+
+        request.WriteTo(jsonWriter);
+
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
 #else
         await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
+
+
 
     public static async ValueTask SendCompleteMessageAsync(
         this WebSocket socket,
@@ -65,15 +70,15 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(IdProp, operationSessionId);
-        jsonWriter.WriteString(TypeProp, Utf8Messages.Complete);
+        jsonWriter.WriteString(Utf8MessageProperties.IdProp, operationSessionId);
+        jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Complete);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
 #else
         await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
@@ -84,16 +89,18 @@ internal static class MessageHelper
         CancellationToken ct)
     {
         using var arrayWriter = new ArrayWriter();
-        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonDefaults.WriterOptions);
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         jsonWriter.WriteStartObject();
-        jsonWriter.WriteString(TypeProp, Utf8Messages.Pong);
+        jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Pong);
         jsonWriter.WriteEndObject();
         await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
 
 #if NET5_0_OR_GREATER
-        await socket.SendAsync(arrayWriter.Body, Text, true, ct).ConfigureAwait(false);
+        await socket.SendAsync(arrayWriter.GetWrittenMemory(), Text, true, ct).ConfigureAwait(false);
 #else
         await socket.SendAsync(arrayWriter.ToArraySegment(), Text, true, ct).ConfigureAwait(false);
 #endif
     }
+
+
 }

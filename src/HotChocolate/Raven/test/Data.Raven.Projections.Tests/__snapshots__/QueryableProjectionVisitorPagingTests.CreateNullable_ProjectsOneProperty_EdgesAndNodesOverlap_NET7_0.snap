@@ -1,0 +1,38 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "baz": "a"
+        },
+        null,
+        {
+          "baz": "c"
+        }
+      ],
+      "edges": [
+        {
+          "node": {
+            "baz": "a"
+          }
+        },
+        {
+          "node": null
+        },
+        {
+          "node": {
+            "baz": "c"
+          }
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'FooNullables' select Baz
+---------------

@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay.Descriptors;
@@ -30,7 +31,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     /// </summary>
     public Type? NodeResolverType { get; set; }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)
@@ -42,33 +43,48 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
             // since we bind the id field late we need to hint to the type discovery
             // that we will need the ID scalar.
             definition.Dependencies.Add(
-            TypeDependency.FromSchemaType(
-                context.TypeInspector.GetType(typeof(IdType))));
+                TypeDependency.FromSchemaType(
+                    context.TypeInspector.GetType(typeof(IdType))));
         });
+
+        descriptor.Extend().OnBeforeNaming(
+            (completionContext, definition) =>
+            {
+                // first we try to resolve the id field.
+                if (IdField is not null)
+                {
+                    var idField = type.GetMember(IdField).FirstOrDefault(
+                        t => t.MemberType is MemberTypes.Method or MemberTypes.Property);
+
+                    if (idField is null)
+                    {
+                        throw NodeAttribute_IdFieldNotFound(type, IdField);
+                    }
+
+                    nodeDescriptor.IdField(idField);
+                }
+                else if (context.TypeInspector.GetNodeIdMember(type) is { } id)
+                {
+                    nodeDescriptor.IdField(id);
+                }
+                else if (context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
+                {
+                    nodeDescriptor.IdField(sid);
+                }
+
+                // we trigger a late id field configuration
+                var typeDescriptor = ObjectTypeDescriptor.From(
+                    completionContext.DescriptorContext,
+                    definition);
+                nodeDescriptor.ConfigureNodeField(typeDescriptor);
+                typeDescriptor.CreateDefinition();
+
+                // invoke completion explicitly.
+                nodeDescriptor.OnCompleteDefinition(completionContext, definition);
+            });
 
         descriptor.Extend().OnBeforeCompletion((completionContext, definition) =>
         {
-            // first we try to resolve the id field.
-            if (IdField is not null)
-            {
-                var idField = type.GetMember(IdField).FirstOrDefault();
-
-                if (idField is null)
-                {
-                    throw NodeAttribute_IdFieldNotFound(type, IdField);
-                }
-
-                nodeDescriptor.IdField(idField);
-            }
-            else if (context.TypeInspector.GetNodeIdMember(type) is { } id)
-            {
-                nodeDescriptor.IdField(id);
-            }
-            else if (context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
-            {
-                nodeDescriptor.IdField(sid);
-            }
-
             // after that we look for the node resolver.
             if (NodeResolverType is not null)
             {

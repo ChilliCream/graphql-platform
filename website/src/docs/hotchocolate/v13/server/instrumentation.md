@@ -199,7 +199,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 ## DataLoader Events
 
-We can hook into DataLoader events by creating a class inheriting from `ExecutionDiagnosticEventListener`.
+We can hook into DataLoader events by creating a class inheriting from `DataLoaderDiagnosticEventListener`.
 
 ```csharp
 public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener
@@ -228,9 +228,7 @@ OpenTelemetry is an open-source project and unified standard for service instrum
 
 Hot Chocolate has implemented an OpenTelemetry integration, and you can easily opt into it instead of building a custom tracing integration.
 
-<iframe width="560" height="315"
-src="https://www.youtube.com/embed/nCLSfJMihsg"frameborder="0"
-allowfullscreen></iframe>
+<Video videoId="nCLSfJMihsg" />
 
 ## Setup
 
@@ -270,14 +268,16 @@ builder.Logging.AddOpenTelemetry(
         b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo"));
     });
 
-builder.Services.AddOpenTelemetryTracing(
-    b =>
-    {
-        b.AddHttpClientInstrumentation();
-        b.AddAspNetCoreInstrumentation();
-        b.AddHotChocolateInstrumentation();
-        b.AddJaegerExporter();
-    });
+builder.Services
+    .AddOpenTelemetryTracing()
+    .WithTracing(
+      b =>
+      {
+          b.AddHttpClientInstrumentation();
+          b.AddAspNetCoreInstrumentation();
+          b.AddHotChocolateInstrumentation();
+          b.AddJaegerExporter();
+      });
 ```
 
 `AddHotChocolateInstrumentation` will register the Hot Chocolate instrumentation events with OpenTelemetry.
@@ -298,14 +298,16 @@ builder.Services
 builder.Logging.AddOpenTelemetry(
     b => b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo")));
 
-builder.Services.AddOpenTelemetryTracing(
-    b =>
-    {
-        b.AddHttpClientInstrumentation();
-        b.AddAspNetCoreInstrumentation();
-        b.AddHotChocolateInstrumentation();
-        b.AddJaegerExporter();
-    });
+builder.Services
+    .AddOpenTelemetryTracing()
+    .WithTracing(
+      b =>
+      {
+          b.AddHttpClientInstrumentation();
+          b.AddAspNetCoreInstrumentation();
+          b.AddHotChocolateInstrumentation();
+          b.AddJaegerExporter();
+      });
 
 var app = builder.Build();
 app.MapGraphQL();

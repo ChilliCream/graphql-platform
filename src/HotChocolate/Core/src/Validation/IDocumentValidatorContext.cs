@@ -18,6 +18,11 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     ISchema Schema { get; }
 
     /// <summary>
+    /// Gets the unique document identifier.
+    /// </summary>
+    string DocumentId { get; }
+
+    /// <summary>
     /// Gets the current operation type.
     /// </summary>
     OperationType? OperationType { get; set; }
@@ -154,6 +159,21 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// A map to store arbitrary visitor data.
     /// </summary>
     IDictionary<string, object?> ContextData { get; }
+
+    /// <summary>
+    /// When processing field merging this list holds the field pairs that are processed.
+    /// </summary>
+    List<FieldInfoPair> CurrentFieldPairs  { get; }
+
+    /// <summary>
+    /// When processing field merging this list holds the field pairs that are processed next.
+    /// </summary>
+    List<FieldInfoPair> NextFieldPairs  { get; }
+
+    /// <summary>
+    /// When processing field merging this set represents the already processed field pairs.
+    /// </summary>
+    HashSet<FieldInfoPair> ProcessedFieldPairs  { get; }
 
     /// <summary>
     /// Rents a list of field infos.

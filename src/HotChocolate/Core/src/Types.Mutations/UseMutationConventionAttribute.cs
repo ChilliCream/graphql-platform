@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -89,7 +87,7 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public bool Disable { get; set; }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

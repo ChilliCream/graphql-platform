@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -51,7 +50,7 @@ public class Selection : ISelection
             ? Flags.Internal
             : Flags.None;
 
-        if (Type.IsListType())
+        if (Type.IsType(TypeKind.List))
         {
             _flags |= Flags.List;
         }
@@ -89,6 +88,8 @@ public class Selection : ISelection
 
     /// <inheritdoc />
     public int Id { get; }
+
+    public CustomOptionsFlags CustomOptions { get; private set; }
 
     /// <inheritdoc />
     public SelectionExecutionStrategy Strategy { get; private set; }
@@ -201,7 +202,14 @@ public class Selection : ISelection
             throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
         }
 
-        if (includeCondition is not 0 &&
+        if (includeCondition == 0)
+        {
+            if (_includeConditions.Length > 0)
+            {
+                _includeConditions = Array.Empty<long>();
+            }
+        }
+        else if (_includeConditions.Length > 0 &&
             Array.IndexOf(_includeConditions, includeCondition) == -1)
         {
             var next = _includeConditions.Length;
@@ -237,9 +245,9 @@ public class Selection : ISelection
                     temp[next++] = directives[i];
                 }
 
-                for (var i = 0; i < first.Directives.Count; i++)
+                for (var i = 0; i < other.Directives.Count; i++)
                 {
-                    temp[next++] = first.Directives[i];
+                    temp[next++] = other.Directives[i];
                 }
 
                 directives = temp;
@@ -313,6 +321,33 @@ public class Selection : ISelection
         _flags |= Flags.Stream;
     }
 
+    public void SetOption(CustomOptionsFlags customOptions)
+    {
+        if ((_flags & Flags.Sealed) == Flags.Sealed)
+        {
+            throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
+        }
+
+        CustomOptions |= customOptions;
+    }
+
+    /// <summary>
+    /// Completes the selection without sealing it.
+    /// </summary>
+    internal void Complete(ISelectionSet declaringSelectionSet)
+    {
+        Debug.Assert(declaringSelectionSet is not null);
+
+        if ((_flags & Flags.Sealed) != Flags.Sealed)
+        {
+            DeclaringSelectionSet = declaringSelectionSet;
+        }
+
+        Debug.Assert(
+            ReferenceEquals(declaringSelectionSet, DeclaringSelectionSet),
+            "Selections can only belong to a single selectionSet.");
+    }
+
     internal void Seal(ISelectionSet declaringSelectionSet)
     {
         if ((_flags & Flags.Sealed) != Flags.Sealed)
@@ -353,5 +388,47 @@ public class Selection : ISelection
         List = 4,
         Stream = 8,
         StreamResult = 16
+    }
+
+    [Flags]
+    public enum CustomOptionsFlags : byte
+    {
+        None = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        Option5 = 16,
+        Option6 = 32,
+        Option7 = 64
+    }
+
+    internal sealed class Sealed : Selection
+    {
+        public Sealed(
+            int id,
+            IObjectType declaringType,
+            IObjectField field,
+            IType type,
+            FieldNode syntaxNode,
+            string responseName,
+            ArgumentMap? arguments = null,
+            long[]? includeConditions = null,
+            bool isInternal = false,
+            bool isParallelExecutable = true,
+            FieldDelegate? resolverPipeline = null,
+            PureFieldDelegate? pureResolver = null) : base(
+            id,
+            declaringType,
+            field,
+            type,
+            syntaxNode,
+            responseName,
+            arguments,
+            includeConditions,
+            isInternal,
+            isParallelExecutable,
+            resolverPipeline,
+            pureResolver) { }
     }
 }

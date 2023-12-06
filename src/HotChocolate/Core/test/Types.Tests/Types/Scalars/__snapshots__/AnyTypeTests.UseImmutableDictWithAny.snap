@@ -1,0 +1,7 @@
+﻿{
+  "data": {
+    "somethingImmutable": {
+      "a": "Foo"
+    }
+  }
+}

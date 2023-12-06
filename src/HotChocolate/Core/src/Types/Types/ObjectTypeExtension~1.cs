@@ -7,6 +7,16 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// <para>
+/// Object type extensions are used to represent a type which has been extended
+/// from some original type.
+/// </para>
+/// <para>
+/// For example, this might be used to represent local data, or by a GraphQL service
+/// which is itself an extension of another GraphQL service.
+/// </para>
+/// </summary>
 public class ObjectTypeExtension<T> : ObjectTypeExtension
 {
     private Action<IObjectTypeDescriptor<T>>? _configure;
@@ -35,14 +45,6 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
 
         _configure!(descriptor);
         _configure = null;
-
-        // if the object type is inferred from a runtime time we will bind fields implicitly
-        // even if the schema building option are set to bind explicitly by default;
-        // otherwise we would end up with types that have no fields.
-        if (context.IsInferred)
-        {
-            descriptor.BindFieldsImplicitly();
-        }
 
         return descriptor.CreateDefinition();
     }

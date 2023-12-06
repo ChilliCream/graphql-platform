@@ -80,5 +80,11 @@ namespace HotChocolate.Utilities.Properties {
                 return ResourceManager.GetString("MiddlewareCompiler_ReturnTypeNotSupported", resourceCulture);
             }
         }
+        
+        internal static string ArrayWriter_Advance_BufferOverflow {
+            get {
+                return ResourceManager.GetString("ArrayWriter_Advance_BufferOverflow", resourceCulture);
+            }
+        }
     }
 }

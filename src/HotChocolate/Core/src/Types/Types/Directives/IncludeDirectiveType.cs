@@ -2,8 +2,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types;
 
-public sealed class IncludeDirectiveType
-    : DirectiveType
+public sealed class IncludeDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {

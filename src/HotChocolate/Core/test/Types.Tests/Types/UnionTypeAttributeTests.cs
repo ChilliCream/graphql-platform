@@ -38,13 +38,13 @@ public class UnionTypeAttributeTests
     }
 
     [SetName]
-    public interface IUnion1 { }
+    public interface IUnion1;
 
-    public class Foo : IUnion1 { }
+    public class Foo : IUnion1;
 
     public class SetNameAttribute : UnionTypeDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IUnionTypeDescriptor descriptor,
             Type type)
@@ -54,8 +54,8 @@ public class UnionTypeAttributeTests
     }
 
     [UnionType(Name = "Union")]
-    public interface IUnion2 { }
+    public interface IUnion2;
 
     [ObjectType(Name = "Type")]
-    public class Union2Type1 : IUnion2 { }
+    public class Union2Type1 : IUnion2;
 }

@@ -1,0 +1,12 @@
+Description:
+  Export the graphql schema. If no output (--output) is specified the schema will be printed to the console.
+
+Usage:
+  graphql schema export [options]
+
+Options:
+  --output <output>            The path to the file where the schema should be exported to. If no output path is specified the schema will be printed to the console.
+  --schema-name <schema-name>  The name of the schema that should be exported. If no schema name is specified the default schema will be exported.
+  -?, -h, --help               Show help and usage information
+
+

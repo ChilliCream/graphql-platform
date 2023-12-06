@@ -58,14 +58,14 @@ public class DateType : ScalarType<DateTime, StringValueNode>
             return new StringValueNode(s);
         }
 
-        if (resultValue is DateTimeOffset d)
+        if (resultValue is DateTimeOffset o)
         {
-            return ParseValue(d);
+            return ParseValue(o.DateTime);
         }
 
         if (resultValue is DateTime dt)
         {
-            return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
+            return ParseValue(dt);
         }
 
         throw new SerializationException(

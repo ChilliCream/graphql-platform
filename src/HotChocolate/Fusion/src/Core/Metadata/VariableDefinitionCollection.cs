@@ -2,27 +2,30 @@ using System.Collections;
 
 namespace HotChocolate.Fusion.Metadata;
 
-internal sealed class VariableDefinitionCollection : IEnumerable<FieldVariableDefinition>
+/// <summary>
+/// Represents a collection of variable definitions for the purpose of query planning.
+/// </summary>
+/// <param name="variables">
+/// The collection of variable definitions for the object type.
+/// </param>
+internal sealed class VariableDefinitionCollection(
+    IReadOnlyList<FieldVariableDefinition> variables)
+    : IEnumerable<FieldVariableDefinition>
 {
-    private readonly FieldVariableDefinition[] _variables;
+    private readonly IReadOnlyList<FieldVariableDefinition> _variables = variables
+        ?? throw new ArgumentNullException(nameof(variables));
 
-    public VariableDefinitionCollection(IEnumerable<FieldVariableDefinition> variables)
-    {
-        _variables = variables.ToArray();
-    }
-
-    public int Count => _variables.Length;
+    /// <summary>
+    /// Gets the number of variable definitions in the collection.
+    /// </summary>
+    public int Count => _variables.Count;
 
     public IEnumerator<FieldVariableDefinition> GetEnumerator()
-    {
-        foreach (var variable in _variables)
-        {
-            yield return variable;
-        }
-    }
+        => _variables.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+        => GetEnumerator();
+
+    public static VariableDefinitionCollection Empty { get; } =
+        new(new List<FieldVariableDefinition>());
 }

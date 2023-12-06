@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
+using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 
@@ -333,55 +335,32 @@ internal static class ErrorHelper
             .SetExtension("Source", source)
             .Build();
 
-    public static ISchemaError DirectiveCollection_ArgumentValueTypeIsWrong(
+    public static ISchemaError DirectiveCollection_ArgumentError(
         DirectiveType directiveType,
-        ITypeSystemObject type,
         DirectiveNode? syntaxNode,
         object source,
-        string argumentName)
-        => SchemaErrorBuilder.New()
-            .SetMessage(
-                ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
-                argumentName)
-            .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
+        Path path,
+        SerializationException exception)
+    {
+        var message = string.Format(
+            ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong,
+            exception.Message,
+            path);
+
+        if (syntaxNode is not null)
+        {
+            message += Environment.NewLine;
+            message += syntaxNode.ToString(true);
+        }
+
+        return SchemaErrorBuilder.New()
+            .SetMessage(message)
+            .SetCode(ErrorCodes.Schema.InvalidArgument)
             .SetTypeSystemObject(directiveType)
             .AddSyntaxNode(syntaxNode)
             .SetExtension("Source", source)
             .Build();
-
-    public static ISchemaError DirectiveCollection_ArgumentDoesNotExist(
-        DirectiveType directiveType,
-        ITypeSystemObject type,
-        DirectiveNode? syntaxNode,
-        object source,
-        string argumentName)
-        => SchemaErrorBuilder.New()
-            .SetMessage(
-                ErrorHelper_DirectiveCollection_ArgumentDoesNotExist,
-                argumentName,
-                directiveType.Name)
-            .SetCode(ErrorCodes.Schema.InvalidArgument)
-            .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
-            .SetExtension("Source", source)
-            .Build();
-
-    public static ISchemaError DirectiveCollection_ArgumentNonNullViolation(
-        DirectiveType directiveType,
-        ITypeSystemObject type,
-        DirectiveNode? syntaxNode,
-        object source,
-        string argumentName)
-        => SchemaErrorBuilder.New()
-            .SetMessage(
-                ErrorHelper_DirectiveCollection_ArgumentNonNullViolation,
-                argumentName,
-                directiveType.Name)
-            .SetCode(ErrorCodes.Schema.NonNullArgument)
-            .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
-            .SetExtension("Source", source)
-            .Build();
+    }
 
     public static ISchemaError ObjectType_UnableToInferOrResolveType(
         string typeName,
@@ -420,6 +399,22 @@ internal static class ErrorHelper
         string currentOrder)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+            .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension(nameof(field), field)
+            .Build();
+    
+    public static ISchemaError DuplicateDataMiddlewareDetected(
+        FieldCoordinate field,
+        ITypeSystemObject type,
+        ISyntaxNode? syntaxNode,
+        IEnumerable<string> duplicateMiddleware)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_DuplicateDataMiddlewareDetected_Message,
+                field.ToString(),
+                string.Join(", ", duplicateMiddleware))
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
             .AddSyntaxNode(syntaxNode)
@@ -479,4 +474,67 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
+    public static IError FetchedToManyNodesAtOnce(
+        FieldNode fieldNode,
+        Path path,
+        int maxAllowedNodes,
+        int requestNodes)
+        => ErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_FetchedToManyNodesAtOnce,
+                maxAllowedNodes,
+                requestNodes)
+            .AddLocation(fieldNode)
+            .SetPath(path)
+            .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
+            .Build();
+
+    public static ISchemaError NoFields(
+        ITypeSystemObject typeSystemObj,
+        IType type)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                FieldInitHelper_NoFields,
+                type.Kind.ToString(),
+                typeSystemObj.Name)
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(typeSystemObj)
+            .AddSyntaxNode((type as IHasSyntaxNode)?.SyntaxNode)
+            .Build();
+
+    public static ISchemaError DuplicateFieldName(
+        ITypeSystemObject type, 
+        ITypeSystemMember declaringMember, 
+        IReadOnlyCollection<string> duplicateFieldNames)
+    {
+        var field = declaringMember is IType
+            ? "field"
+            : "argument";
+
+        var coordinate = declaringMember is IType
+            ? new SchemaCoordinate(type.Name)
+            : new SchemaCoordinate(type.Name, ((IHasName)declaringMember).Name);
+
+        var s = string.Empty;
+        var @is = "is";
+
+        if (duplicateFieldNames.Count > 1)
+        {
+            s = "s";
+            @is = "are";
+        }
+
+        return SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_DuplicateFieldName_Message,
+                field,
+                s,
+                string.Join(", ", duplicateFieldNames),
+                @is,
+                coordinate.ToString())
+            .SetCode(ErrorCodes.Schema.DupplicateFieldNames)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode((declaringMember as IHasSyntaxNode)?.SyntaxNode)
+            .Build();
+    }
 }

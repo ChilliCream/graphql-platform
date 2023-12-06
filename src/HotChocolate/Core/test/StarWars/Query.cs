@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
+using HotChocolate.Subscriptions;
 
 namespace HotChocolate.StarWars;
 
@@ -12,8 +14,7 @@ public class Query
 
     public Query(CharacterRepository repository)
     {
-        _repository = repository
-            ?? throw new ArgumentNullException(nameof(repository));
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
     /// <summary>
@@ -27,11 +28,21 @@ public class Query
     }
 
     /// <summary>
+    /// Retrieve a hero by a particular their traits.
+    /// </summary>
+    /// <param name="traits">The traits to look up by.</param>
+    /// <returns>The character.</returns>
+    public ICharacter GetHeroByTraits(JsonElement traits)
+    {
+        return _repository.GetHeroByTraits(traits);
+    }
+
+    /// <summary>
     /// Retrieve a heros by a particular Star Wars episodes.
     /// </summary>
     /// <param name="episode">The episode to look up by.</param>
     /// <returns>The character.</returns>
-    public IReadOnlyList< ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
+    public IReadOnlyList<ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
     {
         var list = new List<ICharacter>();
 
@@ -68,6 +79,7 @@ public class Query
         foreach (var characterId in characterIds)
         {
             ICharacter character = _repository.GetCharacter(characterId);
+
             if (character is null)
             {
                 context.ReportError(

@@ -1,0 +1,24 @@
+Result:
+---------------
+{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": true,
+          "baz": "a"
+        },
+        {
+          "bar": false,
+          "baz": "b"
+        }
+      ]
+    }
+  }
+}
+---------------
+
+SQL:
+---------------
+from 'Foos' select Bar, Baz
+---------------

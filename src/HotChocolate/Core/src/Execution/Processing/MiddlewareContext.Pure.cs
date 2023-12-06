@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing;
@@ -14,10 +15,11 @@ internal partial class MiddlewareContext
     private sealed class PureResolverContext : IPureResolverContext
     {
         private readonly MiddlewareContext _parentContext;
+        private ITypeConverter? _typeConverter;
         private IReadOnlyDictionary<string, ArgumentValue> _argumentValues = default!;
         private ISelection _selection = default!;
-        private Path _path = default!;
         private ObjectType _parentType = default!;
+        private ObjectResult _parentResult = default!;
         private object? _parent;
 
         public PureResolverContext(MiddlewareContext parentContext)
@@ -27,13 +29,13 @@ internal partial class MiddlewareContext
 
         public bool Initialize(
             ISelection selection,
-            Path path,
             ObjectType parentType,
+            ObjectResult parentResult,
             object? parent)
         {
             _selection = selection;
-            _path = path;
             _parentType = parentType;
+            _parentResult = parentResult;
             _parent = parent;
             _argumentValues = selection.Arguments;
 
@@ -56,8 +58,8 @@ internal partial class MiddlewareContext
         public void Clear()
         {
             _selection = default!;
-            _path = default!;
             _parentType = default!;
+            _parentResult = default!;
             _parent = null;
             _argumentValues = default!;
         }
@@ -70,7 +72,7 @@ internal partial class MiddlewareContext
 
         public ISelection Selection => _selection;
 
-        public Path Path => _path;
+        public Path Path => PathHelper.CreatePathFromContext(_selection, _parentResult, -1);
 
         public IReadOnlyDictionary<string, object?> ScopedContextData
             => _parentContext.ScopedContextData;
@@ -87,7 +89,7 @@ internal partial class MiddlewareContext
                 null => default!,
                 _ => throw ResolverContext_CannotCastParent(
                     Selection.Field.Coordinate,
-                    _path,
+                    Path,
                     typeof(T),
                     _parent.GetType())
             };
@@ -101,7 +103,7 @@ internal partial class MiddlewareContext
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             return CoerceArgumentValue<T>(argument);
@@ -117,7 +119,7 @@ internal partial class MiddlewareContext
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             var literal = argument.ValueLiteral!;
@@ -128,7 +130,7 @@ internal partial class MiddlewareContext
             }
 
             throw ResolverContext_LiteralNotCompatible(
-                _selection.SyntaxNode, _path, name, typeof(TValueNode), literal.GetType());
+                _selection.SyntaxNode, Path, name, typeof(TValueNode), literal.GetType());
         }
 
         public Optional<T> ArgumentOptional<T>(string name)
@@ -140,7 +142,7 @@ internal partial class MiddlewareContext
 
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             return argument.IsDefaultValue
@@ -152,7 +154,7 @@ internal partial class MiddlewareContext
         {
             if (!_argumentValues.TryGetValue(name, out var argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             // There can only be no kind if there was an error which would have
@@ -160,7 +162,11 @@ internal partial class MiddlewareContext
             return argument.Kind ?? ValueKind.Unknown;
         }
 
-        public T Service<T>() => _parentContext.Service<T>();
+        public T Service<T>() where T: notnull => _parentContext.Service<T>();
+        
+#if NET8_0_OR_GREATER
+        public T? Service<T>(object key) where T : notnull => _parentContext.Service<T>(key);
+#endif
 
         public T Resolver<T>() => _parentContext.Resolver<T>();
 
@@ -184,10 +190,12 @@ internal partial class MiddlewareContext
                 return default!;
             }
 
-            var converter = _parentContext.GetTypeConverter();
+            _typeConverter ??=
+                _parentContext.Services.GetService<ITypeConverter>() ??
+                    DefaultTypeConverter.Default;
 
             if (value is T castedValue ||
-                converter.TryConvert(value, out castedValue))
+                _typeConverter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }
@@ -196,7 +204,7 @@ internal partial class MiddlewareContext
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 throw ResolverContext_LiteralsNotSupported(
-                    _selection.SyntaxNode, _path, argument.Name, typeof(T));
+                    _selection.SyntaxNode, Path, argument.Name, typeof(T));
             }
 
             // If the object is internally held as a dictionary structure we will try to
@@ -205,7 +213,7 @@ internal partial class MiddlewareContext
             // and creating from this the object.
             if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
             {
-                var dictToObjConverter = new DictionaryToObjectConverter(converter);
+                var dictToObjConverter = new DictionaryToObjectConverter(_typeConverter);
 
                 if (typeof(T).IsInterface)
                 {
@@ -223,7 +231,7 @@ internal partial class MiddlewareContext
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, _path, argument.Name, typeof(T));
+                _selection.SyntaxNode, Path, argument.Name, typeof(T));
         }
     }
 }

@@ -129,11 +129,11 @@ public class UserFilterType : FilterInputType<User>
         IFilterInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(f => f.Name).Type<CustomStringFilterType>();
+        descriptor.Field(f => f.Name).Type<CustomStringOperationFilterInputType>();
     }
 }
 
-public class CustomerOperationFilterInput : StringOperationFilterInput
+public class CustomStringOperationFilterInputType : StringOperationFilterInputType
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
@@ -147,12 +147,12 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
 input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
-  name: CustomerOperationFilterInput
+  name: CustomStringOperationFilterInput
 }
 
-input CustomerOperationFilterInput {
-  and: [CustomerOperationFilterInput!]
-  or: [CustomerOperationFilterInput!]
+input CustomStringOperationFilterInput {
+  and: [CustomStringOperationFilterInput!]
+  or: [CustomStringOperationFilterInput!]
   eq: String
   neq: String
 }
@@ -647,7 +647,7 @@ type Query {
 
 ## Binding of FilterTypes
 
-`FilterInputType`'s **cannot** just be registered on the schema. You have to bind them to the runtime type on the convention.
+`FilterInputType`'s can be registered like any other type on the schema.
 
 **Configuration**
 
@@ -660,22 +660,27 @@ public class UserFilterInput : FilterInputType<User>
         descriptor.Field(x => x.Name).Description("This is the name");
     }
 }
+```
 
-public class CustomStringOperationFilterInput : StringOperationFilterInput
+```csharp
+services
+    .AddGraphQLServer()
+    .AddFiltering()
+    .AddType<UserFilterInput>()
+    ...;
+```
+
+In case you use custom conventions, you can also bind the filter types on your convention.
+
+```csharp
+public class CustomFilterConvention : FilterConvention
 {
-    protected override void Configure(IFilterInputTypeDescriptor descriptor)
+    protected override void Configure(IFilterConventionDescriptor descriptor)
     {
-        descriptor
-            .Operation(DefaultFilterOperations.Equals)
-            .Type<StringType>();
-        descriptor
-            .Operation(DefaultFilterOperations.NotEquals)
-            .Type<StringType>();
+        descriptor.BindRuntimeType<User, UserFilterInput>()
     }
 }
 
-descriptor.BindRuntimeType<string, CustomStringOperationFilterInput >();
-descriptor.BindRuntimeType<User, UserFilterInput>();
 ```
 
 **Result**
@@ -689,19 +694,65 @@ type User {
   name: String!
 }
 
-input CustomStringOperationFilterInput {
-  and: [CustomStringOperationFilterInput!]
-  or: [CustomStringOperationFilterInput!]
-  eq: String
-  neq: String
-}
-
 input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
   "This is the name"
-  name: CustomStringOperationFilterInput
+  name: StringOperationFilterInput
 }
+
+# ... StringOperationFilterInput left out for brevity
+```
+
+**Scalars / Operation Input Types**
+
+> This is also required when you use `HotChocolate.Types.Scalars`!
+
+When you add custom scalars, you will have to create custom filter types.
+Scalars are mapped to a `FilterInputType` that defines the operations that are possible for this scalar.
+The built-in scalars are already mapped to matching filter types.
+For custom scalars, or scalars from `HotChocolate.Types.Scalars`, you have to create and bind types.
+
+```csharp
+public class EmailAddressOperationFilterInputType : FilterInputType
+{
+    protected override void Configure(IFilterInputTypeDescriptor descriptor)
+    {
+        descriptor.Operation(DefaultFilterOperations.Equals).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.NotEquals).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.Contains).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.NotContains).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.In).Type<ListType<EmailAddressType>>();
+        descriptor.Operation(DefaultFilterOperations.NotIn).Type<ListType<EmailAddressType>>();
+        descriptor.Operation(DefaultFilterOperations.StartsWith).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.NotStartsWith).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.EndsWith).Type<EmailAddressType>();
+        descriptor.Operation(DefaultFilterOperations.NotEndsWith).Type<EmailAddressType>();
+    }
+}
+```
+
+For comparable value types, you can use the `ComparableOperationFilterInputType<T>` base class.
+
+```csharp
+public class UnsignedIntOperationFilterInputType
+    : ComparableOperationFilterInputType<UnsignedIntType>
+{
+    protected override void Configure(IFilterInputTypeDescriptor descriptor)
+    {
+        descriptor.Name("UnsignedIntOperationFilterInputType");
+        base.Configure(descriptor);
+    }
+}
+```
+
+These types have to be registered on the filter convention:
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddFiltering(x => x.AddDefaults().BindRuntimeType<uint, UnsignedIntOperationFilterInputType>())
+    ...;
 ```
 
 ## Extend FilterTypes

@@ -292,4 +292,4 @@ In order to get you even faster started we are providing templates for the dotne
 
 ![Banana Cake Pop](../../shared/bcp_6.png)
 
-[Learn more](/docs/bananacakepop)
+[Learn more](/products/bananacakepop)

@@ -1,3 +1,19 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Resolvers;
 
-public delegate DirectiveDelegate DirectiveMiddleware(FieldDelegate next);
+/// <summary>
+/// This delegate defines the factory to integrate a directive field middleware
+/// into the field pipeline.
+/// </summary>
+/// <param name="next">
+/// The next field middleware that has to be invoked after the middleware that is
+/// created by this factory.
+/// </param>
+/// <param name="directive">
+/// The directive instance.
+/// </param>
+/// <returns>
+/// Returns the field middleware that is created by this factory.
+/// </returns>
+public delegate FieldDelegate DirectiveMiddleware(FieldDelegate next, Directive directive);

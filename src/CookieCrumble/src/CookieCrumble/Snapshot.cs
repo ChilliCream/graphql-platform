@@ -28,7 +28,8 @@ public sealed class Snapshot
             new ExceptionSnapshotValueFormatter(),
             new SchemaErrorSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
-#if NET6_0_OR_GREATER
+            new OperationResultSnapshotValueFormatter(),
+#if NET7_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
 #endif
         });

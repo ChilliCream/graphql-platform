@@ -5,30 +5,51 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
+/// <summary>
+/// Represents the data to create a directive.
+/// </summary>
 public sealed class DirectiveDefinition
 {
-    public DirectiveDefinition(DirectiveNode parsedDirective)
+    /// <summary>
+    /// Initializes a new instance of a <see cref="DirectiveDefinition"/>
+    /// </summary>
+    /// <param name="directiveNode">
+    /// The directive syntax node.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="directiveNode"/> is <c>null</c>.
+    /// </exception>
+    public DirectiveDefinition(DirectiveNode directiveNode)
     {
-        ParsedDirective = parsedDirective ??
-            throw new ArgumentNullException(nameof(parsedDirective));
-        TypeReference = Descriptors.TypeReference.Create(parsedDirective.Name.Value);
-        Reference = new NameDirectiveReference(parsedDirective.Name.Value);
+        Value = directiveNode ?? throw new ArgumentNullException(nameof(directiveNode));
+        Type = TypeReference.CreateDirective(directiveNode.Name.Value);
     }
 
-    public DirectiveDefinition(object customDirective, ITypeReference typeReference)
+    /// <summary>
+    /// Initializes a new instance of a <see cref="DirectiveDefinition"/>
+    /// </summary>
+    /// <param name="directive">
+    /// The runtime instance of a directive.
+    /// </param>
+    /// <param name="extendedTypeDirectiveType">
+    /// The type reference to refer to the directive type.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="directive"/> or <paramref name="extendedTypeDirectiveType"/> is <c>null</c>.
+    /// </exception>
+    public DirectiveDefinition(object directive, ExtendedTypeDirectiveReference extendedTypeDirectiveType)
     {
-        CustomDirective = customDirective ??
-            throw new ArgumentNullException(nameof(customDirective));
-        TypeReference = typeReference ??
-            throw new ArgumentNullException(nameof(typeReference));
-        Reference = new ClrTypeDirectiveReference(customDirective.GetType());
+        Value = directive ?? throw new ArgumentNullException(nameof(directive));
+        Type = extendedTypeDirectiveType ?? throw new ArgumentNullException(nameof(extendedTypeDirectiveType));
     }
 
-    public DirectiveNode? ParsedDirective { get; }
+    /// <summary>
+    /// The directive type.
+    /// </summary>
+    public TypeReference Type { get; }
 
-    public object? CustomDirective { get; }
-
-    public IDirectiveReference Reference { get; }
-
-    public ITypeReference TypeReference { get; }
+    /// <summary>
+    /// The directive value.
+    /// </summary>
+    public object Value { get; }
 }

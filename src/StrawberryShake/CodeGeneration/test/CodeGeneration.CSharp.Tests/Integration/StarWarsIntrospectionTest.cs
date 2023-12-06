@@ -21,8 +21,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         public async Task Execute_StarWarsIntrospection_Test()
         {
             // arrange
-            CancellationToken ct = new CancellationTokenSource(20_000).Token;
-            using IWebHost host = TestServerHelper.CreateServer(
+            var ct = new CancellationTokenSource(20_000).Token;
+            using var host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
@@ -34,11 +34,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
             serviceCollection.AddStarWarsIntrospectionClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsIntrospectionClient client = services.GetRequiredService<StarWarsIntrospectionClient>();
+            var client = services.GetRequiredService<StarWarsIntrospectionClient>();
 
             // act
-            IOperationResult<IIntrospectionQueryResult> result =
-                await client.IntrospectionQuery.ExecuteAsync(ct);
+            var result = await client.IntrospectionQuery.ExecuteAsync(ct);
 
             // assert
             result.MatchSnapshot();

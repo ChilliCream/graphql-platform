@@ -1,3 +1,4 @@
+import { useDocSearchKeyboardEvents } from "@docsearch/react";
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
@@ -10,8 +11,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
 
+import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
+import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
+import { WorkshopOnline } from "@/components/images/workshop-online";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -24,7 +29,7 @@ import {
   SiteSiteMetadataTools,
 } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
-import { useObservable } from "@/state";
+import { State, WorkshopsState, useObservable } from "@/state";
 
 // Brands
 import GithubIconSvg from "@/images/brands/github.svg";
@@ -41,9 +46,6 @@ import ExternalLinkSvg from "@/images/external-link.svg";
 import NewspaperIconSvg from "@/images/newspaper.svg";
 import SearchIconSvg from "@/images/search.svg";
 import TimesIconSvg from "@/images/times.svg";
-
-// Images
-import { WorkshopNdcLondon } from "@/components/images/workshop-ndc-london";
 
 // Logos
 import LogoTextSvg from "@/images/logo/chillicream-text.svg";
@@ -76,6 +78,7 @@ export const Header: FC = () => {
         products: childrenDocsJson {
           path
           title
+          latestStableVersion
           versions {
             path
           }
@@ -142,9 +145,14 @@ export const Header: FC = () => {
     };
   }, [showShadow$]);
 
+  useDocSearchKeyboardEvents({
+    isOpen: searchOpen,
+    onOpen: handleSearchOpen,
+    onClose: handleSearchClose,
+  });
+
   return (
     <Container ref={containerRef}>
-      <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
           <LogoIcon {...LogoIconSvg} />
@@ -200,17 +208,6 @@ const Container = styled.header`
 
   &.shadow {
     box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
-  }
-`;
-
-const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
-  body {
-    overflow-y: ${({ disableScrolling }) =>
-      disableScrolling ? "hidden" : "initial"};
-
-    @media only screen and (min-width: 992px) {
-      overflow-y: initial;
-    }
   }
 `;
 
@@ -373,22 +370,19 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
         <TileLink to="/products/bananacakepop" onClick={hideSubNav}>
           <TileLinkTitle>Banana Cake Pop</TileLinkTitle>
           <TileLinkDescription>
-            The IDE to create, explore, manage, and test <em>GraphQL</em> APIs
-            with ease.
+            The IDE to create, explore, manage, and test GraphQL APIs with ease.
           </TileLinkDescription>
         </TileLink>
-        <TileLink to="/docs/hotchocolate" onClick={hideSubNav}>
+        <TileLink to="/products/hotchocolate" onClick={hideSubNav}>
           <TileLinkTitle>Hot Chocolate</TileLinkTitle>
           <TileLinkDescription>
-            The server to create high-performance <em>.NET GraphQL</em> APIs in
-            no time.
+            The server to create high-performance .NET GraphQL APIs in no time.
           </TileLinkDescription>
         </TileLink>
-        <TileLink to="/docs/strawberryshake" onClick={hideSubNav}>
+        <TileLink to="/products/strawberryshake" onClick={hideSubNav}>
           <TileLinkTitle>Strawberry Shake</TileLinkTitle>
           <TileLinkDescription>
-            The client to create modern <em>.NET</em> apps that consume{" "}
-            <em>GraphQL</em> APIs effortless.
+            Effortlessly create modern .NET apps that consume GraphQL APIs.
           </TileLinkDescription>
         </TileLink>
       </SubNavMain>
@@ -429,7 +423,7 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
 
 interface DeveloperNavItemProps {
   readonly products: Maybe<
-    Pick<DocsJson, "path" | "title"> & {
+    Pick<DocsJson, "path" | "title" | "latestStableVersion"> & {
       versions?: Maybe<Maybe<Pick<DocsJsonVersions, "path">>[]>;
     }
   >[];
@@ -440,6 +434,10 @@ interface DeveloperNavItemProps {
 }
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
+  const workshop = useSelector<State, WorkshopsState[number] | undefined>(
+    (state) => state.workshops.find(({ hero, active }) => hero && active)
+  );
+
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
     <>
       <SubNavMain>
@@ -448,7 +446,7 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
           {products.map((product, index) => (
             <SubNavLink
               key={index}
-              to={`/docs/${product!.path!}/`}
+              to={`/docs/${product!.path!}/${product?.latestStableVersion}`}
               onClick={hideSubNav}
             >
               <IconContainer size={16}>
@@ -500,16 +498,22 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
         </SubNavGroup>
       </SubNavMain>
       <SubNavAdditionalInfo>
-        <SubNavTitle>Upcoming Workshop</SubNavTitle>
-        <TeaserLink to="https://ndclondon.com/workshops/reactive-mobile-apps-with-graphql-and-maui/8a69a3c2659d">
-          <TeaserImage>
-            <WorkshopNdcLondon />
-          </TeaserImage>
-          <TeaserMetadata>
-            23 - 24 Jan 2023 ・ NDC {"{"} London {"}"}
-          </TeaserMetadata>
-          <TeaserTitle>Reactive Mobile Apps with GraphQL and Maui</TeaserTitle>
-        </TeaserLink>
+        {workshop && (
+          <>
+            <SubNavTitle>Upcoming Workshop</SubNavTitle>
+            <TeaserLink to={workshop.url}>
+              <TeaserImage>
+                <WorkshopHero image={workshop.image} />
+              </TeaserImage>
+              <TeaserMetadata>
+                {`${workshop.date} ・ ${workshop.host} `}
+                <NoWrap>{workshop.place}</NoWrap>
+              </TeaserMetadata>
+              <TeaserTitle>{workshop.title}</TeaserTitle>
+              <TeaserMessage>{workshop.teaser}</TeaserMessage>
+            </TeaserLink>
+          </>
+        )}
       </SubNavAdditionalInfo>
     </>
   ));
@@ -919,6 +923,26 @@ const TeaserLink = styled(Link)`
   }
 `;
 
+interface WorkshopHeroProps {
+  readonly image: string;
+}
+
+const WorkshopHero: FC<WorkshopHeroProps> = ({ image }) => {
+  switch (image) {
+    case "ndc-oslo":
+      return <WorkshopNdcOslo />;
+
+    case "ndc-copenhagen":
+      return <WorkshopNdcCopenhagen />;
+
+    case "online":
+      return <WorkshopOnline />;
+
+    default:
+      return null;
+  }
+};
+
 const TeaserImage = styled.div`
   overflow: visible;
   max-width: 80%;
@@ -938,17 +962,30 @@ const TeaserImage = styled.div`
 const TeaserMetadata = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   margin: 15px 0 7px;
   font-size: 0.778em;
+  line-height: 1.25;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
+`;
+
+const NoWrap = styled.span`
+  white-space: nowrap;
 `;
 
 const TeaserTitle = styled.h2`
   margin: 0;
   font-size: 1em;
   line-height: 1.5em;
+  color: ${THEME_COLORS.text};
+  transition: color 0.2s ease-in-out;
+`;
+
+const TeaserMessage = styled.div`
+  font-size: 0.778em;
+  line-height: 1.2;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
 `;

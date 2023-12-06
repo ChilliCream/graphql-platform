@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
@@ -126,7 +127,11 @@ internal static class ErrorHelper
         QueryResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
-                .Build());
+                .Build(),
+            new Dictionary<string, object?>
+            {
+                { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+            });
 
     public static IQueryResult StateInvalidForOperationResolver() =>
         QueryResultBuilder.CreateError(
@@ -204,6 +209,11 @@ internal static class ErrorHelper
             {
                 { WellKnownContextData.ValidationErrors, true }
             });
+    
+    public static IError MaxComplexityReached() =>
+        new Error(
+            ErrorHelper_MaxComplexityReached,
+            ErrorCodes.Execution.ComplexityExceeded);
 
     public static IQueryResult StateInvalidForComplexityAnalyzer() =>
         QueryResultBuilder.CreateError(
@@ -239,4 +249,22 @@ internal static class ErrorHelper
             .SetMessage("PersistedQueryNotFound")
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
             .Build();
+    
+    public static IError NoNullBubbling_ArgumentValue_NotAllowed(
+        ArgumentNode argument)
+    {
+        var errorBuilder = ErrorBuilder.New();
+
+        if (argument.Value.Location is not null)
+        {
+            errorBuilder.AddLocation(
+                argument.Value.Location.Line,
+                argument.Value.Location.Column);
+        }
+
+        errorBuilder.SetSyntaxNode(argument.Value);
+        errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
+
+        return errorBuilder.Build();
+    }
 }

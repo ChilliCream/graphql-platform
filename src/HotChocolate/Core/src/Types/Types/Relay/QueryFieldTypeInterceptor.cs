@@ -23,7 +23,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
         _context ??= completionContext;
@@ -46,7 +46,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
         {
             var options = _context.DescriptorContext.GetMutationPayloadOptions();
 
-            ITypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
+            TypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
 
             _queryField= new ObjectFieldDefinition(
                 options.QueryFieldName ?? _defaultFieldName,

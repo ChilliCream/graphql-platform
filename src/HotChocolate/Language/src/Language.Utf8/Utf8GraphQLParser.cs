@@ -11,9 +11,11 @@ public ref partial struct Utf8GraphQLParser
     private readonly bool _createLocation;
     private readonly bool _allowFragmentVars;
     private readonly int _maxAllowedNodes;
+    private readonly int _maxAllowedFields;
     private Utf8GraphQLReader _reader;
     private StringValueNode? _description;
     private int _parsedNodes;
+    private int _parsedFields;
 
     public Utf8GraphQLParser(
         ReadOnlySpan<byte> graphQLData,
@@ -28,6 +30,7 @@ public ref partial struct Utf8GraphQLParser
         _createLocation = !options.NoLocations;
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
+        _maxAllowedFields = options.MaxAllowedFields;
         _reader = new Utf8GraphQLReader(graphQLData, options.MaxAllowedTokens);
         _description = null;
     }
@@ -45,6 +48,7 @@ public ref partial struct Utf8GraphQLParser
         _createLocation = !options.NoLocations;
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
+        _maxAllowedFields = options.MaxAllowedFields;
         _reader = reader;
         _description = null;
     }
@@ -81,7 +85,7 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new DocumentNode(location, definitions, _parsedNodes);
+        return new DocumentNode(location, definitions, _parsedNodes, _parsedFields);
     }
 
     private IDefinitionNode ParseDefinition()
@@ -160,13 +164,27 @@ public ref partial struct Utf8GraphQLParser
     }
 
     public static DocumentNode Parse(
-        ReadOnlySpan<byte> graphQLData) =>
-        new Utf8GraphQLParser(graphQLData).Parse();
+        ReadOnlySpan<byte> graphQLData)
+    {
+        if (graphQLData.Length == 0)
+        {
+            return new DocumentNode(Array.Empty<IDefinitionNode>());
+        }
+
+        return new Utf8GraphQLParser(graphQLData).Parse();
+    }
 
     public static DocumentNode Parse(
         ReadOnlySpan<byte> graphQLData,
-        ParserOptions options) =>
-        new Utf8GraphQLParser(graphQLData, options).Parse();
+        ParserOptions options)
+    {
+        if (graphQLData.Length == 0)
+        {
+            return new DocumentNode(Array.Empty<IDefinitionNode>());
+        }
+
+        return new Utf8GraphQLParser(graphQLData, options).Parse();
+    }
 
     public static DocumentNode Parse(
 #if NET7_0_OR_GREATER
@@ -204,6 +222,12 @@ public ref partial struct Utf8GraphQLParser
         try
         {
             ConvertToBytes(sourceText, ref sourceSpan);
+
+            if (sourceSpan.Length == 0)
+            {
+                return new DocumentNode(Array.Empty<IDefinitionNode>());
+            }
+
             var parser = new Utf8GraphQLParser(sourceSpan, options);
             return parser.Parse();
         }

@@ -267,5 +267,5 @@ public class UnionTypeTests
         }
     }
 
-    public class FooDirective { }
+    public class FooDirective;
 }

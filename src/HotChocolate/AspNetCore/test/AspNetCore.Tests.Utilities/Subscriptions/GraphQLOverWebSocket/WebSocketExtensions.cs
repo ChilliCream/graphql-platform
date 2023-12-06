@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Utilities;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
@@ -24,7 +25,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.ConnectionInitialize, payload);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static async Task SendSubscribeAsync(
@@ -62,7 +63,7 @@ public static class WebSocketExtensions
 
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Subscribe, map, subscriptionId);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static async Task SendCompleteAsync(
@@ -72,7 +73,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Complete, id: subscriptionId);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static Task SendPingAsync(
@@ -87,7 +88,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Ping, payload);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static Task SendPongAsync(
@@ -102,7 +103,7 @@ public static class WebSocketExtensions
     {
         using var writer = new ArrayWriter();
         MessageUtilities.SerializeMessage(writer, Utf8Messages.Pong, payload);
-        await SendMessageAsync(webSocket, writer.Body, cancellationToken);
+        await SendMessageAsync(webSocket, writer.GetWrittenMemory(), cancellationToken);
     }
 
     public static Task SendMessageAsync(

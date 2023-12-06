@@ -50,7 +50,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton(_ => new ObjectResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton(_ => new ListResultPool(maximumRetained, maximumArrayCapacity));
         services.TryAddSingleton<ResultPool>();
-        services.TryAddTransient<ResultBuilder>();
         return services;
     }
 
@@ -67,22 +66,7 @@ internal static class InternalServiceCollectionExtensions
                 sp.GetRequiredService<ObjectPool<ResolverTask>>()));
         return services;
     }
-
-    internal static IServiceCollection TryAddPathSegmentPool(
-        this IServiceCollection services,
-        int maximumRetained = 256)
-    {
-        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(
-            _ => new IndexerPathSegmentPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
-            _ => new NamePathSegmentPool(maximumRetained));
-        services.TryAddTransient(
-            sp => new PooledPathFactory(
-                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(),
-                sp.GetRequiredService<ObjectPool<PathSegmentBuffer<NamePathSegment>>>()));
-        return services;
-    }
-
+    
     internal static IServiceCollection TryAddOperationCompilerPool(
         this IServiceCollection services)
     {
@@ -94,24 +78,17 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddOperationContextPool(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp =>
-        {
-            var provider = sp.GetRequiredService<ObjectPoolProvider>();
-            var policy = new OperationContextPooledObjectPolicy(
-                sp.GetRequiredService<IFactory<OperationContext>>());
-            return provider.Create(policy);
-        });
+        services.TryAddSingleton<IFactory<OperationContext>, OperationContextFactory>();
+        services.TryAddSingleton<IFactory<OperationContextOwner>, OperationContextOwnerFactory>();
 
-        services.TryAddTransient<OperationContext>();
-
-        services.TryAddTransient(
-            sp => sp.GetRequiredService<ObjectPool<OperationContext>>().GetOwner());
-
-        services.TryAddSingleton<IFactory<OperationContextOwner>>(
-            sp => new ServiceFactory<OperationContextOwner>(sp));
-
-        services.TryAddSingleton<IFactory<OperationContext>>(
-            sp => new ServiceFactory<OperationContext>(sp));
+        services.TryAddSingleton(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new OperationContextPooledObjectPolicy(
+                    sp.GetRequiredService<IFactory<OperationContext>>());
+                return provider.Create(policy);
+            });
 
         return services;
     }
@@ -119,22 +96,15 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDeferredWorkStatePool(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp =>
-        {
-            var provider = sp.GetRequiredService<ObjectPoolProvider>();
-            var policy = new DeferredWorkStatePooledObjectPolicy();
-            return provider.Create(policy);
-        });
+        services.TryAddSingleton(
+            sp =>
+            {
+                var provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new DeferredWorkStatePooledObjectPolicy();
+                return provider.Create(policy);
+            });
 
-        services.TryAddScoped(sp =>
-        {
-            var pool = sp.GetRequiredService<ObjectPool<DeferredWorkState>>();
-            var state = pool.Get();
-            return new DeferredWorkStateOwner(state, pool);
-        });
-
-        services.TryAddScoped<IFactory<DeferredWorkStateOwner>>(
-            sp => new ServiceFactory<DeferredWorkStateOwner>(sp));
+        services.TryAddScoped<IFactory<DeferredWorkStateOwner>, DeferredWorkStateOwnerFactory>();
 
         return services;
     }
@@ -187,14 +157,14 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddInputFormatter(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp => new InputFormatter(sp.GetTypeConverter()));
+        services.TryAddSingleton(sp => new InputFormatter(sp.GetRequiredService<ITypeConverter>()));
         return services;
     }
 
     internal static IServiceCollection TryAddInputParser(
         this IServiceCollection services)
     {
-        services.TryAddSingleton(sp => new InputParser(sp.GetTypeConverter()));
+        services.TryAddSingleton(sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
         return services;
     }
 
@@ -235,15 +205,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddScoped<BatchScheduler>();
         services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
         services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
-        return services;
-    }
-
-    internal static IServiceCollection TryAddRequestContextAccessor(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<DefaultRequestContextAccessor>();
-        services.TryAddSingleton<IRequestContextAccessor>(
-            sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
         return services;
     }
 

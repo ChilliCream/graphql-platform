@@ -153,7 +153,7 @@ internal sealed partial class SubscriptionExecutor
 
                 // we store the event payload on the scoped context so that it is accessible
                 // in the resolvers.
-                var scopedContext =
+                var scopedContextData =
                     _scopedContextData.SetItem(WellKnownContextData.EventMessage, payload);
 
                 // next we resolve the subscription instance.
@@ -179,12 +179,20 @@ internal sealed partial class SubscriptionExecutor
                     payload);
 
                 var result = await _queryExecutor
-                    .ExecuteAsync(operationContext, scopedContext)
+                    .ExecuteAsync(operationContext, scopedContextData)
                     .ConfigureAwait(false);
 
                 _diagnosticEvents.SubscriptionEventResult(new(this, payload), result);
 
                 return result;
+            }
+            catch (OperationCanceledException ex)
+            {
+                operationContext = null;
+                _diagnosticEvents.SubscriptionEventError(
+                    new SubscriptionEventContext(this, payload),
+                    ex);
+                throw;
             }
             catch (Exception ex)
             {
@@ -195,7 +203,13 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
-                _operationContextPool.Return(operationContext);
+                // if the operation context is null a cancellation has happened and we will
+                // abandon the operation context in order to not have leakage into the
+                // new operations.
+                if (operationContext is not null)
+                {
+                    _operationContextPool.Return(operationContext);
+                }
             }
         }
 
@@ -242,8 +256,8 @@ internal sealed partial class SubscriptionExecutor
                     resultMap,
                     1,
                     rootValue,
-                    operationContext.PathFactory.New(rootSelection.ResponseName),
-                    _scopedContextData);
+                    _scopedContextData,
+                    null);
 
                 // it is important that we correctly coerce the arguments before
                 // invoking subscribe.
@@ -348,7 +362,7 @@ internal sealed partial class SubscriptionExecutor
 
     private sealed class SubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
     {
-        private readonly IAsyncEnumerator<object> _eventEnumerator;
+        private readonly IAsyncEnumerator<object?> _eventEnumerator;
         private readonly Func<object, Task<IQueryResult>> _onEvent;
         private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
@@ -356,7 +370,7 @@ internal sealed partial class SubscriptionExecutor
         private bool _disposed;
 
         public SubscriptionEnumerator(
-            IAsyncEnumerator<object> eventEnumerator,
+            IAsyncEnumerator<object?> eventEnumerator,
             Func<object, Task<IQueryResult>> onEvent,
             Subscription subscription,
             IExecutionDiagnosticEvents diagnosticEvents,
@@ -382,7 +396,7 @@ internal sealed partial class SubscriptionExecutor
             {
                 if (await _eventEnumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    Current = await _onEvent(_eventEnumerator.Current).ConfigureAwait(false);
+                    Current = await _onEvent(_eventEnumerator.Current!).ConfigureAwait(false);
                     return true;
                 }
             }

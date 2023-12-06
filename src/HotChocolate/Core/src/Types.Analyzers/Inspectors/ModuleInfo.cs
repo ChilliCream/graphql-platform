@@ -26,6 +26,21 @@ public sealed class ModuleInfo : ISyntaxInfo, IEquatable<ModuleInfo>
 
         return ModuleName == other.ModuleName && Options == other.Options;
     }
+    
+    public bool Equals(ISyntaxInfo other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return other is ModuleInfo info && Equals(info);
+    }
 
     public override bool Equals(object? obj)
         => ReferenceEquals(this, obj) ||
@@ -38,10 +53,4 @@ public sealed class ModuleInfo : ISyntaxInfo, IEquatable<ModuleInfo>
             return (ModuleName.GetHashCode() * 397) ^ (int)Options;
         }
     }
-
-    public static bool operator ==(ModuleInfo? left, ModuleInfo? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ModuleInfo? left, ModuleInfo? right)
-        => !Equals(left, right);
 }

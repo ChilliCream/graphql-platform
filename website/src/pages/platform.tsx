@@ -14,12 +14,37 @@ import {
 import { Hero, Intro, Teaser, Title } from "@/components/misc/page-elements";
 import { SEO } from "@/components/misc/seo";
 import { Artwork } from "@/components/sprites";
+import { GetPlatformPageDataQuery } from "@/graphql-types";
+import { graphql, useStaticQuery } from "gatsby";
 
 // Artwork
 import { SrOnly } from "@/components/misc/sr-only";
 import UnderConstructionSvg from "@/images/artwork/under-construction.svg";
 
 const PlatformPage: FC = () => {
+  const data = useStaticQuery<GetPlatformPageDataQuery>(graphql`
+    query getPlatformPageData {
+      docNav: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          latestStableVersion
+        }
+      }
+    }
+  `);
+  const latestBcpVersion = data.docNav?.products?.find(
+    (product) => product?.path === "bananacakepop"
+  )?.latestStableVersion;
+  const latestHcVersion = data.docNav?.products?.find(
+    (product) => product?.path === "hotchocolate"
+  )?.latestStableVersion;
+  const latestSsVersion = data.docNav?.products?.find(
+    (product) => product?.path === "strawberryshake"
+  )?.latestStableVersion;
+
   return (
     <Layout>
       <SEO title="Platform" />
@@ -48,7 +73,7 @@ const PlatformPage: FC = () => {
               client, and the ChilliCream GraphQL tools. No wonder why Hot
               Chocolate is the ChilliCream's platform core.
             </p>
-            <Link to="/docs/hotchocolate">
+            <Link to={`/docs/hotchocolate/${latestHcVersion}`}>
               Learn more<SrOnly> on how to build GraphQL .NET APIs</SrOnly>
             </Link>
           </ContentContainer>
@@ -66,7 +91,7 @@ const PlatformPage: FC = () => {
               operations and get deep performance insights about any GraphQL
               server out there.
             </p>
-            <Link to="/docs/bananacakepop">
+            <Link to={`/docs/bananacakepop/${latestBcpVersion}`}>
               Learn more<SrOnly> about our GraphQL IDE</SrOnly>
             </Link>
           </ContentContainer>
@@ -91,7 +116,7 @@ const PlatformPage: FC = () => {
               </Link>
               .
             </p>
-            <Link to="/docs/strawberryshake">
+            <Link to={`/docs/strawberryshake/${latestSsVersion}`}>
               Learn more
               <SrOnly> on how to write reactive GraphQL .NET clients</SrOnly>
             </Link>

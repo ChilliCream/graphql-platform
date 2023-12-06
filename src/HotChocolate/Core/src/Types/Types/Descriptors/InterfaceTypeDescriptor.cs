@@ -78,6 +78,7 @@ public class InterfaceTypeDescriptor
 
         OnCompleteFields(fields, handledMembers);
 
+        Definition.Fields.Clear();
         Definition.Fields.AddRange(fields.Values);
 
         base.OnCreateDefinition(definition);
@@ -107,21 +108,6 @@ public class InterfaceTypeDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface<TInterface>(
-        TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public IInterfaceTypeDescriptor Interface(NamedTypeNode namedType)
-        => Implements(namedType);
 
     public IInterfaceTypeDescriptor Implements<T>()
         where T : InterfaceType

@@ -13,5 +13,5 @@ public interface IComplexOutputTypeDefinition
 
     IList<Type> KnownRuntimeTypes { get; }
 
-    IList<ITypeReference> Interfaces { get; }
+    IList<TypeReference> Interfaces { get; }
 }

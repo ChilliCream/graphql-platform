@@ -15,26 +15,87 @@
             "title": "Introduction"
           },
           {
-            "path": "install",
-            "title": "Installation"
-          },
-          {
             "path": "getting-started",
             "title": "Getting Started"
           },
           {
-            "path": "schema-reference",
-            "title": "Schema Reference"
-          },
-          {
-            "path": "schema-definition",
-            "title": "Schema Definition"
-          },
-          {
-            "path": "actions",
-            "title": "Actions",
+            "path": "explore-the-ui",
+            "title": "Explore the UI",
             "items": [
-              { "path": "schema-refresh", "title": "Schema Refresh" },
+              { "path": "index", "title": "Overview" },
+              { "path": "status-bar", "title": "Status Bar" },
+              { "path": "explorer", "title": "Explorer" }
+            ]
+          },
+          {
+            "path": "documents",
+            "title": "Documents",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "operations", "title": "Operations" },
+              { "path": "response", "title": "Response Pane" },
+              { "path": "schema-reference", "title": "Schema Reference" },
+              { "path": "schema-definition", "title": "Schema Definition" },
+              { "path": "connection-settings", "title": "Connection Settings" },
+              { "path": "authentication", "title": "Authentication Flows" }
+            ]
+          },
+          {
+            "path": "apis",
+            "title": "Apis",
+            "items": [
+              { "path": "overview", "title": "Overview" },
+              { "path": "stages", "title": "Stages" },
+              { "path": "fusion", "title": "Fusion" },
+              {
+                "path": "schema-registry",
+                "title": "Schema Registry"
+              },
+              {
+                "path": "client-registry",
+                "title": "Client Registry"
+              },
+              {
+                "path": "operation-reporting",
+                "title": "Operation Reporting"
+              },
+              { "path": "open-telemetry", "title": "Open Telemetry" }
+            ]
+          },
+          {
+            "path": "environments",
+            "title": "Environments"
+          },
+          {
+            "path": "workspaces",
+            "title": "Workspaces"
+          },
+          {
+            "path": "organizations",
+            "title": "Organizations"
+          },
+          {
+            "path": "bcp-services",
+            "title": "Connect you API"
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions & Billing"
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              { "path": "express", "title": "Express Server" },
+              { "path": "hot-chocolate", "title": "Hot Chocolate" }
+            ]
+          },
+          {
+            "path": "settings",
+            "title": "Settings",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "themes", "title": "Themes" },
               { "path": "key-bindings", "title": "Key Bindings" }
             ]
           }
@@ -45,9 +106,9 @@
   {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
-    "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developer to build powerful APIs.",
+    "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
     "description": "Build your own thin GraphQL API layer on top of any resource.",
-    "latestStableVersion": "v12",
+    "latestStableVersion": "v13",
     "versions": [
       {
         "path": "v13",
@@ -58,7 +119,7 @@
             "title": "Introduction"
           },
           {
-            "path": "get-started",
+            "path": "get-started-with-graphql-in-net-core",
             "title": "Get Started"
           },
           {
@@ -136,6 +197,10 @@
               {
                 "path": "relay",
                 "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
               }
             ]
           },
@@ -238,12 +303,16 @@
                 "title": "Endpoints"
               },
               {
-                "path": "dependency-injection",
-                "title": "Dependency Injection"
+                "path": "http-transport",
+                "title": "HTTP transport"
               },
               {
                 "path": "interceptors",
                 "title": "Interceptors"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency injection"
               },
               {
                 "path": "global-state",
@@ -260,6 +329,14 @@
               {
                 "path": "instrumentation",
                 "title": "Instrumentation"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "Command Line"
               }
             ]
           },
@@ -330,10 +407,6 @@
             "title": "API Reference",
             "items": [
               {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
               },
@@ -348,10 +421,6 @@
               {
                 "path": "visitors",
                 "title": "Visitors"
-              },
-              {
-                "path": "aspnetcore",
-                "title": "ASP.NET Core"
               },
               {
                 "path": "apollo-federation",
@@ -377,7 +446,7 @@
               },
               {
                 "path": "migrate-from-10-to-11",
-                "title": "Migrate from 10.5 to 11.0"
+                "title": "Migrate from 10 to 11"
               }
             ]
           }
@@ -392,7 +461,7 @@
             "title": "Introduction"
           },
           {
-            "path": "get-started",
+            "path": "get-started-with-graphql-in-net-core",
             "title": "Get Started"
           },
           {
@@ -1196,7 +1265,7 @@
     "title": "Strawberry Shake",
     "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
-    "latestStableVersion": "v12",
+    "latestStableVersion": "v13",
     "versions": [
       {
         "path": "v13",
@@ -1285,6 +1354,16 @@
           {
             "path": "scalars",
             "title": "Scalars"
+          },
+          {
+            "path": "migrating",
+            "title": "Migrating",
+            "items": [
+              {
+                "path": "migrate-from-12-to-13",
+                "title": "Migrate from 12 to 13"
+              }
+            ]
           }
         ]
       },
@@ -1375,6 +1454,45 @@
           {
             "path": "scalars",
             "title": "Scalars"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "barista",
+    "title": "Barista",
+    "description": "The CLI tool for orchestrating your GraphQL cloud services.",
+    "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
+    "latestStableVersion": "v1",
+    "versions": [
+      {
+        "path": "v1",
+        "title": "v1",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "authentication",
+            "title": "Authentication"
+          },
+          {
+            "path": "commands",
+            "title": "Commands",
+            "items": [
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              { "path": "workspace", "title": "workspace" }
+            ]
           }
         ]
       }

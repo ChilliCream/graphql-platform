@@ -1,0 +1,30 @@
+﻿schema {
+  query: Query
+}
+
+"This is the type desc"
+type FlagsWithDescriptionFlags {
+  "Foo has a desc"
+  isFoo: Boolean!
+  "Bar has a desc"
+  isBar: Boolean!
+  "Baz has a desc"
+  isBaz: Boolean!
+}
+
+type Query {
+  asd(input: FlagsWithDescriptionFlagsInput!): FlagsWithDescriptionFlags!
+}
+
+"This is the type desc"
+input FlagsWithDescriptionFlagsInput {
+  "Foo has a desc"
+  isFoo: Boolean
+  "Bar has a desc"
+  isBar: Boolean
+  "Baz has a desc"
+  isBaz: Boolean
+}
+
+"The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
+directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

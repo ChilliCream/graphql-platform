@@ -1,12 +1,11 @@
 {
-  "omnisharp.defaultLaunchSolution": "src/All.sln",
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
     "**/*.code-search": true,
     "**/PublicAPI*.txt": true
   },
-  "editor.rulers": [100],
+  "editor.rulers": [120],
   "files.trimTrailingWhitespace": true,
   "files.associations": {
     "*.*proj": "xml",
@@ -22,5 +21,6 @@
   },
   "cSpell.words": [
     "Nats"
-  ]
+  ],
+  "dotnet.defaultSolution": "src/All.sln"
 }

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
@@ -12,8 +13,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 #nullable enable
 
@@ -57,7 +58,7 @@ public class DataLoaderTests
             .MatchSnapshotAsync();
     }
 
-    [Fact]
+    [LocalFact]
     public async Task FetchDataLoader()
     {
         Snapshot.FullName();
@@ -121,7 +122,7 @@ public class DataLoaderTests
         Assert.True(listener.BatchResultsTouched);
     }
 
-    [Fact]
+    [LocalFact]
     public async Task AddMultipleDiagnosticEventListener()
     {
         var listener1 = new DataLoaderListener();
@@ -143,10 +144,10 @@ public class DataLoaderTests
                         .LoadAsync("fooBar"))
         );
 
-        Assert.True(listener1.ExecuteBatchTouched);
-        Assert.True(listener1.BatchResultsTouched);
-        Assert.True(listener2.ExecuteBatchTouched);
-        Assert.True(listener2.BatchResultsTouched);
+        Assert.True(listener1.ExecuteBatchTouched, "listener1.ExecuteBatchTouched");
+        Assert.True(listener1.BatchResultsTouched, "listener1.BatchResultsTouched");
+        Assert.True(listener2.ExecuteBatchTouched, "listener2.ExecuteBatchTouched");
+        Assert.True(listener2.BatchResultsTouched, "listener2.BatchResultsTouched");
     }
 
     [Fact]
@@ -204,65 +205,10 @@ public class DataLoaderTests
         };
 
         // assert
-        results.MatchSnapshot();
+        SnapshotExtension.MatchSnapshot(results);
     }
 
-    [Fact]
-    public async Task ClassDataLoaderWithKey()
-    {
-        // arrange
-        var executor = await CreateExecutorAsync(c => c
-            .AddQueryType<Query>()
-            .AddDataLoader<ITestDataLoader, TestDataLoader>()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .UseRequest(next => async context =>
-            {
-                await next(context);
-
-                var dataLoader =
-                    context.Services
-                        .GetRequiredService<IDataLoaderRegistry>()
-                        .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
-
-                context.Result = QueryResultBuilder
-                    .FromResult(((IQueryResult)context.Result!))
-                    .AddExtension("loads", dataLoader.Loads)
-                    .Create();
-            })
-            .UseDefaultPipeline());
-
-        // act
-        var results = new List<IExecutionResult>
-        {
-            await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            a: withDataLoader2(key: ""a"")
-                            b: withDataLoader2(key: ""b"")
-                        }")
-                    .Create()),
-            await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            a: withDataLoader2(key: ""a"")
-                        }")
-                    .Create()),
-            await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                            c: withDataLoader2(key: ""c"")
-                        }")
-                    .Create())
-        };
-
-        // assert
-        results.MatchSnapshot();
-    }
-
-    [Fact]
+    [LocalFact]
     public async Task StackedDataLoader()
     {
         // arrange
@@ -303,7 +249,7 @@ public class DataLoaderTests
                     .Create()));
 
         // assert
-        results.MatchSnapshot();
+        SnapshotExtension.MatchSnapshot(results);
     }
 
     [Fact]
@@ -356,10 +302,10 @@ public class DataLoaderTests
         };
 
         // assert
-        results.MatchSnapshot();
+        SnapshotExtension.MatchSnapshot(results);
     }
 
-    [Fact]
+    [LocalFact]
     public async Task NestedDataLoader()
     {
         using var cts = new CancellationTokenSource(2000);

@@ -310,7 +310,7 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void LocalDate_ExpectParseResultToMatchNull()
+    protected void ParseResult_Null()
     {
         // arrange
         ScalarType scalar = new LocalDateType();
@@ -323,7 +323,7 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void LocalDate_ExpectParseResultToMatchStringValue()
+    protected void ParseResult_String()
     {
         // arrange
         ScalarType scalar = new LocalDateType();
@@ -337,7 +337,7 @@ public class LocalDateTypeTests : ScalarTypeTestBase
     }
 
     [Fact]
-    protected void LocalDate_ExpectParseResultToThrowSerializationException()
+    protected void ParseResult_SerializationException()
     {
         // arrange
         ScalarType scalar = new LocalDateType();
@@ -348,5 +348,37 @@ public class LocalDateTypeTests : ScalarTypeTestBase
 
         // assert
         Assert.IsType<SerializationException>(result);
+    }
+
+    [Fact]
+    public void ParseResult_DateTime()
+    {
+        // arrange
+        var scalar = new LocalDateType();
+        var resultValue = new DateTime(2023, 6, 19, 11, 24, 0, DateTimeKind.Utc);
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = scalar.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
+    }
+
+    [Fact]
+    public void ParseResult_DateTimeOffset()
+    {
+        // arrange
+        var scalar = new LocalDateType();
+        var resultValue = new DateTimeOffset(2023, 6, 19, 11, 24, 0, new TimeSpan(6, 0, 0));
+        var expectedLiteralValue = "2023-06-19";
+
+        // act
+        var literal = scalar.ParseResult(resultValue);
+
+        // assert
+        Assert.Equal(typeof(StringValueNode), literal.GetType());
+        Assert.Equal(expectedLiteralValue, literal.Value);
     }
 }

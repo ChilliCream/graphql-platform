@@ -9,12 +9,15 @@ import { DocPageFragment } from "@/graphql-types";
 
 export interface DocPageTemplateProps {
   readonly data: DocPageFragment;
-  readonly pageContext: { originPath: string };
+  readonly pageContext: {
+    readonly originPath: string;
+  };
 }
 
 const DocPageTemplate: FC<DocPageTemplateProps> = ({ data, pageContext }) => {
   const childMdx = data.file!.childMdx!;
   const documentTitle = data.file!.childMdx!.frontmatter!.title!;
+  const description = data.file!.childMdx!.frontmatter!.description;
   const product = useProductInformation(
     childMdx.fields!.slug!,
     data.productsConfig?.products
@@ -32,7 +35,10 @@ const DocPageTemplate: FC<DocPageTemplateProps> = ({ data, pageContext }) => {
 
   return (
     <Layout>
-      <SEO title={title} description={product?.description || undefined} />
+      <SEO
+        title={title}
+        description={description || product?.description || undefined}
+      />
       {product && (
         <>
           <SrOnly className="product-name">{product.name}</SrOnly>

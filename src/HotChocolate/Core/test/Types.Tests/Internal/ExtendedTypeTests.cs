@@ -388,6 +388,19 @@ public class ExtendedTypeTests
         Assert.True(dict.IsArrayOrList);
     }
 
+    [Fact]
+    public void Nested_Nullability()
+    {
+        // arrange
+        // act
+        var extendedType = ExtendedType.FromMember(
+            typeof(Nullability).GetMember("NestedProp").Single(),
+            _cache);
+
+        // assert
+        Assert.True(extendedType.IsNullable);
+    }
+
     private sealed class CustomStringList1
         : List<string>
     {
@@ -415,6 +428,13 @@ public class ExtendedTypeTests
 
         public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() =>
             throw new NotImplementedException();
+
+        public Nested? NestedProp { get; set; }
+
+        public class Nested
+        {
+            public string? Value { get; set; }
+        }
     }
 
 #nullable disable

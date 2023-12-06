@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods for configuring an <see cref="IResolverCompilerBuilder"/>
+/// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
 /// </summary>
 public static class EntityFrameworkRequestExecutorBuilderExtensions
 {
@@ -30,7 +30,7 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder RegisterDbContext<TDbContext>(
         this IRequestExecutorBuilder builder,
-        DbContextKind kind = DbContextKind.Synchronized)
+        DbContextKind kind = DbContextKind.Resolver)
         where TDbContext : DbContext
     {
         builder.Services.AddSingleton<IParameterExpressionBuilder>(

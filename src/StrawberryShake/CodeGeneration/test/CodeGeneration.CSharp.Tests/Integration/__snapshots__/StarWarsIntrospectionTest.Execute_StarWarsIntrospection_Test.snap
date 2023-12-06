@@ -984,6 +984,33 @@
               "DeprecationReason": null
             },
             {
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "JSON",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "Interface",
+                "Name": "Character",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -1183,6 +1210,37 @@
                 "OfType": {
                   "Kind": "Object",
                   "Name": "Review",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Enum",
+                      "Name": "Episode",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
                   "OfType": null
                 }
               },
@@ -1389,6 +1447,18 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -1538,6 +1608,18 @@
               "Type": {
                 "Kind": "Scalar",
                 "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1716,6 +1798,18 @@
                   "Name": "Episode",
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -1967,6 +2061,16 @@
           "PossibleTypes": null
         },
         {
+          "Kind": "Scalar",
+          "Name": "JSON",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": null
+        },
+        {
           "Kind": "Object",
           "Name": "Starship",
           "Description": null,
@@ -2145,52 +2249,6 @@
       ],
       "Directives": [
         {
-          "Name": "skip",
-          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "Args": [
-            {
-              "Name": "if",
-              "Description": "Skipped when true.",
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "Name": "include",
-          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "Args": [
-            {
-              "Name": "if",
-              "Description": "Included when true.",
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
           "Name": "defer",
           "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
           "Args": [
@@ -2263,6 +2321,52 @@
           "OnField": true
         },
         {
+          "Name": "skip",
+          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "Args": [
+            {
+              "Name": "if",
+              "Description": "Skipped when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "Name": "include",
+          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "Args": [
+            {
+              "Name": "if",
+              "Description": "Included when true.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
           "Name": "deprecated",
           "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
           "Args": [
@@ -2299,6 +2403,29 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": true
+        },
+        {
+          "Name": "tag",
+          "Description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
+          "Args": [
+            {
+              "Name": "name",
+              "Description": "The name of the tag.",
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "String",
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
         }
       ]
     }
@@ -4029,6 +4156,56 @@
             },
             {
               "__typename": "__Field",
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "JSON",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Character",
+                "Kind": "Interface",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -4423,6 +4600,67 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Episode",
+                      "Kind": "Enum",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -4775,6 +5013,26 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -5035,6 +5293,26 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5325,6 +5603,26 @@
                   "PossibleTypes": null,
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -5743,6 +6041,18 @@
         },
         {
           "__typename": "__Type",
+          "Name": "JSON",
+          "Kind": "Scalar",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
           "Name": "Starship",
           "Kind": "Object",
           "Description": null,
@@ -6049,84 +6359,6 @@
       "Directives": [
         {
           "__typename": "__Directive",
-          "Name": "skip",
-          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Skipped when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "include",
-          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "if",
-              "Description": "Included when true.",
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "__typename": "__Directive",
           "Name": "defer",
           "Description": "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.",
           "Args": [
@@ -6248,6 +6480,84 @@
         },
         {
           "__typename": "__Directive",
+          "Name": "skip",
+          "Description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Skipped when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "include",
+          "Description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "if",
+              "Description": "Included when true.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": true,
+          "OnField": true
+        },
+        {
+          "__typename": "__Directive",
           "Name": "deprecated",
           "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
           "Args": [
@@ -6301,6 +6611,45 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": true
+        },
+        {
+          "__typename": "__Directive",
+          "Name": "tag",
+          "Description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
+          "Args": [
+            {
+              "__typename": "__InputValue",
+              "Name": "name",
+              "Description": "The name of the tag.",
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "String",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "DefaultValue": null
+            }
+          ],
+          "OnOperation": false,
+          "OnFragment": false,
+          "OnField": false
         }
       ]
     },

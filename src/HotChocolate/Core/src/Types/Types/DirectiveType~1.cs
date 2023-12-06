@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -11,7 +12,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
 {
     private Action<IDirectiveTypeDescriptor<TDirective>>? _configure;
 
-    protected DirectiveType()
+    public DirectiveType()
     {
         _configure = Configure;
     }
@@ -38,4 +39,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
 
     protected sealed override void Configure(IDirectiveTypeDescriptor descriptor)
         => throw new NotSupportedException();
+
+    public new TDirective Parse(DirectiveNode directiveNode)
+        => (TDirective)base.Parse(directiveNode);
 }

@@ -5,8 +5,12 @@ using Nuke.Common.Execution;
 using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
+using Newtonsoft.Json;
+using Nuke.Common.ProjectModel;
+using System.Linq;
+using System;
+using System.IO;
 
-[CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
 {
@@ -43,21 +47,65 @@ partial class Build : NukeBuild
                 .SetProjectFile(AllSolutionFile)
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
-                .SetAssemblyVersion(GitVersion.AssemblySemVer)
-                .SetFileVersion(GitVersion.AssemblySemFileVer)
-                .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetInformationalVersion(SemVersion)
+                .SetFileVersion(Version)
+                .SetAssemblyVersion(Version)
+                .SetVersion(SemVersion));
         });
 
     Target Reset => _ => _
         .Executes(() =>
         {
             TryDelete(AllSolutionFile);
-            TryDelete(SonarSolutionFile);
             TryDelete(TestSolutionFile);
             TryDelete(PackSolutionFile);
 
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
+
+    Target CreateAllSln => _ => _
+        .Executes(() =>
+        {
+            DotNetBuildSonarSolution(AllSolutionFile);
+        });
+
+    Target GenerateMatrix => _ => _
+        .Executes(() =>
+        {
+            DotNetBuildSonarSolution(AllSolutionFile);
+            var all = ProjectModelTasks.ParseSolution(AllSolutionFile);
+
+            var testProjects = all.GetProjects("*.Tests")
+                .Select(p => new TestProject
+                {
+                    Name = Path.GetFileNameWithoutExtension(p.Path),
+                    Path = Path.GetRelativePath(RootDirectory, p.Path)
+                })
+                .OrderBy(p => p.Name)
+                .ToList();
+
+
+            var matrix = new
+            {
+                include = testProjects.Select(p => new
+                {
+                    name = p.Name,
+                    path = p.Path,
+                    directoryPath = Path.GetDirectoryName(p.Path)
+                }).ToArray()
+            };
+
+            File.WriteAllText(
+                RootDirectory / "matrix.json",
+                JsonConvert.SerializeObject(matrix));
+        });
+}
+
+
+[Serializable]
+public class TestProject
+{
+    public string Name { get; set; }
+    public string Path { get; set; }
 }

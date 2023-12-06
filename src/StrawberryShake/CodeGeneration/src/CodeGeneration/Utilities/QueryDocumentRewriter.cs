@@ -21,7 +21,7 @@ public static class QueryDocumentRewriter
         var current = document;
         current = EntityIdRewriter.Rewrite(current, schema);
         current = TypeNameQueryRewriter.Rewrite(current);
-        current = RemoveClientDirectivesRewriter.Rewrite(current);
+        current = RemoveClientDirectivesRewriter.Rewrite(current!);
         current = FragmentRewriter.Rewrite(current);
         return current;
     }

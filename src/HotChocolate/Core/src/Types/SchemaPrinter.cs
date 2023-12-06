@@ -110,6 +110,7 @@ public static class SchemaPrinter
             .OfType<IDefinitionNode>()
             .ToList();
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         if (schema.QueryType is not null
             || schema.MutationType is not null
             || schema.SubscriptionType is not null)
@@ -168,6 +169,7 @@ public static class SchemaPrinter
             .ToList();
 
         var locations = directiveType.Locations
+            .AsEnumerable()
             .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
             .ToList();
 
@@ -527,8 +529,8 @@ public static class SchemaPrinter
     private static NamedTypeNode PrintNamedType(INamedType namedType)
         => new(null, new NameNode(namedType.Name));
 
-    private static DirectiveNode PrintDirective(IDirective directiveType)
-        => directiveType.ToNode(true);
+    private static DirectiveNode PrintDirective(Directive directive)
+        => directive.AsSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
         => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);

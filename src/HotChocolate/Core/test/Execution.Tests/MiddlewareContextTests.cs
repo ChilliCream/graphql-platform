@@ -320,12 +320,18 @@ public class MiddlewareContextTests
                                 await next(context);
                             });
                 })
-            .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }");
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
+                })
+            .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }", cancellationToken: ct);
 
         var first = true;
 
         await foreach (var queryResult in result.ExpectResponseStream()
-            .ReadResultsAsync())
+            .ReadResultsAsync().WithCancellation(cancellationToken: ct))
         {
             if (first)
             {
@@ -333,7 +339,7 @@ public class MiddlewareContextTests
                 continue;
             }
 
-            Assert.NotNull(queryResult.Incremental[0].ContextData);
+            Assert.NotNull(queryResult.Incremental?[0].ContextData);
             Assert.True(queryResult.Incremental[0].ContextData.TryGetValue("abc", out var value));
             Assert.Equal(2, value);
         }
@@ -570,6 +576,12 @@ public class MiddlewareContextTests
                                 context.OperationResult.SetExtension("abc", new SomeData("def"));
                                 await next(context);
                             });
+                })
+            .ModifyOptions(
+                o =>
+                {
+                    o.EnableDefer = true;
+                    o.EnableStream = true;
                 })
             .ExecuteRequestAsync("{ ... @defer { abc(a: \"abc\") } }", cancellationToken: ct);
 

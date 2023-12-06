@@ -1,5 +1,5 @@
 ---
-title: Migrate from Hot Chocolate GraphQL server 11 to 12
+title: Migrate Hot Chocolate from 11 to 12
 ---
 
 This guide will walk you through the manual migration steps to get your Hot Chocolate GraphQL server to version 12.
@@ -145,7 +145,7 @@ public class Person
 }
 ```
 
-[Reference](/docs/hotchocolate/v13/fetching-data/pagination#naming)
+[Reference](/docs/hotchocolate/v12/fetching-data/pagination#naming)
 
 ## MongoDB Paging
 
@@ -160,7 +160,7 @@ services
     ...
 ```
 
-[Reference](/docs/hotchocolate/v13/fetching-data/pagination#providers)
+[Reference](/docs/hotchocolate/v12/fetching-data/pagination#providers)
 
 # Records
 
@@ -174,7 +174,7 @@ public record Foo([property: ID] string Id);
 
 We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
 
-[Learn more about instrumentation](/docs/hotchocolate/v13/server/instrumentation)
+[Learn more about instrumentation](/docs/hotchocolate/v12/server/instrumentation)
 
 # Relay
 
@@ -202,7 +202,7 @@ services
     .AddGlobalObjectIdentification();
 ```
 
-[Learn more about Global Object Identification](/docs/hotchocolate/v13/defining-a-schema/relay#global-object-identification)
+[Learn more about Global Object Identification](/docs/hotchocolate/v12/defining-a-schema/relay#global-object-identification)
 
 ## Query field in Mutation payloads
 
@@ -236,7 +236,7 @@ If you just want to enable the feature without further configuration, you can om
 
 > Warning: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
-[Learn more about Query field in Mutation payloads](/docs/hotchocolate/v13/defining-a-schema/relay#query-field-in-mutation-payloads)
+[Learn more about Query field in Mutation payloads](/docs/hotchocolate/v12/defining-a-schema/relay#query-field-in-mutation-payloads)
 
 # DataLoader
 

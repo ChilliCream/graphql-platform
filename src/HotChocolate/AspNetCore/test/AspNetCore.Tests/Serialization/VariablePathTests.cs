@@ -57,7 +57,7 @@ public class VariablePathTests
         // assert
         Assert.Equal("foo", path.Key.Value);
         Assert.Equal("bar", Assert.IsType<KeyPathSegment>(path.Key.Next).Value);
-        Assert.Equal(1, Assert.IsType<IndexPathSegment>(path.Key.Next.Next).Value);
-        Assert.Equal("baz", Assert.IsType<KeyPathSegment>(path.Key.Next.Next.Next).Value);
+        Assert.Equal(1, Assert.IsType<IndexPathSegment>(path.Key.Next!.Next).Value);
+        Assert.Equal("baz", Assert.IsType<KeyPathSegment>(path.Key.Next!.Next!.Next).Value);
     }
 }

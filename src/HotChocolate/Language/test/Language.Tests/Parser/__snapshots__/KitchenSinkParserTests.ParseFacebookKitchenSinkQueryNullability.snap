@@ -78,7 +78,7 @@ subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) @onSubscript
   }
 }
 
-fragment frag on Friend@onFragmentDefinition {
+fragment frag on Friend @onFragmentDefinition {
   foo(size: $size, bar: $b, obj: { key: "value", block: """
   block string uses \"""
   """ })
@@ -3367,6 +3367,7 @@ AST:
       }
     }
   ],
-  "Count": 312
+  "Count": 312,
+  "FieldsCount": 51
 }
 ---------------

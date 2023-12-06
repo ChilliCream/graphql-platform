@@ -16,9 +16,17 @@ namespace HotChocolate.Resolvers;
 public interface IResolverContext : IPureResolverContext
 {
     /// <summary>
-    /// Gets the scoped request service provider.
+    /// Gets the resolver service provider.
+    /// By default the resolver service provider is scoped to the request,
+    /// but middleware can create a resolver scope.
     /// </summary>
     IServiceProvider Services { get; set; }
+
+    /// <summary>
+    /// Gets the request scoped service provider.
+    /// We preserve here the access to the original service provider of the request.
+    /// </summary>
+    IServiceProvider RequestServices { get; }
 
     /// <summary>
     /// Gets the name that the field will have in the response map.

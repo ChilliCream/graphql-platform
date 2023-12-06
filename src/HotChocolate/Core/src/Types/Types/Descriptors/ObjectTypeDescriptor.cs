@@ -101,7 +101,7 @@ public class ObjectTypeDescriptor
 
         // if we find fields that match field name that are ignored we will
         // remove them from the field map.
-        foreach (var ignore in Definition.FieldIgnores)
+        foreach (var ignore in Definition.GetFieldIgnores())
         {
             fields.Remove(ignore.Name);
         }
@@ -120,17 +120,20 @@ public class ObjectTypeDescriptor
         var fields = TypeMemHelper.RentObjectFieldDefinitionMap();
         var handledMembers = TypeMemHelper.RentMemberSet();
 
-        InferFieldsFromFieldBindingType(fields, handledMembers);
+        InferFieldsFromFieldBindingType(fields, handledMembers, false);
 
         TypeMemHelper.Return(fields);
         TypeMemHelper.Return(handledMembers);
     }
 
-    protected void InferFieldsFromFieldBindingType(
+    private protected void InferFieldsFromFieldBindingType(
         IDictionary<string, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers)
+        ISet<MemberInfo> handledMembers,
+        bool createDefinition = true)
     {
-        HashSet<string>? subscribeResolver = null;
+        var skip = false;
+        HashSet<string>? subscribeRes = null;
+        Dictionary<MemberInfo, string>? subscribeResLook = null;
 
         if (Definition.Fields.IsImplicitBinding() &&
             Definition.FieldBindingType is not null)
@@ -148,13 +151,19 @@ public class ObjectTypeDescriptor
 
                 if (handledMembers.Add(member) &&
                     !fields.ContainsKey(name) &&
-                    IncludeField(ref subscribeResolver, members, member))
+                    IncludeField(ref skip, ref subscribeRes, ref subscribeResLook, members, member))
                 {
                     var descriptor = ObjectFieldDescriptor.New(
                         Context,
                         member,
                         Definition.RuntimeType,
                         type);
+
+                    if (subscribeResLook is not null &&
+                        subscribeResLook.TryGetValue(member, out var with))
+                    {
+                        descriptor.Definition.SubscribeWith = with;
+                    }
 
                     if (isExtension && inspector.IsMemberIgnored(member))
                     {
@@ -164,49 +173,55 @@ public class ObjectTypeDescriptor
                     _fields.Add(descriptor);
                     handledMembers.Add(member);
 
-                    // the create definition call will trigger the OnCompleteField call
-                    // on the field description and trigger the initialization of the
-                    // fields arguments.
-                    fields[name] = descriptor.CreateDefinition();
+                    if (createDefinition)
+                    {
+                        // the create definition call will trigger the OnCompleteField call
+                        // on the field description and trigger the initialization of the
+                        // fields arguments.
+                        fields[name] = descriptor.CreateDefinition();
+                    }
                 }
             }
         }
 
         static bool IncludeField(
+            ref bool skip,
             ref HashSet<string>? subscribeResolver,
+            ref Dictionary<MemberInfo, string>? subscribeResolverLookup,
             ReadOnlySpan<MemberInfo> allMembers,
             MemberInfo current)
         {
+            // if there is now with declared we can include all members.
+            if (skip)
+            {
+                return true;
+            }
+
             if (subscribeResolver is null)
             {
-                subscribeResolver = new HashSet<string>();
-
                 foreach (var member in allMembers)
                 {
-                    HandlePossibleSubscribeMember(subscribeResolver, member);
+                    if (member.IsDefined(typeof(SubscribeAttribute)) &&
+                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                    {
+                        subscribeResolver ??= new HashSet<string>();
+                        subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
+                        subscribeResolver.Add(a.With);
+                        subscribeResolverLookup.Add(member, a.With);
+                    }
                 }
+
+                skip = subscribeResolver is null;
             }
 
-            return !subscribeResolver.Contains(current.Name);
-        }
-
-        static void HandlePossibleSubscribeMember(
-            HashSet<string> subscribeResolver,
-            MemberInfo member)
-        {
-            if (member.IsDefined(typeof(SubscribeAttribute)))
-            {
-                if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
-                {
-                    subscribeResolver.Add(attr.With);
-                }
-            }
+            return !subscribeResolver?.Contains(current.Name) ?? true;
         }
     }
 
     protected virtual void OnCompleteFields(
         IDictionary<string, ObjectFieldDefinition> fields,
-        ISet<MemberInfo> handledMembers) { }
+        ISet<MemberInfo> handledMembers)
+    { }
 
     public IObjectTypeDescriptor SyntaxNode(
         ObjectTypeDefinitionNode? objectTypeDefinition)
@@ -226,22 +241,6 @@ public class ObjectTypeDescriptor
         Definition.Description = value;
         return this;
     }
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface<TInterface>(
-        TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public IObjectTypeDescriptor Interface(
-        NamedTypeNode namedType)
-        => Implements(namedType);
 
     public IObjectTypeDescriptor Implements<T>()
         where T : InterfaceType
@@ -265,9 +264,8 @@ public class ObjectTypeDescriptor
             throw new ArgumentNullException(nameof(type));
         }
 
-        Definition.Interfaces.Add(
-            new SchemaTypeReference(
-                type));
+        Definition.Interfaces.Add(new SchemaTypeReference(type));
+
         return this;
     }
 

@@ -6,96 +6,95 @@ using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.Utilities.StreamAdapters
+namespace HotChocolate.Utilities.StreamAdapters;
+
+public class AsyncEnumerableStreamAdapterTests
 {
-    public class AsyncEnumerableStreamAdapterTests
+    private readonly string[] _strings = { "a", "b", "c", "d", "e" };
+
+    [Fact]
+    public async Task ArrayToStream()
     {
-        private readonly string[] _strings = { "a", "b", "c", "d", "e" };
+        // arrange
+        var list = new List<object?>();
+        var asyncEnumerable = new TestEnumerable(_strings);
+        var adapter = new AsyncEnumerableStreamAdapter<string>(asyncEnumerable);
 
-        [Fact]
-        public async Task ArrayToStream()
+        // act
+        await foreach (var item in adapter)
         {
-            // arrange
-            var list = new List<object?>();
-            var asyncEnumerable = new TestEnumerable(_strings);
-            var adapter = new AsyncEnumerableStreamAdapter<string>(asyncEnumerable);
-
-            // act
-            await foreach (var item in adapter)
-            {
-                list.Add(item);
-            }
-
-            // assert
-            for (var i = 0; i < list.Count; i++)
-            {
-                Assert.Equal(_strings[i], list[i]);
-            }
+            list.Add(item);
         }
 
-        [Fact]
-        public async Task ArrayToStream_Cancel()
+        // assert
+        for (var i = 0; i < list.Count; i++)
         {
-            // arrange
-            var list = new List<object?>();
-            var asyncEnumerable = new TestEnumerable(_strings);
-            var adapter = new AsyncEnumerableStreamAdapter<string>(asyncEnumerable);
-            var cts = new CancellationTokenSource();
+            Assert.Equal(_strings[i], list[i]);
+        }
+    }
 
-            // act
-            await foreach (var item in adapter.WithCancellation(cts.Token))
-            {
-                list.Add(item);
-                cts.Cancel();
-            }
+    [Fact]
+    public async Task ArrayToStream_Cancel()
+    {
+        // arrange
+        var list = new List<object?>();
+        var asyncEnumerable = new TestEnumerable(_strings);
+        var adapter = new AsyncEnumerableStreamAdapter<string>(asyncEnumerable);
+        var cts = new CancellationTokenSource();
 
-            // assert
-            Assert.Collection(list, s => Assert.Equal(_strings[0], s));
+        // act
+        await foreach (var item in adapter.WithCancellation(cts.Token))
+        {
+            list.Add(item);
+            cts.Cancel();
         }
 
-        [Fact]
-        public void ArrayToStream_QueryIsNull()
-        {
-            // arrange
-            // act
-            void Verify() => new AsyncEnumerableStreamAdapter<string>(null!);
+        // assert
+        Assert.Collection(list, s => Assert.Equal(_strings[0], s));
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>(Verify);
+    [Fact]
+    public void ArrayToStream_QueryIsNull()
+    {
+        // arrange
+        // act
+        void Verify() => new AsyncEnumerableStreamAdapter<string>(null!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Verify);
+    }
+
+    private sealed class TestEnumerable : IAsyncEnumerable<string>
+    {
+        private readonly IEnumerable<string> _strings;
+
+        public TestEnumerable(IEnumerable<string> strings)
+        {
+            _strings = strings;
         }
 
-        private sealed class TestEnumerable : IAsyncEnumerable<string>
-        {
-            private readonly IEnumerable<string> _strings;
+        public IAsyncEnumerator<string> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
+            => new Enumerator(_strings.GetEnumerator());
 
-            public TestEnumerable(IEnumerable<string> strings)
+        private sealed class Enumerator : IAsyncEnumerator<string>
+        {
+            private readonly IEnumerator<string> _enumerator;
+
+            public Enumerator(IEnumerator<string> enumerator)
             {
-                _strings = strings;
+                _enumerator = enumerator;
             }
 
-            public IAsyncEnumerator<string> GetAsyncEnumerator(
-                CancellationToken cancellationToken = default)
-                => new Enumerator(_strings.GetEnumerator());
+            public string Current => _enumerator.Current;
 
-            private sealed class Enumerator : IAsyncEnumerator<string>
+            public ValueTask<bool> MoveNextAsync()
+                => new(_enumerator.MoveNext());
+
+            public ValueTask DisposeAsync()
             {
-                private readonly IEnumerator<string> _enumerator;
-
-                public Enumerator(IEnumerator<string> enumerator)
-                {
-                    _enumerator = enumerator;
-                }
-
-                public string Current => _enumerator.Current;
-
-                public ValueTask<bool> MoveNextAsync()
-                    => new(_enumerator.MoveNext());
-
-                public ValueTask DisposeAsync()
-                {
-                    _enumerator.Dispose();
-                    return default;
-                }
+                _enumerator.Dispose();
+                return default;
             }
         }
     }

@@ -26,13 +26,11 @@ public class DirectiveDescriptorTests
     {
         // arrange
         // act
-        var descriptor =
-            DirectiveTypeDescriptor.New<CustomDirective>(Context);
+        var descriptor = DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
         // assert
-        var description =
-            descriptor.CreateDefinition();
-        Assert.Equal("CustomDirective", description.Name);
+        var description = descriptor.CreateDefinition();
+        Assert.Equal("custom", description.Name);
     }
 
     [Fact]
@@ -241,7 +239,7 @@ public class DirectiveDescriptorTests
         // assert
         var description =
             descriptor.CreateDefinition();
-        Assert.Collection(description.Locations,
+        Assert.Collection(description.Locations.AsEnumerable(),
             t => Assert.Equal(DirectiveLocation.Enum, t),
             t => Assert.Equal(DirectiveLocation.EnumValue, t));
     }

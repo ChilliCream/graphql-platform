@@ -34,6 +34,8 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
     }
 
+    public string DocumentId { get; set; } = default!;
+
     public OperationType? OperationType { get; set; }
 
     public IOutputType NonNullString
@@ -104,6 +106,12 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IDictionary<string, object?> ContextData { get; set; } = default!;
 
+    public List<FieldInfoPair> CurrentFieldPairs { get; } = new();
+
+    public List<FieldInfoPair> NextFieldPairs { get; } = new();
+
+    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = new();
+
     public IList<FieldInfo> RentFieldInfoList()
     {
         var buffer = _buffers.Peek();
@@ -138,6 +146,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         _nonNullString = null;
         VariableValues = null;
         ContextData = default!;
+        DocumentId = default!;
         Path.Clear();
         SelectionSets.Clear();
         FieldSets.Clear();
@@ -156,6 +165,9 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         InputFields.Clear();
         _errors.Clear();
         List.Clear();
+        CurrentFieldPairs.Clear();
+        NextFieldPairs.Clear();
+        ProcessedFieldPairs.Clear();
         UnexpectedErrorsDetected = false;
         Count = 0;
         Max = 0;

@@ -14,7 +14,7 @@ namespace HotChocolate;
 public interface IReadOnlySchemaOptions
 {
     /// <summary>
-    /// Gets the name of the query type.
+    /// Gets or sets the name of the query type.
     /// </summary>
     string? QueryTypeName { get; }
 
@@ -39,7 +39,7 @@ public interface IReadOnlySchemaOptions
     bool UseXmlDocumentation { get; }
 
     /// <summary>
-    /// A delegate which resolves the name of the XML documentation file to be read.
+    /// A delegate which defines the name of the XML documentation file to be read.
     /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
     /// </summary>
     Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
@@ -96,7 +96,7 @@ public interface IReadOnlySchemaOptions
     /// Defines if the order of important middleware components shall be validated.
     /// </summary>
     bool ValidatePipelineOrder { get; }
-
+    
     /// <summary>
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
@@ -114,7 +114,74 @@ public interface IReadOnlySchemaOptions
     bool EnableOneOf { get; }
 
     /// <summary>
-    /// Specifies that if all nodes need to provide a node resolver for the schema to be valid.
+    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
     /// </summary>
     bool EnsureAllNodesCanBeResolved { get; }
+
+    /// <summary>
+    /// Defines if flag enums should be inferred as object value nodes
+    /// </summary>
+    /// <example>
+    /// Given the following enum
+    /// <br/>
+    /// <code>
+    /// [Flags]
+    /// public enum Example { First, Second, Third }
+    ///
+    /// public class Query { public Example Loopback(Example input) => input;
+    /// </code>
+    /// <br/>
+    /// The following schema is produced
+    /// <br/>
+    /// <code>
+    /// type Query {
+    ///    loopback(input: ExampleFlagsInput!): ExampleFlags
+    /// }
+    ///
+    /// type ExampleFlags {
+    ///    isFirst: Boolean!
+    ///    isSecond: Boolean!
+    ///    isThird: Boolean!
+    /// }
+    ///
+    /// input ExampleFlagsInput {
+    ///    isFirst: Boolean
+    ///    isSecond: Boolean
+    ///    isThird: Boolean
+    /// }
+    /// </code>
+    /// </example>
+    bool EnableFlagEnums { get; }
+
+    /// <summary>
+    /// Enables the @defer directive.
+    /// Defer and stream both are at the moment preview features.
+    /// </summary>
+    bool EnableDefer { get; }
+
+    /// <summary>
+    /// Enables the @stream directive.
+    /// Defer and stream both are at the moment preview features.
+    /// </summary>
+    bool EnableStream { get; }
+
+    /// <summary>
+    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
+    /// </summary>
+    int MaxAllowedNodeBatchSize { get; }
+
+    /// <summary>
+    /// Specified if the leading I shall be stripped from the interface name.
+    /// </summary>
+    bool StripLeadingIFromInterface { get; }
+
+    /// <summary>
+    /// Specifies that the true nullability proto type shall be enabled.
+    /// </summary>
+    bool EnableTrueNullability { get; }
+
+    /// <summary>
+    /// Specifies that the @tag directive shall be registered with the type system.
+    /// </summary>
+    bool EnableTag { get; }
 }

@@ -19,7 +19,7 @@ public static class UploadSchemaHelpers
 
     public static void Configure(IRequestExecutorBuilder builder)
     {
-        builder.AddTypeExtension<UploadQueries>().AddType<UploadType>();
+        builder.AddTypeExtension<UploadQueries>().AddUploadType();
     }
 
     public static string ReadContents(this IFile file)
@@ -54,7 +54,7 @@ public static class UploadSchemaHelpers
             if (nested is not null)
             {
                 return string.Join(",",
-                    nested.SelectMany(y => y.Select(x => x?.ReadContents() ?? "null")));
+                    nested.SelectMany(y => y!.Select(x => x?.ReadContents() ?? "null")));
             }
 
             if (objectSingle is not null)
@@ -72,7 +72,7 @@ public static class UploadSchemaHelpers
             {
                 return string.Join(",",
                     objectNested.SelectMany(y
-                        => y.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
+                        => y!.Select(x => x?.Bar!.Baz!.File!.ReadContents() ?? "null")));
             }
 
             return "error";

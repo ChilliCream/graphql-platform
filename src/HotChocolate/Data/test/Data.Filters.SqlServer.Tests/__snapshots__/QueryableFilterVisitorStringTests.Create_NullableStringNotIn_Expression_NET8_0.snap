@@ -1,0 +1,77 @@
+testatestAndtestb Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testatestAndtestb SQL:
+---------------
+.param set @__p_0 '["testatest","testbtest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "d"."Bar" OR ("p"."value" IS NULL AND "d"."Bar" IS NULL))
+---------------
+
+testbtestAndNull Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testatest"
+      }
+    ]
+  }
+}
+---------------
+
+testbtestAndNull SQL:
+---------------
+.param set @__p_0 '["testbtest",null]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "d"."Bar" OR ("p"."value" IS NULL AND "d"."Bar" IS NULL))
+---------------
+
+testatest Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
+---------------
+
+testatest SQL:
+---------------
+.param set @__p_0 '["testatest"]'
+
+SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "d"."Bar" OR ("p"."value" IS NULL AND "d"."Bar" IS NULL))
+---------------

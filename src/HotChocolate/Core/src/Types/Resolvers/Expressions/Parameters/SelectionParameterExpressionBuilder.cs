@@ -20,6 +20,6 @@ internal sealed class SelectionParameterExpressionBuilder
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(ISelection).IsAssignableFrom(parameter.ParameterType);
 
-    public override Expression Build(ParameterInfo parameter, Expression context)
-        => Expression.Convert(base.Build(parameter, context), parameter.ParameterType);
+    public override Expression Build(ParameterExpressionBuilderContext context)
+        => Expression.Convert(base.Build(context), context.Parameter.ParameterType);
 }

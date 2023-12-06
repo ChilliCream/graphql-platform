@@ -41,6 +41,9 @@ public class OutputFieldBase<TDefinition>
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
+    
+    internal bool IsTypeNameField
+        => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
 
     /// <inheritdoc />
     public bool IsDeprecated
@@ -56,7 +59,7 @@ public class OutputFieldBase<TDefinition>
     {
         base.OnCompleteField(context, declaringMember, definition);
 
-        Type = context.GetType<IOutputType>(definition.Type!);
+        Type = context.GetType<IOutputType>(definition.Type!).EnsureOutputType();
         _runtimeType = CompleteRuntimeType(Type, null);
         Arguments = OnCompleteFields(context, definition);
     }

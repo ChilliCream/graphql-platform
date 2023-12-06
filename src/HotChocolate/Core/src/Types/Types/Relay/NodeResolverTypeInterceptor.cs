@@ -24,6 +24,8 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
     private readonly List<IDictionary<string, object?>> _nodes = new();
 
+    internal override uint Position => uint.MaxValue - 101;
+
     private ITypeCompletionContext? CompletionContext { get; set; }
 
     private ObjectType? QueryType { get; set; }
@@ -40,16 +42,15 @@ internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
         // we are only interested in the query type to infer node resolvers.
         if (operationType is OperationType.Query &&
-            definition is ObjectTypeDefinition typeDef &&
             completionContext.Type is ObjectType queryType)
         {
             CompletionContext = completionContext;
-            TypeDef = typeDef;
+            TypeDef = definition;
             QueryType = queryType;
         }
     }

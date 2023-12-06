@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -43,12 +43,14 @@ public class QueryableDefaultFieldHandler
                 ErrorHelper.CreateNonNullError(field, node.Value, context));
 
             action = SyntaxVisitor.Skip;
+
             return true;
         }
 
         if (field.RuntimeType is null)
         {
             action = null;
+
             return false;
         }
 
@@ -69,25 +71,37 @@ public class QueryableDefaultFieldHandler
         }
         else
         {
+            var instance = context.GetInstance();
+
+            // we need to check if the previous value was a nullable value type. if it is a nullable
+            // value type we cannot just chain the next expression to it. We have to first select
+            // ".Value".
+            //
+            // without this check we would chain "previous" directly to "current": previous.current
+            // with this check we chain "previous" via ".Value" to "current": previous.Value.current
+            if (context.TryGetPreviousRuntimeType(out var previousRuntimeType) &&
+                previousRuntimeType.IsNullableValueType())
+            {
+                var valueGetter = instance.Type.GetProperty(nameof(Nullable<int>.Value));
+                instance = Expression.Property(instance, valueGetter!);
+            }
+
             nestedProperty = field.Member switch
             {
-                PropertyInfo propertyInfo =>
-                    Expression.Property(context.GetInstance(), propertyInfo),
+                PropertyInfo propertyInfo => Expression.Property(instance, propertyInfo),
 
-                MethodInfo methodInfo =>
-                    Expression.Call(context.GetInstance(), methodInfo),
+                MethodInfo methodInfo => Expression.Call(instance, methodInfo),
 
-                null =>
-                    throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
+                null => throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
 
-                _ =>
-                    throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
+                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
             };
         }
 
         context.PushInstance(nestedProperty);
         context.RuntimeTypes.Push(field.RuntimeType);
         action = SyntaxVisitor.Continue;
+
         return true;
     }
 
@@ -100,6 +114,7 @@ public class QueryableDefaultFieldHandler
         if (field.RuntimeType is null)
         {
             action = null;
+
             return false;
         }
 
@@ -109,15 +124,27 @@ public class QueryableDefaultFieldHandler
         context.PopInstance();
         context.RuntimeTypes.Pop();
 
-        if (context.InMemory)
+        // when we are in a in-memory context, it is possible that we have null reference exceptions
+        // To avoid these exceptions, we need to add null checks to the chain. We always wrap the
+        // field before in a null check.
+        //
+        // reference types:
+        //    previous.current > 10   ==>    previous is not null && previous.current > 10
+        //
+        // structs:
+        //    previous.Value.current > 10   ==> previous is not null && previous.Value.current > 10
+        //
+        if (context.InMemory &&
+            context.TryGetPreviousRuntimeType(out var previousRuntimeType) &&
+            (previousRuntimeType.IsNullableValueType() || !previousRuntimeType.IsValueType()))
         {
-            condition = FilterExpressionBuilder.NotNullAndAlso(
-                context.GetInstance(),
-                condition);
+            var peekedInstance = context.GetInstance();
+            condition = FilterExpressionBuilder.NotNullAndAlso(peekedInstance, condition);
         }
 
         context.GetLevel().Enqueue(condition);
         action = SyntaxVisitor.Continue;
+
         return true;
     }
 
@@ -134,12 +161,15 @@ public class QueryableDefaultFieldHandler
             _parameter = parameter;
         }
 
+        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
+
         protected override Expression VisitParameter(ParameterExpression node)
         {
             if (node == _parameter)
             {
                 return _replacement;
             }
+
             return base.VisitParameter(node);
         }
 
@@ -149,5 +179,35 @@ public class QueryableDefaultFieldHandler
             Expression replacement)
             => (LambdaExpression)
                 new ReplaceVariableExpressionVisitor(replacement, parameter).Visit(lambda);
+    }
+}
+
+static file class LocalExtensions
+{
+    public static bool TryGetPreviousRuntimeType(
+        this QueryableFilterContext context,
+        [NotNullWhen(true)] out IExtendedType? runtimeType)
+    {
+        return context.RuntimeTypes.TryPeek(out runtimeType);
+    }
+
+    public static bool IsNullableValueType(this IExtendedType type)
+    {
+        return type.GetTypeOrElementType() is { Type.IsValueType: true, IsNullable: true };
+    }
+
+    public static bool IsValueType(this IExtendedType type)
+    {
+        return type.GetTypeOrElementType() is { Type.IsValueType: true };
+    }
+
+    private static IExtendedType GetTypeOrElementType(this IExtendedType type)
+    {
+        while (type is { IsArrayOrList: true, ElementType: { } nextType })
+        {
+            type = nextType;
+        }
+
+        return type;
     }
 }

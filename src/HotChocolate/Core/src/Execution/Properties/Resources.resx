@@ -163,7 +163,7 @@
     <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
   <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
-    <value>The query request contains no document.</value>
+    <value>The query request contains no document or no document id.</value>
   </data>
   <data name="ThrowHelper_VariableIsNotAnInputType_Message" xml:space="preserve">
     <value>Variable `{0}` is not an input type.</value>
@@ -326,5 +326,14 @@
   </data>
   <data name="MiddlewareContext_ReplaceArguments_NullNotAllowed" xml:space="preserve">
     <value>It is not allowed to replace the arguments with null.</value>
+  </data>
+  <data name="SelectionSetOptimizerContext_AddSelection_ResponseNameNotTheSame" xml:space="preserve">
+    <value>The provided response name must be the same as on the selection.</value>
+  </data>
+  <data name="ComplexityAnalyzerCompiler_Enter_OnlyOperations" xml:space="preserve">
+    <value>We only compile operations.</value>
+  </data>
+  <data name="ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed" xml:space="preserve">
+    <value>Only boolean values are allowed to switch null bubbling on or off.</value>
   </data>
 </root>
