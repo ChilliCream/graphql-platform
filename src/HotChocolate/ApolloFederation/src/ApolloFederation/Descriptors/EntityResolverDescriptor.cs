@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using ApolloGraphQL.HotChocolate.Federation.Descriptors;
 using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Internal;
