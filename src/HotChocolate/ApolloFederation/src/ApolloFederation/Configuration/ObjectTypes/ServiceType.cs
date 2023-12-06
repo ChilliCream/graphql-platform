@@ -1,5 +1,7 @@
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.Resolvers;
+using FederationSchemaPrinter = HotChocolate.ApolloFederation.FederationSchemaPrinter;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -13,11 +15,30 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 public class ServiceType : ObjectType
 {
+    public ServiceType(bool isV2 = false)
+    {
+        IsV2 = isV2;
+    }
+
+    public bool IsV2 { get; }
+
     protected override void Configure(IObjectTypeDescriptor descriptor)
         => descriptor
             .Name(WellKnownTypeNames.Service)
             .Description(FederationResources.ServiceType_Description)
             .Field(WellKnownFieldNames.Sdl)
             .Type<NonNullType<StringType>>()
-            .Resolve(resolver => FederationSchemaPrinter.Print(resolver.Schema));
+            .Resolve(resolver => PrintSchemaSdl(resolver, IsV2));
+
+    private string PrintSchemaSdl(IResolverContext resolver, bool isV2)
+    {
+        if (isV2)
+        {
+            return SchemaPrinter.Print(resolver.Schema);
+        }
+        else
+        {
+            return FederationSchemaPrinter.Print(resolver.Schema);
+        }
+    }
 }

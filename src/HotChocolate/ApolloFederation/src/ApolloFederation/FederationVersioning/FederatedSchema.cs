@@ -5,9 +5,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
-/// Apollo Federation v2 base schema object that allows users to apply custom schema directives (e.g. @composeDirective)
+/// Apollo Federation base schema object that allows users to apply custom schema directives (e.g. @composeDirective)
 /// </summary>
-public class FederatedSchema : Schema
+public sealed class FederatedSchema : Schema
 {
     /// <summary>
     /// Initializes new instance of <see cref="FederatedSchema"/>
@@ -15,7 +15,7 @@ public class FederatedSchema : Schema
     /// <param name="version">
     /// Supported Apollo Federation version
     /// </param>
-    public FederatedSchema(FederationVersion version = FederationVersion.FEDERATION_25)
+    public FederatedSchema(FederationVersion version = FederationVersion.Latest)
     {
         FederationVersion = version;
     }
@@ -35,9 +35,9 @@ public class FederatedSchema : Schema
     protected override void Configure(ISchemaTypeDescriptor descriptor)
     {
         var schemaType = this.GetType();
-        if (schemaType.IsDefined(typeof(SchemaTypeDescriptorAttribute), true))
+        if (schemaType.IsDefined(typeof(SchemaTypeDescriptorAttribute), inherit: true))
         {
-            foreach (var attribute in schemaType.GetCustomAttributes(true))
+            foreach (var attribute in schemaType.GetCustomAttributes(inherit: true))
             {
                 if (attribute is SchemaTypeDescriptorAttribute casted)
                 {
