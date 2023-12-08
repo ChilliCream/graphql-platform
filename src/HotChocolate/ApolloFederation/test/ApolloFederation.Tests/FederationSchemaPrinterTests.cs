@@ -3,7 +3,6 @@ using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation;
 
