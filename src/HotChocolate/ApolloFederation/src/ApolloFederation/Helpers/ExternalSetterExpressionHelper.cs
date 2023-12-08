@@ -11,7 +11,7 @@ using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 namespace HotChocolate.ApolloFederation.Helpers;
 
 /// <summary>
-/// This class contains helpers to genereate external field setters.
+/// This class contains helpers to generate external field setters.
 /// </summary>
 internal static class ExternalSetterExpressionHelper
 {
