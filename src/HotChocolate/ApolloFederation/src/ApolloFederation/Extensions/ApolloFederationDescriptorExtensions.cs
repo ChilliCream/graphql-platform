@@ -21,11 +21,10 @@ public static partial class ApolloFederationDescriptorExtensions
     /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">Subgraph Contact Information</see>
     /// for additional details.
     ///
-    /// <code>
+    /// <example>
     /// schema @contact(description : "send urgent issues to [#oncall](https://yourteam.slack.com/archives/oncall).", name : "My Team Name", url : "https://myteam.slack.com/archives/teams-chat-room-url"){
     ///   query: Query
     /// }
-    /// </code>
     /// </example>
     /// </summary>
     /// <param name="descriptor">
@@ -399,7 +398,7 @@ public static partial class ApolloFederationDescriptorExtensions
     public static ISchemaTypeDescriptor Link(
         this ISchemaTypeDescriptor descriptor,
         string url,
-        string?[]? import)
+        string[]? import)
     {
         if (descriptor is null)
         {
