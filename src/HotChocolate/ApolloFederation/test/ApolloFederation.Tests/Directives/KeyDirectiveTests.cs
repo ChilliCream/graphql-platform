@@ -194,6 +194,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
 
     public class Query<T>
     {
+        // ReSharper disable once InconsistentNaming
         public T someField(int id) => default!;
     }
 

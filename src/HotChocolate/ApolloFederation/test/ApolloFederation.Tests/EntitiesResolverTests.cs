@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Language;
-using Xunit;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -258,7 +257,7 @@ public class EntitiesResolverTests
         }
     }
 
-    [ExtendServiceType]
+    [Extends]
     public class ForeignType
     {
         public ForeignType(string id, string someExternalField)

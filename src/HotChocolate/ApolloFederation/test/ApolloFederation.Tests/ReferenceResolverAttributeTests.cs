@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Xunit;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
@@ -274,7 +273,7 @@ public class ReferenceResolverAttributeTests
         public Task<InClassRefResolver> GetAsync([LocalState] ObjectValueNode data)
         {
             return Task.FromResult(
-                new InClassRefResolver()
+                new InClassRefResolver
                 {
                     Id = nameof(InClassRefResolver),
                 });
@@ -344,7 +343,7 @@ public class ReferenceResolverAttributeTests
             [LocalState] ObjectValueNode data)
         {
             return Task.FromResult(
-                new ExternalRefResolver()
+                new ExternalRefResolver
                 {
                     Id = nameof(ExternalRefResolverRenamedMethod),
                 });
@@ -357,7 +356,7 @@ public class ReferenceResolverAttributeTests
             [LocalState] ObjectValueNode data)
         {
             return Task.FromResult(
-                new ExternalRefResolver()
+                new ExternalRefResolver
                 {
                     Id = nameof(ExternalRefResolver),
                 });
