@@ -103,8 +103,7 @@ internal static class ThrowHelper
                 .Build());
 
     /// <summary>
-    /// The key attribute is used on the type level without specifying the the
-    /// fieldset.
+    /// The key attribute is used on the type level without specifying the fieldset.
     /// </summary>
     public static SchemaException Key_FieldSet_CannotBeEmpty(
         Type type) =>
@@ -140,5 +139,53 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_Requires_FieldSet_CannotBeEmpty)
                 // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
                 .SetExtension(nameof(member), member)
+                .Build());
+
+    /// <summary>
+    /// The compose directive attribute is used on the type level without specifying the name.
+    /// </summary>
+    public static SchemaException ComposeDirective_Name_CannotBeEmpty(
+        Type type) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_ComposeDirective_Name_CannotBeEmpty,
+                    type.FullName ?? type.Name)
+                .Build());
+
+    /// <summary>
+    /// The link attribute is used on the schema without specifying the url.
+    /// </summary>
+    public static SchemaException Link_Url_CannotBeEmpty(
+        Type type) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_Link_Url_CannotBeEmpty,
+                    type.FullName ?? type.Name)
+                .Build());
+
+    /// <summary>
+    /// The contact attribute is used on the schema without specifying the name.
+    /// </summary>
+    public static SchemaException Contact_Name_CannotBeEmpty(
+        Type type) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_Contact_Name_CannotBeEmpty,
+                    type.FullName ?? type.Name)
+                .Build());
+
+    /// <summary>
+    /// Specified federation version is not supported.
+    /// </summary>
+    public static SchemaException FederationVersion_Unknown(
+        FederationVersion version) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_FederationVersion_Unknown,
+                    version)
                 .Build());
 }
