@@ -63,6 +63,11 @@ public sealed class EntityResolverDescriptor<TEntity>
         }
     }
 
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
+    public IObjectTypeDescriptor ResolveReference(
+        FieldResolverDelegate fieldResolver)
+        => ResolveReference(fieldResolver, Array.Empty<string[]>());
+
     /// <inheritdoc cref="IEntityResolverDescriptor{T}"/>
     public IObjectTypeDescriptor ResolveReferenceWith(
         Expression<Func<TEntity, object?>> method)
@@ -108,6 +113,17 @@ public sealed class EntityResolverDescriptor<TEntity>
 
         return ResolveReference(resolver.Resolver!, argumentBuilder.Required);
     }
+
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
+    public IObjectTypeDescriptor ResolveReferenceWith<TResolver>()
+        => ResolveReferenceWith(typeof(TResolver));
+
+    /// <inheritdoc cref="IEntityResolverDescriptor"/>
+    public IObjectTypeDescriptor ResolveReferenceWith(Type type)
+        => ResolveReferenceWith(
+            Context.TypeInspector.GetNodeResolverMethod(
+                Definition.EntityType ?? type,
+                type)!);
 
     private IObjectTypeDescriptor ResolveReference(
         FieldResolverDelegate fieldResolver,
