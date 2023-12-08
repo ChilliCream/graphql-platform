@@ -47,8 +47,8 @@ internal sealed class FederationUtils
 {
     private const string _federationSpecBaseUrl = "https://specs.apollo.dev/federation/v";
 
-    private static FederationVersionValues<List<string>> _imports;
-    private static FederationVersionValues<string> _urls;
+    private static readonly FederationVersionValues<List<string>> _imports;
+    private static readonly FederationVersionValues<string> _urls;
 
     private static FederationVersionValues<T> CreateFederationValues<T>()
     {
@@ -90,10 +90,12 @@ internal sealed class FederationUtils
 
         Debug.Assert(_imports.AllSet);
 
+        _urls = CreateFederationValues<string>();
         for (FederationVersion i = 0; i < FederationVersion.Count; i++)
         {
-            _urls[i] = _federationSpecBaseUrl + "2." + (int)i;
+            _urls[i] = $"{_federationSpecBaseUrl}2.{(int)i}";
         }
+
         Debug.Assert(_urls.AllSet);
     }
 
