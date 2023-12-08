@@ -34,6 +34,10 @@ namespace HotChocolate.ApolloFederation;
 /// </example>
 /// <see cref="NonResolvableKeyAttribute"/>
 /// </summary>
+[AttributeUsage(
+    AttributeTargets.Class |
+    AttributeTargets.Property
+    AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
 {
     /// <summary>
