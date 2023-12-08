@@ -223,7 +223,7 @@
           "BananaCakePop.Middleware": "[10.0.7, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
-          "HotChocolate.Transport.Sockets": "[0.0.0, )",
+          "HotChocolate.Transport.Sockets": "[14.0.0-preview.build.0, )",
           "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
         }
       },
@@ -263,10 +263,10 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate": "[0.0.0, )",
-          "HotChocolate.AspNetCore": "[0.0.0, )",
+          "HotChocolate.AspNetCore": "[14.0.0-preview.build.0, )",
           "HotChocolate.Fusion.Abstractions": "[0.0.0, )",
-          "HotChocolate.Transport.Http": "[0.0.0, )",
-          "HotChocolate.Transport.Sockets.Client": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Transport.Sockets.Client": "[14.0.0-preview.build.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[7.0.0, )",
           "Microsoft.Extensions.Http": "[7.0.0, )",
           "System.Reactive": "[5.0.0, )"
@@ -354,7 +354,7 @@
       "hotchocolate.transport.http": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
+          "HotChocolate.Transport.Abstractions": "[14.0.0-preview.build.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
           "System.IO.Pipelines": "[7.0.0, )"
         }
@@ -369,8 +369,8 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
-          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
-          "HotChocolate.Transport.Sockets": "[0.0.0, )",
+          "HotChocolate.Transport.Abstractions": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Transport.Sockets": "[14.0.0-preview.build.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
           "System.Collections.Immutable": "[7.0.0, )",
           "System.Text.Json": "[7.0.0, )"
@@ -716,7 +716,7 @@
           "BananaCakePop.Middleware": "[10.0.7, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
-          "HotChocolate.Transport.Sockets": "[0.0.0, )",
+          "HotChocolate.Transport.Sockets": "[14.0.0-preview.build.0, )",
           "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
         }
       },
@@ -756,10 +756,10 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate": "[0.0.0, )",
-          "HotChocolate.AspNetCore": "[0.0.0, )",
+          "HotChocolate.AspNetCore": "[14.0.0-preview.build.0, )",
           "HotChocolate.Fusion.Abstractions": "[0.0.0, )",
-          "HotChocolate.Transport.Http": "[0.0.0, )",
-          "HotChocolate.Transport.Sockets.Client": "[0.0.0, )",
+          "HotChocolate.Transport.Http": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Transport.Sockets.Client": "[14.0.0-preview.build.0, )",
           "Microsoft.Extensions.DependencyInjection": "[8.0.0, )",
           "Microsoft.Extensions.Http": "[8.0.0, )",
           "System.Reactive": "[5.0.0, )"
@@ -847,7 +847,7 @@
       "hotchocolate.transport.http": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
+          "HotChocolate.Transport.Abstractions": "[14.0.0-preview.build.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
           "System.IO.Pipelines": "[8.0.0, )"
         }
@@ -862,8 +862,8 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Language.SyntaxTree": "[0.0.0, )",
-          "HotChocolate.Transport.Abstractions": "[0.0.0, )",
-          "HotChocolate.Transport.Sockets": "[0.0.0, )",
+          "HotChocolate.Transport.Abstractions": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Transport.Sockets": "[14.0.0-preview.build.0, )",
           "HotChocolate.Utilities": "[0.0.0, )",
           "System.Collections.Immutable": "[8.0.0, )",
           "System.Text.Json": "[8.0.0, )"
