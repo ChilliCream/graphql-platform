@@ -35,6 +35,7 @@ internal static class ArgumentParser
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
+            {
                 var current = path[i];
 
                 if (type is not IComplexOutputType complexType ||
@@ -56,15 +57,17 @@ internal static class ArgumentParser
                     }
                 }
                 break;
-
+            }
             case SyntaxKind.NullValue:
-                value = default(T);
+            {
+                value = default;
                 return true;
-
+            }
             case SyntaxKind.StringValue:
             case SyntaxKind.IntValue:
             case SyntaxKind.FloatValue:
             case SyntaxKind.BooleanValue:
+            {
                 if (type.NamedType() is not ScalarType scalarType)
                 {
                     break;
@@ -72,8 +75,10 @@ internal static class ArgumentParser
 
                 value = (T)scalarType.ParseLiteral(valueNode)!;
                 return true;
+            }
 
             case SyntaxKind.EnumValue:
+            {
                 if (type.NamedType() is not EnumType enumType)
                 {
                     break;
@@ -81,6 +86,7 @@ internal static class ArgumentParser
 
                 value = (T)enumType.ParseLiteral(valueNode)!;
                 return true;
+            }
         }
 
         value = default;
@@ -117,6 +123,7 @@ internal static class ArgumentParser
         switch (valueNode.Kind)
         {
             case SyntaxKind.ObjectValue:
+            {
                 var current = path[i];
 
                 foreach (var fieldValue in ((ObjectValueNode)valueNode).Fields)
@@ -131,6 +138,7 @@ internal static class ArgumentParser
                     }
                 }
                 break;
+            }
 
             case SyntaxKind.NullValue:
             case SyntaxKind.StringValue:
