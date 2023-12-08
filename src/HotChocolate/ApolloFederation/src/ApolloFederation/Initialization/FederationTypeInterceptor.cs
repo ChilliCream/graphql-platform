@@ -105,8 +105,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
     {
-        if (!typeDef.GetContextData().TryGetValue(EntityResolver, out var value) ||
-            value is not IReadOnlyList<ReferenceResolverDefinition> resolvers)
+        if (!typeDef.GetContextData().TryGetValue(EntityResolver, out var resolversObject) ||
+            resolversObject is not IReadOnlyList<ReferenceResolverDefinition> resolvers)
         {
             return;
         }
@@ -179,8 +179,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                     c.Schema,
                     c.ArgumentValue<IReadOnlyList<Representation>>(
                         WellKnownArgumentNames.Representations),
-                    c
-                ));
+                    c));
         objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
     }
 
@@ -207,7 +206,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             {
                 if (attribute is ReferenceResolverAttribute casted)
                 {
-                    casted.Configure(_context, descriptor, possibleReferenceResolver);
+                    casted.TryConfigure(_context, descriptor, possibleReferenceResolver);
                 }
             }
         }
@@ -290,7 +289,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void ApplyEnumDirectives(EnumTypeDefinition enumTypeDefinition)
     {
-        var requiresScopes = new List<List<Scope>>();
+        var requiredScopes = new List<List<Scope>>();
         var descriptor = EnumTypeDescriptor.From(_context, enumTypeDefinition);
         foreach (var attribute in enumTypeDefinition.RuntimeType.GetCustomAttributes(true))
         {
@@ -313,16 +312,19 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 }
                 case RequiresScopesAttribute scopes:
                 {
-                    requiresScopes.Add(scopes.Scopes.Select(scope => new Scope(scope)).ToList());
+                    var addedScopes = scopes.Scopes
+                        .Select(scope => new Scope(scope))
+                        .ToList();
+                    requiredScopes.Add(addedScopes);
                     break;
                 }
                 default: break;
             }
         }
 
-        if (requiresScopes.Count > 0)
+        if (requiredScopes.Count > 0)
         {
-            descriptor.RequiresScopes(requiresScopes);
+            descriptor.RequiresScopes(requiredScopes);
         }
     }
 
