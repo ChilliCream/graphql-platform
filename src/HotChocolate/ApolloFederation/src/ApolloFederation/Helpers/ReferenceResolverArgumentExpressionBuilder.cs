@@ -62,7 +62,7 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
     public IReadOnlyList<string[]> Required => _requiredPaths;
 
     protected override bool ResolveDefaultIfNotExistsParameterValue(
-        Type? targetType,
+        Type targetType,
         ParameterInfo parameter)
         => false;
 

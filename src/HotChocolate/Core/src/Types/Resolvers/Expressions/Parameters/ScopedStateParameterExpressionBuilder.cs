@@ -112,7 +112,7 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     }
 
     protected virtual bool ResolveDefaultIfNotExistsParameterValue(
-        Type? targetType,
+        Type targetType,
         ParameterInfo parameter)
     {
         var helper = new NullableHelper(targetType);
