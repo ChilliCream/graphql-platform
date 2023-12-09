@@ -7,7 +7,7 @@ namespace HotChocolate.ApolloFederation;
 /// <summary>
 /// Apollo Federation base schema object that allows users to apply custom schema directives (e.g. @composeDirective)
 /// </summary>
-public sealed class FederatedSchema : Schema
+public abstract class FederatedSchema : Schema
 {
     /// <summary>
     /// Initializes new instance of <see cref="FederatedSchema"/>
@@ -15,7 +15,7 @@ public sealed class FederatedSchema : Schema
     /// <param name="version">
     /// Supported Apollo Federation version
     /// </param>
-    public FederatedSchema(FederationVersion version = FederationVersion.Latest)
+    protected FederatedSchema(FederationVersion version = FederationVersion.Latest)
     {
         FederationVersion = version;
     }

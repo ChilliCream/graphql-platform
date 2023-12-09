@@ -37,5 +37,5 @@ public sealed class ProvidesDirectiveType : DirectiveType
             .Name(WellKnownTypeNames.Provides)
             .Description(FederationResources.ProvidesDirective_Description)
             .Location(DirectiveLocation.FieldDefinition)
-            .FieldsArgumentV1();
+            .FieldsArgument();
 }

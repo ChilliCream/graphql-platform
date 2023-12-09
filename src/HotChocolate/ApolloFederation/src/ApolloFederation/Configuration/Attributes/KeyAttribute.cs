@@ -36,7 +36,7 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 [AttributeUsage(
     AttributeTargets.Class |
-    AttributeTargets.Property
+    AttributeTargets.Property,
     AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
 {

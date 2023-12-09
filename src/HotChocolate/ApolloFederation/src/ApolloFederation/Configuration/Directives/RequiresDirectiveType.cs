@@ -30,5 +30,5 @@ public sealed class RequiresDirectiveType : DirectiveType
             .Name(WellKnownTypeNames.Requires)
             .Description(FederationResources.RequiresDirective_Description)
             .Location(DirectiveLocation.FieldDefinition)
-            .FieldsArgumentV1();
+            .FieldsArgument();
 }
