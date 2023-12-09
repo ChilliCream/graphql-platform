@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Descriptors;
@@ -11,8 +12,10 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.Types.TagHelper;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -40,12 +43,19 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private readonly List<ObjectType> _entityTypes = new();
     private IDescriptorContext _context = default!;
+    private ITypeInspector _typeInspector = default!;
+    private ObjectType _queryType = default!;
 
-    [Obsolete("This hook is deprecated and will be removed in the next release.")]
-    internal override void OnBeforeCreateSchema(IDescriptorContext context, ISchemaBuilder schemaBuilder)
+    internal override void InitializeContext(
+        IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeReferenceResolver typeReferenceResolver)
     {
-        base.OnBeforeCreateSchema(context, schemaBuilder);
+        _typeInspector = context.TypeInspector;
         _context = context;
+        ModifyOptions(context, o => o.Mode = TagMode.ApolloFederation);
     }
 
     public override void OnAfterInitialize(
@@ -62,6 +72,22 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             AddToUnionIfHasTypeLevelKeyDirective(
                 objectType,
                 objectTypeDefinition);
+
+            AggregatePropertyLevelKeyDirectives(
+                objectType,
+                objectTypeDefinition,
+                discoveryContext);
+        }
+    }
+
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType is OperationType.Query)
+        {
+            _queryType = (ObjectType) completionContext.Type;
         }
     }
 
@@ -105,8 +131,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
     {
-        if (!typeDef.GetContextData().TryGetValue(EntityResolver, out var resolversObject) ||
-            resolversObject is not IReadOnlyList<ReferenceResolverDefinition> resolvers)
+        if (!typeDef.GetContextData().TryGetValue(EntityResolver, out var resolversObject))
+        {
+            return;
+        }
+
+        if (resolversObject is not IReadOnlyList<ReferenceResolverDefinition> resolvers)
         {
             return;
         }
@@ -152,11 +182,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase? definition)
     {
-        if (definition is not ObjectTypeDefinition objectTypeDefinition ||
-            _context.Options.QueryTypeName != definition.Name)
+        if (!ReferenceEquals(completionContext.Type, _queryType))
         {
             return;
         }
+
+        var objectTypeDefinition = (ObjectTypeDefinition)definition!;
 
         var serviceFieldDescriptor = ObjectFieldDescriptor.New(
             _context,
@@ -226,15 +257,64 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
+    private void AggregatePropertyLevelKeyDirectives(
+        ObjectType objectType,
+        ObjectTypeDefinition objectTypeDefinition,
+        ITypeDiscoveryContext discoveryContext)
+    {
+        // if we find key markers on our fields, we need to construct the key directive
+        // from the annotated fields.
+        {
+            bool foundMarkers = objectTypeDefinition.Fields
+                .Any(f => f.ContextData.ContainsKey(KeyMarker));
+            if (!foundMarkers)
+            {
+                return;
+            }
+        }
+
+        IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
+        var fieldSet = new StringBuilder();
+
+        foreach (var fieldDefinition in fields)
+        {
+            if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
+            {
+                if (fieldSet.Length > 0)
+                {
+                    fieldSet.Append(' ');
+                }
+
+                fieldSet.Append(fieldDefinition.Name);
+            }
+        }
+
+        // add the key directive with the dynamically generated field set.
+        AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
+
+        // register dependency to the key directive so that it is completed before
+        // we complete this type.
+        foreach (var directiveDefinition in objectTypeDefinition.Directives)
+        {
+            discoveryContext.Dependencies.Add(
+                new TypeDependency(
+                    directiveDefinition.Type,
+                    TypeDependencyFulfilled.Completed));
+
+            discoveryContext.Dependencies.Add(new(directiveDefinition.Type));
+        }
+
+        // since this type has now a key directive we also need to add this type to
+        // the _Entity union type.
+        _entityTypes.Add(objectType);
+    }
+
     private void AddMemberTypesToTheEntityUnionType(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition)
     {
-        if (completionContext.Type is not EntityType)
-        {
-            return;
-        }
-        if (definition is UnionTypeDefinition unionTypeDefinition)
+        if (completionContext.Type is EntityType &&
+            definition is UnionTypeDefinition unionTypeDefinition)
         {
             foreach (var objectType in _entityTypes)
             {
