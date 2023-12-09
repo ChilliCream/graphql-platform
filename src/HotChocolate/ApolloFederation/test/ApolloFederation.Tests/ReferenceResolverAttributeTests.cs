@@ -209,18 +209,18 @@ public class ReferenceResolverAttributeTests
         return entity;
     }
 
-    public class Query_InClass_Invalid
+    public sealed class Query_InClass_Invalid
     {
         public InvalidInClassRefResolver InvalidInClassRefResolver { get; set; } = default!;
     }
 
-    public class Query_ExternalClass_Invalid
+    public sealed class Query_ExternalClass_Invalid
     {
         public ExternalRefResolver_Invalid ExternalRefResolver_Invalid { get; set; } = default!;
     }
 
     [ReferenceResolver(EntityResolver = "non-existing-method")]
-    public class InvalidInClassRefResolver
+    public sealed class InvalidInClassRefResolver
     {
         [Key]
         public string? Id { get; set; }
@@ -229,19 +229,19 @@ public class ReferenceResolverAttributeTests
     [ReferenceResolver(
         EntityResolverType = typeof(InvalidExternalRefResolver),
         EntityResolver = "non-existing-method")]
-    public class ExternalRefResolver_Invalid
+    public sealed class ExternalRefResolver_Invalid
     {
         [Key]
         public string? Id { get; set; }
     }
 
-    public class InvalidExternalRefResolver
+    public sealed class InvalidExternalRefResolver
     {
         [Key]
         public string? Id { get; set; }
     }
 
-    public class Query
+    public sealed class Query
     {
         public InClassRefResolver InClassRefResolver { get; set; } = default!;
         public ExternalRefResolver ExternalRefResolver { get; set; } = default!;
@@ -249,23 +249,23 @@ public class ReferenceResolverAttributeTests
             default!;
     }
 
-    public class QueryWithSingleKeyResolver
+    public sealed class QueryWithSingleKeyResolver
     {
         public ExternalSingleKeyResolver ExternalRefResolver { get; set; } = default!;
     }
 
-    public class QueryWithMultiKeyResolver
+    public sealed class QueryWithMultiKeyResolver
     {
         public ExternalMultiKeyResolver ExternalRefResolver { get; set; } = default!;
     }
 
-    public class QueryWithExternalField
+    public sealed class QueryWithExternalField
     {
         public ExternalFields ExternalRefResolver { get; set; } = default!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
-    public class InClassRefResolver
+    public sealed class InClassRefResolver
     {
         [Key]
         public string? Id { get; set; }
@@ -281,14 +281,14 @@ public class ReferenceResolverAttributeTests
     }
 
     [ReferenceResolver(EntityResolverType = typeof(ExternalReferenceResolver))]
-    public class ExternalRefResolver
+    public sealed class ExternalRefResolver
     {
         [Key]
         public string Id { get; set; } = default!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
-    public class ExternalSingleKeyResolver
+    public sealed class ExternalSingleKeyResolver
     {
         [Key]
         public string Id { get; set; } = default!;
@@ -298,7 +298,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
-    public class ExternalFields
+    public sealed class ExternalFields
     {
         [Key]
         public string Id { get; set; } = default!;
@@ -313,7 +313,7 @@ public class ReferenceResolverAttributeTests
     [Key("id")]
     [Key("sku")]
 
-    public class ExternalMultiKeyResolver
+    public sealed class ExternalMultiKeyResolver
     {
         public string Id { get; set; } = default!;
 
@@ -331,7 +331,7 @@ public class ReferenceResolverAttributeTests
     [ReferenceResolver(
         EntityResolverType = typeof(ExternalReferenceResolverRenamedMethod),
         EntityResolver = nameof(ExternalReferenceResolverRenamedMethod.SomeRenamedMethod))]
-    public class ExternalRefResolverRenamedMethod
+    public sealed class ExternalRefResolverRenamedMethod
     {
         [Key]
         public string Id { get; set; } = default!;

@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
 
-public class FederationTypesTestBase
+public abstract class FederationTypesTestBase
 {
     protected ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
