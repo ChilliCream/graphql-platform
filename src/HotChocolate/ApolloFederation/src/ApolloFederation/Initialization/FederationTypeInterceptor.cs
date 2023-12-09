@@ -323,6 +323,102 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
+    private static void AddKeyDirective(
+        ObjectTypeDefinition objectTypeDefinition,
+        string fieldSet)
+    {
+        var directiveNode = new DirectiveNode(
+            WellKnownTypeNames.Key,
+            new ArgumentNode(
+                WellKnownArgumentNames.Fields,
+                fieldSet));
+
+        objectTypeDefinition.Directives.Add(
+            new DirectiveDefinition(directiveNode));
+    }
+
+    private enum ApplicableToDefinition
+    {
+        Enum,
+        EnumValue = Enum + 1,
+
+        Interface,
+        InterfaceField = Interface + 1,
+
+        InputObject,
+        InputField = InputObject + 1,
+
+        Object,
+        ObjectField = Object + 1,
+
+        Union,
+
+        Count = Union,
+    }
+
+    private struct ApplicableToDefinitionValues<T>
+    {
+        public readonly T[] Values;
+
+        public ApplicableToDefinitionValues(T[] values)
+        {
+            Values = values;
+        }
+
+        public ref T Enum => ref Values[(int)ApplicableToDefinition.Enum];
+        public ref T EnumValue => ref Values[(int)ApplicableToDefinition.EnumValue];
+        public ref T Interface => ref Values[(int)ApplicableToDefinition.Interface];
+        public ref T InterfaceField => ref Values[(int)ApplicableToDefinition.InterfaceField];
+        public ref T InputObject => ref Values[(int)ApplicableToDefinition.InputObject];
+        public ref T InputField => ref Values[(int)ApplicableToDefinition.InputField];
+        public ref T Object => ref Values[(int)ApplicableToDefinition.Object];
+        public ref T ObjectField => ref Values[(int)ApplicableToDefinition.ObjectField];
+        public ref T Union => ref Values[(int)ApplicableToDefinition.Union];
+        public ref T this[ApplicableToDefinition index] => ref Values[(int)index];
+    }
+
+    private static ApplicableToDefinitionValues<T> CreateApplicable<T>()
+    {
+        return new(new T[(int)ApplicableToDefinition.Count]);
+    }
+
+    private static readonly ApplicableToDefinitionValues<ApplicableApolloAttributes> _applicableAttributesByType = CreateDefaultApplicable();
+
+    private static ApplicableToDefinitionValues<ApplicableApolloAttributes> CreateDefaultApplicable()
+    {
+        var result = CreateApplicable<ApplicableApolloAttributes>();
+
+        var basic = new ApplicableApolloAttributes
+        {
+            ApolloTag = true,
+            Inaccessible = true,
+        };
+        var authentication = new ApplicableApolloAttributes
+        {
+            ApolloAuthenticated = true,
+            RequiresScopes = true,
+        };
+
+        result.Enum = basic | authentication;
+        result.EnumValue = basic;
+
+        result.Interface = basic | authentication;
+        result.InterfaceField = result.Interface;
+
+        result.InputObject = basic;
+        result.InputField = basic;
+
+        result.Object = new()
+        {
+            All = true,
+        };
+        result.ObjectField = result.Object;
+
+        result.Union = basic;
+        return result;
+    }
+
+
     /// <summary>
     /// Apply Apollo Federation directives based on the custom attributes.
     /// </summary>
@@ -331,35 +427,77 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     /// </param>
     private void ApplyFederationDirectives(DefinitionBase? definition)
     {
+        void Apply(
+            IHasDirectiveDefinition def,
+            MemberInfo target,
+            ApplicableToDefinition applicable,
+            IEnumerable<(IHasDirectiveDefinition, MemberInfo?)> children)
+        {
+            {
+                var attributesToApply = _applicableAttributesByType[applicable];
+                ApplyAttributes(def, target, attributesToApply);
+            }
+
+            {
+                var attributesToApply = _applicableAttributesByType[applicable + 1];
+                foreach (var (childDefinition, childTarget) in children)
+                {
+                    if (childTarget is not null)
+                    {
+                        ApplyAttributes(childDefinition, childTarget, attributesToApply);
+                    }
+                }
+            }
+        }
+
         switch (definition)
         {
             case EnumTypeDefinition enumTypeDefinition:
             {
-                ApplyEnumDirectives(enumTypeDefinition);
-                ApplyEnumValueDirectives(enumTypeDefinition.Values);
+                Apply(
+                    enumTypeDefinition,
+                    enumTypeDefinition.RuntimeType,
+                    ApplicableToDefinition.Enum,
+                    enumTypeDefinition.Values
+                        .Select(v => ((IHasDirectiveDefinition) v, v.Member)));
                 break;
             }
             case InterfaceTypeDefinition interfaceTypeDefinition:
             {
-                ApplyInterfaceDirectives(interfaceTypeDefinition);
-                ApplyInterfaceFieldDirectives(interfaceTypeDefinition.Fields);
+                Apply(
+                    interfaceTypeDefinition,
+                    interfaceTypeDefinition.RuntimeType,
+                    ApplicableToDefinition.Interface,
+                    interfaceTypeDefinition.Fields
+                        .Select(f => ((IHasDirectiveDefinition) f, f.Member)));
                 break;
             }
             case InputObjectTypeDefinition inputObjectTypeDefinition:
             {
-                ApplyInputObjectDirectives(inputObjectTypeDefinition);
-                ApplyInputFieldDirectives(inputObjectTypeDefinition.Fields);
+                Apply(
+                    inputObjectTypeDefinition,
+                    inputObjectTypeDefinition.RuntimeType,
+                    ApplicableToDefinition.Interface,
+                    inputObjectTypeDefinition.Fields
+                        .Select(f => ((IHasDirectiveDefinition) f, (MemberInfo?) f.Property)));
                 break;
             }
             case ObjectTypeDefinition objectTypeDefinition:
             {
-                ApplyObjectDirectives(objectTypeDefinition);
-                ApplyObjectFieldDirectives(objectTypeDefinition.Fields);
+                Apply(
+                    objectTypeDefinition,
+                    objectTypeDefinition.RuntimeType,
+                    ApplicableToDefinition.Object,
+                    objectTypeDefinition.Fields
+                        .Select(f => ((IHasDirectiveDefinition) f, f.Member)));
                 break;
             }
             case UnionTypeDefinition unionTypeDefinition:
             {
-                ApplyUnionDirectives(unionTypeDefinition);
+                ApplyAttributes(
+                    unionTypeDefinition,
+                    unionTypeDefinition.RuntimeType,
+                    _applicableAttributesByType.Union);
                 break;
             }
             default:
@@ -367,322 +505,133 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void ApplyEnumDirectives(EnumTypeDefinition enumTypeDefinition)
+    [Flags]
+    private enum ApolloAttributeFlags
     {
-        var requiredScopes = new List<List<Scope>>();
-        var descriptor = EnumTypeDescriptor.From(_context, enumTypeDefinition);
-        foreach (var attribute in enumTypeDefinition.RuntimeType.GetCustomAttributes(true))
+        ApolloTag = 1 << 0,
+        ApolloAuthenticated = 1 << 1,
+        Inaccessible = 1 << 2,
+        RequiresScopes = 1 << 3,
+        Shareable = 1 << 4,
+        All = ApolloTag | ApolloAuthenticated | Inaccessible | RequiresScopes | Shareable,
+    }
+
+    private struct ApplicableApolloAttributes
+    {
+        public ApolloAttributeFlags Flags;
+
+        private readonly bool Get(ApolloAttributeFlags flag)
+            => (Flags & flag) == flag;
+        private void Set(ApolloAttributeFlags flag, bool set)
+        {
+            if (set)
+            {
+                Flags |= flag;
+            }
+            else
+            {
+                Flags &= ~flag;
+            }
+        }
+
+        public static ApplicableApolloAttributes operator |(ApplicableApolloAttributes left, ApplicableApolloAttributes right)
+        {
+            return new()
+            {
+                Flags = left.Flags | right.Flags,
+            };
+        }
+
+        public bool ApolloTag
+        {
+            readonly get => Get(ApolloAttributeFlags.ApolloTag);
+            set => Set(ApolloAttributeFlags.ApolloTag, value);
+        }
+        public bool ApolloAuthenticated
+        {
+            readonly get => Get(ApolloAttributeFlags.ApolloAuthenticated);
+            set => Set(ApolloAttributeFlags.ApolloAuthenticated, value);
+        }
+        public bool Inaccessible
+        {
+            readonly get => Get(ApolloAttributeFlags.Inaccessible);
+            set => Set(ApolloAttributeFlags.Inaccessible, value);
+        }
+        public bool RequiresScopes
+        {
+            readonly get => Get(ApolloAttributeFlags.RequiresScopes);
+            set => Set(ApolloAttributeFlags.RequiresScopes, value);
+        }
+        public bool Shareable
+        {
+            readonly get => Get(ApolloAttributeFlags.Shareable);
+            set => Set(ApolloAttributeFlags.Shareable, value);
+        }
+        public bool All
+        {
+            readonly get => Get(ApolloAttributeFlags.All);
+            set => Set(ApolloAttributeFlags.All, value);
+        }
+    }
+
+    private void ApplyAttributes(
+        IHasDirectiveDefinition definition,
+        MemberInfo target,
+        ApplicableApolloAttributes applicable)
+    {
+        var customAttributes = target.GetCustomAttributes(inherit: true);
+
+        List<List<Scope>>? requiredScopes = null;
+
+        void AddDirective<T>(T directive)
+            where T : class
+        {
+            definition.AddDirective(directive, _typeInspector);
+        }
+
+        foreach (var attribute in customAttributes)
         {
             switch (attribute)
             {
-                case ApolloTagAttribute tag:
+                case ApolloTagAttribute tag
+                    when applicable.ApolloTag:
                 {
-                    descriptor.ApolloTag(tag.Name);
+                    AddDirective(new TagValue(tag.Name));
                     break;
                 }
-                case ApolloAuthenticatedAttribute:
+                case ApolloAuthenticatedAttribute
+                    when applicable.ApolloAuthenticated:
                 {
-                    descriptor.ApolloAuthenticated();
+                    AddDirective(WellKnownTypeNames.AuthenticatedDirective);
                     break;
                 }
-                case InaccessibleAttribute:
+                case InaccessibleAttribute
+                    when applicable.Inaccessible:
                 {
-                    descriptor.Inaccessible();
+                    AddDirective(WellKnownTypeNames.Inaccessible);
                     break;
                 }
-                case RequiresScopesAttribute scopes:
+                case RequiresScopesAttribute scopes
+                    when applicable.RequiresScopes:
                 {
                     var addedScopes = scopes.Scopes
                         .Select(scope => new Scope(scope))
                         .ToList();
-                    requiredScopes.Add(addedScopes);
+                    (requiredScopes ??= new()).Add(addedScopes);
                     break;
                 }
-                default: break;
-            }
-        }
-
-        if (requiredScopes.Count > 0)
-        {
-            descriptor.RequiresScopes(requiredScopes);
-        }
-    }
-
-    private void ApplyEnumValueDirectives(IList<EnumValueDefinition> enumValues)
-    {
-        foreach (var enumValueDefinition in enumValues)
-        {
-            if (enumValueDefinition.Member == null)
-            {
-                continue;
-            }
-
-            var enumValueDescriptor = EnumValueDescriptor.From(_context, enumValueDefinition);
-            foreach (var attribute in enumValueDefinition.Member.GetCustomAttributes(true))
-            {
-                switch (attribute)
+                case ShareableAttribute
+                    when applicable.Shareable:
                 {
-                    case InaccessibleAttribute:
-                    {
-                        enumValueDescriptor.Inaccessible();
-                        break;
-                    }
-                    case ApolloTagAttribute casted:
-                    {
-                        enumValueDescriptor.ApolloTag(casted.Name);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    private void ApplyInterfaceDirectives(InterfaceTypeDefinition interfaceTypeDefinition)
-    {
-        var descriptor = InterfaceTypeDescriptor.From(_context, interfaceTypeDefinition);
-        var requiresScopes = new List<List<Scope>>();
-        foreach (var attribute in interfaceTypeDefinition.RuntimeType.GetCustomAttributes(true))
-        {
-            switch (attribute)
-            {
-                case ApolloTagAttribute tag:
-                {
-                    descriptor.ApolloTag(tag.Name);
-                    break;
-                }
-                case ApolloAuthenticatedAttribute:
-                {
-                    descriptor.ApolloAuthenticated();
-                    break;
-                }
-                case InaccessibleAttribute:
-                {
-                    descriptor.Inaccessible();
-                    break;
-                }
-                case RequiresScopesAttribute scopes:
-                {
-                    requiresScopes.Add(scopes.Scopes.Select(scope => new Scope(scope)).ToList());
-                    break;
-                }
-                default: break;
-            }
-        }
-
-        if (requiresScopes.Count > 0)
-        {
-            descriptor.RequiresScopes(requiresScopes);
-        }
-    }
-
-    private void ApplyInterfaceFieldDirectives(IList<InterfaceFieldDefinition> fields)
-    {
-        foreach (var fieldDefinition in fields)
-        {
-            var descriptor = InterfaceFieldDescriptor.From(_context, fieldDefinition);
-            if (fieldDefinition.Member == null)
-            {
-                continue;
-            }
-
-            var requiresScopes = new List<List<Scope>>();
-            foreach (var attribute in fieldDefinition.Member.GetCustomAttributes(true))
-            {
-                switch (attribute)
-                {
-                    case ApolloTagAttribute tag:
-                    {
-                        descriptor.ApolloTag(tag.Name);
-                        break;
-                    }
-                    case ApolloAuthenticatedAttribute:
-                    {
-                        descriptor.ApolloAuthenticated();
-                        break;
-                    }
-                    case InaccessibleAttribute:
-                    {
-                        descriptor.Inaccessible();
-                        break;
-                    }
-                    case RequiresScopesAttribute scopes:
-                    {
-                        requiresScopes.Add(scopes.Scopes.Select(scope => new Scope(scope)).ToList());
-                        break;
-                    }
-                    default: break;
-                }
-            }
-
-            if (requiresScopes.Count > 0)
-            {
-                descriptor.RequiresScopes(requiresScopes);
-            }
-        }
-    }
-
-    private void ApplyInputObjectDirectives(InputObjectTypeDefinition inputObjectTypeDefinition)
-    {
-        var descriptor = InputObjectTypeDescriptor.From(_context, inputObjectTypeDefinition);
-        foreach (var attribute in inputObjectTypeDefinition.RuntimeType.GetCustomAttributes(true))
-        {
-            switch (attribute)
-            {
-                case InaccessibleAttribute:
-                {
-                    descriptor.Inaccessible();
-                    break;
-                }
-                case ApolloTagAttribute casted:
-                {
-                    descriptor.ApolloTag(casted.Name);
+                    AddDirective(WellKnownTypeNames.Shareable);
                     break;
                 }
             }
         }
-    }
 
-    private void ApplyInputFieldDirectives(IList<InputFieldDefinition> inputFields)
-    {
-        foreach (var fieldDefinition in inputFields)
+        if (requiredScopes is not null)
         {
-            if (fieldDefinition.RuntimeType == null)
-            {
-                continue;
-            }
-
-            var fieldDescriptor = InputFieldDescriptor.From(_context, fieldDefinition);
-            foreach (var attribute in fieldDefinition.RuntimeType.GetCustomAttributes(true))
-            {
-                switch (attribute)
-                {
-                    case InaccessibleAttribute:
-                    {
-                        fieldDescriptor.Inaccessible();
-                        break;
-                    }
-                    case ApolloTagAttribute casted:
-                    {
-                        fieldDescriptor.ApolloTag(casted.Name);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    private void ApplyObjectDirectives(ObjectTypeDefinition objectTypeDefinition)
-    {
-        var descriptor = ObjectTypeDescriptor.From(_context, objectTypeDefinition);
-        var requiresScopes = new List<List<Scope>>();
-        foreach (var attribute in objectTypeDefinition.RuntimeType.GetCustomAttributes(true))
-        {
-            switch (attribute)
-            {
-                case ApolloTagAttribute tag:
-                {
-                    descriptor.ApolloTag(tag.Name);
-                    break;
-                }
-                case ApolloAuthenticatedAttribute:
-                {
-                    descriptor.ApolloAuthenticated();
-                    break;
-                }
-                case InaccessibleAttribute:
-                {
-                    descriptor.Inaccessible();
-                    break;
-                }
-                case RequiresScopesAttribute scopes:
-                {
-                    requiresScopes.Add(scopes.Scopes.Select(scope => new Scope(scope)).ToList());
-                    break;
-                }
-                case ShareableAttribute:
-                {
-                    descriptor.Shareable();
-                    break;
-                }
-                default: break;
-            }
-        }
-
-        if (requiresScopes.Count > 0)
-        {
-            descriptor.RequiresScopes(requiresScopes);
-        }
-    }
-
-    private void ApplyObjectFieldDirectives(IEnumerable<ObjectFieldDefinition> fields)
-    {
-        foreach (var fieldDefinition in fields)
-        {
-            if (fieldDefinition.Member == null)
-            {
-                continue;
-            }
-
-            var requiresScopes = new List<List<Scope>>();
-            var descriptor = ObjectFieldDescriptor.From(_context, fieldDefinition);
-            foreach (var attribute in fieldDefinition.Member.GetCustomAttributes(true))
-            {
-                switch (attribute)
-                {
-                    case ApolloTagAttribute tag:
-                    {
-                        descriptor.ApolloTag(tag.Name);
-                        break;
-                    }
-                    case ApolloAuthenticatedAttribute:
-                    {
-                        descriptor.ApolloAuthenticated();
-                        break;
-                    }
-                    case InaccessibleAttribute:
-                    {
-                        descriptor.Inaccessible();
-                        break;
-                    }
-                    case RequiresScopesAttribute scopes:
-                    {
-                        requiresScopes.Add(scopes.Scopes.Select(scope => new Scope(scope)).ToList());
-                        break;
-                    }
-                    case ShareableAttribute:
-                    {
-                        descriptor.Shareable();
-                        break;
-                    }
-                    default: break;
-                }
-            }
-
-            if (requiresScopes.Count > 0)
-            {
-                descriptor.RequiresScopes(requiresScopes);
-            }
-        }
-    }
-
-    private void ApplyUnionDirectives(UnionTypeDefinition unionTypeDefinition)
-    {
-        var descriptor = UnionTypeDescriptor.From(_context, unionTypeDefinition);
-        foreach (var attribute in unionTypeDefinition.RuntimeType.GetCustomAttributes(true))
-        {
-            switch (attribute)
-            {
-                case InaccessibleAttribute:
-                {
-                    descriptor.Inaccessible();
-                    break;
-                }
-                case ApolloTagAttribute casted:
-                {
-                    descriptor.ApolloTag(casted.Name);
-                    break;
-                }
-            }
+            AddDirective(new RequiresScopes(requiredScopes));
         }
     }
 }
