@@ -1,3 +1,6 @@
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
@@ -29,6 +32,25 @@ namespace HotChocolate.ApolloFederation;
     | AttributeTargets.Method
     | AttributeTargets.Property
 )]
-public sealed class ShareableAttribute : Attribute
+public sealed class ShareableAttribute : DescriptorAttribute
 {
+    protected internal override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        switch (descriptor)
+        {
+            case IObjectTypeDescriptor objectTypeDescriptor:
+            {
+                objectTypeDescriptor.Shareable();
+                break;
+            }
+            case IObjectFieldDescriptor objectFieldDescriptor:
+            {
+                objectFieldDescriptor.Shareable();
+                break;
+            }
+        }
+    }
 }

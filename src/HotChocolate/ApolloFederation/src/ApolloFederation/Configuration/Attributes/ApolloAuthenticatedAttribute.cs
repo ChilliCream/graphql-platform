@@ -1,3 +1,6 @@
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
@@ -28,6 +31,40 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Method |
     AttributeTargets.Property |
     AttributeTargets.Struct)]
-public sealed class ApolloAuthenticatedAttribute : Attribute
+public sealed class ApolloAuthenticatedAttribute : DescriptorAttribute
 {
+    protected internal override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        switch (descriptor)
+        {
+            case IEnumTypeDescriptor enumTypeDescriptor:
+            {
+                enumTypeDescriptor.ApolloAuthenticated();
+                break;
+            }
+            case IObjectTypeDescriptor objectFieldDescriptor:
+            {
+                objectFieldDescriptor.ApolloAuthenticated();
+                break;
+            }
+            case IObjectFieldDescriptor objectFieldDescriptor:
+            {
+                objectFieldDescriptor.ApolloAuthenticated();
+                break;
+            }
+            case IInterfaceTypeDescriptor interfaceTypeDescriptor:
+            {
+                interfaceTypeDescriptor.ApolloAuthenticated();
+                break;
+            }
+            case IInterfaceFieldDescriptor interfaceFieldDescriptor:
+            {
+                interfaceFieldDescriptor.ApolloAuthenticated();
+                break;
+            }
+        }
+    }
 }
