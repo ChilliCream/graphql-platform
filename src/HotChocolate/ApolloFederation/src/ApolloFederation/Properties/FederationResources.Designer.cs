@@ -330,7 +330,7 @@ namespace HotChocolate.ApolloFederation.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The schema has no types with a KeyDirective and therefore no entities. Apollo federation requires at least on entity..
+        ///   Looks up a localized string similar to The schema has no types with a KeyDirective and therefore no entities. Apollo federation requires at least one entity..
         /// </summary>
         internal static string ThrowHelper_EntityType_NoEntities {
             get {
