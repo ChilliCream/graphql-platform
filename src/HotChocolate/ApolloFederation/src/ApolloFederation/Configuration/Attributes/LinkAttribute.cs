@@ -56,7 +56,7 @@ public sealed class LinkAttribute : SchemaTypeDescriptorAttribute
     /// <param name="import">
     /// Optional list of imported elements.
     /// </param>
-    public LinkAttribute(string url, string?[]? import)
+    public LinkAttribute(string url, string[]? import)
     {
         Url = url;
         Import = import;
@@ -70,9 +70,12 @@ public sealed class LinkAttribute : SchemaTypeDescriptorAttribute
     /// <summary>
     /// Gets optional list of imported element names.
     /// </summary>
-    public string?[]? Import { get; }
+    public string[]? Import { get; }
 
-    public override void OnConfigure(IDescriptorContext context, ISchemaTypeDescriptor descriptor, Type type)
+    public override void OnConfigure(
+        IDescriptorContext context,
+        ISchemaTypeDescriptor descriptor,
+        Type type)
     {
         if (string.IsNullOrEmpty(Url))
         {

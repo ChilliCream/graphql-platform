@@ -47,7 +47,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
         }
         catch (SyntaxException)
         {
-            throw FieldSetV1_InvalidFormat(this);
+            throw FieldSet_InvalidFormat(this);
         }
     }
 
