@@ -11,23 +11,22 @@ public class EntityTypeTests
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        user(a: Int!): User
-                    }
+                """
+                type Query {
+                    user(a: Int!): User
+                }
 
-                    type Review @key(fields: ""id"") {
-                        id: Int!
-                        author: User
-                    }
+                type Review @key(fields: "id") {
+                    id: Int!
+                    author: User
+                }
 
-                    type User @key(fields: ""id"") {
-                        id: Int!
-                        idCode: String!
-                        reviews: [Review!]!
-                    }
-                "
-            )
+                type User @key(fields: "id") {
+                    id: Int!
+                    idCode: String!
+                    reviews: [Review!]!
+                }
+                """)
             .Use(_ => _ => default)
             .Create();
 
@@ -47,17 +46,16 @@ public class EntityTypeTests
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        user(a: Int!): User
-                    }
+                """
+                type Query {
+                    user(a: Int!): User
+                }
 
-                    type User @key(fields: ""id idCode"") {
-                        id: Int!
-                        idCode: String!
-                    }
-                "
-            )
+                type User @key(fields: "id idCode") {
+                    id: Int!
+                    idCode: String!
+                }
+                """)
             .Use(_ => _ => default)
             .Create();
 
@@ -75,7 +73,7 @@ public class EntityTypeTests
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString(
-                @"
+                """
                     type Query {
                         user(a: Int!): User
                     }
@@ -88,7 +86,7 @@ public class EntityTypeTests
                     type Address {
                         matchCode: String!
                     }
-                ")
+                """)
             .Use(_ => _ => default)
             .Create();
 
@@ -186,20 +184,20 @@ public class EntityTypeTests
     }
 }
 
-public class Query<T>
+public sealed class Query<T>
 {
     public T GetEntity(int id) => default!;
 }
 
 [Key("id idCode")]
-public class UserWithClassAttribute
+public sealed class UserWithClassAttribute
 {
     public int Id { get; set; }
     public string IdCode { get; set; } = default!;
     public Review[] Reviews { get; set; } = default!;
 }
 
-public class UserWithPropertyAttributes
+public sealed class UserWithPropertyAttributes
 {
     [Key]
     public int Id { get; set; }
@@ -208,19 +206,19 @@ public class UserWithPropertyAttributes
 }
 
 [Key("id address { matchCode }")]
-public class UserWithNestedKeyClassAttribute
+public sealed class UserWithNestedKeyClassAttribute
 {
     public int Id { get; set; }
     public Address Address { get; set; } = default!;
 }
 
-public class Address
+public sealed class Address
 {
     public string MatchCode { get; set; } = default!;
 }
 
 [Key("id")]
-public class Review
+public sealed class Review
 {
     public int Id { get; set; }
 }

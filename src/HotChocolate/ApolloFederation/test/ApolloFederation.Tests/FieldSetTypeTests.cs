@@ -110,13 +110,14 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        const string query = "{ a b c d e(d: $b) }";
+        var selectionSet = Syntax.ParseSelectionSet(query);
 
         // act
         var serialized = type.Serialize(selectionSet);
 
         // assert
-        Assert.Equal("a b c d e(d: $b)", serialized);
+        Assert.Equal(query, serialized);
     }
 
     [Fact]
@@ -137,14 +138,15 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        const string query = "{ a b c d e(d: $b) }";
+        var selectionSet = Syntax.ParseSelectionSet(query);
 
         // act
         var success = type.TrySerialize(selectionSet, out var serialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal("a b c d e(d: $b)", serialized);
+        Assert.Equal(query, serialized);
     }
 
     [Fact]
@@ -166,14 +168,15 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        const string query = "{ a b c d e(d: $b) }";
+        var selectionSet = Syntax.ParseSelectionSet(query);
 
         // act
         var valueSyntax = type.ParseValue(selectionSet);
 
         // assert
         Assert.Equal(
-            "a b c d e(d: $b)",
+            query,
             Assert.IsType<StringValueNode>(valueSyntax).Value);
     }
 

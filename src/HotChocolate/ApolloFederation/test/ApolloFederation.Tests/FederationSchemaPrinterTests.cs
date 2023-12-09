@@ -26,15 +26,16 @@ public class FederationSchemaPrinterTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddDocumentFromString(
-                @"type TestType @key(fields: ""id"") {
+            .AddDocumentFromString("""
+                type TestType @key(fields: ""id"") {
                     id: Int!
                     name: String!
                 }
 
                 type Query {
                     someField(a: Int): TestType
-                }")
+                }
+            """)
             .Use(_ => _ => default)
             .Create();
 
@@ -49,7 +50,7 @@ public class FederationSchemaPrinterTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddDocumentFromString(@"
+            .AddDocumentFromString("""
                 type TestType @key(fields: ""id"") {
                     id: Int!
                     name: String!
@@ -89,7 +90,7 @@ public class FederationSchemaPrinterTests
                 interface iQuery {
                     someField(a: Int): TestType
                 }
-            ")
+            """)
             .Use(_ => _ => default)
             .Create();
 
@@ -104,7 +105,7 @@ public class FederationSchemaPrinterTests
         // arrange
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddDocumentFromString(@"
+            .AddDocumentFromString("""
                 type TestType @key(fields: ""id"") {
                     id: Int!
                     name: String!
@@ -147,7 +148,7 @@ public class FederationSchemaPrinterTests
                 }
 
                 scalar DateTime
-            ")
+            """)
             .Use(_ => _ => default)
             .Create();
 
@@ -212,12 +213,12 @@ public class FederationSchemaPrinterTests
         FederationSchemaPrinter.Print(schema).MatchSnapshot();
     }
 
-    public class QueryRoot<T>
+    public sealed class QueryRoot<T>
     {
         public T GetEntity(int id) => default!;
     }
 
-    public class User
+    public sealed class User
     {
         [Key]
         public int Id { get; set; }
@@ -229,20 +230,20 @@ public class FederationSchemaPrinterTests
         public Address Address { get; set; } = default!;
     }
 
-    public class Address
+    public sealed class Address
     {
         [External]
         public string Zipcode { get; set; } = default!;
     }
 
     [ExtendServiceType]
-    public class Product
+    public sealed class Product
     {
         [Key]
         public string Upc { get; set; } = default!;
     }
 
-    public class QueryWithDirective : ObjectType
+    public sealed class QueryWithDirective : ObjectType
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
@@ -267,7 +268,7 @@ public class FederationSchemaPrinterTests
         }
     }
 
-    public class CustomDirectiveType : DirectiveType
+    public sealed class CustomDirectiveType : DirectiveType
     {
         private readonly bool _isPublic;
 
@@ -306,7 +307,7 @@ public class FederationSchemaPrinterTests
         Active,
     }
 
-    public class CustomDirectiveAttribute : DescriptorAttribute
+    public sealed class CustomDirectiveAttribute : DescriptorAttribute
     {
         protected override void TryConfigure(
             IDescriptorContext context,
