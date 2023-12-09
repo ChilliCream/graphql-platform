@@ -1,3 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
+
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
@@ -28,7 +35,7 @@ namespace HotChocolate.ApolloFederation;
     | AttributeTargets.Struct,
     AllowMultiple = true
 )]
-public sealed class RequiresScopesAttribute : Attribute
+public sealed class RequiresScopesAttribute : DescriptorAttribute
 {
     /// <summary>
     /// Initializes new instance of <see cref="RequiresScopesAttribute"/>
@@ -45,4 +52,58 @@ public sealed class RequiresScopesAttribute : Attribute
     /// Retrieves array of required JWT scopes.
     /// </summary>
     public string[] Scopes { get; }
+
+    protected internal override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        void AddScopes(
+            IHasDirectiveDefinition definition)
+        {
+            var existingScopes = definition
+                .Directives
+                .Select(t => t.Value)
+                .OfType<RequiresScopes>()
+                .FirstOrDefault();
+
+            if (existingScopes is null)
+            {
+                existingScopes = new(new());
+                definition.AddDirective(existingScopes, context.TypeInspector);
+            }
+
+            var newScopes = Scopes.Select(s => new Scope(s)).ToList();
+            existingScopes.Scopes.Add(newScopes);
+        }
+
+        switch (descriptor)
+        {
+            case IEnumTypeDescriptor enumTypeDescriptor:
+            {
+                AddScopes(enumTypeDescriptor.ToDefinition());
+                break;
+            }
+            case IObjectTypeDescriptor objectFieldDescriptor:
+            {
+                AddScopes(objectFieldDescriptor.ToDefinition());
+                break;
+            }
+            case IObjectFieldDescriptor objectFieldDescriptor:
+            {
+                AddScopes(objectFieldDescriptor.ToDefinition());
+                break;
+            }
+            case IInterfaceTypeDescriptor interfaceTypeDescriptor:
+            {
+                AddScopes(interfaceTypeDescriptor.ToDefinition());
+                break;
+            }
+            case IInterfaceFieldDescriptor interfaceFieldDescriptor:
+            {
+                AddScopes(interfaceFieldDescriptor.ToDefinition());
+                break;
+            }
+        }
+    }
 }

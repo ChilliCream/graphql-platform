@@ -1,3 +1,6 @@
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
+
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
@@ -34,7 +37,7 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Property |
     AttributeTargets.Struct,
     AllowMultiple = true)]
-public sealed class ApolloTagAttribute : Attribute
+public sealed class ApolloTagAttribute : DescriptorAttribute
 {
     /// <summary>
     /// Initializes new instance of <see cref="ApolloTagAttribute"/>
@@ -51,4 +54,49 @@ public sealed class ApolloTagAttribute : Attribute
     /// Retrieves tag metadata value
     /// </summary>
     public string Name { get; }
+
+    protected internal override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        switch (descriptor)
+        {
+            case IEnumTypeDescriptor enumDescriptor:
+            {
+                enumDescriptor.ApolloTag(Name);
+                break;
+            }
+            case IEnumValueDescriptor enumValueDescriptor:
+            {
+                enumValueDescriptor.ApolloTag(Name);
+                break;
+            }
+            case IInputObjectTypeDescriptor inputObjectTypeDescriptor:
+            {
+                inputObjectTypeDescriptor.ApolloTag(Name);
+                break;
+            }
+            case IInputFieldDescriptor inputFieldDescriptor:
+            {
+                inputFieldDescriptor.ApolloTag(Name);
+                break;
+            }
+            case IInterfaceTypeDescriptor interfaceTypeDescriptor:
+            {
+                interfaceTypeDescriptor.ApolloTag(Name);
+                break;
+            }
+            case IObjectFieldDescriptor objectFieldDescriptor:
+            {
+                objectFieldDescriptor.ApolloTag(Name);
+                break;
+            }
+            case IUnionTypeDescriptor unionTypeDescriptor:
+            {
+                unionTypeDescriptor.ApolloTag(Name);
+                break;
+            }
+        }
+    }
 }
