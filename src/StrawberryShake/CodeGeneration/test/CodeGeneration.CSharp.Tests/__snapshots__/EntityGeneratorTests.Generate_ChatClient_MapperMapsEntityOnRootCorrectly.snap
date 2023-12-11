@@ -16,10 +16,11 @@
 
 namespace Foo.Bar
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type Query
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult : global::System.IEquatable<GetPeopleResult>, IGetPeopleResult
     {
         public GetPeopleResult(global::Foo.Bar.IGetPeople_People? people)
@@ -87,10 +88,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection : global::System.IEquatable<GetPeople_People_PersonConnection>, IGetPeople_People_PersonConnection
     {
         public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? nodes)
@@ -164,10 +166,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Person : global::System.IEquatable<GetPeople_People_Nodes_Person>, IGetPeople_People_Nodes_Person
     {
         public GetPeople_People_Nodes_Person(global::System.String name, global::Foo.Bar.IGetPeople_People_Nodes_Messages? messages)
@@ -242,10 +245,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_MessageConnection : global::System.IEquatable<GetPeople_People_Nodes_Messages_MessageConnection>, IGetPeople_People_Nodes_Messages_MessageConnection
     {
         public GetPeople_People_Nodes_Messages_MessageConnection(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? nodes)
@@ -319,10 +323,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_Nodes_Message : global::System.IEquatable<GetPeople_People_Nodes_Messages_Nodes_Message>, IGetPeople_People_Nodes_Messages_Nodes_Message
     {
         public GetPeople_People_Nodes_Messages_Nodes_Message(global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender sender, global::System.String text)
@@ -393,10 +398,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_Nodes_Sender_Person : global::System.IEquatable<GetPeople_People_Nodes_Messages_Nodes_Sender_Person>, IGetPeople_People_Nodes_Messages_Nodes_Sender_Person
     {
         public GetPeople_People_Nodes_Messages_Nodes_Sender_Person(global::System.String name)
@@ -460,10 +466,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type Query
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeopleResult
     {
         /// <summary>
@@ -472,10 +479,11 @@ namespace Foo.Bar
         public global::Foo.Bar.IGetPeople_People? People { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People
     {
         /// <summary>
@@ -484,18 +492,20 @@ namespace Foo.Bar
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_PersonConnection : IGetPeople_People
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IPerson
     {
         /// <summary>
@@ -504,10 +514,11 @@ namespace Foo.Bar
         public global::System.String Name { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes : IPerson
     {
         /// <summary>
@@ -516,18 +527,20 @@ namespace Foo.Bar
         public global::Foo.Bar.IGetPeople_People_Nodes_Messages? Messages { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Person : IGetPeople_People_Nodes
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Messages
     {
         /// <summary>
@@ -536,18 +549,20 @@ namespace Foo.Bar
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes?>? Nodes { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Messages_MessageConnection : IGetPeople_People_Nodes_Messages
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IMessage
     {
         /// <summary>
@@ -561,42 +576,47 @@ namespace Foo.Bar
         public global::System.String Text { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Messages_Nodes : IMessage
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Messages_Nodes_Message : IGetPeople_People_Nodes_Messages_Nodes
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Messages_Nodes_Sender : IPerson
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeople_People_Nodes_Messages_Nodes_Sender_Person : IGetPeople_People_Nodes_Messages_Nodes_Sender
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type Mutation
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageResult : global::System.IEquatable<WriteMessageResult>, IWriteMessageResult
     {
         public WriteMessageResult(global::Foo.Bar.IWriteMessage_SendMessage sendMessage)
@@ -660,10 +680,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type SendMessagePayload
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_SendMessagePayload : global::System.IEquatable<WriteMessage_SendMessage_SendMessagePayload>, IWriteMessage_SendMessage_SendMessagePayload
     {
         public WriteMessage_SendMessage_SendMessagePayload(global::Foo.Bar.IWriteMessage_SendMessage_Message message)
@@ -727,10 +748,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_Message_Message : global::System.IEquatable<WriteMessage_SendMessage_Message_Message>, IWriteMessage_SendMessage_Message_Message
     {
         public WriteMessage_SendMessage_Message_Message(global::Foo.Bar.IGetPeople_People_Nodes_Messages_Nodes_Sender sender, global::System.String text)
@@ -801,10 +823,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_Message_Sender_Person : global::System.IEquatable<WriteMessage_SendMessage_Message_Sender_Person>, IWriteMessage_SendMessage_Message_Sender_Person
     {
         public WriteMessage_SendMessage_Message_Sender_Person(global::System.String name)
@@ -868,10 +891,11 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type Mutation
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessageResult
     {
         /// <summary>
@@ -880,10 +904,11 @@ namespace Foo.Bar
         public global::Foo.Bar.IWriteMessage_SendMessage SendMessage { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type SendMessagePayload
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessage_SendMessage
     {
         /// <summary>
@@ -892,46 +917,52 @@ namespace Foo.Bar
         public global::Foo.Bar.IWriteMessage_SendMessage_Message Message { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type SendMessagePayload
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessage_SendMessage_SendMessagePayload : IWriteMessage_SendMessage
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessage_SendMessage_Message : IMessage
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type message
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessage_SendMessage_Message_Message : IWriteMessage_SendMessage_Message
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessage_SendMessage_Message_Sender : IPerson
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// Type person
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessage_SendMessage_Message_Sender_Person : IWriteMessage_SendMessage_Message_Sender
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetPeople GraphQL operation
     /// <code>
@@ -974,7 +1005,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQueryDocument : global::StrawberryShake.IDocument
     {
         private GetPeopleQueryDocument()
@@ -995,6 +1026,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetPeople GraphQL operation
     /// <code>
@@ -1037,7 +1069,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery : global::Foo.Bar.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
@@ -1075,6 +1107,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetPeople GraphQL operation
     /// <code>
@@ -1117,13 +1150,14 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetPeopleQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
@@ -1156,7 +1190,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageMutationDocument : global::StrawberryShake.IDocument
     {
         private WriteMessageMutationDocument()
@@ -1177,6 +1211,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
@@ -1209,7 +1244,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageMutation : global::Foo.Bar.IWriteMessageMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IWriteMessageResult> _operationExecutor;
@@ -1272,6 +1307,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
@@ -1304,17 +1340,18 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IWriteMessageMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IWriteMessageResult>> ExecuteAsync(global::System.String text, global::System.String address, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IWriteMessageResult>> Watch(global::System.String text, global::System.String address, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IGetPeopleQuery _getPeople;
@@ -1330,10 +1367,11 @@ namespace Foo.Bar
         public global::Foo.Bar.IWriteMessageMutation WriteMessage => _writeMessage;
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IGetPeopleQuery GetPeople { get; }
@@ -1344,6 +1382,7 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     ///<summary>Type person</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
@@ -1361,6 +1400,7 @@ namespace Foo.Bar.State
         public global::Foo.Bar.State.MessageConnectionData? Messages { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     ///<summary>Type message</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MessageEntity
@@ -1378,7 +1418,8 @@ namespace Foo.Bar.State
         public global::System.String Text { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1527,7 +1568,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -1552,7 +1594,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.WriteMessageResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1622,7 +1665,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -1647,7 +1691,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IGetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1869,7 +1914,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessageBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IWriteMessageResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1997,6 +2043,7 @@ namespace Foo.Bar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonConnectionData
@@ -2013,6 +2060,7 @@ namespace Foo.Bar.State
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MessageConnectionData
@@ -2029,6 +2077,7 @@ namespace Foo.Bar.State
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>Type SendMessagePayload</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class SendMessagePayloadData
@@ -2045,7 +2094,8 @@ namespace Foo.Bar.State
         public global::StrawberryShake.EntityId? Message { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2130,7 +2180,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_Nodes_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetPeople_People_Nodes_Messages_Nodes_Message>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2162,7 +2213,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Messages_Nodes_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Messages_Nodes_Sender_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2182,7 +2234,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_Message_MessageFromMessageEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, WriteMessage_SendMessage_Message_Message>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2214,7 +2267,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class WriteMessage_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, WriteMessage_SendMessage_Message_Sender_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2234,7 +2288,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -2293,7 +2348,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -2304,7 +2360,8 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)

@@ -183,7 +183,7 @@ public class CodeFirstTests
                 .ExecuteRequestAsync(
                     """
                     {
-                        testResolver(testArgument: "abc")
+                      testResolver(testArgument: "abc")
                     }
                     """);
 
