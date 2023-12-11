@@ -4363,7 +4363,7 @@
           "HotChocolate.Data": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
           "HotChocolate.Types.OffsetPagination": "[0.0.0, )",
-          "Microsoft.Extensions.ObjectPool": "[8.0.0-rc.2.23480.2, )",
+          "Microsoft.Extensions.ObjectPool": "[8.0.0, )",
           "Neo4j.Driver": "[5.2.0, )",
           "ServiceStack.Text": "[6.4.0, )"
         }

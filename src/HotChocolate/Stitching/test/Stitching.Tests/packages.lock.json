@@ -5046,7 +5046,7 @@
           "HotChocolate.Stitching.Abstractions": "[0.0.0, )",
           "HotChocolate.Transport.Http": "[0.0.0, )",
           "HotChocolate.Utilities.Introspection": "[0.0.0, )",
-          "Microsoft.Extensions.Http": "[8.0.0-rc.2.23479.6, )"
+          "Microsoft.Extensions.Http": "[8.0.0, )"
         }
       },
       "hotchocolate.stitching.abstractions": {
