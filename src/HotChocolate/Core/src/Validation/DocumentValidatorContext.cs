@@ -138,6 +138,9 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         _nonNullString = null;
         VariableValues = null;
         ContextData = default!;
+        ProcessedFieldPairs.Clear();
+        NextFieldPairs.Clear();
+        CurrentFieldPairs.Clear();
         Path.Clear();
         SelectionSets.Clear();
         FieldSets.Clear();
