@@ -47,6 +47,10 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
         return getValue;
     }
 
+    // NOTE: It will use the default handler without these two.
+    public override bool IsDefaultHandler => true;
+    public override bool CanHandle(ParameterInfo parameter) => true;
+
     private string[] RequirePathAndGetSeparatedPath(ParameterInfo parameter)
     {
         var path = parameter.GetCustomAttribute<MapAttribute>() is { } attr
