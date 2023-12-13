@@ -304,7 +304,7 @@ public class FederationSchemaPrinterTests
         [Obsolete]
         Deprecated2,
 
-        Active
+        Active,
     }
 
     public class CustomDirectiveAttribute : DescriptorAttribute

@@ -341,7 +341,7 @@ internal sealed class TypeInitializer
             {
                 if (extension.Type is INamedTypeExtension
                     {
-                        ExtendsType: { } extendsType
+                        ExtendsType: { } extendsType,
                     } namedTypeExtension)
                 {
                     var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);

@@ -50,7 +50,7 @@ internal static class DirectiveClassMiddlewareFactory
                                 .CompileFactory<IServiceProvider, FieldDelegate>(
                                     (services, _) => new IParameterHandler[]
                                     {
-                                        directiveHandler, new ServiceParameterHandler(services)
+                                        directiveHandler, new ServiceParameterHandler(services),
                                     });
 
                         invoke =
@@ -60,12 +60,12 @@ internal static class DirectiveClassMiddlewareFactory
                                     {
                                         directiveHandler,
                                         new ServiceParameterHandler(
-                                            Expression.Property(context, _services))
+                                            Expression.Property(context, _services)),
                                     });
                     }
                 }
             }
-            
+
             TMiddleware? instance = null;
 
             return context =>
@@ -105,12 +105,12 @@ internal static class DirectiveClassMiddlewareFactory
                                     {
                                         directiveHandler,
                                         new ServiceParameterHandler(
-                                            Expression.Property(context, _services))
+                                            Expression.Property(context, _services)),
                                     });
                     }
                 }
             }
-            
+
             TMiddleware? instance = null;
 
             return context =>

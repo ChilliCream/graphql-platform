@@ -174,7 +174,7 @@ public static class SortObjectFieldDescriptorExtensions
                     var argumentDefinition = new ArgumentDefinition
                     {
                         Name = argumentPlaceholder,
-                        Type = argumentTypeReference
+                        Type = argumentTypeReference,
                     };
 
                     argumentDefinition.Configurations.Add(

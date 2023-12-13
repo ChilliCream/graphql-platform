@@ -12,7 +12,7 @@ public sealed class DemoSubgraph
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     public DemoSubgraph(
@@ -56,7 +56,7 @@ public sealed class DemoSubgraph
                 new IClientConfiguration[]
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
-                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                    new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 null);
 
@@ -78,7 +78,7 @@ public sealed class DemoSubgraph
                 new IClientConfiguration[]
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
-                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                    new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 configurationExtensions);
 
@@ -97,7 +97,7 @@ public sealed class DemoSubgraph
                 new IClientConfiguration[]
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
-                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                    new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 null);
 }

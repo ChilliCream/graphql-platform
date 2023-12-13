@@ -23,7 +23,7 @@ internal static class ErrorFactoryCompiler
         {
             return new[]
             {
-                definition
+                definition,
             };
         }
 
@@ -31,7 +31,7 @@ internal static class ErrorFactoryCompiler
         {
             return new[]
             {
-                definition
+                definition,
             };
         }
 
@@ -42,7 +42,7 @@ internal static class ErrorFactoryCompiler
         {
             return new[] { new ErrorDefinition(errorType.GetGenericArguments()[0], errorType) };
         }
-        
+
         // else we will create a schema type.
         var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
         return new[] { new ErrorDefinition(errorType, schemaType) };
@@ -188,7 +188,7 @@ internal static class ErrorFactoryCompiler
                     Expression.Block(
                         new[]
                         {
-                            variable
+                            variable,
                         },
                         new List<Expression> { previous, variable }),
                     exception)

@@ -52,7 +52,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         : base(new SyntaxVisitorOptions
         {
             VisitDirectives = true,
-            VisitArguments = true
+            VisitArguments = true,
         })
     {
     }
@@ -367,7 +367,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             SyntaxKind.Argument =>
                 context.ArgumentValueIsNotCompatible(
                     (ArgumentNode)node, locationType, valueNode),
-            _ => null
+            _ => null,
         };
         return error != null;
     }

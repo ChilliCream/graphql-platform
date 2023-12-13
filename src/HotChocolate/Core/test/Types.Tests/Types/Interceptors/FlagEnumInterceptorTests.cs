@@ -455,7 +455,7 @@ public class FlagEnumInterceptorTests
     {
         [GraphQLDescription("Foo has a desc")] Foo = 1,
         [GraphQLDescription("Bar has a desc")] Bar = 2,
-        [GraphQLDescription("Baz has a desc")] Baz = 3
+        [GraphQLDescription("Baz has a desc")] Baz = 3,
     }
 
     [InterfaceType()]
@@ -504,7 +504,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 
     [Flags]
@@ -512,7 +512,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 0x1,
         Bar = 0x2,
-        Baz = 0x4
+        Baz = 0x4,
     }
 
     [Flags]
@@ -520,7 +520,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 0x1,
         Bar = 0x2,
-        Baz = 0x4
+        Baz = 0x4,
     }
 
     [Flags]
@@ -528,7 +528,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 
     [Flags]
@@ -536,7 +536,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 
     [Flags]
@@ -544,7 +544,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 
     [Flags]
@@ -552,7 +552,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 
     [Flags]
@@ -560,7 +560,7 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 
     [Flags]
@@ -568,6 +568,6 @@ public class FlagEnumInterceptorTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 }

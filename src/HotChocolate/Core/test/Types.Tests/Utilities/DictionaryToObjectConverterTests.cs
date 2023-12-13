@@ -115,6 +115,6 @@ public class DictionaryToObjectConverterTests
     public enum State
     {
         On,
-        Off
+        Off,
     }
 }

@@ -22,7 +22,7 @@ internal sealed class PersistedQueryNotFoundMiddleware
             ?? throw new ArgumentNullException(nameof(diagnosticEvents));
         _statusCode = new Dictionary<string, object?>
         {
-            { HttpStatusCode, 400 }
+            { HttpStatusCode, 400 },
         };
     }
 

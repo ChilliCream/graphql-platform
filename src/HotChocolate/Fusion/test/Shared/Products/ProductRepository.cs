@@ -10,7 +10,7 @@ public sealed class ProductRepository
         {
             new Product(1, "Table", 899, 100, new ProductDimension(250, 150)),
             new Product(2, "Couch", 1299, 1000, new ProductDimension(2500, 150)),
-            new Product(3, "Chair", 54, 50, new ProductDimension(15, 30))
+            new Product(3, "Chair", 54, 50, new ProductDimension(15, 30)),
         }.ToDictionary(t => t.Id);
     }
 

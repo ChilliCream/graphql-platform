@@ -27,7 +27,7 @@ internal class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
             IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
             IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments, ct),
             IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
-            _ => throw new GraphQLException("Cannot handle the specified data source.")
+            _ => throw new GraphQLException("Cannot handle the specified data source."),
         };
     }
 

@@ -5,5 +5,5 @@ public enum ModuleOptions
 {
     Default = RegisterDataLoader | RegisterTypes,
     RegisterTypes = 1,
-    RegisterDataLoader = 2
+    RegisterDataLoader = 2,
 }

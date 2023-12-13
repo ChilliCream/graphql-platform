@@ -235,7 +235,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 {
                     0 => null,
                     1 => argument.Formatters[0],
-                    _ => new AggregateInputValueFormatter(argument.Formatters)
+                    _ => new AggregateInputValueFormatter(argument.Formatters),
                 };
 
             resolverArguments.Add(
@@ -721,7 +721,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
 
-        if (registeredType.Type is ObjectType errorObject && 
+        if (registeredType.Type is ObjectType errorObject &&
             errorObject.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
@@ -744,7 +744,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 }
             }
         }
-        else if (registeredType.Type is ObjectType errorInterface && 
+        else if (registeredType.Type is ObjectType errorInterface &&
             errorInterface.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
@@ -819,7 +819,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             NonNullType nnt => new NonNullTypeNode((INullableTypeNode) CreateTypeNode(nnt.Type)),
             ListType lt => new ListTypeNode(CreateTypeNode(lt.ElementType)),
             INamedType nt => new NamedTypeNode(nt.Name),
-            _ => throw new NotSupportedException("Type is not supported.")
+            _ => throw new NotSupportedException("Type is not supported."),
         };
 
     private readonly ref struct Options

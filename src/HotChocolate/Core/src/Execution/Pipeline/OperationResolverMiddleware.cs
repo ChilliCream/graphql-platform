@@ -32,11 +32,11 @@ internal sealed class OperationResolverMiddleware
             throw new ArgumentNullException(nameof(optimizers));
         }
 
-        _next = next ?? 
+        _next = next ??
             throw new ArgumentNullException(nameof(next));
-        _operationCompilerPool = operationCompilerPool ?? 
+        _operationCompilerPool = operationCompilerPool ??
             throw new ArgumentNullException(nameof(operationCompilerPool));
-        _coercionHelper = coercionHelper ?? 
+        _coercionHelper = coercionHelper ??
             throw new ArgumentNullException(nameof(coercionHelper));
         _optimizers = optimizers.ToArray();
     }
@@ -103,7 +103,7 @@ internal sealed class OperationResolverMiddleware
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,
             OperationType.Subscription => schema.SubscriptionType,
-            _ => throw ThrowHelper.RootTypeNotSupported(operationType)
+            _ => throw ThrowHelper.RootTypeNotSupported(operationType),
         };
 
     private bool IsNullBubblingEnabled(IRequestContext context, OperationDefinitionNode operationDefinition)
@@ -113,7 +113,7 @@ internal sealed class OperationResolverMiddleware
         {
             return true;
         }
-        
+
         var enabled = true;
 
         for (var i = 0; i < operationDefinition.Directives.Count; i++)
@@ -136,7 +136,7 @@ internal sealed class OperationResolverMiddleware
                         enabled = b.Value;
                         break;
                     }
-                        
+
                     if (argument.Value is VariableNode v)
                     {
                         enabled = CoerceVariable(context, operationDefinition, v);
@@ -154,11 +154,11 @@ internal sealed class OperationResolverMiddleware
     }
 
     private bool CoerceVariable(
-        IRequestContext context, 
-        OperationDefinitionNode operationDefinition, 
+        IRequestContext context,
+        OperationDefinitionNode operationDefinition,
         VariableNode variable)
     {
         var variables = CoerceVariables(context, _coercionHelper, operationDefinition.VariableDefinitions);
         return variables.GetVariable<bool>(variable.Name.Value);
-    } 
+    }
 }

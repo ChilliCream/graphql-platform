@@ -30,7 +30,7 @@ public static class BuiltInTypes
             WellKnownDirectives.Deprecated,
             WellKnownDirectives.Defer,
             WellKnownDirectives.Stream,
-            WellKnownDirectives.SpecifiedBy
+            WellKnownDirectives.SpecifiedBy,
         };
 
     public static bool IsBuiltInType(string name)
