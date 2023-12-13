@@ -398,7 +398,7 @@ public static partial class ApolloFederationDescriptorExtensions
     public static ISchemaTypeDescriptor Link(
         this ISchemaTypeDescriptor descriptor,
         string url,
-        string[]? import)
+        IEnumerable<string>? import)
     {
         if (descriptor is null)
         {

@@ -20,6 +20,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
     /// <param name="version">
     /// Target Federation version
     /// </param>
+    /// <param name="schemaConfiguration"></param>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
@@ -36,7 +37,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         builder.SetSchema(s =>
         {
             var link = FederationUtils.GetFederationLink(version);
-            s.Link(link.Url, link.Import?.ToArray());
+            s.Link(link.Url, link.Import);
             schemaConfiguration?.Invoke(s);
         });
         return AddApolloFederationDefinitions(builder, version);
@@ -82,6 +83,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
     /// <param name="builder">
     /// The <see cref="ISchemaBuilder"/>.
     /// </param>
+    /// <param name="version"></param>
     /// <returns>
     /// Returns the <see cref="ISchemaBuilder"/>.
     /// </returns>
