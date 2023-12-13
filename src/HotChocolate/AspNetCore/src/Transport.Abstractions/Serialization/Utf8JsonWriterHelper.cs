@@ -115,6 +115,10 @@ internal static class Utf8JsonWriterHelper
             case Dictionary<string, object?> dict:
                 WriteDictionary(writer, dict);
                 break;
+            
+            case byte[] bytes:
+                writer.WriteBase64StringValue(bytes);
+                break;
 
             case IList list:
                 WriteList(writer, list);
@@ -194,11 +198,6 @@ internal static class Utf8JsonWriterHelper
 
         foreach (var item in dict)
         {
-            if (item.Value is null)
-            {
-                continue;
-            }
-
             writer.WritePropertyName(item.Key);
             WriteFieldValue(writer, item.Value);
         }

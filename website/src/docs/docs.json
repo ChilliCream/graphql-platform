@@ -42,7 +42,25 @@
           },
           {
             "path": "apis",
-            "title": "Apis"
+            "title": "Apis",
+            "items": [
+              { "path": "overview", "title": "Overview" },
+              { "path": "stages", "title": "Stages" },
+              { "path": "fusion", "title": "Fusion" },
+              {
+                "path": "schema-registry",
+                "title": "Schema Registry"
+              },
+              {
+                "path": "client-registry",
+                "title": "Client Registry"
+              },
+              {
+                "path": "operation-reporting",
+                "title": "Operation Reporting"
+              },
+              { "path": "open-telemetry", "title": "Open Telemetry" }
+            ]
           },
           {
             "path": "environments",
@@ -55,10 +73,6 @@
           {
             "path": "organizations",
             "title": "Organizations"
-          },
-          {
-            "path": "schema-client-registry",
-            "title": "Schema & Client Registry"
           },
           {
             "path": "bcp-services",

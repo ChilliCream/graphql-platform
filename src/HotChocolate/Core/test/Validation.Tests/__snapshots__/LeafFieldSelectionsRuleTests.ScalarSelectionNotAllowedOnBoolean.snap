@@ -23,7 +23,7 @@
       "field": "barks",
       "type": "Boolean!",
       "responseName": "barks",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
     },
     "Exception": null,
     "SyntaxNode": {

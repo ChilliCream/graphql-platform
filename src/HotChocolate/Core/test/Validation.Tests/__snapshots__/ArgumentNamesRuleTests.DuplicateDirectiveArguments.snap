@@ -21,7 +21,7 @@
     "Extensions": {
       "directive": "directive",
       "argument": "arg1",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Argument-Uniqueness"
     },
     "Exception": null,
     "SyntaxNode": {

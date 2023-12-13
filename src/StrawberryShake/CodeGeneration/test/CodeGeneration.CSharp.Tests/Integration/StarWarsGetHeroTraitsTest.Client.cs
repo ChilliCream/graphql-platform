@@ -16,8 +16,7 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class StarWarsGetHeroTraitsClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.State.StarWarsGetHeroTraitsClientStoreAccessor> AddStarWarsGetHeroTraitsClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
@@ -104,8 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHeroResult : global::System.IEquatable<GetHeroResult>, IGetHeroResult
     {
         public GetHeroResult(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHero_Hero? hero)
@@ -170,8 +168,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHero_Hero_Droid : global::System.IEquatable<GetHero_Hero_Droid>, IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(global::System.String name, global::System.Text.Json.JsonElement? traits)
@@ -240,8 +237,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHero_Hero_Human : global::System.IEquatable<GetHero_Hero_Human>, IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(global::System.String name, global::System.Text.Json.JsonElement? traits)
@@ -310,15 +306,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetHeroResult
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHero_Hero? Hero { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetHero_Hero
     {
         public global::System.String Name { get; }
@@ -326,19 +320,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         public global::System.Text.Json.JsonElement? Traits { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetHero_Hero_Droid : IGetHero_Hero
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetHero_Hero_Human : IGetHero_Hero
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
@@ -357,7 +348,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHeroQueryDocument : global::StrawberryShake.IDocument
     {
         private GetHeroQueryDocument()
@@ -378,7 +369,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
@@ -397,7 +387,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
@@ -435,7 +425,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
@@ -454,18 +443,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the StarWarsGetHeroTraitsClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarWarsGetHeroTraitsClient : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IStarWarsGetHeroTraitsClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHeroQuery _getHero;
@@ -478,11 +466,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHeroQuery GetHero => _getHero;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the StarWarsGetHeroTraitsClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IStarWarsGetHeroTraitsClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHeroQuery GetHero { get; }
@@ -491,7 +478,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
@@ -506,7 +492,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         public global::System.Text.Json.JsonElement? Traits { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
@@ -521,8 +506,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         public global::System.Text.Json.JsonElement? Traits { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHeroResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.GetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -577,8 +561,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHeroResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -600,8 +583,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHeroBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.IGetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -635,6 +617,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         private global::StrawberryShake.EntityId? Update_IGetHero_HeroEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -679,6 +666,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
@@ -689,12 +681,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _jSONParser.Parse(obj.Value!);
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.State.DroidEntity, GetHero_Hero_Droid>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -714,8 +710,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTraits.State.HumanEntity, GetHero_Hero_Human>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -735,8 +730,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarWarsGetHeroTraitsClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -795,8 +789,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarWarsGetHeroTraitsClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public StarWarsGetHeroTraitsClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)

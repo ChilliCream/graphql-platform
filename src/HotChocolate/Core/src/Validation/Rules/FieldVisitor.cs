@@ -14,7 +14,7 @@ namespace HotChocolate.Validation.Rules;
 /// The target field of a field selection must be defined on the scoped
 /// type of the selection set. There are no limitations on alias names.
 ///
-/// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+/// https://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
 ///
 /// AND
 ///
@@ -25,7 +25,7 @@ namespace HotChocolate.Validation.Rules;
 /// must be of type scalar or enum. Leaf selections on objects,
 /// interfaces, and unions without subfields are disallowed.
 ///
-/// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
+/// https://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
 /// </summary>
 internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 {
@@ -401,7 +401,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return ReferenceEquals(typeA, typeB);
         }
 
-        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union) && 
+        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union) &&
             typeB.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
         {
             return true;
@@ -435,13 +435,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     {
         var next = context.NextFieldPairs;
         var current = context.CurrentFieldPairs;
-        
+
 #if NETSTANDARD2_0
         foreach (var pair in next)
         {
             current.Add(pair);
         }
-        
+
         next.Clear();
 #else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(next));
@@ -462,13 +462,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     private static void ProcessCurrentFieldPairs(IDocumentValidatorContext context)
     {
         var current = context.CurrentFieldPairs;
-        
+
 #if NETSTANDARD2_0
         foreach (var pair in current)
         {
             TryMergeFieldsInSet(context, pair.FieldA, pair.FieldB);
         }
-        
+
         current.Clear();
 #else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(current));

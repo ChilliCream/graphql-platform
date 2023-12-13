@@ -10,5 +10,4 @@ public interface IRequestExecutorOptionsAccessor
     : IErrorHandlerOptionsAccessor
     , IRequestTimeoutOptionsAccessor
     , IComplexityAnalyzerOptionsAccessor
-    , IPersistedQueryOptionsAccessor
-{ }
+    , IPersistedQueryOptionsAccessor;
