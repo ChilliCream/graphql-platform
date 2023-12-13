@@ -291,24 +291,9 @@ public static partial class ApolloFederationDescriptorExtensions
                 nameof(fieldSet));
         }
 
-        var arguments = new List<ArgumentNode>
-        {
-            new ArgumentNode(
-                WellKnownArgumentNames.Fields,
-                new StringValueNode(fieldSet)),
-        };
-        if (false == resolvable)
-        {
-            arguments.Add(
-                new ArgumentNode(
-                    WellKnownArgumentNames.Resolvable,
-                    new BooleanValueNode(false))
-            );
-        }
+        var arguments = CreateKeyArgumentNodes(fieldSet, resolvable);
 
-        descriptor.Directive(
-            WellKnownTypeNames.Key,
-            arguments.ToArray());
+        descriptor.Directive(WellKnownTypeNames.Key, arguments);
 
         return new EntityResolverDescriptor<object>(descriptor);
     }
@@ -331,24 +316,34 @@ public static partial class ApolloFederationDescriptorExtensions
                 nameof(fieldSet));
         }
 
-        var arguments = new List<ArgumentNode>
+        var arguments = CreateKeyArgumentNodes(fieldSet, resolvable);
+
+        return descriptor.Directive(WellKnownTypeNames.Key, arguments);
+    }
+
+    private static ArgumentNode[] CreateKeyArgumentNodes(string fieldSet, bool? resolvable)
+    {
+        bool notResolvable = resolvable is false;
+
+        int argumentCount = 1;
+        if (notResolvable)
         {
-            new ArgumentNode(
-                WellKnownArgumentNames.Fields,
-                new StringValueNode(fieldSet)),
-        };
-        if (false == resolvable)
-        {
-            arguments.Add(
-                new ArgumentNode(
-                    WellKnownArgumentNames.Resolvable,
-                    new BooleanValueNode(false))
-            );
+            argumentCount++;
         }
 
-        return descriptor.Directive(
-            WellKnownTypeNames.Key,
-            arguments.ToArray());
+        var arguments = new ArgumentNode[argumentCount];
+        arguments[0] = new ArgumentNode(
+            WellKnownArgumentNames.Fields,
+            new StringValueNode(fieldSet));
+        if (notResolvable)
+        {
+            arguments[1] =
+                new ArgumentNode(
+                    WellKnownArgumentNames.Resolvable,
+                    new BooleanValueNode(false));
+        }
+
+        return arguments;
     }
 
     /// <summary>
