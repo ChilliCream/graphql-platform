@@ -109,9 +109,7 @@ public static partial class ApolloFederationDescriptorExtensions
             WellKnownTypeNames.ComposeDirective,
             new ArgumentNode(
                 WellKnownArgumentNames.Name,
-                new StringValueNode(name)
-            )
-        );
+                new StringValueNode(name)));
     }
 
     /// <summary>
