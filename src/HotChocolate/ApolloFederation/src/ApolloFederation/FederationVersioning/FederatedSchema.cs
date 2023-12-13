@@ -46,6 +46,6 @@ public abstract class FederatedSchema : Schema
             }
         }
         var link = FederationUtils.GetFederationLink(FederationVersion);
-        descriptor.Link(link.Url, link.Import?.ToArray());
+        descriptor.Link(link.Url, link.Import);
     }
 }
