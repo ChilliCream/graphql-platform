@@ -18,11 +18,16 @@ public static partial class ApolloFederationDescriptorExtensions
     /// <summary>
     /// Applies @contact directive which can be used to prpvode team contact information to your subgraph schema.
     /// This information is automatically parsed and displayed by Apollo Studio. See
-    /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">Subgraph Contact Information</see>
+    /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">
+    /// Subgraph Contact Information</see>
     /// for additional details.
     ///
     /// <example>
-    /// schema @contact(description : "send urgent issues to [#oncall](https://yourteam.slack.com/archives/oncall).", name : "My Team Name", url : "https://myteam.slack.com/archives/teams-chat-room-url"){
+    /// schema
+    ///   @contact(
+    ///     description: "send urgent issues to [#oncall](https://yourteam.slack.com/archives/oncall)."
+    ///     name: "My Team Name"
+    ///     url: "https://myteam.slack.com/archives/teams-chat-room-url") {
     ///   query: Query
     /// }
     /// </example>
@@ -48,18 +53,13 @@ public static partial class ApolloFederationDescriptorExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="name"/> is <c>null</c>.
     /// </exception>
-    public static ISchemaTypeDescriptor Contact(this ISchemaTypeDescriptor descriptor, string name, string? url = null, string? description = null)
+    public static ISchemaTypeDescriptor Contact(
+        this ISchemaTypeDescriptor descriptor,
+        string name, string? url = null,
+        string? description = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (name is null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
         return descriptor.Directive(new ContactDirective(name, url, description));
     }
 
@@ -95,41 +95,14 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static ISchemaTypeDescriptor ComposeDirective(this ISchemaTypeDescriptor descriptor, string name)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (name is null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
 
         return descriptor.Directive(
             WellKnownTypeNames.ComposeDirective,
             new ArgumentNode(
                 WellKnownArgumentNames.Name,
                 new StringValueNode(name)));
-    }
-
-    /// <summary>
-    /// Mark the type as an extension of a type that is defined by another service when
-    /// using Apollo Federation.
-    /// </summary>
-    [Obsolete("Use ExtendsType type instead")]
-    public static IObjectTypeDescriptor ExtendServiceType(
-        this IObjectTypeDescriptor descriptor)
-    {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        descriptor
-            .Extend()
-            .OnBeforeCreate(d => d.ContextData[ExtendMarker] = true);
-
-        return descriptor;
     }
 
     /// <summary>
@@ -155,15 +128,16 @@ public static partial class ApolloFederationDescriptorExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IObjectTypeDescriptor ExtendsType(
+    public static IObjectTypeDescriptor ExtendServiceType(
         this IObjectTypeDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
 
-        return descriptor.Directive(WellKnownTypeNames.Extends);
+        descriptor
+            .Extend()
+            .OnBeforeCreate(d => d.ContextData[ExtendMarker] = true);
+
+        return descriptor;
     }
 
     /// <summary>
@@ -196,10 +170,7 @@ public static partial class ApolloFederationDescriptorExtensions
     public static IObjectFieldDescriptor External(
         this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
 
         return descriptor.Directive(WellKnownTypeNames.External);
     }
@@ -226,10 +197,7 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor InterfaceObject(this IObjectTypeDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
 
         return descriptor.Directive(WellKnownTypeNames.InterfaceObject);
     }
@@ -277,10 +245,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet,
         bool? resolvable = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -302,10 +267,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet,
         bool? resolvable = null)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -321,9 +283,9 @@ public static partial class ApolloFederationDescriptorExtensions
 
     private static ArgumentNode[] CreateKeyArgumentNodes(string fieldSet, bool? resolvable)
     {
-        bool notResolvable = resolvable is false;
+        var notResolvable = resolvable is false;
 
-        int argumentCount = 1;
+        var argumentCount = 1;
         if (notResolvable)
         {
             argumentCount++;
@@ -393,15 +355,8 @@ public static partial class ApolloFederationDescriptorExtensions
         string url,
         IEnumerable<string>? import)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (url is null)
-        {
-            throw new ArgumentNullException(nameof(url));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentException.ThrowIfNullOrEmpty(nameof(url));
 
         return descriptor.Directive(new LinkDirective(url, import?.ToList()));
     }
@@ -437,17 +392,8 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string from)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        if (string.IsNullOrEmpty(from))
-        {
-            throw new ArgumentException(
-                FieldDescriptorExtensions_Override_From_CannotBeNullOrEmpty,
-                nameof(from));
-        }
+        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentException.ThrowIfNullOrEmpty(nameof(from));
 
         return descriptor.Directive(
             WellKnownTypeNames.Override,
@@ -648,39 +594,6 @@ public static partial class ApolloFederationDescriptorExtensions
 
         return descriptor.Directive(WellKnownTypeNames.Shareable);
     }
-        /// <summary>
-    /// Applies @extends directive which is used to represent type extensions in the schema. Federated extended types should have
-    /// corresponding @key directive defined that specifies primary key required to fetch the underlying object.
-    ///
-    /// NOTE: Federation v2 no longer requires `@extends` directive due to the smart entity type merging. All usage of @extends
-    /// directive should be removed from your Federation v2 schemas.
-    /// <example>
-    /// # extended from the Users service
-    /// type Foo @extends @key(fields: "id") {
-    ///   id: ID
-    ///   description: String
-    /// }
-    /// </example>
-    /// </summary>
-    /// <param name="descriptor">
-    /// The object type descriptor on which this directive shall be annotated.
-    /// </param>
-    /// <returns>
-    /// Returns the object type descriptor.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
-    public static IObjectTypeDescriptor<T> ExtendsType<T>(
-        this IObjectTypeDescriptor<T> descriptor)
-    {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
-
-        return descriptor.Directive(WellKnownTypeNames.Extends);
-    }
 
     /// <summary>
     /// Adds the @key directive which is used to indicate a combination of fields that can be used to uniquely
@@ -734,11 +647,28 @@ public static partial class ApolloFederationDescriptorExtensions
     }
 
     /// <summary>
-    /// Mark the type as an extension
-    /// of a type that is defined by another service when
-    /// using apollo federation.
+    /// Applies @extends directive which is used to represent type extensions in the schema. Federated extended types should have
+    /// corresponding @key directive defined that specifies primary key required to fetch the underlying object.
+    ///
+    /// NOTE: Federation v2 no longer requires `@extends` directive due to the smart entity type merging. All usage of @extends
+    /// directive should be removed from your Federation v2 schemas.
+    /// <example>
+    /// # extended from the Users service
+    /// type Foo @extends @key(fields: "id") {
+    ///   id: ID
+    ///   description: String
+    /// }
+    /// </example>
     /// </summary>
-    [Obsolete("Use ExtendsType type instead")]
+    /// <param name="descriptor">
+    /// The object type descriptor on which this directive shall be annotated.
+    /// </param>
+    /// <returns>
+    /// Returns the object type descriptor.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
     public static IObjectTypeDescriptor<T> ExtendServiceType<T>(
         this IObjectTypeDescriptor<T> descriptor)
     {

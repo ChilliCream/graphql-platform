@@ -259,7 +259,7 @@ public class EntitiesResolverTests
         }
     }
 
-    [Extends]
+    [ExtendServiceType]
     public class ForeignType
     {
         public ForeignType(string id, string someExternalField)
@@ -282,7 +282,7 @@ public class EntitiesResolverTests
             => new(id, someExternalField);
     }
 
-    [Extends]
+    [ExtendServiceType]
     public class MixedFieldTypes
     {
         public MixedFieldTypes(string id, int intField)
