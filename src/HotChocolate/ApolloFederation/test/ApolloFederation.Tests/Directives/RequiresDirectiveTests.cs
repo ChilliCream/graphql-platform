@@ -24,7 +24,7 @@ public class RequiresDirectiveTests : FederationTypesTestBase
         Assert.IsType<RequiresDirectiveType>(directive);
         Assert.Equal(WellKnownTypeNames.Requires, directive!.Name);
         Assert.Single(directive.Arguments);
-        AssertDirectiveHasFieldsArgument(directive);
+        AssertDirectiveHasFieldsArgument(directive.Arguments);
         Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
     }
 
