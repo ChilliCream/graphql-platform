@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation;
@@ -22,10 +23,10 @@ public abstract class FederationTypesTestBase
         return builder.Create();
     }
 
-    protected void AssertDirectiveHasFieldsArgument(DirectiveType directive)
+    protected void AssertDirectiveHasFieldsArgument(IEnumerable<DirectiveArgument> directiveArguments)
     {
         Assert.Collection(
-            directive.Arguments,
+            directiveArguments,
             t =>
             {
                 Assert.Equal("fields", t.Name);
