@@ -13,9 +13,14 @@
 
 12and13 SQL:
 ---------------
+.param set @__p_0 '[12,13]'
+
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" NOT IN (12, 13)
+WHERE "d"."BarShort" NOT IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 13and14 Result:
@@ -33,9 +38,14 @@ WHERE "d"."BarShort" NOT IN (12, 13)
 
 13and14 SQL:
 ---------------
+.param set @__p_0 '[13,14]'
+
 SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
 FROM "Data" AS "d"
-WHERE "d"."BarShort" NOT IN (13, 14)
+WHERE "d"."BarShort" NOT IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 nullAnd14

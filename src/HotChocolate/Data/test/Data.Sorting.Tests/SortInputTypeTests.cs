@@ -249,7 +249,7 @@ public class SortInputTypeTest : SortTestBase
         public string Name { get; set; } = default!;
     }
 
-    public class ShouldNotBeVisible : SortInputType { }
+    public class ShouldNotBeVisible : SortInputType;
 
     public class IgnoreTestSortInputType : SortInputType<IgnoreTest>
     {
@@ -267,7 +267,7 @@ public class SortInputTypeTest : SortTestBase
         }
     }
 
-    public class FooDirective { }
+    public class FooDirective;
 
     public class Foo
     {

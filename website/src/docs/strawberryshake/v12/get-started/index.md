@@ -14,7 +14,7 @@ In this tutorial, we will teach you:
 
 # Step 1: Add the Strawberry Shake CLI tools
 
-The Strawberry Shake tool will help you to setup your project to create a GraphQL client.
+The Strawberry Shake tool will help you to set up your project to create a GraphQL client.
 
 Open your preferred terminal and select a directory where you want to add the code of this tutorial.
 
@@ -84,7 +84,7 @@ dotnet add Demo package Microsoft.Extensions.Http
 
 # Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
 In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our Blazor application.
 
@@ -178,7 +178,7 @@ public class Program
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
 @using Demo
-@using Demo.Shared
+@using Demo.Shared // (from .NET 8, `Demo.Layout`)
 @using Demo.GraphQL
 @using StrawberryShake
 ```
@@ -187,7 +187,7 @@ public class Program
 
 In this section we will perform a simple fetch with our `ConferenceClient`. We will not yet look at state or other things that come with our client but just perform a simple fetch.
 
-1. Head over to `Pages/Index.razor`.
+1. Head over to `Pages/Index.razor` (from .NET 8, `Home.razor`).
 
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
@@ -213,7 +213,7 @@ Welcome to your new app.
 }
 ```
 
-4. Now lets fetch the titles with our client.
+4. Now let's fetch the titles with our client.
 
 ```csharp
 @page "/"
@@ -236,7 +236,7 @@ Welcome to your new app.
 }
 ```
 
-5. Last, lets render the titles on our page as a list.
+5. Last, let's render the titles on our page as a list.
 
 ```csharp
 @page "/"
@@ -271,7 +271,7 @@ Welcome to your new app.
 
 # Step 6: Using the built-in store with reactive APIs.
 
-The simple fetch of our data works. But every time we visit the index page it will fetch the data again although the data does not change often. Strawberry Shake also comes with state management where you can control the entity store and update it when you need to. In order to best interact with the store we will use `System.Reactive` from Microsoft. Lets get started :)
+The simple fetch of our data works. But every time we visit the index page it will fetch the data again although the data does not change often. Strawberry Shake also comes with state management where you can control the entity store and update it when you need to. In order to best interact with the store we will use `System.Reactive` from Microsoft. Let's get started :)
 
 1. Install the package `System.Reactive`.
 
@@ -294,12 +294,12 @@ dotnet add Demo package System.Reactive
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
 @using Demo
-@using Demo.Shared
+@using Demo.Shared // (from .NET 8, `Demo.Layout`)
 @using Demo.GraphQL
 @using StrawberryShake
 ```
 
-3. Head back to `Pages/Index.razor` and replace the code section with the following code:
+3. Head back to `Pages/Index.razor` (from .NET 8, `Home.razor`) and replace the code section with the following code:
 
 ```csharp
 private string[] titles = Array.Empty<string>();
@@ -410,7 +410,7 @@ fragment SessionInfo on Session {
 }
 ```
 
-2. Next we need to restructure the `Index.razor` page. We will get rid of the Blazor default content and rework our list to use our fragment `SessionInfo`. Further, we will introduce a button to our list so that we have a hook to start editing items from our list.
+2. Next we need to restructure the `Index.razor` (from .NET 8, `Home.razor`) page. We will get rid of the Blazor default content and rework our list to use our fragment `SessionInfo`. Further, we will introduce a button to our list so that we have a hook to start editing items from our list.
 
 ```csharp
 @page "/"
@@ -471,7 +471,7 @@ mutation RenameSession($sessionId: ID!, $title: String!) {
 
 4. Rebuild, the project so that the source generator will create all our new types.
 
-5. Go back to the `Index.razor` page and lets add some state for our edit controls.
+5. Go back to the `Index.razor` (from .NET 8, `Home.razor`) page and let's add some state for our edit controls.
 
 ```csharp
 private ISessionInfo selectedSession;
@@ -527,7 +527,7 @@ The page should now look like the following:
 }
 ```
 
-6. Now, lets put some controls in to let the user edit the title of one of our sessions.
+6. Now, let's put some controls in to let the user edit the title of one of our sessions.
 
 ```csharp
 @if (selectedSession is not null)

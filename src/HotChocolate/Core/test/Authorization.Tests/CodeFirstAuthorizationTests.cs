@@ -579,7 +579,7 @@ public class CodeFirstAuthorizationTests
 
     private sealed record City(string? Value) : ICityOrStreet;
 
-    private interface ICityOrStreet { }
+    private interface ICityOrStreet;
 
     private sealed class AuthHandler : IAuthorizationHandler
     {

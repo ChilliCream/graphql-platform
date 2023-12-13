@@ -9,9 +9,14 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
+.param set @__p_0 '["testatest","testbtest"]'
+
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" NOT IN ('testatest', 'testbtest')
+WHERE NOT (COALESCE("d"."Bar" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+), 0))
 ---------------
 
 testbtestAndNull
@@ -57,7 +62,12 @@ testatest Result:
 
 testatest SQL:
 ---------------
+.param set @__p_0 '["testatest"]'
+
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE "d"."Bar" <> 'testatest'
+WHERE NOT (COALESCE("d"."Bar" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+), 0))
 ---------------

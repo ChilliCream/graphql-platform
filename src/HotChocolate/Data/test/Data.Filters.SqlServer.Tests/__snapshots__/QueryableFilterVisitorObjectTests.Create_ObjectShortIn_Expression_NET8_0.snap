@@ -25,10 +25,15 @@
 
 12and13 SQL:
 ---------------
+.param set @__p_0 '[12,13]'
+
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (12, 13)
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 13and14 Result:
@@ -58,10 +63,15 @@ WHERE "f"."BarShort" IN (12, 13)
 
 13and14 SQL:
 ---------------
+.param set @__p_0 '[13,14]'
+
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" IN (13, 14)
+WHERE "f"."BarShort" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 nullAnd14

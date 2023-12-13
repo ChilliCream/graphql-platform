@@ -30,10 +30,15 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
+.param set @__p_0 '["testatest","testbtest"]'
+
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarString" IN ('testatest', 'testbtest')
+WHERE "f"."BarString" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 testbtestAndNull
@@ -86,8 +91,13 @@ testatest Result:
 
 testatest SQL:
 ---------------
+.param set @__p_0 '["testatest"]'
+
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarString" = 'testatest'
+WHERE "f"."BarString" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
