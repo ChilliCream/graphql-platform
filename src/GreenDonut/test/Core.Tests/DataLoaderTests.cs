@@ -122,10 +122,7 @@ public class DataLoaderTests
         var loader = new DataLoader<string, string>(
             fetch,
             batchScheduler,
-            new DataLoaderOptions
-            {
-                Caching = false
-            });
+            new DataLoaderOptions { Caching = false });
         var key = "Foo";
 
         // act
@@ -171,7 +168,8 @@ public class DataLoaderTests
         Task<IReadOnlyList<string>> Verify() => loader.LoadAsync(default(string[])!);
 
         // assert
-        await Assert.ThrowsAsync<ArgumentNullException>("keys", (Func<Task<IReadOnlyList<string>>>)Verify);
+        await Assert.ThrowsAsync<ArgumentNullException>("keys",
+            (Func<Task<IReadOnlyList<string>>>)Verify);
     }
 
     [Fact(DisplayName = "LoadAsync: Should allow empty list of keys")]
@@ -291,10 +289,7 @@ public class DataLoaderTests
         var loader = new DataLoader<string, string>(
             fetch,
             batchScheduler,
-            new DataLoaderOptions
-            {
-                Caching = false
-            });
+            new DataLoaderOptions { Caching = false });
         var keys = new List<string> { "Foo" };
 
         // act
@@ -310,12 +305,12 @@ public class DataLoaderTests
     {
         // arrange
         var repository = new Dictionary<string, string>
-        {
-            { "Foo", "Bar" },
-            { "Bar", null },
-            { "Baz", "Foo" },
-            { "Qux", null }
-        };
+            {
+                { "Foo", "Bar" },
+                { "Bar", null },
+                { "Baz", "Foo" },
+                { "Qux", null }
+            };
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
@@ -337,7 +332,13 @@ public class DataLoaderTests
 
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(Fetch, batchScheduler);
-        var requestKeys = new[] { "Foo", "Bar", "Baz", "Qux" };
+        var requestKeys = new[]
+        {
+                "Foo",
+                "Bar",
+                "Baz",
+                "Qux"
+            };
 
         // act
         var loadResult = loader.LoadAsync(requestKeys);
@@ -356,11 +357,11 @@ public class DataLoaderTests
         var expectedException = Errors.CreateKeysAndValuesMustMatch(4, 3);
 
         var repository = new Dictionary<string, string>
-        {
-            { "Foo", "Bar" },
-            { "Bar", "Baz" },
-            { "Baz", "Foo" }
-        };
+            {
+                { "Foo", "Bar" },
+                { "Bar", "Baz" },
+                { "Baz", "Foo" }
+            };
 
         ValueTask Fetch(
             IReadOnlyList<string> keys,
@@ -487,14 +488,16 @@ public class DataLoaderTests
         for (var i = 0; i < maxRequests; i++)
         {
             requests[i] = Task.Factory.StartNew(async () =>
-            {
-                var index = random.Next(uniqueKeys);
-                var delay = random.Next(maxDelay);
+                    {
+                        var index = random.Next(uniqueKeys);
+                        var delay = random.Next(maxDelay);
 
-                await Task.Delay(delay);
+                        await Task.Delay(delay);
 
-                return await loader.LoadAsync(keyArray[index]);
-            }, TaskCreationOptions.RunContinuationsAsynchronously).Unwrap();
+                        return await loader.LoadAsync(keyArray[index]);
+                    },
+                    TaskCreationOptions.RunContinuationsAsynchronously)
+                .Unwrap();
         }
 
         while (requests.Any(task => !task.IsCompleted))
@@ -637,7 +640,8 @@ public class DataLoaderTests
         Assert.Equal(1, cache.Usage);
     }
 
-    [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for key")]
+    [Fact(DisplayName =
+        "IDataLoader.LoadAsync: Should throw an argument null exception for key")]
     public async Task IDataLoaderLoadSingleKeyNull()
     {
         // arrange
@@ -692,7 +696,8 @@ public class DataLoaderTests
         await task;
     }
 
-    [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
+    [Fact(DisplayName =
+        "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
     public async Task IDataLoaderLoadParamsKeysNull()
     {
         // arrange
@@ -741,7 +746,8 @@ public class DataLoaderTests
         (await loadResult).MatchSnapshot();
     }
 
-    [Fact(DisplayName = "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
+    [Fact(DisplayName =
+        "IDataLoader.LoadAsync: Should throw an argument null exception for keys")]
     public async Task IDataLoaderLoadCollectionKeysNull()
     {
         // arrange
@@ -932,5 +938,190 @@ public class DataLoaderTests
 
         // assert
         Assert.Equal(1, cache.Usage);
+    }
+
+    [Fact(DisplayName = "ITaskCacheObserver.OnNext should receive all values after init")]
+    public async Task ObservableDataLoader_ReceivesValues()
+    {
+        // arrange
+        FetchDataDelegate<string, string> fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        var observableLoader =
+            new ObservableDataLoader<string, string>(fetch, batchScheduler, options);
+
+        // act
+        loader.Set("Foo", Task.FromResult("Bar"));
+        loader.Set("Bar", Task.FromResult("Baz"));
+
+        // assert
+        await WaitUntil(
+            () => observableLoader.ReceivedValues.Count != 2,
+            TimeSpan.FromSeconds(1));
+
+        Assert.Equal(2, observableLoader.ReceivedValues.Count);
+    }
+
+    [Fact(DisplayName = "ITaskCacheObserver.OnNext should receive replay all values")]
+    public async Task ObservableDataLoader_Replay()
+    {
+        // arrange
+        FetchDataDelegate<string, string> fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        loader.Set("Foo", Task.FromResult("Bar"));
+        loader.Set("Bar", Task.FromResult("Baz"));
+
+        // act
+        var observableLoader =
+            new ObservableDataLoader<string, string>(fetch, batchScheduler, options);
+
+        await WaitUntil(
+            () => observableLoader.ReceivedValues.Count == 2,
+            TimeSpan.FromSeconds(1));
+
+        // assert
+        Assert.Equal(2, observableLoader.ReceivedValues.Count);
+    }
+
+    [Fact(DisplayName = "ITaskCacheObserver.OnNext should receive a object only once")]
+    public async Task ObservableDataLoader_ShouldReceiveObjectOnlyOnce()
+    {
+        // arrange
+        FetchDataDelegate<string, string> fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, string>(fetch, batchScheduler, options);
+        loader.Set("Foo", Task.FromResult("Bar"));
+        loader.Set("Bar", Task.FromResult("Baz"));
+
+        // act
+        var observableLoader =
+            new WriteBackObservableDataLoader(fetch, batchScheduler, options);
+
+        // assert
+        await Task.Delay(300);
+
+        Assert.Equal(2, observableLoader.ReceivedValues.Count);
+    }
+
+    [Fact(DisplayName = "ITaskCacheObserver.OnNext should not receive a object from itself")]
+    public async Task ObservableDataLoader_NotReceiveObjectFromSelf()
+    {
+        // arrange
+        FetchDataDelegate<string, string> fetch = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var observableLoader =
+            new ObservableDataLoader<string, string>(fetch, batchScheduler, options);
+
+        // act
+        observableLoader.Set("Foo", Task.FromResult("Bar"));
+        observableLoader.Set("Bar", Task.FromResult("Baz"));
+
+        // assert
+        await Task.Delay(300);
+
+        Assert.Empty(observableLoader.ReceivedValues);
+    }
+
+    [Fact(DisplayName =
+        "ITaskCacheObserver.OnNext should not receive a object that does not pass CanHandle")]
+    public async Task ObservableDataLoader_NotReceiveAObjectThatCannotBeHandled()
+    {
+        // arrange
+        FetchDataDelegate<string, int> fetch = CreateFetch<string, int>();
+        FetchDataDelegate<string, string> fetchString = CreateFetch<string, string>();
+        var batchScheduler = new ManualBatchScheduler();
+        var cache = new TaskCache(10);
+        var options = new DataLoaderOptions { Cache = cache };
+        var loader = new DataLoader<string, int>(fetch, batchScheduler, options);
+        loader.Set("Foo", Task.FromResult(1));
+        loader.Set("Bar", Task.FromResult(1));
+
+        // act
+        var observableLoader =
+            new ObservableDataLoader<string, string>(fetchString, batchScheduler, options);
+
+        await Task.Delay(300);
+
+        // assert
+        Assert.Empty(observableLoader.ReceivedValues);
+    }
+
+    private static async ValueTask WaitUntil(Func<bool> condition, TimeSpan timeout)
+    {
+        DateTime until = DateTime.Now + timeout;
+        while (!condition() && until < DateTime.Now)
+        {
+            await Task.Delay(50);
+        }
+    }
+
+    private class ObservableDataLoader<TKey, TValue>
+        : DataLoaderBase<TKey, TValue>, ITaskCacheObserver where TKey : notnull
+    {
+        private readonly FetchDataDelegate<TKey, TValue> _fetch;
+
+        public ObservableDataLoader(
+            FetchDataDelegate<TKey, TValue> fetch,
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions? options = null)
+            : base(batchScheduler, options)
+        {
+            _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
+        }
+
+        public List<object> ReceivedValues { get; } = new();
+
+        public bool CanHandle(object value) => value is TValue;
+
+        protected override ValueTask FetchAsync(
+            IReadOnlyList<TKey> keys,
+            Memory<Result<TValue>> results,
+            CancellationToken cancellationToken)
+            => _fetch(keys, results, cancellationToken);
+
+        public void OnNext(object value)
+        {
+            ReceivedValues.Add(value);
+        }
+    }
+
+    private class WriteBackObservableDataLoader
+        : DataLoaderBase<string, string>, ITaskCacheObserver
+    {
+        private readonly FetchDataDelegate<string, string> _fetch;
+
+        public WriteBackObservableDataLoader(
+            FetchDataDelegate<string, string> fetch,
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions? options = null)
+            : base(batchScheduler, options)
+        {
+            _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
+        }
+
+        public List<object> ReceivedValues { get; } = new();
+
+        protected override ValueTask FetchAsync(
+            IReadOnlyList<string> keys,
+            Memory<Result<string>> results,
+            CancellationToken cancellationToken)
+            => _fetch(keys, results, cancellationToken);
+
+        public bool CanHandle(object value) => true;
+
+        public void OnNext(object value)
+        {
+            ReceivedValues.Add(value);
+            Set("write" + value, Task.FromResult(value + "write"));
+        }
     }
 }

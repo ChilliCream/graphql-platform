@@ -20,7 +20,9 @@ namespace GreenDonut;
 /// users with different access permissions and consider creating a new
 /// instance per web request. -- facebook
 /// </para>
-/// <para>This is an abstraction for all kind of <c>DataLoaders</c>.</para>
+/// <para>
+/// This is an abstraction for all kind of <c>DataLoaders</c>.
+/// </para>
 /// </summary>
 /// <typeparam name="TKey">A key type.</typeparam>
 /// <typeparam name="TValue">A value type.</typeparam>
@@ -32,7 +34,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     private readonly object _sync = new();
     private readonly CancellationTokenSource _disposeTokenSource = new();
     private readonly IBatchScheduler _batchScheduler;
+    private readonly string _cacheKeyType;
     private readonly int _maxBatchSize;
+    private readonly ITaskCache? _cache;
+    private readonly IDisposable? _cacheSubscription;
     private readonly TaskCacheOwner? _cacheOwner;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
     private Batch<TKey>? _currentBatch;
@@ -59,29 +64,34 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         if (options.Caching && options.Cache is null)
         {
             _cacheOwner = new TaskCacheOwner();
-            Cache = _cacheOwner.Cache;
+            _cache = _cacheOwner.Cache;
         }
         else
         {
-            Cache = options.Caching
+            _cache = options.Caching
                 ? options.Cache
                 : null;
         }
 
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
-        CacheKeyType = GetCacheKeyType(GetType());
+        _cacheKeyType = GetCacheKeyType(GetType());
+
+        if (_cache is not null && this is ITaskCacheObserver observer)
+        {
+            _cacheSubscription = TaskCacheSubscription.From(_cacheKeyType, _cache, observer);
+        }
     }
 
     /// <summary>
     /// Gets access to the cache of this DataLoader.
     /// </summary>
-    protected ITaskCache? Cache { get; }
+    protected ITaskCache? Cache => _cache;
 
     /// <summary>
     /// Gets the cache key type for this DataLoader.
     /// </summary>
-    protected virtual string CacheKeyType { get; }
+    protected string CacheKeyType => _cacheKeyType;
 
     /// <inheritdoc />
     public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
@@ -92,13 +102,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
 
         var cached = true;
-        TaskCacheKey cacheKey = new(CacheKeyType, key);
+        TaskCacheKey cacheKey = new(_cacheKeyType, key);
 
         lock (_sync)
         {
-            if (Cache is not null)
+            if (_cache is not null)
             {
-                var cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
+                var cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                 if (cached)
                 {
@@ -135,7 +145,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         lock (_sync)
         {
-            if (Cache is not null)
+            if (_cache is not null)
             {
                 InitializeWithCache();
             }
@@ -155,9 +165,9 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
                 cached = true;
                 currentKey = key;
-                TaskCacheKey cacheKey = new(CacheKeyType, key);
-                var cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
-
+                TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                var cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
+                
                 if (cached)
                 {
                     _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
@@ -196,10 +206,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (Cache is not null)
+        if (_cache is not null)
         {
-            TaskCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryRemove(cacheKey);
+            TaskCacheKey cacheKey = new(_cacheKeyType, key);
+            _cache.TryRemove(cacheKey);
         }
     }
 
@@ -216,10 +226,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             throw new ArgumentNullException(nameof(value));
         }
 
-        if (Cache is not null)
+        if (_cache is not null)
         {
-            TaskCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryAdd(cacheKey, value);
+            TaskCacheKey cacheKey = new(_cacheKeyType, key);
+            _cache.TryAdd(cacheKey, value);
         }
     }
 
@@ -232,10 +242,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         foreach (var key in keys)
         {
-            if (Cache is not null)
+            if (_cache is not null)
             {
-                TaskCacheKey cacheKey = new(CacheKeyType, key);
-                Cache.TryRemove(cacheKey);
+                TaskCacheKey cacheKey = new(_cacheKeyType, key);
+                _cache.TryRemove(cacheKey);
             }
 
             batch.GetPromise<TValue>(key).TrySetException(error);
@@ -322,7 +332,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
         _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
-
         return newPromise;
     }
 
@@ -363,12 +372,12 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Func<TItem, TV> value)
         where TK : notnull
     {
-        if (Cache is not null)
+        if (_cache is not null)
         {
             foreach (var item in items)
             {
                 TaskCacheKey cacheKey = new(cacheKeyType, key(item));
-                Cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
+                _cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
             }
         }
     }
@@ -389,10 +398,10 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         TV value)
         where TK : notnull
     {
-        if (Cache is not null)
+        if (_cache is not null)
         {
             TaskCacheKey cacheKey = new(cacheKeyType, key);
-            Cache.TryAdd(cacheKey, () => Task.FromResult(value));
+            _cache.TryAdd(cacheKey, () => Task.FromResult(value));
         }
     }
 
@@ -443,9 +452,78 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 _disposeTokenSource.Cancel();
                 _disposeTokenSource.Dispose();
                 _cacheOwner?.Dispose();
+                _cacheSubscription?.Dispose();
             }
 
             _disposed = true;
         }
     }
+
+    private class TaskCacheSubscription : IObserver<TaskCacheResult>
+    {
+        private readonly string _taskCacheKeyType;
+        private readonly ITaskCacheObserver _observer;
+        private readonly object _sync = new();
+        private readonly HashSet<object> _processed = new();
+
+        private TaskCacheSubscription(
+            string taskCacheKeyType,
+            ITaskCacheObserver observer)
+        {
+            _taskCacheKeyType = taskCacheKeyType;
+            _observer = observer;
+        }
+
+        public void OnCompleted()
+        {
+            // nothing to do on complete
+        }
+
+        public void OnError(Exception error)
+        {
+            // omit error
+        }
+
+        public void OnNext(TaskCacheResult value)
+        {
+            // if the result comes from the dataloader where it was published, we ignore the
+            // result
+            if (value.Key.Type == _taskCacheKeyType)
+            {
+                return;
+            }
+
+            // if the observer cannot handle the result, we ignore the result
+            if (!_observer.CanHandle(value.Result))
+            {
+                return;
+            }
+
+            // if the result was already processed, we can ignore the result
+            if (_processed.Contains(value.Result))
+            {
+                return;
+            }
+
+            // the result seems to be not processed, so we add it to the hashset
+            lock (_sync)
+            {
+                // if in the meantime the result was added, return
+                if (!_processed.Add(value.Result))
+                {
+                    return;
+                }
+            }
+
+            // let the observer process the result
+            _observer.OnNext(value);
+        }
+
+        public static IDisposable From(
+            string keyType,
+            ITaskCache cache,
+            ITaskCacheObserver observer)
+            => cache.Subscribe(new TaskCacheSubscription(keyType, observer));
+    }
 }
+
