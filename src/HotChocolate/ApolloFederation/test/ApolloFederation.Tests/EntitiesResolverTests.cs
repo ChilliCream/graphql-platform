@@ -12,7 +12,7 @@ namespace HotChocolate.ApolloFederation;
 public class EntitiesResolverTests
 {
     [Fact]
-    public async void TestResolveViaForeignServiceType()
+    public async Task TestResolveViaForeignServiceType()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -23,17 +23,17 @@ public class EntitiesResolverTests
         var context = CreateResolverContext(schema);
 
         // act
-        var representations = new List<Representation>
-        {
-            new("ForeignType",
-                new ObjectValueNode(
-                    new ObjectFieldNode("id", "1"),
-                    new ObjectFieldNode("someExternalField", "someExternalField"))),
-        };
-
-        // assert
+        var representations = RepresentationsOf(
+            nameof(ForeignType),
+            new
+            {
+                id = "1",
+                someExternalField = "someExternalField",
+            });
         var result =
             await EntitiesResolver.ResolveAsync(schema, representations, context);
+
+        // assert
         var obj = Assert.IsType<ForeignType>(result[0]);
         Assert.Equal("1", obj.Id);
         Assert.Equal("someExternalField", obj.SomeExternalField);
@@ -112,12 +112,11 @@ public class EntitiesResolverTests
                 mock.Setup(c => c.Service<FederatedTypeDataLoader>()).Returns(dataLoader);
             });
 
-        var representations = new List<Representation>
-        {
-            new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "1"))),
-            new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "2"))),
-            new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "3"))),
-        };
+        var representations = RepresentationsOf(
+            nameof(FederatedType),
+            new { Id = "1" },
+            new { Id = "2" },
+            new { Id = "3" });
 
         // act
         var resultTask = EntitiesResolver.ResolveAsync(schema, representations, context);
