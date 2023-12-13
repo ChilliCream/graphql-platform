@@ -129,14 +129,20 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void CompleteReferenceResolver(ObjectTypeDefinition typeDef)
     {
-        if (!typeDef.GetContextData().TryGetValue(EntityResolver, out var resolversObject))
+        IReadOnlyList<ReferenceResolverDefinition> resolvers;
         {
-            return;
-        }
+            var contextData = typeDef.GetContextData();
+            if (!contextData.TryGetValue(EntityResolver, out var resolversObject))
+            {
+                return;
+            }
 
-        if (resolversObject is not IReadOnlyList<ReferenceResolverDefinition> resolvers)
-        {
-            return;
+            if (resolversObject is not IReadOnlyList<ReferenceResolverDefinition> r)
+            {
+                return;
+            }
+
+            resolvers = r;
         }
 
         if (resolvers.Count == 1)
@@ -223,8 +229,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         var descriptor = ObjectTypeDescriptor.From(_context, objectTypeDefinition);
 
-        foreach (var possibleReferenceResolver in
-            objectType.RuntimeType.GetMethods(BindingFlags.Static | BindingFlags.Public))
+        // Static methods won't end up in the schema as fields.
+        // The default initialization system only considers instance methods,
+        // so we have to handle the attributes for those manually.
+        var potentiallyUnregisteredReferenceResolvers = objectType.RuntimeType
+            .GetMethods(BindingFlags.Static | BindingFlags.Public);
+
+        foreach (var possibleReferenceResolver in potentiallyUnregisteredReferenceResolvers)
         {
             if (!possibleReferenceResolver.IsDefined(typeof(ReferenceResolverAttribute)))
             {
@@ -240,6 +251,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             }
         }
 
+        // This seems to re-detect the entity resolver and save it into the context data.
         descriptor.CreateDefinition();
     }
 
