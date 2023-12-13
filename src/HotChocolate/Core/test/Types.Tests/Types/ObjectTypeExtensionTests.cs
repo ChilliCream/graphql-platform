@@ -9,6 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter;
@@ -509,6 +510,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task Remove_Fields_Globally_With_Func()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Remove_Fields_Globally_With_Func_PersonDto>()
+                .AddTypeExtension<Remove_Fields_Globally_With_Func_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Remove_Fields()
         {
             Snapshot.FullName();
@@ -817,6 +831,27 @@ namespace HotChocolate.Types
             IgnoreProperties = new[] { "internalId" })]
         public class Remove_Fields_Globally_PersonResolvers
         {
+        }
+
+        public class Remove_Fields_Globally_With_Func_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(
+            typeof(Remove_Fields_Globally_With_Func_PersonDto),
+            IgnorePropertiesResolverType = typeof(Remove_Fields_Globally_With_Func_PersonResolvers),
+            IgnorePropertiesResolver = nameof(IgnorePropertiesResolver))]
+        public class Remove_Fields_Globally_With_Func_PersonResolvers
+        {
+            public static string[] IgnorePropertiesResolver(Type typeBeingExtended)
+            {
+                Assert.Equal(nameof(Remove_Fields_Globally_With_Func_PersonDto), typeBeingExtended.Name);
+
+                return new[] { nameof(Remove_Fields_Globally_With_Func_PersonDto.InternalId) };
+            }
         }
 
         public class Remove_Fields_PersonDto
