@@ -13,7 +13,7 @@ namespace HotChocolate.Validation.Rules;
 /// For each usage of a directive, the directive must be available
 /// on that server.
 ///
-/// http://spec.graphql.org/June2018/#sec-Directives-Are-Defined
+/// https://spec.graphql.org/June2018/#sec-Directives-Are-Defined
 ///
 /// AND
 ///
@@ -23,7 +23,7 @@ namespace HotChocolate.Validation.Rules;
 /// For each usage of a directive, the directive must be used in a
 /// location that the server has declared support for.
 ///
-/// http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations
+/// https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations
 ///
 /// AND
 ///
@@ -34,7 +34,7 @@ namespace HotChocolate.Validation.Rules;
 /// same name is used, the expected metadata or behavior becomes ambiguous,
 /// therefore only one of each directive is allowed per location.
 ///
-/// http://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
+/// https://spec.graphql.org/draft/#sec-Directives-Are-Unique-Per-Location
 ///
 /// AND
 ///
@@ -43,7 +43,7 @@ namespace HotChocolate.Validation.Rules;
 /// If a label is passed, it must not be a variable and it must be unique within
 /// all other @defer and @stream directives in the document.
 ///
-/// http://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique
+/// https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directive-Labels-Are-Unique
 /// </summary>
 internal sealed class DirectiveVisitor : DocumentValidatorVisitor
 {

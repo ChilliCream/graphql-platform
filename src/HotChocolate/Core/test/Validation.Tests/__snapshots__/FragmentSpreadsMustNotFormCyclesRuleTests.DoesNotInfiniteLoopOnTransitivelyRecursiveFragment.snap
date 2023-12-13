@@ -20,7 +20,7 @@
     ],
     "Extensions": {
       "fragment": "fragA",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -65,7 +65,7 @@
     ],
     "Extensions": {
       "fragment": "fragB",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -110,7 +110,7 @@
     ],
     "Extensions": {
       "fragment": "fragC",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
     "Exception": null,
     "SyntaxNode": {
