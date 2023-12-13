@@ -3,15 +3,24 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
-/// This attribute is used to mark types as an extended type
-/// of a type that is defined by another service when
-/// using apollo federation.
+/// <code>
+/// directive @extends on OBJECT | INTERFACE
+/// </code>
+///
+/// The @extends directive is used to represent type extensions in the schema. Federated extended types should have
+/// corresponding @key directive defined that specifies primary key required to fetch the underlying object.
+/// <example>
+/// # extended from the Users service
+/// type Foo @extends @key(fields: "id") {
+///   id: ID
+///   description: String
+/// }
+/// </example>
 /// </summary>
 [AttributeUsage(
     AttributeTargets.Class |
     AttributeTargets.Struct |
     AttributeTargets.Interface)]
-[Obsolete("Use ExtendsAttribute instead")]
 public sealed class ExtendServiceTypeAttribute : ObjectTypeDescriptorAttribute
 {
     protected override void OnConfigure(
