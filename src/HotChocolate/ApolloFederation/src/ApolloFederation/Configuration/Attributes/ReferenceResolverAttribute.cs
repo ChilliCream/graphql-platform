@@ -10,7 +10,9 @@ namespace HotChocolate.ApolloFederation;
 /// entity by whatever unique identifier your other subgraphs use to reference it.
 /// </summary>
 [AttributeUsage(
-    AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method,
+    AttributeTargets.Class |
+    AttributeTargets.Struct |
+    AttributeTargets.Method,
     AllowMultiple = true)]
 public class ReferenceResolverAttribute : DescriptorAttribute
 {
