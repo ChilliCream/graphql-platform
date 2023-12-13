@@ -78,7 +78,7 @@ public class EntityTypeTests
                         user(a: Int!): User
                     }
 
-                    type User @key(fields: ""id address { matchCode }"") {
+                    type User @key(fields: "id address { matchCode }") {
                         id: Int!
                         address: Address
                     }
