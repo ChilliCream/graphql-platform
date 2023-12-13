@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
