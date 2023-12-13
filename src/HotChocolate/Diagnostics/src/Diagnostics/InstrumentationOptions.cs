@@ -21,8 +21,7 @@ public sealed class InstrumentationOptions
     /// Specifies if the parsed document shall be included into the tracing data.
     /// </summary>
     public bool IncludeDocument { get; set; }
-
-
+    
     /// <summary>
     /// Specifies if DataLoader batch keys shall included into the tracing data.
     /// </summary>

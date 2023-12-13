@@ -5,14 +5,9 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
 
-public class ResolverTests
+public class ResolverTests(ITestOutputHelper output)
 {
-    private readonly Func<ICompositionLog> _logFactory;
-
-    public ResolverTests(ITestOutputHelper output)
-    {
-        _logFactory = () => new TestCompositionLog(output);
-    }
+    private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
     public async Task Variables_Are_Computed_Even_Without_Resolver()

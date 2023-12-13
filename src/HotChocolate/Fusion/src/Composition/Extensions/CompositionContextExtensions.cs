@@ -36,9 +36,7 @@ internal static class CompositionContextExtensions
         this CompositionContext context,
         ComplexType complexType,
         FieldNode fieldRef)
-    {
-        return CanResolve(context, complexType, fieldRef, context.SupportedBy);
-    }
+        => CanResolve(context, complexType, fieldRef, context.SupportedBy);
 
     private static bool CanResolve(
         CompositionContext context,
@@ -69,7 +67,7 @@ internal static class CompositionContextExtensions
 
         supportedBy.IntersectWith(
             fieldDef.Directives
-                .Where(t => t.Name.EqualsOrdinal(context.FusionTypes.Source.Name))
+                .Where(t => t.Name.EqualsOrdinal(context.FusionTypes.SourceDirective.Name))
                 .Select(t => ((StringValueNode)t.Arguments[SubgraphArg]).Value));
 
         return supportedBy.Count > 0;

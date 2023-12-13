@@ -9,19 +9,19 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class ScalarTypeMergeHandler : ITypeMergeHandler
 {
     /// <inheritdoc />
-    public ValueTask<MergeStatus> MergeAsync(
-        CompositionContext context,
-        TypeGroup typeGroup,
-        CancellationToken cancellationToken)
+    public TypeKind Kind => TypeKind.Scalar;
+    
+    /// <inheritdoc />
+    public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
         // Skip the merge operation if any part is not a scalar type.
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.Scalar))
         {
-            return new(MergeStatus.Skipped);
+            return MergeStatus.Skipped;
         }
 
         // Get the target scalar type.
-        var target = context.FusionGraph.Types[typeGroup.Name];
+        var target = MergeHelper.GetOrCreateType<ScalarType>(context.FusionGraph, typeGroup.Name);
 
         // Merge each part of the scalar type.
         foreach (var part in typeGroup.Parts)
@@ -36,6 +36,6 @@ internal sealed class ScalarTypeMergeHandler : ITypeMergeHandler
             target.MergeDescriptionWith(source);
         }
 
-        return new(MergeStatus.Completed);
+        return MergeStatus.Completed;
     }
 }

@@ -3,14 +3,9 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
+public sealed class UnionType(string name) : INamedType, INamedTypeSystemMember<UnionType>
 {
-    private string _name;
-
-    public UnionType(string name)
-    {
-        _name = name.EnsureGraphQLName();
-    }
+    private string _name = name.EnsureGraphQLName();
 
     public TypeKind Kind => TypeKind.Union;
 
@@ -26,8 +21,35 @@ public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
 
     public IList<ObjectType> Types { get; } = new List<ObjectType>();
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
-    
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
+
+    public bool IsAssignableFrom(INamedType type, TypeComparison comparison)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (ReferenceEquals(type, this))
+        {
+            return true;
+        }
+
+        if (comparison is TypeComparison.Reference)
+        {
+            return type is ObjectType ot && Types.Contains(ot);
+        }
+
+        if (comparison is TypeComparison.Structural)
+        {
+            if (type.Kind.Equals(Kind) && type.Name.EqualsOrdinal(Name))
+            {
+                return true;
+            }
+            
+            return Types.Any(t => t.Name.EqualsOrdinal(type.Name));
+        }
+
+        return false;
+    }
+
     public override string ToString()
         => RewriteUnionType(this).ToString(true);
     

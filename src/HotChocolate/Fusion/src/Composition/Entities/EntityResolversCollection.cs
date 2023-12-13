@@ -97,7 +97,7 @@ internal class EntityResolversCollection : ICollection<EntityResolver>
             => new(value.SubgraphName, value.SelectionSet); 
     }
     
-    private readonly record struct ResolverSignatureKey(string SubgraphName, string StateKeys, EntityResolverKind Kind)
+    private readonly record struct ResolverSignatureKey(string SubgraphName, string StateKeys, ResolverKind Kind)
     {
         public bool Equals(ResolverSignatureKey? other)
         {

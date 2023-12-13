@@ -1,5 +1,6 @@
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.MergeExtensions;
+using static HotChocolate.Fusion.Composition.Pipeline.MergeHelper;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -13,27 +14,19 @@ internal static class ComplexTypeMergeExtensions
         Schema targetSchema)
     {
         var target = new OutputField(source.Name);
+        target.Type = GetOrCreateType(context.FusionGraph, source.Type);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
-
-        // Replace the type name of the field in the source with the corresponding type name
-        // in the target schema.
-        target.Type = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
-
+        
         // Copy each argument from the source to the target, replacing the type name of each argument
         // in the source with the corresponding type name in the target schema.
         foreach (var sourceArgument in source.Arguments)
         {
             var targetArgument = new InputField(sourceArgument.Name);
+            targetArgument.Type = GetOrCreateType(context.FusionGraph, sourceArgument.Type);
             targetArgument.MergeDescriptionWith(sourceArgument);
             targetArgument.DefaultValue = sourceArgument.DefaultValue;
-
-            // Replace the type name of the argument in the source with the corresponding type name
-            // in the target schema.
-            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
-            
             targetArgument.MergeDeprecationWith(sourceArgument);
-
             target.Arguments.Add(targetArgument);
         }
 
@@ -91,7 +84,7 @@ internal static class ComplexTypeMergeExtensions
                 if (mergedInputType is null)
                 {
                     context.Log.Write(
-                        LogEntryHelper.InputFieldTypeMismatch(
+                        LogEntryHelper.ArgumentTypeMismatch(
                             new SchemaCoordinate(typeName, source.Name, sourceArgument.Name),
                             sourceArgument,
                             sourceArgument.Type,

@@ -20,18 +20,22 @@ internal sealed class RegisterClientsMiddleware : IMergeMiddleware
                 {
                     case HttpClientConfiguration httpClient:
                         context.FusionGraph.Directives.Add(
-                            context.FusionTypes.CreateHttpDirective(
-                                configuration.Name,
-                                httpClient.ClientName ?? defaultClientName,
-                                httpClient.BaseAddress));
+                            TransportDirective
+                                .CreateHttp(
+                                    configuration.Name,
+                                    httpClient.BaseAddress,
+                                    httpClient.ClientName ?? defaultClientName)
+                                .ToDirective(context.FusionTypes));
                         break;
 
                     case WebSocketClientConfiguration webSocketClient:
                         context.FusionGraph.Directives.Add(
-                            context.FusionTypes.CreateWebSocketDirective(
-                                configuration.Name,
-                                webSocketClient.ClientName ?? defaultClientName,
-                                webSocketClient.BaseAddress));
+                            TransportDirective
+                                .CreateWebsocket(
+                                    configuration.Name,
+                                    webSocketClient.BaseAddress,
+                                    webSocketClient.ClientName ?? defaultClientName)
+                                .ToDirective(context.FusionTypes));
                         break;
 
                     default:

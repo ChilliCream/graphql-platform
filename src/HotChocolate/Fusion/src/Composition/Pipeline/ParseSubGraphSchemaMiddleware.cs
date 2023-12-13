@@ -110,11 +110,6 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         }
     }
 
-    private void AlignTypes(Schema schema)
-    {
-        
-    }
-
     private static void TryCreateMissingType<T>(
         CompositionContext context,
         T sourceType,

@@ -2,12 +2,8 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ObjectType : ComplexType, INamedTypeSystemMember<ObjectType>
+public sealed class ObjectType(string name) : ComplexType(name), INamedTypeSystemMember<ObjectType>
 {
-    public ObjectType(string name) : base(name)
-    {
-    }
-
     public override TypeKind Kind => TypeKind.Object;
     
     public override string ToString()

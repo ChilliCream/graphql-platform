@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Skimmed;
 
@@ -20,7 +21,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
@@ -145,6 +146,9 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
         member = null;
         return false;
     }
+
+    public override string ToString()
+        => SchemaFormatter.FormatAsString(this);
 
     public static Schema Create(string name) => new() { Name = name };
 }

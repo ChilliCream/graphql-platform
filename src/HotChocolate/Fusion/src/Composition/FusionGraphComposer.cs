@@ -34,10 +34,7 @@ public sealed class FusionGraphComposer
         : this(
             new IEntityEnricher[]
             {
-                new RefResolverEntityEnricher(),
-                new PatternEntityEnricher(),
-                new RequireEnricher(),
-                new NodeEntityEnricher()
+                
             },
             new ITypeMergeHandler[]
             {
@@ -66,14 +63,16 @@ public sealed class FusionGraphComposer
                 .Use<ApplyRemoveDirectiveMiddleware>()
                 .Use(() => new EnrichEntityMiddleware(entityEnrichers))
                 .Use<PrepareFusionSchemaMiddleware>()
-                .Use<MergeEntityMiddleware>()
-                .Use<EntityFieldDependencyMiddleware>()
+                //.Use<MergeEntityMiddleware>()
+                //.Use<EntityFieldDependencyMiddleware>()
                 .Use(() => new MergeTypeMiddleware(mergeHandlers))
-                .Use<MergeQueryAndMutationTypeMiddleware>()
-                .Use<MergeSubscriptionTypeMiddleware>()
+                //.Use<MergeQueryAndMutationTypeMiddleware>()
+                //.Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
+                .Use<ResolveMiddleware>()
                 .Use<ApplyTagDirectiveMiddleware>()
                 .Use<ApplyExcludeTagMiddleware>()
+                .Use<ApplyPrivateDirectiveMiddleware>()
                 .Use<RemoveFusionTypesMiddleware>()
                 .Build();
         _logFactory = logFactory;

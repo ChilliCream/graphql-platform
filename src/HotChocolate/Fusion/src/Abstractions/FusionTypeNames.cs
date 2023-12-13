@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -12,57 +13,64 @@ public sealed class FusionTypeNames
     private readonly HashSet<string> _fusionTypes = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _fusionDirectives = new(StringComparer.OrdinalIgnoreCase);
 
-    private FusionTypeNames(
-        string? prefix,
-        string variableDirective,
-        string fetchDirective,
-        string sourceDirective,
-        string isDirective,
-        string nodeDirective,
-        string reEncodeIdDirective,
-        string transportDirective,
-        string fusionDirective,
-        string selectionScalar,
-        string selectionSetScalar,
-        string typeNameScalar,
-        string typeScalar,
-        string uriScalar,
-        string argumentDefinition,
-        string resolverKind)
+    private FusionTypeNames(string? prefix = null, bool prefixSelf = false)
     {
         Prefix = prefix;
-        VariableDirective = variableDirective;
-        ResolverDirective = fetchDirective;
-        SourceDirective = sourceDirective;
-        IsDirective = isDirective;
-        NodeDirective = nodeDirective;
-        ReEncodeIdDirective = reEncodeIdDirective;
-        TransportDirective = transportDirective;
-        FusionDirective = fusionDirective;
-        SelectionScalar = selectionScalar;
-        SelectionSetScalar = selectionSetScalar;
-        TypeNameScalar = typeNameScalar;
-        TypeScalar = typeScalar;
-        UriScalar = uriScalar;
-        ArgumentDefinition = argumentDefinition;
-        ResolverKind = resolverKind;
 
-        _fusionDirectives.Add(variableDirective);
-        _fusionDirectives.Add(fetchDirective);
-        _fusionDirectives.Add(sourceDirective);
-        _fusionDirectives.Add(isDirective);
-        _fusionDirectives.Add(nodeDirective);
-        _fusionDirectives.Add(reEncodeIdDirective);
-        _fusionDirectives.Add(transportDirective);
-        _fusionDirectives.Add(fusionDirective);
+        var prefix0 = !string.IsNullOrEmpty(prefix)
+            ? $"{prefix}_"
+            : string.Empty;
+        var prefix1 = !string.IsNullOrEmpty(prefix) && prefixSelf
+            ? $"{prefix}_"
+            : string.Empty;
 
-        _fusionTypes.Add(selectionScalar);
-        _fusionTypes.Add(selectionSetScalar);
-        _fusionTypes.Add(typeNameScalar);
-        _fusionTypes.Add(typeScalar);
-        _fusionTypes.Add(uriScalar);
-        _fusionTypes.Add(argumentDefinition);
-        _fusionTypes.Add(resolverKind);
+        // Scalars
+        ArgumentDefinition = $"{prefix0}{FusionTypeBaseNames.ArgumentDefinition}";
+        NameScalar = $"{prefix0}{FusionTypeBaseNames.Name}";
+        ResolverKindEnum = $"{prefix0}{FusionTypeBaseNames.ResolverKind}";
+        SchemaCoordinateScalar= $"{prefix0}{FusionTypeBaseNames.SchemaCoordinate}";
+        SelectionScalar = $"{prefix0}{FusionTypeBaseNames.Selection}";
+        SelectionSetScalar = $"{prefix0}{FusionTypeBaseNames.SelectionSet}";
+        TypeScalar = $"{prefix0}{FusionTypeBaseNames.Type}";
+        UriScalar = $"{prefix0}{FusionTypeBaseNames.Uri}";
+        OperationDefinitionScalar = $"{prefix0}{FusionTypeBaseNames.OperationDefinition}";
+
+        _fusionTypes.Add(ArgumentDefinition);
+        _fusionTypes.Add(NameScalar);
+        _fusionTypes.Add(ResolverKindEnum);
+        _fusionTypes.Add(SelectionScalar);
+        _fusionTypes.Add(SelectionSetScalar);
+        _fusionTypes.Add(TypeScalar);
+        _fusionTypes.Add(UriScalar);
+
+        // Directives
+        DeclareDirective = $"{prefix0}{FusionTypeBaseNames.DeclareDirective}";
+        FusionDirective = $"{prefix1}{FusionTypeBaseNames.FusionDirective}";
+        IsDirective = $"{prefix0}{FusionTypeBaseNames.IsDirective}";
+        NodeDirective = $"{prefix0}{FusionTypeBaseNames.NodeDirective}";
+        PrivateDirective = $"{prefix0}{FusionTypeBaseNames.PrivateDirective}";
+        RemoveDirective = $"{prefix0}{FusionTypeBaseNames.RemoveDirective}";
+        RenameDirective = $"{prefix0}{FusionTypeBaseNames.RenameDirective}";
+        RequireDirective = $"{prefix0}{FusionTypeBaseNames.RequireDirective}";
+        ResolverDirective = $"{prefix0}{FusionTypeBaseNames.ResolverDirective}";
+        ResolveDirective = $"{prefix0}{FusionTypeBaseNames.ResolveDirective}";
+        SourceDirective = $"{prefix0}{FusionTypeBaseNames.SourceDirective}";
+        TransportDirective = $"{prefix0}{FusionTypeBaseNames.TransportDirective}";
+        VariableDirective = $"{prefix0}{FusionTypeBaseNames.VariableDirective}";
+
+        _fusionDirectives.Add(DeclareDirective);
+        _fusionDirectives.Add(FusionDirective);
+        _fusionDirectives.Add(IsDirective);
+        _fusionDirectives.Add(NodeDirective);
+        _fusionDirectives.Add(PrivateDirective);
+        _fusionDirectives.Add(RemoveDirective);
+        _fusionDirectives.Add(RenameDirective);
+        _fusionDirectives.Add(RequireDirective);
+        _fusionDirectives.Add(ResolverDirective);
+        _fusionDirectives.Add(ResolveDirective);
+        _fusionDirectives.Add(SourceDirective);
+        _fusionDirectives.Add(TransportDirective);
+        _fusionDirectives.Add(VariableDirective);
     }
 
     /// <summary>
@@ -71,45 +79,24 @@ public sealed class FusionTypeNames
     public string? Prefix { get; }
 
     /// <summary>
-    /// Gets the name of the variable directive.
+    /// Gets the name of the GraphQL type scalar.
     /// </summary>
-    public string VariableDirective { get; }
+    public string ArgumentDefinition { get; }
 
     /// <summary>
-    /// Gets the name of the resolver directive.
+    /// Gets the name of the GraphQL type name scalar.
     /// </summary>
-    public string ResolverDirective { get; }
+    public string NameScalar { get; }
 
     /// <summary>
-    /// Gets the name of the source directive.
+    /// Gets the name of the URI type scalar.
     /// </summary>
-    public string SourceDirective { get; }
-
+    public string ResolverKindEnum { get; }
+    
     /// <summary>
-    /// Gets the name of the is directive.
+    /// Gets the name of the GraphQL schema coordinate scalar.
     /// </summary>
-    public string IsDirective { get; }
-
-    /// <summary>
-    /// Gets the name of the node directive.
-    /// </summary>
-    public string NodeDirective { get; }
-
-    /// <summary>
-    /// Gets the name of the reEncodeId directive.
-    /// </summary>
-    public string ReEncodeIdDirective { get; }
-
-
-    /// <summary>
-    /// Gets the name of the transport directive.
-    /// </summary>
-    public string TransportDirective { get; }
-
-    /// <summary>
-    /// Gets the name of the fusion directive.
-    /// </summary>
-    public string FusionDirective { get; }
+    public string SchemaCoordinateScalar { get; }
 
     /// <summary>
     /// Gets the name of the GraphQL selection scalar.
@@ -122,11 +109,6 @@ public sealed class FusionTypeNames
     public string SelectionSetScalar { get; }
 
     /// <summary>
-    /// Gets the name of the GraphQL type name scalar.
-    /// </summary>
-    public string TypeNameScalar { get; }
-
-    /// <summary>
     /// Gets the name of the GraphQL type scalar.
     /// </summary>
     public string TypeScalar { get; }
@@ -137,14 +119,74 @@ public sealed class FusionTypeNames
     public string UriScalar { get; }
 
     /// <summary>
-    /// Gets the name of the GraphQL type scalar.
-    /// </summary>
-    public string ArgumentDefinition { get; }
-
-    /// <summary>
     /// Gets the name of the URI type scalar.
     /// </summary>
-    public string ResolverKind { get; }
+    public string OperationDefinitionScalar { get; }
+
+    /// <summary>
+    /// Gets the name of the declare directive.
+    /// </summary>
+    public string DeclareDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the fusion directive.
+    /// </summary>
+    public string FusionDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the is directive.
+    /// </summary>
+    public string IsDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the node directive.
+    /// </summary>
+    public string NodeDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the private directive.
+    /// </summary>
+    public string PrivateDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the remove directive.
+    /// </summary>
+    public string RemoveDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the rename directive.
+    /// </summary>
+    public string RenameDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the require directive.
+    /// </summary>
+    public string RequireDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the resolver directive.
+    /// </summary>
+    public string ResolverDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the resolve directive.
+    /// </summary>
+    public string ResolveDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the source directive.
+    /// </summary>
+    public string SourceDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the transport directive.
+    /// </summary>
+    public string TransportDirective { get; }
+
+    /// <summary>
+    /// Gets the name of the variable directive.
+    /// </summary>
+    public string VariableDirective { get; }
 
     /// <summary>
     /// Specifies if the <paramref name="directiveName"/> represents a fusion directive.
@@ -185,48 +227,9 @@ public sealed class FusionTypeNames
     /// Returns a new instance of <see cref="FusionTypeNames"/>.
     /// </returns>
     public static FusionTypeNames Create(string? prefix = null, bool prefixSelf = false)
-    {
-        if (prefix is not null)
-        {
-            return new FusionTypeNames(
-                prefix,
-                $"{prefix}_{FusionTypeBaseNames.VariableDirective}",
-                $"{prefix}_{FusionTypeBaseNames.ResolverDirective}",
-                $"{prefix}_{FusionTypeBaseNames.SourceDirective}",
-                $"{prefix}_{FusionTypeBaseNames.IsDirective}",
-                $"{prefix}_{FusionTypeBaseNames.NodeDirective}",
-                $"{prefix}_{FusionTypeBaseNames.ReEncodeIdDirective}",
-                $"{prefix}_{FusionTypeBaseNames.TransportDirective}",
-                prefixSelf
-                    ? $"{prefix}_{FusionTypeBaseNames.FusionDirective}"
-                    : FusionTypeBaseNames.FusionDirective,
-                $"{prefix}_{FusionTypeBaseNames.Selection}",
-                $"{prefix}_{FusionTypeBaseNames.SelectionSet}",
-                $"{prefix}_{FusionTypeBaseNames.TypeName}",
-                $"{prefix}_{FusionTypeBaseNames.Type}",
-                $"{prefix}_{FusionTypeBaseNames.Uri}",
-                $"{prefix}_{FusionTypeBaseNames.ArgumentDefinition}",
-                $"{prefix}_{FusionTypeBaseNames.ResolverKind}");
-        }
-
-        return new FusionTypeNames(
-            null,
-            FusionTypeBaseNames.VariableDirective,
-            FusionTypeBaseNames.ResolverDirective,
-            FusionTypeBaseNames.SourceDirective,
-            FusionTypeBaseNames.IsDirective,
-            FusionTypeBaseNames.NodeDirective,
-            FusionTypeBaseNames.ReEncodeIdDirective,
-            FusionTypeBaseNames.TransportDirective,
-            FusionTypeBaseNames.FusionDirective,
-            $"_{FusionTypeBaseNames.Selection}",
-            $"_{FusionTypeBaseNames.SelectionSet}",
-            $"_{FusionTypeBaseNames.TypeName}",
-            $"_{FusionTypeBaseNames.Type}",
-            $"_{FusionTypeBaseNames.Uri}",
-            $"_{FusionTypeBaseNames.ArgumentDefinition}",
-            $"_{FusionTypeBaseNames.ResolverKind}");
-    }
+        => prefix is not null
+            ? new FusionTypeNames(prefix, prefixSelf)
+            : new FusionTypeNames();
 
     public static FusionTypeNames From(DocumentNode document)
     {

@@ -26,8 +26,7 @@ public sealed class EnumType : INamedType, INamedTypeSystemMember<EnumType>
 
     public EnumValueCollection Values { get; } = new();
 
-    public IDictionary<string, object?> ContextData { get; } =
-        new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     public override string ToString()
         => RewriteEnumType(this).ToString(true);

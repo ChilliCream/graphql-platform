@@ -12,6 +12,30 @@ public sealed class VariableDefinitionNode : ISyntaxNode, IHasDirectives
     /// <summary>
     /// Initializes a new instance of <see cref="VariableDefinitionNode"/>.
     /// </summary>
+    /// <param name="variable">
+    /// The variable.
+    /// </param>
+    /// <param name="type">
+    /// The variable type.
+    /// </param>
+    /// <param name="defaultValue">
+    /// The variables default value.
+    /// </param>
+    /// <param name="directives">
+    /// The directives of this variable declaration.
+    /// </param>
+    public VariableDefinitionNode(
+        VariableNode variable,
+        ITypeNode type,
+        IValueNode? defaultValue,
+        IReadOnlyList<DirectiveNode> directives)
+        : this(null, variable, type, defaultValue, directives)
+    {
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="VariableDefinitionNode"/>.
+    /// </summary>
     /// <param name="location">
     /// The location of the syntax node within the original source text.
     /// </param>

@@ -57,7 +57,7 @@ public sealed class InputField : IField, INamedTypeSystemMember<InputField>
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IDictionary<string, object?> ContextData => new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     public IType Type
     {

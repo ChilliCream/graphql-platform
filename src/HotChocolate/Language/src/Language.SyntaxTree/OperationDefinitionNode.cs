@@ -9,6 +9,25 @@ public sealed class OperationDefinitionNode
     , IHasDirectives
 {
     public OperationDefinitionNode(
+        OperationType operation,
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        IReadOnlyList<DirectiveNode> directives,
+        SelectionSetNode selectionSet)
+        : this(null, null, operation, variableDefinitions, directives, selectionSet)
+    {
+    }
+    
+    public OperationDefinitionNode(
+        NameNode? name,
+        OperationType operation,
+        IReadOnlyList<VariableDefinitionNode> variableDefinitions,
+        IReadOnlyList<DirectiveNode> directives,
+        SelectionSetNode selectionSet)
+        : this(null, name, operation, variableDefinitions, directives, selectionSet)
+    {
+    }
+    
+    public OperationDefinitionNode(
         Location? location,
         NameNode? name,
         OperationType operation,

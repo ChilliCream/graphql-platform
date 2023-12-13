@@ -42,6 +42,22 @@ public static class TypeExtensions
             _ => type
         };
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IType ElementType(this IType type)
+    {
+        if(type.Kind == TypeKind.NonNull)
+        {
+            type = ((NonNullType)type).NullableType;
+        }
+
+        if (type.Kind == TypeKind.List)
+        {
+            return ((ListType)type).ElementType;
+        }
+        
+        throw new ArgumentException("The type is not a list type.", nameof(type));
+    }
+
     public static INamedType NamedType(this IType type)
     {
         while (true)
@@ -73,11 +89,20 @@ public static class TypeExtensions
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
             _ => throw new NotSupportedException()
         };
-
-    public static IType ReplaceNameType(this IType type, Func<string, INamedType> newNamedType)
+    
+    public static ITypeNode ToTypeNode(this IType type, string name)
         => type switch
         {
-            INamedType namedType => newNamedType(namedType.Name),
+            INamedType => new NamedTypeNode(name),
+            ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
+            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
+            _ => throw new NotSupportedException()
+        };
+
+    public static IType ReplaceNameType(this IType type, Func<INamedType, INamedType> newNamedType)
+        => type switch
+        {
+            INamedType namedType => newNamedType(namedType),
             ListType listType => new ListType(ReplaceNameType(listType.ElementType, newNamedType)),
             NonNullType nonNullType => new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException()

@@ -26,7 +26,7 @@ public sealed class ScalarType : INamedType, INamedTypeSystemMember<ScalarType>
 
     public DirectiveCollection Directives { get; } = new();
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
 
     public override string ToString()
         => RewriteScalarType(this).ToString(true);

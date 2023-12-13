@@ -9,28 +9,39 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
 {
     /// <inheritdoc />
-    public ValueTask<MergeStatus> MergeAsync(
-        CompositionContext context,
-        TypeGroup typeGroup,
-        CancellationToken cancellationToken)
+    public TypeKind Kind => TypeKind.InputObject;
+    
+    /// <inheritdoc />
+    public MergeStatus Merge(CompositionContext context, TypeGroup typeGroup)
     {
         // If any type in the group is not an input object type, skip merging
         if (typeGroup.Parts.Any(t => t.Type.Kind is not TypeKind.InputObject))
         {
-            return new(MergeStatus.Skipped);
+            return MergeStatus.Skipped;
         }
 
         // Get the target input object type from the fusion graph
-        var target = (InputObjectType)context.FusionGraph.Types[typeGroup.Name];
+        var target = MergeHelper.GetOrCreateType<InputObjectType>(context.FusionGraph, typeGroup.Name);
+        HashSet<string>? unexpectedInputFields = null;
 
         // Merge each part of the input object type into the target input object type
         foreach (var part in typeGroup.Parts)
         {
             var source = (InputObjectType)part.Type;
-            MergeType(context, source, part.Schema, target, context.FusionGraph);
+            MergeType(context, source, part.Schema, target, context.FusionGraph, ref unexpectedInputFields);
         }
+        
+        if (unexpectedInputFields is not null)
+        {
+            context.Log.Write(
+                LogEntryHelper.InputFieldsDifferAcrossSubgraphs(
+                    typeGroup.Name,
+                    target.Fields.Select(t => t.Name),
+                    unexpectedInputFields));
+            return MergeStatus.Skipped;
+        }   
 
-        return new(MergeStatus.Completed);
+        return MergeStatus.Completed;
     }
 
     private static void MergeType(
@@ -38,8 +49,11 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
         InputObjectType source,
         Schema sourceSchema,
         InputObjectType target,
-        Schema targetSchema)
+        Schema targetSchema,
+        ref HashSet<string>? unexpectedInputFields)
     {
+        var first = target.Fields.Count == 0;
+        
         // Try to apply the source input object type to the target input object type
         context.TryApplySource(source, sourceSchema, target);
 
@@ -58,6 +72,12 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
             }
             else
             {
+                if (!first)
+                {
+                    (unexpectedInputFields ??= new()).Add(sourceField.Name); 
+                    continue;
+                }
+                
                 // If the target input object type doesn't have a field with the same name as
                 // the source field, create a new target field with the source field's
                 // properties

@@ -1,6 +1,4 @@
-using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -15,7 +13,7 @@ internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
     {
         foreach (var schema in context.Subgraphs)
         {
-            foreach (var directive in schema.GetRemoveDirectives(context))
+            foreach (var directive in RemoveDirective.GetAllFrom(schema, context.FusionTypes))
             {
                 if (!schema.RemoveMember(directive.Coordinate))
                 {
@@ -27,32 +25,6 @@ internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
         if (!context.Log.HasErrors)
         {
             await next(context).ConfigureAwait(false);
-        }
-    }
-}
-
-file static class ApplyRemoveDirectiveMiddlewareExtensions
-{
-    public static IEnumerable<RemoveDirective> GetRemoveDirectives(
-        this Schema schema,
-        CompositionContext context)
-    {
-        foreach (var directive in schema.Directives[RemoveDirectiveName])
-        {
-            if (!directive.Arguments.TryGetValue(CoordinateArg, out var argumentValue))
-            {
-                context.Log.Write(DirectiveArgumentMissing(CoordinateArg, directive, schema));
-                continue;
-            }
-
-            if (argumentValue is not StringValueNode coordinateValue ||
-                !SchemaCoordinate.TryParse(coordinateValue.Value, out var coordinate))
-            {
-                context.Log.Write(DirectiveArgumentValueInvalid(CoordinateArg, directive, schema));
-                continue;
-            }
-
-            yield return new RemoveDirective(coordinate.Value);
         }
     }
 }

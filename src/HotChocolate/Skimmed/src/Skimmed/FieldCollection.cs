@@ -16,6 +16,29 @@ public sealed class FieldCollection<TField> : ICollection<TField> where TField :
     public bool TryGetField(string name, [NotNullWhen(true)] out TField? field)
         => _fields.TryGetValue(name, out field);
 
+    public bool TryGetField(string name, StringComparison comparison, [NotNullWhen(true)] out TField? field)
+    {
+        if (comparison is StringComparison.Ordinal)
+        {
+            return TryGetField(name, out field);
+        }
+
+        if (!TryGetField(name, out field))
+        {
+            foreach (var item in _fields)
+            {
+                if (item.Key.Equals(name, comparison))
+                {
+                    field = item.Value;
+                    return true;
+                }
+            }
+        }
+
+        field = default;
+        return false;
+    }
+
     public void Add(TField item)
     {
         if (item is null)

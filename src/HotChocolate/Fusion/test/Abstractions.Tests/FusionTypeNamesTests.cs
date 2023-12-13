@@ -20,7 +20,7 @@ public class FusionTypeNamesTests
         Assert.Equal("fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("_SelectionSet", fusionTypeNames.SelectionSetScalar);
-        Assert.Equal("_TypeName", fusionTypeNames.TypeNameScalar);
+        Assert.Equal("_TypeName", fusionTypeNames.NameScalar);
         Assert.Equal("_Type", fusionTypeNames.TypeScalar);
         Assert.Equal("_Uri", fusionTypeNames.UriScalar);
     }
@@ -41,7 +41,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyPrefix_fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
-        Assert.Equal("MyPrefix_TypeName", fusionTypeNames.TypeNameScalar);
+        Assert.Equal("MyPrefix_TypeName", fusionTypeNames.NameScalar);
         Assert.Equal("MyPrefix_Type", fusionTypeNames.TypeScalar);
         Assert.Equal("MyPrefix_Uri", fusionTypeNames.UriScalar);
     }
@@ -64,7 +64,7 @@ public class FusionTypeNamesTests
         Assert.Equal("fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
-        Assert.Equal("MyPrefix_TypeName", fusionTypeNames.TypeNameScalar);
+        Assert.Equal("MyPrefix_TypeName", fusionTypeNames.NameScalar);
         Assert.Equal("MyPrefix_Type", fusionTypeNames.TypeScalar);
         Assert.Equal("MyPrefix_Uri", fusionTypeNames.UriScalar);
     }
@@ -87,7 +87,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyOtherPrefix_fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyOtherPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyOtherPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
-        Assert.Equal("MyOtherPrefix_TypeName", fusionTypeNames.TypeNameScalar);
+        Assert.Equal("MyOtherPrefix_TypeName", fusionTypeNames.NameScalar);
         Assert.Equal("MyOtherPrefix_Type", fusionTypeNames.TypeScalar);
         Assert.Equal("MyOtherPrefix_Uri", fusionTypeNames.UriScalar);
     }

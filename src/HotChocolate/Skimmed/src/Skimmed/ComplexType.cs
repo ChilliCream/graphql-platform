@@ -2,14 +2,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
-public abstract class ComplexType : INamedType
+public abstract class ComplexType(string name) : INamedType
 {
-    private string _name;
-
-    protected ComplexType(string name)
-    {
-        _name = name.EnsureGraphQLName();
-    }
+    private string _name = name.EnsureGraphQLName();
 
     public abstract TypeKind Kind { get; }
 
@@ -27,7 +22,34 @@ public abstract class ComplexType : INamedType
 
     public FieldCollection<OutputField> Fields { get; } = new();
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IDictionary<string, object?> ContextData { get; } = new ContextDataMap();
+
+    public bool IsAssignableFrom(INamedType type, TypeComparison comparison)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+
+        if (ReferenceEquals(type, this))
+        {
+            return true;
+        }
+        
+        if (comparison is TypeComparison.Reference)
+        {
+            return Implements.Contains(type);
+        }
+        
+        if (comparison is TypeComparison.Structural)
+        {
+            if (type.Kind.Equals(Kind) && type.Name.EqualsOrdinal(Name))
+            {
+                return true;
+            }
+            
+            return Implements.Any(t => t.Name.EqualsOrdinal(type.Name));
+        }
+
+        return false;
+    }
 
     public bool Equals(IType? other) => Equals(other, TypeComparison.Reference);
 
