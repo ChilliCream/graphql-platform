@@ -146,8 +146,6 @@ public static partial class FederationSchemaPrinter
                 return Array.Empty<T>();
             }
         }
-
-        public bool IsEmpty => _list is null;
     }
 
     private static MaybeList<DirectiveNode> SerializeDirectives(
