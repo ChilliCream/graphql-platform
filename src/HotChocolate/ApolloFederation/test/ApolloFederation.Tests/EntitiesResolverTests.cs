@@ -217,7 +217,10 @@ public class EntitiesResolverTests
                 new ObjectValueNode(new[]
                 {
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode(new[] { new ObjectFieldNode("id", "testId") })),
+                        new ObjectValueNode(new[]
+                        {
+                            new ObjectFieldNode("id", "testId"),
+                        })),
                 })),
         };
 
@@ -279,7 +282,7 @@ public class EntitiesResolverTests
             => new(id, someExternalField);
     }
 
-    [ExtendServiceType]
+    [Extends]
     public class MixedFieldTypes
     {
         public MixedFieldTypes(string id, int intField)
@@ -357,7 +360,15 @@ public class EntitiesResolverTests
         public FederatedTypeDetail Detail { get; set; } = default!;
 
         [ReferenceResolver]
-        public static FederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId) => new() { Id = detailId, Detail = new FederatedTypeDetail { Id = detailId } };
+        public static FederatedTypeWithRequiredDetail ReferenceResolver([Map("detail.id")] string detailId)
+            => new()
+            {
+                Id = detailId,
+                Detail = new FederatedTypeDetail
+                {
+                    Id = detailId,
+                },
+            };
     }
 
     public class FederatedTypeWithOptionalDetail
@@ -367,8 +378,15 @@ public class EntitiesResolverTests
         public FederatedTypeDetail? Detail { get; set; } = default!;
 
         [ReferenceResolver]
-        public static FederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId) => new() { Id = detailId, Detail = new FederatedTypeDetail { Id = detailId } };
-
+        public static FederatedTypeWithOptionalDetail ReferenceResolver([Map("detail.id")] string detailId)
+            => new()
+            {
+                Id = detailId,
+                Detail = new FederatedTypeDetail
+                {
+                    Id = detailId,
+                },
+            };
     }
 
     public class FederatedTypeDetail
