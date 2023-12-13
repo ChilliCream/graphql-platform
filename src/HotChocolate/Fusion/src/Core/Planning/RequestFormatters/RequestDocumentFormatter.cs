@@ -49,11 +49,14 @@ internal abstract class RequestDocumentFormatter
                 executionStep.Resolver,
                 executionStep.Variables);
 
+            var unspecifiedArguments = GetUnspecifiedArguments(executionStep.ParentSelection);
+
             var (rootResolver, p) =
                 executionStep.Resolver.CreateSelection(
                     context.VariableValues,
                     rootSelectionSetNode,
-                    null);
+                    null,
+                    unspecifiedArguments);
 
             rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
             path = p;
@@ -165,10 +168,13 @@ internal abstract class RequestDocumentFormatter
                     rootSelection.Resolver,
                     executionStep.Variables);
 
+                var unspecifiedArguments = GetUnspecifiedArguments(rootSelection.Selection);
+
                 var (s, _) = rootSelection.Resolver.CreateSelection(
                     context.VariableValues,
                     selectionSetNode,
-                    rootSelection.Selection.ResponseName);
+                    rootSelection.Selection.ResponseName,
+                    unspecifiedArguments);
                 selectionNode = s;
             }
 
@@ -428,6 +434,14 @@ internal abstract class RequestDocumentFormatter
                 }
 
                 var argumentValue = selection.Arguments[argumentVariable.ArgumentName];
+
+                if (argumentValue.IsDefaultValue)
+                {
+                    // We don't want to register and pass a value to an argument
+                    // that wasn't explicitly specified in the original operation.
+                    continue;
+                }
+
                 context.VariableValues.Add(variable.Name, argumentValue.ValueLiteral!);
                 TryForwardVariable(
                     context,
@@ -469,9 +483,9 @@ internal abstract class RequestDocumentFormatter
 
         foreach (var requirement in resolver.Requires)
         {
-            if (!context.VariableValues.ContainsKey(requirement))
+            if (!context.VariableValues.ContainsKey(requirement) &&
+                variableStateLookup.TryGetValue(requirement, out var stateKey))
             {
-                var stateKey = variableStateLookup[requirement];
                 context.VariableValues.Add(requirement, new VariableNode(stateKey));
             }
         }
@@ -527,6 +541,22 @@ internal abstract class RequestDocumentFormatter
                         Array.Empty<DirectiveNode>()));
             }
         }
+    }
+
+    private static IReadOnlyList<string>? GetUnspecifiedArguments(ISelection selection)
+    {
+        List<string>? unspecifiedArguments = null;
+
+        foreach (var argument in selection.Arguments)
+        {
+            if (argument.IsDefaultValue)
+            {
+                unspecifiedArguments ??= new List<string>();
+                unspecifiedArguments.Add(argument.Name);
+            }
+        }
+
+        return unspecifiedArguments;
     }
 
     private sealed class VariableVisitor : SyntaxWalker<VariableVisitorContext>
