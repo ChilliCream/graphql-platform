@@ -288,5 +288,5 @@ public class TypeDiscovererTests
         public string Foo(IMyArg o) => throw new NotImplementedException();
     }
 
-    public interface IMyArg { }
+    public interface IMyArg;
 }

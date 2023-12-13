@@ -30,7 +30,7 @@ public static class SchemaErrorBuilderExtensions
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "http://spec.graphql.org/October2021/#" + section);
+                "https://spec.graphql.org/October2021/#" + section);
         }
 
         return errorBuilder;

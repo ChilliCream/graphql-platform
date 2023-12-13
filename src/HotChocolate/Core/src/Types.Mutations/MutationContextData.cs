@@ -4,43 +4,31 @@ namespace HotChocolate.Types;
 /// This internal data structure is used to store the effective mutation options of a field
 /// on the context so that the type interceptor can access them.
 /// </summary>
-internal sealed class MutationContextData
+internal sealed class MutationContextData(
+    ObjectFieldDefinition definition,
+    string? inputTypeName,
+    string? inputArgumentName,
+    string? payloadTypeName,
+    string? payloadFieldName,
+    string? payloadErrorTypeName,
+    string? payloadErrorsFieldName,
+    bool enabled)
 {
-    public MutationContextData(
-        ObjectFieldDefinition definition,
-        string? inputTypeName,
-        string? inputArgumentName,
-        string? payloadTypeName,
-        string? payloadFieldName,
-        string? payloadErrorTypeName,
-        string? payloadErrorsFieldName,
-        bool enabled)
-    {
-        Definition = definition;
-        InputTypeName = inputTypeName;
-        InputArgumentName = inputArgumentName;
-        PayloadTypeName = payloadTypeName;
-        PayloadFieldName = payloadFieldName;
-        PayloadPayloadErrorTypeName = payloadErrorTypeName;
-        PayloadErrorsFieldName = payloadErrorsFieldName;
-        Enabled = enabled;
-    }
-
     public string Name => Definition.Name;
 
-    public ObjectFieldDefinition Definition { get; }
+    public ObjectFieldDefinition Definition { get; } = definition;
 
-    public string? InputTypeName { get; }
+    public string? InputTypeName { get; } = inputTypeName;
 
-    public string? InputArgumentName { get; }
+    public string? InputArgumentName { get; } = inputArgumentName;
 
-    public string? PayloadFieldName { get; }
+    public string? PayloadFieldName { get; } = payloadFieldName;
 
-    public string? PayloadTypeName { get; }
+    public string? PayloadTypeName { get; } = payloadTypeName;
 
-    public string? PayloadPayloadErrorTypeName { get; }
+    public string? PayloadPayloadErrorTypeName { get; } = payloadErrorTypeName;
 
-    public string? PayloadErrorsFieldName { get; }
+    public string? PayloadErrorsFieldName { get; } = payloadErrorsFieldName;
 
-    public bool Enabled { get; }
+    public bool Enabled { get; } = enabled;
 }

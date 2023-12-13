@@ -665,7 +665,7 @@ public class EnumTypeTests : TypeTestBase
         Bar2
     }
 
-    public class Bar { }
+    public class Bar;
 
     public enum FooObsolete
     {

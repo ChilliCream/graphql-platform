@@ -156,7 +156,7 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         EnsureBufferCapacity(size);
         return _buffer.AsSpan().Slice(_start, size);
     }
-    
+
     /// <summary>
     /// Gets the buffer as an <see cref="ArraySegment{T}"/>
     /// </summary>
@@ -204,7 +204,11 @@ internal sealed class ArrayWriter : IBufferWriter<byte>, IDisposable
         }
     }
 
-    public void Reset() => _start = 0;
+    public void Reset()
+    {
+        _capacity = _buffer.Length;
+        _start = 0;
+    }
 
     /// <inheritdoc/>
     public void Dispose()

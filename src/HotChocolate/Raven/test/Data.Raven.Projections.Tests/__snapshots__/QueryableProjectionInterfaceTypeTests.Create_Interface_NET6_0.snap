@@ -15,7 +15,7 @@
         "type": "RootCollectionSegment",
         "field": "name",
         "responseName": "name",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
       }
     },
     {
@@ -32,7 +32,7 @@
       "extensions": {
         "typeCondition": "Foo",
         "selectionSetType": "RootCollectionSegment",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
       }
     },
     {
@@ -49,7 +49,7 @@
       "extensions": {
         "typeCondition": "Bar",
         "selectionSetType": "RootCollectionSegment",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
       }
     }
   ]
