@@ -88,7 +88,7 @@ internal abstract class RequestDocumentFormatter
     }
 
     private SelectionSetNode CreateRootLevelQuery(
-        SelectionPath path, 
+        SelectionPath path,
         SelectionSetNode selectionSet)
     {
         var current = path;
@@ -96,11 +96,8 @@ internal abstract class RequestDocumentFormatter
         while (current is not null)
         {
             selectionSet = new SelectionSetNode(
-                new[]
-                {
-                    current.Selection.SyntaxNode.WithSelectionSet(selectionSet)
-                });
-            
+                new[] { current.Selection.SyntaxNode.WithSelectionSet(selectionSet) });
+
             current = current.Parent;
         }
 
@@ -284,6 +281,7 @@ internal abstract class RequestDocumentFormatter
                     selectionNodes.Add(TypeNameField);
                     needsTypeNameField = false;
                 }
+
                 AddInlineFragment(possibleType);
             }
         }
@@ -320,7 +318,7 @@ internal abstract class RequestDocumentFormatter
         ref var selection = ref selectionSet.GetSelectionsReference();
         ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
 
-        while(Unsafe.IsAddressLessThan(ref selection, ref end))
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
         {
             if (!executionStep.AllSelections.Contains(selection) &&
                 !selection.Field.Name.EqualsOrdinal(IntrospectionFields.TypeName))
