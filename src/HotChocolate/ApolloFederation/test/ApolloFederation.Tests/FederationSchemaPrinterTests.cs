@@ -27,7 +27,7 @@ public class FederationSchemaPrinterTests
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString("""
-                type TestType @key(fields: ""id"") {
+                type TestType @key(fields: "id") {
                     id: Int!
                     name: String!
                 }
@@ -51,7 +51,7 @@ public class FederationSchemaPrinterTests
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString("""
-                type TestType @key(fields: ""id"") {
+                type TestType @key(fields: "id") {
                     id: Int!
                     name: String!
                     enum: SomeEnum
@@ -61,7 +61,7 @@ public class FederationSchemaPrinterTests
                     id: Int!
                 }
 
-                interface iTestType @key(fields: ""id"") {
+                interface iTestType @key(fields: "id") {
                     id: Int!
                     external: String! @external
                 }
@@ -106,7 +106,7 @@ public class FederationSchemaPrinterTests
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
             .AddDocumentFromString("""
-                type TestType @key(fields: ""id"") {
+                type TestType @key(fields: "id") {
                     id: Int!
                     name: String!
                     enum: SomeEnum
@@ -116,7 +116,7 @@ public class FederationSchemaPrinterTests
                     id: Int!
                 }
 
-                interface iTestType @key(fields: ""id"") {
+                interface iTestType @key(fields: "id") {
                     id: Int!
                     external: String! @external
                 }
@@ -206,11 +206,13 @@ public class FederationSchemaPrinterTests
         var schema = SchemaBuilder.New()
             .AddQueryType<QueryWithDirective>()
             .AddDirectiveType(new CustomDirectiveType(false))
+            .ModifyOptions(o => o.UseXmlDocumentation = true)
             .Create();
 
         // act
         // assert
-        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+        var s = FederationSchemaPrinter.Print(schema);
+        s.MatchSnapshot();
     }
 
     public sealed class QueryRoot<T>
