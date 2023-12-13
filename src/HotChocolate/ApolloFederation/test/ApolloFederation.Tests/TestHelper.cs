@@ -40,4 +40,36 @@ public static class TestHelper
         context.LocalContextData = ImmutableDictionary<string, object?>.Empty;
         return context;
     }
+
+    public static Representation RepresentationOf<T>(string typeName, T anonymousObject)
+        where T : class
+    {
+        var fields = anonymousObject
+            .GetType()
+            .GetProperties()
+            .Select(p =>
+            {
+                var value = p.GetValue(anonymousObject);
+                var result = value switch
+                {
+                    null => new ObjectFieldNode(p.Name, NullValueNode.Default),
+                    string s => new ObjectFieldNode(p.Name, s),
+                    int i => new ObjectFieldNode(p.Name, i),
+                    bool b => new ObjectFieldNode(p.Name, b),
+                    _ => throw new NotSupportedException($"Type {p.PropertyType} is not supported"),
+                };
+                return result;
+            })
+            .ToArray();
+
+        return new Representation(typeName, new ObjectValueNode(fields));
+    }
+
+    public static List<Representation> RepresentationsOf<T>(string typeName, params T[] anonymousObjects)
+        where T : class
+    {
+        return anonymousObjects
+            .Select(o => RepresentationOf(typeName, o))
+            .ToList();
+    }
 }
