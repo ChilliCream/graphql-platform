@@ -3,6 +3,7 @@ using ApolloAnyType = HotChocolate.ApolloFederation.AnyType;
 
 namespace HotChocolate;
 
+// TODO : This we need to completly rewrite.
 /// <summary>
 /// Provides extensions to <see cref="ISchemaBuilder"/>.
 /// </summary>
@@ -34,6 +35,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
+        // TODO : we will move this to the type interceptor.
         builder.SetSchema(s =>
         {
             var link = FederationUtils.GetFederationLink(version);
