@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.MongoDb"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.MongoDb.Tests", "test\Types.MongoDb\HotChocolate.Types.MongoDb.Tests.csproj", "{6233D128-CF55-48E5-B38A-C10CFEDE8A2A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.MongoDb.Subscriptions.Tests", "test\HotChocolate.Data.MongoDb.Subscriptions.Tests\HotChocolate.Data.MongoDb.Subscriptions.Tests.csproj", "{962A0109-5788-46F0-8AEE-463F1702377F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -218,6 +220,18 @@ Global
 		{6233D128-CF55-48E5-B38A-C10CFEDE8A2A}.Release|x64.Build.0 = Release|Any CPU
 		{6233D128-CF55-48E5-B38A-C10CFEDE8A2A}.Release|x86.ActiveCfg = Release|Any CPU
 		{6233D128-CF55-48E5-B38A-C10CFEDE8A2A}.Release|x86.Build.0 = Release|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Debug|x64.Build.0 = Debug|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Debug|x86.Build.0 = Debug|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Release|x64.ActiveCfg = Release|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Release|x64.Build.0 = Release|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Release|x86.ActiveCfg = Release|Any CPU
+		{962A0109-5788-46F0-8AEE-463F1702377F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5219FDEE-0427-4429-BDBE-76DC00742027} = {381E7519-8284-4D97-A28C-AF8B1F79C11B}
@@ -234,5 +248,6 @@ Global
 		{384C2579-EBEF-44DC-8F54-2B9558E07ADB} = {E877FDC6-C10E-4FA7-B95E-D5E271E3DD7A}
 		{1940E397-FE33-4693-8999-7C7E9F2527D7} = {381E7519-8284-4D97-A28C-AF8B1F79C11B}
 		{6233D128-CF55-48E5-B38A-C10CFEDE8A2A} = {828618C0-B8D0-4AEC-984C-99B759FA523F}
+		{962A0109-5788-46F0-8AEE-463F1702377F} = {828618C0-B8D0-4AEC-984C-99B759FA523F}
 	EndGlobalSection
 EndGlobal

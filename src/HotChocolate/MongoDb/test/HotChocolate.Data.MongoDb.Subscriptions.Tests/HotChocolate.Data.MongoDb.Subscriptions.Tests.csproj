@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.MongoDb.Subscriptions.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.MongoDb.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.19.1"/>
+    <PackageReference Include="Squadron.Mongo" Version="0.15.0" />
+  </ItemGroup>
+</Project>
