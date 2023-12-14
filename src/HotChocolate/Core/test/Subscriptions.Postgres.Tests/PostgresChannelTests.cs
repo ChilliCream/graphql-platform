@@ -27,7 +27,7 @@ public class PostgresChannelTests
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
         {
-            ConnectionFactory = ConnectionFactory, ChannelName = _channelName
+            ConnectionFactory = ConnectionFactory, ChannelName = _channelName,
         };
     }
 
@@ -299,7 +299,7 @@ public class PostgresChannelTests
 
                 return await ConnectionFactory(ct);
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var channel = new PostgresChannel(_events, options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -358,7 +358,7 @@ public class PostgresChannelTests
 
                 return await ConnectionFactory(ct);
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var channel = new PostgresChannel(_events, options);
         await channel.EnsureInitialized(CancellationToken.None);

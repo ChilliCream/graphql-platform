@@ -15,5 +15,5 @@ public enum MessageKind
     /// A completed message, which signals that the topic is now
     /// completed and no more messages will arrive.
     /// </summary>
-    Completed = 1
+    Completed = 1,
 }

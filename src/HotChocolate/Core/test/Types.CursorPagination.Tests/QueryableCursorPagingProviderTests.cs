@@ -332,7 +332,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g"
+            "g",
         });
 
         var pagingDetails = new CursorPagingArguments(2);
@@ -381,7 +381,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g"
+            "g",
         }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);

@@ -177,7 +177,7 @@ public class SchemaTypeDiscoveryTests
     public enum FooBar
     {
         Foo,
-        Bar
+        Bar,
     }
 
     public class ByteArrayType : ScalarType

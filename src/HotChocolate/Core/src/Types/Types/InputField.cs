@@ -24,7 +24,7 @@ public class InputField : FieldBase<InputFieldDefinition>, IInputField, IHasProp
         {
             0 => null,
             1 => formatters[0],
-            _ => new AggregateInputValueFormatter(formatters)
+            _ => new AggregateInputValueFormatter(formatters),
         };
 
         IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);

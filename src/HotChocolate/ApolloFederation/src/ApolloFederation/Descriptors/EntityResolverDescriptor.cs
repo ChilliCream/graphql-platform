@@ -57,7 +57,7 @@ public sealed class EntityResolverDescriptor<TEntity>
                     EntityResolver,
                     new List<ReferenceResolverDefinition>
                     {
-                        Definition.ResolverDefinition.Value
+                        Definition.ResolverDefinition.Value,
                     });
             }
         }

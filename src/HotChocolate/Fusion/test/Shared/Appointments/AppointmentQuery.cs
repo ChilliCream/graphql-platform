@@ -37,14 +37,14 @@ public class AppointmentQuery
         {
             return new Patient1()
             {
-                Id = 1
+                Id = 1,
             };
         }
         if (id == 2)
         {
             return new Patient1()
             {
-                Id = 2
+                Id = 2,
             };
         }
 

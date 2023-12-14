@@ -229,7 +229,7 @@ internal class JsonResultPatcher
                 {
                     JsonValueKind.String => current[last.Value.GetString()!]!,
                     JsonValueKind.Number => current[last.Value.GetInt32()]!,
-                    _ => throw new NotSupportedException("Path segment must be int or string.")
+                    _ => throw new NotSupportedException("Path segment must be int or string."),
                 };
             }
 

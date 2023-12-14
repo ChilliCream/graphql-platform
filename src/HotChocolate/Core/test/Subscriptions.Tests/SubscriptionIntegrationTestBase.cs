@@ -298,7 +298,7 @@ public abstract class SubscriptionIntegrationTestBase
               }
             }");
     }
-    
+
     [Fact]
     public virtual async Task Subscribe_And_Complete_Topic()
     {
@@ -326,7 +326,7 @@ public abstract class SubscriptionIntegrationTestBase
             Assert.False(true, "Should not have any messages.");
         }
     }
-    
+
     [Fact]
     public virtual async Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
     {
@@ -402,7 +402,7 @@ public abstract class SubscriptionIntegrationTestBase
         [Subscribe]
         public string OnMessage2(string arg1, string arg2, [EventMessage] string message)
             => message;
-        
+
         [Topic("OnMessage3")]
         [Subscribe]
         public FooEnum OnMessage3([EventMessage] FooEnum message)
@@ -413,9 +413,9 @@ public abstract class SubscriptionIntegrationTestBase
     {
         public string? Bar { get; set; }
     }
-    
+
     public enum FooEnum
     {
-        Bar
+        Bar,
     }
 }

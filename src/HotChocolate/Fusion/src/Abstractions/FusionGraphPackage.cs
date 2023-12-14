@@ -28,7 +28,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     private readonly Package _package;

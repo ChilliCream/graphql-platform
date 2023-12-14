@@ -73,7 +73,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
                     .SetCode(result == AuthorizeResult.NotAllowed
                         ? ErrorCodes.Authentication.NotAuthorized
                         : ErrorCodes.Authentication.NotAuthenticated)
-                    .Build()
+                    .Build(),
         };
     }
 }

@@ -28,7 +28,7 @@ public class QueryableCombinator
                 FilterCombinator.And => Expression.AndAlso(combined, operations.Dequeue()),
                 FilterCombinator.Or => Expression.OrElse(combined, operations.Dequeue()),
                 _ => throw ThrowHelper
-                    .Filtering_QueryableCombinator_InvalidCombinator(this, combinator)
+                    .Filtering_QueryableCombinator_InvalidCombinator(this, combinator),
             };
         }
 

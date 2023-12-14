@@ -387,7 +387,7 @@ public class Selection : ISelection
         Sealed = 2,
         List = 4,
         Stream = 8,
-        StreamResult = 16
+        StreamResult = 16,
     }
 
     [Flags]
@@ -400,7 +400,7 @@ public class Selection : ISelection
         Option4 = 8,
         Option5 = 16,
         Option6 = 32,
-        Option7 = 64
+        Option7 = 64,
     }
 
     internal sealed class Sealed : Selection

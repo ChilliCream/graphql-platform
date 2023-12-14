@@ -184,7 +184,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             IQueryable<TEntityType> q => sort(q),
             IEnumerable<TEntityType> q => sort(q.AsQueryable()),
             QueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
-            _ => input
+            _ => input,
         };
 
     private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)

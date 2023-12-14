@@ -99,7 +99,7 @@ internal sealed class RequestContext : IRequestContext
             Operation = Operation,
             Variables = Variables,
             Result = Result,
-            Exception = Exception
+            Exception = Exception,
         };
 
         foreach (var item in _contextData)
