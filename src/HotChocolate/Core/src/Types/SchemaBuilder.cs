@@ -261,6 +261,16 @@ public partial class SchemaBuilder : ISchemaBuilder
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
     }
+    
+    internal void AddTypeReference(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _types.Add(_ => typeReference);
+    }
 
     /// <inheritdoc />
     public ISchemaBuilder AddDirectiveType(DirectiveType type)
