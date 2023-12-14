@@ -1,0 +1,31 @@
+UserRequest
+---------------
+query Test {
+  fieldWithEnumArg(arg: VALUE1)
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query Test { fieldWithEnumArg(arg: VALUE1) }",
+  "operation": "Test",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Test",
+        "document": "query Test_1 { fieldWithEnumArg(arg: VALUE1) }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

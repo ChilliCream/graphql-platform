@@ -53,9 +53,10 @@ internal sealed partial class ResolverDefinition
     public (ISelectionNode selectionNode, IReadOnlyList<string> Path) CreateSelection(
         IReadOnlyDictionary<string, IValueNode> variables,
         SelectionSetNode? selectionSet,
-        string? responseName)
+        string? responseName,
+        IReadOnlyList<string>? unspecifiedArguments)
     {
-        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName);
+        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName, unspecifiedArguments);
         var selection = _rewriter.Rewrite(_field ?? (ISyntaxNode)Select, context);
 
         if (Placeholder is null && selectionSet is not null)
