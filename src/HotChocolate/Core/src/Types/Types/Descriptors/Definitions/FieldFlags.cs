@@ -13,5 +13,5 @@ internal enum FieldFlags
     ParallelExecutable = 16,
     Stream = 32,
     Sealed = 64,
-    TypeNameField = 128
+    TypeNameField = 128,
 }

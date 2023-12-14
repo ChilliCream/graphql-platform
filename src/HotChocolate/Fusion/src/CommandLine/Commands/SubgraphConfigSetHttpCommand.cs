@@ -18,13 +18,13 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
         var url = new Option<Uri>("--url")
         {
             Description = "The url of the graphql-http endpoint.",
-            IsRequired = true
+            IsRequired = true,
         };
 
         var clientName = new Option<string>("--client-name")
         {
             Description = "The name of the graphql-http configuration.",
-            IsRequired = false
+            IsRequired = false,
         };
 
         var configFile = new SubgraphConfigFileOption();
@@ -61,7 +61,7 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
                 SubgraphName,
                 new[]
                 {
-                    new HttpClientConfiguration(uri, clientName)
+                    new HttpClientConfiguration(uri, clientName),
                 });
             var configJson = FormatSubgraphConfig(config);
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
@@ -69,9 +69,9 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
         else if (configFile.Extension.EqualsOrdinal(".fsp"))
         {
             var config = await LoadSubgraphConfigFromSubgraphPackageAsync(configFile.FullName, cancellationToken);
-            
+
             var clients = config.Clients.ToList();
-            
+
             clients.RemoveAll(t => t is HttpClientConfiguration);
             clients.Add(new HttpClientConfiguration(uri, clientName));
 
@@ -84,7 +84,7 @@ internal sealed class SubgraphConfigSetHttpCommand : Command
             var config = await LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
 
             var clients = config.Clients.ToList();
-            
+
             clients.RemoveAll(t => t is HttpClientConfiguration);
             clients.Add(new HttpClientConfiguration(uri, clientName));
 

@@ -28,7 +28,7 @@ public class TypeConverterTests
                     {
                         { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
                         { "time", "2018-05-29T01:00Z" },
-                        { "number", (byte)123 }
+                        { "number", (byte)123 },
                     }),
                 configure: c => c.AddQueryType<Query>())
             .MatchSnapshotAsync();
@@ -82,7 +82,7 @@ public class TypeConverterTests
                     {
                         { "id", "934b987bc0d842bbabfd8a3b3f8b476e" },
                         { "time", "2018-05-29T01:00Z" },
-                        { "number", (byte)123 }
+                        { "number", (byte)123 },
                     }),
                 configure: c => c.AddQueryType<QueryType>())
             .MatchSnapshotAsync();

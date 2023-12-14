@@ -95,7 +95,7 @@ internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
                     Lang.InputFieldDefinition.Value,
                     DirectiveLocation_InputFieldDefinition,
                     DirectiveLocation.InputFieldDefinition),
-            }
+            },
         };
 
     public static class Names

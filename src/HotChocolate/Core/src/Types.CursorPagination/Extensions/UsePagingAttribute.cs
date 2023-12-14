@@ -132,7 +132,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                         AllowBackwardPagination = _allowBackwardPagination,
                         RequirePagingBoundaries = _requirePagingBoundaries,
                         InferConnectionNameFromField = _inferConnectionNameFromField,
-                        ProviderName = ProviderName
+                        ProviderName = ProviderName,
                     });
             }
             else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -150,7 +150,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                         AllowBackwardPagination = _allowBackwardPagination,
                         RequirePagingBoundaries = _requirePagingBoundaries,
                         InferConnectionNameFromField = _inferConnectionNameFromField,
-                        ProviderName = ProviderName
+                        ProviderName = ProviderName,
                     });
             }
         }

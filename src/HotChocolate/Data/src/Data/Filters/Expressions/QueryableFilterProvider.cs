@@ -188,7 +188,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             IQueryable<TEntityType> q => q.Where(where),
             IEnumerable<TEntityType> q => q.AsQueryable().Where(where),
             QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
-            _ => input
+            _ => input,
         };
 
     private ApplyFiltering CreateApplicator<TEntityType>(string argumentName)

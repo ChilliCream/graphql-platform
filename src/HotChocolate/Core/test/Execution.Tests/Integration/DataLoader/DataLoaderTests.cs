@@ -201,7 +201,7 @@ public class DataLoaderTests
                         @"{
                             c: withDataLoader(key: ""c"")
                         }")
-                    .Create())
+                    .Create()),
         };
 
         // assert
@@ -298,7 +298,7 @@ public class DataLoaderTests
                         @"{
                             c: dataLoaderWithInterface(key: ""c"")
                         }")
-                    .Create())
+                    .Create()),
         };
 
         // assert

@@ -246,6 +246,6 @@ public class ScalarTypeTestBase
 
     public enum TestEnum
     {
-        Foo
+        Foo,
     }
 }

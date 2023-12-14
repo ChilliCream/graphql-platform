@@ -143,6 +143,6 @@ public class ScalarsTests
 
     public enum Foo
     {
-        Bar
+        Bar,
     }
 }

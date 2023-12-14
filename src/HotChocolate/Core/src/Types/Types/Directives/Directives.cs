@@ -17,7 +17,7 @@ public static class Directives
             WellKnownDirectives.Deprecated,
             WellKnownDirectives.Stream,
             WellKnownDirectives.Defer,
-            WellKnownDirectives.OneOf
+            WellKnownDirectives.OneOf,
         };
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
@@ -40,7 +40,7 @@ public static class Directives
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
         }
-        
+
         if (descriptorContext.Options.EnableTrueNullability)
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(NullBubblingDirective)));

@@ -81,7 +81,7 @@ public class ScalarExecutionErrorTests
             "query a($a: Foo) { fooToString(name: $a) }",
             new Dictionary<string, object?>
             {
-                {"a", " "}
+                {"a", " "},
             });
 
         // assert

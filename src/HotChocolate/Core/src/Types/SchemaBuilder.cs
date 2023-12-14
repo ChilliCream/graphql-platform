@@ -36,7 +36,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(CostTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor),
-        typeof(EnableTrueNullabilityTypeInterceptor)
+        typeof(EnableTrueNullabilityTypeInterceptor),
     };
 
     private SchemaOptions _options = new();

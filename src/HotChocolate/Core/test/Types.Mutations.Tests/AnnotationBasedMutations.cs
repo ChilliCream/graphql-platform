@@ -372,7 +372,7 @@ public class AnnotationBasedMutations
                         InputTypeNamePattern = "{MutationName}In",
                         PayloadTypeNamePattern = "{MutationName}Out",
                         PayloadErrorTypeNamePattern = "{MutationName}Fault",
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -1359,7 +1359,7 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething([ID("Foo")] Guid id)
         {
-            return new User { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id };
         }
     }
 
@@ -1367,7 +1367,7 @@ public class AnnotationBasedMutations
     {
         public User? DoSomething([ID<Foo>] Guid id)
         {
-            return new User { Name = "Foo", Id = id, };
+            return new User { Name = "Foo", Id = id };
         }
     }
 

@@ -25,5 +25,5 @@ public enum SelectionInclusionKind
     /// The selection is included for internal processing when certain
     /// conditions are met and will not appear in the result set.
     /// </summary>
-    InternalConditional
+    InternalConditional,
 }

@@ -92,7 +92,7 @@ public class SortAttributeTests
             new Foo { Bar = "ab", Baz = 2 },
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = null!, Baz = 0 },
         };
     }
 #endif
@@ -108,7 +108,7 @@ public class SortAttributeTests
             new Foo { Bar = "ab", Baz = 2 },
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = null!, Baz = 0 },
         };
     }
 
@@ -123,7 +123,7 @@ public class SortAttributeTests
             new Foo { Bar = "ab", Baz = 2 },
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = null!, Baz = 0 },
         };
     }
 
@@ -138,7 +138,7 @@ public class SortAttributeTests
             new Foo { Bar = "ab", Baz = 2 },
             new Foo { Bar = "ac", Baz = 2 },
             new Foo { Bar = "ad", Baz = 2 },
-            new Foo { Bar = null!, Baz = 0 }
+            new Foo { Bar = null!, Baz = 0 },
         };
     }
 

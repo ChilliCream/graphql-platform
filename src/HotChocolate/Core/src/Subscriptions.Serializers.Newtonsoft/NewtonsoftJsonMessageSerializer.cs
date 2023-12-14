@@ -10,7 +10,7 @@ internal sealed class NewtonsoftJsonMessageSerializer : IMessageSerializer
     {
         TypeNameHandling = TypeNameHandling.All,
         TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-        Formatting = Formatting.None
+        Formatting = Formatting.None,
     };
 
     public string CompleteMessage => _completed;

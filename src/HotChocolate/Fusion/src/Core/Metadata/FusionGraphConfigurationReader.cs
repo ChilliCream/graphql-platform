@@ -141,7 +141,7 @@ internal sealed class FusionGraphConfigurationReader
             {
                 continue;
             }
-            
+
             var config = TryReadHttpClientConfig(typeNames, directiveNode);
             if (config is not null)
             {
@@ -179,13 +179,13 @@ internal sealed class FusionGraphConfigurationReader
                 case LocationArg:
                     baseAddress = Expect<StringValueNode>(argument.Value).Value;
                     break;
-                
+
                 case KindArg:
                     kind = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
-        
+
         if (!kind.EqualsOrdinal("HTTP"))
         {
             return null;
@@ -216,7 +216,7 @@ internal sealed class FusionGraphConfigurationReader
             {
                 continue;
             }
-            
+
             var config = TryReadWebSocketClientConfig(typeNames, directiveNode);
             if (config is not null)
             {
@@ -254,7 +254,7 @@ internal sealed class FusionGraphConfigurationReader
                 case LocationArg:
                     baseAddress = Expect<StringValueNode>(argument.Value).Value;
                     break;
-                
+
                 case KindArg:
                     kind = Expect<StringValueNode>(argument.Value).Value;
                     break;
@@ -318,7 +318,7 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
-        
+
         _subgraphNames.Add(subgraph);
 
         if(!_subgraphInfos.TryGetValue(subgraph, out var subgraphInfo))
@@ -404,7 +404,7 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
-        
+
         _subgraphNames.Add(schemaName);
 
         return new ArgumentVariableDefinition(name, schemaName, type, argumentName);
@@ -440,7 +440,7 @@ internal sealed class FusionGraphConfigurationReader
         }
 
         _subgraphNames.Add(schemaName);
-        
+
         return new FieldVariableDefinition(name, schemaName, select);
     }
 
@@ -494,7 +494,7 @@ internal sealed class FusionGraphConfigurationReader
                         FusionEnumValueNames.Batch => ResolverKind.Batch,
                         FusionEnumValueNames.Subscribe => ResolverKind.Subscribe,
                         _ => throw new InvalidOperationException(
-                            FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
+                            FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue),
                     };
                     break;
 
@@ -503,7 +503,7 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
-        
+
         _subgraphNames.Add(subgraph);
 
         FragmentSpreadNode? placeholder = null;

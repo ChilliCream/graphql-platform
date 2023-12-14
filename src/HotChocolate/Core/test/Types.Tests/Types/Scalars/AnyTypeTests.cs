@@ -419,8 +419,8 @@ public class AnyTypeTests
                 {
                     new Dictionary<string, object>
                     {
-                        { "abc", "def" }
-                    }
+                        { "abc", "def" },
+                    },
                 })
                 .Create());
 
@@ -1036,7 +1036,7 @@ public class AnyTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo", new StringValueNode("Bar")}
+            {"Foo", new StringValueNode("Bar")},
         };
 
         // act
@@ -1063,7 +1063,7 @@ public class AnyTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}}}
+            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}}},
         };
 
         // act
@@ -1120,7 +1120,7 @@ public class AnyTypeTests
                 configure: c => c.AddQueryType<SomeQuery>())
             .MatchSnapshotAsync();
     }
-    
+
     [Fact]
     public async Task UseImmutableDictWithAny()
     {
@@ -1140,7 +1140,7 @@ public class AnyTypeTests
             obj.a = "Foo";
             return obj;
         }
-        
+
         [GraphQLType<AnyType>]
         public ImmutableDictionary<string, object> GetSomethingImmutable()
         {

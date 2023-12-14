@@ -47,7 +47,7 @@ public class CollectVariablesVisitorTests
         new DocumentNode(
             new IDefinitionNode[]
             {
-                operation
+                operation,
             }).Print().MatchSnapshot();
     }
 
@@ -90,7 +90,7 @@ public class CollectVariablesVisitorTests
         new DocumentNode(
             new IDefinitionNode[]
             {
-                operation
+                operation,
             }).Print().MatchSnapshot();
     }
 

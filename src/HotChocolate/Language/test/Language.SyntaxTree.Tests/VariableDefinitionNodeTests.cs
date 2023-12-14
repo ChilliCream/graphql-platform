@@ -219,7 +219,7 @@ public class VariableDefinitionNodeTests
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux")
+                    new DirectiveNode("qux"),
             });
 
         // act
@@ -242,7 +242,7 @@ public class VariableDefinitionNodeTests
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux")
+                    new DirectiveNode("qux"),
             });
 
         // act
@@ -283,7 +283,7 @@ public class VariableDefinitionNodeTests
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux")
+                    new DirectiveNode("qux"),
             });
 
         // act

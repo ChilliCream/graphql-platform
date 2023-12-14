@@ -763,7 +763,7 @@ public class DefaultTypeInspectorTests
     public enum BarEnum
     {
         Bar,
-        Baz
+        Baz,
     }
 
     public class DoNotInfer

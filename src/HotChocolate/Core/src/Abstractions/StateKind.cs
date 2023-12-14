@@ -23,5 +23,5 @@ public enum StateKind
     /// <summary>
     /// The response state.
     /// </summary>
-    Response
+    Response,
 }
