@@ -1274,7 +1274,6 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
-#region Arguments with default values
     [Fact]
     public async Task Query_Plan_32_Argument_No_Value_Specified()
     {
@@ -1495,7 +1494,6 @@ public class RequestPlannerTests
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
         await snapshot.MatchAsync();
     }
-#endregion
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
