@@ -1200,7 +1200,7 @@ public class AnnotationBasedMutations
 
         result.Print().MatchSnapshot();
     }
-
+          
     [Fact]
     public async Task Mutation_With_MutationConventionsAndNamingConventions()
     {
@@ -1236,6 +1236,23 @@ public class AnnotationBasedMutations
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task Mutation_With_ErrorAnnotatedAndCustomInterface_LateAndEarlyRegistration()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<MutationWithErrorInterface2>()
+                .AddErrorInterfaceType<IErrorInterface>()
+                .AddType<IInterfaceError>()
+                .AddType<IInterfaceError2>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        result.Print().MatchSnapshot();
     }
 
     public class SimpleMutation
@@ -1659,6 +1676,29 @@ public class AnnotationBasedMutations
         [Error<ErrorAnnotated>]
         [Error<ErrorAnnotatedAndNot>]
         public bool Annotated(string something) => true;
+    }
+
+    public class MutationWithErrorInterface2
+    {
+        [Error<ErrorAnnotated>]
+        [Error<ErrorAnnotatedAndNot>]
+        public bool Annotated(string something) => true;
+
+        public ExampleResult ExampleResult(string something) => default!;
+    }
+
+    public class ExampleResult
+    {
+        public ErrorNotAnnotated NotAnnotated(string something) => default!;
+
+        public ErrorAnnotatedAndNot Both(string something) => default!;
+
+    }
+
+    public class ErrorNotAnnotated : IErrorInterface
+    {
+        /// <inheritdoc />
+        public string Message => string.Empty;
     }
 
     public class ErrorAnnotated : IErrorInterface, IInterfaceError
