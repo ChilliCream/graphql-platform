@@ -23,14 +23,20 @@ public static class FieldInitHelper
         IInputType argumentType,
         FieldCoordinate argumentCoordinate)
     {
+        var defaultValue = argumentDefinition.DefaultValue;
+
         try
         {
-            return argumentDefinition.RuntimeDefaultValue != null
-                ? context.DescriptorContext.InputFormatter.FormatValue(
-                    argumentDefinition.RuntimeDefaultValue,
-                    argumentType,
-                    Path.Root)
-                : argumentDefinition.DefaultValue;
+            if(defaultValue is null && argumentDefinition.RuntimeDefaultValue is not null)
+            {
+                defaultValue =
+                    context.DescriptorContext.InputFormatter.FormatValue(
+                        argumentDefinition.RuntimeDefaultValue,
+                        argumentType,
+                        Path.Root);
+            }
+
+            return defaultValue;
         }
         catch (Exception ex)
         {
