@@ -20,7 +20,7 @@
     BeforeTargets="BeforeBuild"
     DependsOnTargets="_GraphQLCodeGenerationRoot; _GenerateGraphQLCode">
     <ItemGroup>
-      <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" />
+      <Compile Include="$(GraphQLCodeGenerationRoot)\**\*.cs" Condition="'$(GraphQLCodeGenerationRoot)' != ''"/>
     </ItemGroup>
   </Target>
 
@@ -33,8 +33,12 @@
 
   <Target Name="_ParseVersion">
     <Exec Command="dotnet --version" StandardOutputImportance="Low" ConsoleToMsBuild="true">
-      <Output TaskParameter="ConsoleOutput" PropertyName="DotNetVersion" />
+      <Output TaskParameter="ConsoleOutput" ItemName="DotNetVersion" />
     </Exec>
+
+    <PropertyGroup>
+      <DotNetVersion Condition="$([System.Text.RegularExpressions.Regex]::Match(%(Identity),'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$').Success)">@(DotNetVersion)</DotNetVersion>
+    </PropertyGroup>
   </Target>
 
   <Target
@@ -47,16 +51,18 @@
     <PropertyGroup>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 6))">6</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 7))">7</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(DotNetVersion), 8))">8</DotNetMajor>
     </PropertyGroup>
 
     <Error
-      Text="The Strawberry Shake code generation requires .NET SDK 6 or .NET SDK 7 to work."
-      Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7'" />
+      Text="The Strawberry Shake code generation requires .NET SDK 6, .NET SDK 7 or .NET SDK 8 to work."
+      Condition="'$(DotNetMajor)' != '6' AND '$(DotNetMajor)' != '7' AND '$(DotNetMajor)' != '8'" />
 
     <PropertyGroup>
       <GraphQLQueryGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedQueryOutput.TrimEnd('/').TrimEnd('\'))</GraphQLQueryGenerationRoot>
       <GenTool Condition="'$(DotNetMajor)' == '6'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net6", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '7'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net7", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '8'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net8", "dotnet-graphql.dll"))</GenTool>
     </PropertyGroup>
 
     <PropertyGroup>

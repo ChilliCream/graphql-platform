@@ -39,11 +39,6 @@ public class EnumTypeDescriptor<T>
         return this;
     }
 
-    [Obsolete("Use `BindValues`.")]
-    public new IEnumTypeDescriptor<T> BindItems(
-        BindingBehavior behavior) =>
-        BindValues(behavior);
-
     public new IEnumTypeDescriptor<T> BindValues(BindingBehavior behavior)
     {
         base.BindValues(behavior);
@@ -55,9 +50,6 @@ public class EnumTypeDescriptor<T>
 
     public new IEnumTypeDescriptor<T> BindValuesImplicitly() =>
         BindValues(BindingBehavior.Implicit);
-
-    [Obsolete("Use `Value`.")]
-    public IEnumValueDescriptor Item(T value) => Value<T>(value);
 
     public IEnumValueDescriptor Value(T value)
     {

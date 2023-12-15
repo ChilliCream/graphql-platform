@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class RegexType : StringType
 {
-    protected internal const int DefaultRegexTimeoutInMs = 100;
+    protected internal const int DefaultRegexTimeoutInMs = 200;
 
     private readonly Regex _validationRegex;
 

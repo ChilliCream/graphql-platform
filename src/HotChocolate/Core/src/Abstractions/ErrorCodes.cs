@@ -206,6 +206,7 @@ public static class ErrorCodes
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
+        public const string DupplicateFieldNames = "HCXXXX";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.

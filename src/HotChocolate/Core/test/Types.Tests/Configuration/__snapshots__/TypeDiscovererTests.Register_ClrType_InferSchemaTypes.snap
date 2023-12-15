@@ -115,6 +115,15 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.DirectiveType<HotChocolate.Types.Tag>",
+      "runtimeType": "HotChocolate.Types.Tag",
+      "references": [
+        "DirectiveType<Tag>",
+        "@Tag",
+        "HotChocolate.Types.DirectiveType`1[HotChocolate.Types.Tag]"
+      ]
+    },
+    {
       "type": "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Foo>",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
       "references": [
@@ -143,6 +152,7 @@
     "DeprecatedDirective": "HotChocolate.Types.DeprecatedDirectiveType",
     "String": "HotChocolate.Types.StringType",
     "Boolean!": "HotChocolate.Types.BooleanType",
+    "Tag": "DirectiveType<Tag>",
     "Foo (Output)": "ObjectType<Foo> (Output)",
     "Bar (Output)": "ObjectType<Bar> (Output)"
   }

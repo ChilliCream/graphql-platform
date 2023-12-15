@@ -139,30 +139,6 @@ public class DirectiveTypeDescriptor<T>
         return this;
     }
 
-    [Obsolete("Replace Middleware with `Use`.")]
-    public new IDirectiveTypeDescriptor<T> Middleware(
-        DirectiveMiddleware middleware)
-    {
-        base.Middleware(middleware);
-        return this;
-    }
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    public new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-        Expression<Func<TMiddleware, object>> method)
-    {
-        base.Middleware(method);
-        return this;
-    }
-
-    [Obsolete("Replace Middleware with `Use`.", true)]
-    public new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-        Expression<Action<TMiddleware>> method)
-    {
-        base.Middleware(method);
-        return this;
-    }
-
     public new IDirectiveTypeDescriptor<T> Repeatable()
     {
         base.Repeatable();

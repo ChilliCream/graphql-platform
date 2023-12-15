@@ -1,0 +1,18 @@
+{
+  "transport": {
+    "defaultClientName": "Fusion"
+  },
+  "fusionTypePrefix": null,
+  "fusionTypeSelf": false,
+  "nodeField": {
+    "enabled": false
+  },
+  "reEncodeIds": {
+    "enabled": false
+  },
+  "tagDirective": {
+    "enabled": false,
+    "makePublic": false,
+    "exclude": []
+  }
+}

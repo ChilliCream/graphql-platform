@@ -563,7 +563,7 @@ namespace HotChocolate.Types.Pagination
                         .UseOffsetPaging(
                             options: new PagingOptions
                             {
-                                InferCollectionSegmentNameFromField = false
+                                InferCollectionSegmentNameFromField = false,
                             }))
                     .ModifyOptions(o =>
                     {
@@ -685,7 +685,7 @@ namespace HotChocolate.Types.Pagination
         {
             public string[] Letters => new[]
             {
-                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
             };
 
             public List<List<Foo>> Foos() => new()
@@ -694,7 +694,7 @@ namespace HotChocolate.Types.Pagination
                 new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
                 new List<Foo> { new Foo { Bar = "d" } },
                 new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } }
+                new List<Foo> { new Foo { Bar = "f" } },
             };
         }
 
@@ -708,7 +708,7 @@ namespace HotChocolate.Types.Pagination
                     new Foo { Bar = "c" },
                     new Foo { Bar = "d" },
                     new Foo { Bar = "e" },
-                    new Foo { Bar = "f" }
+                    new Foo { Bar = "f" },
                 }.AsQueryable());
         }
 
@@ -734,7 +734,7 @@ namespace HotChocolate.Types.Pagination
             [UseOffsetPaging]
             public string[] Letters => new[]
             {
-                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
             };
 
             [UseOffsetPaging(typeof(NonNullType<StringType>))]
@@ -750,7 +750,7 @@ namespace HotChocolate.Types.Pagination
                 new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
                 new List<Foo> { new Foo { Bar = "d" } },
                 new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } }
+                new List<Foo> { new Foo { Bar = "f" } },
             };
         }
 

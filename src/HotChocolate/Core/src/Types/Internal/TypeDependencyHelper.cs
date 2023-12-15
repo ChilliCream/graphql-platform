@@ -162,10 +162,26 @@ public static class TypeDependencyHelper
         DirectiveTypeDefinition definition,
         ICollection<TypeDependency> dependencies)
     {
+        if (definition.HasDependencies)
+        {
+            foreach (var dependency in definition.Dependencies)
+            {
+                dependencies.Add(dependency);
+            }
+        }
+        
         if (definition.HasArguments)
         {
             foreach (var argument in definition.Arguments)
             {
+                if (argument.HasDependencies)
+                {
+                    foreach (var dependency in argument.Dependencies)
+                    {
+                        dependencies.Add(dependency);
+                    }
+                }
+                
                 if (argument.Type is not null)
                 {
                     dependencies.Add(new(

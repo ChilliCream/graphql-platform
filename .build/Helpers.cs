@@ -1,3 +1,4 @@
+using System.Net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,25 +12,21 @@ static class Helpers
     static readonly string[] Directories =
     {
         "GreenDonut",
-        Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Caching"),
-        Path.Combine("HotChocolate", "CodeGeneration"),
         Path.Combine("HotChocolate", "Diagnostics"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
-        Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
-        Path.Combine("HotChocolate", "Neo4J"),
+        Path.Combine("HotChocolate", "OpenApi"),
         Path.Combine("HotChocolate", "Raven"),
         Path.Combine("HotChocolate", "Skimmed"),
-        Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Fusion"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
@@ -52,7 +49,8 @@ static class Helpers
                 if (!(include?.Invoke(file) ?? true)
                     || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
+                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("examples", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -73,7 +71,7 @@ static class Helpers
 
         directories ??= Directories;
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
+        var projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 

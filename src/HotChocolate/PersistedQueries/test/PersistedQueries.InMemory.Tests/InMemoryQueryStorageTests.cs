@@ -48,7 +48,7 @@ public class InMemoryQueryStorageTests
 
         const string queryId = "abc";
         var query = Utf8GraphQLParser.Parse("{ __typename }");
-        await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(query)));
+        await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(query)))!;
 
         // act
         var document = await queryStorage.TryReadQueryAsync(

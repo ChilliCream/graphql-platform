@@ -45,7 +45,7 @@ services.AddGraphQLServer()
 Projections can be registered on a field. A middleware will apply the selected fields on the result.
 Support for `IQueryable` comes out of the box.
 The projection middleware will create a projection for the whole subtree of its field. Only fields that
-are members of a type will be projected. Fields that define a customer resolver cannot be projected
+are members of a type will be projected. Fields that define a custom resolver cannot be projected
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
 <ExampleTabs>

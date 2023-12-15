@@ -27,7 +27,7 @@ public static class SchemaExtensions
             OperationType.Query => schema.QueryType,
             OperationType.Mutation => schema.MutationType,
             OperationType.Subscription => schema.SubscriptionType,
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 
     /// <summary>

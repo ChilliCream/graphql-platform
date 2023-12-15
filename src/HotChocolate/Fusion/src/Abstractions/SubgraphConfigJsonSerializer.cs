@@ -146,6 +146,12 @@ internal static class SubgraphConfigJsonSerializer
             }
         }
 
+        if (config.Extensions is not null)
+        {
+            writer.WritePropertyName("extensions");
+            config.Extensions.Value.WriteTo(writer);
+        }
+
         writer.WriteEndObject();
         await writer.FlushAsync(cancellationToken);
     }
@@ -176,6 +182,7 @@ internal static class SubgraphConfigJsonSerializer
             stream, cancellationToken: cancellationToken);
         var configs = new List<IClientConfiguration>();
         var subgraph = default(string?);
+        var extensions = default(JsonElement?);
 
         foreach (var property in document.RootElement.EnumerateObject())
         {
@@ -193,6 +200,10 @@ internal static class SubgraphConfigJsonSerializer
                     configs.Add(ReadWebSocketClientConfiguration(property.Value));
                     break;
 
+                case "extensions":
+                    extensions = property.Value.SafeClone();
+                    break;
+
                 default:
                     throw new NotSupportedException(
                         $"Configuration property `{property.Value}` is not supported.");
@@ -204,7 +215,7 @@ internal static class SubgraphConfigJsonSerializer
             throw new InvalidOperationException("No subgraph name was specified.");
         }
 
-        return new SubgraphConfigJson(subgraph, configs);
+        return new SubgraphConfigJson(subgraph, configs, extensions);
     }
 
     private static HttpClientConfiguration ReadHttpClientConfiguration(

@@ -260,5 +260,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("AttributeExtensions_FormatFieldName_FieldNameEmpty", resourceCulture);
             }
         }
+        
+        internal static string MutationError_ErrorsEmpty {
+            get {
+                return ResourceManager.GetString("MutationError_ErrorsEmpty", resourceCulture);
+            }
+        }
     }
 }

@@ -15,9 +15,6 @@ internal partial class MiddlewareContext
 
     public IObjectField Field => _selection.Field;
 
-    [Obsolete("Use Selection.SyntaxNode.")]
-    public FieldNode FieldSelection => _selection.SyntaxNode;
-
     public ISelection Selection => _selection;
 
     public string ResponseName => _selection.ResponseName;
@@ -30,12 +27,12 @@ internal partial class MiddlewareContext
 
     public bool TryCreatePureContext(
         ISelection selection,
-        Path path,
         ObjectType parentType,
+        ObjectResult parentResult,
         object? parent,
         [NotNullWhen(true)] out IPureResolverContext? context)
     {
-        if (_childContext.Initialize(selection, path, parentType, parent))
+        if (_childContext.Initialize(selection, parentType, parentResult, parent))
         {
             context = _childContext;
             return true;

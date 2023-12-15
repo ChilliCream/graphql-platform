@@ -92,7 +92,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     /// Applies filtering sorting and projections on the <see cref="IExecutable.Source"/>
     /// </summary>
     /// <returns>A find fluent including the configuration of this executable</returns>
-    public IFindFluent<T, T> BuildPipeline()
+    public virtual IFindFluent<T, T> BuildPipeline()
     {
         var options = Options as FindOptions ?? new FindOptions();
         var filters = FilterDefinition<T>.Empty;

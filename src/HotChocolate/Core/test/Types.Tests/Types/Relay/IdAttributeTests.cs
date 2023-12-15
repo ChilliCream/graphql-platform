@@ -140,7 +140,7 @@ public class IdAttributeTests
         {
             result = result.ToJson(),
             someId,
-            someIntId
+            someIntId,
         }.MatchSnapshot();
     }
 
@@ -191,7 +191,7 @@ public class IdAttributeTests
         {
             result = result.ToJson(),
             someId,
-            someIntId
+            someIntId,
         }.MatchSnapshot();
     }
 
@@ -269,7 +269,7 @@ public class IdAttributeTests
         new
         {
             result = result.ToJson(),
-            someId
+            someId,
         }.MatchSnapshot();
     }
 
@@ -305,7 +305,7 @@ public class IdAttributeTests
         new
         {
             result = result.ToJson(),
-            someId
+            someId,
         }.MatchSnapshot();
     }
 

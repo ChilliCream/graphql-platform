@@ -7,7 +7,7 @@ indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
-rulers = 100
+rulers = 120
 
 [*.md]
 trim_trailing_whitespace = false
@@ -28,10 +28,6 @@ dotnet_style_qualification_for_event = false:suggestion
 # Use language keywords instead of framework type names for type references
 dotnet_style_predefined_type_for_locals_parameters_members = true:error
 dotnet_style_predefined_type_for_member_access = true:error
-
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = always
-csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async
 
 # Suggest more modern language features when available
 dotnet_style_object_initializer = true:suggestion
@@ -100,4 +96,28 @@ csharp_preserve_single_line_blocks = true
 dotnet_style_require_accessibility_modifiers = always
 
 # Public API
-dotnet_diagnostic.RS0016.severity = warning
+dotnet_diagnostic.rs0016.severity = warning
+
+# Require braces on all control statements
+resharper_braces_for_for = required
+resharper_braces_for_foreach = required
+resharper_braces_for_ifelse = required
+resharper_braces_for_while = required
+
+# ReSharper inspection severities
+resharper_arrange_trailing_comma_in_multiline_lists_highlighting = error
+resharper_enforce_do_while_statement_braces_highlighting = error
+resharper_enforce_fixed_statement_braces_highlighting = error
+resharper_enforce_foreach_statement_braces_highlighting = error
+resharper_enforce_for_statement_braces_highlighting = error
+resharper_enforce_if_statement_braces_highlighting = error
+resharper_enforce_lock_statement_braces_highlighting = error
+resharper_enforce_using_statement_braces_highlighting = error
+resharper_enforce_while_statement_braces_highlighting = error
+
+# ReSharper properties
+resharper_align_multiline_binary_expressions_chain = false
+resharper_trailing_comma_in_multiline_lists = true
+resharper_wrap_before_binary_pattern_op = false
+resharper_wrap_chained_binary_expressions = chop_if_long
+resharper_wrap_chained_binary_patterns = chop_if_long

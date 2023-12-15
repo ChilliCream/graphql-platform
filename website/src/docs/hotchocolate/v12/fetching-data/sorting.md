@@ -295,7 +295,7 @@ services.AddGraphQLServer()
     .AddConvention<ISortConvention, CustomConventionExtension>();
 // or
 services.AddGraphQLServer()
-    .AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
+    .AddConvention<ISortConvention>(new SortConventionExtension(x =>
     {
         // config
     }))

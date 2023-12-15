@@ -32,7 +32,7 @@ internal static class ReferenceResolverHelper
                 "The entity for the given representation could not be resolved.",
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(representation), representation }
+                    { nameof(representation), representation },
                 }));
     }
 

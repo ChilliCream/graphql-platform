@@ -16,8 +16,7 @@
 
 namespace Foo.Bar
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembersResult : global::System.IEquatable<UpdateMembersResult>, IUpdateMembersResult
     {
         public UpdateMembersResult(global::Foo.Bar.IUpdateMembers_Project project)
@@ -78,8 +77,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembers_Project_ProjectMutations : global::System.IEquatable<UpdateMembers_Project_ProjectMutations>, IUpdateMembers_Project_ProjectMutations
     {
         public UpdateMembers_Project_ProjectMutations(global::Foo.Bar.IUpdateMembers_Project_UpdateMembers? updateMembers)
@@ -147,8 +145,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembers_Project_UpdateMembers_MutationResult : global::System.IEquatable<UpdateMembers_Project_UpdateMembers_MutationResult>, IUpdateMembers_Project_UpdateMembers_MutationResult
     {
         public UpdateMembers_Project_UpdateMembers_MutationResult(global::System.Guid correlationId)
@@ -209,15 +206,13 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateMembersResult
     {
         public global::Foo.Bar.IUpdateMembers_Project Project { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateMembers_Project
     {
         /// <summary>
@@ -226,27 +221,23 @@ namespace Foo.Bar
         public global::Foo.Bar.IUpdateMembers_Project_UpdateMembers? UpdateMembers { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateMembers_Project_ProjectMutations : IUpdateMembers_Project
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateMembers_Project_UpdateMembers
     {
         public global::System.Guid CorrelationId { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateMembers_Project_UpdateMembers_MutationResult : IUpdateMembers_Project_UpdateMembers
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMembersInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _guidFormatter = default !;
@@ -315,7 +306,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Update the project members</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMembersInput : global::Foo.Bar.State.IUpdateProjectMembersInputInfo, global::System.IEquatable<UpdateProjectMembersInput>
@@ -408,8 +398,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IUpdateProjectMembersInputInfo.IsMembersSet => _set_members;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMemberInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _guidFormatter = default !;
@@ -472,7 +461,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMemberInput : global::Foo.Bar.State.IUpdateProjectMemberInputInfo, global::System.IEquatable<UpdateProjectMemberInput>
     {
@@ -513,7 +501,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && Type.Equals(other.Type) && Remove == other.Remove;
+            return (Id.Equals(other.Id)) && Type.Equals(other.Type) && global::System.Object.Equals(Remove, other.Remove);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -572,8 +560,7 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IUpdateProjectMemberInputInfo.IsRemoveSet => _set_remove;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public enum ProjectUserRoleType
     {
         Viewer,
@@ -581,8 +568,7 @@ namespace Foo.Bar
         Owner
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ProjectUserRoleTypeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, ProjectUserRoleType>
     {
         public global::System.String TypeName => "ProjectUserRoleType";
@@ -607,7 +593,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
@@ -622,7 +607,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembersMutationDocument : global::StrawberryShake.IDocument
     {
         private UpdateMembersMutationDocument()
@@ -643,7 +628,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
@@ -658,7 +642,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembersMutation : global::Foo.Bar.IUpdateMembersMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IUpdateMembersResult> _operationExecutor;
@@ -710,7 +694,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the UpdateMembers GraphQL operation
     /// <code>
@@ -725,18 +708,17 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUpdateMembersMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> ExecuteAsync(global::Foo.Bar.UpdateProjectMembersInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IUpdateMembersResult>> Watch(global::Foo.Bar.UpdateProjectMembersInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IUpdateMembersMutation _updateMembers;
@@ -749,11 +731,10 @@ namespace Foo.Bar
         public global::Foo.Bar.IUpdateMembersMutation UpdateMembers => _updateMembers;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IUpdateMembersMutation UpdateMembers { get; }
@@ -762,8 +743,7 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembersResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.UpdateMembersResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -829,8 +809,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembersResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -852,7 +831,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IUpdateProjectMembersInputInfo
     {
@@ -861,7 +839,6 @@ namespace Foo.Bar.State
         global::System.Boolean IsMembersSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IUpdateProjectMemberInputInfo
     {
@@ -872,8 +849,7 @@ namespace Foo.Bar.State
         global::System.Boolean IsRemoveSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateMembersBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IUpdateMembersResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -911,6 +887,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("ProjectMutations", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -923,6 +904,11 @@ namespace Foo.Bar.State
         private global::Foo.Bar.State.MutationResultData? Deserialize_IUpdateMembers_Project_UpdateMembers(global::System.Text.Json.JsonElement? obj)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -943,11 +929,15 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _guidParser.Parse(obj.Value.GetString()!);
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ProjectMutationsData
     {
@@ -963,7 +953,6 @@ namespace Foo.Bar.State
         public global::Foo.Bar.State.MutationResultData? UpdateMembers { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MutationResultData
     {
@@ -978,8 +967,7 @@ namespace Foo.Bar.State
         public global::System.Guid? CorrelationId { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -1000,8 +988,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -1012,8 +999,7 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)

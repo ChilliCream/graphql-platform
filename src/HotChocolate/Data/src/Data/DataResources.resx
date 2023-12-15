@@ -238,7 +238,7 @@
   <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
     <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>
   </data>
-  <data name="UseProjection_CannotHandleType_" xml:space="preserve">
+  <data name="UseProjection_CannotHandleType" xml:space="preserve">
     <value>Cannot handle the specified type.</value>
   </data>
   <data name="PagingProjectionOptimizer_NotAPagingField" xml:space="preserve">
@@ -309,5 +309,8 @@
   </data>
   <data name="NameHelpers_UppercaseFirstLetter" xml:space="preserve">
     <value>Provided string was empty.</value>
+  </data>
+  <data name="ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed" xml:space="preserve">
+    <value>There is no selection that matches the specified field.</value>
   </data>
 </root>

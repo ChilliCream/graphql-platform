@@ -34,7 +34,6 @@ internal static class DirectiveClassMiddlewareFactory
         var sync = new object();
         MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate>? activate = null;
         ClassQueryDelegate<TMiddleware, IMiddlewareContext>? invoke = null;
-        TMiddleware? instance = null;
 
         return (next, directive) =>
         {
@@ -51,7 +50,7 @@ internal static class DirectiveClassMiddlewareFactory
                                 .CompileFactory<IServiceProvider, FieldDelegate>(
                                     (services, _) => new IParameterHandler[]
                                     {
-                                        directiveHandler, new ServiceParameterHandler(services)
+                                        directiveHandler, new ServiceParameterHandler(services),
                                     });
 
                         invoke =
@@ -61,11 +60,13 @@ internal static class DirectiveClassMiddlewareFactory
                                     {
                                         directiveHandler,
                                         new ServiceParameterHandler(
-                                            Expression.Property(context, _services))
+                                            Expression.Property(context, _services)),
                                     });
                     }
                 }
             }
+
+            TMiddleware? instance = null;
 
             return context =>
             {
@@ -86,7 +87,6 @@ internal static class DirectiveClassMiddlewareFactory
     {
         var sync = new object();
         ClassQueryDelegate<TMiddleware, IMiddlewareContext>? invoke = null;
-        TMiddleware? instance = null;
 
         return (next, directive) =>
         {
@@ -105,11 +105,13 @@ internal static class DirectiveClassMiddlewareFactory
                                     {
                                         directiveHandler,
                                         new ServiceParameterHandler(
-                                            Expression.Property(context, _services))
+                                            Expression.Property(context, _services)),
                                     });
                     }
                 }
             }
+
+            TMiddleware? instance = null;
 
             return context =>
             {

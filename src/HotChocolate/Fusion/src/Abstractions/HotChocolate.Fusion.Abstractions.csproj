@@ -7,9 +7,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Composition" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,8 +22,12 @@
     <ProjectReference Include="..\..\..\Utilities\src\Utilities\HotChocolate.Utilities.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
     <PackageReference Include="System.IO.Packaging" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.IO.Packaging" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

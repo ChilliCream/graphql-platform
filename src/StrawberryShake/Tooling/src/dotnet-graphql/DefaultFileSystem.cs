@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.Tools;
@@ -64,7 +65,10 @@ public class DefaultFileSystem : IFileSystem
     }
 
     public Task WriteTextAsync(string fileName, string text) =>
-        Task.Run(() => File.WriteAllText(fileName, text));
+        Task.Run(() => File.WriteAllText(
+            fileName,
+            text,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true)));
 
     public Task<byte[]> ReadAllBytesAsync(string fileName) =>
         Task.Run(() => File.ReadAllBytes(fileName));

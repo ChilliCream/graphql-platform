@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
@@ -47,7 +46,7 @@ internal sealed partial class ResolverTask : IExecutionTask
             SelectionExecutionStrategy.Default => ExecutionTaskKind.Parallel,
             SelectionExecutionStrategy.Serial => ExecutionTaskKind.Serial,
             SelectionExecutionStrategy.Pure => ExecutionTaskKind.Pure,
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 
     /// <inheritdoc />

@@ -4,7 +4,7 @@
   "classifications": ["Web", "GraphQL"],
   "identity": "HotChocolate.Template.Gateway",
   "sourceName": "HotChocolate.Template.Gateway",
-  "name": "HotChocolate GraphQL Gateway",
+  "name": "GraphQL Gateway",
   "shortName": "graphql-gateway",
   "defaultName": "GraphQL Gateway",
   "description": "",

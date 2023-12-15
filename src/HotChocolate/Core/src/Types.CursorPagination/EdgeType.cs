@@ -73,10 +73,6 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     public IOutputType NodeType { get; private set; } = default!;
 
     /// <inheritdoc />
-    [Obsolete("Use NodeType.")]
-    public IOutputType EntityType => NodeType;
-
-    /// <inheritdoc />
     public override bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
         if (resolverResult is IEdge { Node: not null } edge)
@@ -114,8 +110,8 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 new(Names.Node,
                     EdgeType_Node_Description,
                     nodeType,
-                    pureResolver: GetNode)
-            }
+                    pureResolver: GetNode),
+            },
         };
 
     private static string GetCursor(IPureResolverContext context)

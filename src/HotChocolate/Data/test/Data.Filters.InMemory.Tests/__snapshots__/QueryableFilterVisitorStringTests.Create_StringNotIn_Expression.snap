@@ -12,7 +12,7 @@ testbtestAndNull
 {
   "errors": [
     {
-      "message": "The provided value for filter \u0060nin\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter `nin` of type StringOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,

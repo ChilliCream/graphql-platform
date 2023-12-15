@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -280,6 +281,180 @@ public class IntegrationTests
 
         result.MatchSnapshot();
     }
+
+    [Fact]
+    public async Task Mutation_Convention_Select()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+             """
+              mutation {
+                  modify {
+                      foo {
+                          bar
+                      }
+                  }
+              }
+              """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_HasError()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                createRecord(input: {throwError: false}) {
+                    foo {
+                        bar
+                    }
+                    errors {
+                        ... on Error {
+                            message
+                        }
+                    }
+                }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_ThrowsError()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                createRecord(input: {throwError: true}) {
+                    foo {
+                        bar
+                    }
+                    errors {
+                        ... on Error {
+                            message
+                        }
+                    }
+                }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_Select_With_SingleOrDefault()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>() //error thrown without query, it's not needed for the test though
+            .AddMutationType<Mutation>()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+             """
+              mutation {
+                  modifySingleOrDefault {
+                      foo {
+                          bar
+                      }
+                  }
+              }
+              """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_With_Relay_Projection_Schema()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddMutationType<Mutation>()
+            .AddQueryFieldToMutationPayloads()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Convention_With_Relay_Projection()
+    {
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithNodeResolvers>()
+            .AddObjectType<Foo>(d => d.ImplementsNode().IdField(t => t.Bar))
+            .AddObjectType<Bar>(d => d.ImplementsNode().IdField(t => t.IdOfBar))
+            .AddObjectType<Baz>(d => d.ImplementsNode().IdField(t => t.Bar2))
+            .AddGlobalObjectIdentification()
+            .AddMutationType<Mutation>()
+            .AddQueryFieldToMutationPayloads()
+            .AddProjections()
+            .AddMutationConventions()
+            .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+                createRecord(input: {throwError: false}) {
+                    foo {
+                        id
+                        fieldOfFoo
+                    }
+                    errors {
+                        ... on Error {
+                            message
+                        }
+                    }
+                    query {
+                        node(id: "QmFyCmRB") {
+                            id
+                            __typename
+                            ... on Baz { fieldOfBaz }
+                            ... on Foo { fieldOfFoo }
+                            ... on Bar { fieldOfBar }
+                        }
+                    }
+                }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
 }
 
 public class Query
@@ -287,6 +462,41 @@ public class Query
     [UseProjection]
     public IQueryable<Foo> Foos
         => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+}
+
+public class Mutation
+{
+    [UseMutationConvention]
+    [UseProjection]
+    public IQueryable<Foo> Modify()
+    {
+        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+    }
+
+    [UseMutationConvention]
+    [UseSingleOrDefault]
+    [UseProjection]
+    public IQueryable<Foo> ModifySingleOrDefault()
+    {
+        return new Foo[] { new() { Bar = "A" } }.AsQueryable();
+    }
+
+    [Error<AnError>]
+    [UseMutationConvention]
+    [UseProjection]
+    public IQueryable<Foo> CreateRecord(bool throwError)
+    {
+        if (throwError) throw new AnError("this is only a test");
+        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+    }
+
+    public class AnError : Exception
+    {
+        public AnError(string message) : base(message)
+        {
+
+        }
+    }
 }
 
 [ExtendObjectType(typeof(Foo))]
@@ -325,19 +535,19 @@ public class QueryWithNodeResolvers
 {
     [UseProjection]
     public IQueryable<Foo> All()
-        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> GetById(string id)
-        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Baz> GetBazById(string id)
-        => new Baz[] { new() { Bar2 = "A" }, }.AsQueryable();
+        => new Baz[] { new() { Bar2 = "A" } }.AsQueryable();
 
     [NodeResolver]
     public Bar GetBarById(string id) => new() { IdOfBar = "A" };

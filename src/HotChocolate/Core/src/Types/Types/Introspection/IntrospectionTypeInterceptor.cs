@@ -39,12 +39,12 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
-        if (operationType is OperationType.Query && definition is ObjectTypeDefinition typeDef)
+        if (operationType is OperationType.Query)
         {
-            _queryTypeDefinition = typeDef;
+            _queryTypeDefinition = definition;
         }
     }
 

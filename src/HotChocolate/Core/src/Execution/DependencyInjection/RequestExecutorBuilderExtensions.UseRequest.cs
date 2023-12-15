@@ -141,7 +141,7 @@ public static partial class RequestExecutorBuilderExtensions
                     error,
                     new Dictionary<string, object?>
                     {
-                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
                     });
 
                 context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
@@ -201,11 +201,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOperationVariableCoercion()
             .UseOperationExecution();
     }
-
-    [Obsolete("Use UseAutomaticPersistedQueryPipeline")]
-    public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
-        this IRequestExecutorBuilder builder) =>
-        UseAutomaticPersistedQueryPipeline(builder);
 
     public static IRequestExecutorBuilder UseAutomaticPersistedQueryPipeline(
         this IRequestExecutorBuilder builder)

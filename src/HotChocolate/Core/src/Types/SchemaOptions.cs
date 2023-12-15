@@ -15,11 +15,16 @@ public class SchemaOptions : IReadOnlySchemaOptions
 {
     private BindingBehavior _defaultBindingBehavior = BindingBehavior.Implicit;
     private FieldBindingFlags _defaultFieldBindingFlags = FieldBindingFlags.Instance;
+    private string? _queryTypeName;
 
     /// <summary>
     /// Gets or sets the name of the query type.
     /// </summary>
-    public string? QueryTypeName { get; set; }
+    public string? QueryTypeName
+    {
+        get => _queryTypeName;
+        set => _queryTypeName = value;
+    }
 
     /// <summary>
     /// Gets or sets the name of the mutation type.
@@ -143,7 +148,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// </summary>
     public bool EnableOneOf { get; set; }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
+    /// </summary>
     public bool EnsureAllNodesCanBeResolved { get; set; }
 
     /// <summary>
@@ -204,6 +211,16 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool StripLeadingIFromInterface { get; set; } = false;
 
     /// <summary>
+    /// Specifies that the true nullability proto type shall be enabled.
+    /// </summary>
+    public bool EnableTrueNullability { get; set; } = false;
+
+    /// <summary>
+    /// Specifies that the @tag directive shall be registered with the type system.
+    /// </summary>
+    public bool EnableTag { get; set; } = true;
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -236,7 +253,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
             EnableStream = options.EnableStream,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
-            StripLeadingIFromInterface = options.StripLeadingIFromInterface
+            StripLeadingIFromInterface = options.StripLeadingIFromInterface,
+            EnableTrueNullability = options.EnableTrueNullability,
+            EnableTag = options.EnableTag,
         };
     }
 }

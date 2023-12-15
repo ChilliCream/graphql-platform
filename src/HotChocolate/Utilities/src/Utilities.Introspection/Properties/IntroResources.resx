@@ -120,4 +120,7 @@
   <data name="Type_NotSupported" xml:space="preserve">
     <value>The type definition is not yet supported.</value>
   </data>
+  <data name="IntrospectionOptions_MinTypeDepth" xml:space="preserve">
+    <value>The minimum allowed depth is 3.</value>
+  </data>
 </root>

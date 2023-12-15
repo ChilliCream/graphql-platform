@@ -211,5 +211,5 @@ public class SchemaDirectiveTests
         }
     }
 
-    public sealed class Resolve { }
+    public sealed class Resolve;
 }

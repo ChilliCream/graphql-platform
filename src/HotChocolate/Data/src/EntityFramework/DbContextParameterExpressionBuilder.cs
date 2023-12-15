@@ -25,7 +25,7 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
         {
             DbContextKind.Pooled => ServiceKind.Pooled,
             DbContextKind.Resolver => ServiceKind.Resolver,
-            _ => ServiceKind.Synchronized
+            _ => ServiceKind.Synchronized,
         };
     }
 

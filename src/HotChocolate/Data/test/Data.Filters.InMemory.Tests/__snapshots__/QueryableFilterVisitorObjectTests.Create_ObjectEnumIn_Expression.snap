@@ -38,7 +38,7 @@ nullAndFoo
 {
   "errors": [
     {
-      "message": "The specified value type of field \u0060in\u0060 does not match the field type.",
+      "message": "The specified value type of field `in` does not match the field type.",
       "locations": [
         {
           "line": 1,
@@ -52,7 +52,7 @@ nullAndFoo
         "fieldName": "in",
         "fieldType": "[BarEnum!]",
         "locationType": "[BarEnum!]",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

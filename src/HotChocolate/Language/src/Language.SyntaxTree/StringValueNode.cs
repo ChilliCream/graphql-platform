@@ -136,6 +136,8 @@ public sealed class StringValueNode : IValueNode<string>, IHasSpan
         return _memory;
     }
 
+    internal bool IsMemory => _memory.IsEmpty;
+
     /// <summary>
     /// Gets a readonly span to access the string value memory.
     /// </summary>

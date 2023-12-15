@@ -22,19 +22,12 @@ public class ModuleGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        IReadOnlyCollection<ISyntaxInfo> syntaxInfos)
+        ReadOnlySpan<ISyntaxInfo> syntaxInfos)
     {
-        var module =
-            syntaxInfos.OfType<ModuleInfo>().FirstOrDefault() ??
-            new ModuleInfo(
-                compilation.AssemblyName is null
-                    ? "AssemblyTypes"
-                    : compilation.AssemblyName?.Split('.').Last() + "Types",
-                ModuleOptions.Default);
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
 
-        var batch = new List<ISyntaxInfo>(syntaxInfos.Where(static t => t is not ModuleInfo));
-
-        if (batch.Count == 0)
+        // if there is only the module info we do not need to generate a module.
+        if (!defaultModule && syntaxInfos.Length == 1)
         {
             return;
         }
@@ -74,7 +67,7 @@ public class ModuleGenerator : ISyntaxGenerator
 
         var operations = OperationType.No;
 
-        foreach (var syntaxInfo in batch.Distinct())
+        foreach (var syntaxInfo in syntaxInfos)
         {
             switch (syntaxInfo)
             {

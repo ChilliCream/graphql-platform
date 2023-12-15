@@ -38,18 +38,6 @@ public sealed class UsePagingAttribute : DescriptorAttribute
     /// <summary>
     /// The schema type representation of the node type.
     /// </summary>
-
-    public Type? SchemaType
-    {
-        [Obsolete("Use Type.")]
-        get => Type;
-        [Obsolete("Use the new constructor.")]
-        set => Type = value;
-    }
-
-    /// <summary>
-    /// The schema type representation of the node type.
-    /// </summary>
     public Type? Type { get; private set; }
 
     /// <summary>
@@ -144,7 +132,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                         AllowBackwardPagination = _allowBackwardPagination,
                         RequirePagingBoundaries = _requirePagingBoundaries,
                         InferConnectionNameFromField = _inferConnectionNameFromField,
-                        ProviderName = ProviderName
+                        ProviderName = ProviderName,
                     });
             }
             else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -162,7 +150,7 @@ public sealed class UsePagingAttribute : DescriptorAttribute
                         AllowBackwardPagination = _allowBackwardPagination,
                         RequirePagingBoundaries = _requirePagingBoundaries,
                         InferConnectionNameFromField = _inferConnectionNameFromField,
-                        ProviderName = ProviderName
+                        ProviderName = ProviderName,
                     });
             }
         }

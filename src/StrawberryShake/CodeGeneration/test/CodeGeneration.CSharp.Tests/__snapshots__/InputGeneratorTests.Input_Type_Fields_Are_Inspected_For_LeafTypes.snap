@@ -16,8 +16,7 @@
 
 namespace Foo.Bar
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetResult : global::System.IEquatable<ChangeHomePlanetResult>, IChangeHomePlanetResult
     {
         public ChangeHomePlanetResult(global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet changeHomePlanet)
@@ -78,8 +77,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload>, IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload
     {
         public ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload(global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human human)
@@ -140,11 +138,10 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// A human character in the Star Wars universe.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_Human_Human : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_Human_Human>, IChangeHomePlanet_ChangeHomePlanet_Human_Human
     {
         public ChangeHomePlanet_ChangeHomePlanet_Human_Human(global::System.String? homePlanet)
@@ -212,31 +209,27 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IChangeHomePlanetResult
     {
         public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet ChangeHomePlanet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IChangeHomePlanet_ChangeHomePlanet
     {
         public global::Foo.Bar.IChangeHomePlanet_ChangeHomePlanet_Human Human { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload : IChangeHomePlanet_ChangeHomePlanet
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A human character in the Star Wars universe.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IChangeHomePlanet_ChangeHomePlanet_Human
     {
         /// <summary>
@@ -245,17 +238,15 @@ namespace Foo.Bar
         public global::System.String? HomePlanet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A human character in the Star Wars universe.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IChangeHomePlanet_ChangeHomePlanet_Human_Human : IChangeHomePlanet_ChangeHomePlanet_Human
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default !;
@@ -311,7 +302,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetInput : global::Foo.Bar.State.IChangeHomePlanetInputInfo, global::System.IEquatable<ChangeHomePlanetInput>
     {
@@ -352,7 +342,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id) && HomePlanet.Equals(other.HomePlanet);
+            return (global::System.Object.Equals(Id, other.Id)) && HomePlanet.Equals(other.HomePlanet);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -394,7 +384,6 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IChangeHomePlanetInputInfo.IsHomePlanetSet => _set_homePlanet;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
@@ -412,7 +401,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetMutationDocument : global::StrawberryShake.IDocument
     {
         private ChangeHomePlanetMutationDocument()
@@ -433,7 +422,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
@@ -451,7 +439,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetMutation : global::Foo.Bar.IChangeHomePlanetMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> _operationExecutor;
@@ -503,7 +491,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the ChangeHomePlanet GraphQL operation
     /// <code>
@@ -521,18 +508,17 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IChangeHomePlanetMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(global::Foo.Bar.ChangeHomePlanetInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> Watch(global::Foo.Bar.ChangeHomePlanetInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IChangeHomePlanetMutation _changeHomePlanet;
@@ -545,11 +531,10 @@ namespace Foo.Bar
         public global::Foo.Bar.IChangeHomePlanetMutation ChangeHomePlanet => _changeHomePlanet;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IChangeHomePlanetMutation ChangeHomePlanet { get; }
@@ -558,7 +543,6 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     ///<summary>A human character in the Star Wars universe.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
@@ -572,8 +556,7 @@ namespace Foo.Bar.State
         public global::System.String? HomePlanet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ChangeHomePlanetResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -631,8 +614,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -654,7 +636,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IChangeHomePlanetInputInfo
     {
@@ -663,8 +644,7 @@ namespace Foo.Bar.State
         global::System.Boolean IsHomePlanetSet { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IChangeHomePlanetResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -702,6 +682,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("ChangeHomePlanetPayload", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -714,6 +699,11 @@ namespace Foo.Bar.State
         private global::StrawberryShake.EntityId Update_NonNullableIChangeHomePlanet_ChangeHomePlanet_HumanEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -744,11 +734,15 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetPayloadData
     {
@@ -763,8 +757,7 @@ namespace Foo.Bar.State
         public global::StrawberryShake.EntityId? Human { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -784,8 +777,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -825,8 +817,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -837,8 +828,7 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)

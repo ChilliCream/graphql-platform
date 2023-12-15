@@ -12,7 +12,21 @@ internal sealed partial class ResolverDefinition
         {
             var result = base.RewriteField(node, context);
 
-            if (result is not null && context.PlaceholderFound)
+            if (result is null)
+            {
+                return null;
+            }
+
+            if (context.UnspecifiedArguments?.Count > 0)
+            {
+                var explicitlyDefinedArguments = result.Arguments
+                    .ExceptBy(context.UnspecifiedArguments, a => a.Name.Value)
+                    .ToList();
+
+                result = result.WithArguments(explicitlyDefinedArguments);
+            }
+
+            if (context.PlaceholderFound)
             {
                 context.PlaceholderFound = false;
 

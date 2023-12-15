@@ -7,13 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BananaCakePop.Services" Version="1.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="11.1.0" />
     <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="11.1.0" />
     <PackageReference Include="HotChocolate.Fusion" Version="11.1.0" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="11.1.0">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
   </ItemGroup>
 
 </Project>

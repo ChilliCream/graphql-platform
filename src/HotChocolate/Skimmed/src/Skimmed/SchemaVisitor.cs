@@ -1,5 +1,3 @@
-using HotChocolate.Language;
-
 namespace HotChocolate.Skimmed;
 
 public abstract class SchemaVisitor<TContext>
@@ -39,6 +37,11 @@ public abstract class SchemaVisitor<TContext>
                 break;
 
             case TypeKind.Scalar:
+                if (type is MissingType)
+                {
+                    break;
+                }
+                
                 VisitScalarType((ScalarType)type, context);
                 break;
 

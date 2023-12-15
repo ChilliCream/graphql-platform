@@ -3,6 +3,7 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.Fusion.Shared.Reviews2;
 
 [Node]
+[GraphQLDescription("The user who wrote the review.")]
 public sealed class User : IReviewOrAuthor
 {
     public User(int id, string name)

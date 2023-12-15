@@ -11,36 +11,30 @@ namespace HotChocolate.Subscriptions;
 /// </typeparam>
 internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
 {
-    private readonly TopicShard<TMessage> _shard;
-    private readonly Channel<TMessage> _outgoing;
+    private readonly DefaultTopic<TMessage> _topic;
+    private readonly Channel<TMessage> _channel;
 
-    internal DefaultSourceStream(TopicShard<TMessage> shard, Channel<TMessage> outgoing)
+    internal DefaultSourceStream(DefaultTopic<TMessage> topic, Channel<TMessage> channel)
     {
-        _shard = shard ?? throw new ArgumentNullException(nameof(shard));
-        _outgoing = outgoing ?? throw new ArgumentNullException(nameof(outgoing));
+        _topic = topic;
+        _channel = channel;
     }
-
-    internal void Write(TMessage message)
-        => _outgoing.Writer.TryWrite(message);
-
-    internal void Complete()
-        => _outgoing.Writer.TryComplete();
 
     /// <inheritdoc />
     public IAsyncEnumerable<TMessage> ReadEventsAsync()
-        => new MessageEnumerable(_outgoing.Reader);
+        => new MessageEnumerable(_channel.Reader);
 
     /// <inheritdoc />
     IAsyncEnumerable<object?> ISourceStream.ReadEventsAsync()
-        => new MessageEnumerableAsObject(_outgoing.Reader);
+        => new MessageEnumerableAsObject(_channel.Reader);
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
     {
         // if the source stream is disposed, we are completing the channel which will trigger
         // an unsubscribe from the topic.
-        _outgoing.Writer.TryComplete();
-        _shard.Unsubscribe(this);
+        _channel.Writer.TryComplete();
+        _topic.Unsubscribe(_channel);
         return default;
     }
 
@@ -55,28 +49,7 @@ internal sealed class DefaultSourceStream<TMessage> : ISourceStream<TMessage>
 
         public IAsyncEnumerator<TMessage> GetAsyncEnumerator(
             CancellationToken cancellationToken)
-            => new MessageEnumerator(
-                _reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken));
-    }
-
-    private sealed class MessageEnumerator : IAsyncEnumerator<TMessage>
-    {
-        private readonly IAsyncEnumerator<TMessage> _enumerator;
-
-        public MessageEnumerator(IAsyncEnumerator<TMessage> enumerator)
-        {
-            _enumerator = enumerator;
-        }
-
-        public TMessage Current => _enumerator.Current;
-
-        public async ValueTask<bool> MoveNextAsync()
-            => await _enumerator.MoveNextAsync().ConfigureAwait(false);
-
-        public ValueTask DisposeAsync()
-        {
-            return default;
-        }
+            => _reader.ReadAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
     }
 
     private sealed class MessageEnumerableAsObject : IAsyncEnumerable<object?>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// Extension methods for configuring an <see cref="IResolverCompilerBuilder"/>
+/// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
 /// </summary>
 public static class EntityFrameworkRequestExecutorBuilderExtensions
 {

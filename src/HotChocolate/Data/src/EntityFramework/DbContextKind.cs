@@ -30,5 +30,5 @@ public enum DbContextKind
     /// <see cref="IServiceScope"/> when executing. The <see cref="DbContext"/> is retrieved from
     /// the service scope and the scope is disposed at the end of the resolver execution.
     /// </summary>
-    Resolver
+    Resolver,
 }

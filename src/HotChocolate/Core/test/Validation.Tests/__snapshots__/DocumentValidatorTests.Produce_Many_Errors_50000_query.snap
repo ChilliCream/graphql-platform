@@ -13,7 +13,7 @@
       "type": "Query",
       "field": "e",
       "responseName": "a",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -64,7 +64,7 @@
       "type": "Query",
       "field": "f",
       "responseName": "a",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -115,7 +115,7 @@
       "type": "Query",
       "field": "g",
       "responseName": "a",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -166,7 +166,7 @@
       "type": "Query",
       "field": "h",
       "responseName": "a",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -217,7 +217,7 @@
       "type": "Query",
       "field": "i",
       "responseName": "a",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {

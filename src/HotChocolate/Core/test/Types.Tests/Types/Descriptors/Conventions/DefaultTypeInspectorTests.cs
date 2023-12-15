@@ -763,7 +763,7 @@ public class DefaultTypeInspectorTests
     public enum BarEnum
     {
         Bar,
-        Baz
+        Baz,
     }
 
     public class DoNotInfer
@@ -807,9 +807,7 @@ public class DefaultTypeInspectorTests
         public async void GetAsyncVoid() { }
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
-#if !NETCOREAPP2_1
         public string RefStruct(ReadOnlySpan<byte> bytes) => "";
-#endif
 
         public Action Action { get; }
 

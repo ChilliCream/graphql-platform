@@ -203,8 +203,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: {expectedStatusCode}
                 -------------------------->
                 " +
-                @"{""errors"":[{""message"":""Expected a \u0060Name\u0060-token, but found a " +
-                @"\u0060Dollar\u0060-token."",""locations"":[{""line"":1,""column"":8}]," +
+                @"{""errors"":[{""message"":""Expected a `Name`-token, but found a " +
+                @"`Dollar`-token."",""locations"":[{""line"":1,""column"":8}]," +
                 @"""extensions"":{""code"":""HC0011""}}]}");
     }
 
@@ -246,21 +246,21 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: {expectedStatusCode}
                 -------------------------->
                 " +
-                @"{""errors"":[{""message"":""\u0060__type\u0060 is an object, interface or " +
+                @"{""errors"":[{""message"":""`__type` is an object, interface or " +
                 @"union type field. Leaf selections on objects, interfaces, and unions without " +
                 @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
                 @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
                 @"""type"":""__Type"",""responseName"":""__type""," +
-                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Field-Selections-" +
-                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field \u0060name" +
-                @"\u0060 does not exist on the type \u0060Query\u0060."",""locations"":[{" +
+                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Field-Selections-" +
+                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field `name" +
+                @"` does not exist on the type `Query`."",""locations"":[{" +
                 @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
                 @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
-                @"""http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
-                @"Interfaces-and-Unions-Types""}},{""message"":""The argument \u0060name\u0060 " +
+                @"""https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
+                @"Interfaces-and-Unions-Types""}},{""message"":""The argument `name` " +
                 @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
                 @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
-                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Required-Arguments""" +
+                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Required-Arguments""" +
                 "}}]}");
     }
 
@@ -293,7 +293,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: BadRequest
                 -------------------------->
                 {""errors"":[{""message"":""Unable to parse the accept header value " +
-                @"\u0060unsupported\u0060."",""extensions"":{""headerValue"":""unsupported""," +
+                @"`unsupported`."",""extensions"":{""headerValue"":""unsupported""," +
                 @"""code"":""HC0064""}}]}");
     }
 
@@ -325,7 +325,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {""errors"":[{""message"":""None of the \u0060Accept\u0060 header values is supported.""," +
+                {""errors"":[{""message"":""None of the `Accept` header values is supported.""," +
                 @"""extensions"":{""code"":""HC0063""}}]}");
     }
 

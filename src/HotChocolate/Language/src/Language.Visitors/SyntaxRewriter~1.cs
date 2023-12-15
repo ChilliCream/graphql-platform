@@ -75,7 +75,8 @@ public class SyntaxRewriter<TContext>
             UnionTypeExtensionNode n => RewriteUnionTypeExtension(n, context),
             VariableDefinitionNode n => RewriteVariableDefinition(n, context),
             VariableNode n => RewriteVariable(n, context),
-            _ => throw new ArgumentOutOfRangeException(nameof(node))
+            IValueNode n => RewriteCustomValue(n, context),
+            _ => throw new ArgumentOutOfRangeException(nameof(node)),
         };
 
     protected virtual void OnLeave(
@@ -853,6 +854,11 @@ public class SyntaxRewriter<TContext>
 
     protected virtual StringValueNode? RewriteStringValue(
         StringValueNode node,
+        TContext context)
+        => node;
+
+    protected virtual IValueNode? RewriteCustomValue(
+        IValueNode node,
         TContext context)
         => node;
 

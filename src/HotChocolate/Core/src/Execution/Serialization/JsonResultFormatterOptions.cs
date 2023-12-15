@@ -31,16 +31,20 @@ public struct JsonResultFormatterOptions
     public JavaScriptEncoder? Encoder { get; set; }
 
     internal JsonWriterOptions CreateWriterOptions()
-        => new() { Indented = Indented, Encoder = Encoder };
+        => new()
+        {
+            Indented = Indented,
+            Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        };
 
     internal JsonSerializerOptions CreateSerializerOptions()
         => new(Web)
         {
             WriteIndented = Indented,
-            Encoder = Encoder,
+            Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             DefaultIgnoreCondition =
                 NullIgnoreCondition is Fields or All
                     ? WhenWritingNull
-                    : default
+                    : default,
         };
 }

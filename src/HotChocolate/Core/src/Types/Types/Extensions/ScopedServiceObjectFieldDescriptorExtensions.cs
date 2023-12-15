@@ -24,7 +24,6 @@ public static class ScopedServiceObjectFieldDescriptorExtensions
             {
                 context.SetLocalState(scopedServiceName, scopedService);
                 await next(context).ConfigureAwait(false);
-                ;
             }
             finally
             {

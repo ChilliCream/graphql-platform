@@ -16,8 +16,7 @@
 
 namespace Foo.Bar
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINResult : global::System.IEquatable<DecodeVINResult>, IDecodeVINResult
     {
         public DecodeVINResult(global::Foo.Bar.IDecodeVIN_DecodeVIN decodeVIN)
@@ -78,8 +77,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVIN_DecodeVIN_DecodeVIN : global::System.IEquatable<DecodeVIN_DecodeVIN_DecodeVIN>, IDecodeVIN_DecodeVIN_DecodeVIN
     {
         public DecodeVIN_DecodeVIN_DecodeVIN(global::System.Boolean isValid, global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleMake? vehicleMake, global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleModel? vehicleModel)
@@ -112,7 +110,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (IsValid == other.IsValid) && ((VehicleMake is null && other.VehicleMake is null) || VehicleMake != null && VehicleMake.Equals(other.VehicleMake)) && ((VehicleModel is null && other.VehicleModel is null) || VehicleModel != null && VehicleModel.Equals(other.VehicleModel));
+            return (global::System.Object.Equals(IsValid, other.IsValid)) && ((VehicleMake is null && other.VehicleMake is null) || VehicleMake != null && VehicleMake.Equals(other.VehicleMake)) && ((VehicleModel is null && other.VehicleModel is null) || VehicleModel != null && VehicleModel.Equals(other.VehicleModel));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -156,8 +154,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVIN_DecodeVIN_VehicleMake_VehicleMake : global::System.IEquatable<DecodeVIN_DecodeVIN_VehicleMake_VehicleMake>, IDecodeVIN_DecodeVIN_VehicleMake_VehicleMake
     {
         public DecodeVIN_DecodeVIN_VehicleMake_VehicleMake(global::System.Guid id, global::System.String? make, global::System.String? makeCode, global::System.Boolean isDisabled)
@@ -193,7 +190,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && ((Make is null && other.Make is null) || Make != null && Make.Equals(other.Make)) && ((MakeCode is null && other.MakeCode is null) || MakeCode != null && MakeCode.Equals(other.MakeCode)) && IsDisabled == other.IsDisabled;
+            return (Id.Equals(other.Id)) && ((Make is null && other.Make is null) || Make != null && Make.Equals(other.Make)) && ((MakeCode is null && other.MakeCode is null) || MakeCode != null && MakeCode.Equals(other.MakeCode)) && global::System.Object.Equals(IsDisabled, other.IsDisabled);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -238,8 +235,7 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVIN_DecodeVIN_VehicleModel_VehicleModel : global::System.IEquatable<DecodeVIN_DecodeVIN_VehicleModel_VehicleModel>, IDecodeVIN_DecodeVIN_VehicleModel_VehicleModel
     {
         public DecodeVIN_DecodeVIN_VehicleModel_VehicleModel(global::System.Guid id, global::System.String? model, global::System.String? modelCode, global::System.Guid vehicleMakeId, global::System.Boolean isDisabled, global::System.String? modelType)
@@ -281,7 +277,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id)) && ((Model is null && other.Model is null) || Model != null && Model.Equals(other.Model)) && ((ModelCode is null && other.ModelCode is null) || ModelCode != null && ModelCode.Equals(other.ModelCode)) && VehicleMakeId.Equals(other.VehicleMakeId) && IsDisabled == other.IsDisabled && ((ModelType is null && other.ModelType is null) || ModelType != null && ModelType.Equals(other.ModelType));
+            return (Id.Equals(other.Id)) && ((Model is null && other.Model is null) || Model != null && Model.Equals(other.Model)) && ((ModelCode is null && other.ModelCode is null) || ModelCode != null && ModelCode.Equals(other.ModelCode)) && VehicleMakeId.Equals(other.VehicleMakeId) && global::System.Object.Equals(IsDisabled, other.IsDisabled) && ((ModelType is null && other.ModelType is null) || ModelType != null && ModelType.Equals(other.ModelType));
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -332,15 +328,13 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVINResult
     {
         public global::Foo.Bar.IDecodeVIN_DecodeVIN DecodeVIN { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVINModel
     {
         public global::System.Boolean IsValid { get; }
@@ -350,20 +344,17 @@ namespace Foo.Bar
         public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleModel? VehicleModel { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVIN_DecodeVIN : IDecodeVINModel
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVIN_DecodeVIN_DecodeVIN : IDecodeVIN_DecodeVIN
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IVehicleMakeModel
     {
         public global::System.Guid Id { get; }
@@ -375,20 +366,17 @@ namespace Foo.Bar
         public global::System.Boolean IsDisabled { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVIN_DecodeVIN_VehicleMake : IVehicleMakeModel
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVIN_DecodeVIN_VehicleMake_VehicleMake : IDecodeVIN_DecodeVIN_VehicleMake
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IVehicleModelModel
     {
         public global::System.Guid Id { get; }
@@ -404,19 +392,16 @@ namespace Foo.Bar
         public global::System.String? ModelType { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVIN_DecodeVIN_VehicleModel : IVehicleModelModel
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVIN_DecodeVIN_VehicleModel_VehicleModel : IDecodeVIN_DecodeVIN_VehicleModel
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the DecodeVIN GraphQL operation
     /// <code>
@@ -462,7 +447,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINQueryDocument : global::StrawberryShake.IDocument
     {
         private DecodeVINQueryDocument()
@@ -483,7 +468,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the DecodeVIN GraphQL operation
     /// <code>
@@ -529,7 +513,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINQuery : global::Foo.Bar.IDecodeVINQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IDecodeVINResult> _operationExecutor;
@@ -567,7 +551,6 @@ namespace Foo.Bar
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the DecodeVIN GraphQL operation
     /// <code>
@@ -613,18 +596,17 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IDecodeVINQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IDecodeVINResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IDecodeVINResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IDecodeVINQuery _decodeVIN;
@@ -637,11 +619,10 @@ namespace Foo.Bar
         public global::Foo.Bar.IDecodeVINQuery DecodeVIN => _decodeVIN;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IDecodeVINQuery DecodeVIN { get; }
@@ -650,7 +631,6 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class VehicleMakeEntity
     {
@@ -671,7 +651,6 @@ namespace Foo.Bar.State
         public global::System.Boolean IsDisabled { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class VehicleModelEntity
     {
@@ -698,8 +677,7 @@ namespace Foo.Bar.State
         public global::System.String? ModelType { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.DecodeVINResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -779,8 +757,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -802,8 +779,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IDecodeVINResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -843,6 +819,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("DecodeVIN", global::System.StringComparison.Ordinal) ?? false)
             {
@@ -859,12 +840,22 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _booleanParser.Parse(obj.Value.GetBoolean()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IDecodeVIN_DecodeVIN_VehicleMakeEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -895,6 +886,11 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             return _uUIDParser.Parse(obj.Value.GetString()!);
         }
 
@@ -905,12 +901,22 @@ namespace Foo.Bar.State
                 return null;
             }
 
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return _stringParser.Parse(obj.Value.GetString()!);
         }
 
         private global::StrawberryShake.EntityId? Update_IDecodeVIN_DecodeVIN_VehicleModelEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -935,7 +941,6 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINData
     {
@@ -956,8 +961,7 @@ namespace Foo.Bar.State
         public global::StrawberryShake.EntityId? VehicleModel { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleMakeEntity, DecodeVIN_DecodeVIN_VehicleMake_VehicleMake>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -977,8 +981,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleModelEntity, DecodeVIN_DecodeVIN_VehicleModel_VehicleModel>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -998,8 +1001,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -1058,8 +1060,7 @@ namespace Foo.Bar.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -1070,8 +1071,7 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)

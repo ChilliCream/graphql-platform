@@ -39,6 +39,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName);
 
         var constructorBuilder = classBuilder
@@ -222,6 +223,20 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
             methodBuilder
                 .AddCode(jsonElementNullCheck)
+                .AddEmptyLine();
+
+            // When deserializing arrays of nullable values (e.g. [User] => [ { ... }, null, { ... }]) the second
+            // element will be not null, but instead a JSON element of kind JsonValueKind.Null.
+            var jsonElementNullValueKindCheck = IfBuilder
+                .New()
+                .SetCondition($"{_obj}.Value.ValueKind == System.Text.Json.JsonValueKind.Null")
+                .AddCode(
+            typeReference.IsNonNull()
+                ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                : CodeLineBuilder.From("return null;"));
+
+            methodBuilder
+                .AddCode(jsonElementNullValueKindCheck)
                 .AddEmptyLine();
 
             AddDeserializeMethodBody(classBuilder, methodBuilder, typeReference, processed);

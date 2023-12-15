@@ -40,7 +40,7 @@ public sealed class CostAttribute : ObjectFieldDescriptorAttribute
 
     public CostAttribute(
         int complexity,
-        params MultiplierPathString[] multipliers)
+        params string[] multipliers)
     {
         if (complexity <= 0)
         {
@@ -56,13 +56,13 @@ public sealed class CostAttribute : ObjectFieldDescriptorAttribute
         }
 
         _complexity = complexity;
-        _multipliers = multipliers.Where(t => t.HasValue).ToArray();
+        _multipliers = multipliers.Select(t => new MultiplierPathString(t)).Where(t => t.HasValue).ToArray();
     }
 
     public CostAttribute(
         int complexity,
         int defaultMultiplier,
-        params MultiplierPathString[] multipliers)
+        params string[] multipliers)
     {
         if (complexity <= 0)
         {
@@ -87,7 +87,7 @@ public sealed class CostAttribute : ObjectFieldDescriptorAttribute
 
         _complexity = complexity;
         _defaultMultiplier = defaultMultiplier;
-        _multipliers = multipliers.Where(t => t.HasValue).ToArray();
+        _multipliers = multipliers.Select(t => new MultiplierPathString(t)).Where(t => t.HasValue).ToArray();
     }
 
     protected override void OnConfigure(

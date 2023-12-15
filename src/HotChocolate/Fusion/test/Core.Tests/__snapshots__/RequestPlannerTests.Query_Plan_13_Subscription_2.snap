@@ -21,6 +21,11 @@ QueryPlan
     "subgraph": "Reviews",
     "document": "subscription OnNewReview_1 { onNewReview { body author { name __fusion_exports__1: id } } }",
     "selectionSetId": 0,
+    "provides": [
+      {
+        "variable": "__fusion_exports__1"
+      }
+    ],
     "nodes": [
       {
         "type": "Sequence",
@@ -54,6 +59,9 @@ QueryPlan
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id"
   }
 }
 ---------------

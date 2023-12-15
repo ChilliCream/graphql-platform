@@ -25,7 +25,12 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query GetUser_1 { users { name __fusion_exports__1: id } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -38,12 +43,6 @@ QueryPlan
         "subgraph": "Reviews",
         "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
         "selectionSetId": 1,
-        "argumentTypes": [
-          {
-            "argument": "__fusion_exports__1",
-            "type": "[ID!]!"
-          }
-        ],
         "path": [
           "nodes"
         ],
@@ -60,6 +59,9 @@ QueryPlan
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id"
   }
 }
 ---------------

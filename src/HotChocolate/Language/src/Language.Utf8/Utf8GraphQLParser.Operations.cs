@@ -230,6 +230,15 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private FieldNode ParseField()
     {
+        if (++_parsedFields > _maxAllowedFields)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedFieldsReached,
+                    _maxAllowedFields));
+        }
+
         var start = Start();
 
         var name = ParseName();

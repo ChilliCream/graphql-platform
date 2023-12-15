@@ -61,8 +61,8 @@ public class CertificationTests
                 {
                     new ObjectValueNode(
                         new ObjectFieldNode("__typename", "Product"),
-                        new ObjectFieldNode("id", "apollo-federation"))
-                }
+                        new ObjectFieldNode("id", "apollo-federation")),
+                },
             });
 
         // assert
@@ -91,8 +91,8 @@ public class CertificationTests
                     new ObjectValueNode(
                         new ObjectFieldNode("__typename", "Product"),
                         new ObjectFieldNode("sku", "federation"),
-                        new ObjectFieldNode("package", "@apollo/federation"))
-                }
+                        new ObjectFieldNode("package", "@apollo/federation")),
+                },
             });
 
         // assert
@@ -123,8 +123,8 @@ public class CertificationTests
                         new ObjectFieldNode("sku", "federation"),
                         new ObjectFieldNode("variation",
                             new ObjectValueNode(
-                                new ObjectFieldNode("id", "OSS"))))
-                }
+                                new ObjectFieldNode("id", "OSS")))),
+                },
             });
 
         // assert
@@ -146,7 +146,7 @@ public class CertificationTests
             }",
             new Dictionary<string, object?>
             {
-                ["id"] = "apollo-federation"
+                ["id"] = "apollo-federation",
             });
 
         // assert
@@ -168,7 +168,7 @@ public class CertificationTests
             }",
             new Dictionary<string, object?>
             {
-                ["id"] = "apollo-federation"
+                ["id"] = "apollo-federation",
             });
 
         // assert

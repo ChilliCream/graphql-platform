@@ -2,12 +2,12 @@
 title: Connect you API
 ---
 
-BananaCake Pop can be smoothly integrated into your HotChocolate server, enabling utilization of the Persisted Query Storage found within the client registry. Your server will establish a connection with BananaCake Pop, retrieving persisted queries based on their unique hashes. Additional information on the client registry can be found [here](/docs/bananacakepop/v2/schema-client-registry).
+BananaCake Pop can be smoothly integrated into your HotChocolate server, enabling utilization of the Persisted Query Storage found within the client registry, to report operations and collect open telemetry. Your server will establish a connection with BananaCake Pop, retrieving persisted queries based on their unique hashes. Additional information on the client registry can be found [here](/docs/bananacakepop/v2/apis/client-registry).
 
 ## Getting Started
 To get started, follow these steps:
 
-1. Set up a client registry as instructed [here](/docs/bananacakepop/v2/schema-client-registry).
+1. Set up a client registry as instructed [here](/docs/bananacakepop/v2/apis/client-registry).
 
 2. Install the BananaCakePop package from NuGet using the following command:
 ```bash

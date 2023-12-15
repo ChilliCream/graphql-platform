@@ -16,5 +16,5 @@ public enum FieldMiddlewareApplication : byte
     /// Custom field middleware is applied to all fields
     /// (user-defined fields and introspection fields).
     /// </summary>
-    AllFields = 1
+    AllFields = 1,
 }

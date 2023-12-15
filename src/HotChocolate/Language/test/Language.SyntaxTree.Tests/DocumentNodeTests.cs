@@ -151,8 +151,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>())
-                })
+                        Array.Empty<DirectiveNode>()),
+                }),
         };
 
         var definitions2 = new List<IDefinitionNode>
@@ -168,8 +168,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>())
-                })
+                        Array.Empty<DirectiveNode>()),
+                }),
         };
 
         var a = new DocumentNode(
@@ -212,8 +212,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>())
-                })
+                        Array.Empty<DirectiveNode>()),
+                }),
         };
 
         var definitions2 = new List<IDefinitionNode>
@@ -229,8 +229,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>())
-                })
+                        Array.Empty<DirectiveNode>()),
+                }),
         };
 
         var a = new DocumentNode(
@@ -274,8 +274,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>())
-                })
+                        Array.Empty<DirectiveNode>()),
+                }),
         };
 
         var definitions2 = new List<IDefinitionNode>
@@ -291,8 +291,8 @@ public class DocumentNodeTests
                         null,
                         new("DEF"),
                         null,
-                        Array.Empty<DirectiveNode>())
-                })
+                        Array.Empty<DirectiveNode>()),
+                }),
         };
 
         var a = new DocumentNode(

@@ -43,7 +43,7 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
             string s => new StringValueNode(s),
             DateTimeOffset d => ParseValue(d),
             DateTime dt => ParseValue(dt),
-            _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this),
         };
     }
 

@@ -51,7 +51,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Guid"] = UUIDSerializer,
         ["URL"] = UrlSerializer,
         ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer
+        ["URI"] = UrlSerializer,
+        ["JSON"] = JsonSerializer,
+        ["Json"] = JsonSerializer
     };
 
     protected override void Generate(
@@ -69,7 +71,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         var factory = ClassBuilder
             .New(fileName)
             .SetStatic()
-            .SetAccessModifier(AccessModifier.Public);
+            .SetAccessModifier(settings.AccessModifier);
 
         var addClientMethod = factory
             .AddMethod($"Add{descriptor.Name}")

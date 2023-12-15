@@ -40,10 +40,7 @@ internal sealed class UnionTypeMergeHandler : ITypeMergeHandler
     {
         context.TryApplySource(source, sourceSchema, target);
 
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Description;
-        }
+        target.MergeDescriptionWith(source);
 
         foreach (var sourceType in source.Types)
         {
