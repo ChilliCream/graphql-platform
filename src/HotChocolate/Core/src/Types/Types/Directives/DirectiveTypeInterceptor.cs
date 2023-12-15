@@ -17,7 +17,10 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        InspectType(completionContext.Type);
+        if (!((RegisteredType)completionContext).HasErrors)
+        {
+            InspectType(completionContext.Type);
+        }
     }
 
     internal override void OnBeforeRegisterSchemaTypes(
