@@ -230,6 +230,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 argument.Parameter?.ParameterType ??
                 typeof(object);
 
+            var argumentType = _completionContext.GetType<IInputType>(argument.Type!);
+
             var formatter =
                 argument.Formatters.Count switch
                 {
@@ -238,13 +240,24 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     _ => new AggregateInputValueFormatter(argument.Formatters),
                 };
 
+            var defaultValue = argument.DefaultValue;
+
+            if(defaultValue is null && argument.RuntimeDefaultValue is not null)
+            {
+                defaultValue =
+                    _context.InputFormatter.FormatValue(
+                        argument.RuntimeDefaultValue,
+                        argumentType,
+                        Path.Root);
+            }
+            
             resolverArguments.Add(
                 new ResolverArgument(
                     argument.Name,
                     new FieldCoordinate(inputTypeName, argument.Name),
                     _completionContext.GetType<IInputType>(argument.Type!),
                     runtimeType,
-                    argument.DefaultValue,
+                    defaultValue,
                     formatter));
         }
 
