@@ -271,6 +271,23 @@ public abstract class TypeInterceptor
 
     public virtual void OnTypesCompleted() { }
     
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
+    /// <summary>
+    /// This hook is invoked after schema is fully created and gives access
+    /// to the created schema object.
+    /// </summary>
+    /// <param name="context">
+    /// The descriptor context.
+    /// </param>
+    /// <param name="schemaTypesDefinition">
+    /// The schema types definition.
+    /// </param>
+    internal virtual void OnBeforeRegisterSchemaTypes(
+        IDescriptorContext context, 
+        SchemaTypesDefinition schemaTypesDefinition)
+    {
+    }
+    
     [Obsolete("This hook is deprecated and will be removed in the next release.")]
     public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
     
