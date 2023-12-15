@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Field `first` must return a type which is equal to or a sub‐type of (covariant) the return type `String!` of the interface field.",
+  "message": "Field `first` must return a type which is equal to or a subtype of (covariant) the return type `String!` of the interface field.",
   "type": "Foo",
   "extensions": {
     "field": "first",

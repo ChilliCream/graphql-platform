@@ -1,5 +1,5 @@
 ﻿{
-  "message": "The field `second` must be implement by object type `Foo`.",
+  "message": "The field `second` must be implemented by object type `Foo`.",
   "type": "Foo",
   "extensions": {
     "implementedField": "second",

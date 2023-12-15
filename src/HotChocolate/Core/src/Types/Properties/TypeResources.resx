@@ -899,10 +899,10 @@ Type: `{0}`</value>
     <value>The {0} type must also declare all interfaces declared by implemented interfaces.</value>
   </data>
     <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
-    <value>Field `{0}` must return a type which is equal to or a sub‐type of (covariant) the return type `{1}` of the interface field.</value>
+    <value>Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field.</value>
   </data>
     <data name="ErrorHelper_FieldNotImplemented" xml:space="preserve">
-    <value>The field `{0}` must be implement by {1} type `{2}`.</value>
+    <value>The field `{0}` must be implemented by {1} type `{2}`.</value>
   </data>
     <data name="ErrorHelper_InvalidArgumentType" xml:space="preserve">
     <value>The named argument `{0}` on field `{1}` must accept the same type `{2}` (invariant) as that named argument on the interface `{3}`.</value>
