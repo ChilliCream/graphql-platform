@@ -31,8 +31,8 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
             Fields =
             {
                 new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments)
-            }
+                new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments),
+            },
         };
     }
 

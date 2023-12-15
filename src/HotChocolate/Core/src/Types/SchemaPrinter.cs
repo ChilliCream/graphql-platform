@@ -242,7 +242,7 @@ public static class SchemaPrinter
             InputObjectType type => PrintInputObjectType(type),
             UnionType type => PrintUnionType(type),
             EnumType type => PrintEnumType(type),
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 
     private static ObjectTypeDefinitionNode PrintObjectType(

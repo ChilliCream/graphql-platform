@@ -33,7 +33,7 @@ public class EventStreamTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl, onlyHttp: true),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, onlyHttp: true)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, onlyHttp: true),
             },
             default,
             cts.Token);

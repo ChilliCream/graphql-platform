@@ -1,8 +1,6 @@
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.ErrorContextDataKeys;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -64,5 +62,11 @@ public static class ObjectFieldDefinitionExtensions
         }
 
         errorFactories.AddRange(definitions);
+
+        foreach (var definition in definitions)
+        {
+            var typeRef = descriptorContext.TypeInspector.GetTypeRef(definition.SchemaType);
+            fieldDefinition.Dependencies.Add(new TypeDependency(typeRef));
+        }
     }
 }

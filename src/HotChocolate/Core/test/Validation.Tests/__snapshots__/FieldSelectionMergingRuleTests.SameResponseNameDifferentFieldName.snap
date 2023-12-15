@@ -22,7 +22,7 @@
       "typeB": "DogOrHuman",
       "responseNameA": "catOrDog",
       "responseNameB": "catOrDog",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
     "Exception": null,
     "SyntaxNode": {

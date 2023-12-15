@@ -679,7 +679,7 @@ public class ValuesOfCorrectTypeRuleTests
     }
 
     [Fact(Skip = "This really should be caught! " +
-        "=> Spec issue http://spec.graphql.org/draft/#sel-JALTHHDHFFCAACEQl_M")]
+        "=> Spec issue https://spec.graphql.org/draft/#sel-JALTHHDHFFCAACEQl_M")]
     public void BadNullToString()
     {
         ExpectErrors(@"

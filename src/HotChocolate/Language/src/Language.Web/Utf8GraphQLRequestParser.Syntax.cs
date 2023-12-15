@@ -17,7 +17,7 @@ public ref partial struct Utf8GraphQLRequestParser
             TokenKind.Integer => ParseScalarSyntax(),
             TokenKind.Float => ParseScalarSyntax(),
             TokenKind.Name => ParseScalarSyntax(),
-            _ => throw ThrowHelper.UnexpectedToken(_reader)
+            _ => throw ThrowHelper.UnexpectedToken(_reader),
         };
     }
 

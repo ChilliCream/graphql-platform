@@ -251,16 +251,16 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
                 @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
                 @"""type"":""__Type"",""responseName"":""__type""," +
-                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Field-Selections-" +
+                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Field-Selections-" +
                 @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field `name" +
                 @"` does not exist on the type `Query`."",""locations"":[{" +
                 @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
                 @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
-                @"""http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
+                @"""https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
                 @"Interfaces-and-Unions-Types""}},{""message"":""The argument `name` " +
                 @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
                 @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
-                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Required-Arguments""" +
+                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Required-Arguments""" +
                 "}}]}");
     }
 

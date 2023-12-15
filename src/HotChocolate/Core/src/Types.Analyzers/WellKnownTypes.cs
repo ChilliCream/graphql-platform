@@ -42,6 +42,6 @@ public static class WellKnownTypes
             InterfaceTypeExtension,
             UnionTypeExtension,
             InputObjectTypeExtension,
-            EnumTypeExtension
+            EnumTypeExtension,
         };
 }

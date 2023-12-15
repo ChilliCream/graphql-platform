@@ -14,7 +14,7 @@ internal static class ErrorBuilderExtensions
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "http://spec.graphql.org/draft/#" + section);
+                "https://spec.graphql.org/draft/#" + section);
 
             if (rfc.HasValue)
             {
@@ -27,7 +27,7 @@ internal static class ErrorBuilderExtensions
         {
             errorBuilder.SetExtension(
                 "specifiedBy",
-                "http://spec.graphql.org/October2021/#" + section);
+                "https://spec.graphql.org/October2021/#" + section);
         }
 
         return errorBuilder;

@@ -242,7 +242,7 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooFilterInput : FilterInputType<Foo>
@@ -269,7 +269,7 @@ public class QueryableFilterVisitorEnumTests : FilterVisitorTestBase
         None,
         First,
         Second,
-        Third
+        Third,
     }
 
     public class AttributeTest

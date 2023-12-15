@@ -50,7 +50,7 @@ internal sealed class SubgraphPackCommand : Command
         configFile ??= new FileInfo(Combine(workingDirectory.FullName, ConfigFile));
         extensionFiles ??= new List<FileInfo>
         {
-            new FileInfo(Combine(workingDirectory.FullName, ExtensionFile))
+            new FileInfo(Combine(workingDirectory.FullName, ExtensionFile)),
         };
 
         if (!schemaFile.Exists)

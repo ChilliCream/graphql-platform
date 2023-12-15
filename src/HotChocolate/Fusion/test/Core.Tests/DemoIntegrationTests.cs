@@ -28,7 +28,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // assert
@@ -49,7 +49,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // assert
@@ -69,7 +69,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -120,7 +120,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -165,7 +165,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -212,7 +212,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             default,
             cts.Token);
@@ -262,7 +262,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             default,
             cts.Token);
@@ -312,7 +312,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -377,7 +377,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                     new[]
                     {
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -427,7 +427,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                     new[]
                     {
                         demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
                     new FusionFeatureCollection(FusionFeatures.ReEncodeIds));
 
@@ -477,7 +477,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                     new[]
                     {
                         demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -527,7 +527,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -579,7 +579,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -632,7 +632,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -679,7 +679,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -735,7 +735,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -775,7 +775,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
-    
+
     [Fact]
     public async Task Fetch_User_With_Invalid_Node_Field()
     {
@@ -788,7 +788,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -836,7 +836,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -889,7 +889,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -940,7 +940,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -993,7 +993,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var fusionGraph =
             await new FusionGraphComposer(logFactory: _logFactory)
                 .ComposeAsync(
-                    new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl), },
+                    new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl) },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var config = new HotReloadConfiguration(
@@ -1069,7 +1069,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()
@@ -1113,7 +1113,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -1166,7 +1166,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -1219,7 +1219,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -1276,7 +1276,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -1331,7 +1331,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -1572,7 +1572,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Appointment.ToConfiguration()
+                demoProject.Appointment.ToConfiguration(),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 

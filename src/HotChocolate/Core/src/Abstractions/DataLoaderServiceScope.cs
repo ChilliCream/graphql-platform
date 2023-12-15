@@ -21,5 +21,5 @@ public enum DataLoaderServiceScope
     /// Defines that the DataLoader should resolve services
     /// from the passed in <see cref="IServiceProvider"/>.
     /// </summary>
-    OriginalScope = 2
+    OriginalScope = 2,
 }

@@ -1,7 +1,5 @@
 using System.Linq;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
 internal sealed class ErrorObjectType<T> : ObjectType<T>

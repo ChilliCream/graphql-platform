@@ -1,10 +1,10 @@
 ﻿{
-  "message": "Field `first` must return a type which is equal to or a sub‐type of (covariant) the return type `String` of the interface field.",
+  "message": "Field `first` must return a type which is equal to or a subtype of (covariant) the return type `String` of the interface field.",
   "type": "Foo",
   "extensions": {
     "field": "first",
     "implementedField": "first",
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
   }
 }
 

@@ -276,7 +276,7 @@ public class ReferenceResolverAttributeTests
             return Task.FromResult(
                 new InClassRefResolver()
                 {
-                    Id = nameof(InClassRefResolver)
+                    Id = nameof(InClassRefResolver),
                 });
         }
     }
@@ -346,7 +346,7 @@ public class ReferenceResolverAttributeTests
             return Task.FromResult(
                 new ExternalRefResolver()
                 {
-                    Id = nameof(ExternalRefResolverRenamedMethod)
+                    Id = nameof(ExternalRefResolverRenamedMethod),
                 });
         }
     }
@@ -359,7 +359,7 @@ public class ReferenceResolverAttributeTests
             return Task.FromResult(
                 new ExternalRefResolver()
                 {
-                    Id = nameof(ExternalRefResolver)
+                    Id = nameof(ExternalRefResolver),
                 });
         }
     }

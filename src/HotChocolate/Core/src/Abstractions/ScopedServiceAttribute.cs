@@ -7,4 +7,4 @@ namespace HotChocolate;
 /// </summary>
 [Obsolete("Use [Service(ServiceKind.Pooled)] or [Service(ServiceKind.Resolver)]")]
 [AttributeUsage(AttributeTargets.Parameter)]
-public sealed class ScopedServiceAttribute : Attribute { }
+public sealed class ScopedServiceAttribute : Attribute;

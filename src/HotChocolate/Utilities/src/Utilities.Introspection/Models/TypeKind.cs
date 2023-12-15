@@ -14,7 +14,7 @@ public enum TypeKind
     ENUM = 8,
     SCALAR = 16,
     LIST = 32,
-    NON_NULL = 64
+    NON_NULL = 64,
 }
 #pragma warning restore CA1707
 #pragma warning restore CS1720

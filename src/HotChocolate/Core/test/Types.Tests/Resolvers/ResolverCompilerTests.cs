@@ -1221,7 +1221,7 @@ public class ResolverCompilerTests
 
         var contextData = new Dictionary<string, object?>
         {
-            { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
+            { nameof(ClaimsPrincipal), new ClaimsPrincipal() },
         };
 
         // act
@@ -1527,9 +1527,9 @@ public class ResolverCompilerTests
         }
     }
 
-    public class Entity { }
+    public class Entity;
 
-    public class MyService { }
+    public class MyService;
 
     public class QueryWithScopedExpressionBuilder
     {

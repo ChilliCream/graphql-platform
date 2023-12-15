@@ -4,5 +4,5 @@ public enum ExtendedTypeKind
 {
     Runtime,
     Extended,
-    Schema
+    Schema,
 }

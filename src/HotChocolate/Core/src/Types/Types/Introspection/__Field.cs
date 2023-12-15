@@ -41,9 +41,9 @@ internal sealed class __Field : ObjectType<IOutputField>
                         new(Names.IncludeDeprecated, type: booleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false
-                        }
-                    }
+                            RuntimeDefaultValue = false,
+                        },
+                    },
                 },
                 new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
                 new(Names.IsDeprecated,
@@ -52,7 +52,7 @@ internal sealed class __Field : ObjectType<IOutputField>
                 new(Names.DeprecationReason,
                     type: stringType,
                     pureResolver: Resolvers.DeprecationReason),
-            }
+            },
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

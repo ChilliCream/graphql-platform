@@ -23,7 +23,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -46,7 +46,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -69,7 +69,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -93,7 +93,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -117,7 +117,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
@@ -140,7 +140,7 @@ public class SchemaFirstMutations
                 .AddMutationConventions(
                     new MutationConventionOptions
                     {
-                        ApplyToAllMutations = true
+                        ApplyToAllMutations = true,
                     })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();

@@ -14,8 +14,8 @@ namespace HotChocolate.ApolloFederation;
 /// </summary>
 public static partial class FederationSchemaPrinter
 {
-    private static readonly HashSet<string> _builtInDirectives = new()
-    {
+    private static readonly HashSet<string> _builtInDirectives =
+    [
         WellKnownTypeNames.External,
         WellKnownTypeNames.Requires,
         WellKnownTypeNames.Provides,
@@ -25,8 +25,8 @@ public static partial class FederationSchemaPrinter
         WellKnownDirectives.Skip,
         WellKnownDirectives.Include,
         WellKnownDirectives.Deprecated,
-        SpecifiedByDirectiveType.Names.SpecifiedBy
-    };
+        SpecifiedByDirectiveType.Names.SpecifiedBy,
+    ];
 
     /// <summary>
     /// Creates a <see cref="string" /> representation of the given
@@ -99,7 +99,7 @@ public static partial class FederationSchemaPrinter
             UnionType type => SerializeUnionType(type, context),
             EnumType type => SerializeEnumType(type, context),
             ScalarType type => SerializeScalarType(type, context),
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
         return definitionNode is not null;
     }
@@ -114,7 +114,7 @@ public static partial class FederationSchemaPrinter
                 (INullableTypeNode)SerializeType(nt.Type, context)),
             ListType lt => new ListTypeNode(SerializeType(lt.ElementType, context)),
             INamedType namedType => SerializeNamedType(namedType, context),
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
     }
 

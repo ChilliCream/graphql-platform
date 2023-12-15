@@ -24,12 +24,12 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new Foo
                         {
                             BarShort = 12,
-                            BarString = "a"
-                        }
-                    }
-                }
-            }
-         },
+                            BarString = "a",
+                        },
+                    },
+                },
+            },
+        },
         new()
         {
             Foo = new Foo
@@ -45,11 +45,11 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new Foo
                         {
                             BarShort = 14,
-                            BarString = "d"
-                        }
-                    }
-                }
-            }
+                            BarString = "d",
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -59,9 +59,9 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
-                ObjectArray = null
-            }
-        }
+                ObjectArray = null,
+            },
+        },
     };
 
     private static readonly BarNullable[] _barNullableEntities =
@@ -81,10 +81,10 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new FooNullable
                         {
                             BarShort = 12,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -101,10 +101,10 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new FooNullable
                         {
                             BarShort = null,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -121,10 +121,10 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new FooNullable
                         {
                             BarShort = 14,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -134,13 +134,13 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null
-            }
+                ObjectArray = null,
+            },
         },
         new()
         {
-            Foo = null
-        }
+            Foo = null,
+        },
     };
 
     private readonly SchemaCache _cache;
@@ -752,6 +752,6 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

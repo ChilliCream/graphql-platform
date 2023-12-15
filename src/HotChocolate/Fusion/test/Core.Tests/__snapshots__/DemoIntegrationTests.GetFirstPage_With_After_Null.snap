@@ -20,7 +20,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query AfterNull_1($after: String) { appointments(after: $after, before: null, first: null, last: null) { nodes { id } } }",
+        "document": "query AfterNull_1($after: String) { appointments(after: $after) { nodes { id } } }",
         "selectionSetId": 0,
         "forwardedVariables": [
           {
@@ -41,7 +41,7 @@ QueryPlan
 
 QueryPlan Hash
 ---------------
-6FAD9C915B229E9D33AB4A980BEB7351BAD35924
+C601EB39A2F136D152B59B30853A0073588356FE
 ---------------
 
 Result

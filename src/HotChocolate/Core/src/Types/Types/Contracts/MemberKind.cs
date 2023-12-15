@@ -7,5 +7,5 @@ public enum MemberKind
     ObjectField,
     InputObjectField,
     Argument,
-    DirectiveArgument
+    DirectiveArgument,
 }

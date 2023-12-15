@@ -1,7 +1,7 @@
 ﻿{
   "message": "Names starting with `__` are reserved for the GraphQL specification.",
   "extensions": {
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Type-System.Directives.Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Type-System.Directives.Validation"
   }
 }
 

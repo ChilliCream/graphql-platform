@@ -42,7 +42,7 @@ public class BatchQueryExecutorTests
                                 name
                             }
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -87,7 +87,7 @@ public class BatchQueryExecutorTests
                                 name
                             }
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -132,7 +132,7 @@ public class BatchQueryExecutorTests
                                 name
                             }
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -180,7 +180,7 @@ public class BatchQueryExecutorTests
                                 stars
                             }
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -209,7 +209,7 @@ public class BatchQueryExecutorTests
                         return new List<string>
                         {
                             "123",
-                            "456"
+                            "456",
                         };
                     }
 
@@ -232,7 +232,7 @@ public class BatchQueryExecutorTests
                     @"{
                             foo(bar: $b)
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -271,14 +271,14 @@ public class BatchQueryExecutorTests
                     {
                         new Dictionary<string, object>
                         {
-                            { "bar" , "123" }
-                        }
+                            { "bar" , "123" },
+                        },
                     };
                 }
 
                 list.Add(new Dictionary<string, object>
                 {
-                    { "bar" , "456" }
+                    { "bar" , "456" },
                 });
                 return list;
             })
@@ -314,7 +314,7 @@ public class BatchQueryExecutorTests
                                 bar
                             }
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -357,7 +357,7 @@ public class BatchQueryExecutorTests
                     @"query foo2($b: [String]) {
                             foo(bar: $b)
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -408,7 +408,7 @@ public class BatchQueryExecutorTests
                     @"query foo2($b2: String) {
                             baz(bar: $b2)
                         }")
-                .Create()
+                .Create(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
