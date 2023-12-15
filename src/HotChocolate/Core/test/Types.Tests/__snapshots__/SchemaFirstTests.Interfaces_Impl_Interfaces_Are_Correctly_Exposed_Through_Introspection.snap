@@ -1149,52 +1149,6 @@
           "onOperation": false,
           "onFragment": true,
           "onField": true
-        },
-        {
-          "name": "deprecated",
-          "description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "args": [
-            {
-              "name": "reason",
-              "description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "defaultValue": "\"No longer supported.\"",
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "onOperation": false,
-          "onFragment": false,
-          "onField": false
-        },
-        {
-          "name": "tag",
-          "description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
-          "args": [
-            {
-              "name": "name",
-              "description": "The name of the tag.",
-              "type": {
-                "kind": "NON_NULL",
-                "name": null,
-                "ofType": {
-                  "kind": "SCALAR",
-                  "name": "String",
-                  "ofType": null
-                }
-              },
-              "defaultValue": null,
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "onOperation": false,
-          "onFragment": false,
-          "onField": false
         }
       ]
     }

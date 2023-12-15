@@ -48,6 +48,12 @@ public partial class SchemaBuilder
                 {
                     builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
                 }
+                
+                if(context.Options.RemoveUnusedTypeSystemDirectives &&
+                    !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
+                {
+                    builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
+                }
 
                 InitializeInterceptors(
                     context.Services,
@@ -351,8 +357,8 @@ public partial class SchemaBuilder
             LazySchema lazySchema,
             TypeRegistry typeRegistry)
         {
-            var definition =
-                CreateSchemaDefinition(builder, context, typeRegistry);
+            var definition = CreateSchemaDefinition(builder, context, typeRegistry);
+            context.TypeInterceptor.OnBeforeRegisterSchemaTypes(context, definition);
 
             if (definition.QueryType is null && builder._options.StrictValidation)
             {
