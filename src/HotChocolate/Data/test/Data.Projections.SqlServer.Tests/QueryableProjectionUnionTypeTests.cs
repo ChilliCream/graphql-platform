@@ -13,7 +13,7 @@ public class QueryableProjectionUnionTypeTests
     private static readonly AbstractType[] _barEntities =
     [
         new Bar { Name = "Bar", BarProp = "BarProp" },
-        new Foo { Name = "Foo", FooProp = "FooProp" }
+        new Foo { Name = "Foo", FooProp = "FooProp" },
     ];
 
     private static readonly NestedObject[] _barNestedEntities =
@@ -29,16 +29,16 @@ public class QueryableProjectionUnionTypeTests
             List =
             [
                 new Foo { Name = "Foo", FooProp = "FooProp" },
-                new Bar { Name = "Bar", BarProp = "BarProp" }
-            ]
+                new Bar { Name = "Bar", BarProp = "BarProp" },
+            ],
         },
         new()
         {
             List =
             [
                 new Bar { Name = "Bar", BarProp = "BarProp" },
-                new Foo { Name = "Foo", FooProp = "FooProp" }
-            ]
+                new Foo { Name = "Foo", FooProp = "FooProp" },
+            ],
         },
     ];
 

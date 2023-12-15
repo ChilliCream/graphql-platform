@@ -109,7 +109,7 @@ public class PaginationTests
                 .Resolve(() => new[]
                 {
                     new User { FirstName = "Mother" },
-                    new User { FirstName = "Father" }
+                    new User { FirstName = "Father" },
                 });
 
             descriptor
@@ -117,7 +117,7 @@ public class PaginationTests
                 .UseOffsetPaging<GroupType>()
                 .Resolve(() => new[]
                 {
-                    new Group { FirstName = "Admin" }
+                    new Group { FirstName = "Admin" },
                 });
         }
     }
@@ -132,7 +132,7 @@ public class PaginationTests
                 .Resolve(() => new[]
                 {
                     new User { FirstName = "Mother" },
-                    new User { FirstName = "Father" }
+                    new User { FirstName = "Father" },
                 });
         }
     }

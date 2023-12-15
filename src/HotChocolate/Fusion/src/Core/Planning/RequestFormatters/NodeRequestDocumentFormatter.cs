@@ -24,7 +24,7 @@ internal sealed class NodeRequestDocumentFormatter(
         OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode =
-            CreateRooSelectionSetNode(
+            CreateRootSelectionSetNode(
                 context,
                 executionStep,
                 entityTypeName);
@@ -47,7 +47,7 @@ internal sealed class NodeRequestDocumentFormatter(
             path);
     }
 
-    private SelectionSetNode CreateRooSelectionSetNode(
+    private SelectionSetNode CreateRootSelectionSetNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
         string entityTypeName)
@@ -90,7 +90,8 @@ internal sealed class NodeRequestDocumentFormatter(
         var (selectionNode, _) = nodeSelection.Resolver.CreateSelection(
             context.VariableValues,
             selectionSetNode,
-            nodeSelection.Selection.ResponseName);
+            nodeSelection.Selection.ResponseName,
+            null);
 
         if (selectionNode is FieldNode fieldNode &&
             !nodeSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))

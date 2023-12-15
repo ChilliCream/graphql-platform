@@ -164,7 +164,7 @@ public class SyntaxNodeVisitorTests
             : base(new Dictionary<SyntaxKind, VisitorAction>
             {
                     { SyntaxKind.ObjectValue, VisitorAction.Continue },
-                    { SyntaxKind.ObjectField, VisitorAction.Continue }
+                    { SyntaxKind.ObjectField, VisitorAction.Continue },
             })
         {
         }

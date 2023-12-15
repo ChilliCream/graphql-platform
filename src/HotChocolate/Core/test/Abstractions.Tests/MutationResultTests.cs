@@ -2689,13 +2689,13 @@ public class MutationResultTests
         Assert.Throws<ArgumentException>(Error);
     }
 
-    public class ErrorObj1 { }
+    public class ErrorObj1;
 
-    public class ErrorObj2 { }
+    public class ErrorObj2;
 
-    public class ErrorObj3 { }
+    public class ErrorObj3;
 
-    public class ErrorObj4 { }
+    public class ErrorObj4;
 
-    public class ErrorObj5 { }
+    public class ErrorObj5;
 }

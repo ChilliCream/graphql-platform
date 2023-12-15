@@ -66,7 +66,7 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 1,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
@@ -83,7 +83,7 @@ public class UnionTests
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync(cts.Token);
     }
-    
+
     [Fact]
     public async Task Error_Union_With_Inline_Fragment_Errors_Not_Null()
     {
@@ -128,7 +128,7 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 0,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
@@ -187,7 +187,7 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 1,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act
@@ -246,7 +246,7 @@ public class UnionTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 0,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act

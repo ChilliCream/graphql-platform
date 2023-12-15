@@ -16,13 +16,13 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new ClassBaseClassInspector(),
         new ModuleInspector(),
         new DataLoaderInspector(),
-        new DataLoaderDefaultsInspector()
+        new DataLoaderDefaultsInspector(),
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
     [
         new ModuleGenerator(),
-        new DataLoaderGenerator()
+        new DataLoaderGenerator(),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -94,22 +94,22 @@ public class TypeModuleGenerator : IIncrementalGenerator
         {
             return;
         }
-        
+
         var buffer = ArrayPool<ISyntaxInfo>.Shared.Rent(syntaxInfos.Length * 2);
-        
+
         // prepare context
         for (var i = syntaxInfos.Length - 1; i >= 0; i--)
         {
             buffer[i] = syntaxInfos[i];
         }
-        
+
         var nodes = buffer.AsSpan().Slice(0, syntaxInfos.Length);
         var batch = buffer.AsSpan().Slice(syntaxInfos.Length, syntaxInfos.Length);
-        
+
         foreach (var generator in _generators)
         {
-            var next = 0; 
-            
+            var next = 0;
+
             // gather infos for current generator
             foreach (var node in nodes)
             {
@@ -125,7 +125,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
                 generator.Generate(context, compilation, batch.Slice(0, next));
             }
         }
-        
+
         ArrayPool<ISyntaxInfo>.Shared.Return(buffer);
     }
 }

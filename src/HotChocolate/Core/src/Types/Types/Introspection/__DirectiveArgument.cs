@@ -32,8 +32,8 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
             Fields =
             {
                 new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value)
-            }
+                new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value),
+            },
         };
     }
 

@@ -18,7 +18,7 @@ public class TagDirectiveTests
                 .AddType<FooDirective>()
                 .SetSchema(d => d.Tag("OnSchema"))
                 .BuildSchemaAsync();
-        
+
         schema.MatchSnapshot();
     }
 
@@ -27,10 +27,10 @@ public class TagDirectiveTests
     {
         [Tag("OnObjectField")]
         public IFoo GetFoo([Tag("OnObjectFieldArg")] string a) => new Foo();
-        
+
         public FooEnum GetFooEnum(FooInput input) => FooEnum.Foo;
     }
-    
+
     [Tag("OnInterface")]
     public interface IFoo
     {
@@ -42,15 +42,15 @@ public class TagDirectiveTests
     {
         public string Bar(string baz) => "Bar" + baz;
     }
-    
+
     [Tag("OnEnum")]
     public enum FooEnum
     {
         [Tag("OnEnumValue")]
         Foo,
-        Bar
+        Bar,
     }
-    
+
     [Tag("OnInputObjectType")]
     public class FooInput
     {

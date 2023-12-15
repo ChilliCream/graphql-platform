@@ -34,7 +34,7 @@ internal sealed class __EnumValue : ObjectType<IEnumValue>
                         pureResolver: Resolvers.IsDeprecated),
                     new(Names.DeprecationReason, type: stringType,
                         pureResolver: Resolvers.DeprecationReason),
-                }
+                },
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

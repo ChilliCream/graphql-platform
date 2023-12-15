@@ -91,7 +91,7 @@ internal partial class MiddlewareContext
                     Selection.Field.Coordinate,
                     Path,
                     typeof(T),
-                    _parent.GetType())
+                    _parent.GetType()),
             };
 
         public T ArgumentValue<T>(string name)
@@ -163,7 +163,7 @@ internal partial class MiddlewareContext
         }
 
         public T Service<T>() where T: notnull => _parentContext.Service<T>();
-        
+
 #if NET8_0_OR_GREATER
         public T? Service<T>(object key) where T : notnull => _parentContext.Service<T>(key);
 #endif

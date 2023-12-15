@@ -15,7 +15,7 @@
         "argument": "input",
         "argumentValue": "\u0022abc123\u0022",
         "locationType": "ExampleInput!",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

@@ -110,8 +110,8 @@ internal sealed class EdgeType : ObjectType, IEdgeType
                 new(Names.Node,
                     EdgeType_Node_Description,
                     nodeType,
-                    pureResolver: GetNode)
-            }
+                    pureResolver: GetNode),
+            },
         };
 
     private static string GetCursor(IPureResolverContext context)

@@ -29,7 +29,7 @@ public class EntitiesResolverTests
             new("ForeignType",
                 new ObjectValueNode(
                     new ObjectFieldNode("id", "1"),
-                    new ObjectFieldNode("someExternalField", "someExternalField")))
+                    new ObjectFieldNode("someExternalField", "someExternalField"))),
         };
 
         // assert
@@ -58,7 +58,7 @@ public class EntitiesResolverTests
             new("MixedFieldTypes",
                 new ObjectValueNode(
                     new ObjectFieldNode("id", "1"),
-                    new ObjectFieldNode("intField", 25)))
+                    new ObjectFieldNode("intField", 25))),
         };
 
         // assert
@@ -84,7 +84,7 @@ public class EntitiesResolverTests
         var representations = new List<Representation>
         {
             new("TypeWithReferenceResolver",
-                new ObjectValueNode(new ObjectFieldNode("Id", "1")))
+                new ObjectValueNode(new ObjectFieldNode("Id", "1"))),
         };
 
         // assert
@@ -117,7 +117,7 @@ public class EntitiesResolverTests
         {
             new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "1"))),
             new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "2"))),
-            new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "3")))
+            new("FederatedType", new ObjectValueNode(new ObjectFieldNode("Id", "3"))),
         };
 
         // act
@@ -143,7 +143,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("NonExistingTypeName", new ObjectValueNode())
+            new("NonExistingTypeName", new ObjectValueNode()),
         };
 
         // assert
@@ -164,7 +164,7 @@ public class EntitiesResolverTests
         // act
         var representations = new List<Representation>
         {
-            new("TypeWithoutRefResolver", new ObjectValueNode())
+            new("TypeWithoutRefResolver", new ObjectValueNode()),
         };
 
         // assert
@@ -189,8 +189,8 @@ public class EntitiesResolverTests
                 new ObjectValueNode(
                 [
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode([new ObjectFieldNode("id", "testId")]))
-                ]))
+                        new ObjectValueNode([new ObjectFieldNode("id", "testId")])),
+                ])),
         };
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -219,8 +219,8 @@ public class EntitiesResolverTests
                 new ObjectValueNode(
                 [
                     new ObjectFieldNode("detail",
-                        new ObjectValueNode([new ObjectFieldNode("id", "testId")]))
-                ]))
+                        new ObjectValueNode([new ObjectFieldNode("id", "testId")])),
+                ])),
         };
 
         var result = await EntitiesResolver.ResolveAsync(schema, representations, context);
@@ -345,7 +345,7 @@ public class EntitiesResolverTests
             {
                 ["1"] = new FederatedType {Id = "1", SomeField = "SomeField-1"},
                 ["2"] = new FederatedType {Id = "2", SomeField = "SomeField-2"},
-                ["3"] = new FederatedType {Id = "3", SomeField = "SomeField-3"}
+                ["3"] = new FederatedType {Id = "3", SomeField = "SomeField-3"},
             };
 
             return Task.FromResult<IReadOnlyDictionary<string, FederatedType>>(result);

@@ -23,5 +23,5 @@ public enum JsonNullIgnoreCondition
     /// <summary>
     /// Fields that have a null value and null elements in lists are ignored.
     /// </summary>
-    All = 4
+    All = 4,
 }

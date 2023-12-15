@@ -35,7 +35,7 @@ endpoints
   .WithOptions(
     new GraphQLServerOptions
     {
-      Tool = new GraphQLToolOptions
+      Tool =
       {
         Enable = false
       }

@@ -269,7 +269,7 @@ public class SchemaFirstTests
     {
         Bar,
         Baz,
-        BazBar
+        BazBar,
     }
 
     public class Query5730

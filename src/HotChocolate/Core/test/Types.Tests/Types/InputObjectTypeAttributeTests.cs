@@ -187,6 +187,6 @@ public class InputObjectTypeAttributeTests
     public enum Quux
     {
         Corge,
-        Grault
+        Grault,
     }
 }

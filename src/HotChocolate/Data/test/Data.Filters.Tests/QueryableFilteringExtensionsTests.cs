@@ -16,7 +16,7 @@ public class QueryableFilteringExtensionsTests
     private static readonly Foo[] _fooEntities =
     [
         new() { Bar = true, Baz = "a" },
-        new() { Bar = false, Baz = "b" }
+        new() { Bar = false, Baz = "b" },
     ];
 
     [Fact]

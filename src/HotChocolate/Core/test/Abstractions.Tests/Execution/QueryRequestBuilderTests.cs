@@ -98,7 +98,7 @@ public class QueryRequestBuilderTests
                 .AddVariableValue("two", "bar")
                 .SetVariableValues(new Dictionary<string, object>
                 {
-                    { "three", "baz" }
+                    { "three", "baz" },
                 })
                 .Create();
 
@@ -186,7 +186,7 @@ public class QueryRequestBuilderTests
                 .AddGlobalState("two", "bar")
                 .InitializeGlobalState(new Dictionary<string, object>
                 {
-                    { "three", "baz" }
+                    { "three", "baz" },
                 })
                 .Create();
 
@@ -453,7 +453,7 @@ public class QueryRequestBuilderTests
                 .AddExtension("two", "bar")
                 .SetExtensions(new Dictionary<string, object>
                 {
-                    { "three", "baz" }
+                    { "three", "baz" },
                 })
                 .Create();
 
@@ -469,7 +469,7 @@ public class QueryRequestBuilderTests
         IReadOnlyDictionary<string, object> ext =
             new Dictionary<string, object>
             {
-                { "three", "baz" }
+                { "three", "baz" },
             };
 
         // act
@@ -493,7 +493,7 @@ public class QueryRequestBuilderTests
         IReadOnlyDictionary<string, object> ext =
             new Dictionary<string, object>
             {
-                { "three", "baz" }
+                { "three", "baz" },
             };
 
         // act
@@ -518,7 +518,7 @@ public class QueryRequestBuilderTests
         IDictionary<string, object> ext =
             new Dictionary<string, object>
             {
-                { "three", "baz" }
+                { "three", "baz" },
             };
 
         // act
@@ -542,7 +542,7 @@ public class QueryRequestBuilderTests
         IDictionary<string, object> ext =
             new Dictionary<string, object>
             {
-                { "three", "baz" }
+                { "three", "baz" },
             };
 
         // act

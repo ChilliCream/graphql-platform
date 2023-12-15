@@ -26,7 +26,7 @@ public class IntrospectionTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var executor = await new ServiceCollection()

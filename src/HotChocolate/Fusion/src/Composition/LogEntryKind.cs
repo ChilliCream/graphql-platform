@@ -18,5 +18,5 @@ public enum LogSeverity
     /// <summary>
     /// The entry contains an error message.
     /// </summary>
-    Error
+    Error,
 }

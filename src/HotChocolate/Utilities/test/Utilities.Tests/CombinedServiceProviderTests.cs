@@ -79,11 +79,11 @@ public class CombinedServiceProviderTests
         }
     }
 
-    private interface IService { }
+    private interface IService;
 
-    private sealed class ServiceA : IService { }
+    private sealed class ServiceA : IService;
 
-    private sealed class ServiceB : IService { }
+    private sealed class ServiceB : IService;
 
-    private sealed class ServiceC : IService { }
+    private sealed class ServiceC : IService;
 }

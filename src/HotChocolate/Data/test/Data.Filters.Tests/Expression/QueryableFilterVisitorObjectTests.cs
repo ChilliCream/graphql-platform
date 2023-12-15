@@ -310,11 +310,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            ScalarArray = ["c", "d", "a"]
-                        }
-                    }
-                ]
-            }
+                            ScalarArray = ["c", "d", "a"],
+                        },
+                    },
+                ],
+            },
         };
         Assert.True(func(a));
 
@@ -328,11 +328,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            ScalarArray = ["c", "d", "b"]
-                        }
-                    }
-                ]
-            }
+                            ScalarArray = ["c", "d", "b"],
+                        },
+                    },
+                ],
+            },
         };
         Assert.False(func(b));
     }
@@ -359,11 +359,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            ScalarArray = ["c", "d", "a"]
-                        }
-                    }
-                ]
-            }
+                            ScalarArray = ["c", "d", "a"],
+                        },
+                    },
+                ],
+            },
         };
         Assert.True(func(a));
 
@@ -377,11 +377,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            ScalarArray = new string[0]
-                        }
-                    }
-                ]
-            }
+                            ScalarArray = [],
+                        },
+                    },
+                ],
+            },
         };
         Assert.False(func(b));
 
@@ -395,11 +395,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            ScalarArray = null
-                        }
-                    }
-                ]
-            }
+                            ScalarArray = null,
+                        },
+                    },
+                ],
+            },
         };
         Assert.False(func(c));
     }
@@ -426,11 +426,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            BarString = "a"
-                        }
-                    }
-                ]
-            }
+                            BarString = "a",
+                        },
+                    },
+                ],
+            },
         };
         Assert.True(func(a));
 
@@ -444,11 +444,11 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
                     {
                         Foo = new Foo
                         {
-                            BarString = "b"
-                        }
-                    }
-                ]
-            }
+                            BarString = "b",
+                        },
+                    },
+                ],
+            },
         };
         Assert.False(func(b));
     }
@@ -469,8 +469,8 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Test = new InterfaceImpl1
             {
-                Prop = "a"
-            }
+                Prop = "a",
+            },
         };
 
         Assert.True(func(a));
@@ -479,8 +479,8 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Test = new InterfaceImpl1
             {
-                Prop = "b"
-            }
+                Prop = "b",
+            },
         };
         Assert.False(func(b));
     }

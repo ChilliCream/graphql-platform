@@ -20,7 +20,7 @@
     ],
     "Extensions": {
       "fragment": "bar",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -56,7 +56,7 @@
     ],
     "Extensions": {
       "fragment": "foo",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
     },
     "Exception": null,
     "SyntaxNode": {

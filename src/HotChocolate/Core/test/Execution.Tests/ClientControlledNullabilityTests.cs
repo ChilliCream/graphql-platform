@@ -65,7 +65,7 @@ public class ClientControlledNullabilityTests
         public List<Person> Persons { get; } = new()
         {
             new Person {Name = "Abc", Bio = "Def"},
-            new Person {Name = "Ghi", Bio = null}
+            new Person {Name = "Ghi", Bio = null},
         };
     }
 

@@ -31,7 +31,7 @@ public static class MutationRequestExecutorBuilderExtensions
             builder,
             new MutationConventionOptions
             {
-                ApplyToAllMutations = applyToAllMutations
+                ApplyToAllMutations = applyToAllMutations,
             });
 
     /// <summary>
@@ -109,7 +109,7 @@ public static class MutationRequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder,
         Type type) =>
         builder.ConfigureSchema(x => x.AddErrorInterfaceType(type));
-    
+
     /// <summary>
     /// Adds a new error registrar.
     /// </summary>
@@ -122,7 +122,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// <returns>
     /// The request executor builder
     /// </returns>
-    public static IRequestExecutorBuilder AddMutationErrorConfiguration<T>(this IRequestExecutorBuilder builder) 
+    public static IRequestExecutorBuilder AddMutationErrorConfiguration<T>(this IRequestExecutorBuilder builder)
         where T : MutationErrorConfiguration, new()
         => builder.TryAddTypeInterceptor(new MutationErrorTypeInterceptor<T>(new T()));
 
@@ -143,7 +143,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddMutationErrorConfiguration<T>(
         this IRequestExecutorBuilder builder,
-        T configuration) 
+        T configuration)
         where T : MutationErrorConfiguration
         => builder.TryAddTypeInterceptor(new MutationErrorTypeInterceptor<T>(configuration));
 }

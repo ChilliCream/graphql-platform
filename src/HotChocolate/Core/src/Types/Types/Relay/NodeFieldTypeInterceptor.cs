@@ -92,8 +92,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     _ => async context =>
                     {
                         await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                    })
-            }
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field
@@ -127,8 +127,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     {
                         await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
                             .ConfigureAwait(false);
-                    })
-            }
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field

@@ -51,7 +51,7 @@ public class DescriptorContextTests
         {
             {
                 (typeof(INamingConventions), null), new List<CreateConvention>{_ => naming}
-            }
+            },
         };
 
         // act
