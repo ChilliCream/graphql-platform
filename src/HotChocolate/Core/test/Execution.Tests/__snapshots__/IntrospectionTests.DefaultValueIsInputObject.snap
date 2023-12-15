@@ -1111,7 +1111,7 @@
         },
         {
           "name": "tag",
-          "description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
+          "description": "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}",
           "args": [
             {
               "name": "name",

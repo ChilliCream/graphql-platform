@@ -18,7 +18,6 @@ internal sealed class TagDirectiveConfigAttribute : DirectiveTypeDescriptorAttri
             this metadata during any step of the schema delivery flow,
             including composition, static analysis, and documentation.
 
-            <code>
             interface Book {
               id: ID! @tag(name: "your-value")
               title: String!
