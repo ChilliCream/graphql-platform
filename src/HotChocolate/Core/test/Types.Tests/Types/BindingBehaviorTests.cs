@@ -23,23 +23,21 @@ public class BindingBehaviorTests
             schema {
               query: Query
             }
-            
+
             type Book1 {
               title: String
               category: BookCategory1!
             }
-            
+
             type Query {
               books: Book1
             }
-            
+
             enum BookCategory1 {
               A
               B
               C
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 
@@ -115,21 +113,19 @@ public class BindingBehaviorTests
             schema {
               query: Query
             }
-            
+
             type Book3 {
               title: String
               category: BookCategory3!
             }
-            
+
             type Query {
               books: Book3
             }
-            
+
             enum BookCategory3 {
               A
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 

@@ -22,5 +22,3 @@ input FooFilter {
   barInt_lte: Int
   barInt_not_lte: Int
 }
-
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

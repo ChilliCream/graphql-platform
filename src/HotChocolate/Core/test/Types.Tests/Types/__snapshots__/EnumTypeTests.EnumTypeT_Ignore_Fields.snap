@@ -9,5 +9,8 @@ type Query {
 enum Foo {
   BAR1
 }
+<<<<<<< HEAD
 
 directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+=======
+>>>>>>> 3f34684f9c (Fixed issue that caused the tag directive to be ignored. (#6746))

@@ -6,7 +6,5 @@ type DefaultUnsignedShort {
   short: UnsignedShort!
 }
 
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
 "The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0."
 scalar UnsignedShort

@@ -72,8 +72,8 @@ public sealed class FusionGraphComposer
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
-                .Use<ApplyTagDirectiveMiddleware>()
                 .Use<ApplyExcludeTagMiddleware>()
+                .Use<ApplyTagDirectiveMiddleware>()
                 .Use<RemoveFusionTypesMiddleware>()
                 .Build();
         _logFactory = logFactory;

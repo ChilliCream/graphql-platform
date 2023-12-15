@@ -6,5 +6,3 @@ type QueryWithArgumentDefaults {
   field1(a: String b: String = "abc"): String
   field2(a: String b: String = "abc"): String
 }
-
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

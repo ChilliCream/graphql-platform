@@ -60,6 +60,12 @@ public interface IReadOnlySchemaOptions
     /// unreachable from the root types.
     /// </summary>
     bool RemoveUnreachableTypes { get; }
+    
+    /// <summary>
+    /// Defines if unused type system directives shall
+    /// be removed from the schema.
+    /// </summary>
+    bool RemoveUnusedTypeSystemDirectives { get; }
 
     /// <summary>
     /// Defines the default binding behavior.

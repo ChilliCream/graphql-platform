@@ -61,24 +61,22 @@ public class EnumFlagsTests
             schema {
               query: Query
             }
-            
+
             type FooBarBazFlags {
               isFoo: Boolean!
               isBar: Boolean!
               isBaz: Boolean!
             }
-            
+
             type Query {
               foo(input: FooBarBazFlagsInput!): FooBarBazFlags!
             }
-            
+
             input FooBarBazFlagsInput {
               isFoo: Boolean
               isBar: Boolean
               isBaz: Boolean
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 

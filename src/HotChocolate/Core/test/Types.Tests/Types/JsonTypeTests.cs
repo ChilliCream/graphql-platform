@@ -24,16 +24,14 @@ public class JsonTypeTests
             schema {
               query: Query
             }
-            
+
             type Query {
               someJson: JSON!
               manyJson: [JSON!]
               inputJson(input: JSON!): JSON!
               jsonFromString: JSON!
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-            
+
             scalar JSON
             """);
     }

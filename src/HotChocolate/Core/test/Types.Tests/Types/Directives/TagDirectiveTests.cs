@@ -21,6 +21,29 @@ public class TagDirectiveTests
         
         schema.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task SchemaFirst_Tag()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                        field: String @tag(name: "abc")
+                    }
+                    
+                    directive @tag("The name of the tag." name: String!) 
+                        repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | 
+                            ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | 
+                            INPUT_OBJECT | INPUT_FIELD_DEFINITION
+                    """)
+                .UseField(_ => _ => default)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
 
     [Tag("OnObjectType")]
     public class Query

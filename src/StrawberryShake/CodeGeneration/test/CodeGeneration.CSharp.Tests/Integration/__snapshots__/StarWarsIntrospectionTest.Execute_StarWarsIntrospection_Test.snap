@@ -2367,25 +2367,6 @@
           "OnField": true
         },
         {
-          "Name": "deprecated",
-          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "Args": [
-            {
-              "Name": "reason",
-              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
-              },
-              "DefaultValue": "\"No longer supported.\""
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
-        },
-        {
           "Name": "export",
           "Description": null,
           "Args": [
@@ -2403,29 +2384,6 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": true
-        },
-        {
-          "Name": "tag",
-          "Description": null,
-          "Args": [
-            {
-              "Name": "name",
-              "Description": null,
-              "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "String",
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
         }
       ]
     }
@@ -6558,34 +6516,6 @@
         },
         {
           "__typename": "__Directive",
-          "Name": "deprecated",
-          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "reason",
-              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "Type": {
-                "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "DefaultValue": "\"No longer supported.\""
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
-        },
-        {
-          "__typename": "__Directive",
           "Name": "export",
           "Description": null,
           "Args": [
@@ -6611,45 +6541,6 @@
           "OnOperation": false,
           "OnFragment": false,
           "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "tag",
-          "Description": null,
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "name",
-              "Description": null,
-              "Type": {
-                "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "String",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
         }
       ]
     },

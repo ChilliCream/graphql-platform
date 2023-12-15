@@ -6,7 +6,5 @@ type Query {
   scalar: PhoneNumber
 }
 
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
 "The PhoneNumber scalar type represents a value that conforms to the standard E.164 format."
 scalar PhoneNumber
