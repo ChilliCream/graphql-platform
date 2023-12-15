@@ -38,7 +38,7 @@ internal static class IntrospectionQueryHelper
         {
             Method = options.Method,
             Uri = options.Uri,
-            OnMessageCreated = options.OnMessageCreated
+            OnMessageCreated = options.OnMessageCreated,
         };
 
     private static string GetArgumentDeprecationQuery() => GetQueryFile(_argumentDeprecationQueryFile);

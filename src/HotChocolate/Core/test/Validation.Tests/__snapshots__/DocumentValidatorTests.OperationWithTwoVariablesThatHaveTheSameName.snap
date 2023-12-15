@@ -12,7 +12,7 @@
     "Extensions": {
       "variable": "atOtherHomes",
       "variableType": "Boolean",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Variable-Uniqueness"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Variable-Uniqueness"
     },
     "Exception": null,
     "SyntaxNode": {

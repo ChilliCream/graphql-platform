@@ -45,7 +45,7 @@ internal sealed class __Schema : ObjectType
                         Schema_Directives,
                         directiveListType,
                         pureResolver: Resolvers.Directives),
-                }
+                },
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

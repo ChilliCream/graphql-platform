@@ -52,7 +52,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
 
             double d => ParseValue(d),
 
-            _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this),
         };
     }
 
@@ -177,7 +177,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
                 {
                     >= 0 and < _max => $"{degree}° {minutes}' {seconds}\" N",
                     < 0 and > _min => $"{Abs(degree)}° {Abs(minutes)}' {Abs(seconds)}\" S",
-                    _ => $"{degree}° {minutes}' {seconds}\""
+                    _ => $"{degree}° {minutes}' {seconds}\"",
                 };
 
                 resultValue = serializedLatitude;

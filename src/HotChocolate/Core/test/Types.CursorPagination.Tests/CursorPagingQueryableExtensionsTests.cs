@@ -119,7 +119,7 @@ public class CursorPagingQueryableExtensionsTests
                 new() { Name = "Foo" },
                 new() { Name = "Bar" },
                 new() { Name = "Baz" },
-                new() { Name = "Qux" }
+                new() { Name = "Qux" },
             };
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
@@ -142,7 +142,7 @@ public class CursorPagingQueryableExtensionsTests
                 new() { Name = "Foo" },
                 new() { Name = "Bar" },
                 new() { Name = "Baz" },
-                new() { Name = "Qux" }
+                new() { Name = "Qux" },
             };
 
             return await list.ApplyCursorPaginationAsync(

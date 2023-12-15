@@ -11,7 +11,7 @@ public static class SchemaFormatter
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     public static string FormatAsString(Schema schema, bool indented = true)

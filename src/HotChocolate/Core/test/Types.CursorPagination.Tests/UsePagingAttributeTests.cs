@@ -129,7 +129,7 @@ public class UsePagingAttributeTests
             new
             {
                 ex.Errors[0].Message,
-                ex.Errors[0].Code
+                ex.Errors[0].Code,
             }.MatchSnapshot();
         }
     }

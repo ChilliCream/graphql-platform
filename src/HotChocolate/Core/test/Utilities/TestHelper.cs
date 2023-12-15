@@ -74,7 +74,7 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                Configure = configure, ConfigureRequest = request, Services = requestServices
+                Configure = configure, ConfigureRequest = request, Services = requestServices,
             },
             elementInspectors);
     }
@@ -148,7 +148,7 @@ public static class TestHelper
         Action<IRequestExecutorBuilder>? configure = null,
         ITestOutputHelper? output = null)
     {
-        var configuration = new TestConfiguration { Configure = configure, };
+        var configuration = new TestConfiguration { Configure = configure };
 
         return await CreateExecutorAsync(configuration, output);
     }

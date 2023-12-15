@@ -8,7 +8,7 @@ public sealed class BookRepository
     {
         _books = new[]
         {
-            new Book("1", "1", "The first book")
+            new Book("1", "1", "The first book"),
         }.ToDictionary(t => t.Id);
     }
 

@@ -93,7 +93,7 @@ internal static class RequestClassMiddlewareFactory
 
         var list = new List<IParameterHandler>
         {
-            new TypeParameterHandler(typeof(IDocumentValidator), getValidator)
+            new TypeParameterHandler(typeof(IDocumentValidator), getValidator),
         };
 
         var constructor = middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);

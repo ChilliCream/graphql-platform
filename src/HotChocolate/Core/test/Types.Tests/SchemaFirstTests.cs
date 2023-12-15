@@ -635,12 +635,12 @@ public class QueryEnumExample
 
 public enum TestEnum
 {
-    FooBar
+    FooBar,
 }
 
 public enum TestEnumInput
 {
-    FooBarInput
+    FooBarInput,
 }
 
 public class QueryWithFooInput

@@ -37,7 +37,7 @@ public class ErrorTests
                     new[]
                     {
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -87,7 +87,7 @@ public class ErrorTests
                     new[]
                     {
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -137,7 +137,7 @@ public class ErrorTests
                     new[]
                     {
                         demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                     },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 

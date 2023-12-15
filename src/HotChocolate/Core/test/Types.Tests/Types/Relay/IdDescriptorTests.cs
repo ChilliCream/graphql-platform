@@ -72,7 +72,7 @@ public class IdDescriptorTests
         new
         {
             result = result.ToJson(),
-            someId
+            someId,
         }.MatchSnapshot();
     }
 

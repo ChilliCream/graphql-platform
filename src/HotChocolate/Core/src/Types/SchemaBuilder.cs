@@ -36,7 +36,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(CostTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor),
-        typeof(EnableTrueNullabilityTypeInterceptor)
+        typeof(EnableTrueNullabilityTypeInterceptor),
     };
 
     private SchemaOptions _options = new();
@@ -260,6 +260,16 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
+    }
+    
+    internal void AddTypeReference(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _types.Add(_ => typeReference);
     }
 
     /// <inheritdoc />

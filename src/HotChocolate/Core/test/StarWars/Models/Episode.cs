@@ -16,5 +16,5 @@ public enum Episode
     /// <summary>
     /// Star Wars Episode VI: Return of the Jedi
     /// </summary>
-    Jedi
+    Jedi,
 }

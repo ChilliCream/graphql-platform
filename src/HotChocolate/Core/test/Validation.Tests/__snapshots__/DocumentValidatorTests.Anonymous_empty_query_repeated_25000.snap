@@ -11,7 +11,7 @@
     ],
     "Extensions": {
       "operations": 25000,
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -51,7 +51,7 @@
     "Extensions": {
       "operation": "Unnamed",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -91,7 +91,7 @@
     "Extensions": {
       "operation": "Unnamed",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -131,7 +131,7 @@
     "Extensions": {
       "operation": "Unnamed",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -171,7 +171,7 @@
     "Extensions": {
       "operation": "Unnamed",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {

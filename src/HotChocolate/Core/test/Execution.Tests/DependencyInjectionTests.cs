@@ -30,7 +30,7 @@ public class DependencyInjectionTests
                 .ToJsonAsync(),
             result2 = await executor
                 .ExecuteAsync("{ hello }")
-                .ToJsonAsync()
+                .ToJsonAsync(),
         }.MatchSnapshot();
     }
 
@@ -97,7 +97,7 @@ public class DependencyInjectionTests
                 .ToJsonAsync(),
             result2 = await executor
                 .ExecuteAsync("{ hello }")
-                .ToJsonAsync()
+                .ToJsonAsync(),
         }.MatchSnapshot();
     }
 

@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variables-Used"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variables-Used"
     },
     "Exception": null,
     "SyntaxNode": {

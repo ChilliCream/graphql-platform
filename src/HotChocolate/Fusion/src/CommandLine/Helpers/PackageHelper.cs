@@ -24,7 +24,7 @@ internal static class PackageHelper
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     public static async Task CreateSubgraphPackageAsync(

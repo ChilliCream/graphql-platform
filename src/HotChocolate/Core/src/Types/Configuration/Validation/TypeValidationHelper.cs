@@ -152,7 +152,7 @@ internal static class TypeValidationHelper
         }
     }
 
-    // http://spec.graphql.org/draft/#IsValidImplementation()
+    // https://spec.graphql.org/draft/#IsValidImplementation()
     private static void ValidateImplementation(
         IComplexOutputType type,
         IInterfaceType implementedType,
@@ -235,7 +235,7 @@ internal static class TypeValidationHelper
         return true;
     }
 
-    // http://spec.graphql.org/draft/#IsValidImplementationFieldType()
+    // https://spec.graphql.org/draft/#IsValidImplementationFieldType()
     private static bool IsValidImplementationFieldType(
         IOutputType fieldType,
         IOutputType implementedType)
