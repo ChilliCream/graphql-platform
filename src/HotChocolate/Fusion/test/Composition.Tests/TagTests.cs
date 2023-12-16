@@ -98,4 +98,27 @@ public class TagTests(ITestOutputHelper output)
             .FormatAsString(fusionConfig)
             .MatchSnapshot(extension: ".graphql");
     }
+    
+    [Fact]
+    public async Task Exclude_Type_System_Members_With_Internal_Tag_Which_Is_Private()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionWithTagSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionWithTagSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.TagDirective(
+                makeTagsPublic: false, 
+                exclude: new[] {"internal"})));
+
+        SchemaFormatter
+            .FormatAsString(fusionConfig)
+            .MatchSnapshot(extension: ".graphql");
+    }
 }
