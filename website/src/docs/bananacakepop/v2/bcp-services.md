@@ -21,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
+    .AddInstrumentation() // if you want to use telemetry
     .AddBananaCakePopServices(x =>
     {
         x.ApiId = "VGhpcyBpcyBub3QgYSByZWFsIGFwaSBpZA==";
@@ -28,7 +29,7 @@ builder.Services
         x.Stage = "dev";
     })
     .UseOnlyPersistedQueriesAllowed() // optional
-    .UsePersistedQueryPipeline();
+    .UsePersistedQueryPipeline(); // if you want to use persisted queries
 
 var app = builder.Build();
 
