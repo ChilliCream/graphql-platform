@@ -11,7 +11,7 @@ namespace HotChocolate.Validation.Rules;
 /// Every input field provided in an input object value must be defined in
 /// the set of possible fields of that input object’s expected type.
 ///
-/// http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names
+/// https://spec.graphql.org/June2018/#sec-Input-Object-Field-Names
 ///
 /// AND
 ///
@@ -19,7 +19,7 @@ namespace HotChocolate.Validation.Rules;
 /// otherwise an ambiguity would exist which includes an ignored portion
 /// of syntax.
 ///
-/// http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness
+/// https://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness
 ///
 /// AND
 ///
@@ -29,7 +29,7 @@ namespace HotChocolate.Validation.Rules;
 /// An input field is required if it has a non‐null type and does not have
 /// a default value. Otherwise, the input object field is optional.
 ///
-/// http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
+/// https://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields
 ///
 /// AND
 ///
@@ -37,7 +37,7 @@ namespace HotChocolate.Validation.Rules;
 /// they are found as per the coercion rules defined in the Type System
 /// chapter.
 ///
-/// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+/// https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
 ///
 /// AND
 ///
@@ -52,7 +52,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         : base(new SyntaxVisitorOptions
         {
             VisitDirectives = true,
-            VisitArguments = true
+            VisitArguments = true,
         })
     {
     }
@@ -367,7 +367,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             SyntaxKind.Argument =>
                 context.ArgumentValueIsNotCompatible(
                     (ArgumentNode)node, locationType, valueNode),
-            _ => null
+            _ => null,
         };
         return error != null;
     }

@@ -966,7 +966,7 @@ public class IntegrationTests
                     options: new PagingOptions
                     {
                         MaxPageSize = 2,
-                        IncludeTotalCount = true
+                        IncludeTotalCount = true,
                     });
         }
     }
@@ -982,7 +982,7 @@ public class IntegrationTests
                     options: new PagingOptions
                     {
                         MaxPageSize = 2,
-                        IncludeTotalCount = true
+                        IncludeTotalCount = true,
                     });
         }
     }
@@ -1002,7 +1002,7 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l"
+            "l",
         };
 
         public List<List<Foo>> Foos() => new()
@@ -1011,7 +1011,7 @@ public class IntegrationTests
             new List<Foo> { new() { Bar = "b" }, new() { Bar = "c" } },
             new List<Foo> { new() { Bar = "d" } },
             new List<Foo> { new() { Bar = "e" } },
-            new List<Foo> { new() { Bar = "f" } }
+            new List<Foo> { new() { Bar = "f" } },
         };
     }
 
@@ -1025,7 +1025,7 @@ public class IntegrationTests
                 new() { Bar = "c" } ,
                 new() { Bar = "d" },
                 new() { Bar = "e" },
-                new() { Bar = "f" }
+                new() { Bar = "f" },
             }.AsQueryable());
     }
 
@@ -1050,7 +1050,7 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l"
+            "l",
         };
 
         [UsePaging(typeof(NonNullType<StringType>))]
@@ -1066,7 +1066,7 @@ public class IntegrationTests
             new List<Foo> { new() { Bar = "b" }, new() { Bar = "c" } },
             new List<Foo> { new() { Bar = "d" } },
             new List<Foo> { new() { Bar = "e" } },
-            new List<Foo> { new() { Bar = "f" } }
+            new List<Foo> { new() { Bar = "f" } },
         };
     }
 

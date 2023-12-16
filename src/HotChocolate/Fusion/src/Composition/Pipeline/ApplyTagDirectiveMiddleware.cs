@@ -46,8 +46,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                 {
                     new InputField(
                         WellKnownDirectives.Name,
-                        new NonNullType(context.FusionGraph.Types["String"]))
-                }
+                        new NonNullType(context.FusionGraph.Types["String"])),
+                },
             };
 
             needsDirectiveType = true;
@@ -68,7 +68,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         HashSet<string> tags)
     {
         var tagContext = context.GetTagContext();
-        
+
         ApplyDirectives(tagContext, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags);
 
         foreach (var type in context.FusionGraph.Types)

@@ -1,0 +1,36 @@
+UserRequest
+---------------
+query Test($variable: TestEnum) {
+  fieldWithEnumArg(arg: $variable)
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "query Test($variable: TestEnum) { fieldWithEnumArg(arg: $variable) }",
+  "operation": "Test",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Test",
+        "document": "query Test_1($variable: TestEnum) { fieldWithEnumArg(arg: $variable) }",
+        "selectionSetId": 0,
+        "forwardedVariables": [
+          {
+            "variable": "variable"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+---------------

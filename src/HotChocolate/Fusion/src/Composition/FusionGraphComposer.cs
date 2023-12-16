@@ -37,13 +37,13 @@ public sealed class FusionGraphComposer
                 new RefResolverEntityEnricher(),
                 new PatternEntityEnricher(),
                 new RequireEnricher(),
-                new NodeEntityEnricher()
+                new NodeEntityEnricher(),
             },
             new ITypeMergeHandler[]
             {
                 new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
                 new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
-                new ScalarTypeMergeHandler()
+                new ScalarTypeMergeHandler(),
             },
             fusionTypePrefix,
             fusionTypeSelf,
@@ -72,8 +72,8 @@ public sealed class FusionGraphComposer
                 .Use<MergeQueryAndMutationTypeMiddleware>()
                 .Use<MergeSubscriptionTypeMiddleware>()
                 .Use<NodeMiddleware>()
-                .Use<ApplyTagDirectiveMiddleware>()
                 .Use<ApplyExcludeTagMiddleware>()
+                .Use<ApplyTagDirectiveMiddleware>()
                 .Use<RemoveFusionTypesMiddleware>()
                 .Build();
         _logFactory = logFactory;
@@ -111,7 +111,7 @@ public sealed class FusionGraphComposer
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Abort = cancellationToken
+            Abort = cancellationToken,
         };
 
         // Run the merge pipeline on the composition context.
@@ -157,7 +157,7 @@ public sealed class FusionGraphComposer
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Abort = cancellationToken
+            Abort = cancellationToken,
         };
 
         // Run the merge pipeline on the composition context.

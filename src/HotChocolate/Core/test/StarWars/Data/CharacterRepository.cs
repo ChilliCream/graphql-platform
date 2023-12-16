@@ -87,7 +87,7 @@ public class CharacterRepository
             Friends = new[] { "1002", "1003", "2000", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             HomePlanet = "Tatooine",
-            Traits = JsonSerializer.SerializeToElement(new { lastJedi = true })
+            Traits = JsonSerializer.SerializeToElement(new { lastJedi = true }),
         };
 
         yield return new Human
@@ -97,7 +97,7 @@ public class CharacterRepository
             Friends = new[] { "1004" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             HomePlanet = "Tatooine",
-            Traits = JsonSerializer.SerializeToElement(new { theChosenOne = true })
+            Traits = JsonSerializer.SerializeToElement(new { theChosenOne = true }),
         };
 
         yield return new Human
@@ -106,7 +106,7 @@ public class CharacterRepository
             Name = "Han Solo",
             Friends = new[] { "1000", "1003", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
-            Traits = JsonSerializer.SerializeToElement(new { hanShot = "first" })
+            Traits = JsonSerializer.SerializeToElement(new { hanShot = "first" }),
         };
 
         yield return new Human
@@ -116,7 +116,7 @@ public class CharacterRepository
             Friends = new[] { "1000", "1002", "2000", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             HomePlanet = "Alderaan",
-            Traits = JsonSerializer.SerializeToElement(new { brother = "luke" })
+            Traits = JsonSerializer.SerializeToElement(new { brother = "luke" }),
         };
 
         yield return new Human
@@ -124,7 +124,7 @@ public class CharacterRepository
             Id = "1004",
             Name = "Wilhuff Tarkin",
             Friends = new[] { "1001" },
-            AppearsIn = new[] { Episode.NewHope }
+            AppearsIn = new[] { Episode.NewHope },
         };
 
         yield return new Droid
@@ -134,7 +134,7 @@ public class CharacterRepository
             Friends = new[] { "1000", "1002", "1003", "2001" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             PrimaryFunction = "Protocol",
-            Traits = JsonSerializer.SerializeToElement(new { annoying = true })
+            Traits = JsonSerializer.SerializeToElement(new { annoying = true }),
         };
 
         yield return new Droid
@@ -144,7 +144,7 @@ public class CharacterRepository
             Friends = new[] { "1000", "1002", "1003" },
             AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
             PrimaryFunction = "Astromech",
-            Traits = JsonSerializer.SerializeToElement(new { rockets = true })
+            Traits = JsonSerializer.SerializeToElement(new { rockets = true }),
         };
     }
 
@@ -154,7 +154,7 @@ public class CharacterRepository
         {
             Id = "3000",
             Name = "TIE Advanced x1",
-            Length = 9.2
+            Length = 9.2,
         };
     }
 }

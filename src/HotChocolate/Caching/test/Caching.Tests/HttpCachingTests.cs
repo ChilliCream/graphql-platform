@@ -128,7 +128,7 @@ internal static class TestServerExtensions
         {
             Headers = response.Headers,
             ContentHeaders = response.Content.Headers,
-            Body = await response.Content.ReadAsStringAsync()
+            Body = await response.Content.ReadAsStringAsync(),
         };
 
         return result;

@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Factories;
 
@@ -151,12 +152,18 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         DirectiveDefinitionNode node,
         SchemaSyntaxVisitorContext context)
     {
+        if (context.DirectiveContext.Options.EnableTag &&
+            node.Name.Value.EqualsOrdinal(WellKnownDirectives.Tag))
+        {
+            goto EXIT;
+        }
+        
         context.Types.Add(
             TypeReference.Create(
                 _directiveTypeFactory.Create(
                     context.DirectiveContext,
                     node)));
-
+EXIT:
         return base.VisitChildren(node, context);
     }
 

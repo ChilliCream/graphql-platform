@@ -43,7 +43,7 @@ public class Query
     {
         new Foo { CreatedUtc = new DateTime(2000, 1, 1, 1, 1, 1) },
         new Foo { CreatedUtc = new DateTime(2010, 1, 1, 1, 1, 1) },
-        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) }
+        new Foo { CreatedUtc = new DateTime(2020, 1, 1, 1, 1, 1) },
     };
 }
 

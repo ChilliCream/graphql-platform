@@ -71,7 +71,7 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
                     outputStream,
                     cancellationToken),
             _ => throw MultiPartFormatter_ResultNotSupported(
-                nameof(MultiPartResultFormatter))
+                nameof(MultiPartResultFormatter)),
         };
     }
 

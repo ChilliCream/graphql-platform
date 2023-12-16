@@ -76,7 +76,7 @@ internal static class QueryResultHelper
             serializedLocations[i] = new OrderedDictionary<string, int>
                 {
                     { _line, location.Line },
-                    { _column, location.Column }
+                    { _column, location.Column },
                 };
         }
 

@@ -124,7 +124,7 @@ public class DataLoaderTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Caching = false
+                Caching = false,
             });
         var key = "Foo";
 
@@ -293,7 +293,7 @@ public class DataLoaderTests
             batchScheduler,
             new DataLoaderOptions
             {
-                Caching = false
+                Caching = false,
             });
         var keys = new List<string> { "Foo" };
 
@@ -314,7 +314,7 @@ public class DataLoaderTests
             { "Foo", "Bar" },
             { "Bar", null },
             { "Baz", "Foo" },
-            { "Qux", null }
+            { "Qux", null },
         };
 
         ValueTask Fetch(
@@ -359,7 +359,7 @@ public class DataLoaderTests
         {
             { "Foo", "Bar" },
             { "Bar", "Baz" },
-            { "Baz", "Foo" }
+            { "Baz", "Foo" },
         };
 
         ValueTask Fetch(
@@ -469,7 +469,7 @@ public class DataLoaderTests
         var options = new DataLoaderOptions
         {
             Caching = caching,
-            MaxBatchSize = batching ? 1 : maxBatchSize
+            MaxBatchSize = batching ? 1 : maxBatchSize,
         };
 
         var batchScheduler = new ManualBatchScheduler();

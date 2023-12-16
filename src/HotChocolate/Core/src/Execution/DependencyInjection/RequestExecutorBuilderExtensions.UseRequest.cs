@@ -141,7 +141,7 @@ public static partial class RequestExecutorBuilderExtensions
                     error,
                     new Dictionary<string, object?>
                     {
-                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
                     });
 
                 context.DiagnosticEvents.RequestError(context, new GraphQLException(error));

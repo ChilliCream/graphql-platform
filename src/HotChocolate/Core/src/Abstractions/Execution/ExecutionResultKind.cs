@@ -23,5 +23,5 @@ public enum ExecutionResultKind
     /// <summary>
     /// A subscription response stream.
     /// </summary>
-    SubscriptionResult
+    SubscriptionResult,
 }

@@ -20,7 +20,7 @@
     ],
     "Extensions": {
       "field": "name",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Required-Fields"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Required-Fields"
     },
     "Exception": null,
     "SyntaxNode": {

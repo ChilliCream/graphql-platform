@@ -710,8 +710,9 @@ public class SchemaCoordinateTests
                 {
                     o.StrictValidation = false;
                     o.RemoveUnreachableTypes = false;
+                    o.RemoveUnusedTypeSystemDirectives = false;
                 })
-            .Use(next => context => default)
+            .Use(_ => _ => default)
             .Create();
     }
 }

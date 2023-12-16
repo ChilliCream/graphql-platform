@@ -70,6 +70,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool RemoveUnreachableTypes { get; set; }
 
     /// <summary>
+    /// Defines if unused type system directives shall
+    /// be removed from the schema.
+    /// </summary>
+    public bool RemoveUnusedTypeSystemDirectives { get; set; } = true;
+
+    /// <summary>
     /// Defines the default binding behavior.
     /// </summary>
     public BindingBehavior DefaultBindingBehavior
@@ -208,12 +214,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
-    public bool StripLeadingIFromInterface { get; set; } = false;
+    public bool StripLeadingIFromInterface { get; set; }
 
     /// <summary>
     /// Specifies that the true nullability proto type shall be enabled.
     /// </summary>
-    public bool EnableTrueNullability { get; set; } = false;
+    public bool EnableTrueNullability { get; set; }
 
     /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
@@ -244,6 +250,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
+            RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
@@ -255,7 +262,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTrueNullability = options.EnableTrueNullability,
-            EnableTag = options.EnableTag
+            EnableTag = options.EnableTag,
         };
     }
 }

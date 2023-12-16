@@ -26,7 +26,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
             },
             null,
             t => t is FooType ? RootTypeKind.Query : RootTypeKind.None,
@@ -74,7 +74,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
             },
             null,
             t =>
@@ -82,7 +82,7 @@ public class TypeInitializerTests
                 return t switch
                 {
                     ObjectType<Foo> => RootTypeKind.Query,
-                    _ => RootTypeKind.None
+                    _ => RootTypeKind.None,
                 };
             },
             new SchemaOptions());
@@ -130,7 +130,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
             },
             null!,
             t =>
@@ -138,7 +138,7 @@ public class TypeInitializerTests
                 return t switch
                 {
                     ObjectType<Foo> => RootTypeKind.Query,
-                    _ => RootTypeKind.None
+                    _ => RootTypeKind.None,
                 };
             },
             null!);
