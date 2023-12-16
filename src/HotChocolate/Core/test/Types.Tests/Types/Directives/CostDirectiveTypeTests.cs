@@ -222,9 +222,10 @@ public class CostDirectiveTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var schema = CreateSchema(b => b.AddDirectiveType<CostDirectiveType>());
-        var directive =
-            schema.DirectiveTypes.OfType<CostDirectiveType>().FirstOrDefault();
+        var schema = CreateSchema(b => b
+            .AddDirectiveType<CostDirectiveType>()
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false));
+        var directive = schema.DirectiveTypes.OfType<CostDirectiveType>().FirstOrDefault();
 
         // assert
         Assert.NotNull(directive);
