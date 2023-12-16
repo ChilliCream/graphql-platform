@@ -849,7 +849,11 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
-                .ModifyOptions(o => o.EnableTag = false)
+                .ModifyOptions(o =>
+                {
+                    o.RemoveUnusedTypeSystemDirectives = false;
+                    o.EnableTag = false;
+                })
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromString(
@@ -873,7 +877,11 @@ public class BaseTests : IClassFixture<StitchingTestContext>
             await new ServiceCollection()
                 .AddSingleton(httpClientFactory)
                 .AddGraphQL()
-                .ModifyOptions(o => o.EnableTag = false)
+                .ModifyOptions(o =>
+                {
+                    o.RemoveUnusedTypeSystemDirectives = false;
+                    o.EnableTag = false;
+                })
                 .AddRemoteSchema(Context.ContractSchema)
                 .AddRemoteSchema(Context.CustomerSchema)
                 .AddTypeExtensionsFromResource(

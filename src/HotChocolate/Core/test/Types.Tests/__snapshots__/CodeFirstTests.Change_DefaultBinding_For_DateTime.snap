@@ -11,14 +11,6 @@ type QueryWithDateTime {
   model: ModelWithDateTime
 }
 
-<<<<<<< HEAD
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
-
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
-=======
->>>>>>> 3f34684f9c (Fixed issue that caused the tag directive to be ignored. (#6746))
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
 

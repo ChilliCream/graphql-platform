@@ -15,6 +15,7 @@ public class DelegateDirectiveTests
         var schemaDocument = SchemaBuilder.New()
             .ModifyOptions(x => x.StrictValidation = false)
             .AddDirectiveType<DelegateDirectiveType>()
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
             .Create()
             .ToDocument();
 
