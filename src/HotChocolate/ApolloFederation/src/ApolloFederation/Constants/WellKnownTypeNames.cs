@@ -17,10 +17,10 @@ internal static class WellKnownTypeNames
     public const string RequiresScopes = "requiresScopes";
     public const string Shareable = "shareable";
     public const string Tag = "tag";
-    public const string FieldSet = "_FieldSet";
-    public const string FieldSetV2 = "FieldSet";
+    public const string FieldSet = "FieldSet";
     public const string Scope = "Scope";
     public const string Any = "_Any";
     public const string Entity = "_Entity";
     public const string Service = "_Service";
+    public const string PolicyDirective = "Policy";
 }
