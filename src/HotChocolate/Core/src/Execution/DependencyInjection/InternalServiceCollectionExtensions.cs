@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using GreenDonut;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
@@ -230,7 +229,7 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
         where T : class, IParameterExpressionBuilder
     {
-        if (services.All(t => t.ImplementationType != typeof(T)))
+        if (!services.IsImplementationTypeRegistered<T>())
         {
             services.AddSingleton<IParameterExpressionBuilder, T>();
         }
