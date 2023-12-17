@@ -168,6 +168,9 @@
   <data name="EntityType_Description" xml:space="preserve">
     <value>Union of all types that key directive applied. This information is needed by the Apollo federation gateway.</value>
   </data>
+  <data name="PolicyDirective_Description" xml:space="preserve">
+    <value>Indicates to composition that the target element is restricted based on authorization policies that are evaluated in a Rhai script or coprocessor.</value>
+  </data>
   <data name="ThrowHelper_FieldSet_HasInvalidFormat" xml:space="preserve">
     <value>The fieldset has an invalid format.</value>
   </data>
