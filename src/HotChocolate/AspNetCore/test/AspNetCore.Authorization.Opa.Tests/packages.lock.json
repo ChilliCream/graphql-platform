@@ -1299,7 +1299,8 @@
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
-          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
+          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore.authorization.opa": {
@@ -1354,6 +1355,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
@@ -1520,6 +1522,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[6.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",
@@ -2813,7 +2821,8 @@
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
-          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
+          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore.authorization.opa": {
@@ -2868,6 +2877,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[7.0.0, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -3063,6 +3073,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[7.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",
@@ -4415,7 +4431,8 @@
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
-          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
+          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore.authorization.opa": {
@@ -4470,6 +4487,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[8.0.0, )",
           "System.Threading.Channels": "[8.0.0, )"
@@ -4665,6 +4683,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[8.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",
