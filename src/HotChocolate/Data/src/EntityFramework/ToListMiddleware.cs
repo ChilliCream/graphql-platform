@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -7,22 +8,15 @@ namespace HotChocolate.Data;
 
 #pragma warning disable CA1812
 
-internal sealed class ToListMiddleware<TEntity>
+internal sealed class ToListMiddleware<TEntity>(FieldDelegate next)
 {
-    private readonly FieldDelegate _next;
-
-    public ToListMiddleware(FieldDelegate next)
-    {
-        _next = next;
-    }
-
     public async ValueTask InvokeAsync(IMiddlewareContext context)
     {
-        await _next(context).ConfigureAwait(false);
+        await next(context).ConfigureAwait(false);
 
         context.Result = context.Result switch
         {
-            IQueryable<TEntity> queryable =>
+            IQueryable<TEntity> queryable and IAsyncEnumerable<TEntity> =>
                 await queryable
                     .ToListAsync(context.RequestAborted)
                     .ConfigureAwait(false),
