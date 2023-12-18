@@ -33,7 +33,7 @@ internal partial class DiscoverOperationsMiddleware : IOpenApiWrapperMiddleware
                         ? operationKeyValue.Value.Summary
                         : operationKeyValue.Value.Description,
                     Response = response.Value,
-                    RequestBody = operationKeyValue.Value.RequestBody
+                    RequestBody = operationKeyValue.Value.RequestBody,
                 };
 
                 foreach (var openApiParameter in operationKeyValue.Value.Parameters)

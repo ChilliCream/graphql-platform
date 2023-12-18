@@ -22,7 +22,7 @@ public class JsonConsoleOutputCommand  : IDisposable
 #else
                 IgnoreNullValues = true,
 #endif
-            IgnoreReadOnlyProperties = false
+            IgnoreReadOnlyProperties = false,
         });
         Console.WriteLine(json);
     }

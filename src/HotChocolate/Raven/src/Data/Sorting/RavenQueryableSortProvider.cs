@@ -30,6 +30,6 @@ internal sealed class RavenQueryableSortProvider : QueryableSortProvider
             RavenAsyncDocumentQueryExecutable<TEntityType> q =>
                 new RavenAsyncDocumentQueryExecutable<TEntityType>(
                     sort(q.Query.ToQueryable()).ToAsyncDocumentQuery()),
-            _ => input
+            _ => input,
         };
 }

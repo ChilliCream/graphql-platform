@@ -20,7 +20,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'i',
         (byte)'n',
         (byte)'i',
-        (byte)'t'
+        (byte)'t',
     };
 
     public static ReadOnlySpan<byte> ConnectionAccept => new[]
@@ -38,7 +38,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'_',
         (byte)'a',
         (byte)'c',
-        (byte)'k'
+        (byte)'k',
     };
 
     public static ReadOnlySpan<byte> ConnectionError => new[]
@@ -58,13 +58,13 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'r',
         (byte)'r',
         (byte)'o',
-        (byte)'r'
+        (byte)'r',
     };
 
     public static ReadOnlySpan<byte> KeepAlive => new[]
     {
         (byte)'k',
-        (byte)'a'
+        (byte)'a',
     };
 
     public static ReadOnlySpan<byte> ConnectionTerminate => new[]
@@ -88,7 +88,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'n',
         (byte)'a',
         (byte)'t',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> Start => new[]
@@ -97,7 +97,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'t',
         (byte)'a',
         (byte)'r',
-        (byte)'t'
+        (byte)'t',
     };
 
     public static ReadOnlySpan<byte> Data => new[]
@@ -105,7 +105,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'d',
         (byte)'a',
         (byte)'t',
-        (byte)'a'
+        (byte)'a',
     };
 
     public static ReadOnlySpan<byte> Error => new[]
@@ -114,7 +114,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'r',
         (byte)'r',
         (byte)'o',
-        (byte)'r'
+        (byte)'r',
     };
 
     public static ReadOnlySpan<byte> Complete => new[]
@@ -126,7 +126,7 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'l',
         (byte)'e',
         (byte)'t',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> Stop => new[]
@@ -134,6 +134,6 @@ public static class GraphQLWebSocketMessageTypeSpans
         (byte)'s',
         (byte)'t',
         (byte)'o',
-        (byte)'p'
+        (byte)'p',
     };
 }

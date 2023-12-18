@@ -7,5 +7,5 @@ public enum AllowedGetOperations
     Mutation = 2,
     Subscription = 4,
     QueryAndMutation = Query | Mutation,
-    All = Query | Mutation | Subscription
+    All = Query | Mutation | Subscription,
 }

@@ -18,15 +18,15 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
                 BarShort = 15,
                 NestedObject = new BarNullableDeep
                 {
-                    Foo = new FooDeep { BarString = "Foo" }
-                }
-            }
+                    Foo = new FooDeep { BarString = "Foo" },
+                },
+            },
         },
         new()
         {
-            Number = 2, Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 }
+            Number = 2, Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 },
         },
-        new() { Number = 2 }
+        new() { Number = 2 },
     };
 
     private readonly SchemaCache _cache;
@@ -211,6 +211,6 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

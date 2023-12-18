@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
                 new Baz { Id = "BarId" },
                 new Baz2 { Id = "Bar2Id" },
                 new Quox { Foo = "QuoxFoo" },
-                new Quox2 { Foo = "Quox2Foo" }
+                new Quox2 { Foo = "Quox2Foo" },
             };
         }
 

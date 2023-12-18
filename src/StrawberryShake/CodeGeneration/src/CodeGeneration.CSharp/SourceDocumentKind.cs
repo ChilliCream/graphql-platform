@@ -4,5 +4,5 @@ public enum SourceDocumentKind
 {
     CSharp,
     Razor,
-    GraphQL
+    GraphQL,
 }

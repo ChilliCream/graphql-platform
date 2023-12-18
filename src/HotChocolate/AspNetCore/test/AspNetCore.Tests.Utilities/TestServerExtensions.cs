@@ -208,7 +208,7 @@ public static class TestServerExtensions
         {
             StatusCode = response.StatusCode,
             ContentType = response.Content.Headers.ContentType!.ToString(),
-            Content = await response.Content.ReadAsStringAsync()
+            Content = await response.Content.ReadAsStringAsync(),
         };
     }
 

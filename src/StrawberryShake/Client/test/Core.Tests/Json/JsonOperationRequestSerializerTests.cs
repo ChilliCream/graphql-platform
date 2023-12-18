@@ -24,10 +24,10 @@ public class JsonOperationRequestSerializerTests
                     new KeyValuePair<string, object?>[]
                     {
                         new("s", "def"),
-                    }
+                    },
                 }),
                 new("sl", new List<string> { "a", "b", "c" }),
-                new("il", new[] { 1, 2, 3 })
+                new("il", new[] { 1, 2, 3 }),
         };
 
         // act
@@ -98,7 +98,7 @@ public class JsonOperationRequestSerializerTests
                     new KeyValuePair<string, object?>[]
                     {
                         new("s", "def"),
-                    }
+                    },
             });
         operationRequest.Extensions.Add("sl", new List<string> { "a", "b", "c" });
         operationRequest.Extensions.Add("il", new[] { 1, 2, 3 });

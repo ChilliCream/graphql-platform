@@ -35,7 +35,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }"
+                }",
             });
 
             // assert
@@ -64,7 +64,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }"
+                }",
             });
 
             // assert
@@ -93,7 +93,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     hero {
                         name
                     }
-                }"
+                }",
             });
 
             // assert
@@ -123,7 +123,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
             });
 
             // assert
@@ -157,7 +157,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
             });
 
             // assert
@@ -191,7 +191,7 @@ public class ServerInstrumentationTests : ServerTestBase
                         name
                     }
                 }",
-                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
             });
 
             // assert
@@ -222,7 +222,7 @@ public class ServerInstrumentationTests : ServerTestBase
                     }
                 }",
                 Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
-                Extensions = new Dictionary<string, object?> { { "test", "abc" } }
+                Extensions = new Dictionary<string, object?> { { "test", "abc" } },
             });
 
             // assert
@@ -280,7 +280,7 @@ public class ServerInstrumentationTests : ServerTestBase
                             id
                         }
                     }
-                }"
+                }",
             });
 
             // assert
@@ -319,7 +319,7 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }"
+                }",
             });
 
             // assert
@@ -358,7 +358,7 @@ public class ServerInstrumentationTests : ServerTestBase
                             }
                         }
                     }
-                }"
+                }",
             });
 
             // assert
@@ -389,7 +389,7 @@ public class ServerInstrumentationTests : ServerTestBase
                 Query = @"
                 {
                     1
-                }"
+                }",
             });
 
             // assert
@@ -420,7 +420,7 @@ public class ServerInstrumentationTests : ServerTestBase
                 Query = @"
                 {
                     abc
-                }"
+                }",
             });
 
             // assert

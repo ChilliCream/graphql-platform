@@ -25,7 +25,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket
+                    Subscription = TransportType.WebSocket,
                 });
         }
 
@@ -56,7 +56,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket
+                    Subscription = TransportType.WebSocket,
                 });
         }
 

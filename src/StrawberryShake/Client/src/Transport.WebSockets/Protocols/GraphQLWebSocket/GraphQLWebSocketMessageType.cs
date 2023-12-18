@@ -168,5 +168,5 @@ internal enum GraphQLWebSocketMessageType
     /// </code>
     /// </example>
     /// </summary>
-    Stop
+    Stop,
 }

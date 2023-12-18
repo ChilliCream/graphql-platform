@@ -46,7 +46,7 @@ public class OperationDescriptorMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default
+                TransportProfile.Default,
             });
         TypeDescriptorMapper.Map(clientModel, context);
         OperationDescriptorMapper.Map(clientModel, context);
