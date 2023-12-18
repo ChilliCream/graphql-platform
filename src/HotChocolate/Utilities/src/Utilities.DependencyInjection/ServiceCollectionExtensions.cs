@@ -9,9 +9,9 @@ internal static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
 #if NET8_0_OR_GREATER
-        return services.All(t => !t.IsKeyedService && t.ImplementationType != typeof(TService));
+        return services.Any(t => !t.IsKeyedService && t.ImplementationType == typeof(TService));
 #else
-        return services.All(t => t.ImplementationType != typeof(TService));
+        return services.Any(t => t.ImplementationType == typeof(TService));
 #endif
     }
 
@@ -19,9 +19,9 @@ internal static class ServiceCollectionExtensions
         this IServiceCollection services)
     {
 #if NET8_0_OR_GREATER
-        return services.All(t => !t.IsKeyedService && t.ServiceType != typeof(TService));
+        return services.Any(t => !t.IsKeyedService && t.ServiceType == typeof(TService));
 #else
-        return services.All(t => t.ServiceType != typeof(TService));
+        return services.Any(t => t.ServiceType == typeof(TService));
 #endif
     }
 
