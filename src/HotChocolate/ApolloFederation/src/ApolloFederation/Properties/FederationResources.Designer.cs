@@ -222,6 +222,15 @@ namespace HotChocolate.ApolloFederation.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indicates to composition that the target element is restricted based on authorization policies that are evaluated in a Rhai script or coprocessor..
+        /// </summary>
+        internal static string PolicyDirective_Description {
+            get {
+                return ResourceManager.GetString("PolicyDirective_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway..
         /// </summary>
         internal static string ProvidesDirective_Description {

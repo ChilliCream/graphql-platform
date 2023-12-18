@@ -134,6 +134,6 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
     private static string SerializeSelectionSet(SelectionSetNode selectionSet)
     {
         var s = selectionSet.ToString(false);
-        return s.Substring(1, s.Length - 2).Trim();
+        return s.AsSpan()[1 .. ^1].Trim().ToString();
     }
 }
