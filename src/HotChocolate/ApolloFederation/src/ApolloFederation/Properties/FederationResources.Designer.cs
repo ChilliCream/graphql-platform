@@ -9,8 +9,8 @@
 
 namespace HotChocolate.ApolloFederation.Properties {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +22,15 @@ namespace HotChocolate.ApolloFederation.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FederationResources {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal FederationResources() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +44,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +58,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema..
         /// </summary>
@@ -67,7 +67,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("Any_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Indicates to composition that the target element is accessible only to the authenticated supergraph users..
         /// </summary>
@@ -76,7 +76,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("AuthenticatedDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Marks underlying custom directive to be included in the Supergraph schema..
         /// </summary>
@@ -85,7 +85,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ComposeDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Provides contact information of the owner responsible for this subgraph schema..
         /// </summary>
@@ -94,7 +94,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ContactDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The EntityResolver must be a method. Please check if the EntityResolverAttribute is correctly set to a method..
         /// </summary>
@@ -103,7 +103,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("EntityResolver_MustBeMethod", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Union of all types that key directive applied. This information is needed by the Apollo federation gateway..
         /// </summary>
@@ -112,7 +112,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("EntityType_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The specified key `{0}` does not exist on `context.ScopedContextData`..
         /// </summary>
@@ -121,7 +121,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Directive to indicate that marks target object as extending part of the federated schema..
         /// </summary>
@@ -130,7 +130,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ExtendsDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Directive to indicate that a field is owned by another service, for example via Apollo federation..
         /// </summary>
@@ -139,7 +139,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ExternalDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Value cannot be null or empty..
         /// </summary>
@@ -148,7 +148,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Value cannot be null or empty..
         /// </summary>
@@ -157,7 +157,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("FieldDescriptorExtensions_Override_From_CannotBeNullOrEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Value cannot be null or empty..
         /// </summary>
@@ -166,7 +166,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Value cannot be null or empty..
         /// </summary>
@@ -175,7 +175,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scalar representing a set of fields..
         /// </summary>
@@ -184,7 +184,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("FieldsetType_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Marks location within schema as inaccessible from the GraphQL Gateway.
         /// </summary>
@@ -193,7 +193,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("InaccessibleDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Provides meta information to the router that this entity type is an interface in the supergraph..
         /// </summary>
@@ -202,7 +202,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("InterfaceObjectDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface..
         /// </summary>
@@ -211,7 +211,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("KeyDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another..
         /// </summary>
@@ -220,7 +220,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("OverrideDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Indicates to composition that the target element is restricted based on authorization policies that are evaluated in a Rhai script or coprocessor..
         /// </summary>
@@ -229,7 +229,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("PolicyDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway..
         /// </summary>
@@ -238,7 +238,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ProvidesDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Used to annotate the required input fieldset from a base type for a resolver..
         /// </summary>
@@ -247,7 +247,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("RequiresDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Indicates to composition that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes..
         /// </summary>
@@ -256,7 +256,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("RequiresScopesDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The expression must refer to a method representing the reference resolver..
         /// </summary>
@@ -265,7 +265,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ResolveReference_MustBeMethod", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scalar representing a JWT scope.
         /// </summary>
@@ -274,7 +274,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ScopeType_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to This type provides a field named sdl: String! which exposes the SDL of the service&apos;s schema. This SDL (schema definition language) is a printed version of the service&apos;s schema including the annotations of federation directives. This SDL does not include the additions of the federation spec..
         /// </summary>
@@ -283,7 +283,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ServiceType_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Indicates that given object and/or field can be resolved by multiple subgraphs..
         /// </summary>
@@ -292,7 +292,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ShareableDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Allows users to annotate fields and types with additional metadata information..
         /// </summary>
@@ -301,7 +301,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("TagDirective_Description", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The given any representation has an invalid format..
         /// </summary>
@@ -310,7 +310,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_Any_HasInvalidFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The compose directive attribute is used on `{0}` without specifying the name..
         /// </summary>
@@ -319,7 +319,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_ComposeDirective_Name_CannotBeEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The contact attribute is used on `{0}` without specifying the name..
         /// </summary>
@@ -328,7 +328,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_Contact_Name_CannotBeEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The apollo gateway tries to resolve an entity for which no EntityResolver method was found..
         /// </summary>
@@ -337,7 +337,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_EntityResolver_NoEntityResolverFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The schema has no types with a KeyDirective and therefore no entities. Apollo federation requires at least one entity..
         /// </summary>
@@ -346,7 +346,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_EntityType_NoEntities", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Specified federation version `{0}` is not supported..
         /// </summary>
@@ -355,7 +355,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_FederationVersion_Unknown", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The fieldset has an invalid format..
         /// </summary>
@@ -364,7 +364,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_FieldSet_HasInvalidFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The key attribute is used on `{0}` without specifying the field set..
         /// </summary>
@@ -373,7 +373,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_Key_FieldSet_CannotBeEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The link attribute is used on `{0}` without specifying the url..
         /// </summary>
@@ -382,7 +382,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_Link_Url_CannotBeEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to FieldSet is null or empty on type.
         /// </summary>
@@ -391,7 +391,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_Provides_FieldSet_CannotBeEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to FieldSet is null or empty on type.
         /// </summary>
@@ -400,7 +400,7 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("ThrowHelper_Requires_FieldSet_CannotBeEmpty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to {0} cannot parse the given value of type `{1}`.
         /// </summary>
