@@ -36,37 +36,70 @@ public class SqlLiteCursorTestBase
     {
         var builder = SchemaBuilder.New()
             .AddQueryType(
-                c => c.Name("Query")
-                    .Field("root")
-                    .UseDbContext<DatabaseContext<TEntity>>()
-                    .Resolve(ctx =>
-                    {
-                        var context =
-                            ctx.DbContext<DatabaseContext<TEntity>>();
-                        BuildContext(context, entities);
-                        return context.Data;
-                    })
-                    .Use(
-                        next => async context =>
-                        {
-                            await next(context);
+                c =>
+                {
+                    c.Name("Query");
 
-                            if (context.Result is IQueryable<TEntity> queryable)
+                    c.Field("root")
+                        .UseDbContext<DatabaseContext<TEntity>>()
+                        .Resolve(
+                            ctx =>
                             {
-                                try
+                                var context =
+                                    ctx.DbContext<DatabaseContext<TEntity>>();
+                                BuildContext(context, entities);
+                                return context.Data;
+                            })
+                        .Use(
+                            next => async context =>
+                            {
+                                await next(context);
+
+                                if (context.Result is IQueryable<TEntity> queryable)
                                 {
-                                    context.ContextData["sql"] = queryable.ToQueryString();
+                                    try
+                                    {
+                                        context.ContextData["sql"] = queryable.ToQueryString();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        context.ContextData["sql"] = ex.Message;
+                                    }
                                 }
-                                catch (Exception ex)
+                            })
+                        .UsePaging<ObjectType<TEntity>>(
+                            options: new()
+                            {
+                                IncludeTotalCount = true,
+                            });
+
+                    c.Field("root1")
+                        .UseDbContext<DatabaseContext<TEntity>>()
+                        .Resolve(
+                            ctx =>
+                            {
+                                var context = ctx.DbContext<DatabaseContext<TEntity>>();
+                                BuildContext(context, entities);
+                                return context.Data.ToArray().AsQueryable();
+                            })
+                        .Use(
+                            next => async context =>
+                            {
+                                await next(context);
+
+                                if (context.Result is IQueryable<TEntity> queryable)
                                 {
-                                    context.ContextData["sql"] = ex.Message;
+                                    try
+                                    {
+                                        context.ContextData["sql"] = queryable.ToQueryString();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        context.ContextData["sql"] = ex.Message;
+                                    }
                                 }
-                            }
-                        })
-                    .UsePaging<ObjectType<TEntity>>(options: new()
-                    {
-                        IncludeTotalCount = true
-                    }));
+                            });
+                });
 
         var schema = builder.Create();
 

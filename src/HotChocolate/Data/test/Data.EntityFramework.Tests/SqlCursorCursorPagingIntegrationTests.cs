@@ -44,6 +44,24 @@ public class SqlCursorPagingIntegrationTests : SqlLiteCursorTestBase
         // assert
         result.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task In_Memory_Queryable_Does_Not_Throw()
+    {
+        // arrange
+        var executor = CreateSchema(Data);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            @"{
+                root1 {
+                  foo
+                }
+            }");
+
+        // assert
+        result.MatchSnapshot();
+    }
 
     [Fact]
     public async Task No_Boundaries_Set()
