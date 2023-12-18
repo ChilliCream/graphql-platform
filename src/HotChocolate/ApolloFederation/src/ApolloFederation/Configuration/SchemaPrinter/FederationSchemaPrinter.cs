@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Language;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
@@ -123,29 +124,9 @@ public static partial class FederationSchemaPrinter
         Context context)
     {
         context.TypeNames.Add(namedType.Name);
-        return new NamedTypeNode(null, new NameNode(namedType.Name));
-    }
-
-    internal struct MaybeList<T>
-    {
-        public MaybeList(List<T>? list)
-        {
-            _list = list;
-        }
-
-        private List<T>? _list;
-        public List<T> GetOrCreateList() => _list ??= new();
-        public IReadOnlyList<T> ReadOnlyList
-        {
-            get
-            {
-                if (_list is not null)
-                {
-                    return _list;
-                }
-                return Array.Empty<T>();
-            }
-        }
+        return new NamedTypeNode(
+            location: null,
+            new NameNode(namedType.Name));
     }
 
     private static MaybeList<DirectiveNode> SerializeDirectives(
