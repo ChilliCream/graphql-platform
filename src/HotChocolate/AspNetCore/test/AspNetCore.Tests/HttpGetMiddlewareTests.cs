@@ -88,7 +88,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -111,7 +111,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         HERO: hero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -133,7 +133,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", 1.539 } }
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 } },
                 },
                 "/arguments");
 
@@ -156,7 +156,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } },
                 },
                 "/arguments");
 
@@ -164,7 +164,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             double.MaxValue,
-            result
+            result,
         }.MatchSnapshot();
     }
 
@@ -183,7 +183,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } }
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } },
                 },
                 "/arguments");
 
@@ -191,7 +191,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             double.MinValue,
-            result
+            result,
         }.MatchSnapshot();
     }
 
@@ -210,7 +210,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } },
                 },
                 "/arguments");
 
@@ -218,7 +218,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             decimal.MaxValue,
-            result
+            result,
         }.MatchSnapshot();
     }
 
@@ -237,7 +237,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } }
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } },
                 },
                 "/arguments");
 
@@ -245,7 +245,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new
         {
             decimal.MinValue,
-            result
+            result,
         }.MatchSnapshot();
     }
 
@@ -268,8 +268,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     }",
                     Variables = new Dictionary<string, object?>
                     {
-                        { "episode", "NEW_HOPE" }
-                    }
+                        { "episode", "NEW_HOPE" },
+                    },
                 });
 
         // assert
@@ -295,8 +295,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     }",
                     Variables = new Dictionary<string, object?>
                     {
-                        { "id", "1000" }
-                    }
+                        { "id", "1000" },
+                    },
                 });
 
         // assert
@@ -311,7 +311,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
                 }));
 
         // act
@@ -338,8 +338,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
                             }
-                        }
-                    }
+                        },
+                    },
                 });
 
         // assert
@@ -354,7 +354,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
                 }));
 
         // act
@@ -380,8 +380,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
                             }
-                        }
-                    }
+                        },
+                    },
                 });
 
         // assert
@@ -396,7 +396,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
                 }));
 
         // act
@@ -421,8 +421,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
-                        { "commentary", "This is a great movie!" }
-                    }
+                        { "commentary", "This is a great movie!" },
+                    },
                 });
 
         // assert
@@ -458,8 +458,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                     {
                         { "ep", "EMPIRE" },
                         { "stars", 5 },
-                        { "commentary", "This is a great movie!" }
-                    }
+                        { "commentary", "This is a great movie!" },
+                    },
                 });
 
         // assert
@@ -491,7 +491,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    OperationName = operationName
+                    OperationName = operationName,
                 });
 
         // assert
@@ -515,7 +515,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } }
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
                 });
 
         // assert
@@ -538,7 +538,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         ähero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -575,8 +575,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
                             }
-                        }
-                    }
+                        },
+                    },
                 });
 
         // assert
@@ -591,7 +591,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
             configureConventions: e => e.WithOptions(
                 new GraphQLServerOptions
                 {
-                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    AllowedGetOperations = AllowedGetOperations.QueryAndMutation,
                 }));
 
         // act
@@ -618,8 +618,8 @@ public class HttpGetMiddlewareTests : ServerTestBase
                                 { "stars", 5 },
                                 { "commentary", "This is a great movie!" },
                             }
-                        }
-                    }
+                        },
+                    },
                 });
 
         // assert
@@ -635,7 +635,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 new GraphQLServerOptions
                 {
                     EnableGetRequests = false,
-                    Tool = { Enable = false }
+                    Tool = { Enable = false },
                 }));
 
         // act
@@ -648,7 +648,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert
@@ -709,7 +709,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         new[]
         {
             resultA,
-            resultB
+            resultB,
         }.MatchSnapshot();
     }
 
@@ -755,7 +755,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                         hero {
                             name
                         }
-                    }"
+                    }",
                 });
 
         // assert

@@ -113,8 +113,8 @@ public class BsonTypeTests
             {
                 ["val"] = new Dictionary<string, object>
                 {
-                    ["foo"] = true
-                }
+                    ["foo"] = true,
+                },
             });
 
         // assert
@@ -146,7 +146,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = new List<string> { "foo", "bar" }
+                ["val"] = new List<string> { "foo", "bar" },
             });
 
         // assert
@@ -255,7 +255,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = value
+                ["val"] = value,
             });
 
         // assert
@@ -1112,7 +1112,7 @@ public class BsonTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new StringValueNode("Bar") }
+            { "Foo", new StringValueNode("Bar") },
         };
 
         // act
@@ -1139,7 +1139,7 @@ public class BsonTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } }
+            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } },
         };
 
         // act
@@ -1213,7 +1213,7 @@ public class BsonTypeTests
             3,
             4,
             5,
-            6
+            6,
         });
 
         public BsonDecimal128 Decimal => new(42.123456789123456789123456789123456789123456789m);
@@ -1225,7 +1225,7 @@ public class BsonTypeTests
         public BsonArray BsonArray => new(new[]
         {
             BsonBoolean.False,
-            BsonBoolean.True
+            BsonBoolean.True,
         });
 
         public BsonString String => new("String");
@@ -1248,7 +1248,7 @@ public class BsonTypeTests
                 3,
                 4,
                 5,
-                6
+                6,
             }),
             ["Double"] = new BsonDouble(42.23),
             ["Double"] = new BsonDouble(42.23),
@@ -1256,7 +1256,7 @@ public class BsonTypeTests
             ["BsonArray"] = new BsonArray(new[]
             {
                 BsonBoolean.False,
-                BsonBoolean.True
+                BsonBoolean.True,
             }),
             ["String"] = new BsonString("String"),
             ["Null"] = BsonNull.Value,
@@ -1264,7 +1264,7 @@ public class BsonTypeTests
             {
                 ["Int32"] = new BsonInt32(42),
                 ["Int64"] = new BsonInt64(42),
-            }
+            },
         };
     }
 }

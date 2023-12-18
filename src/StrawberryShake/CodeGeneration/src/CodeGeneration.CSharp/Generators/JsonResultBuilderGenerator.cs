@@ -362,7 +362,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             InterfaceTypeDescriptor
             {
                 ImplementedBy.Count: > 1,
-                ParentRuntimeType: { } parentRuntimeType
+                ParentRuntimeType: { } parentRuntimeType,
             } => parentRuntimeType.Name,
 
             INamedTypeDescriptor { Kind: TypeKind.Entity } d =>
@@ -381,7 +381,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                 : "NonNullable" + BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
         };
     }
 }

@@ -42,7 +42,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         DateSerializer,
         ByteArraySerializer,
         TimeSpanSerializer,
-        JsonSerializer
+        JsonSerializer,
     };
 
     private static readonly Dictionary<string, string> _alternativeTypeNames = new()
@@ -53,7 +53,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Uri"] = UrlSerializer,
         ["URI"] = UrlSerializer,
         ["JSON"] = JsonSerializer,
-        ["Json"] = JsonSerializer
+        ["Json"] = JsonSerializer,
     };
 
     protected override void Generate(
@@ -534,7 +534,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 SubscriptionOperationDescriptor => profile.Subscription,
                 QueryOperationDescriptor => profile.Query,
                 MutationOperationDescriptor => profile.Mutation,
-                _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation)
+                _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation),
             };
 
             var connectionKind = operationKind switch
@@ -542,7 +542,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 TransportType.Http => IHttpConnection,
                 TransportType.WebSocket => IWebSocketConnection,
                 TransportType.InMemory => IInMemoryConnection,
-                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v),
             };
 
             var operationName = operation.Name;
@@ -788,7 +788,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             TransportType.WebSocket => RegisterWebSocketConnection(clientName),
             TransportType.Http => RegisterHttpConnection(clientName),
             TransportType.InMemory => RegisterInMemoryConnection(clientName),
-            var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+            var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v),
         };
     }
 

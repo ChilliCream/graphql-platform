@@ -2758,7 +2758,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         /// <summary>
         /// Indicates this type is a non-null. `ofType` is a valid field.
         /// </summary>
-        NonNull
+        NonNull,
     }
 
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]

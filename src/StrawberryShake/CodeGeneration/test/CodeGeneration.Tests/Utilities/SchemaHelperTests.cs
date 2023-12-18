@@ -21,7 +21,7 @@ public class SchemaHelperTests
                 new GraphQLFile[]
                 {
                     new("GitHub.graphql", Utf8GraphQLParser.Parse(schemaSdl)),
-                    new("GitHub.extensions.graphql", Utf8GraphQLParser.Parse(extensionsSdl))
+                    new("GitHub.extensions.graphql", Utf8GraphQLParser.Parse(extensionsSdl)),
                 });
 
         // assert

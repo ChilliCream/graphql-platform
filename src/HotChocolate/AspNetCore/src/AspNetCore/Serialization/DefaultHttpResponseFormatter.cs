@@ -50,8 +50,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 Json = new JsonResultFormatterOptions
                 {
                     Indented = indented,
-                    Encoder = encoder
-                }
+                    Encoder = encoder,
+                },
             })
     {
     }
@@ -409,7 +409,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             SingleResult => ResultKind.Single,
             SubscriptionResult => ResultKind.Subscription,
-            _ => ResultKind.Stream
+            _ => ResultKind.Stream,
         };
 
         ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
@@ -568,7 +568,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         Single,
         Stream,
-        Subscription
+        Subscription,
     }
 
     private sealed class SealedDefaultHttpResponseFormatter : DefaultHttpResponseFormatter

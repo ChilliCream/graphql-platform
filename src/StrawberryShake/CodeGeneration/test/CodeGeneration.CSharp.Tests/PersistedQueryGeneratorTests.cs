@@ -11,7 +11,7 @@ public class PersistedQueryGeneratorTests
         AssertResult(
             new AssertSettings
             {
-                RequestStrategy = RequestStrategyGen.PersistedQuery
+                RequestStrategy = RequestStrategyGen.PersistedQuery,
             },
             "query GetPerson { person { name email } }",
             "type Query { person: Person }",

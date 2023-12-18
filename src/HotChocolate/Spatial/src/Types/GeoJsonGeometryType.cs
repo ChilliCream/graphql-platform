@@ -8,5 +8,5 @@ public enum GeoJsonGeometryType
     MultiLineString,
     Polygon,
     MultiPolygon,
-    GeometryCollection
+    GeometryCollection,
 }

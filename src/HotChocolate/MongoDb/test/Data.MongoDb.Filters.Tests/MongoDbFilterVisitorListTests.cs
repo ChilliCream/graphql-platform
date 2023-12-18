@@ -18,8 +18,8 @@ public class MongoDbFilterVisitorListTests
             {
                 new FooNested { Bar = "a" },
                 new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a" },
+            },
         },
         new()
         {
@@ -27,8 +27,8 @@ public class MongoDbFilterVisitorListTests
             {
                 new FooNested { Bar = "c" },
                 new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a" },
+            },
         },
         new()
         {
@@ -36,8 +36,8 @@ public class MongoDbFilterVisitorListTests
             {
                 new FooNested { Bar = "a" },
                 new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "b" },
+            },
         },
         new()
         {
@@ -45,8 +45,8 @@ public class MongoDbFilterVisitorListTests
             {
                 new FooNested { Bar = "c" },
                 new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "b" },
+            },
         },
         new()
         {
@@ -54,11 +54,11 @@ public class MongoDbFilterVisitorListTests
             {
                 new FooNested { Bar = null },
                 new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "b" },
+            },
         },
         new() { FooNested = null },
-        new() { FooNested = Array.Empty<FooNested>() }
+        new() { FooNested = Array.Empty<FooNested>() },
     };
 
     private static readonly FooSimple[] _fooSimple =
@@ -69,8 +69,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "a",
                 "a",
-                "a"
-            }
+                "a",
+            },
         },
         new()
         {
@@ -78,8 +78,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "c",
                 "a",
-                "a"
-            }
+                "a",
+            },
         },
         new()
         {
@@ -87,8 +87,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "a",
                 "d",
-                "b"
-            }
+                "b",
+            },
         },
         new()
         {
@@ -96,8 +96,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "c",
                 "d",
-                "b"
-            }
+                "b",
+            },
         },
         new()
         {
@@ -105,11 +105,11 @@ public class MongoDbFilterVisitorListTests
             {
                 null,
                 "d",
-                "b"
-            }
+                "b",
+            },
         },
         new() { Bar = null },
-        new() { Bar = Array.Empty<string>() }
+        new() { Bar = Array.Empty<string>() },
     };
 
     public MongoDbFilterVisitorListTests(MongoResource resource)

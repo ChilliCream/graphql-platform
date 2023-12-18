@@ -127,9 +127,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
                 {
                     new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
                     new MediaTypeWithQualityHeaderValue(ContentType.Json),
-                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
-                }
-            }
+                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream),
+                },
+            },
         };
 
         if (method == GraphQLHttpMethod.Post)

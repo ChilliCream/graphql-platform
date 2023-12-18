@@ -31,7 +31,7 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
         {
             var outputField = new OutputField(GetFieldName(operation.Value.OperationId))
             {
-                Type = context.OperationPayloadTypeLookup[operation.Value.OperationId]
+                Type = context.OperationPayloadTypeLookup[operation.Value.OperationId],
             };
 
             if (operation.Value.Parameters.Count > 0 || operation.Value.RequestBody is not null)

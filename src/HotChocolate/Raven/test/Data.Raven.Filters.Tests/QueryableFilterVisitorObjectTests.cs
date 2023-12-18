@@ -21,9 +21,9 @@ public class QueryableFilterVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                }
-            }
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } },
+                },
+            },
         },
         new()
         {
@@ -35,9 +35,9 @@ public class QueryableFilterVisitorObjectTests
                 BarString = "testbtest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
-                }
-            }
+                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } },
+                },
+            },
         },
         new()
         {
@@ -48,8 +48,8 @@ public class QueryableFilterVisitorObjectTests
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 ObjectArray = null,
-            }
-        }
+            },
+        },
     };
 
     private static readonly BarNullable[] _barNullableEntities =
@@ -64,9 +64,9 @@ public class QueryableFilterVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = 12 } }
-                }
-            }
+                    new() { Foo = new FooNullable { BarShort = 12 } },
+                },
+            },
         },
         new()
         {
@@ -78,9 +78,9 @@ public class QueryableFilterVisitorObjectTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = null } }
-                }
-            }
+                    new() { Foo = new FooNullable { BarShort = null } },
+                },
+            },
         },
         new()
         {
@@ -92,9 +92,9 @@ public class QueryableFilterVisitorObjectTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = 14 } }
-                }
-            }
+                    new() { Foo = new FooNullable { BarShort = 14 } },
+                },
+            },
         },
         new()
         {
@@ -104,9 +104,9 @@ public class QueryableFilterVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null
-            }
-        }
+                ObjectArray = null,
+            },
+        },
     };
 
     private readonly SchemaCache _cache;
@@ -705,6 +705,6 @@ public class QueryableFilterVisitorObjectTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }
