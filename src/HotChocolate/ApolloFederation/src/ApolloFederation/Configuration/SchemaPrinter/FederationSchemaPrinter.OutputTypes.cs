@@ -28,7 +28,7 @@ public static partial class FederationSchemaPrinter
         if (objectType.ContextData.ContainsKey(Constants.WellKnownContextData.ExtendMarker))
         {
             return new ObjectTypeExtensionNode(
-                null,
+                location: null,
                 new NameNode(objectType.Name),
                 directives.ReadOnlyList,
                 interfaces,
@@ -36,7 +36,7 @@ public static partial class FederationSchemaPrinter
         }
 
         return new ObjectTypeDefinitionNode(
-            null,
+            location: null,
             new NameNode(objectType.Name),
             SerializeDescription(objectType.Description),
             directives.ReadOnlyList,
@@ -55,7 +55,7 @@ public static partial class FederationSchemaPrinter
             .ToList();
 
         return new InterfaceTypeDefinitionNode(
-            null,
+            location: null,
             new NameNode(interfaceType.Name),
             SerializeDescription(interfaceType.Description),
             directives.ReadOnlyList,
@@ -74,7 +74,7 @@ public static partial class FederationSchemaPrinter
             .ToList();
 
         return new UnionTypeDefinitionNode(
-            null,
+            location: null,
             new NameNode(unionType.Name),
             SerializeDescription(unionType.Description),
             directives.ReadOnlyList,
