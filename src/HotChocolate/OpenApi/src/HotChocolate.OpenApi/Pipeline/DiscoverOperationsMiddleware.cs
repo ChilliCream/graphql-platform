@@ -41,7 +41,11 @@ internal partial class DiscoverOperationsMiddleware : IOpenApiWrapperMiddleware
                     resultOperation.AddParameter(openApiParameter);
                 }
 
-                if (context.Operations.ContainsKey(resultOperation.OperationId)) continue;
+                if (context.Operations.ContainsKey(resultOperation.OperationId))
+                {
+                    continue;
+                }
+
                 context.Operations.Add(resultOperation.OperationId, resultOperation);
             }
         }
