@@ -23,6 +23,7 @@ internal readonly struct FederationVersionValues<T>
     public ref T V23 => ref this[FederationVersion.Federation23];
     public ref T V24 => ref this[FederationVersion.Federation24];
     public ref T V25 => ref this[FederationVersion.Federation25];
+    public ref T V26 => ref this[FederationVersion.Federation26];
 
     public bool AllSet
     {
@@ -87,6 +88,9 @@ internal sealed class FederationUtils
         _imports.V25 = new(_imports.V24);
         _imports.V25.Add("@authenticated");
         _imports.V25.Add("@requiresPolicy");
+
+        _imports.V26 = new(_imports.V25);
+        _imports.V26.Add("@policy");
 
         Debug.Assert(_imports.AllSet);
 
