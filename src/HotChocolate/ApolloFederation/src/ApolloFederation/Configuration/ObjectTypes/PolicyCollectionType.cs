@@ -4,8 +4,6 @@ using HotChocolate.Language;
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
-/// A union called _Entity which is a union of all types that use the @key directive,
-/// including both types native to the schema and extended types.
 /// </summary>
 public sealed class PolicyCollectionType : ScalarType<PolicyCollection, ListValueNode>
 {
