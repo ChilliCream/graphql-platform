@@ -30,7 +30,9 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
         Url = requestUri ?? throw new ArgumentNullException(nameof(requestUri));
 
         if(claimsIdentities != null)
+        {
             Identities = claimsIdentities;
+        }
 
         if (!string.IsNullOrEmpty(requestBody))
         {
