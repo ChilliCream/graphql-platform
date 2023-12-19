@@ -77,10 +77,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     public IObjectTypeDescriptor ResolveReferenceWith<TResolver>(
         Expression<Func<TResolver, object?>> method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var member = method.TryExtractMember(true);
 
@@ -97,10 +94,7 @@ public sealed class EntityResolverDescriptor<TEntity>
     /// <inheritdoc cref="IEntityResolverDescriptor"/>
     public IObjectTypeDescriptor ResolveReferenceWith(MethodInfo method)
     {
-        if (method is null)
-        {
-            throw new ArgumentNullException(nameof(method));
-        }
+        ArgumentNullException.ThrowIfNull(method);
 
         var argumentBuilder = new ReferenceResolverArgumentExpressionBuilder();
 
@@ -129,15 +123,9 @@ public sealed class EntityResolverDescriptor<TEntity>
         FieldResolverDelegate fieldResolver,
         IReadOnlyList<string[]> required)
     {
-        if (fieldResolver is null)
-        {
-            throw new ArgumentNullException(nameof(fieldResolver));
-        }
+        ArgumentNullException.ThrowIfNull(fieldResolver);
 
-        if (required is null)
-        {
-            throw new ArgumentNullException(nameof(required));
-        }
+        ArgumentNullException.ThrowIfNull(required);
 
         Definition.ResolverDefinition = new(fieldResolver, required);
         return _typeDescriptor;

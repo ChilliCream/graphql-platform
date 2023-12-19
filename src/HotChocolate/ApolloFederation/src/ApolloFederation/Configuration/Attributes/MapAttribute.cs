@@ -14,7 +14,8 @@ public class MapAttribute : Attribute
     /// </param>
     public MapAttribute(string path)
     {
-        Path = path ?? throw new ArgumentNullException(nameof(path));
+        ArgumentNullException.ThrowIfNull(path);
+        Path = path;
     }
 
     /// <summary>

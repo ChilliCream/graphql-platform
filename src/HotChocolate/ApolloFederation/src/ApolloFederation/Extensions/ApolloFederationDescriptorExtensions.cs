@@ -58,8 +58,8 @@ public static partial class ApolloFederationDescriptorExtensions
         string name, string? url = null,
         string? description = null)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentException.ThrowIfNullOrEmpty(name);
         return descriptor.Directive(new ContactDirective(name, url, description));
     }
 
@@ -95,8 +95,8 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static ISchemaTypeDescriptor ComposeDirective(this ISchemaTypeDescriptor descriptor, string name)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(name));
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return descriptor.Directive(
             WellKnownTypeNames.ComposeDirective,
@@ -131,7 +131,7 @@ public static partial class ApolloFederationDescriptorExtensions
     public static IObjectTypeDescriptor ExtendServiceType(
         this IObjectTypeDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
@@ -170,7 +170,7 @@ public static partial class ApolloFederationDescriptorExtensions
     public static IObjectFieldDescriptor External(
         this IObjectFieldDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(WellKnownTypeNames.External);
     }
@@ -197,7 +197,7 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor InterfaceObject(this IObjectTypeDescriptor descriptor)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(WellKnownTypeNames.InterfaceObject);
     }
@@ -245,7 +245,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet,
         bool? resolvable = null)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -267,7 +267,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet,
         bool? resolvable = null)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -355,8 +355,8 @@ public static partial class ApolloFederationDescriptorExtensions
         string url,
         IEnumerable<string>? import)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(url));
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentException.ThrowIfNullOrEmpty(url);
 
         return descriptor.Directive(new LinkDirective(url, import?.ToList()));
     }
@@ -392,8 +392,8 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string from)
     {
-        ArgumentNullException.ThrowIfNull(nameof(descriptor));
-        ArgumentException.ThrowIfNullOrEmpty(nameof(from));
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentException.ThrowIfNullOrEmpty(from);
 
         return descriptor.Directive(
             WellKnownTypeNames.Override,
@@ -445,10 +445,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string fieldSet)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -502,10 +499,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         string fieldSet)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -550,10 +544,7 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IObjectFieldDescriptor Shareable(this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(WellKnownTypeNames.Shareable);
     }
@@ -587,10 +578,7 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor Shareable(this IObjectTypeDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(WellKnownTypeNames.Shareable);
     }
@@ -625,10 +613,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectTypeDescriptor<T> descriptor,
         string fieldSet)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         if (string.IsNullOrEmpty(fieldSet))
         {
@@ -672,10 +657,7 @@ public static partial class ApolloFederationDescriptorExtensions
     public static IObjectTypeDescriptor<T> ExtendServiceType<T>(
         this IObjectTypeDescriptor<T> descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         descriptor
             .Extend()
@@ -706,10 +688,7 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor<T> InterfaceObject<T>(this IObjectTypeDescriptor<T> descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(WellKnownTypeNames.InterfaceObject);
     }
@@ -743,10 +722,7 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IObjectTypeDescriptor<T> Shareable<T>(this IObjectTypeDescriptor<T> descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
 
         return descriptor.Directive(WellKnownTypeNames.Shareable);
     }

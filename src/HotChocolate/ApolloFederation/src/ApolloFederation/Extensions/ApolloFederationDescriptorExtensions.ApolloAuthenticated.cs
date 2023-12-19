@@ -27,50 +27,35 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IEnumTypeDescriptor ApolloAuthenticated(this IEnumTypeDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(WellKnownTypeNames.AuthenticatedDirective);
     }
 
     /// <inheritdoc cref="ApolloAuthenticated(IEnumTypeDescriptor)"/>
     public static IInterfaceFieldDescriptor ApolloAuthenticated(this IInterfaceFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(WellKnownTypeNames.AuthenticatedDirective);
     }
 
     /// <inheritdoc cref="ApolloAuthenticated(IEnumTypeDescriptor)"/>
     public static IInterfaceTypeDescriptor ApolloAuthenticated(this IInterfaceTypeDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(WellKnownTypeNames.AuthenticatedDirective);
     }
 
     /// <inheritdoc cref="ApolloAuthenticated(IEnumTypeDescriptor)"/>
     public static IObjectFieldDescriptor ApolloAuthenticated(this IObjectFieldDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(WellKnownTypeNames.AuthenticatedDirective);
     }
 
     /// <inheritdoc cref="ApolloAuthenticated(IEnumTypeDescriptor)"/>
     public static IObjectTypeDescriptor ApolloAuthenticated(this IObjectTypeDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(WellKnownTypeNames.AuthenticatedDirective);
     }
 }

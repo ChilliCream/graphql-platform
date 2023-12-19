@@ -30,10 +30,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         FederationVersion version = FederationVersion.Latest,
         Action<ISchemaTypeDescriptor>? schemaConfiguration = null)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         // TODO : we will move this to the type interceptor.
         builder.SetSchema(s =>
@@ -65,15 +62,9 @@ public static partial class ApolloFederationSchemaBuilderExtensions
     /// </exception>
     public static ISchemaBuilder AddApolloFederation(this ISchemaBuilder builder, FederatedSchema schema)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         builder.SetSchema(schema);
         return AddApolloFederationDefinitions(builder, schema.FederationVersion);
@@ -96,10 +87,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         this ISchemaBuilder builder,
         FederationVersion version = FederationVersion.Latest)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         // Disable hot chocolate tag directive
         // specify default Query type name if not specified

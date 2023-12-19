@@ -103,9 +103,6 @@ public static partial class ApolloFederationDescriptorExtensions
 
     private static void ValidateDescriptor(IDescriptor descriptor)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
     }
 }
