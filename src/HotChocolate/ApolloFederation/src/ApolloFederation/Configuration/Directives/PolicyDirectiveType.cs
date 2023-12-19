@@ -19,7 +19,8 @@ namespace HotChocolate.ApolloFederation;
 public sealed class PolicyDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
+    {
+        descriptor
             .Name(WellKnownTypeNames.PolicyDirective)
             .Description(FederationResources.PolicyDirective_Description)
             .Location(
@@ -28,4 +29,9 @@ public sealed class PolicyDirectiveType : DirectiveType
                 DirectiveLocation.Interface |
                 DirectiveLocation.Scalar |
                 DirectiveLocation.Enum);
+
+        descriptor
+            .Argument("policies")
+            .Type<NonNullType<ListType<NonNullType<StringType>>>>();
+    }
 }

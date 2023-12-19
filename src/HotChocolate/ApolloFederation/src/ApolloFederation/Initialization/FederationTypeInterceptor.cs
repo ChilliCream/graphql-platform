@@ -12,7 +12,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 using static HotChocolate.Types.TagHelper;
@@ -87,7 +86,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         if (operationType is OperationType.Query)
         {
-            _queryType = (ObjectType) completionContext.Type;
+            _queryType = (ObjectType)completionContext.Type;
         }
     }
 

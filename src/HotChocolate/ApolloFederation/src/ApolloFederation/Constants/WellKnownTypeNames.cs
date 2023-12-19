@@ -22,5 +22,5 @@ internal static class WellKnownTypeNames
     public const string Any = "_Any";
     public const string Entity = "_Entity";
     public const string Service = "_Service";
-    public const string PolicyDirective = "Policy";
+    public const string PolicyDirective = "policy";
 }

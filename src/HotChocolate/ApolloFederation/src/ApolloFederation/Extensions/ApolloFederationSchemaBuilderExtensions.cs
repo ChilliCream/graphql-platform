@@ -39,7 +39,8 @@ public static partial class ApolloFederationSchemaBuilderExtensions
             s.Link(link.Url, link.Import);
             schemaConfiguration?.Invoke(s);
         });
-        return AddApolloFederationDefinitions(builder, version);
+        AddApolloFederationDefinitions(builder, version);
+        return builder;
     }
 
     /// <summary>
@@ -63,11 +64,11 @@ public static partial class ApolloFederationSchemaBuilderExtensions
     public static ISchemaBuilder AddApolloFederation(this ISchemaBuilder builder, FederatedSchema schema)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
         ArgumentNullException.ThrowIfNull(schema);
 
         builder.SetSchema(schema);
-        return AddApolloFederationDefinitions(builder, schema.FederationVersion);
+        AddApolloFederationDefinitions(builder, schema.FederationVersion);
+        return builder;
     }
 
     /// <summary>
@@ -83,11 +84,12 @@ public static partial class ApolloFederationSchemaBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    private static ISchemaBuilder AddApolloFederationDefinitions(
+    private static void AddApolloFederationDefinitions(
         this ISchemaBuilder builder,
         FederationVersion version = FederationVersion.Latest)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
 
         // Disable hot chocolate tag directive
         // specify default Query type name if not specified
@@ -146,6 +148,12 @@ public static partial class ApolloFederationSchemaBuilderExtensions
                 goto case FederationVersion.Federation24;
             }
 
+            case FederationVersion.Federation26:
+            {
+                builder.AddType<PolicyDirectiveType>();
+                goto case FederationVersion.Federation25;
+            }
+
             default:
             {
                 break;
@@ -153,6 +161,5 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         }
 
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
-        return builder;
     }
 }
