@@ -170,7 +170,7 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode("name"),
                     new FieldNode("description"),
                     CreateFields(includeDeprecatedArgs),
-                    CreateInputFields(),
+                    CreateInputFields(includeDeprecatedArgs),
                     CreateInterfacesField(),
                     CreateEnumValuesField(),
                     CreatePossibleTypesField(),
@@ -250,21 +250,41 @@ internal static class IntrospectionQueryBuilder
                         Array.Empty<DirectiveNode>()),
                 }));
 
-    private static FieldNode CreateInputFields()
-        => new FieldNode(
-            new NameNode("inputFields"),
-            null,
-            null,
-            Array.Empty<DirectiveNode>(),
-            Array.Empty<ArgumentNode>(),
-            new SelectionSetNode(
-                new ISelectionNode[]
+    private static FieldNode CreateInputFields(bool includeDeprecatedFields)
+        => includeDeprecatedFields
+            ? new FieldNode(
+                new NameNode("inputFields"),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                new[]
                 {
-                    new FragmentSpreadNode(
-                        null,
-                        new NameNode("InputValue"),
-                        Array.Empty<DirectiveNode>()),
-                }));
+                    new ArgumentNode("includeDeprecated", true),
+                },
+                new SelectionSetNode(
+                    new ISelectionNode[]
+                    {
+                        new FragmentSpreadNode(
+                            null,
+                            new NameNode("InputValue"),
+                            Array.Empty<DirectiveNode>()),
+                        new FieldNode("isDeprecated"),
+                        new FieldNode("deprecationReason"),
+                    }))
+            : new FieldNode(
+                new NameNode("inputFields"),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                new SelectionSetNode(
+                    new ISelectionNode[]
+                    {
+                        new FragmentSpreadNode(
+                            null,
+                            new NameNode("InputValue"),
+                            Array.Empty<DirectiveNode>()),
+                    }));
 
     private static FieldNode CreateInterfacesField()
         => new FieldNode(
