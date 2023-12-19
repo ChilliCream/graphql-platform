@@ -22,10 +22,7 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     public static IRequestExecutorBuilder AddApolloFederation(
         this IRequestExecutorBuilder builder)
     {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.ConfigureSchema(s => s.AddApolloFederation());
     }

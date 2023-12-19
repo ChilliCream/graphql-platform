@@ -31,10 +31,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IEnumTypeDescriptor descriptor,
         List<List<Scope>> scopes)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(new RequiresScopes(scopes));
     }
 
@@ -43,10 +40,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IInterfaceFieldDescriptor descriptor,
         List<List<Scope>> scopes)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(new RequiresScopes(scopes));
     }
 
@@ -55,10 +49,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IInterfaceTypeDescriptor descriptor,
         List<List<Scope>> scopes)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(new RequiresScopes(scopes));
     }
 
@@ -67,10 +58,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         List<List<Scope>> scopes)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(new RequiresScopes(scopes));
     }
 
@@ -79,10 +67,7 @@ public static partial class ApolloFederationDescriptorExtensions
         this IObjectTypeDescriptor descriptor,
         List<List<Scope>> scopes)
     {
-        if (descriptor is null)
-        {
-            throw new ArgumentNullException(nameof(descriptor));
-        }
+        ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(new RequiresScopes(scopes));
     }
 }

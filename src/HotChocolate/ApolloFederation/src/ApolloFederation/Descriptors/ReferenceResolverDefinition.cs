@@ -24,7 +24,8 @@ public readonly struct ReferenceResolverDefinition
         FieldResolverDelegate resolver,
         IReadOnlyList<string[]>? required = default)
     {
-        Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+        ArgumentNullException.ThrowIfNull(resolver);
+        Resolver = resolver;
         Required = required ?? Array.Empty<string[]>();
     }
 

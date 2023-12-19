@@ -42,10 +42,7 @@ public static partial class FederationSchemaPrinter
     /// </returns>
     public static string Print(ISchema schema)
     {
-        if (schema is null)
-        {
-            throw new ArgumentNullException(nameof(schema));
-        }
+        ArgumentNullException.ThrowIfNull(schema);
 
         return SerializeSchema(schema).ToString();
     }
