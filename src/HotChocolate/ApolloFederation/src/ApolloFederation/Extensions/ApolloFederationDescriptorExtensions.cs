@@ -246,13 +246,7 @@ public static partial class ApolloFederationDescriptorExtensions
         bool? resolvable = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-
-        if (string.IsNullOrEmpty(fieldSet))
-        {
-            throw new ArgumentException(
-                FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty,
-                nameof(fieldSet));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
 
         var arguments = CreateKeyArgumentNodes(fieldSet, resolvable);
 
@@ -268,13 +262,7 @@ public static partial class ApolloFederationDescriptorExtensions
         bool? resolvable = null)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-
-        if (string.IsNullOrEmpty(fieldSet))
-        {
-            throw new ArgumentException(
-                FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty,
-                nameof(fieldSet));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
 
         var arguments = CreateKeyArgumentNodes(fieldSet, resolvable);
 
@@ -446,13 +434,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-
-        if (string.IsNullOrEmpty(fieldSet))
-        {
-            throw new ArgumentException(
-                FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty,
-                nameof(fieldSet));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
 
         return descriptor.Directive(
             WellKnownTypeNames.Provides,
@@ -500,13 +482,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-
-        if (string.IsNullOrEmpty(fieldSet))
-        {
-            throw new ArgumentException(
-                FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty,
-                nameof(fieldSet));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
 
         return descriptor.Directive(
             WellKnownTypeNames.Requires,
@@ -614,13 +590,7 @@ public static partial class ApolloFederationDescriptorExtensions
         string fieldSet)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-
-        if (string.IsNullOrEmpty(fieldSet))
-        {
-            throw new ArgumentException(
-                FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty,
-                nameof(fieldSet));
-        }
+        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
 
         descriptor.Directive(
             WellKnownTypeNames.Key,
