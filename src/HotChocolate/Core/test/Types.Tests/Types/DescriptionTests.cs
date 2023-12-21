@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 
 namespace HotChocolate.Types;
 
@@ -13,31 +12,28 @@ public class DescriptionTests
     public async Task Schema_With_All_Possible_Descriptions()
     {
         // arrange
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .ModifyOptions(o =>
-            {
-                o.RemoveUnreachableTypes = false;
-                o.RemoveUnusedTypeSystemDirectives = false;
-            })
-            .SetSchema(d => d.Description("Single line comment"))
-            .AddQueryType<Query>()
-            .AddInterfaceType<ISomeInterface>()
-            .AddInterfaceType<IOtherInterface>()
-            .AddObjectType<OtherObjectType>()
-            .AddUnionType<ISomeUnion>()
-            .AddUnionType<IOtherUnion>()
-            .AddDirectiveType<SomeDirective>()
-            .AddDirectiveType<OtherDirective>()
-            .AddType<SomeEnum>()
-            .AddType<OtherEnum>()
-            .AddType<SomeScalar>()
-            .AddType<OtherScalar>()
-            .BuildSchemaAsync();
+        var schema = await GetSchemaWithAllPossibleDescriptionsAsync();
 
         // act
         // assert
-        SnapshotExtension.MatchSnapshot(schema.ToString());
+        SchemaPrinter
+            .PrintSchema(schema)
+            .Print(indented: true)
+            .MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public async Task Schema_With_All_Possible_Descriptions_No_Indent()
+    {
+        // arrange
+        var schema = await GetSchemaWithAllPossibleDescriptionsAsync();
+
+        // act
+        // assert
+        SchemaPrinter
+            .PrintSchema(schema)
+            .Print(indented: false)
+            .MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -212,6 +208,32 @@ public class DescriptionTests
                                                 field: String
                                               }
                                               """");
+    }
+
+    private static async Task<ISchema> GetSchemaWithAllPossibleDescriptionsAsync()
+    {
+        return await new ServiceCollection()
+            .AddGraphQL()
+            .ModifyOptions(o =>
+            {
+                o.RemoveUnreachableTypes = false;
+                o.RemoveUnusedTypeSystemDirectives = false;
+                o.EnableTag = false;
+            })
+            .SetSchema(d => d.Description("Single line comment"))
+            .AddQueryType<Query>()
+            .AddInterfaceType<ISomeInterface>()
+            .AddInterfaceType<IOtherInterface>()
+            .AddObjectType<OtherObjectType>()
+            .AddUnionType<ISomeUnion>()
+            .AddUnionType<IOtherUnion>()
+            .AddDirectiveType<SomeDirective>()
+            .AddDirectiveType<OtherDirective>()
+            .AddType<SomeEnum>()
+            .AddType<OtherEnum>()
+            .AddType<SomeScalar>()
+            .AddType<OtherScalar>()
+            .BuildSchemaAsync();
     }
 
     [GraphQLDescription("""
