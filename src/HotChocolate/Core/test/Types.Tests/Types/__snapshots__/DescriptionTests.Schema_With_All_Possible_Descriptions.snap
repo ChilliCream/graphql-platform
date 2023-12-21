@@ -1,0 +1,152 @@
+﻿"Single line comment"
+schema {
+  query: Query
+}
+
+"Single line comment"
+interface OtherInterface {
+  field: String
+}
+
+"""
+Multi line
+comment
+"""
+interface SomeInterface {
+  "Single line comment"
+  field: String
+  """
+  Multi line
+  comment
+  """
+  fieldMulti: String
+  fieldWithArgs("Single line comment" arg1: String """
+  Multi line
+  comment
+  """ arg2: String): String
+}
+
+"""
+Multi line
+comment
+"""
+type OtherObjectType implements SomeInterface & OtherInterface {
+  field: String
+  fieldMulti: String
+  fieldWithArgs(arg1: String arg2: String): String
+}
+
+"""
+Multi line
+comment
+"""
+type Query {
+  "Single line comment"
+  outputFieldSingle: String
+  """
+  Multi line
+  comment
+  """
+  outputFieldMulti: String
+  outputFieldWithArgs("Single line comment" arg1: SomeInput """
+  Multi line
+  comment
+  """ arg2: OtherInput): String
+}
+
+"Single line comment"
+union OtherUnion = OtherObjectType
+
+"""
+Multi line
+comment
+"""
+union SomeUnion = OtherObjectType
+
+"Single line comment"
+input OtherInput {
+  "Single line comment"
+  field: String
+  """
+  Multi line
+  comment
+  """
+  fieldMulti: String
+}
+
+"""
+Multi line
+comment
+"""
+input SomeInput {
+  "Single line comment"
+  field: String
+  """
+  Multi line
+  comment
+  """
+  fieldMulti: String
+}
+
+"""
+Multi line
+comment
+"""
+enum OtherEnum {
+  "Single line comment"
+  VALUE1
+  """
+  Multi line
+  comment
+  """
+  VALUE2
+}
+
+"Single line comment"
+enum SomeEnum {
+  "Single line comment"
+  VALUE1
+  """
+  Multi line
+  comment
+  """
+  VALUE2
+}
+
+"Single line comment"
+directive @other("Single line comment" arg1: String """
+Multi line
+comment
+""" arg2: String) on FIELD
+
+"""
+Multi line
+comment
+"""
+directive @some("Single line comment" arg1: String """
+Multi line
+comment
+""" arg2: String) on FIELD
+
+"""
+The @tag directive is used to apply arbitrary string
+metadata to a schema location. Custom tooling can use
+this metadata during any step of the schema delivery flow,
+including composition, static analysis, and documentation.
+
+interface Book {
+  id: ID! @tag(name: "your-value")
+  title: String!
+  author: String!
+}
+"""
+directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+"""
+Multi line
+comment
+"""
+scalar Other
+
+"Single line comment"
+scalar Some
