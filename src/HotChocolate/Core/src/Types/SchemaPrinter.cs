@@ -539,6 +539,9 @@ public static class SchemaPrinter
             return null;
         }
 
+        // Get rid of any unnecessary whitespace.
+        description = description.Trim();
+
         var isBlock = description.Contains("\n");
 
         return new StringValueNode(null, description, isBlock);
