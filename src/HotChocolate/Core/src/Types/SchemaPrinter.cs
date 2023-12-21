@@ -533,5 +533,14 @@ public static class SchemaPrinter
         => directive.AsSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
-        => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);
+    {
+        if (string.IsNullOrEmpty(description))
+        {
+            return null;
+        }
+
+        var isBlock = description.Contains("\n");
+
+        return new StringValueNode(null, description, isBlock);
+    }
 }
