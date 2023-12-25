@@ -12,7 +12,7 @@ public sealed class ErrorCompositionLog : ICompositionLog
 
     public void Write(LogEntry entry)
     {
-        if(entry.Severity == LogSeverity.Error)
+        if (entry.Severity == LogSeverity.Error)
         {
             _errors.Add(entry);
         }

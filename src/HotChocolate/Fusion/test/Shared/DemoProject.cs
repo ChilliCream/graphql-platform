@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Shared.Accounts;
@@ -12,65 +13,87 @@ using HotChocolate.Transport.Http;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Fusion.Shared;
 
+internal enum DemoProjectType
+{
+    Accounts,
+    Reviews,
+    Reviews2,
+    Products,
+    Shipping,
+    Appointment,
+    Patient1,
+    Books,
+    Authors,
+    Count,
+}
+
+internal readonly struct DemoProjectValues<T>
+{
+    public required T[] All { get; init; }
+
+    public static DemoProjectValues<T> Create()
+    {
+        var all = new T[(int)DemoProjectType.Count];
+        return new DemoProjectValues<T>
+        {
+            All = all,
+        };
+    }
+
+    public ref T this[DemoProjectType type]
+    {
+        get => ref All[(int)type];
+    }
+
+    public bool AllSet => All.All(x => x != null);
+
+    public ref T Accounts => ref All[(int)DemoProjectType.Accounts];
+    public ref T Reviews => ref All[(int)DemoProjectType.Reviews];
+    public ref T Reviews2 => ref All[(int)DemoProjectType.Reviews2];
+    public ref T Products => ref All[(int)DemoProjectType.Products];
+    public ref T Shipping => ref All[(int)DemoProjectType.Shipping];
+    public ref T Appointment => ref All[(int)DemoProjectType.Appointment];
+    public ref T Patient1 => ref All[(int)DemoProjectType.Patient1];
+    public ref T Books => ref All[(int)DemoProjectType.Books];
+    public ref T Authors => ref All[(int)DemoProjectType.Authors];
+}
+
 public sealed class DemoProject : IDisposable
 {
-    private readonly IReadOnlyList<IDisposable> _disposables;
+    private readonly List<IDisposable> _disposables;
     private bool _disposed;
+    private readonly DemoProjectValues<DemoSubgraph> _subgraphs;
 
     private DemoProject(
-        IReadOnlyList<IDisposable> disposables,
-        DemoSubgraph accounts,
-        DemoSubgraph reviews,
-        DemoSubgraph reviews2,
-        DemoSubgraph products,
-        DemoSubgraph shipping,
-        DemoSubgraph appointment,
-        DemoSubgraph patient1,
-        DemoSubgraph books,
-        DemoSubgraph authors,
+        List<IDisposable> disposables,
+        DemoProjectValues<DemoSubgraph> subgraphs,
         IHttpClientFactory clientFactory,
         IWebSocketConnectionFactory webSocketConnectionFactory)
     {
+        _subgraphs = subgraphs;
         _disposables = disposables;
-        Accounts = accounts;
-        Reviews = reviews;
-        Reviews2 = reviews2;
-        Products = products;
-        Shipping = shipping;
-        Appointment = appointment;
-        Patient1 = patient1;
-        Books = books;
-        Authors = authors;
         HttpClientFactory = clientFactory;
         WebSocketConnectionFactory = webSocketConnectionFactory;
     }
 
     public IHttpClientFactory HttpClientFactory { get; }
-
     public IWebSocketConnectionFactory WebSocketConnectionFactory { get; }
 
-    public DemoSubgraph Reviews { get; }
-
-    public DemoSubgraph Reviews2 { get; }
-
-    public DemoSubgraph Products { get; }
-
-    public DemoSubgraph Accounts { get; }
-
-    public DemoSubgraph Shipping { get; }
-
-    public DemoSubgraph Appointment { get; }
-
-    public DemoSubgraph Patient1 { get; }
-
-    public DemoSubgraph Books { get; }
-
-    public DemoSubgraph Authors { get; }
+    public DemoSubgraph Reviews => _subgraphs.Reviews;
+    public DemoSubgraph Reviews2 => _subgraphs.Reviews2;
+    public DemoSubgraph Products => _subgraphs.Products;
+    public DemoSubgraph Accounts => _subgraphs.Accounts;
+    public DemoSubgraph Shipping => _subgraphs.Shipping;
+    public DemoSubgraph Appointment => _subgraphs.Appointment;
+    public DemoSubgraph Patient1 => _subgraphs.Patient1;
+    public DemoSubgraph Books => _subgraphs.Books;
+    public DemoSubgraph Authors => _subgraphs.Authors;
 
     public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
     {
@@ -78,7 +101,8 @@ public sealed class DemoProject : IDisposable
         TestServerFactory testServerFactory = new();
         disposables.Add(testServerFactory);
 
-        var reviews = testServerFactory.Create(
+        var testServers = DemoProjectValues<TestServer>.Create();
+        testServers.Reviews = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddSingleton<ReviewRepository>()
@@ -93,15 +117,8 @@ public sealed class DemoProject : IDisposable
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(reviews);
 
-        var reviewsClient = reviews.CreateClient();
-        reviewsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviewsSchema = await IntrospectionClient
-            .IntrospectServerAsync(reviewsClient, ct)
-            .ConfigureAwait(false);
-
-        var reviews2 = testServerFactory.Create(
+        testServers.Reviews2 = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddSingleton<Reviews2.ReviewRepository>()
@@ -116,15 +133,8 @@ public sealed class DemoProject : IDisposable
                 .UseWebSockets()
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(reviews2);
 
-        var reviews2Client = reviews2.CreateClient();
-        reviews2Client.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var reviews2Schema = await IntrospectionClient
-            .IntrospectServerAsync(reviews2Client, ct)
-            .ConfigureAwait(false);
-
-        var accounts = testServerFactory.Create(
+        testServers.Accounts = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddSingleton<UserRepository>()
@@ -137,15 +147,8 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(accounts);
 
-        var accountsClient = accounts.CreateClient();
-        accountsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var accountsSchema = await IntrospectionClient
-            .IntrospectServerAsync(accountsClient, ct)
-            .ConfigureAwait(false);
-
-        var products = testServerFactory.Create(
+        testServers.Products = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddSingleton<ProductRepository>()
@@ -159,15 +162,8 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(products);
 
-        var productsClient = products.CreateClient();
-        productsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var productsSchema = await IntrospectionClient
-            .IntrospectServerAsync(productsClient, ct)
-            .ConfigureAwait(false);
-
-        var shipping = testServerFactory.Create(
+        testServers.Shipping = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
@@ -177,15 +173,8 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(shipping);
 
-        var shippingClient = shipping.CreateClient();
-        shippingClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var shippingSchema = await IntrospectionClient
-            .IntrospectServerAsync(shippingClient, ct)
-            .ConfigureAwait(false);
-
-        var appointment = testServerFactory.Create(
+        testServers.Appointment = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
@@ -197,15 +186,8 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(appointment);
 
-        var appointmentClient = appointment.CreateClient();
-        appointmentClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var appointmentSchema = await IntrospectionClient
-            .IntrospectServerAsync(appointmentClient, ct)
-            .ConfigureAwait(false);
-
-        var patient1 = testServerFactory.Create(
+        testServers.Patient1 = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
@@ -215,15 +197,8 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(patient1);
 
-        var patient1Client = patient1.CreateClient();
-        patient1Client.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var patient1Schema = await IntrospectionClient
-            .IntrospectServerAsync(patient1Client, ct)
-            .ConfigureAwait(false);
-
-        var books = testServerFactory.Create(
+        testServers.Books = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
@@ -232,15 +207,8 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(books);
 
-        var booksClient = books.CreateClient();
-        booksClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var booksSchema = await IntrospectionClient
-            .IntrospectServerAsync(booksClient, ct)
-            .ConfigureAwait(false);
-
-         var authors = testServerFactory.Create(
+        testServers.Authors = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer()
@@ -249,195 +217,56 @@ public sealed class DemoProject : IDisposable
             c => c
                 .UseRouting()
                 .UseEndpoints(endpoints => endpoints.MapGraphQL()));
-        disposables.Add(authors);
 
-        var authorsClient = authors.CreateClient();
-        authorsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-        var authorsSchema = await IntrospectionClient
-            .IntrospectServerAsync(authorsClient, ct)
-            .ConfigureAwait(false);
+        Debug.Assert(testServers.AllSet);
 
-        var httpClients = new Dictionary<string, Func<HttpClient>>
+        var httpClients = new Dictionary<string, Func<HttpClient>>((int)DemoProjectType.Count);
+        var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>((int)DemoProjectType.Count);
+        var subgraphs = DemoProjectValues<DemoSubgraph>.Create();
         {
+            var httpBaseAddress = new Uri("http://localhost:5000/graphql");
+            var wsBaseAddress = new Uri("ws://localhost:5000/graphql");
+            for (var i = (DemoProjectType)0; i < DemoProjectType.Count; i++)
             {
-                "Reviews", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = reviews.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Reviews2", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = reviews2.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Accounts", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = accounts.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Products", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = products.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Shipping", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = shipping.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Appointment", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = appointment.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Patient1", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = patient1.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-             {
-                "Books", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = books.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-            {
-                "Authors", () =>
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    var httpClient = books.CreateClient();
-                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
-                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
-                    return httpClient;
-                }
-            },
-        };
+                var testServer = testServers[i];
 
-        var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>
-        {
-            {
-                "Reviews", () => new MockWebSocketConnection(reviews.CreateWebSocketClient())
-            },
-            {
-                "Reviews2", () => new MockWebSocketConnection(reviews2.CreateWebSocketClient())
-            },
-            {
-                "Accounts", () => new MockWebSocketConnection(accounts.CreateWebSocketClient())
-            },
-            {
-                "Products", () => new MockWebSocketConnection(products.CreateWebSocketClient())
-            },
-            {
-                "Shipping", () => new MockWebSocketConnection(shipping.CreateWebSocketClient())
-            },
-            {
-                "Appointment", () => new MockWebSocketConnection(appointment.CreateWebSocketClient())
-            },
-            {
-                "Patient1", () => new MockWebSocketConnection(patient1.CreateWebSocketClient())
-            },
-            {
-                "Books", () => new MockWebSocketConnection(books.CreateWebSocketClient())
-            },
-            {
-                "Authors", () => new MockWebSocketConnection(authors.CreateWebSocketClient())
-            },
-        };
+                disposables.Add(testServer);
+
+                var name = i.ToString();
+                httpClients.Add(name, () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = testServer.CreateClient();
+                    httpClient.BaseAddress = httpBaseAddress;
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
+                    return httpClient;
+                });
+                webSocketClients.Add(name, () =>
+                {
+                    var wsClient = testServer.CreateWebSocketClient();
+                    return new MockWebSocketConnection(wsClient);
+                });
+
+                var client = testServer.CreateClient();
+                client.BaseAddress = httpBaseAddress;
+                var schema = await IntrospectionClient
+                    .IntrospectServerAsync(client, ct)
+                    .ConfigureAwait(false);
+
+                subgraphs[i] = new DemoSubgraph(
+                    name,
+                    client.BaseAddress,
+                    wsBaseAddress,
+                    schema,
+                    testServer);
+            }
+        }
+
+        Debug.Assert(subgraphs.AllSet);
 
         return new DemoProject(
             disposables,
-            new DemoSubgraph(
-                "Accounts",
-                accountsClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                accountsSchema,
-                accounts),
-            new DemoSubgraph(
-                "Reviews",
-                reviewsClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                reviewsSchema,
-                reviews),
-            new DemoSubgraph(
-                "Reviews2",
-                reviews2Client.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                reviews2Schema,
-                reviews2),
-            new DemoSubgraph(
-                "Products",
-                productsClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                productsSchema,
-                products),
-            new DemoSubgraph(
-                "Shipping",
-                shippingClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                shippingSchema,
-                shipping),
-            new DemoSubgraph(
-                "Appointment",
-                appointmentClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                appointmentSchema,
-                appointment),
-            new DemoSubgraph(
-                "Patient1",
-                patient1Client.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                patient1Schema,
-                patient1),
-            new DemoSubgraph(
-                "Books",
-                booksClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                booksSchema,
-                books),
-            new DemoSubgraph(
-                "Authors",
-                authorsClient.BaseAddress,
-                new Uri("ws://localhost:5000/graphql"),
-                authorsSchema,
-                authors),    
+            subgraphs,
             new MockHttpClientFactory(httpClients),
             new MockWebSocketConnectionFactory(webSocketClients));
     }
