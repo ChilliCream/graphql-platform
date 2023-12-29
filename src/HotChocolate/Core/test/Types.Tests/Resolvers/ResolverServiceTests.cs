@@ -100,6 +100,25 @@ public class ResolverServiceTests
 
         await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
     }
+    
+#if NET8_0_OR_GREATER
+    [Fact]
+    public async Task Resolve_KeyedService()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton("abc", (_, __) => new KeyedService("abc"))
+                .AddKeyedSingleton("def", (_, __) => new KeyedService("def"))
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        await executor.ExecuteAsync("{ foo }").MatchSnapshotAsync();
+    }
+#endif
 
     public class QueryType : ObjectType
     {
@@ -157,4 +176,17 @@ public class ResolverServiceTests
             ReturnService = true;
         }
     }
+
+#if NET8_0_OR_GREATER
+    public class Query
+    {
+        public string Foo([Service("abc")] KeyedService service)
+            => service.Key;
+    }
+
+    public class KeyedService(string key)
+    {
+        public string Key => key;
+    }
+#endif
 }
