@@ -10,9 +10,7 @@ public class MockWebSocketConnectionFactory : IWebSocketConnectionFactory
     private readonly Dictionary<string, Func<IWebSocketConnection>> _clients;
 
     public MockWebSocketConnectionFactory(Dictionary<string, Func<IWebSocketConnection>> clients)
-    {
-        _clients = clients;
-    }
+        => _clients = clients;
 
     public IWebSocketConnection CreateConnection(string name)
         => _clients[name].Invoke();

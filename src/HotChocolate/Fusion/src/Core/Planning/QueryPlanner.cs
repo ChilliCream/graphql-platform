@@ -26,7 +26,6 @@ internal sealed class QueryPlanner
 
     public QueryPlan Plan(IOperation operation)
     {
-
         var queryPlanContext = new QueryPlanContext(operation);
         _pipeline(queryPlanContext);
 
