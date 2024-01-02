@@ -21,7 +21,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// Adds a Fusion GraphQL Gateway to the service collection.
     /// </summary>
     /// <param name="services">
-    /// The service collection.1
+    /// The service collection.
     /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
@@ -78,7 +78,7 @@ public static class FusionRequestExecutorBuilderExtensions
 
         return new FusionGatewayBuilder(builder);
     }
-    
+
     /// <summary>
     /// Adds a custom ID parser to the gateway.
     /// </summary>
@@ -95,7 +95,7 @@ public static class FusionRequestExecutorBuilderExtensions
                     sc.RemoveAll<NodeIdParser>();
                     sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
                 }));
-        
+
         return builder;
     }
 

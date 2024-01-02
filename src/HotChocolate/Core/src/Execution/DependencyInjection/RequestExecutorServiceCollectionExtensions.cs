@@ -169,7 +169,7 @@ public static class RequestExecutorServiceCollectionExtensions
             (sp, e) =>
             {
                 e.OnRequestExecutorEvictedHooks.Add(
-                    // when ever we evict this schema we will clear the caches.
+                    // Whenever we evict this schema, we will clear the caches.
                     new OnRequestExecutorEvictedAction(
                         _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
             });

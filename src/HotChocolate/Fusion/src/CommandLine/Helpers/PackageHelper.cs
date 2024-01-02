@@ -46,7 +46,8 @@ internal static class PackageHelper
             extensions.Add(await LoadSchemaDocumentAsync(extensionFile, ct));
         }
 
-        using var package = Package.Open(packageFile, FileMode.Create);
+        // ReSharper disable once AccessToStaticMemberViaDerivedType
+        using var package = ZipPackage.Open(packageFile, FileMode.Create);
         await AddSchemaToPackageAsync(package, schema);
         await AddTransportConfigToPackage(package, transportConfig);
         await AddSchemaExtensionsToPackage(package, extensions);

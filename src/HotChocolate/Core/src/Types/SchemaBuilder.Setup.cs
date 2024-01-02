@@ -184,8 +184,12 @@ public partial class SchemaBuilder
             OperationType operation,
             string? typeName)
         {
-            if (!builder._operations.ContainsKey(operation)
-                && !string.IsNullOrEmpty(typeName))
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return;
+            }
+
+            if (!builder._operations.ContainsKey(operation))
             {
                 builder._operations.Add(
                     operation,

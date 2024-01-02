@@ -88,11 +88,11 @@ internal sealed class ComposeCommand : Command
 
         if (settingsFile is null)
         {
-            var settingsFileName = System.IO.Path.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
+            var settingsFileName = IOPath.GetFileNameWithoutExtension(packageFile.FullName) + "-settings.json";
 
             if (packageFile.DirectoryName is not null)
             {
-                settingsFileName = System.IO.Path.Combine(packageFile.DirectoryName, settingsFileName);
+                settingsFileName = IOPath.Combine(packageFile.DirectoryName, settingsFileName);
             }
 
             settingsFile = new FileInfo(settingsFileName);
@@ -109,12 +109,17 @@ internal sealed class ComposeCommand : Command
             }
         }
 
-        var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
+        var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken))
+            .ToDictionary(t => t.Name);
 
         // resolve subgraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
         if (removeSubgraphs is not { Count: > 0 } || subgraphPackageFiles is { Count: > 0 })
         {
-            await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
+            await ResolveSubgraphPackagesAsync(
+                workingDirectory,
+                subgraphPackageFiles,
+                configs,
+                cancellationToken);
         }
 
         using var settingsJson = settingsFile.Exists

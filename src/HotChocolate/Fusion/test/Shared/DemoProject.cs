@@ -247,7 +247,7 @@ public sealed class DemoProject : IDisposable
                     return new MockWebSocketConnection(wsClient);
                 });
 
-                var client = testServer.CreateClient();
+                using var client = testServer.CreateClient();
                 client.BaseAddress = httpBaseAddress;
                 var schema = await IntrospectionClient
                     .IntrospectServerAsync(client, ct)
