@@ -53,16 +53,18 @@ internal sealed class SubgraphPackCommand : Command
             new FileInfo(Combine(workingDirectory.FullName, ExtensionFile)),
         };
 
+        bool hasErrors = false;
+
         if (!schemaFile.Exists)
         {
             console.WriteLine($"The schema file `{schemaFile.FullName}` does not exist.");
-            return;
+            hasErrors = true;
         }
 
         if (!configFile.Exists)
         {
             console.WriteLine($"The config file `{configFile.FullName}` does not exist.");
-            return;
+            hasErrors = true;
         }
 
         if (extensionFiles.Count == 0)
@@ -77,10 +79,18 @@ internal sealed class SubgraphPackCommand : Command
             extensionFiles.Clear();
         }
 
-        if (extensionFiles.Any(t => !t.Exists))
         {
-            console.WriteLine(
-                $"The extension file `{extensionFiles.First(t => !t.Exists).FullName}` does not exist.");
+            var firstNonExistentFile = extensionFiles.FirstOrDefault(t => !t.Exists);
+            if (firstNonExistentFile is not null)
+            {
+                console.WriteLine(
+                    $"The extension file `{firstNonExistentFile.FullName}` does not exist.");
+                hasErrors = true;
+            }
+        }
+
+        if (hasErrors)
+        {
             return;
         }
 

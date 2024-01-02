@@ -5,7 +5,7 @@ using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.Fusion.Shared;
 
-public class MockWebSocketConnectionFactory : IWebSocketConnectionFactory
+public sealed class MockWebSocketConnectionFactory : IWebSocketConnectionFactory
 {
     private readonly Dictionary<string, Func<IWebSocketConnection>> _clients;
 
