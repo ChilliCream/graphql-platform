@@ -322,19 +322,43 @@ public sealed class FusionTypes
         return directiveType;
     }
 
+    private Directive CreateTransportDirective(
+        string subgraphName,
+        string? clientName,
+        Uri location,
+        string kind)
+    {
+        Argument[] arguments;
+        {
+            var argumentCount = 3;
+            if (clientName is not null)
+            {
+                argumentCount++;
+            }
+            arguments = new Argument[argumentCount];
+        }
+
+        var i = 0;
+        arguments[i++] = new Argument(SubgraphArg, subgraphName);
+        if (clientName is not null)
+        {
+            arguments[i++] = new Argument(ClientGroupArg, clientName);
+        }
+        arguments[i++] = new Argument(LocationArg, location.ToString());
+        arguments[i] = new Argument(KindArg, kind);
+
+        return new Directive(Transport, (IReadOnlyList<Argument>) arguments);
+    }
+
     public Directive CreateHttpDirective(string subgraphName, string? clientName, Uri location)
-        =>  clientName is null
-            ? new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "HTTP"))
-            : new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(ClientGroupArg, clientName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "HTTP"));
+    {
+        var result = CreateTransportDirective(
+            subgraphName: subgraphName,
+            clientName: clientName,
+            location: location,
+            kind: "HTTP");
+        return result;
+    }
 
     private DirectiveType RegisterTransportDirectiveType(
         string name,
@@ -354,18 +378,14 @@ public sealed class FusionTypes
     }
 
     public Directive CreateWebSocketDirective(string subgraphName, string? clientName, Uri location)
-        =>  clientName is null
-            ? new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "WebSocket"))
-            : new Directive(
-                Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(ClientGroupArg, clientName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "WebSocket"));
+    {
+        var result = CreateTransportDirective(
+            subgraphName: subgraphName,
+            clientName: clientName,
+            location: location,
+            kind: "WebSocket");
+        return result;
+    }
 
     private DirectiveType RegisterFusionDirectiveType(
         string name,
