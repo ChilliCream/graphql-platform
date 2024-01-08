@@ -107,7 +107,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
 #endif
-        var responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct)
+        var responseMessage = await _http
+            .SendAsync(requestMessage, ResponseHeadersRead, ct)
             .ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }
