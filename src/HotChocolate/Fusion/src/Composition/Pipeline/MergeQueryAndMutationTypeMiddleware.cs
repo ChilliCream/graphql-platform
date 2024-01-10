@@ -22,21 +22,20 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         {
             if (schema.QueryType is not null)
             {
-                var targetType = context.FusionGraph.QueryType!;
-
-                if (context.FusionGraph.QueryType is null)
+                if (context.FusionGraph.QueryType is not { } targetType)
                 {
-                    targetType = context.FusionGraph.QueryType = new ObjectType(schema.QueryType.Name);
+                    targetType = new ObjectType(schema.QueryType.Name);
+                    context.FusionGraph.QueryType = targetType;
                     targetType.MergeDescriptionWith(schema.QueryType);
                     context.FusionGraph.Types.Add(targetType);
                 }
 
                 MergeRootFields(
-                    context, 
-                    schema, 
-                    schema.QueryType, 
-                    targetType, 
-                    OperationType.Query, 
+                    context,
+                    schema,
+                    schema.QueryType,
+                    targetType,
+                    OperationType.Query,
                     skipOnQuery);
             }
 
@@ -106,13 +105,13 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
             var arguments = new List<ArgumentNode>();
 
             var selection = new FieldNode(
-                null,
-                new NameNode(field.GetOriginalName()),
-                null,
-                null,
+                location: null,
+                name: new NameNode(field.GetOriginalName()),
+                alias: null,
+                required: null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
-                null);
+                selectionSet: null);
 
             var selectionSet = new SelectionSetNode(new[] { selection });
 
