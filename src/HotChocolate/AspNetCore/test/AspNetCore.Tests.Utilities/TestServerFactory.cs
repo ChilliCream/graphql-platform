@@ -5,12 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public class TestServerFactory : IDisposable
+public sealed class TestServerFactory : IDisposable
 {
     private readonly List<TestServer> _instances = new();
 
     public TestServer Create(
-        Action<IServiceCollection> configureServices,
+        Action<IServiceCollection>? configureServices,
         Action<IApplicationBuilder> configureApplication)
     {
         var builder = new WebHostBuilder()
