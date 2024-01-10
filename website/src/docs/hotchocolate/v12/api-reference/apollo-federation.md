@@ -709,3 +709,23 @@ query {
   }
 }
 ```
+
+## C# Records
+Records can be decorated almost in the same way as classes to add Apollo Federation support.
+The above Product example as a positional record would look like this:
+
+```csharp
+public record Product([property: ID][property: Key] string Id, string Name, float Price)
+{
+    [ReferenceResolver]
+    public static async Task<Product?> ResolveReference(
+        // Represents the value that would be in the Id property of a Product
+        string id,
+        // Example of a service that can resolve the Products
+        ProductBatchDataLoader dataLoader
+    )
+    {
+        return await dataloader.LoadAsync(id);
+    }
+}
+```
