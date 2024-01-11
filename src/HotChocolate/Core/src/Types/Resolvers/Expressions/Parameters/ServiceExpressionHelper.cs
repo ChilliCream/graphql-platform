@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -20,7 +21,16 @@ public static class ServiceExpressionHelper
     private static readonly MethodInfo _getServiceMethod =
         ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
             method => method.Name.Equals(_service, StringComparison.Ordinal) &&
-                method.IsGenericMethod);
+                method.IsGenericMethod && 
+                method.GetParameters().Length == 0);
+    
+#if NET8_0_OR_GREATER
+    private static readonly MethodInfo _getKeyedServiceMethod =
+        ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
+            method => method.Name.Equals(_service, StringComparison.Ordinal) &&
+                method.IsGenericMethod && 
+                method.GetParameters().Length == 1);
+#endif
 
     private static readonly PropertyInfo _contextData =
         ParameterExpressionBuilderHelpers.ContextType.GetProperty(
@@ -72,6 +82,49 @@ public static class ServiceExpressionHelper
                     $"Service kind `{serviceKind}` is not supported.");
         }
     }
+    
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Applies the service configurations.
+    /// </summary>
+    public static void ApplyConfiguration(
+        ParameterInfo parameter,
+        ObjectFieldDescriptor descriptor,
+        ServiceKind serviceKind,
+        string key)
+    {
+        if (parameter is null)
+        {
+            throw new ArgumentNullException(nameof(parameter));
+        }
+
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        switch (serviceKind)
+        {
+            case ServiceKind.Default:
+                return;
+
+            case ServiceKind.Synchronized:
+                descriptor.Extend().Definition.IsParallelExecutable = false;
+                break;
+
+            case ServiceKind.Pooled:
+                throw ThrowHelper.PooledServicesNotAllowed(parameter);
+
+            case ServiceKind.Resolver:
+                ServiceHelper.UseResolverKeyedService(descriptor.Definition, parameter.ParameterType, key);
+                return;
+
+            default:
+                throw new NotSupportedException(
+                    $"Service kind `{serviceKind}` is not supported.");
+        }
+    }
+#endif
 
     /// <summary>
     /// Builds the service expression.
@@ -93,8 +146,34 @@ public static class ServiceExpressionHelper
 
         return serviceKind is ServiceKind.Default or ServiceKind.Synchronized
             ? BuildDefaultService(parameter, context)
-            : BuildLocalService(parameter, context);
+            : BuildLocalService(parameter, context, null);
     }
+    
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Builds the service expression.
+    /// </summary>
+    public static Expression Build(
+        ParameterInfo parameter,
+        Expression context,
+        ServiceKind serviceKind,
+        string key)
+    {
+        if (parameter is null)
+        {
+            throw new ArgumentNullException(nameof(parameter));
+        }
+
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        return serviceKind is ServiceKind.Default or ServiceKind.Synchronized
+            ? BuildDefaultService(parameter, context, key)
+            : BuildLocalService(parameter, context, key);
+    }
+#endif
 
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
@@ -102,13 +181,26 @@ public static class ServiceExpressionHelper
         var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
         return Expression.Call(context, argumentMethod);
     }
-
-    private static Expression BuildLocalService(ParameterInfo parameter, Expression context)
+    
+#if NET8_0_OR_GREATER
+    private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
     {
-        var key = Expression.Constant(
-            parameter.ParameterType.FullName ??
-            parameter.ParameterType.Name,
-            typeof(string));
+        var parameterType = parameter.ParameterType;
+        var argumentMethod =  _getKeyedServiceMethod.MakeGenericMethod(parameterType);
+        var keyExpression = Expression.Constant(key, typeof(object));
+        return Expression.Call(context, argumentMethod, keyExpression);
+    }
+#endif
+    
+    private static Expression BuildLocalService(ParameterInfo parameter, Expression context, string? key)
+    {
+        var contextKey = key is null
+            ? Expression.Constant(
+                parameter.ParameterType.FullName ?? parameter.ParameterType.Name,
+                typeof(string))
+            : Expression.Constant(
+                $"{key}:{parameter.ParameterType.FullName ?? parameter.ParameterType.Name}",
+                typeof(string));
 
         var contextData = Expression.Property(context, _contextData);
 
@@ -122,14 +214,14 @@ public static class ServiceExpressionHelper
                 getScopedState,
                 context,
                 contextData,
-                key,
+                contextKey,
                 Expression.Constant(true, typeof(bool)),
                 Expression.Constant(parameter.RawDefaultValue, parameter.ParameterType))
             : Expression.Call(
                 getScopedState,
                 context,
                 contextData,
-                key,
+                contextKey,
                 Expression.Constant(
                     new NullableHelper(parameter.ParameterType)
                         .GetFlags(parameter).FirstOrDefault() ?? false,
@@ -154,4 +246,19 @@ public static class ServiceExpressionHelper
         kind = default;
         return false;
     }
+    
+#if NET8_0_OR_GREATER
+    public static bool TryGetServiceKey(ParameterInfo parameter, [NotNullWhen(true)] out string? key)
+    {
+        if (parameter.IsDefined(typeof(ServiceAttribute)) && 
+            parameter.GetCustomAttribute<ServiceAttribute>()?.Key is { } k)
+        {
+            key = k;
+            return true;
+        }
+
+        key = default;
+        return false;
+    }
+#endif
 }
