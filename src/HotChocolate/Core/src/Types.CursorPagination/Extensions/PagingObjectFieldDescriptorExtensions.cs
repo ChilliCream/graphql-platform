@@ -342,7 +342,7 @@ public static class PagingObjectFieldDescriptorExtensions
 
         options = context.GetSettings(options);
 
-        // last but not leas we create a type reference that can be put on the field definition
+        // last but not least we create a type reference that can be put on the field definition
         // to tell the type discovery that this field needs this result type.
         return CreateConnectionType(
             connectionName,

@@ -180,13 +180,20 @@ public class ResolverServiceTests
 #if NET8_0_OR_GREATER
     public class Query
     {
-        public string Foo([Service("abc")] KeyedService service)
+        public string Foo([AbcService] KeyedService service)
             => service.Key;
     }
 
     public class KeyedService(string key)
     {
         public string Key => key;
+    }
+    
+    public class AbcService : ServiceAttribute
+    {
+        public AbcService() : base("abc")
+        {
+        }
     }
 #endif
 }

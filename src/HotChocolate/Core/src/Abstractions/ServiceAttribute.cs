@@ -6,7 +6,7 @@ namespace HotChocolate;
 /// Marks a resolver parameter as a service that shall be injected by the execution engine.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
-public sealed class ServiceAttribute : Attribute
+public class ServiceAttribute : Attribute
 {
     /// <summary>
     /// Marks a resolver parameter as a service that shall be injected by the execution engine.
