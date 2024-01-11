@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Utilities for handling HTTP headers.
 /// </summary>
-internal static class HeaderUtilities
+public static class HeaderUtilities
 {
     private static readonly ConcurrentDictionary<string, CacheEntry> _cache =
         new(StringComparer.Ordinal);
@@ -147,7 +147,7 @@ MULTI_VALUES:
         public DateTime CreatedAt { get; }
     }
 
-    internal readonly struct AcceptHeaderResult
+    public readonly struct AcceptHeaderResult
     {
         public AcceptHeaderResult(AcceptMediaType[] acceptMediaTypes)
         {
