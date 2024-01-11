@@ -107,7 +107,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
 #endif
-        var responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct).ConfigureAwait(false);
+        var responseMessage = await _http
+            .SendAsync(requestMessage, ResponseHeadersRead, ct)
+            .ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }
 
@@ -134,9 +136,16 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = request.EnableFileUploads
-                ? CreateMultipartContent(arrayWriter, request)
-                : CreatePostContent(arrayWriter, request);
+            if (request.EnableFileUploads)
+            {
+                message.Content = CreateMultipartContent(arrayWriter, request);
+                message.Headers.AddGraphQLPreflight();
+            }
+            else
+            {
+                message.Content = CreatePostContent(arrayWriter, request);
+            }
+
             message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
@@ -153,7 +162,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         return message;
     }
 
-    private static HttpContent CreatePostContent(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static HttpContent CreatePostContent(
+        ArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Operation.WriteTo(jsonWriter);
@@ -163,49 +174,54 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 #if NET7_0_OR_GREATER
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+        content.Headers.ContentType =
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
 #endif
         return content;
     }
 
-    private static HttpContent CreateMultipartContent(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static HttpContent CreateMultipartContent(
+        ArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
     {
         var fileInfos = WriteFileMapJson(arrayWriter, request);
 
         if (fileInfos.Count == 0)
         {
             arrayWriter.Reset();
-            return CreatePostContent(arrayWriter, request);    
+            return CreatePostContent(arrayWriter, request);
         }
-        
+
         var start = arrayWriter.Length;
         WriteOperationJson(arrayWriter, request);
         var buffer = arrayWriter.GetInternalBuffer();
 
         var form = new MultipartFormDataContent();
-        
+
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
 #if NET7_0_OR_GREATER
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+        operation.Headers.ContentType =
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
 #endif
         form.Add(operation, "operations");
-        
+
         var fileMap = new ByteArrayContent(buffer, 0, start);
 #if NET7_0_OR_GREATER
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+        fileMap.Headers.ContentType =
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
 #endif
         form.Add(fileMap, "map");
-        
+
         foreach (var fileInfo in fileInfos)
         {
             var file = new StreamContent(fileInfo.File.OpenRead());
             form.Add(file, fileInfo.Name, fileInfo.File.FileName);
         }
-        
+
         return form;
     }
 
@@ -215,14 +231,18 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         request.Operation.WriteTo(jsonWriter);
     }
 
-    private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(
+        ArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Operation);
     }
 
-
-    private static Uri CreateGetRequestUri(ArrayWriter arrayWriter, Uri baseAddress, OperationRequest request)
+    private static Uri CreateGetRequestUri(
+        ArrayWriter arrayWriter,
+        Uri baseAddress,
+        OperationRequest request)
     {
         var sb = new StringBuilder();
         var appendAmpersand = false;
@@ -255,7 +275,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.VariablesNode)));
+            sb.Append(
+                Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.VariablesNode)));
         }
         else if (request.Variables is not null)
         {
@@ -268,7 +289,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.ExtensionsNode)));
+            sb.Append(
+                Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.ExtensionsNode)));
         }
         else if (request.Extensions is not null)
         {
