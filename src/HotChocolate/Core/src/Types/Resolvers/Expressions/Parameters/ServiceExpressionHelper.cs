@@ -113,12 +113,7 @@ public static class ServiceExpressionHelper
                 break;
 
             case ServiceKind.Pooled:
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "The keyed service `{0}` cannot be used as a pooled service.",
-                            parameter.ParameterType.FullName)
-                        .Build());
+                throw ThrowHelper.PooledServicesNotAllowed(parameter);
 
             case ServiceKind.Resolver:
                 ServiceHelper.UseResolverKeyedService(descriptor.Definition, parameter.ParameterType, key);
