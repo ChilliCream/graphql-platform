@@ -88,8 +88,8 @@
       },
       "BananaCakePop.Middleware": {
         "type": "Transitive",
-        "resolved": "10.0.7",
-        "contentHash": "vksP+PnWLFnsNe3PrD9MufF3zb9y6OcHEmEFjLG87sYaVowzBhos7r+beF0OJleidTeAsinNop9Lt/yMGqKkCA==",
+        "resolved": "13.0.0",
+        "contentHash": "6Zj/vfmnCXLjBG7WNdtOgZZ5ZDR3Sy1FQSshZUonIYs3OdzozmsFmqPXMd9XJ0QE9aAildgVGq/lDLpLrMI4Yw==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.0.1"
         }
@@ -1459,11 +1459,12 @@
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "BananaCakePop.Middleware": "[10.0.7, )",
+          "BananaCakePop.Middleware": "[13.0.0, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
-          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
+          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore.tests.utilities": {
@@ -1495,6 +1496,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
@@ -1670,6 +1672,12 @@
       "hotchocolate.utilities": {
         "type": "Project"
       },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[6.0.0, )"
+        }
+      },
       "hotchocolate.validation": {
         "type": "Project",
         "dependencies": {
@@ -1804,8 +1812,8 @@
       },
       "BananaCakePop.Middleware": {
         "type": "Transitive",
-        "resolved": "10.0.7",
-        "contentHash": "vksP+PnWLFnsNe3PrD9MufF3zb9y6OcHEmEFjLG87sYaVowzBhos7r+beF0OJleidTeAsinNop9Lt/yMGqKkCA==",
+        "resolved": "13.0.0",
+        "contentHash": "6Zj/vfmnCXLjBG7WNdtOgZZ5ZDR3Sy1FQSshZUonIYs3OdzozmsFmqPXMd9XJ0QE9aAildgVGq/lDLpLrMI4Yw==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.0.1"
         }
@@ -3171,11 +3179,12 @@
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "BananaCakePop.Middleware": "[10.0.7, )",
+          "BananaCakePop.Middleware": "[13.0.0, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
-          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
+          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore.tests.utilities": {
@@ -3207,6 +3216,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[7.0.0, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -3403,6 +3413,12 @@
       "hotchocolate.utilities": {
         "type": "Project"
       },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[7.0.0, )"
+        }
+      },
       "hotchocolate.validation": {
         "type": "Project",
         "dependencies": {
@@ -3537,8 +3553,8 @@
       },
       "BananaCakePop.Middleware": {
         "type": "Transitive",
-        "resolved": "10.0.7",
-        "contentHash": "vksP+PnWLFnsNe3PrD9MufF3zb9y6OcHEmEFjLG87sYaVowzBhos7r+beF0OJleidTeAsinNop9Lt/yMGqKkCA==",
+        "resolved": "13.0.0",
+        "contentHash": "6Zj/vfmnCXLjBG7WNdtOgZZ5ZDR3Sy1FQSshZUonIYs3OdzozmsFmqPXMd9XJ0QE9aAildgVGq/lDLpLrMI4Yw==",
         "dependencies": {
           "Yarp.ReverseProxy": "2.0.1"
         }
@@ -4971,11 +4987,12 @@
       "hotchocolate.aspnetcore": {
         "type": "Project",
         "dependencies": {
-          "BananaCakePop.Middleware": "[10.0.7, )",
+          "BananaCakePop.Middleware": "[13.0.0, )",
           "HotChocolate": "[0.0.0, )",
           "HotChocolate.Subscriptions.InMemory": "[0.0.0, )",
           "HotChocolate.Transport.Sockets": "[0.0.0, )",
-          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )"
+          "HotChocolate.Types.Scalars.Upload": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )"
         }
       },
       "hotchocolate.aspnetcore.tests.utilities": {
@@ -5007,6 +5024,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[8.0.0, )",
           "System.Threading.Channels": "[8.0.0, )"
@@ -5202,6 +5220,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[8.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",

@@ -433,6 +433,19 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         }
     }
 
+    internal override void OnBeforeRegisterSchemaTypes(
+        IDescriptorContext context, 
+        SchemaTypesDefinition schemaTypesDefinition)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeRegisterSchemaTypes(context, schemaTypesDefinition);
+        }
+    }
+
     internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
     {
         ref var first = ref GetReference();

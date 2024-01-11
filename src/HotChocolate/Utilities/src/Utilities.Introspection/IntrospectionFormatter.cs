@@ -169,7 +169,9 @@ internal static class IntrospectionFormatter
                 CreateDescription(field.Description),
                 CreateTypeReference(field.Type),
                 ParseDefaultValue(field.DefaultValue),
-                Array.Empty<DirectiveNode>()
+                CreateDeprecatedDirective(
+                    field.IsDeprecated,
+                    field.DeprecationReason)
             ));
         }
 
