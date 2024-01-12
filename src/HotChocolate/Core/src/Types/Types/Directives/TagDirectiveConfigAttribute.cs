@@ -24,7 +24,12 @@ internal sealed class TagDirectiveConfigAttribute : DirectiveTypeDescriptorAttri
               author: String!
             }
             """);
-        
+
+        descriptor
+            .Argument("name")
+            .Type<NonNullType<StringType>>()
+            .Description("The name of the tag.");
+
         if (context.ContextData.TryGetValue(WellKnownContextData.TagOptions, out var value) &&
             value is TagOptions { Mode: TagMode.ApolloFederation })
         {
