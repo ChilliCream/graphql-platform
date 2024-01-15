@@ -134,7 +134,7 @@ This file is required for the topology to recognize and display your subgraph co
 
 ### Step 4: Pack your subgraph and compose your Gateway
 
-After configuring your subgraph your have to `pack` your subgraph and `compose` your gateway. 
+After configuring your subgraph you have to `pack` your subgraph and `compose` your gateway. 
 This process links your subgraph with the gateway, ensuring a cohesive GraphQL architecture.
 
 ## Integration into your CI/CD pipeline
