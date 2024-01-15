@@ -1,8 +1,8 @@
 using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.FileSystem;
+using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -66,18 +66,5 @@ public static class HotChocolateFileSystemPersistedQueriesServiceCollectionExten
                 cacheDirectory is null
                     ? new DefaultQueryFileMap()
                     : new DefaultQueryFileMap(cacheDirectory));
-    }
-
-    private static IServiceCollection RemoveService<TService>(
-        this IServiceCollection services)
-    {
-        var serviceDescriptor = services.FirstOrDefault(t => t.ServiceType == typeof(TService));
-
-        if (serviceDescriptor is not null)
-        {
-            services.Remove(serviceDescriptor);
-        }
-
-        return services;
     }
 }

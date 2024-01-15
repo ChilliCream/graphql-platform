@@ -16,5 +16,5 @@ public enum ObjectFieldFlags : byte
     /// <summary>
     /// This field represents the __typename field.
     /// </summary>
-    TypeName = 2
+    TypeName = 2,
 }

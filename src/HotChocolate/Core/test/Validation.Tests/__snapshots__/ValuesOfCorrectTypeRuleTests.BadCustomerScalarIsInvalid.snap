@@ -22,7 +22,7 @@
       "argument": "arg",
       "argumentValue": "123",
       "locationType": "Invalid",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

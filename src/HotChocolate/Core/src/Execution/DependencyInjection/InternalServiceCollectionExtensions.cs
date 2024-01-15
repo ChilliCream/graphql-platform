@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using GreenDonut;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
@@ -66,7 +65,7 @@ internal static class InternalServiceCollectionExtensions
                 sp.GetRequiredService<ObjectPool<ResolverTask>>()));
         return services;
     }
-    
+
     internal static IServiceCollection TryAddOperationCompilerPool(
         this IServiceCollection services)
     {
@@ -131,7 +130,7 @@ internal static class InternalServiceCollectionExtensions
                 {
                     0 => new DataLoaderDiagnosticEventListener(),
                     1 => listeners[0],
-                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners)
+                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners),
                 };
             });
 
@@ -141,7 +140,7 @@ internal static class InternalServiceCollectionExtensions
                 Caching = true,
                 Cache = sp.GetRequiredService<TaskCacheOwner>().Cache,
                 DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                MaxBatchSize = 1024
+                MaxBatchSize = 1024,
             });
         return services;
     }
@@ -230,7 +229,7 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
         where T : class, IParameterExpressionBuilder
     {
-        if (services.All(t => t.ImplementationType != typeof(T)))
+        if (!services.IsImplementationTypeRegistered<T>())
         {
             services.AddSingleton<IParameterExpressionBuilder, T>();
         }

@@ -252,6 +252,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
@@ -352,6 +353,12 @@
           "Microsoft.Bcl.AsyncInterfaces": "[6.0.0, )",
           "System.Memory": "[4.5.5, )",
           "System.Threading.Tasks.Extensions": "[4.5.4, )"
+        }
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[6.0.0, )"
         }
       },
       "hotchocolate.validation": {
@@ -542,6 +549,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
@@ -635,6 +643,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[6.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",
@@ -799,6 +813,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[7.0.0, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -892,6 +907,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[7.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",
@@ -1056,6 +1077,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[8.0.0, )",
           "System.Threading.Channels": "[8.0.0, )"
@@ -1149,6 +1171,12 @@
       },
       "hotchocolate.utilities": {
         "type": "Project"
+      },
+      "hotchocolate.utilities.dependencyinjection": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "[8.0.0, )"
+        }
       },
       "hotchocolate.validation": {
         "type": "Project",

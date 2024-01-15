@@ -13,5 +13,5 @@ public enum BindingBehavior
     /// <summary>
     /// Type system members need to be explicitly bound.
     /// </summary>
-    Explicit = 1
+    Explicit = 1,
 }

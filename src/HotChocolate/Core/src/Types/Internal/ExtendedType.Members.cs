@@ -27,7 +27,7 @@ internal sealed partial class ExtendedType
                 PropertyInfo p => CreateExtendedType(context, flags, p.PropertyType),
                 MethodInfo m => CreateExtendedType(context, flags, m.ReturnType),
                 _ => throw new NotSupportedException(
-                    "Only PropertyInfo and MethodInfo are supported.")
+                    "Only PropertyInfo and MethodInfo are supported."),
             };
         }
 

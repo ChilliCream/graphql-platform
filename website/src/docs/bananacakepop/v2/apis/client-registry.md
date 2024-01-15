@@ -100,7 +100,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-> **Tipp: Using Environment Variables**
+> **Tip: Using Environment Variables**
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `AddBananaCakePopServices` without explicitly passing parameters.
 >- `BCP_API_KEY` maps to `ApiKey`

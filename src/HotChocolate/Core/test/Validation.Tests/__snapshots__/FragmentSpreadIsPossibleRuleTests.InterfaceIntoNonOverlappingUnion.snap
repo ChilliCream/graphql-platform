@@ -22,7 +22,7 @@
       "typeCondition": "HumanOrAlien",
       "selectionSetType": "CatOrDog",
       "fragment": "petFragment",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
     },
     "Exception": null,
     "SyntaxNode": {

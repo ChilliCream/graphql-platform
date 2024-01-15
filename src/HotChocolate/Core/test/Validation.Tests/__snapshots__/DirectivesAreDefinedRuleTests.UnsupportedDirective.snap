@@ -24,7 +24,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-Defined"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Defined"
     },
     "Exception": null,
     "SyntaxNode": {

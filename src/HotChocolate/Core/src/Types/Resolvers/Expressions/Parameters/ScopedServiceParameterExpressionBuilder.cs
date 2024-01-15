@@ -24,12 +24,31 @@ internal class ScopedServiceParameterExpressionBuilder
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
         ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind);
+
+#if NET8_0_OR_GREATER
+        if (ServiceExpressionHelper.TryGetServiceKey(parameter, out var key))
+        {
+            ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, kind, key);
+        }
+        else
+        {
+            ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, kind);
+        }
+#else    
         ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, kind);
+#endif
     }
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         ServiceExpressionHelper.TryGetServiceKind(context.Parameter, out var kind);
+        
+#if NET8_0_OR_GREATER
+        return ServiceExpressionHelper.TryGetServiceKey(context.Parameter, out var key)
+            ? ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, kind, key)
+            : ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, kind);
+#else    
         return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, kind);
+#endif
     }
 }

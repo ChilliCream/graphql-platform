@@ -15,7 +15,7 @@ namespace HotChocolate.PersistedQueries.FileSystem;
 /// </summary>
 public class FileSystemQueryStorage
     : IReadStoredQueries
-        , IWriteStoredQueries
+    , IWriteStoredQueries
 {
     private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
     private readonly IQueryFileMap _queryMap;
@@ -55,11 +55,15 @@ public class FileSystemQueryStorage
         return TryReadQueryInternalAsync(filePath, cancellationToken);
     }
 
-    private async Task<QueryDocument?> TryReadQueryInternalAsync(
+    private static async Task<QueryDocument?> TryReadQueryInternalAsync(
         string filePath,
         CancellationToken cancellationToken)
     {
+#if NETSTANDARD2_0
         using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+#else
+        await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+#endif
 
         var document = await BufferHelper.ReadAsync(
                 stream,
@@ -94,7 +98,7 @@ public class FileSystemQueryStorage
         return WriteQueryInternalAsync(query, filePath, cancellationToken);
     }
 
-    private async Task WriteQueryInternalAsync(
+    private static async Task WriteQueryInternalAsync(
         IQuery query,
         string filePath,
         CancellationToken cancellationToken)

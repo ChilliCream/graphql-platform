@@ -1221,7 +1221,7 @@ public class ResolverCompilerTests
 
         var contextData = new Dictionary<string, object?>
         {
-            { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
+            { nameof(ClaimsPrincipal), new ClaimsPrincipal() },
         };
 
         // act

@@ -91,6 +91,6 @@ public struct PagingOptions
             InferConnectionNameFromField = InferConnectionNameFromField,
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
             ProviderName = ProviderName,
-            LegacySupport = LegacySupport
+            LegacySupport = LegacySupport,
         };
 }

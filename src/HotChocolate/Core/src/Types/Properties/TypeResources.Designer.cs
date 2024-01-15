@@ -2006,5 +2006,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaException_ErrorSummaryText", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_PooledServicesNotAllowed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PooledServicesNotAllowed", resourceCulture);
+            }
+        }
     }
 }

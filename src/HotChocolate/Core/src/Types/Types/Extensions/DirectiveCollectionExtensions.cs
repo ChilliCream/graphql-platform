@@ -137,7 +137,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<bool>(variable.Name.Value),
                             BooleanValueNode b => b.Value,
-                            _ => @if
+                            _ => @if,
                         };
                         break;
 
@@ -147,7 +147,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<string?>(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label
+                            _ => label,
                         };
                         break;
                 }
@@ -186,7 +186,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<bool>(variable.Name.Value),
                             BooleanValueNode b => b.Value,
-                            _ => @if
+                            _ => @if,
                         };
                         break;
 
@@ -196,7 +196,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<string?>(variable.Name.Value),
                             StringValueNode b => b.Value,
-                            _ => label
+                            _ => label,
                         };
                         break;
 
@@ -206,7 +206,7 @@ public static class DirectiveCollectionExtensions
                             VariableNode variable
                                 => variables.GetVariable<int>(variable.Name.Value),
                             IntValueNode b => b.ToInt32(),
-                            _ => initialCount
+                            _ => initialCount,
                         };
                         break;
                 }

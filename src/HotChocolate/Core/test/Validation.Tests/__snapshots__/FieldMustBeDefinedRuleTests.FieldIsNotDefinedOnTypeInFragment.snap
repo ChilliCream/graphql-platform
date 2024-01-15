@@ -22,7 +22,7 @@
       "type": "Dog",
       "field": "meowVolume",
       "responseName": "meowVolume",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -73,7 +73,7 @@
       "type": "Dog",
       "field": "kawVolume",
       "responseName": "barkVolume",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {

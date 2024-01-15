@@ -17,7 +17,7 @@
       "argument": "floatArg",
       "argumentValue": "null",
       "locationType": "Float!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }
 ]

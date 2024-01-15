@@ -13,5 +13,5 @@ public enum RequestExecutorEventType
     /// <summary>
     /// A request executor was evicted.
     /// </summary>
-    Evicted
+    Evicted,
 }

@@ -535,19 +535,19 @@ public class QueryWithNodeResolvers
 {
     [UseProjection]
     public IQueryable<Foo> All()
-        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> GetById(string id)
-        => new Foo[] { new() { Bar = "A" }, }.AsQueryable();
+        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Baz> GetBazById(string id)
-        => new Baz[] { new() { Bar2 = "A" }, }.AsQueryable();
+        => new Baz[] { new() { Bar2 = "A" } }.AsQueryable();
 
     [NodeResolver]
     public Bar GetBarById(string id) => new() { IdOfBar = "A" };

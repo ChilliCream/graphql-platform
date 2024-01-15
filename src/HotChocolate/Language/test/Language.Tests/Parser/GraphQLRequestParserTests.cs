@@ -19,7 +19,7 @@ public class GraphQLRequestParserTests
             JsonConvert.SerializeObject(
                 new GraphQLRequestDto
                 {
-                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()
+                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
                 }).NormalizeLineBreaks());
 
         // act
@@ -47,7 +47,7 @@ public class GraphQLRequestParserTests
                 new GraphQLRequestDto
                 {
                     Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks()
+                        .NormalizeLineBreaks(),
                 }).NormalizeLineBreaks());
 
         // act
@@ -64,7 +64,7 @@ public class GraphQLRequestParserTests
         var json = JsonConvert.SerializeObject(
             new GraphQLRequestDto
             {
-                Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()
+                Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
             }).NormalizeLineBreaks();
 
         // act
@@ -83,7 +83,7 @@ public class GraphQLRequestParserTests
                 new GraphQLRequestDto
                 {
                     Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks()
+                        .NormalizeLineBreaks(),
                 }).NormalizeLineBreaks());
 
         // act
@@ -102,7 +102,7 @@ public class GraphQLRequestParserTests
             new GraphQLRequestDto
             {
                 Query = FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks()
+                    .NormalizeLineBreaks(),
             }).NormalizeLineBreaks();
 
         // act
@@ -122,7 +122,7 @@ public class GraphQLRequestParserTests
                 new GraphQLRequestDto
                 {
                     Query = FileResource.Open("kitchen-sink.graphql")
-                        .NormalizeLineBreaks()
+                        .NormalizeLineBreaks(),
                 }).NormalizeLineBreaks());
 
         // act
@@ -151,7 +151,7 @@ public class GraphQLRequestParserTests
             JsonConvert.SerializeObject(
                 new GraphQLRequestDto
                 {
-                    Query = FileResource.Open("russian-literals.graphql").NormalizeLineBreaks()
+                    Query = FileResource.Open("russian-literals.graphql").NormalizeLineBreaks(),
                 }).NormalizeLineBreaks());
 
         // act
@@ -207,7 +207,7 @@ public class GraphQLRequestParserTests
         var request = new GraphQLRequestDto
         {
             Query = FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks()
+                .NormalizeLineBreaks(),
         };
 
         var buffer = Encoding.UTF8.GetBytes(request.Query);
@@ -261,7 +261,7 @@ public class GraphQLRequestParserTests
         {
             CustomProperty = "FooBar",
             Query = FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks()
+                .NormalizeLineBreaks(),
         };
 
         var source = Encoding.UTF8.GetBytes(
@@ -304,7 +304,7 @@ public class GraphQLRequestParserTests
         {
             Id = "FooBar",
             Query = FileResource.Open("kitchen-sink.graphql")
-                .NormalizeLineBreaks()
+                .NormalizeLineBreaks(),
         };
 
         var source = Encoding.UTF8.GetBytes(
@@ -366,7 +366,7 @@ public class GraphQLRequestParserTests
                                     new Dictionary<string, object>
                                     {
                                         { "a" , "b"},
-                                    }
+                                    },
                                 }},
                     },
                     Extensions = new Dictionary<string, object>
@@ -386,9 +386,9 @@ public class GraphQLRequestParserTests
                                         { "aa" , "bb"},
                                         { "ab" , null},
                                         { "ac" , false},
-                                    }
+                                    },
                                 }},
-                    }
+                    },
                 }).NormalizeLineBreaks());
 
         // act
@@ -439,7 +439,7 @@ public class GraphQLRequestParserTests
                                     new Dictionary<string, object>
                                     {
                                         { "a" , "b"},
-                                    }
+                                    },
                                 }},
                     },
                     Extensions = new Dictionary<string, object>
@@ -457,9 +457,9 @@ public class GraphQLRequestParserTests
                                     new Dictionary<string, object>
                                     {
                                         { "aa" , "bb"},
-                                    }
+                                    },
                                 }},
-                    }
+                    },
                 }).NormalizeLineBreaks());
 
         // act
@@ -489,14 +489,14 @@ public class GraphQLRequestParserTests
                                         { "c" , 1},
                                         { "d" , 1.1},
                                         { "e" , false},
-                                        { "f" , null}
+                                        { "f" , null},
                                     }},
                                 { "c" , new List<object>
                                     {
                                         new Dictionary<string, object>
                                         {
                                             { "a" , "b"},
-                                        }
+                                        },
                                     }},
                             }
                         },
@@ -507,7 +507,7 @@ public class GraphQLRequestParserTests
                         {
                             "id",
                             "bar"
-                        }
+                        },
                 }).NormalizeLineBreaks());
 
         // act
