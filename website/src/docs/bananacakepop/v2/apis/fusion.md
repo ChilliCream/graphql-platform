@@ -73,7 +73,7 @@ To set up your subgraphs to be linked with your gateway, you need to follow thes
 
 ### Step 1: Install BananaCakePop.Services Package
 
-First, ensure that the `BananaCakePop.Services`` package is installed in your subgraph projects. If not, you can install it by running the following command in the root directory of each subgraph project:
+First, ensure that the `BananaCakePop.Services` package is installed in your subgraph projects. If not, you can install it by running the following command in the root directory of each subgraph project:
 
 ```bash
 dotnet add package BananaCakePop.Services
