@@ -14,7 +14,7 @@ namespace HotChocolate.ApolloFederation;
 /// </code>
 /// Indicates to composition that the target element is restricted based on authorization policies
 /// that are evaluated in a Rhai script or coprocessor.
-/// <see cref="https://www.apollographql.com/docs/router/configuration/authorization#policy"/>
+/// <see href="https://www.apollographql.com/docs/router/configuration/authorization#policy"/>
 /// </summary>
 public sealed class PolicyDirectiveType : DirectiveType
 {
