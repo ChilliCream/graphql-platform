@@ -378,7 +378,7 @@ public ref partial struct Utf8GraphQLReader
             code = ReadDigits(code);
         }
 
-        const int lowerCaseBit = 0x20;
+        const byte lowerCaseBit = 0x20;
         if ((code | lowerCaseBit) is GraphQLConstants.E)
         {
             isFloat = true;
