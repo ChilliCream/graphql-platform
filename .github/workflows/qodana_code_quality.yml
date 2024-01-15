@@ -5,11 +5,11 @@ on:
   push:
     branches:
       - main
-      - mst/jetbrains-build
+      - mst/mst/build-fix-0001
 
 jobs:
   qodana:
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     steps:
       - uses: actions/checkout@v3
         with:
@@ -19,3 +19,7 @@ jobs:
         uses: JetBrains/qodana-action@v2023.2
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
+        with:
+          args: --ide,QDNET
+          pr-mode: false
+          upload-result: true

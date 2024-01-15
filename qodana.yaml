@@ -1,31 +1,17 @@
-#-------------------------------------------------------------------------------#
-#               Qodana analysis is configured by qodana.yaml file               #
-#             https://www.jetbrains.com/help/qodana/qodana-yaml.html            #
-#-------------------------------------------------------------------------------#
 version: "1.0"
 
-#Specify inspection profile for code analysis
+ide: QDNET
+
 profile:
-  name: qodana.starter
+  name: qodana.recommended
 
-#Enable inspections
-#include:
-#  - name: <SomeEnabledInspectionId>
+failThreshold: 1
 
-#Disable inspections
-#exclude:
-#  - name: <SomeDisabledInspectionId>
-#    paths:
-#      - <path/where/not/run/inspection>
+exclude:
+  - name: NotAccessedPositionalProperty.Global
 
-#Execute shell command before Qodana execution (Applied in CI/CD pipeline)
-bootstrap: sh ./init.sh
+bootstrap: |
+  sh ./restore.sh
 
-#Install IDE plugins before Qodana execution (Applied in CI/CD pipeline)
-#plugins:
-#  - id: <plugin.id> #(plugin id can be found at https://plugins.jetbrains.com)
 dotnet:
     solution: All.sln
-
-#Specify Qodana linter for analysis (Applied in CI/CD pipeline)
-linter: jetbrains/qodana-dotnet:latest
