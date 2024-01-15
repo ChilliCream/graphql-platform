@@ -55,8 +55,6 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         public List<string> FieldPath { get; set; }
     }
 
-    // Note that this algorithm is not optimal (I don't think).
-    // It doesn't cache explored paths in exiting nodes.
     // https://github.com/IvanGoncharov/graphql-js/blob/408bcda9c88df85e039f5d072011b1cb465fe830/src/type/validate.js#L535
     private static void TryReachCycleRecursively(
         in CycleValidationContext context,
