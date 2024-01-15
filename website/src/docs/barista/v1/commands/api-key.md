@@ -8,6 +8,8 @@ The `barista api-key` command provides a set of subcommands that allow you to ma
 
 The `barista api-key create` command is used to create a new API key.
 
+> **Important:** Use the value prefixed with `Secret:` as the api key value you pass to `BananaCakePop.Services``
+
 ```shell
 barista api-key create --api-id abc123
 ```
