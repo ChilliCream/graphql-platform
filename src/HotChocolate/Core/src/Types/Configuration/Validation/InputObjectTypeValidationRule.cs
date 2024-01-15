@@ -26,6 +26,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         List<string>? names = null;
         CycleValidationContext cycleValidationContext = new()
         {
+            Visited = new(),
             CycleStartIndex = new(),
             Errors = errors,
             FieldPath = new(),
