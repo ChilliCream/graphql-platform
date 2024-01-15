@@ -378,7 +378,8 @@ public ref partial struct Utf8GraphQLReader
             code = ReadDigits(code);
         }
 
-        if ((code | 0x20) is GraphQLConstants.E)
+        const int lowerCaseBit = 0x20;
+        if ((code | lowerCaseBit) is GraphQLConstants.E)
         {
             isFloat = true;
             _floatFormat = Language.FloatFormat.Exponential;
