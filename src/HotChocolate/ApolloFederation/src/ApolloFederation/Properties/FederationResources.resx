@@ -234,4 +234,7 @@
   <data name="ResolveReference_MustBeMethod" xml:space="preserve">
     <value>The expression must refer to a method representing the reference resolver.</value>
   </data>
+  <data name="PolicyCollectionType_ParseValue_ExpectedStringArray" xml:space="preserve">
+    <value>Expected a string[][]</value>
+  </data>
 </root>

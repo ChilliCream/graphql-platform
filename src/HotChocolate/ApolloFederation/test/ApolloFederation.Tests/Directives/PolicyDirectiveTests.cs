@@ -70,36 +70,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
                 d.Name(nameof(Query));
                 d.Field("someField")
                     .Type<NonNullType<ObjectType<Review>>>()
-                    .Policy(new PolicyCollection
-                    {
-                        PolicySets = new PolicySet[]
-                        {
-                            new()
-                            {
-                                Policies = new Policy[]
-                                {
-                                    new()
-                                    {
-                                        Name = "p1",
-                                    },
-                                    new()
-                                    {
-                                        Name = "p1_1",
-                                    },
-                                },
-                            },
-                            new()
-                            {
-                                Policies = new Policy[]
-                                {
-                                    new()
-                                    {
-                                        Name = "p2",
-                                    },
-                                },
-                            },
-                        },
-                    });
+                    .Policy([["p1", "p1_1"], ["p2"]]);
             }))
             .Create();
 
@@ -109,9 +80,9 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         schema.ToString().MatchSnapshot();
     }
 
-    private static PolicyCollection GetSinglePoliciesArgument(IDirectiveCollection directives)
+    private static string[][] GetSinglePoliciesArgument(IDirectiveCollection directives)
     {
-        PolicyCollection? result = null;
+        string[][]? result = null;
         Assert.Collection(
             directives,
             t =>
@@ -139,17 +110,15 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .Single(f => f.Name == "someField")
             .Directives;
         var policyCollection = GetSinglePoliciesArgument(directives);
-        Assert.Collection(policyCollection.PolicySets,
+        Assert.Collection(policyCollection,
             t1 =>
             {
-                var policies = t1.Policies;
-                Assert.Equal("p1", policies[0].Name);
-                Assert.Equal("p1_1", policies[1].Name);
+                Assert.Equal("p1", t1[0]);
+                Assert.Equal("p1_1", t1[1]);
             },
             t2 =>
             {
-                var policies = t2.Policies;
-                Assert.Equal("p2", policies[0].Name);
+                Assert.Equal("p2", t2[0]);
             });
     }
 
@@ -158,11 +127,10 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         var testType = schema.GetType<ObjectType>(nameof(Review));
         var directives = testType.Directives;
         var policyCollection = GetSinglePoliciesArgument(directives);
-        Assert.Collection(policyCollection.PolicySets,
+        Assert.Collection(policyCollection,
             t1 =>
             {
-                var policies = t1.Policies;
-                Assert.Equal("p3", policies[0].Name);
+                Assert.Equal("p3", t1[0]);
             });
     }
 

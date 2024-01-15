@@ -28,43 +28,43 @@ public static partial class ApolloFederationDescriptorExtensions
     /// </exception>
     public static IEnumTypeDescriptor Policy(
         this IEnumTypeDescriptor descriptor,
-        PolicyCollection policies)
+        string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(policies);
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, PolicyCollection)"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
     public static IInterfaceFieldDescriptor Policy(
         this IInterfaceFieldDescriptor descriptor,
-        PolicyCollection policies)
+        string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(policies);
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, PolicyCollection)"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
     public static IInterfaceTypeDescriptor Policy(
         this IInterfaceTypeDescriptor descriptor,
-        PolicyCollection policies)
+        string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(policies);
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, PolicyCollection)"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
     public static IObjectFieldDescriptor Policy(
         this IObjectFieldDescriptor descriptor,
-        PolicyCollection policies)
+        string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(policies);
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, PolicyCollection)"/>
+    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
     public static IObjectTypeDescriptor Policy(
         this IObjectTypeDescriptor descriptor,
-        PolicyCollection policies)
+        string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(policies);

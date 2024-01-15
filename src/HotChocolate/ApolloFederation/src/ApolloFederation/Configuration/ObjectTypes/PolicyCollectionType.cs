@@ -1,157 +1,122 @@
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
 /// </summary>
-public sealed class PolicyCollectionType : ScalarType<PolicyCollection, ListValueNode>
+public sealed class PolicyCollectionType : ScalarType<string[][]>
 {
     public PolicyCollectionType(BindingBehavior bind = BindingBehavior.Explicit)
         : base(WellKnownTypeNames.PolicyDirective, bind)
     {
     }
 
-    public override IValueNode ParseResult(object? resultValue)
+    public override bool IsInstanceOfType(IValueNode valueSyntax)
+        => PolicyParsingHelper.CanParseNode(valueSyntax);
+
+    public override object ParseLiteral(IValueNode valueSyntax)
+        => PolicyParsingHelper.ParseNode(valueSyntax);
+
+    public override IValueNode ParseValue(object? runtimeValue)
     {
-        if (resultValue is null)
+        if (runtimeValue is not string[][] policies1)
         {
-            return NullValueNode.Default;
+            throw new ArgumentException(
+                FederationResources.PolicyCollectionType_ParseValue_ExpectedStringArray,
+                nameof(runtimeValue));
         }
-        if (resultValue is PolicyCollection policyCollection)
+
+        var list1 = new IValueNode[policies1.Length];
+        for (int i1 = 0; i1 < list1.Length; i1++)
         {
-            return ParseValue(policyCollection);
-        }
-        throw new Exception("object of unexpected type");
-    }
-
-    protected override PolicyCollection ParseLiteral(ListValueNode valueSyntax)
-    {
-        var result = PolicyParsingHelper.ParseNode(valueSyntax);
-        return result;
-    }
-
-    protected override ListValueNode ParseValue(PolicyCollection runtimeValue)
-    {
-        var policySets = runtimeValue.PolicySets;
-        var policySetCount = policySets.Length;
-
-        var policySetNodes = new IValueNode[policySetCount];
-        for (var policySetIndex = 0; policySetIndex < policySetCount; policySetIndex++)
-        {
-            var policySet = policySets[policySetIndex];
-            var policies = policySet.Policies;
-            var policyCount = policies.Length;
-
-            var policyNameNodes = new IValueNode[policyCount];
-            for (var policyIndex = 0; policyIndex < policyCount; policyIndex++)
+            var policies2 = policies1[i1];
+            var list2 = new IValueNode[policies2.Length];
+            for (int i2 = 0; i2 < list2.Length; i2++)
             {
-                var policyName = policies[policyIndex].Name;
-                policyNameNodes[policyIndex] = new StringValueNode(policyName);
+                list2[i2] = new StringValueNode(policies2[i2]);
             }
-            policySetNodes[policySetIndex] = new ListValueNode(policyNameNodes);
-        }
-        var result = new ListValueNode(policySetNodes);
 
+            list1[i1] = new ListValueNode(list2);
+        }
+
+        var result = new ListValueNode(list1);
         return result;
     }
+
+    public override IValueNode ParseResult(object? resultValue)
+        => ParseValue(resultValue);
 }
+
 
 public static class PolicyParsingHelper
 {
-    public static PolicyCollection ParseNode(ListValueNode node)
+    private static bool IsNestedList(
+        IValueNode syntaxNode,
+        int numDimensions)
     {
-        var policySetNodes = node.Items;
-        var policySetCount = policySetNodes.Count;
-
-        var policySets = new PolicySet[policySetCount];
-        for (var policySetIndex = 0; policySetIndex < policySetCount; policySetIndex++)
+        if (syntaxNode.Kind == SyntaxKind.StringValue)
         {
-            var item = policySetNodes[policySetIndex];
-            if (item is not ListValueNode policySetNode)
-            {
-                throw new Exception("Expected list of strings");
-            }
-
-            var policyNameNodes = policySetNode.Items;
-            var policyNameCount = policyNameNodes.Count;
-            var policies = new Policy[policyNameCount];
-            for (var policyNameIndex = 0; policyNameIndex < policyNameCount; policyNameIndex++)
-            {
-                var policyNameNode = policyNameNodes[policyNameIndex];
-                if (policyNameNode is not StringValueNode stringPolicyNameNode)
-                {
-                    throw new Exception("Expected string");
-                }
-                policies[policyNameIndex] = new Policy
-                {
-                    Name = stringPolicyNameNode.Value,
-                };
-            }
-
-            policySets[policySetIndex] = new PolicySet
-            {
-                Policies = policies,
-            };
-        }
-        var result = new PolicyCollection
-        {
-            PolicySets = policySets,
-        };
-
-        return result;
-    }
-
-}
-
-public struct Policy
-{
-    public required string Name { get; init; }
-}
-
-/// <summary>
-/// Represents a set of multiple policies.
-/// </summary>
-public struct PolicySet
-{
-    /// <summary>
-    /// Includes policies included in this set.
-    /// </summary>
-    public required Policy[] Policies { get; init; }
-}
-
-public sealed class PolicyCollection
-{
-    /// <summary>
-    /// Either of the policy sets listed here must be satisfied.
-    /// </summary>
-    public required PolicySet[] PolicySets { get; init; }
-
-    public static PolicyCollection FromNameSets(string[][] names)
-    {
-        var policySets = new PolicySet[names.Length];
-        int policySetCount = names.Length;
-        for (var policySetIndex = 0; policySetIndex < policySetCount; policySetIndex++)
-        {
-            var policyNames = names[policySetIndex];
-            var policyCount = policyNames.Length;
-            var policies = new Policy[policyCount];
-            for (var policyIndex = 0; policyIndex < policyCount; policyIndex++)
-            {
-                policies[policyIndex] = new Policy
-                {
-                    Name = policyNames[policyIndex],
-                };
-            }
-            policySets[policySetIndex] = new PolicySet
-            {
-                Policies = policies,
-            };
+            return true;
         }
 
-        return new()
+        if (numDimensions == 0)
         {
-            PolicySets = policySets,
-        };
+            return false;
+        }
+
+        if (syntaxNode is not ListValueNode list)
+        {
+            return false;
+        }
+
+        foreach (var item in list.Items)
+        {
+            if (!IsNestedList(item, numDimensions - 1))
+            {
+                return false;
+            }
+        }
+        return true;
     }
+
+    private static string[] ParseNestedList1(IValueNode syntaxNode)
+    {
+        if (syntaxNode.Kind == SyntaxKind.StringValue)
+        {
+            return [(string)syntaxNode.Value!];
+        }
+
+        var listNode = (ListValueNode)syntaxNode;
+        var items = listNode.Items;
+        var array = new string[items.Count];
+        for (var i = 0; i < array.Length; i++)
+        {
+            array[i] = (string)items[i].Value!;
+        }
+        return array;
+    }
+
+    private static string[][] ParseNestedList2(IValueNode syntaxNode)
+    {
+        if (syntaxNode.Kind == SyntaxKind.StringValue)
+        {
+            return [[(string)syntaxNode.Value!]];
+        }
+
+        var listNode = (ListValueNode)syntaxNode;
+        var items = listNode.Items;
+        var array = new string[][items.Count];
+        for (var i = 0; i < array.Length; i++)
+        {
+            array[i] = ParseNestedList1(items[i]);
+        }
+        return array;
+    }
+
+    public static string[][] ParseNode(IValueNode syntaxNode)
+        => ParseNestedList2(syntaxNode);
+    public static bool CanParseNode(IValueNode syntaxNode)
+        => IsNestedList(syntaxNode, numDimensions: 2);
 }

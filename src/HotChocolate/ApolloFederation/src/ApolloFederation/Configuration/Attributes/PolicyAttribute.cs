@@ -16,7 +16,7 @@ namespace HotChocolate.ApolloFederation;
     AllowMultiple = false)]
 public sealed class PolicyAttribute : DescriptorAttribute
 {
-    public PolicyAttribute(PolicyCollection policyCollection)
+    public PolicyAttribute(string[][] policyCollection)
     {
         PolicyCollection = policyCollection;
     }
@@ -28,7 +28,7 @@ public sealed class PolicyAttribute : DescriptorAttribute
 
     /// <summary>
     /// </summary>
-    public PolicyCollection PolicyCollection { get; set; }
+    public string[][] PolicyCollection { get; set; }
 
     /// <summary>
     /// Comma-separated lists of policy names for each set.
@@ -38,30 +38,17 @@ public sealed class PolicyAttribute : DescriptorAttribute
         set => PolicyCollection = ConvertCommaSeparatedPolicyNamesListsToCollection(value);
     }
 
-    private static PolicyCollection ConvertCommaSeparatedPolicyNamesListsToCollection(string[] names)
+    private static string[][] ConvertCommaSeparatedPolicyNamesListsToCollection(string[] names)
     {
-        var policySets = new PolicySet[names.Length];
+        var policySets = new string[][names.Length];
         var policySetCount = policySets.Length;
         for (var policySetIndex = 0; policySetIndex < policySetCount; policySetIndex++)
         {
             var commaSeparatedPolicyNames = names[policySetIndex];
             var policyNames = commaSeparatedPolicyNames.Split(',');
-            var policyCount = policyNames.Length;
-            var policies = new Policy[policyCount];
-            for (var policyIndex = 0; policyIndex < policyCount; policyIndex++)
-            {
-                var name = policyNames[policyIndex].Trim();
-                policies[policyIndex] = new Policy
-                {
-                    Name = name,
-                };
-            }
+            policySets[policySetIndex] = policyNames;
         }
-
-        return new()
-        {
-            PolicySets = policySets,
-        };
+        return policySets;
     }
 
     protected internal override void TryConfigure(
