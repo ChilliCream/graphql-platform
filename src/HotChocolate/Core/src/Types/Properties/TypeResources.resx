@@ -916,7 +916,7 @@ Type: `{0}`</value>
   <data name="ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
     <value>Oneof Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
   </data>
-  <data name="ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
+  <data name="ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf" xml:space="preserve">
     <value>Cannot reference Input Object `{0}` within itself through a series of non-null fields `{1}`.</value>
   </data>
   <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">

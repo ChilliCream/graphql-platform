@@ -182,7 +182,7 @@ internal static class ErrorHelper
         IEnumerable<string> path)
         => SchemaErrorBuilder.New()
             .SetMessage(
-                ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults,
+                ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf,
                 type.Name,
                 string.Join(" --> ", path))
             .SetType(type)
