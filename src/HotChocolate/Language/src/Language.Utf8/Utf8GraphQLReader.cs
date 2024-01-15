@@ -155,10 +155,7 @@ public ref partial struct Utf8GraphQLReader
 
         if (code.IsDigitOrMinus())
         {
-            if (!ReadNumberToken(code))
-            {
-                throw new SyntaxException(this, DisallowedNameCharacterAfterNumber, (char)code, code);
-            }
+            ReadNumberToken(code);
             return true;
         }
 
@@ -348,7 +345,7 @@ public ref partial struct Utf8GraphQLReader
     /// from the current lexer state.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool ReadNumberToken(byte firstCode)
+    private void ReadNumberToken(byte firstCode)
     {
         var start = _position;
         var code = firstCode;
@@ -392,14 +389,18 @@ public ref partial struct Utf8GraphQLReader
             {
                 code = _graphQLData[++_position];
             }
-            ReadDigits(code);
+            code = ReadDigits(code);
         }
 
-        // Lookahead for NameStart
+        // Lookahead for NameStart.
         // https://github.com/graphql/graphql-spec/pull/601
-        if (code.IsLetterOrDigitOrUnderscore() || code == '.')
+        // NOTE:
+        // Not checking for Digit because there is no situation
+        // where that hasn't been consumed at this point.
+        if (code.IsLetterOrUnderscore() ||
+            code == GraphQLConstants.Dot)
         {
-            return false;
+            throw new SyntaxException(this, DisallowedNameCharacterAfterNumber, (char)code, code);
         }
 
         _kind = isFloat
@@ -408,7 +409,6 @@ public ref partial struct Utf8GraphQLReader
         _start = start;
         _end = _position;
         _value = _graphQLData.Slice(start, _position - start);
-        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
