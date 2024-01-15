@@ -31,7 +31,7 @@ public sealed class PolicyDirectiveType : DirectiveType
                 DirectiveLocation.Enum);
 
         descriptor
-            .Argument("policies")
+            .Argument(WellKnownArgumentNames.Policies)
             .Type<NonNullType<PolicyCollectionType>>();
     }
 }

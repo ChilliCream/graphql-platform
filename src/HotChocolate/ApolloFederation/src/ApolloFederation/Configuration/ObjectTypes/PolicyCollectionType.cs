@@ -28,21 +28,7 @@ public sealed class PolicyCollectionType : ScalarType<string[][]>
                 nameof(runtimeValue));
         }
 
-        var list1 = new IValueNode[policies1.Length];
-        for (int i1 = 0; i1 < list1.Length; i1++)
-        {
-            var policies2 = policies1[i1];
-            var list2 = new IValueNode[policies2.Length];
-            for (int i2 = 0; i2 < list2.Length; i2++)
-            {
-                list2[i2] = new StringValueNode(policies2[i2]);
-            }
-
-            list1[i1] = new ListValueNode(list2);
-        }
-
-        var result = new ListValueNode(list1);
-        return result;
+        return PolicyParsingHelper.ParseValue(policies1);
     }
 
     public override IValueNode ParseResult(object? resultValue)
@@ -113,6 +99,26 @@ public static class PolicyParsingHelper
             array[i] = ParseNestedList1(items[i]);
         }
         return array;
+    }
+
+
+    public static ListValueNode ParseValue(string[][] policies1)
+    {
+        var list1 = new IValueNode[policies1.Length];
+        for (int i1 = 0; i1 < list1.Length; i1++)
+        {
+            var policies2 = policies1[i1];
+            var list2 = new IValueNode[policies2.Length];
+            for (int i2 = 0; i2 < list2.Length; i2++)
+            {
+                list2[i2] = new StringValueNode(policies2[i2]);
+            }
+
+            list1[i1] = new ListValueNode(list2);
+        }
+
+        var result = new ListValueNode(list1);
+        return result;
     }
 
     public static string[][] ParseNode(IValueNode syntaxNode)

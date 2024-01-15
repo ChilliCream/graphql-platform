@@ -57,20 +57,29 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         // arrange
         Snapshot.FullName();
 
+        var reviewType = new ObjectType<Review>(d =>
+        {
+            d.Name(nameof(Review));
+            d.Key("id");
+            {
+                var id = d.Field("id");
+                id.Type<NonNullType<IntType>>();
+                id.Resolve(_ => default);
+            }
+        });
+        var queryType = new ObjectType(d =>
+        {
+            d.Name(nameof(Query));
+            d.Field("someField")
+                .Type(new NonNullType(reviewType))
+                .Policy([["p1", "p1_1"], ["p2"]])
+                .Resolve(_ => default);
+        });
+
         var schema = SchemaBuilder.New()
             .AddApolloFederation()
-            .AddType(new ObjectType(d =>
-            {
-                d.Name(nameof(Review));
-                d.Field("id").Type<NonNullType<IntType>>();
-            }))
-            .AddQueryType(new ObjectType(d =>
-            {
-                d.Name(nameof(Query));
-                d.Field("someField")
-                    .Type<NonNullType<ObjectType<Review>>>()
-                    .Policy([["p1", "p1_1"], ["p2"]]);
-            }))
+            .AddType(reviewType)
+            .AddQueryType(queryType)
             .Create();
 
         CheckReviewType(schema);
@@ -81,23 +90,19 @@ public class PolicyDirectiveTests : FederationTypesTestBase
 
     private static string[][] GetSinglePoliciesArgument(IDirectiveCollection directives)
     {
-        string[][]? result = null;
-        Assert.Collection(
-            directives,
-            t =>
+        foreach (var directive in directives)
+        {
+            if (directive.Type.Name != WellKnownTypeNames.PolicyDirective)
             {
-                Assert.Equal(
-                    WellKnownTypeNames.PolicyDirective,
-                    t.Type.Name);
-                Assert.Collection(
-                    t.AsSyntaxNode().Arguments,
-                    argument =>
-                    {
-                        Assert.Equal("policies", argument.Name.Value);
-                        result = PolicyParsingHelper.ParseNode(argument.Value);
-                    });
-            });
-        return result!;
+                continue;
+            }
+
+            var argument = directive.AsSyntaxNode().Arguments.Single();
+            return PolicyParsingHelper.ParseNode(argument.Value);
+        }
+
+        Assert.True(false, "No policy directive found.");
+        return null!;
     }
 
     private static void CheckQueryType(ISchema schema)
@@ -133,7 +138,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
     }
 
     [Fact]
-    public void AnnotateProvidesToClassAttributePureCodeFirst()
+    public void PolicyDirective_GetsAddedCorrectly_Annotations()
     {
         // arrange
         Snapshot.FullName();
@@ -144,23 +149,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .Create();
 
         // act
-        var testType = schema.GetType<ObjectType>("Review");
-
-        // assert
-        Assert.Collection(
-            testType.Fields.Single(field => field.Name == "product").Directives,
-            providesDirective =>
-            {
-                Assert.Equal(
-                    WellKnownTypeNames.Provides,
-                    providesDirective.Type.Name);
-                Assert.Equal(
-                    "fields",
-                    providesDirective.AsSyntaxNode().Arguments[0].Name.ToString());
-                Assert.Equal(
-                    "\"name\"",
-                    providesDirective.AsSyntaxNode().Arguments[0].Value.ToString());
-            });
+        CheckQueryType(schema);
 
         schema.ToString().MatchSnapshot();
     }
@@ -171,6 +160,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         public Review SomeField(int id) => default!;
     }
 
+    [Key("id")]
     [Policy("p3")]
     public class Review
     {

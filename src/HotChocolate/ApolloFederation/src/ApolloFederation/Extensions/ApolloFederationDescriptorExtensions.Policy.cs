@@ -1,4 +1,6 @@
 using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -31,7 +33,9 @@ public static partial class ApolloFederationDescriptorExtensions
         string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(policies);
+        return descriptor.Directive(
+            WellKnownTypeNames.PolicyDirective,
+            ParsePoliciesArgument(policies));
     }
 
     /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
@@ -40,7 +44,9 @@ public static partial class ApolloFederationDescriptorExtensions
         string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(policies);
+        return descriptor.Directive(
+            WellKnownTypeNames.PolicyDirective,
+            ParsePoliciesArgument(policies));
     }
 
     /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
@@ -49,7 +55,9 @@ public static partial class ApolloFederationDescriptorExtensions
         string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(policies);
+        return descriptor.Directive(
+            WellKnownTypeNames.PolicyDirective,
+            ParsePoliciesArgument(policies));
     }
 
     /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
@@ -58,7 +66,9 @@ public static partial class ApolloFederationDescriptorExtensions
         string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(policies);
+        return descriptor.Directive(
+            WellKnownTypeNames.PolicyDirective,
+            ParsePoliciesArgument(policies));
     }
 
     /// <inheritdoc cref="Policy(IEnumTypeDescriptor, string[][])"/>
@@ -67,6 +77,15 @@ public static partial class ApolloFederationDescriptorExtensions
         string[][] policies)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
-        return descriptor.Directive(policies);
+        return descriptor.Directive(
+            WellKnownTypeNames.PolicyDirective,
+            ParsePoliciesArgument(policies));
+    }
+
+    private static ArgumentNode ParsePoliciesArgument(string[][] policies)
+    {
+        var list = PolicyParsingHelper.ParseValue(policies);
+        var result = new ArgumentNode(WellKnownArgumentNames.Policies, list);
+        return result;
     }
 }
