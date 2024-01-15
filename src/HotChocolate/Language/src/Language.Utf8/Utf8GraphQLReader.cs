@@ -155,7 +155,10 @@ public ref partial struct Utf8GraphQLReader
 
         if (code.IsDigitOrMinus())
         {
-            ReadNumberToken(code);
+            if (!ReadNumberToken(code))
+            {
+                throw new SyntaxException(this, DisallowedNameCharacterAfterNumber, (char)code, code);
+            }
             return true;
         }
 
@@ -339,13 +342,13 @@ public ref partial struct Utf8GraphQLReader
 
     /// <summary>
     /// Reads int tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#IntValue
+    /// http://facebook.github.io/graphql/October2021/#IntValue
     /// or a float tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#FloatValue
+    /// http://facebook.github.io/graphql/October2021/#FloatValue
     /// from the current lexer state.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ReadNumberToken(byte firstCode)
+    private bool ReadNumberToken(byte firstCode)
     {
         var start = _position;
         var code = firstCode;
@@ -392,12 +395,20 @@ public ref partial struct Utf8GraphQLReader
             ReadDigits(code);
         }
 
+        // Lookahead for NameStart
+        // https://github.com/graphql/graphql-spec/pull/601
+        if (code.IsLetterOrDigitOrUnderscore() || code == '.')
+        {
+            return false;
+        }
+
         _kind = isFloat
             ? TokenKind.Float
             : TokenKind.Integer;
         _start = start;
         _end = _position;
         _value = _graphQLData.Slice(start, _position - start);
+        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
