@@ -1,6 +1,5 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 
@@ -17,7 +16,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
                 """
-                    type Review @policy(policies: [["p3"]]) {
+                    type Review @policy(policies: "p3") {
                         id: Int!
                     }
 
@@ -95,8 +94,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
                     argument =>
                     {
                         Assert.Equal("policies", argument.Name.Value);
-                        var listNode = Assert.IsType<ListValueNode>(argument.Value);
-                        result = PolicyParsingHelper.ParseNode(listNode);
+                        result = PolicyParsingHelper.ParseNode(argument.Value);
                     });
             });
         return result!;

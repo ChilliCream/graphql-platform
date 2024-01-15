@@ -12,6 +12,6 @@ public enum FederationVersion
     Federation24 = 4,
     Federation25 = 5,
     Federation26 = 6,
-    Latest = Federation25,
+    Latest = Federation26,
     Count,
 }

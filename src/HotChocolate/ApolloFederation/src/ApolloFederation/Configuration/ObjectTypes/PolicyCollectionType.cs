@@ -9,7 +9,7 @@ namespace HotChocolate.ApolloFederation;
 public sealed class PolicyCollectionType : ScalarType<string[][]>
 {
     public PolicyCollectionType(BindingBehavior bind = BindingBehavior.Explicit)
-        : base(WellKnownTypeNames.PolicyDirective, bind)
+        : base(WellKnownTypeNames.PolicyCollection, bind)
     {
     }
 
@@ -107,7 +107,7 @@ public static class PolicyParsingHelper
 
         var listNode = (ListValueNode)syntaxNode;
         var items = listNode.Items;
-        var array = new string[][items.Count];
+        var array = new string[items.Count][];
         for (var i = 0; i < array.Length; i++)
         {
             array[i] = ParseNestedList1(items[i]);

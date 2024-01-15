@@ -40,7 +40,7 @@ public sealed class PolicyAttribute : DescriptorAttribute
 
     private static string[][] ConvertCommaSeparatedPolicyNamesListsToCollection(string[] names)
     {
-        var policySets = new string[][names.Length];
+        var policySets = new string[names.Length][];
         var policySetCount = policySets.Length;
         for (var policySetIndex = 0; policySetIndex < policySetCount; policySetIndex++)
         {

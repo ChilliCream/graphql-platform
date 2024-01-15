@@ -32,6 +32,6 @@ public sealed class PolicyDirectiveType : DirectiveType
 
         descriptor
             .Argument("policies")
-            .Type<NonNullType<ListType<NonNullType<StringType>>>>();
+            .Type<NonNullType<PolicyCollectionType>>();
     }
 }
