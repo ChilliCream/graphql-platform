@@ -110,4 +110,78 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
           }
         ");
     }
+
+    // https://github.com/graphql/graphql-js/pull/1359/files
+    [Fact]
+    public void AcceptsBreakableCircularReferences()
+    {
+        ExpectValid("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              self: SomeInputObject
+              arrayOfSelf: [SomeInputObject]
+              nonNullArrayOfSelf: [SomeInputObject]!
+              nonNullArrayOfNonNullSelf: [SomeInputObject!]!
+              intermediateSelf: AnotherInputObject
+          }
+          input AnotherInputObject {
+              parent: SomeInputObject
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsNonBreakableDirectCircularReference()
+    {
+        ExpectError("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              nonNullSelf: SomeInputObject!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsCircularReferenceThroughOtherType()
+    {
+        ExpectError("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              startLoop: AnotherInputObject!
+          }
+          input AnotherInputObject {
+              nextInLoop: YetAnotherInputObject!
+          }
+          input YetAnotherInputObject {
+              closeLoop: SomeInputObject!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsMultipleCircularReferences()
+    {
+        ExpectError("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              startLoop: AnotherInputObject!
+          }
+          input AnotherInputObject {
+              closeLoop: SomeInputObject!
+              startSecondLoop: YetAnotherInputObject!
+          }
+          input YetAnotherInputObject {
+              closeSecondLoop: AnotherInputObject!
+              nonNullSelf: YetAnotherInputObject!
+          }
+        """);
+    }
 }

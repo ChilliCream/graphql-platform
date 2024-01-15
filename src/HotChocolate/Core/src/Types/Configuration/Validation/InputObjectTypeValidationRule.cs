@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -40,7 +41,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             EnsureFieldNamesAreValid(inputType, errors);
             EnsureOneOfFieldsAreValid(inputType, errors, ref names);
             EnsureFieldDeprecationIsValid(inputType, errors);
-            TryReachSelfRecursively(inputType, cycleValidationContext);
+            TryReachCycleRecursively(cycleValidationContext, inputType);
 
             cycleValidationContext.CycleStartIndex.Clear();
         }
@@ -48,62 +49,75 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 
     private struct CycleValidationContext
     {
+        public HashSet<InputObjectType> Visited { get; set; }
         public Dictionary<InputObjectType, int> CycleStartIndex { get; set; }
         public ICollection<ISchemaError> Errors { get; set; }
         public List<string> FieldPath { get; set; }
     }
 
-    // Note that this algorithm is not optimal.
+    // Note that this algorithm is not optimal (I don't think).
     // It doesn't cache explored paths in exiting nodes.
-    private static void TryReachSelfRecursively(
-        InputObjectType type,
-        in CycleValidationContext cycleValidationContext)
+    // https://github.com/IvanGoncharov/graphql-js/blob/408bcda9c88df85e039f5d072011b1cb465fe830/src/type/validate.js#L535
+    private static void TryReachCycleRecursively(
+        in CycleValidationContext context,
+        InputObjectType type)
     {
-        cycleValidationContext.CycleStartIndex[type] = cycleValidationContext.FieldPath.Count;
+        if (!context.Visited.Add(type))
+        {
+            return;
+        }
+
+        context.CycleStartIndex[type] = context.FieldPath.Count;
 
         foreach (var field in type.Fields)
         {
-            static (bool IsRequired, IType NestedType) UnwrapCompletely(IType type)
-            {
-                bool isRequired = false;
-                while (true)
-                {
-                    if (type is NonNullType nonNullType)
-                    {
-                        type = nonNullType.Type;
-                        isRequired = true;
-                    }
-                    else if (type is ListType listType)
-                    {
-                        type = listType.ElementType;
-                        isRequired = true;
-                    }
-                    else
-                    {
-                        return (isRequired, type);
-                    }
-                }
-            }
-
-            var (isRequired, unwrappedType) = UnwrapCompletely(field.Type);
-            if (!isRequired ||
-                unwrappedType is not InputObjectType inputObjectType)
+            var unwrappedType = UnwrapCompletelyIfRequired(field.Type);
+            if (unwrappedType is not InputObjectType inputObjectType)
             {
                 continue;
             }
 
-            cycleValidationContext.FieldPath.Add(field.Name);
-            if (cycleValidationContext.CycleStartIndex.TryGetValue(inputObjectType, out var cycleIndex))
+            context.FieldPath.Add(field.Name);
+            if (context.CycleStartIndex.TryGetValue(inputObjectType, out var cycleIndex))
             {
-                var cyclePath = cycleValidationContext.FieldPath.Skip(cycleIndex);
-                cycleValidationContext.Errors.Add(
+                var cyclePath = context.FieldPath.Skip(cycleIndex);
+                context.Errors.Add(
                     InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf(type, cyclePath));
             }
             else
             {
-                TryReachSelfRecursively(inputObjectType, cycleValidationContext);
+                TryReachCycleRecursively(context, inputObjectType);
             }
-            cycleValidationContext.FieldPath.Pop();
+            context.FieldPath.Pop();
+        }
+
+        context.CycleStartIndex.Remove(type);
+    }
+
+    private static IType? UnwrapCompletelyIfRequired(IType type)
+    {
+        while (true)
+        {
+            if (type.Kind == TypeKind.NonNull)
+            {
+                type = ((NonNullType)type).Type;
+            }
+            else
+            {
+                return null;
+            }
+
+            switch (type.Kind)
+            {
+                case TypeKind.List:
+                {
+                    return null;
+                }
+                default:
+                {
+                    return type;
+                }
+            }
         }
     }
 
