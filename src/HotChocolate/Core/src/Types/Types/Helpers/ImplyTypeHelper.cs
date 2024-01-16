@@ -14,17 +14,17 @@ internal static class ImplyTypeHelper
     /// or the type that will be used for implying the desired type.
     /// Can be any valid combination of <c>NonNullType</c> and <c>ListType</c> (up to 4 levels deep).
     /// </param>
-    /// <param name="runtimeType">Expected to not be null if any implying will take place.</param>
+    /// <param name="objectType">Expected to not be null if any implying will take place.</param>
     /// <returns></returns>
     /// <example>
-    /// <c>NonNullType{ListType{NonNullType}}</c> with a runtime type like <c>Example</c>
-    /// would become <c>NonNullType{ListType{NonNullType{Example}}}</c>.
+    /// <c>NonNullType{ListType{NonNullType}}</c> with an object type like <c>ExampleType</c>
+    /// would become <c>NonNullType{ListType{NonNullType{ExampleType}}}</c>.
     /// </example>
     /// <exception cref="ArgumentException">
     /// When <paramref name="type"/> is not a valid combination of <c>NonNullType</c> and <c>ListType</c>.
-    /// Also, when <paramref name="runtimeType"/> is null when it's needed.
+    /// Also, when <paramref name="objectType"/> is null when it's needed.
     /// </exception>
-    public static Type ImplyType(Type type, Type? runtimeType)
+    public static Type ImplyType(Type type, Type? objectType)
     {
         // TODO: Thread local? Or some context thing?
         var typeCache = new Type[1];
@@ -102,12 +102,12 @@ internal static class ImplyTypeHelper
 
         Debug.Assert(wrapCounter > 0);
 
-        if (runtimeType is null)
+        if (objectType is null)
         {
-            throw new InvalidOperationException(nameof(runtimeType));
+            throw new InvalidOperationException(nameof(objectType));
         }
 
-        var t = runtimeType;
+        var t = objectType;
         do
         {
             t = Wrap(t, unwrappedTypes[wrapCounter]);
