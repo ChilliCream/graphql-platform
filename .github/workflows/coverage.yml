@@ -14,7 +14,7 @@ concurrency:
 jobs:
   configure:
     name: Generate Test Matrix
-    runs-on: self-ubuntu
+    runs-on: ubuntu-latest
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -22,6 +22,13 @@ jobs:
     steps:
       - name: Checkout to repository
         uses: actions/checkout@v3
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            7.x
+            8.x
 
       - name: Generate Test Matrix
         run: dotnet run --project ./.build -- GenerateMatrix
@@ -32,7 +39,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: self-ubuntu
+    runs-on: ubuntu-latest
     needs: configure
 
     strategy:
@@ -42,6 +49,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+            8.x
 
       - uses: actions/cache@v3
         with:
@@ -100,10 +115,18 @@ jobs:
     name: Merge and Upload Coverage
     needs: library-tests
     if: always() && needs.library-tests.result != 'cancelled'
-    runs-on: self-ubuntu
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
 
     - uses: actions/cache@v3
       if: ${{ !cancelled() }}
