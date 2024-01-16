@@ -14,7 +14,7 @@ concurrency:
 jobs:
   configure:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: HotChocolate-Ubuntu
 
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -39,7 +39,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: HotChocolate-Ubuntu
     needs: configure
 
     strategy:
@@ -115,7 +115,7 @@ jobs:
     name: Merge and Upload Coverage
     needs: library-tests
     if: always() && needs.library-tests.result != 'cancelled'
-    runs-on: ubuntu-latest
+    runs-on: HotChocolate-Ubuntu
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2

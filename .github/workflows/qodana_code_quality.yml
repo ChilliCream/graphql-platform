@@ -9,7 +9,7 @@ on:
 
 jobs:
   qodana:
-    runs-on: ubuntu-latest
+    runs-on: HotChocolate-Ubuntu
     steps:
       - uses: actions/checkout@v3
         with:
