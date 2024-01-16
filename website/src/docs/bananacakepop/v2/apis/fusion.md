@@ -67,6 +67,76 @@ builder.Services
 
 Now your gateway will be notified whenever there is a new configuration available and will automatically pull it.
 
+## Configure Your Subgraphs 
+
+To set up your subgraphs to be linked with your gateway, you need to follow these steps:
+
+### Step 1: Install BananaCakePop.Services Package
+
+First, ensure that the `BananaCakePop.Services` package is installed in your subgraph projects. If not, you can install it by running the following command in the root directory of each subgraph project:
+
+```bash
+dotnet add package BananaCakePop.Services
+```
+
+### Step 2: Configure Services in Startup
+
+After installing the package, configure the BananaCakePop Services on your schema. Here is an example of how you can do this:
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddBananaCakePopServices(x => 
+    {
+        x.ApiKey = "<<your-api-key>>";
+        x.ApiId = "<<your-subgraph-api-id>>";
+        x.Stage = "dev";
+    })                
+    .AddInstrumentation(); // Enable GraphQL telemetry
+
+services
+    .AddOpenTelemetry()
+    .WithTracing(x =>
+    {
+        x.AddHttpClientInstrumentation();
+        x.AddAspNetCoreInstrumentation();
+        x.AddBananaCakePopExporter();
+       // Register more instrumentation providers such as Entity Framework Core, HttpClient, etc.
+    });
+```
+
+> **Tip: Using Environment Variables**
+>
+> Alternatively, you can also set the required values using environment variables. 
+
+This configuration enables your subgraph to interact with the BananaCakePop services, including telemetry and instrumentation.
+
+### Step 3: Create a Subgraph Configuration File
+
+Each subgraph requires a specific configuration file named `subgraph-config.json`. This file should be placed in the root directory of the subgraph project, next to the `.csproj` file.
+
+Here’s an example of what the `subgraph-config.json` file should look like:
+
+```json
+{
+  "subgraph": "Order", // Name of the subgraph
+  "http": { "baseAddress": "http://localhost:59093/graphql" }, // Default HTTP settings
+  "extensions": {
+    "bcp": {
+      "apiId": "<<your-subgraph-api-id>>" 
+    }
+  }
+}
+```
+
+This file is required for the topology to recognize and display your subgraph correctly. 
+
+### Step 4: Pack your subgraph and compose your Gateway
+
+After configuring your subgraph you have to `pack` your subgraph and `compose` your gateway. 
+This process links your subgraph with the gateway, ensuring a cohesive GraphQL architecture.
+
 ## Integration into your CI/CD pipeline
 The deployment of a subgraph is a multi step process. To integrate BananaCakePop into this process you need to install Barista, the BananaCakePop CLI. You can find more information about Barista in the [Barista Documentation](/docs/barista/v1). 
 ```bash
