@@ -106,41 +106,6 @@ public static partial class ApolloFederationDescriptorExtensions
     }
 
     /// <summary>
-    /// Applies @extends directive which is used to represent type extensions in the schema. Federated extended types should have
-    /// corresponding @key directive defined that specifies primary key required to fetch the underlying object.
-    ///
-    /// NOTE: Federation v2 no longer requires `@extends` directive due to the smart entity type merging. All usage of @extends
-    /// directive should be removed from your Federation v2 schemas.
-    /// <example>
-    /// # extended from the Users service
-    /// type Foo @extends @key(fields: "id") {
-    ///   id: ID
-    ///   description: String
-    /// }
-    /// </example>
-    /// </summary>
-    /// <param name="descriptor">
-    /// The object type descriptor on which this directive shall be annotated.
-    /// </param>
-    /// <returns>
-    /// Returns the object type descriptor.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
-    public static IObjectTypeDescriptor ExtendServiceType(
-        this IObjectTypeDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
-        descriptor
-            .Extend()
-            .OnBeforeCreate(d => d.ContextData[ExtendMarker] = true);
-
-        return descriptor;
-    }
-
-    /// <summary>
     /// Applies the @external directive which is used to mark a field as owned by another service.
     /// This allows service A to use fields from service B while also knowing at runtime
     /// the types of that field. All the external fields should either be referenced from the @key,

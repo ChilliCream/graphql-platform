@@ -45,6 +45,8 @@ public sealed class Contact
     /// </param>
     public Contact(string name, string? url, string? description)
     {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        
         Name = name;
         Url = url;
         Description = description;

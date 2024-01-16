@@ -18,7 +18,7 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExtendServiceDirectiveType : DirectiveType
+public sealed class ExtendServiceTypeDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
     {

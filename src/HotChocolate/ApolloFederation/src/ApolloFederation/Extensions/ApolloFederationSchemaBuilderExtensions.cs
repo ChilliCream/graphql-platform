@@ -112,7 +112,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         {
             case FederationVersion.Federation20:
             {
-                builder.AddType<ExtendServiceDirectiveType>();
+                builder.AddType<ExtendServiceTypeDirectiveType>();
                 builder.AddType<ExternalDirectiveType>();
                 builder.AddType<InaccessibleDirectiveType>();
                 builder.AddType<KeyDirectiveType>();
