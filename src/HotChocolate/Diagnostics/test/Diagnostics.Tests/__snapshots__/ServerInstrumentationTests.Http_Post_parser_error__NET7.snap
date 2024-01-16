@@ -28,7 +28,7 @@
               "Tags": [
                 {
                   "Key": "graphql.error.message",
-                  "Value": "Expected a `Name`-token, but found a `Integer`-token."
+                  "Value": "Found a NameStart character `n` (110) following a number, which is disallowed."
                 },
                 {
                   "Key": "graphql.error.code",
