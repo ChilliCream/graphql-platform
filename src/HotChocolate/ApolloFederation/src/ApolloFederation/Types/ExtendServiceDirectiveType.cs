@@ -18,11 +18,13 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExtendsDirectiveType : DirectiveType
+public sealed class ExtendServiceDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
+    {
+        descriptor
             .Name(WellKnownTypeNames.Extends)
             .Description(FederationResources.ExtendsDirective_Description)
             .Location(DirectiveLocation.Object | DirectiveLocation.Interface);
+    }
 }
