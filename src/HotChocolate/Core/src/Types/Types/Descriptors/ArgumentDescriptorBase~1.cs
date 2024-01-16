@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -20,6 +21,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     protected ArgumentDescriptorBase(IDescriptorContext context)
         : base(context)
     {
+        // ReSharper disable once VirtualMemberCallInConstructor
         Definition = new T();
     }
 
