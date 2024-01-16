@@ -1,15 +1,11 @@
-using System.Reflection;
-using HotChocolate.Types.Descriptors;
+using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Properties;
 
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
 /// <code>
-/// # federation v1 definition
 /// directive @external on FIELD_DEFINITION
-///
-/// # federation v2 definition
-/// directive @external on OBJECT | FIELD_DEFINITION
 /// </code>
 ///
 /// The @external directive is used to mark a field as owned by another service.
@@ -29,11 +25,13 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExternalAttribute : ObjectFieldDescriptorAttribute
+public sealed class ExternalDirectiveType : DirectiveType
 {
-    protected override void OnConfigure(
-        IDescriptorContext context,
-        IObjectFieldDescriptor descriptor,
-        MemberInfo member)
-        => descriptor.External();
+    protected override void Configure(IDirectiveTypeDescriptor descriptor)
+    {
+        descriptor
+            .Name(WellKnownTypeNames.External)
+            .Description(FederationResources.ExternalDirective_Description)
+            .Location(DirectiveLocation.FieldDefinition);
+    }
 }
