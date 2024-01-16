@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using static System.Reflection.MemberTypes;
-using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation;

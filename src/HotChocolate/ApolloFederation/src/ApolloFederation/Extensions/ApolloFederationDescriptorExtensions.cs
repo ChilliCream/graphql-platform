@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.ApolloFederation;
 using LinkDirective = HotChocolate.ApolloFederation.Link;
-using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Types;

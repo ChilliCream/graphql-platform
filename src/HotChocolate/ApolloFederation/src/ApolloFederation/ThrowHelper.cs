@@ -208,4 +208,10 @@ internal static class ThrowHelper
                     ThrowHelper_FederationVersion_Unknown,
                     version)
                 .Build());
+    
+    public static SchemaException Contact_Not_Repeatable() =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("The @contact directive is not repeatable and can.")
+                .Build()); 
 }

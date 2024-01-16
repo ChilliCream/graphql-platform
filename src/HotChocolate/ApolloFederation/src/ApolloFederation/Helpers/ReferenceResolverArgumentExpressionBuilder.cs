@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers.Expressions.Parameters;
-using ApolloContextData = HotChocolate.ApolloFederation.Constants.WellKnownContextData;
 
 namespace HotChocolate.ApolloFederation.Helpers;
 
@@ -23,10 +23,10 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
             RequirePathAndGetSeparatedPath(param),
             typeof(string[]));
         var dataKey = Expression.Constant(
-            ApolloContextData.DataField,
+            FederationContextData.DataField,
             typeof(string));
         var typeKey = Expression.Constant(
-            ApolloContextData.TypeField,
+            FederationContextData.TypeField,
             typeof(string));
         var value = BuildGetter(
             param,

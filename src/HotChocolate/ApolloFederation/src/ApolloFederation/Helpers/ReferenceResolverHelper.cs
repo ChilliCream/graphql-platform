@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Helpers;
 

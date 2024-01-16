@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;

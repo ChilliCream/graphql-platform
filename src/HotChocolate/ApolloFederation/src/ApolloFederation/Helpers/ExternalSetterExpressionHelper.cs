@@ -6,7 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using static System.Linq.Expressions.Expression;
 using static System.Reflection.BindingFlags;
-using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 
 namespace HotChocolate.ApolloFederation.Helpers;
 

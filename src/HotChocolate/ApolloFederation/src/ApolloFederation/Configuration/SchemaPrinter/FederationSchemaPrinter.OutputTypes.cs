@@ -25,7 +25,7 @@ public static partial class FederationSchemaPrinter
             .Select(t => SerializeNamedType(t, context))
             .ToList();
 
-        if (objectType.ContextData.ContainsKey(Constants.WellKnownContextData.ExtendMarker))
+        if (objectType.ContextData.ContainsKey(Constants.FederationContextData.ExtendMarker))
         {
             return new ObjectTypeExtensionNode(
                 location: null,
