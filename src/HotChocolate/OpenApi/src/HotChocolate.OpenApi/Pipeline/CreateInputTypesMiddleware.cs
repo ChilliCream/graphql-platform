@@ -79,7 +79,11 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddIfNecessary(OpenApiWrapperContext context, InputObjectType inputObjectType)
     {
-        if (context.MutableSchema.Types.ContainsName(inputObjectType.Name)) return;
+        if (context.MutableSchema.Types.ContainsName(inputObjectType.Name))
+        {
+            return;
+        }
+
         context.MutableSchema.Types.Add(inputObjectType);
     }
 

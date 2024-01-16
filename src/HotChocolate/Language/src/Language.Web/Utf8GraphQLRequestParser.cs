@@ -142,7 +142,7 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (fieldName[0])
         {
             case _o:
-                if (fieldName.SequenceEqual(OperationName))
+                if (fieldName.SequenceEqual("operationName"u8))
                 {
                     request.OperationName = ParseStringOrNull();
                 }
@@ -156,7 +156,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 break;
 
             case _q:
-                if (fieldName.SequenceEqual(Query))
+                if (fieldName.SequenceEqual("query"u8))
                 {
                     request.HasQuery = !IsNullToken();
 
@@ -171,14 +171,14 @@ public ref partial struct Utf8GraphQLRequestParser
                 break;
 
             case _v:
-                if (fieldName.SequenceEqual(Variables))
+                if (fieldName.SequenceEqual("variables"u8))
                 {
                     request.Variables = ParseVariables();
                 }
                 break;
 
             case _e:
-                if (fieldName.SequenceEqual(Extensions))
+                if (fieldName.SequenceEqual("extensions"u8))
                 {
                     request.Extensions = ParseObjectOrNull();
                 }
@@ -198,7 +198,7 @@ public ref partial struct Utf8GraphQLRequestParser
         switch (fieldName[0])
         {
             case _t:
-                if (fieldName.SequenceEqual(Type))
+                if (fieldName.SequenceEqual("type"u8))
                 {
                     message.Type = ParseStringOrNull();
                 }
@@ -212,7 +212,7 @@ public ref partial struct Utf8GraphQLRequestParser
                 break;
 
             case _p:
-                if (fieldName.SequenceEqual(Payload))
+                if (fieldName.SequenceEqual("payload"u8))
                 {
                     var start = _reader.Start;
                     var hasPayload = !IsNullToken();

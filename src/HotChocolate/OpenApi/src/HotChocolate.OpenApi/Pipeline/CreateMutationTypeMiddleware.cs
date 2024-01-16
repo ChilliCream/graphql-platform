@@ -23,7 +23,10 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
     {
         var operations = context.GetMutationOperations();
 
-        if (operations.Count == 0) return;
+        if (operations.Count == 0)
+        {
+            return;
+        }
 
         var mutationType = new ObjectType(OpenApiResources.RootTypeMutation);
 

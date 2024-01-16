@@ -32,7 +32,11 @@ public class PetStoreController : ControllerBase
     {
         var toDelete = _pets.FirstOrDefault(p => p.Id == id);
 
-        if (toDelete is null) return BadRequest("Pet not found");
+        if (toDelete is null)
+        {
+            return BadRequest("Pet not found");
+        }
+
         _pets.Remove(toDelete);
         return Ok();
 

@@ -31,7 +31,7 @@ internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if(completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
+        if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition typeDef)
         {
             _objectTypeDefinitions.Add(typeDef);
         }

@@ -94,7 +94,7 @@ public interface IReadOnlySchemaOptions
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
     /// <summary>
-    /// Defines that the default resolver execution strategy.
+    /// Defines the default resolver execution strategy.
     /// </summary>
     ExecutionStrategy DefaultResolverStrategy { get; }
 
@@ -102,7 +102,7 @@ public interface IReadOnlySchemaOptions
     /// Defines if the order of important middleware components shall be validated.
     /// </summary>
     bool ValidatePipelineOrder { get; }
-    
+
     /// <summary>
     /// Defines if the runtime types of types shall be validated.
     /// </summary>

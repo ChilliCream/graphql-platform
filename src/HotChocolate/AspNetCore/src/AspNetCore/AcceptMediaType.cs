@@ -26,7 +26,7 @@ public readonly struct AcceptMediaType
     /// <exception cref="ArgumentNullException">
     /// Type or subtype are empty.
     /// </exception>
-    internal AcceptMediaType(
+    public AcceptMediaType(
         StringSegment type,
         StringSegment subType,
         double? quality,
