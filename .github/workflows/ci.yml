@@ -12,7 +12,7 @@ concurrency:
 jobs:
   check-changes:
     name: Check for Changes
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     if: github.event.pull_request.draft == false
     outputs:
       website_changes: ${{ steps.check-website.outputs.website_changes }}
@@ -56,7 +56,7 @@ jobs:
 
   pr-labeler:
     name: Apply Labels
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     permissions:
       contents: read
       pull-requests: write
@@ -67,7 +67,7 @@ jobs:
 
   spellcheck:
     name: "Spellcheck Documentation"
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
     steps:
@@ -91,7 +91,7 @@ jobs:
     name: "Website Tests"
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
@@ -123,7 +123,7 @@ jobs:
 
   configure:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     needs: check-changes
     if: needs.check-changes.outputs.library_changes == 'true'
 
@@ -150,7 +150,7 @@ jobs:
 
   library-tests:
     name: Run ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     needs: [configure, check-changes]
     if: needs.check-changes.outputs.library_changes == 'true'
 
@@ -275,51 +275,9 @@ jobs:
           steps.run-tests.outcome == 'failure' ||
           steps.run-tests.outcome == 'cancelled'
 
-  sonar:
-    runs-on: ubuntu-latest
-    name: Sonar Pull-Request
-    needs: check-changes
-    if: needs.check-changes.outputs.library_changes == 'true'
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Set up Java
-      uses: actions/setup-java@v2
-      with:
-        java-version: '17'
-        distribution: 'adopt'
-        architecture: x64
-
-    - name: Install .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: |
-          6.x
-          7.x
-          8.x
-
-    - uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-
-    - name: Run Sonar Analysis
-      run: ./build.cmd SonarPr --SonarToken $SONARTOKEN
-      env:
-        HC_GITHUB_PR_NR: ${{ github.event.pull_request.number }}
-        HC_GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        HC_GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        SONARTOKEN: ${{ secrets.SONARTOKEN }}
-
   codeql:
     name: CodeQL
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     needs: check-changes
     if: needs.check-changes.outputs.src_changes == 'true'
 
@@ -365,7 +323,7 @@ jobs:
     name: Merge and Upload Coverage
     needs: library-tests
     if: always() && needs.library-tests.result != 'cancelled'
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -425,7 +383,7 @@ jobs:
     name: "CI Status Check"
     needs: [library-tests, website-tests]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: self-ubuntu
     steps:
     - name: Check if Library Tests or Website Tests failed
       run: exit 1

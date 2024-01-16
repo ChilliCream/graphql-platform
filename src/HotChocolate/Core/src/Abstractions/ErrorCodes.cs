@@ -192,6 +192,11 @@ public static class ErrorCodes
         /// The request did not specify any supported accept media type.
         /// </summary>
         public const string InvalidAcceptHeaderValue = "HC0064";
+
+        /// <summary>
+        /// Multi-part requests must include a GraphQL preflight header.
+        /// </summary>
+        public const string MultiPartPreflightRequired = "HC0077";
     }
 
     public static class Schema

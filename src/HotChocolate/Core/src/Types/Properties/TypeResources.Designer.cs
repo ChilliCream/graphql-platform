@@ -1821,6 +1821,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_RequiredArgumentCannotBeDeprecated {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequiredArgumentCannotBeDeprecated", resourceCulture);
