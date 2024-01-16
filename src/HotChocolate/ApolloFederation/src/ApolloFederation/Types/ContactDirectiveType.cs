@@ -18,7 +18,6 @@ namespace HotChocolate.ApolloFederation;
 /// Contact schema directive can be used to provide team contact information to your subgraph schema. This information is automatically parsed and displayed by Apollo Studio.
 /// See <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">Subgraph Contact Information</see> for additional details.
 ///
-///
 /// <example>
 /// <code>
 /// schema @contact(description : "send urgent issues to [#oncall](https://yourteam.slack.com/archives/oncall).", name : "My Team Name", url : "https://myteam.slack.com/archives/teams-chat-room-url"){
@@ -30,8 +29,10 @@ namespace HotChocolate.ApolloFederation;
 public sealed class ContactDirectiveType : DirectiveType<Contact>
 {
     protected override void Configure(IDirectiveTypeDescriptor<Contact> descriptor)
-        => descriptor
+    {
+        descriptor
             .Name(WellKnownTypeNames.ContactDirective)
             .Description(FederationResources.ContactDirective_Description)
             .Location(DirectiveLocation.Schema);
+    }
 }
