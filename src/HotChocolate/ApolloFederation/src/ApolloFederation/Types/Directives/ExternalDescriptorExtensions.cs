@@ -1,6 +1,6 @@
 namespace HotChocolate.ApolloFederation;
 
-public static class ExternalDirectiveExtensions
+public static class ExternalDescriptorExtensions
 {
     /// <summary>
     /// Applies the @external directive which is used to mark a field as owned by another service.

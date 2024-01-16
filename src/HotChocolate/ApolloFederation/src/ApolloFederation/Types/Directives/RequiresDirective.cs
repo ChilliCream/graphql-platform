@@ -1,5 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -23,12 +22,10 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class RequiresDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.FieldDefinition)]
+[GraphQLDescription(Descriptions.RequiresDirective_Description)]
+public sealed class RequiresDirective(string fieldSet)
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
-            .Name(WellKnownTypeNames.Requires)
-            .Description(FederationResources.RequiresDirective_Description)
-            .Location(DirectiveLocation.FieldDefinition)
-            .FieldsArgument();
+    [FieldSet]
+    public string FieldSet { get; } = fieldSet;
 }

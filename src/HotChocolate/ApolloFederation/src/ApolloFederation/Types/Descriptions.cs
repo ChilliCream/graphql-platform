@@ -19,4 +19,7 @@ internal static class Descriptions
     
     public const string ContactDirective_Description =
         "Provides contact information of the owner responsible for this subgraph schema.";
+
+    public const string RequiresDirective_Description =
+        "Used to annotate the required input fieldset from a base type for a resolver.";
 }

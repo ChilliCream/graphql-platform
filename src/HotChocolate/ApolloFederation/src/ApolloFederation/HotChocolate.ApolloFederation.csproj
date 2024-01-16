@@ -32,6 +32,39 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Compile Update="Types\Directives\ProvidesAttribute.cs">
+      <DependentUpon>ProvidesDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ProvidesDescriptorExtensions.cs">
+      <DependentUpon>ProvidesDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresAttribute.cs">
+      <DependentUpon>RequiresDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresDescriptorExtensions.cs">
+      <DependentUpon>RequiresDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\KeyAttribute.cs">
+      <DependentUpon>KeyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\KeyDescriptorExtensions.cs">
+      <DependentUpon>KeyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExternalAttribute.cs">
+      <DependentUpon>ExternalDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExternalDescriptorExtensions.cs">
+      <DependentUpon>ExternalDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExtendServiceTypeAttribute.cs">
+      <DependentUpon>ExtendServiceTypeDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExtendServiceTypeDescriptorExtensions.cs">
+      <DependentUpon>ExtendServiceTypeDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ContactDescriptorExtensions.cs">
+      <DependentUpon>ContactDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

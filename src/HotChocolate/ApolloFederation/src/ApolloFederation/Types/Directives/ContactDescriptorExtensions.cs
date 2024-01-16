@@ -5,7 +5,7 @@ using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 
 namespace HotChocolate.ApolloFederation;
 
-public static class ContactDirectiveExtensions
+public static class ContactDescriptorExtensions
 {
     /// <summary>
     /// Applies @contact directive which can be used to prpvode team contact information to your subgraph schema.
