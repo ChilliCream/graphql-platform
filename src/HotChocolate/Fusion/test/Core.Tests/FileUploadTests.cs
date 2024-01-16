@@ -100,7 +100,7 @@ public class FileUploadTests
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         await snapshot.MatchAsync(cts.Token);
     }
-    
+
     [Fact]
     public async Task UploadFile_2()
     {
@@ -139,7 +139,7 @@ public class FileUploadTests
         var input = new Dictionary<string, object?>()
         {
             ["productId"] = 1,
-            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray()))
+            ["file"] = new StreamFile("abc", () => new MemoryStream("abc"u8.ToArray())),
         };
 
         // act

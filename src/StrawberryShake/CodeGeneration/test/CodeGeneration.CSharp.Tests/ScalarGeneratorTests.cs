@@ -185,4 +185,4 @@ public class ScalarGeneratorTests
             "extend schema @key(fields: \"id\")");
 }
 
-public class Custom { }
+public class Custom;

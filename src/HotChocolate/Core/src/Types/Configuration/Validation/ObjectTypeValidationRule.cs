@@ -12,7 +12,7 @@ namespace HotChocolate.Configuration.Validation;
 
 /// <summary>
 /// Implements the object type validation defined in the spec.
-/// http://spec.graphql.org/draft/#sec-Objects.Type-Validation
+/// https://spec.graphql.org/draft/#sec-Objects.Type-Validation
 /// </summary>
 internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 {

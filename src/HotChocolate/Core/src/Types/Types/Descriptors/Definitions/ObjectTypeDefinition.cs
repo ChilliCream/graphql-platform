@@ -244,7 +244,7 @@ public class ObjectTypeDefinition
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
                 { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
-                _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name))
+                _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name)),
             };
 
             var replaceField = field.BindToField?.Replace ?? false;

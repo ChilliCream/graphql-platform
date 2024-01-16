@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -590,4 +589,12 @@ internal static class ThrowHelper
                 .SetExtension("type", type.Print())
                 .Build());
     }
+    
+    public static SchemaException PooledServicesNotAllowed(ParameterInfo parameter)
+        => throw new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_PooledServicesNotAllowed,
+                    parameter.ParameterType.FullName ?? parameter.ParameterType.Name)
+                .Build());
 }

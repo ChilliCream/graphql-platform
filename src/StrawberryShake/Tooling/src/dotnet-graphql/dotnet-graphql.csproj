@@ -6,7 +6,6 @@
     <PackAsTool>true</PackAsTool>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <LangVersion>preview</LangVersion>
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 

@@ -2264,7 +2264,7 @@ public class SchemaBuilderTests
         }
     }
 
-    public class MyEnumType : EnumType { }
+    public class MyEnumType : EnumType;
 
     public class QueryWithIntField
     {

@@ -168,6 +168,7 @@ public class DirectiveTests : TypeTestBase
             {
                 b.AddDirectiveType<FooDirectiveType>();
                 b.AddType<InputObjectType<FooChild>>();
+                b.ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false);
             });
     }
 

@@ -999,13 +999,13 @@ public class StarWarsCodeFirstTests
             ConfigureRequest = r =>
             {
                 r.SkipExecutionDepthAnalysis();
-            }
+            },
         };
         var configurationB = new TestConfiguration
         {
             ConfigureRequest = _ =>
             {
-            }
+            },
         };
         var executor = await CreateExecutorAsync(
             c =>

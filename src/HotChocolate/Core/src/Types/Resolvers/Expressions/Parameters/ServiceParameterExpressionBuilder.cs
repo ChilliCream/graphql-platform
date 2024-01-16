@@ -14,24 +14,35 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// </summary>
 internal sealed class ServiceParameterExpressionBuilder
     : IParameterExpressionBuilder
-    , IParameterFieldConfiguration
 {
     public ArgumentKind Kind => ArgumentKind.Service;
 
     public bool IsPure => true;
 
     public bool IsDefaultHandler => false;
-
+    
     public bool CanHandle(ParameterInfo parameter)
         => ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind) &&
            kind is ServiceKind.Default;
 
-    public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
-        => ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, ServiceKind.Default);
-
     public Expression Build(ParameterExpressionBuilderContext context)
-        => ServiceExpressionHelper.Build(
+    {
+#if NET8_0_OR_GREATER
+        return ServiceExpressionHelper.TryGetServiceKey(context.Parameter, out var key)
+            ? ServiceExpressionHelper.Build(
+                context.Parameter,
+                context.ResolverContext,
+                ServiceKind.Default,
+                key)
+            : ServiceExpressionHelper.Build(
+                context.Parameter,
+                context.ResolverContext,
+                ServiceKind.Default);
+#else
+        return ServiceExpressionHelper.Build(
             context.Parameter,
             context.ResolverContext,
             ServiceKind.Default);
+#endif
+    }
 }

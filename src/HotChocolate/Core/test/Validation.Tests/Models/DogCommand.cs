@@ -4,5 +4,5 @@ public enum DogCommand
 {
     Sit,
     Down,
-    Heel
+    Heel,
 }

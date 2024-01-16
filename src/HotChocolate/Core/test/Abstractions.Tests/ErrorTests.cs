@@ -123,7 +123,7 @@ public class ErrorTests
             new Dictionary<string, object>
             {
                 { "a", "b" },
-                { "c", "d" }
+                { "c", "d" },
             });
 
         // act

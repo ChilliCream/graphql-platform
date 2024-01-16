@@ -40,7 +40,7 @@ public class GraphQLException : Exception
             ErrorBuilder.New()
                 .SetMessage(message)
                 .SetException(innerException)
-                .Build()
+                .Build(),
         };
     }
 

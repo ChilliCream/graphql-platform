@@ -727,7 +727,7 @@ public class DocumentValidatorTests
                 new List<ISelectionNode>
                 {
                     originalOperation.SelectionSet.Selections[0],
-                    originalOperation.SelectionSet.Selections[0]
+                    originalOperation.SelectionSet.Selections[0],
                 }));
 
         document = document.WithDefinitions(

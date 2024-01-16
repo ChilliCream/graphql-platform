@@ -79,7 +79,7 @@ public static class QueryableProjectionScopeExtensions
             new[]
             {
                 scope.RuntimeType,
-                scope.RuntimeType
+                scope.RuntimeType,
             },
             source,
             scope.CreateMemberInitLambda());
@@ -104,7 +104,7 @@ public static class QueryableProjectionScopeExtensions
             nameof(Enumerable.ToArray),
             new[]
             {
-                scope.RuntimeType
+                scope.RuntimeType,
             },
             source);
     }
@@ -116,7 +116,7 @@ public static class QueryableProjectionScopeExtensions
             nameof(Enumerable.ToList),
             new[]
             {
-                scope.RuntimeType
+                scope.RuntimeType,
             },
             source);
     }
@@ -131,7 +131,7 @@ public static class QueryableProjectionScopeExtensions
         var ctor =
             typedGeneric.GetConstructor(new[]
             {
-                source.Type
+                source.Type,
             });
 
         if (ctor is null)

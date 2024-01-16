@@ -476,6 +476,6 @@ public class TypeConverterTests
     public enum FooOrBar
     {
         Foo,
-        Bar
+        Bar,
     }
 }

@@ -91,7 +91,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         var operation = context.Operation;
         List<ISelection>? leftovers = null;
         var path = new List<ISelection>();
-        
+
         // if this is the root selection set of a query we will
         // look for some special selections.
         if (!context.HasHandledSpecialQueryFields && parentSelection is null)
@@ -141,7 +141,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             {
                 var pathIndex = path.Count;
                 path.Add(selection);
-                
+
                 var field = selection.Field;
                 var fieldInfo = selectionSetTypeMetadata.Fields[field.Name];
 
@@ -205,15 +205,15 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         preferBatching,
                         context.ParentSelections);
                 }
-                
+
                 path.RemoveAt(pathIndex);
             }
-            
+
             // if the current execution step has now way to resolve the data
             // we will try to resolve it from the root.
-            if(executionStep.ParentSelection is not null && 
+            if(executionStep.ParentSelection is not null &&
                 executionStep.ParentSelectionPath is not null &&
-                executionStep.Resolver is null && 
+                executionStep.Resolver is null &&
                 executionStep.SelectionResolvers.Count == 0)
             {
                 if (!EnsureStepCanBeResolvedFromRoot(
@@ -332,7 +332,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         {
             var pathIndex = path.Count;
             path.Add(selection);
-            
+
             parentSelectionLookup.TryAdd(selection, parentSelection);
             var field = declaringType.Fields[selection.Field.Name];
 
@@ -393,7 +393,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             {
                 (leftovers ??= new()).Add(selection);
             }
-            
+
             path.RemoveAt(pathIndex);
         }
 
@@ -804,7 +804,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             {
                 return false;
             }
-            
+
             current = current.Parent;
         }
 
@@ -833,6 +833,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
     {
         Query,
         Batch,
-        Subscription
+        Subscription,
     }
 }

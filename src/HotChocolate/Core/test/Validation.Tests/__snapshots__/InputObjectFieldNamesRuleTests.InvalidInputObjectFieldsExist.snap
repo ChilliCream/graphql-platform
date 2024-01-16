@@ -20,7 +20,7 @@
     ],
     "Extensions": {
       "field": "favoriteCookieFlavor",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
     "Exception": null,
     "SyntaxNode": {

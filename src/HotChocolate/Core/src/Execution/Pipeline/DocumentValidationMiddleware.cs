@@ -60,7 +60,7 @@ internal sealed class DocumentValidationMiddleware
                         // create result context data that indicate that validation has failed.
                         var resultContextData = new Dictionary<string, object?>
                         {
-                            { ValidationErrors, true }
+                            { ValidationErrors, true },
                         };
 
                         // if one of the validation rules proposed a status code we will add

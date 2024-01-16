@@ -31,7 +31,7 @@ internal static class TypeValidationHelper
         {
             var field = type.Fields[i];
 
-            if (field.IsDeprecated && field.Type.IsNonNullType())
+            if (field.IsDeprecated && field.Type.IsNonNullType() && field.DefaultValue is null)
             {
                 errors.Add(RequiredFieldCannotBeDeprecated(type, field));
             }
@@ -49,7 +49,7 @@ internal static class TypeValidationHelper
             {
                 var argument = field.Arguments[j];
 
-                if (argument.IsDeprecated && argument.Type.IsNonNullType())
+                if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
                 {
                     errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
                 }
@@ -64,7 +64,7 @@ internal static class TypeValidationHelper
         for (var i = 0; i < type.Arguments.Count; i++)
         {
             var argument = type.Arguments[i];
-            if (argument.IsDeprecated && argument.Type.IsNonNullType())
+            if (argument.IsDeprecated && argument.Type.IsNonNullType() && argument.DefaultValue is null)
             {
                 errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
             }
@@ -152,7 +152,7 @@ internal static class TypeValidationHelper
         }
     }
 
-    // http://spec.graphql.org/draft/#IsValidImplementation()
+    // https://spec.graphql.org/draft/#IsValidImplementation()
     private static void ValidateImplementation(
         IComplexOutputType type,
         IInterfaceType implementedType,
@@ -235,7 +235,7 @@ internal static class TypeValidationHelper
         return true;
     }
 
-    // http://spec.graphql.org/draft/#IsValidImplementationFieldType()
+    // https://spec.graphql.org/draft/#IsValidImplementationFieldType()
     private static bool IsValidImplementationFieldType(
         IOutputType fieldType,
         IOutputType implementedType)

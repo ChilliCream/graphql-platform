@@ -17,7 +17,7 @@
       "argument": "nonNullBooleanArg",
       "argumentValue": "null",
       "locationType": "Boolean!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     }
   }
 ]

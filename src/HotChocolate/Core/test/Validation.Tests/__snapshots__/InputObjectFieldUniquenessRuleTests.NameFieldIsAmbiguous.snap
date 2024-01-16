@@ -20,7 +20,7 @@
     ],
     "Extensions": {
       "field": "name",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Uniqueness"
     },
     "Exception": null,
     "SyntaxNode": {

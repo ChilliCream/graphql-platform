@@ -115,12 +115,12 @@ internal sealed class RequestState
             {
                 return;
             }
-            
+
             state = new ExecutionState(selectionSet, result, exportKeys)
             {
-                SelectionSetData = { [0] = parentData }
+                SelectionSetData = { [0] = parentData },
             };
-            
+
             if (!_map.TryGetValue(state.SelectionSet, out states))
             {
                 var temp = new List<ExecutionState> { state };
@@ -168,14 +168,14 @@ internal sealed class RequestState
 
         AddState(states, state);
     }
-    
+
     private static void AddState(List<ExecutionState>? states, ExecutionState state)
     {
         if (states is null)
         {
             return;
         }
-        
+
         var taken = false;
         Monitor.Enter(states, ref taken);
 

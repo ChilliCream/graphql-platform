@@ -5,6 +5,6 @@
     "argument": "deprecated",
     "field": "deprecated",
     "rfc": "https://github.com/graphql/graphql-spec/pull/805",
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Interfaces.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Interfaces.Type-Validation"
   }
 }

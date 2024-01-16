@@ -3,7 +3,7 @@
   "type": "A",
   "extensions": {
     "implementedType": "B",
-    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/June2018/#sec-Interfaces.Type-Validation"
   }
 }
 

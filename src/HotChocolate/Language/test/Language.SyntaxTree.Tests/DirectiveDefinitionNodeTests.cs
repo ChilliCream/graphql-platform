@@ -126,7 +126,7 @@ public class DirectiveDefinitionNodeTests
                         new NamedTypeNode(new NameNode("type")),
                         NullValueNode.Default,
                         Array.Empty<DirectiveNode>()
-                    )
+                    ),
             });
 
         // assert
@@ -246,11 +246,11 @@ public class DirectiveDefinitionNodeTests
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                Array.Empty<DirectiveNode>()),
         };
         var locations = new List<NameNode>
         {
-            new(DirectiveLocation.Field.ToString())
+            new(DirectiveLocation.Field.ToString()),
         };
 
         // act
@@ -273,12 +273,12 @@ public class DirectiveDefinitionNodeTests
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                Array.Empty<DirectiveNode>()),
         };
 
         var locations = new List<NameNode>
         {
-            new(DirectiveLocation.Field.ToString())
+            new(DirectiveLocation.Field.ToString()),
         };
 
         var a = new DirectiveDefinitionNode(
@@ -327,12 +327,12 @@ public class DirectiveDefinitionNodeTests
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                Array.Empty<DirectiveNode>()),
         };
 
         var locations = new List<NameNode>
         {
-            new(DirectiveLocation.Field.ToString())
+            new(DirectiveLocation.Field.ToString()),
         };
 
         var a = new DirectiveDefinitionNode(
@@ -381,12 +381,12 @@ public class DirectiveDefinitionNodeTests
                 new StringValueNode("def"),
                 new NamedTypeNode("efg"),
                 null,
-                Array.Empty<DirectiveNode>())
+                Array.Empty<DirectiveNode>()),
         };
 
         var locations = new List<NameNode>
         {
-            new(DirectiveLocation.Field.ToString())
+            new(DirectiveLocation.Field.ToString()),
         };
 
         var a = new DirectiveDefinitionNode(

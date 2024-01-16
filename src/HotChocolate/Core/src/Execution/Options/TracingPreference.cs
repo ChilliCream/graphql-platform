@@ -6,5 +6,5 @@ public enum TracingPreference
 
     OnDemand = 1,
 
-    Always = 2
+    Always = 2,
 }

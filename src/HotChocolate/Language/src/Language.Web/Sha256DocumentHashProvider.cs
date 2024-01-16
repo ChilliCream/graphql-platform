@@ -38,7 +38,7 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
         {
             HashFormat.Base64 => Convert.ToBase64String(hashSpan),
             HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
+            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported),
         };
     }
 #else
