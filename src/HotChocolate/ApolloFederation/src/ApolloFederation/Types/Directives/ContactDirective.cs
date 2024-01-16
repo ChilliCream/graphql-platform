@@ -1,3 +1,5 @@
+using HotChocolate.ApolloFederation.Types;
+
 namespace HotChocolate.ApolloFederation;
 
 /// <summary>
@@ -29,10 +31,12 @@ namespace HotChocolate.ApolloFederation;
 /// </code>
 /// </example>
 /// </summary>
-public sealed class Contact
+[DirectiveType(DirectiveLocation.Schema)]
+[GraphQLDescription(Descriptions.ContactDirective_Description)]
+public sealed class ContactDirective
 {
     /// <summary>
-    /// Initializes new instance of <see cref="Contact"/>
+    /// Initializes new instance of <see cref="ContactDirective"/>
     /// </summary>
     /// <param name="name">
     /// Contact title of the subgraph owner
@@ -43,7 +47,7 @@ public sealed class Contact
     /// <param name="description">
     /// Other relevant notes can be included here; supports markdown links
     /// </param>
-    public Contact(string name, string? url, string? description)
+    public ContactDirective(string name, string? url, string? description)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
         

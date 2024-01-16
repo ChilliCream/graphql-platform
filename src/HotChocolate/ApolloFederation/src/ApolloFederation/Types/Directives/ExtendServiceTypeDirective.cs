@@ -1,5 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -18,13 +17,9 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExtendServiceTypeDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.Object | DirectiveLocation.Interface)]
+[GraphQLDescription(Descriptions.ExtendsDirective_Description)]
+public sealed class ExtendServiceTypeDirective
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
-            .Name(WellKnownTypeNames.Extends)
-            .Description(FederationResources.ExtendsDirective_Description)
-            .Location(DirectiveLocation.Object | DirectiveLocation.Interface);
-    }
+    public static ExtendServiceTypeDirective Default { get; } = new();
 }

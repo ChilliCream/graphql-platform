@@ -1,6 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Descriptors;
-using HotChocolate.Language;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -47,15 +45,12 @@ public static class KeyDescriptorExtensions
     public static IEntityResolverDescriptor Key(
         this IObjectTypeDescriptor descriptor,
         string fieldSet,
-        bool? resolvable = null)
+        bool resolvable = true)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-
-        var arguments = CreateKeyArgumentNodes(fieldSet, resolvable);
-
-        descriptor.Directive(WellKnownTypeNames.Key, arguments);
-
+        
+        descriptor.Directive(new KeyDirective(fieldSet, resolvable));
         return new EntityResolverDescriptor<object>(descriptor);
     }
 
@@ -75,7 +70,7 @@ public static class KeyDescriptorExtensions
     ///   bars: [Bar!]!
     /// }
     ///
-    /// type Bar @key(fields: "id", resolvable: false) {
+    /// type Bar @key(fields: "id", resolvable: true) {
     ///   id: ID!
     /// }
     /// </example>
@@ -100,39 +95,11 @@ public static class KeyDescriptorExtensions
     public static IInterfaceTypeDescriptor Key(
         this IInterfaceTypeDescriptor descriptor,
         string fieldSet,
-        bool? resolvable = null)
+        bool resolvable = true)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-
-        var arguments = CreateKeyArgumentNodes(fieldSet, resolvable);
-
-        return descriptor.Directive(WellKnownTypeNames.Key, arguments);
-    }
-
-    private static ArgumentNode[] CreateKeyArgumentNodes(string fieldSet, bool? resolvable)
-    {
-        var notResolvable = resolvable is false;
-
-        var argumentCount = 1;
-        if (notResolvable)
-        {
-            argumentCount++;
-        }
-
-        var arguments = new ArgumentNode[argumentCount];
-        arguments[0] = new ArgumentNode(
-            WellKnownArgumentNames.Fields,
-            new StringValueNode(fieldSet));
         
-        if (notResolvable)
-        {
-            arguments[1] =
-                new ArgumentNode(
-                    WellKnownArgumentNames.Resolvable,
-                    new BooleanValueNode(false));
-        }
-
-        return arguments;
+        return descriptor.Directive(new KeyDirective(fieldSet, resolvable));
     }
 }

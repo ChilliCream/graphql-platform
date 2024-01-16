@@ -1,6 +1,3 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.Language;
-
 namespace HotChocolate.ApolloFederation;
 
 public static class ProvidesDescriptorExtensions
@@ -50,11 +47,6 @@ public static class ProvidesDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-
-        return descriptor.Directive(
-            WellKnownTypeNames.Provides,
-            new ArgumentNode(
-                WellKnownArgumentNames.Fields,
-                new StringValueNode(fieldSet)));
+        return descriptor.Directive(new ProvidesDirective(fieldSet));
     }
 }

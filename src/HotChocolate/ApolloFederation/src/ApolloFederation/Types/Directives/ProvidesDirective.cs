@@ -1,5 +1,6 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Types;
+using static HotChocolate.ApolloFederation.Types.Descriptions;
+using static HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -30,15 +31,10 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ProvidesDirectiveType : DirectiveType
+[DirectiveType(FieldDefinition)]
+[GraphQLDescription(ProvidesDirective_Description)]
+public sealed class ProvidesDirective(string fieldSet)
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
-            .Name(WellKnownTypeNames.Provides)
-            .Description(FederationResources.ProvidesDirective_Description)
-            .Location(DirectiveLocation.FieldDefinition);
-            
-        descriptor.FieldsArgument();
-    }
+    [FieldSet]
+    public string FieldSet { get; } = fieldSet;
 }

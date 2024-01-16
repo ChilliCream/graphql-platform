@@ -120,17 +120,8 @@
   <data name="AuthenticatedDirective_Description" xml:space="preserve">
     <value>Indicates to composition that the target element is accessible only to the authenticated supergraph users.</value>
   </data>
-  <data name="ContactDirective_Description" xml:space="preserve">
-    <value>Provides contact information of the owner responsible for this subgraph schema.</value>
-  </data>
   <data name="ComposeDirective_Description" xml:space="preserve">
     <value>Marks underlying custom directive to be included in the Supergraph schema.</value>
-  </data>
-  <data name="ExtendsDirective_Description" xml:space="preserve">
-    <value>Directive to indicate that marks target object as extending part of the federated schema.</value>
-  </data>
-  <data name="ExternalDirective_Description" xml:space="preserve">
-    <value>Directive to indicate that a field is owned by another service, for example via Apollo federation.</value>
   </data>
   <data name="FieldsetType_Description" xml:space="preserve">
     <value>Scalar representing a set of fields.</value>
@@ -146,9 +137,6 @@
   </data>
   <data name="OverrideDirective_Description" xml:space="preserve">
     <value>Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another.</value>
-  </data>
-  <data name="ProvidesDirective_Description" xml:space="preserve">
-    <value>Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway.</value>
   </data>
   <data name="RequiresDirective_Description" xml:space="preserve">
     <value>Used to annotate the required input fieldset from a base type for a resolver.</value>

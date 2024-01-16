@@ -51,27 +51,9 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ContactDirective_Description {
-            get {
-                return ResourceManager.GetString("ContactDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string ComposeDirective_Description {
             get {
                 return ResourceManager.GetString("ComposeDirective_Description", resourceCulture);
-            }
-        }
-        
-        internal static string ExtendsDirective_Description {
-            get {
-                return ResourceManager.GetString("ExtendsDirective_Description", resourceCulture);
-            }
-        }
-        
-        internal static string ExternalDirective_Description {
-            get {
-                return ResourceManager.GetString("ExternalDirective_Description", resourceCulture);
             }
         }
         
@@ -102,12 +84,6 @@ namespace HotChocolate.ApolloFederation.Properties {
         internal static string OverrideDirective_Description {
             get {
                 return ResourceManager.GetString("OverrideDirective_Description", resourceCulture);
-            }
-        }
-        
-        internal static string ProvidesDirective_Description {
-            get {
-                return ResourceManager.GetString("ProvidesDirective_Description", resourceCulture);
             }
         }
         

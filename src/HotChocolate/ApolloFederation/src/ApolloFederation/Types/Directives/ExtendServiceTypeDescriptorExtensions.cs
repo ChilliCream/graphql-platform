@@ -30,10 +30,7 @@ public static class ExtendServiceTypeDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor
-            .Extend()
-            .OnBeforeCreate(d => d.ContextData[Constants.WellKnownContextData.ExtendMarker] = true);
-
+        descriptor.Directive(ExtendServiceTypeDirective.Default);
         return descriptor;
     }
 }

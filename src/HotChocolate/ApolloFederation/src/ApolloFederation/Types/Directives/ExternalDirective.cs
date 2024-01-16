@@ -1,5 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -25,13 +24,9 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ExternalDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.FieldDefinition)]
+[GraphQLDescription(Descriptions.ExternalDirective_Description)]
+public sealed class ExternalDirective
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-    {
-        descriptor
-            .Name(WellKnownTypeNames.External)
-            .Description(FederationResources.ExternalDirective_Description)
-            .Location(DirectiveLocation.FieldDefinition);
-    }
+    public static ExternalDirective Default { get; } = new();
 }
