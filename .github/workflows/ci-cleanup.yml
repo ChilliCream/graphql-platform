@@ -7,7 +7,7 @@ on:
 
 jobs:
   cleanup:
-    runs-on: self-ubuntu
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v3
