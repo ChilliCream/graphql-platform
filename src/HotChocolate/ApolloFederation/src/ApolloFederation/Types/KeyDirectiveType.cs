@@ -22,13 +22,27 @@ namespace HotChocolate.ApolloFederation;
 public sealed class KeyDirectiveType : DirectiveType
 {
     protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
+    {
+        descriptor
             .Name(WellKnownTypeNames.Key)
             .Description(FederationResources.KeyDirective_Description)
             .Location(DirectiveLocation.Object | DirectiveLocation.Interface)
-            .Repeatable()
-            .FieldsArgument()
+            .Repeatable();
+        
+        descriptor
+            .FieldsArgument();
+            
+        if(descriptor.GetFederationVersion() > FederationVersion.Federation10)
+        {
+            descriptor
+                .Argument(WellKnownArgumentNames.Resolvable)
+                .Type<BooleanType>()
+                .DefaultValue(true);
+        }
+        descriptor
             .Argument(WellKnownArgumentNames.Resolvable)
             .Type<BooleanType>()
             .DefaultValue(true);
+        
+    }
 }

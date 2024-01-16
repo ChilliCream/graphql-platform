@@ -41,14 +41,16 @@ internal static class ThrowHelper
     /// of the given type.
     /// </summary>
     public static SchemaException ExternalAttribute_InvalidTarget(
-        Type type, MemberInfo? member) =>
-        new SchemaException(SchemaErrorBuilder.New()
-            .SetMessage(
-                "The specified external attribute was applied to " +
-                "the member `{0}` of `{1}`, which is not a property.",
-                member?.Name,
-                type.FullName ?? type.Name)
-            .Build());
+        Type type,
+        MemberInfo? member) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified external attribute was applied to " +
+                    "the member `{0}` of `{1}`, which is not a property.",
+                    member?.Name,
+                    type.FullName ?? type.Name)
+                .Build());
 
     /// <summary>
     /// No ReferenceResolver was found for a type that is decorated with a ReferenceResolverAttribute.
@@ -56,12 +58,13 @@ internal static class ThrowHelper
     public static SchemaException ReferenceResolverAttribute_EntityResolverNotFound(
         Type type,
         string referenceResolver) =>
-        new SchemaException(SchemaErrorBuilder.New()
-            .SetMessage(
-                "The specified ReferenceResolver `{0}` does not exist on `{1}`.",
-                type.FullName ?? type.Name,
-                referenceResolver)
-            .Build());
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified ReferenceResolver `{0}` does not exist on `{1}`.",
+                    type.FullName ?? type.Name,
+                    referenceResolver)
+                .Build());
 
     /// <summary>
     /// The runtime type is not supported by the scalars ParseValue method.
@@ -114,6 +117,23 @@ internal static class ThrowHelper
                     type.FullName ?? type.Name)
                 // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
                 .Build());
+
+    /// <summary>
+    /// The key attribute is used on the type level without specifying the fieldset.
+    /// </summary>
+    public static SchemaException Key_FieldSet_MustBeEmpty(
+        MemberInfo member)
+    {
+        var type = member.ReflectedType ?? member.DeclaringType!;
+        
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("The specified key attribute must not specify a fieldset when annotated to a field.")
+                .SetExtension("type", type.FullName ?? type.Name)
+                .SetExtension("member", member.Name)
+                // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
+                .Build());
+    }
 
     /// <summary>
     /// The provides attribute is used and the fieldset is set to <c>null</c> or
