@@ -22,4 +22,8 @@ internal static class Descriptions
 
     public const string RequiresDirective_Description =
         "Used to annotate the required input fieldset from a base type for a resolver.";
+    
+    public const string OverrideDirective_Description =
+        "Overrides fields resolution logic from other subgraph. " +
+        "Used for migrating fields from one subgraph to another.";
 }

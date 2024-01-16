@@ -14,10 +14,10 @@ internal static class WellKnownTypeNames
     //public const string Key = "key";
     public const string Link = "link";
 
-    public const string Override = "override";
+    // public const string Override = "override";
 
     //public const string Provides = "provides";
-    public const string Requires = "requires";
+    //public const string Requires = "requires";
     public const string RequiresScopes = "requiresScopes";
     public const string Shareable = "shareable";
     public const string Tag = "tag";

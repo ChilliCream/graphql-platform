@@ -65,6 +65,12 @@
     <Compile Update="Types\Directives\ContactDescriptorExtensions.cs">
       <DependentUpon>ContactDirective.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Directives\OverrideAttribute.cs">
+      <DependentUpon>OverrideDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\OverrideDescriptorExtensions.cs">
+      <DependentUpon>OverrideDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

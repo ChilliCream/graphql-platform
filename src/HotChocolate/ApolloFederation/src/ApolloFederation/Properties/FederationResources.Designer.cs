@@ -81,18 +81,6 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string OverrideDirective_Description {
-            get {
-                return ResourceManager.GetString("OverrideDirective_Description", resourceCulture);
-            }
-        }
-        
-        internal static string RequiresDirective_Description {
-            get {
-                return ResourceManager.GetString("RequiresDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string RequiresScopesDirective_Description {
             get {
                 return ResourceManager.GetString("RequiresScopesDirective_Description", resourceCulture);

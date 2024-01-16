@@ -1,5 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Types;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -19,13 +18,9 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class OverrideDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.FieldDefinition)]
+[GraphQLDescription(Descriptions.OverrideDirective_Description)]
+public sealed class OverrideDirective(string from)
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
-            .Name(WellKnownTypeNames.Override)
-            .Description(FederationResources.OverrideDirective_Description)
-            .Location(DirectiveLocation.FieldDefinition)
-            .Argument(WellKnownArgumentNames.From)
-            .Type<NonNullType<StringType>>();
+    public string From { get; } = from;
 }
