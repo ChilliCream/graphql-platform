@@ -31,6 +31,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             Errors = errors,
             FieldPath = new(),
         };
+        
         foreach (var type in typeSystemObjects)
         {
             if (type is not InputObjectType inputType)
