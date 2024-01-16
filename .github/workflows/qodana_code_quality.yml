@@ -9,7 +9,7 @@ on:
 
 jobs:
   qodana:
-    runs-on: self-ubuntu
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
