@@ -1,0 +1,9 @@
+﻿{
+  "message": "Cannot reference Input Object `SomeInputObject` within itself through a series of non-null fields `nonNullSelf`.",
+  "type": "SomeInputObject",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/445",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+  }
+}
+

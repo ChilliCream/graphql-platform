@@ -917,7 +917,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -962,7 +962,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -977,7 +977,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -998,7 +998,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1019,7 +1019,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
