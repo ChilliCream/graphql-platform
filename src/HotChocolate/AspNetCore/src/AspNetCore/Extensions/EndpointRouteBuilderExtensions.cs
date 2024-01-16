@@ -78,13 +78,52 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
 
-        requestPipeline
+        requestPipeline.MapGraphQL(path, schemaNameOrDefault);
+
+        return new GraphQLEndpointConventionBuilder(
+            endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+    }
+    
+    /// <summary>
+    /// Adds a GraphQL endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="applicationBuilder">
+    /// The <see cref="IApplicationBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the GraphQL endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="applicationBuilder" /> is <c>null</c>.
+    /// </exception>
+    public static IApplicationBuilder MapGraphQL(
+        this IApplicationBuilder applicationBuilder,
+        PathString path,
+        string schemaName)
+    {
+        if (applicationBuilder is null)
+        {
+            throw new ArgumentNullException(nameof(applicationBuilder));
+        }
+
+        path = path.ToString().TrimEnd('/');
+
+        applicationBuilder
             .UseCancellation()
-            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Integrated)
+            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaName)
+            .UseMiddleware<HttpPostMiddleware>(schemaName)
+            .UseMiddleware<HttpMultipartMiddleware>(schemaName)
+            .UseMiddleware<HttpGetMiddleware>(schemaName)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, Integrated)
             .UseBananaCakePop(path)
             .Use(_ => context =>
             {
@@ -92,10 +131,7 @@ public static class EndpointRouteBuilderExtensions
                 return Task.CompletedTask;
             });
 
-        return new GraphQLEndpointConventionBuilder(
-            endpointRouteBuilder
-                .Map(pattern, requestPipeline.Build())
-                .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+        return applicationBuilder;
     }
 
     /// <summary>
