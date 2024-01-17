@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation;
 using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,9 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
+    /// <param name="version">
+    /// The apollo federation version to use.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
@@ -20,10 +24,11 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder AddApolloFederation(
-        this IRequestExecutorBuilder builder)
+        this IRequestExecutorBuilder builder,
+        FederationVersion version = FederationVersion.Latest)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        return builder.ConfigureSchema(s => s.AddApolloFederation());
+        builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
+        return builder;
     }
 }

@@ -3,44 +3,6 @@ using System.Diagnostics;
 
 namespace HotChocolate.ApolloFederation;
 
-internal readonly struct FederationVersionValues<T>
-{
-    public required T[] Values { get; init; }
-
-    public bool IsValidVersion(FederationVersion v)
-    {
-        return (int)v > 0 && (int)v < Values.Length;
-    }
-
-    public ref T this[FederationVersion v]
-    {
-        get => ref Values[(int)v];
-    }
-
-    public ref T V20 => ref this[FederationVersion.Federation20];
-    public ref T V21 => ref this[FederationVersion.Federation21];
-    public ref T V22 => ref this[FederationVersion.Federation22];
-    public ref T V23 => ref this[FederationVersion.Federation23];
-    public ref T V24 => ref this[FederationVersion.Federation24];
-    public ref T V25 => ref this[FederationVersion.Federation25];
-    public ref T V26 => ref this[FederationVersion.Federation26];
-
-    public bool AllSet
-    {
-        get
-        {
-            foreach (var v in Values)
-            {
-                if (v == null)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-}
-
 /// <summary>
 /// Utility class to help calculate different Apollo Federation @link imports based on the supported version.
 /// </summary>

@@ -3,7 +3,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <summary>
 /// Scalar <code>Scope</code> representation.
 /// </summary>
-public sealed class Scope
+public readonly record struct Scope
 {
     /// <summary>
     /// Initializes a new instance of <see cref="Scope"/>.

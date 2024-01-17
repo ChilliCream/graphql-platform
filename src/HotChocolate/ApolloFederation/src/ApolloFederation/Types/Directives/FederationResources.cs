@@ -44,4 +44,12 @@ internal partial class FederationResources
         "service's schema. This SDL (schema definition language) is a printed version " +
         "of the service's schema including the annotations of federation directives. " +
         "This SDL does not include the additions of the federation spec.";
+
+    public const string AuthenticatedDirective_Description =
+        "Indicates to composition that the target element is accessible " +
+        "only to the authenticated supergraph users.";
+    
+    public const string RequiresScopesDirective_Description =
+        "Indicates to composition that the target element is accessible only " +
+        "to the authenticated supergraph users with the appropriate JWT scopes.";
 }

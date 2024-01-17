@@ -45,21 +45,9 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string AuthenticatedDirective_Description {
-            get {
-                return ResourceManager.GetString("AuthenticatedDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string FieldsetType_Description {
             get {
                 return ResourceManager.GetString("FieldsetType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string RequiresScopesDirective_Description {
-            get {
-                return ResourceManager.GetString("RequiresScopesDirective_Description", resourceCulture);
             }
         }
         

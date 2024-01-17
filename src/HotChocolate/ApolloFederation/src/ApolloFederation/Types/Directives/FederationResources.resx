@@ -117,14 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AuthenticatedDirective_Description" xml:space="preserve">
-    <value>Indicates to composition that the target element is accessible only to the authenticated supergraph users.</value>
-  </data>
   <data name="FieldsetType_Description" xml:space="preserve">
     <value>Scalar representing a set of fields.</value>
-  </data>
-  <data name="RequiresScopesDirective_Description" xml:space="preserve">
-    <value>Indicates to composition that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes.</value>
   </data>
   <data name="ScopeType_Description" xml:space="preserve">
     <value>Scalar representing a JWT scope</value>

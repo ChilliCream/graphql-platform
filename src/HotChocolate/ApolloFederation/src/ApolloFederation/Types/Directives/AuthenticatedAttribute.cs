@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.ApolloFederation;
@@ -15,7 +16,7 @@ namespace HotChocolate.ApolloFederation;
 ///
 /// The @authenticated directive is used to indicate that the target element is accessible only to the
 /// authenticated supergraph users. For more granular access control, see the
-/// <see cref="RequiresScopesDirectiveType">RequiresScopeDirectiveType</see> directive usage.
+/// <see cref="RequiresScopesDirective">RequiresScopeDirectiveType</see> directive usage.
 /// Refer to the <see href="https://www.apollographql.com/docs/router/configuration/authorization#authenticated">
 /// Apollo Router article</see> for additional details.
 /// 
@@ -44,27 +45,27 @@ public sealed class AuthenticatedAttribute : DescriptorAttribute
         {
             case IEnumTypeDescriptor enumTypeDescriptor:
             {
-                enumTypeDescriptor.ApolloAuthenticated();
+                enumTypeDescriptor.Authenticated();
                 break;
             }
             case IObjectTypeDescriptor objectFieldDescriptor:
             {
-                objectFieldDescriptor.ApolloAuthenticated();
+                objectFieldDescriptor.Authenticated();
                 break;
             }
             case IObjectFieldDescriptor objectFieldDescriptor:
             {
-                objectFieldDescriptor.ApolloAuthenticated();
+                objectFieldDescriptor.Authenticated();
                 break;
             }
             case IInterfaceTypeDescriptor interfaceTypeDescriptor:
             {
-                interfaceTypeDescriptor.ApolloAuthenticated();
+                interfaceTypeDescriptor.Authenticated();
                 break;
             }
             case IInterfaceFieldDescriptor interfaceFieldDescriptor:
             {
-                interfaceFieldDescriptor.ApolloAuthenticated();
+                interfaceFieldDescriptor.Authenticated();
                 break;
             }
         }

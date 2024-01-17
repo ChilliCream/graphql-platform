@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Types;
@@ -59,52 +58,27 @@ public sealed class RequiresScopesAttribute : DescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        void AddScopes(
-            IHasDirectiveDefinition definition)
-        {
-            var existingScopes = definition
-                .Directives
-                .Select(t => t.Value)
-                .OfType<RequiresScopes>()
-                .FirstOrDefault();
-
-            if (existingScopes is null)
-            {
-                existingScopes = new(new());
-                definition.AddDirective(existingScopes, context.TypeInspector);
-            }
-
-            var newScopes = Scopes.Select(s => new Scope(s)).ToList();
-            existingScopes.Scopes.Add(newScopes);
-        }
-
         switch (descriptor)
         {
-            case IEnumTypeDescriptor enumTypeDescriptor:
-            {
-                AddScopes(enumTypeDescriptor.ToDefinition());
+            case IEnumTypeDescriptor desc:
+                desc.RequiresScopes(Scopes);
                 break;
-            }
-            case IObjectTypeDescriptor objectFieldDescriptor:
-            {
-                AddScopes(objectFieldDescriptor.ToDefinition());
+            
+            case IObjectTypeDescriptor desc:
+                desc.RequiresScopes(Scopes);
                 break;
-            }
-            case IObjectFieldDescriptor objectFieldDescriptor:
-            {
-                AddScopes(objectFieldDescriptor.ToDefinition());
+            
+            case IObjectFieldDescriptor desc:
+                desc.RequiresScopes(Scopes);
                 break;
-            }
-            case IInterfaceTypeDescriptor interfaceTypeDescriptor:
-            {
-                AddScopes(interfaceTypeDescriptor.ToDefinition());
+            
+            case IInterfaceTypeDescriptor desc:
+                desc.RequiresScopes(Scopes);
                 break;
-            }
-            case IInterfaceFieldDescriptor interfaceFieldDescriptor:
-            {
-                AddScopes(interfaceFieldDescriptor.ToDefinition());
+            
+            case IInterfaceFieldDescriptor desc:
+                desc.RequiresScopes(Scopes);
                 break;
-            }
         }
     }
 }

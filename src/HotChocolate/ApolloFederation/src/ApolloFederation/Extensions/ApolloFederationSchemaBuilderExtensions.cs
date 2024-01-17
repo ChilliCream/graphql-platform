@@ -22,53 +22,15 @@ public static partial class ApolloFederationSchemaBuilderExtensions
     /// <param name="version">
     /// Target Federation version
     /// </param>
-    /// <param name="schemaConfiguration"></param>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
     public static ISchemaBuilder AddApolloFederation(
         this ISchemaBuilder builder,
-        FederationVersion version = FederationVersion.Latest,
-        Action<ISchemaTypeDescriptor>? schemaConfiguration = null)
+        FederationVersion version = FederationVersion.Latest)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        // TODO : we will move this to the type interceptor.
-        builder.SetSchema(s =>
-        {
-            var link = FederationUtils.GetFederationLink(version);
-            s.Link(link.Url, link.Import);
-            schemaConfiguration?.Invoke(s);
-        });
         AddApolloFederationDefinitions(builder, version);
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds support for Apollo Federation to the schema.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="ISchemaBuilder"/>.
-    /// </param>
-    /// <param name="schema">
-    /// Federated schema object.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="ISchemaBuilder"/>.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="builder"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// The <paramref name="schema"/> is <c>null</c>.
-    /// </exception>
-    public static ISchemaBuilder AddApolloFederation(this ISchemaBuilder builder, FederatedSchema schema)
-    {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(schema);
-
-        builder.SetSchema(schema);
-        AddApolloFederationDefinitions(builder, schema.FederationVersion);
         return builder;
     }
 
@@ -89,6 +51,7 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         this ISchemaBuilder builder,
         FederationVersion version = FederationVersion.Latest)
     {
+        /*
         ArgumentNullException.ThrowIfNull(builder);
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
 
@@ -162,5 +125,6 @@ public static partial class ApolloFederationSchemaBuilderExtensions
         }
 
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
+        */
     }
 }

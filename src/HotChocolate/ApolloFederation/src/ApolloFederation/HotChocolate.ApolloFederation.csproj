@@ -23,15 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\FederationResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>FederationResources.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="Properties\FederationResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <Compile Update="Types\Directives\ProvidesAttribute.cs">
       <DependentUpon>ProvidesDirective.cs</DependentUpon>
     </Compile>
@@ -104,6 +95,23 @@
     <Compile Update="Types\FieldSetAttribute.cs">
       <DependentUpon>FieldSetType.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Directives\AuthenticatedDescriptionExtensions.cs">
+      <DependentUpon>AuthenticatedDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\AuthenticatedAttribute.cs">
+      <DependentUpon>AuthenticatedDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresScopesDescriptorExtensions.cs">
+      <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\FederationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FederationResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresScopesAttribute.cs">
+      <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -112,7 +120,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Helpers\" />
+    <Folder Include="Configuration\Attributes\" />
+    <Folder Include="Configuration\Directives\" />
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Types\Directives\FederationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

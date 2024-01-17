@@ -3,7 +3,6 @@ namespace HotChocolate.ApolloFederation;
 internal static class FederationContextData
 {
     public const string KeyMarker = "HotChocolate.ApolloFederation.Key";
-    public const string ExtendMarker = "HotChocolate.ApolloFederation.Extend";
     public const string ContactMarker = "HotChocolate.ApolloFederation.Contact";
     public const string ExternalSetter = "HotChocolate.ApolloFederation.ExternalSetter";
     public const string EntityResolver = "HotChocolate.ApolloFederation.EntityResolver";
