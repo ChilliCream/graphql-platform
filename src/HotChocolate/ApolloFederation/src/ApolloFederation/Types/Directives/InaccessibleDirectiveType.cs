@@ -1,7 +1,7 @@
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>

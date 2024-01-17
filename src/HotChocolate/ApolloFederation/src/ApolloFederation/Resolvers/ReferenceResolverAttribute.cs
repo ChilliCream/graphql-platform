@@ -1,8 +1,9 @@
 using System.Reflection;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
 /// The reference resolver enables your gateway's query planner to resolve a particular

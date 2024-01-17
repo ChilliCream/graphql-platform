@@ -1,7 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
-
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
@@ -18,11 +15,9 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class InterfaceObjectDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.Object)]
+[GraphQLDescription(Descriptions.InterfaceObjectDirective_Description)]
+public sealed class InterfaceObjectDirective
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
-            .Name(WellKnownTypeNames.InterfaceObject)
-            .Description(FederationResources.InterfaceObjectDirective_Description)
-            .Location(DirectiveLocation.Object);
+    public static InterfaceObjectDirective Default { get; } = new();
 }

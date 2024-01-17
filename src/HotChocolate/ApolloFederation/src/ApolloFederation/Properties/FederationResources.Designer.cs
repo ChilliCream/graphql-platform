@@ -69,12 +69,6 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string InterfaceObjectDirective_Description {
-            get {
-                return ResourceManager.GetString("InterfaceObjectDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string KeyDirective_Description {
             get {
                 return ResourceManager.GetString("KeyDirective_Description", resourceCulture);

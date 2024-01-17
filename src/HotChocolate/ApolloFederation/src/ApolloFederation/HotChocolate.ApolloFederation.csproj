@@ -77,15 +77,17 @@
     <Compile Update="Types\Directives\ShareableDescriptorExtensions.cs">
       <DependentUpon>ShareableDirective.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Directives\InterfaceObjectAttribute.cs">
+      <DependentUpon>InterfaceObjectDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InterfaceObjectDescriptorExtensions.cs">
+      <DependentUpon>InterfaceObjectDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.props" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.targets" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.targets" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Configuration\ObjectTypes\" />
   </ItemGroup>
 
 </Project>

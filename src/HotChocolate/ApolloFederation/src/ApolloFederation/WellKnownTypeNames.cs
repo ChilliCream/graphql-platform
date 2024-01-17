@@ -9,7 +9,7 @@ internal static class WellKnownTypeNames
     //public const string External = "external";
     public const string Inaccessible = "inaccessible";
 
-    public const string InterfaceObject = "interfaceObject";
+    // public const string InterfaceObject = "interfaceObject";
 
     //public const string Key = "key";
     public const string Link = "link";

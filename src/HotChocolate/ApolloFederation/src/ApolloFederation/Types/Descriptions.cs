@@ -29,4 +29,7 @@ internal static class Descriptions
     
     public const string ShareableDirective_Description =
         "Indicates that given object and/or field can be resolved by multiple subgraphs.";
+
+    public const string InterfaceObjectDirective_Description =
+        "Provides meta information to the router that this entity type is an interface in the supergraph.";
 }

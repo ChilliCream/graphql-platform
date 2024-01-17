@@ -1,4 +1,4 @@
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
 /// Maps an argument to a representation value.

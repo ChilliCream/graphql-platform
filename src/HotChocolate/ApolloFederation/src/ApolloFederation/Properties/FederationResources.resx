@@ -129,9 +129,6 @@
   <data name="InaccessibleDirective_Description" xml:space="preserve">
     <value>Marks location within schema as inaccessible from the GraphQL Gateway</value>
   </data>
-  <data name="InterfaceObjectDirective_Description" xml:space="preserve">
-    <value>Provides meta information to the router that this entity type is an interface in the supergraph.</value>
-  </data>
   <data name="KeyDirective_Description" xml:space="preserve">
     <value>Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface.</value>
   </data>

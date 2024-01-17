@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers.Expressions.Parameters;
