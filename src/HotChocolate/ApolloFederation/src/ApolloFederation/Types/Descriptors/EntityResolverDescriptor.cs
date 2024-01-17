@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;

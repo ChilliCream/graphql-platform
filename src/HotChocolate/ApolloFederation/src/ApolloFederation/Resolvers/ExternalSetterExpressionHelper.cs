@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using static System.Linq.Expressions.Expression;
 using static System.Reflection.BindingFlags;
-using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 
-namespace HotChocolate.ApolloFederation.Helpers;
+namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
 /// This class contains helpers to generate external field setters.
@@ -32,7 +31,7 @@ internal static class ExternalSetterExpressionHelper
 
         foreach (var field in type.Fields)
         {
-            if (field.Directives.ContainsDirective(WellKnownTypeNames.External) &&
+            if (field.Directives.ContainsDirective<ExternalDirective>() &&
                 field.Member is PropertyInfo { SetMethod: { } } property)
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
@@ -42,7 +41,7 @@ internal static class ExternalSetterExpressionHelper
 
         if (block is not null)
         {
-            typeDef.ContextData[ExternalSetter] =
+            typeDef.ContextData[FederationContextData.ExternalSetter] =
                 Lambda<Action<ObjectType, IValueNode, object>>(
                     Block(block), _type, _data, _entity)
                         .Compile();
@@ -65,7 +64,7 @@ internal static class ExternalSetterExpressionHelper
         PropertyInfo property)
         => (Expression)_createSetValueExpression
             .MakeGenericMethod(property.PropertyType)
-            .Invoke(null, new object[] { runtimeType, property })!;
+            .Invoke(null, [runtimeType, property])!;
 
 
     private static Expression CreateSetValueExpression<TValue>(

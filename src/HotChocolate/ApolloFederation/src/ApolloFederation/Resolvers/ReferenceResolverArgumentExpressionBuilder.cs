@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
-namespace HotChocolate.ApolloFederation.Helpers;
+namespace HotChocolate.ApolloFederation.Resolvers;
 
 internal sealed class ReferenceResolverArgumentExpressionBuilder :
     LocalStateParameterExpressionBuilder
@@ -50,20 +48,22 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
 
     // NOTE: It will use the default handler without these two.
     public override bool IsDefaultHandler => true;
+    
     public override bool CanHandle(ParameterInfo parameter) => true;
 
     private string[] RequirePathAndGetSeparatedPath(ParameterInfo parameter)
     {
         var path = parameter.GetCustomAttribute<MapAttribute>() is { } attr
             ? attr.Path.Split('.')
-            : new[] { parameter.Name! };
+            : [parameter.Name!];
 
         _requiredPaths.Add(path);
 
         return path;
     }
 
-    private readonly List<string[]> _requiredPaths = new();
+    private readonly List<string[]> _requiredPaths = [];
+    
     public IReadOnlyList<string[]> Required => _requiredPaths;
 
     protected override bool ResolveDefaultIfNotExistsParameterValue(

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.ApolloFederation.Helpers;
+namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
 /// A helper for getting field values from a representation object.
@@ -21,7 +21,7 @@ internal static class ArgumentParser
         IType type,
         string[] path,
         out T? value)
-        => TryGetValue<T>(valueNode, type, path, 0, out value);
+        => TryGetValue(valueNode, type, path, 0, out value);
 
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     private static bool TryGetValue<T>(
