@@ -44,7 +44,7 @@ public class ServiceTypeTests
                 }
 
                 type Query {
-                  _service: _Service
+                  _service: _Service!
                   _entities(representations: [_Any!]!): [_Entity]!
                 }
 
@@ -101,7 +101,7 @@ public class ServiceTypeTests
                 
                 type Query {
                   address(id: Int!): Address!
-                  _service: _Service
+                  _service: _Service!
                   _entities(representations: [_Any!]!): [_Entity]!
                 }
                 

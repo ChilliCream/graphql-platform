@@ -22,7 +22,7 @@ type ProductVariation {
 
 type Query @extends {
   product(id: ID!): Product
-  _service: _Service
+  _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
