@@ -41,10 +41,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 BindingFlags.Static | BindingFlags.Public)!;
 
     private readonly List<ObjectType> _entityTypes = new();
+    private readonly Dictionary<string, HashSet<string>> _imports = new();
     private IDescriptorContext _context = default!;
     private ITypeInspector _typeInspector = default!;
     private ObjectType _queryType = default!;
     private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
+    private SchemaTypeDefinition _schemaTypeDefinition = default!;
     private bool _registeredTypes;
 
     internal override void InitializeContext(
@@ -95,6 +97,61 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         yield return _typeInspector.GetTypeRef(typeof(_EntityType));
         yield return _typeInspector.GetTypeRef(typeof(_AnyType));
         yield return _typeInspector.GetTypeRef(typeof(FieldSetType));
+
+        if (_context.GetFederationVersion() > FederationVersion.Federation10)
+        {
+            yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
+        }
+    }
+
+    public override void OnBeforeCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
+    {
+        if (definition is SchemaTypeDefinition schemaDef)
+        {
+            _schemaTypeDefinition = schemaDef;
+        }
+    }
+
+    public override void OnAfterCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition)
+    {
+        if (definition is not ITypeDefinition typeDef)
+        {
+            return;
+        }
+
+        if (typeDef.RuntimeType != typeof(object) &&
+            typeDef.RuntimeType.IsDefined(typeof(PackageAttribute)))
+        {
+            RegisterImport(typeDef.RuntimeType);
+            return;
+        }
+
+        var type = completionContext.Type.GetType();
+
+        if (type.IsDefined(typeof(PackageAttribute)))
+        {
+            RegisterImport(type);
+        }
+        
+        void RegisterImport(MemberInfo element)
+        {
+            var package = element.GetCustomAttribute<PackageAttribute>();
+
+            if (package is not null)
+            {
+                if (!_imports.TryGetValue(package.Url, out var types))
+                {
+                    types = new HashSet<string>();
+                    _imports[package.Url] = types;
+                }
+
+                types.Add(completionContext.Type.Name);
+            }
+        }
     }
 
     internal override void OnAfterResolveRootType(
@@ -141,6 +198,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
+    internal override void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema) { }
+
     private void CompleteExternalFieldSetters(ObjectType type, ObjectTypeDefinition typeDef)
         => ExternalSetterExpressionHelper.TryAddExternalSetter(type, typeDef);
 
@@ -149,6 +208,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         IReadOnlyList<ReferenceResolverDefinition> resolvers;
         {
             var contextData = typeDef.GetContextData();
+
             if (!contextData.TryGetValue(EntityResolver, out var resolversObject))
             {
                 return;
@@ -270,6 +330,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         // from the annotated fields.
         {
             var foundMarkers = objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker));
+
             if (!foundMarkers)
             {
                 return;
@@ -332,7 +393,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         objectTypeDefinition.Directives.Add(
             new DirectiveDefinition(
-                new KeyDirective(fieldSet), 
+                new KeyDirective(fieldSet),
                 _keyDirectiveReference));
     }
 }

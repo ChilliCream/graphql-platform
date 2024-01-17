@@ -18,7 +18,7 @@ public sealed class LinkDirective
     /// <param name="import">
     /// Optional list of imported elements.
     /// </param>
-    public LinkDirective(Uri url, IReadOnlyList<string>? import)
+    public LinkDirective(Uri url, IReadOnlySet<string>? import)
     {
         Url = url;
         Import = import;
@@ -32,5 +32,5 @@ public sealed class LinkDirective
     /// <summary>
     /// Gets optional list of imported element names.
     /// </summary>
-    public IReadOnlyList<string>? Import { get; }
+    public IReadOnlySet<string>? Import { get; }
 }
