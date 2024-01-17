@@ -5,7 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// The _Any scalar is used to pass representations of entities

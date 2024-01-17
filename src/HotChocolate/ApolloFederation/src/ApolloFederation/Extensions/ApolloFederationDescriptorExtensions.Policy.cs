@@ -1,5 +1,6 @@
 using HotChocolate.ApolloFederation;
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types;

@@ -1,5 +1,7 @@
 using System.Reflection;
+using HotChocolate.ApolloFederation.Types;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
+using AnyType = HotChocolate.ApolloFederation.Types.AnyType;
 
 namespace HotChocolate.ApolloFederation;
 

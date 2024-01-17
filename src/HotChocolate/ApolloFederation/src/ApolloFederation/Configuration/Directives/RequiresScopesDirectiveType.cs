@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Properties;
+using HotChocolate.ApolloFederation.Types;
 
 namespace HotChocolate.ApolloFederation;
 

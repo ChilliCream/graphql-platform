@@ -42,8 +42,7 @@ namespace HotChocolate.ApolloFederation;
     | AttributeTargets.Method
     | AttributeTargets.Parameter
     | AttributeTargets.Property
-    | AttributeTargets.Struct
-)]
+    | AttributeTargets.Struct)]
 public sealed class InaccessibleAttribute : DescriptorAttribute
 {
     protected internal override void TryConfigure(
@@ -54,50 +53,32 @@ public sealed class InaccessibleAttribute : DescriptorAttribute
         switch (descriptor)
         {
             case IEnumTypeDescriptor enumTypeDescriptor:
-            {
                 enumTypeDescriptor.Inaccessible();
                 break;
-            }
             case IObjectTypeDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Inaccessible();
                 break;
-            }
             case IObjectFieldDescriptor objectFieldDescriptor:
-            {
                 objectFieldDescriptor.Inaccessible();
                 break;
-            }
             case IInterfaceTypeDescriptor interfaceTypeDescriptor:
-            {
                 interfaceTypeDescriptor.Inaccessible();
                 break;
-            }
             case IInterfaceFieldDescriptor interfaceFieldDescriptor:
-            {
                 interfaceFieldDescriptor.Inaccessible();
                 break;
-            }
             case IInputObjectTypeDescriptor inputObjectTypeDescriptor:
-            {
                 inputObjectTypeDescriptor.Inaccessible();
                 break;
-            }
             case IInputFieldDescriptor inputFieldDescriptor:
-            {
                 inputFieldDescriptor.Inaccessible();
                 break;
-            }
             case IUnionTypeDescriptor unionTypeDescriptor:
-            {
                 unionTypeDescriptor.Inaccessible();
                 break;
-            }
             case IEnumValueDescriptor enumValueDescriptor:
-            {
                 enumValueDescriptor.Inaccessible();
                 break;
-            }
         }
     }
 }

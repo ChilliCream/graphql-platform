@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Helpers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;

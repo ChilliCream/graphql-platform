@@ -1,4 +1,5 @@
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Language.Utf8GraphQLParser;

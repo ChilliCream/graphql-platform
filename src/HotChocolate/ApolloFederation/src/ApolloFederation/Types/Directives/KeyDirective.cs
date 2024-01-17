@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors;
-
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -29,20 +27,4 @@ public sealed class KeyDirective(string fieldSet, bool resolvable = true)
     [GraphQLType<BooleanType>]
     [DefaultValue(true)]
     public bool Resolvable { get; } = resolvable;
-}
-
-internal sealed class KeyLegacySupportAttribute : DirectiveTypeDescriptorAttribute
-{
-    protected override void OnConfigure(
-        IDescriptorContext context, 
-        IDirectiveTypeDescriptor descriptor, 
-        Type type)
-    {
-        if (descriptor.GetFederationVersion() == FederationVersion.Federation10)
-        {
-            var desc = (IDirectiveTypeDescriptor<KeyDirective>)descriptor;
-            desc.BindArgumentsExplicitly();
-            desc.Argument(t => t.FieldSet);
-        }
-    }
 }

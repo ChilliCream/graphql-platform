@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Helpers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -14,6 +15,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 using static HotChocolate.Types.TagHelper;
+using AnyType = HotChocolate.ApolloFederation.Types.AnyType;
 
 namespace HotChocolate.ApolloFederation;
 

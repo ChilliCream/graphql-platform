@@ -3,7 +3,7 @@ using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// A scalar called _FieldSet is a custom scalar type that is used to
@@ -53,7 +53,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
 
     /// <inheritdoc />
     protected override StringValueNode ParseValue(SelectionSetNode runtimeValue)
-        => new StringValueNode(SerializeSelectionSet(runtimeValue));
+        => new(SerializeSelectionSet(runtimeValue));
 
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)

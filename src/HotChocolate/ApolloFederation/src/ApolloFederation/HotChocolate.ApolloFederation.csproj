@@ -84,4 +84,8 @@
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.targets" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.targets" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Configuration\ObjectTypes\" />
+  </ItemGroup>
+
 </Project>
