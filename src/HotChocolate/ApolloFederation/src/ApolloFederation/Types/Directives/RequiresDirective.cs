@@ -1,6 +1,8 @@
+using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.ApolloFederation.FederationVersionUrls;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -27,8 +29,20 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(Federation20)]
 [DirectiveType(RequiresDirective_Name, DirectiveLocation.FieldDefinition)]
 [GraphQLDescription(RequiresDirective_Description)]
-public sealed class RequiresDirective(string fieldSet)
+public sealed class RequiresDirective
 {
+    public RequiresDirective(string fields)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(fields);
+        Fields = FieldSetType.ParseSelectionSet(fields);
+    }
+    
+    public RequiresDirective(SelectionSetNode fields)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+        Fields = fields;
+    }
+    
     [FieldSet]
-    public string FieldSet { get; } = fieldSet;
+    public SelectionSetNode Fields { get; }
 }

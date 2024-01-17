@@ -39,7 +39,7 @@ public class ServiceTypeTests
                   query: Query
                 }
 
-                type Address @key(fieldSet: "matchCode") {
+                type Address @key(fields: "matchCode") {
                   matchCode: String
                 }
 
@@ -57,7 +57,7 @@ public class ServiceTypeTests
                 union _Entity = Address
 
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-                directive @key(fieldSet: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+                directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
                 "Object representation of @link directive."
                 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
@@ -76,7 +76,7 @@ public class ServiceTypeTests
         // arrange
         var schema = await new ServiceCollection()
             .AddGraphQL()
-            .AddApolloFederation()
+            .AddApolloFederation(FederationVersion.Federation22)
             .AddQueryType<Query>()
             .BuildSchemaAsync();
 
@@ -95,7 +95,7 @@ public class ServiceTypeTests
                   query: Query
                 }
                 
-                type Address @key(fieldSet: "matchCode") {
+                type Address @key(fields: "matchCode") {
                   matchCode: String
                 }
                 
@@ -114,7 +114,7 @@ public class ServiceTypeTests
                 union _Entity = Address
                 
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-                directive @key(fieldSet: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+                directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
                 
                 "Object representation of @link directive."
                 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA

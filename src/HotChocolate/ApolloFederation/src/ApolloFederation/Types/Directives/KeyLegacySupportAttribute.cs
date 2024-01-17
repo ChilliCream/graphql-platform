@@ -13,7 +13,7 @@ internal sealed class KeyLegacySupportAttribute : DirectiveTypeDescriptorAttribu
         {
             var desc = (IDirectiveTypeDescriptor<KeyDirective>)descriptor;
             desc.BindArgumentsExplicitly();
-            desc.Argument(t => t.FieldSet);
+            desc.Argument(t => t.Fields);
         }
     }
 }

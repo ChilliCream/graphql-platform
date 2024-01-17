@@ -1,4 +1,4 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@extends", "@external", "@key", "@inaccessible", "@override", "@provides", "@requires", "@shareable", "@tag", "FieldSet", "@composeDirective", "@interfaceObject", "@authenticated", "@requiresPolicy" ]) {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.0", import: [ "@extends", "@key", "@provides", "FieldSet", "@external" ]) {
   query: Query
 }
 
@@ -20,13 +20,13 @@ type ProductVariation {
   id: ID!
 }
 
-type Query {
+type Query @extends {
   product(id: ID!): Product
-  _service: _Service!
+  _service: _Service
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type User @key(fields: "email") {
+type User @key(fields: "email") @extends {
   email: ID! @external
   totalProductsCreated: Int @external
 }
@@ -39,37 +39,23 @@ type _Service {
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Product | User
 
-"Indicates to composition that the target element is accessible only to the authenticated supergraph users."
-directive @authenticated on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
-
-"Marks underlying custom directive to be included in the Supergraph schema."
-directive @composeDirective(name: String!) on SCHEMA
-
 "Directive to indicate that marks target object as extending part of the federated schema."
 directive @extends on OBJECT | INTERFACE
 
 "Directive to indicate that a field is owned by another service, for example via Apollo federation."
 directive @external on FIELD_DEFINITION
 
-"Marks location within schema as inaccessible from the GraphQL Gateway"
-directive @inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
-"Provides meta information to the router that this entity type is an interface in the supergraph."
-directive @interfaceObject on OBJECT
-
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
-directive @link(url: String! import: [String!]) repeatable on SCHEMA
-
-"Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
-directive @override(from: String!) on FIELD_DEFINITION
+"Object representation of @link directive."
+directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
-directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+directive @provides(fields: FieldSet!) on FIELD_DEFINITION
+
+"Scalar representing a set of fields."
+scalar FieldSet
 
 "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
 scalar _Any
-
-"Scalar representing a set of fields."
-scalar _FieldSet
