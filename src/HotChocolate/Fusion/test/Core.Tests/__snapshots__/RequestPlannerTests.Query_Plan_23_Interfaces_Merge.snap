@@ -25,7 +25,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query Appointments_1 { appointments(after: null, before: null, first: null, last: null) { nodes { patient { __typename ... on Patient1 { id __fusion_exports__1: id } ... on Patient2 { id } } } } }",
+        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient1 { id __fusion_exports__1: id } ... on Patient2 { id } } } } }",
         "selectionSetId": 0,
         "provides": [
           {

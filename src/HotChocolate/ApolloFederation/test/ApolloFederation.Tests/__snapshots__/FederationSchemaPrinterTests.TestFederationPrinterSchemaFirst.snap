@@ -40,32 +40,3 @@ interface iTestType @key(fields: "id") {
   id: Int!
   external: String! @external
 }
-
-"Indicates to composition that the target element is accessible only to the authenticated supergraph users."
-directive @authenticated on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
-
-"Indicates to composition that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes."
-directive @requiresScopes(scopes: [[Scope!]!]!) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
-
-"Provides meta information to the router that this entity type is an interface in the supergraph."
-directive @interfaceObject on OBJECT
-
-"Marks underlying custom directive to be included in the Supergraph schema."
-directive @composeDirective(name: String!) on SCHEMA
-
-"Directive to indicate that marks target object as extending part of the federated schema."
-directive @extends on OBJECT | INTERFACE
-
-"Marks location within schema as inaccessible from the GraphQL Gateway"
-directive @inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
-directive @link(url: String! import: [String!]) repeatable on SCHEMA
-
-"Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
-directive @override(from: String!) on FIELD_DEFINITION
-
-"Indicates that given object and\/or field can be resolved by multiple subgraphs."
-directive @shareable repeatable on OBJECT | FIELD_DEFINITION
-
-"Allows users to annotate fields and types with additional metadata information."
-directive @tag(name: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

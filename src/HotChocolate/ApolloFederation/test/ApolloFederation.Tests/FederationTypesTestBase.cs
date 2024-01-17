@@ -16,7 +16,8 @@ public abstract class FederationTypesTestBase
                     {
                         c.Name("Query");
                         c.Field("foo").Type<StringType>().Resolve("bar");
-                    });
+                    })
+                .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false);
 
         configure(builder);
 

@@ -22,7 +22,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query Appointments_1 { appointments(after: null, before: null, first: null, last: null) { nodes { patient { __typename ... on Patient1 { id } ... on Patient2 { id } } } } }",
+        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient1 { id } ... on Patient2 { id } } } } }",
         "selectionSetId": 0
       },
       {
@@ -38,7 +38,7 @@ QueryPlan
 
 QueryPlan Hash
 ---------------
-3DE1889AD56C0846C24B425F1BC050FD67F7A74B
+7FA915AFBA06ABAAF57A31CE4888B161285111C3
 ---------------
 
 Result

@@ -21,7 +21,5 @@ directive @key(fields: _FieldSet! resolvable: Boolean = true) repeatable on OBJE
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
 directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
 
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
 "Scalar representing a set of fields."
 scalar _FieldSet

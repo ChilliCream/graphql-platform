@@ -1,5 +1,5 @@
 --- 
-title: Connect you API
+title: Connect your API
 ---
 
 BananaCake Pop can be smoothly integrated into your HotChocolate server, enabling utilization of the Persisted Query Storage found within the client registry, to report operations and collect open telemetry. Your server will establish a connection with BananaCake Pop, retrieving persisted queries based on their unique hashes. Additional information on the client registry can be found [here](/docs/bananacakepop/v2/apis/client-registry).
@@ -21,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
+    .AddInstrumentation() // if you want to use telemetry
     .AddBananaCakePopServices(x =>
     {
         x.ApiId = "VGhpcyBpcyBub3QgYSByZWFsIGFwaSBpZA==";
@@ -28,7 +29,7 @@ builder.Services
         x.Stage = "dev";
     })
     .UseOnlyPersistedQueriesAllowed() // optional
-    .UsePersistedQueryPipeline();
+    .UsePersistedQueryPipeline(); // if you want to use persisted queries
 
 var app = builder.Build();
 

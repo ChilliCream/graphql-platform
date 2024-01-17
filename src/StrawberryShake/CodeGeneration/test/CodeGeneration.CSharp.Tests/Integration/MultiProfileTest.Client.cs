@@ -16,7 +16,8 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class MultiProfileClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.MultiProfileClientStoreAccessor> AddMultiProfileClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClientProfileKind profile = global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClientProfileKind.InMemory)
@@ -199,7 +200,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResult : global::System.IEquatable<GetHeroResult>, IGetHeroResult
     {
         public GetHeroResult(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero? hero)
@@ -264,7 +266,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Droid : global::System.IEquatable<GetHero_Hero_Droid>, IGetHero_Hero_Droid
     {
         public GetHero_Hero_Droid(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? friends)
@@ -333,7 +336,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Human : global::System.IEquatable<GetHero_Hero_Human>, IGetHero_Hero_Human
     {
         public GetHero_Hero_Human(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? friends)
@@ -402,10 +406,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_FriendsConnection : global::System.IEquatable<GetHero_Hero_Friends_FriendsConnection>, IGetHero_Hero_Friends_FriendsConnection
     {
         public GetHero_Hero_Friends_FriendsConnection(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? nodes)
@@ -479,7 +484,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_Droid : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Droid>, IGetHero_Hero_Friends_Nodes_Droid
     {
         public GetHero_Hero_Friends_Nodes_Droid(global::System.String name)
@@ -540,7 +546,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_Human : global::System.IEquatable<GetHero_Hero_Friends_Nodes_Human>, IGetHero_Hero_Friends_Nodes_Human
     {
         public GetHero_Hero_Friends_Nodes_Human(global::System.String name)
@@ -601,13 +608,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroResult
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero? Hero { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero
     {
         public global::System.String Name { get; }
@@ -615,20 +624,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? Friends { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Droid : IGetHero_Hero
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Human : IGetHero_Hero
     {
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends
     {
         /// <summary>
@@ -637,31 +649,36 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? Nodes { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends_FriendsConnection : IGetHero_Hero_Friends
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends_Nodes
     {
         public global::System.String Name { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends_Nodes_Droid : IGetHero_Hero_Friends_Nodes
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHero_Hero_Friends_Nodes_Human : IGetHero_Hero_Friends_Nodes
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResult : global::System.IEquatable<OnReviewSubResult>, IOnReviewSubResult
     {
         public OnReviewSubResult(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSub_OnReview onReview)
@@ -722,7 +739,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSub_OnReview_Review : global::System.IEquatable<OnReviewSub_OnReview_Review>, IOnReviewSub_OnReview_Review
     {
         public OnReviewSub_OnReview_Review(global::System.String __typename, global::System.Int32 stars, global::System.String? commentary)
@@ -798,13 +816,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnReviewSubResult
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSub_OnReview OnReview { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnReviewSub_OnReview
     {
         /// <summary>
@@ -817,12 +837,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         public global::System.String? Commentary { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnReviewSub_OnReview_Review : IOnReviewSub_OnReview
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResult : global::System.IEquatable<CreateReviewMutResult>, ICreateReviewMutResult
     {
         public CreateReviewMutResult(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMut_CreateReview createReview)
@@ -883,7 +905,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMut_CreateReview_Review : global::System.IEquatable<CreateReviewMut_CreateReview_Review>, ICreateReviewMut_CreateReview_Review
     {
         public CreateReviewMut_CreateReview_Review(global::System.Int32 stars, global::System.String? commentary)
@@ -952,13 +975,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ICreateReviewMutResult
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMut_CreateReview CreateReview { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ICreateReviewMut_CreateReview
     {
         public global::System.Int32 Stars { get; }
@@ -966,12 +991,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         public global::System.String? Commentary { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ICreateReviewMut_CreateReview_Review : ICreateReviewMut_CreateReview
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReviewInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter = default !;
@@ -1029,6 +1056,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewInput : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo, global::System.IEquatable<ReviewInput>
     {
@@ -1115,7 +1143,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo.IsCommentarySet => _set_commentary;
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum Episode
     {
         NewHope,
@@ -1123,7 +1152,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         Jedi,
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class EpisodeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Episode>
     {
         public global::System.String TypeName => "Episode";
@@ -1148,6 +1178,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
@@ -1178,7 +1209,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument : global::StrawberryShake.IDocument
     {
         private GetHeroQueryDocument()
@@ -1199,6 +1230,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
@@ -1229,7 +1261,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
@@ -1267,6 +1299,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
@@ -1297,13 +1330,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the OnReviewSub GraphQL operation
     /// <code>
@@ -1316,7 +1350,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubSubscriptionDocument : global::StrawberryShake.IDocument
     {
         private OnReviewSubSubscriptionDocument()
@@ -1337,6 +1371,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the OnReviewSub GraphQL operation
     /// <code>
@@ -1349,7 +1384,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubSubscription : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription
     {
         private readonly global::StrawberryShake.IOperationExecutor<IOnReviewSubResult> _operationExecutor;
@@ -1381,6 +1416,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the OnReviewSub GraphQL operation
     /// <code>
@@ -1393,12 +1429,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IOnReviewSubSubscription : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
@@ -1411,7 +1448,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutMutationDocument : global::StrawberryShake.IDocument
     {
         private CreateReviewMutMutationDocument()
@@ -1432,6 +1469,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
@@ -1444,7 +1482,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutMutation : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> _operationExecutor;
@@ -1504,6 +1542,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the CreateReviewMut GraphQL operation
     /// <code>
@@ -1516,17 +1555,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface ICreateReviewMutMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> Watch(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the MultiProfileClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MultiProfileClient : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IMultiProfileClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery _getHero;
@@ -1545,10 +1585,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation CreateReviewMut => _createReviewMut;
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the MultiProfileClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IMultiProfileClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery GetHero { get; }
@@ -1558,7 +1599,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation CreateReviewMut { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum MultiProfileClientProfileKind
     {
         InMemory,
@@ -1568,6 +1610,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
@@ -1582,6 +1625,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? Friends { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
@@ -1596,7 +1640,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.FriendsConnectionData? Friends { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1651,7 +1696,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -1673,7 +1719,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1719,7 +1766,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -1741,7 +1789,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1787,7 +1836,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -1809,6 +1859,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IReviewInputInfo
     {
@@ -1817,7 +1868,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         global::System.Boolean IsCommentarySet { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1853,7 +1905,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1898,7 +1950,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -1913,7 +1965,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1934,7 +1986,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1955,7 +2007,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -1994,7 +2046,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2030,7 +2083,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -2051,7 +2104,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -2066,7 +2119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -2081,7 +2134,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -2090,7 +2143,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutBuilder : global::StrawberryShake.OperationResultBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2128,7 +2182,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -2149,7 +2203,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -2164,7 +2218,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -2173,6 +2227,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FriendsConnectionData
@@ -2189,6 +2244,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewData
     {
@@ -2206,7 +2262,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         public global::System.String? Commentary { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Droid>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2286,7 +2343,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Human>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2366,7 +2424,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2386,7 +2445,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -2406,7 +2466,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MultiProfileClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -2465,7 +2526,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MultiProfileClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public MultiProfileClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)

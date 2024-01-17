@@ -1274,6 +1274,227 @@ public class RequestPlannerTests
         await snapshot.MatchAsync();
     }
 
+    [Fact]
+    public async Task Query_Plan_32_Argument_No_Value_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                    },
+                    null)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_33_Argument_Default_Value_Explicitly_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                    },
+                    null)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg(arg: VALUE2)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_34_Argument_Not_Default_Value_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                    },
+                    null)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg(arg: VALUE1)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_35_Argument_Value_Variable_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                    },
+                    null)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test($variable: TestEnum) {
+              fieldWithEnumArg(arg: $variable)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_31_Argument_No_Value_Specified_With_Selection_Set()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): TestObject
+                    }
+
+                    type TestObject {
+                        test: Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                    },
+                    null)
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg {
+                test
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchAsync();
+    }
+
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
         Skimmed.Schema fusionGraph,
         [StringSyntax("graphql")] string query)
