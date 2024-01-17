@@ -2,9 +2,11 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
@@ -16,10 +18,11 @@ public class ReferenceResolverAttributeTests
     public async void InClassRefResolver_PureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(InClassRefResolver));
@@ -35,10 +38,11 @@ public class ReferenceResolverAttributeTests
     public async void ExternalRefResolver_PureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalRefResolver));
@@ -55,11 +59,12 @@ public class ReferenceResolverAttributeTests
     public async void SingleKey_CompiledResolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithSingleKeyResolver>()
-            .Create();
-
+            .BuildSchemaAsync();
+        
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
 
@@ -73,10 +78,11 @@ public class ReferenceResolverAttributeTests
     public async void ExternalFields_Set()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalFields));
@@ -94,10 +100,11 @@ public class ReferenceResolverAttributeTests
     public async void ExternalFields_Not_Set()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalFields));
@@ -113,10 +120,11 @@ public class ReferenceResolverAttributeTests
     public async void MultiKey_CompiledResolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithMultiKeyResolver>()
-            .Create();
+            .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
 
@@ -133,11 +141,12 @@ public class ReferenceResolverAttributeTests
     public async void ExternalRefResolver_RenamedMethod_PureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
-
+            .BuildSchemaAsync();
+        
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
 
@@ -152,34 +161,36 @@ public class ReferenceResolverAttributeTests
     public void InClassRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
     {
         // arrange
-        void SchemaCreation()
+        async Task SchemaCreation()
         {
-            SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query_InClass_Invalid>()
-                .Create();
+                .BuildSchemaAsync();
         }
 
         // act
         // assert
-        Assert.Throws<SchemaException>((Action)SchemaCreation);
+        Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
     [Fact]
     public void ExternalRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
     {
         // arrange
-        void SchemaCreation()
+        async Task SchemaCreation()
         {
-            SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query_ExternalClass_Invalid>()
-                .Create();
+                .BuildSchemaAsync();
         }
 
         // act
         // assert
-        Assert.Throws<SchemaException>((Action)SchemaCreation);
+        Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
     private ValueTask<object?> ResolveRef(ISchema schema, ObjectType type)
