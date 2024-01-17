@@ -20,7 +20,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
     /// <summary>
     /// Initializes a new instance of <see cref="FieldSetType"/>.
     /// </summary>
-    public FieldSetType() : this(WellKnownTypeNames.FieldSet)
+    public FieldSetType() : this(FederationTypeNames.FieldSetType_Name)
     {
     }
 

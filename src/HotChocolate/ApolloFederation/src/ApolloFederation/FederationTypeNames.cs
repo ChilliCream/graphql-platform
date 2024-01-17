@@ -17,10 +17,10 @@ internal static class FederationTypeNames
     public const string RequiresScopes_Name = "requiresScopes";
     public const string ShareableDirective_Name = "shareable";
     public const string Tag_Name = "tag";
-    public const string FieldSet_Name = "FieldSet";
+    public const string FieldSetType_Name = "FieldSet";
     public const string Scope_Name = "Scope";
-    public const string Any_Name = "_Any";
-    public const string Entity_Name = "_Entity";
+    public const string AnyType_Name = "_Any";
+    public const string EntityType_Name = "_Entity";
     public const string Service_Name = "_Service";
     public const string PolicyDirective_Name = "policy";
     public const string PolicyCollection_Name = "policyCollection";

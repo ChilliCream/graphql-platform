@@ -98,6 +98,12 @@
     <Compile Update="Types\Directives\InaccessibleDescriptorExtensions.cs">
       <DependentUpon>InaccessibleDirective.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Directives\ComposeDirectiveDescriptorExtensions.cs">
+      <DependentUpon>ComposeDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\FieldSetAttribute.cs">
+      <DependentUpon>FieldSetType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
