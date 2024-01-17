@@ -486,7 +486,11 @@ public class Mutation
     [UseProjection]
     public IQueryable<Foo> CreateRecord(bool throwError)
     {
-        if (throwError) throw new AnError("this is only a test");
+        if (throwError)
+        {
+            throw new AnError("this is only a test");
+        }
+
         return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
     }
 

@@ -140,7 +140,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
                     _ => CloseSocketOnProtocolError(
                         "Invalid message type received: " + message.Type,
-                        cancellationToken)
+                        cancellationToken),
                 };
             }
         }

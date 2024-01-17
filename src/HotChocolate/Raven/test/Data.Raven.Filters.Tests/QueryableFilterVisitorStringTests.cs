@@ -11,14 +11,14 @@ public class QueryableFilterVisitorStringTests
     private static readonly Foo[] _fooEntities =
     {
         new() { Bar = "testatest" },
-        new() { Bar = "testbtest" }
+        new() { Bar = "testbtest" },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
         new() { Bar = "testatest" },
         new() { Bar = "testbtest" },
-        new() { Bar = null }
+        new() { Bar = null },
     };
 
     private readonly SchemaCache _cache;

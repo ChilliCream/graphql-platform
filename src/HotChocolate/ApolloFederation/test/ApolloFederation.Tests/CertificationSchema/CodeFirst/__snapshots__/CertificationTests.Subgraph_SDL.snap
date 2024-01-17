@@ -1,4 +1,8 @@
-﻿type Product @key(fields: "id") @key(fields: "sku package") @key(fields: "sku variation { id }") {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@extends", "@external", "@key", "@inaccessible", "@override", "@provides", "@requires", "@shareable", "@tag", "FieldSet", "@composeDirective", "@interfaceObject", "@authenticated", "@requiresPolicy" ]) {
+  query: Query
+}
+
+type Product @key(fields: "id") @key(fields: "sku package") @key(fields: "sku variation { id }") {
   id: ID!
   createdBy: User! @provides(fields: "totalProductsCreated")
   sku: String
@@ -16,11 +20,13 @@ type ProductVariation {
   id: ID!
 }
 
-extend type Query {
+type Query {
   product(id: ID!): Product
+  _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
 }
 
-extend type User @key(fields: "email") {
+type User @key(fields: "email") {
   email: ID! @external
   totalProductsCreated: Int @external
 }

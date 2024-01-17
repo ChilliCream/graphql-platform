@@ -16,7 +16,7 @@ type Review @key(fields: "id") {
 }
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+directive @key(fields: _FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
 directive @provides(fields: _FieldSet!) on FIELD_DEFINITION

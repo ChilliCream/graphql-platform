@@ -14,5 +14,5 @@ public enum MiddlewareRoutingType
     /// <summary>
     /// Explicitly hosted e.g. MapGraphQLSchema()
     /// </summary>
-    Explicit
+    Explicit,
 }

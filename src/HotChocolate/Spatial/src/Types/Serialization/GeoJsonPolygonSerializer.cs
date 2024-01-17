@@ -128,7 +128,7 @@ internal class GeoJsonPolygonSerializer
                             type,
                             GeoJsonGeometryType.Polygon)),
                     new(CoordinatesFieldName, ParseCoordinateValue(type, geometry)),
-                    new(CrsFieldName, new IntValueNode(geometry.SRID))
+                    new(CrsFieldName, new IntValueNode(geometry.SRID)),
                 };
 
             return new ObjectValueNode(list);

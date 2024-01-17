@@ -19,7 +19,7 @@ public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
         new Foo { Bar = "b" },
         new Foo { Bar = "d" },
         new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
+        new Foo { Bar = "f" },
     };
 
     private readonly MongoResource _resource;

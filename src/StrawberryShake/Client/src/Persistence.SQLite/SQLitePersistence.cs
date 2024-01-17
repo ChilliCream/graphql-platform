@@ -18,7 +18,7 @@ public class SQLitePersistence : IDisposable
     {
         Formatting = Formatting.None,
         TypeNameHandling = TypeNameHandling.All,
-        TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple
+        TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
     };
 
     private readonly JsonOperationRequestSerializer _requestSerializer = new();
@@ -205,7 +205,7 @@ public class SQLitePersistence : IDisposable
             {
                 Id = serializedId,
                 Value = JsonConvert.SerializeObject(entity, _serializerSettings),
-                Type = entity.GetType().FullName!
+                Type = entity.GetType().FullName!,
             };
 
             await database.SaveEntityAsync(
@@ -245,7 +245,7 @@ public class SQLitePersistence : IDisposable
                 DataInfo = JsonConvert.SerializeObject(
                     operationVersion.Result.DataInfo,
                     _serializerSettings),
-                ResultType = $"{dataType.FullName}, {dataType.Assembly.GetName().Name}"
+                ResultType = $"{dataType.FullName}, {dataType.Assembly.GetName().Name}",
             };
 
             await database.SaveOperationAsync(

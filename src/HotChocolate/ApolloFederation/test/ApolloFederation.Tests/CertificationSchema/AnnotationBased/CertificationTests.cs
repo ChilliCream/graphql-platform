@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased;
 

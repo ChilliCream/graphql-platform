@@ -312,7 +312,7 @@ internal static class ClassBuilderExtensions
                         .SetMethodName(TypeNames.SequenceEqual)
                         .AddArgument(propertyName)
                         .AddArgument($"{other}.{propertyName}"),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(),
             };
         }
     }

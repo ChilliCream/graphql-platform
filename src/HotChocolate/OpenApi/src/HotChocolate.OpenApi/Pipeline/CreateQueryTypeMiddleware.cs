@@ -40,7 +40,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
             var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
             {
-                Type = type
+                Type = type,
             };
 
             ObjectTypeFactory.ParseType(context, type.NamedType().Name, typeInfo.RootSchema);

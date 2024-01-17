@@ -15,7 +15,7 @@ public class MongoDbFilterVisitorObjectIdTests
     {
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
-        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -23,7 +23,7 @@ public class MongoDbFilterVisitorObjectIdTests
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
         new() { },
         new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
-        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
+        new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") },
     };
 
     public MongoDbFilterVisitorObjectIdTests(MongoResource resource)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -388,6 +389,7 @@ public class DataLoaderTests
             await FooObject.Get(context, "hello", ct);
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     [GraphQLName("Foo")]
     [Node]
     public class FooObject

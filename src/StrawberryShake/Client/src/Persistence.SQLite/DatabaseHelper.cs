@@ -90,7 +90,7 @@ internal sealed class DatabaseHelper
             {
                 Id = reader.GetString(0),
                 Value = reader.GetString(1),
-                Type = reader.GetString(2)
+                Type = reader.GetString(2),
             };
         }
     }
@@ -138,7 +138,7 @@ internal sealed class DatabaseHelper
                 Id = reader.GetString(0),
                 Variables = reader.GetString(1),
                 ResultType = reader.GetString(2),
-                DataInfo = reader.GetString(3)
+                DataInfo = reader.GetString(3),
             };
         }
     }

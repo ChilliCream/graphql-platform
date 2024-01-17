@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration.Validation;
 
 internal static class TypeValidationHelper
 {
-    private const char _underscore = '_';
+    private const char _prefixCharacter = '_';
 
     public static void EnsureTypeHasFields(
         IComplexOutputType type,
@@ -287,8 +287,8 @@ internal static class TypeValidationHelper
         {
             var firstTwoLetters = name.AsSpan().Slice(0, 2);
 
-            if (firstTwoLetters[0] == _underscore &&
-                firstTwoLetters[1] == _underscore)
+            if (firstTwoLetters[0] == _prefixCharacter &&
+                firstTwoLetters[1] == _prefixCharacter)
             {
                 return true;
             }

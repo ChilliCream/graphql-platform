@@ -19,7 +19,7 @@ public static class WebSocketExtensions
         new()
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore
+            NullValueHandling = NullValueHandling.Ignore,
         };
 
     public static Task SendConnectionInitializeAsync(

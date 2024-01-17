@@ -56,8 +56,8 @@ public class DependencyInjectionGeneratorTests
                 {
                     new TransportProfile(
                         TransportProfile.DefaultProfileName,
-                        TransportType.InMemory)
-                }
+                        TransportType.InMemory),
+                },
             },
             "query GetPerson { person { name } }",
             "subscription onPerson { onPerson { name } }",
@@ -76,8 +76,8 @@ public class DependencyInjectionGeneratorTests
                 Profiles =
                 {
                     TransportProfile.Default,
-                    new TransportProfile("InMemory", TransportType.InMemory)
-                }
+                    new TransportProfile("InMemory", TransportType.InMemory),
+                },
             },
             "query GetPerson { person { name } }",
             "subscription onPerson { onPerson { name } }",
@@ -100,8 +100,8 @@ public class DependencyInjectionGeneratorTests
                         TransportType.InMemory,
                         query: TransportType.Http,
                         mutation: TransportType.WebSocket,
-                        subscription: TransportType.InMemory)
-                }
+                        subscription: TransportType.InMemory),
+                },
             },
             "query GetPerson { person { name } }",
             "subscription onPerson { onPerson { name } }",

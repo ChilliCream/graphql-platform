@@ -68,7 +68,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     new GraphQLServerOptions { Sockets =
                     {
                         ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                        KeepAliveInterval = TimeSpan.FromMilliseconds(150)
+                        KeepAliveInterval = TimeSpan.FromMilliseconds(150),
                     }}));
             var client = CreateWebSocketClient(testServer);
 
@@ -238,7 +238,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             }) {
                                 stars
                             }
-                        }"
+                        }",
                 });
 
             var message = await WaitForMessage(webSocket, "data", ct);
@@ -397,7 +397,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
             });
 
             await WaitForMessage(webSocket, "data", ct);
@@ -415,7 +415,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
             });
 
             // assert

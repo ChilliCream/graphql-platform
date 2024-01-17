@@ -81,8 +81,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             {
                                 ConnectionInitializationTimeout =
                                     TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
+                            },
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -114,8 +114,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             Sockets =
                             {
                                 ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                                KeepAliveInterval = TimeSpan.FromMilliseconds(150),
+                            },
                         }));
                 var client = CreateWebSocketClient(testServer);
 
@@ -282,7 +282,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                     stars
                                 }
                             }
-                            """
+                            """,
                     });
 
                 // assert
@@ -413,7 +413,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }) {
                                     stars
                                 }
-                            }"
+                            }",
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -432,7 +432,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
                     });
 
                 // assert
@@ -477,7 +477,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
                     });
 
                 await WaitForMessage(webSocket, Messages.Next, ct);
@@ -489,7 +489,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         Query = @"
                     mutation {
                         complete(episode:NEW_HOPE)
-                    }"
+                    }",
                     });
 
                 // assert
@@ -545,7 +545,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                                 }) {
                                     stars
                                 }
-                            }"
+                            }",
                     });
 
                 for (var i = 0; i < 600; i++)
@@ -557,7 +557,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
                     {
-                        Query = @"mutation { complete(episode:NEW_HOPE) }"
+                        Query = @"mutation { complete(episode:NEW_HOPE) }",
                     });
 
                 // assert

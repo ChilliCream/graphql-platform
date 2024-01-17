@@ -16,7 +16,7 @@ internal static class GeoJsonSerializers
                 [GeoJsonGeometryType.MultiLineString] =
                     GeoJsonMultiLineStringSerializer.Default,
                 [GeoJsonGeometryType.Polygon] = GeoJsonPolygonSerializer.Default,
-                [GeoJsonGeometryType.MultiPolygon] = GeoJsonMultiPolygonSerializer.Default
+                [GeoJsonGeometryType.MultiPolygon] = GeoJsonMultiPolygonSerializer.Default,
             };
 
     public static readonly IReadOnlyDictionary<string, IGeoJsonSerializer>
@@ -28,7 +28,7 @@ internal static class GeoJsonSerializers
                 ["LineString"] = GeoJsonLineStringSerializer.Default,
                 ["MultiLineString"] = GeoJsonMultiLineStringSerializer.Default,
                 ["Polygon"] = GeoJsonPolygonSerializer.Default,
-                ["MultiPolygon"] = GeoJsonMultiPolygonSerializer.Default
+                ["MultiPolygon"] = GeoJsonMultiPolygonSerializer.Default,
             };
 
     public static readonly IReadOnlyDictionary<Type, IGeoJsonSerializer>

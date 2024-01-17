@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst;
 
@@ -25,19 +24,19 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """
+            {
                 _service {
                     sdl
                 }
-            }");
+            }
+            """);
 
         // assert
-        Assert.IsType<ObjectResult>(
-            Assert.IsType<ObjectResult>(
-                Assert.IsType<QueryResult>(result).Data)
-                    .GetValueOrDefault("_service"))
-                        .GetValueOrDefault("sdl")
-                            .MatchSnapshot();
+        var queryResult = Assert.IsType<QueryResult>(result);
+        var data = Assert.IsType<ObjectResult>(queryResult.Data);
+        var service = Assert.IsType<ObjectResult>(data.GetValueOrDefault("_service"));
+        service.GetValueOrDefault("sdl").MatchSnapshot();
     }
 
     [Fact]
@@ -48,13 +47,15 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query ($representations: [_Any!]!) {
+            """
+            query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
                         sku
                     }
                 }
-            }",
+            }
+            """,
             new Dictionary<string, object?>
             {
                 ["representations"] = new List<object?>
@@ -77,13 +78,15 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query ($representations: [_Any!]!) {
+            """
+            query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
                         sku
                     }
                 }
-            }",
+            }
+            """,
             new Dictionary<string, object?>
             {
                 ["representations"] = new List<object?>
@@ -107,13 +110,15 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query ($representations: [_Any!]!) {
+            """
+            query ($representations: [_Any!]!) {
                 _entities(representations: $representations) {
                     ... on Product {
                         sku
                     }
                 }
-            }",
+            }
+            """,
             new Dictionary<string, object?>
             {
                 ["representations"] = new List<object?>
@@ -139,11 +144,13 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query ($id: ID!) {
+            """
+            query ($id: ID!) {
                 product(id: $id) {
                     createdBy { email totalProductsCreated }
                 }
-            }",
+            }
+            """,
             new Dictionary<string, object?>
             {
                 ["id"] = "apollo-federation"
@@ -161,11 +168,13 @@ public class CertificationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query ($id: ID!) {
+            """
+            query ($id: ID!) {
                 product(id: $id) {
                     dimensions { size weight }
                 }
-            }",
+            }
+            """,
             new Dictionary<string, object?>
             {
                 ["id"] = "apollo-federation"

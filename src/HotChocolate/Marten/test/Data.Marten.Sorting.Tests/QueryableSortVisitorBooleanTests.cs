@@ -11,7 +11,7 @@ public class QueryableSortVisitorBooleanTests
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
-        new() { Bar = true }, new() { Bar = null }, new() { Bar = false }
+        new() { Bar = true }, new() { Bar = null }, new() { Bar = false },
     };
 
     private readonly SchemaCache _cache;

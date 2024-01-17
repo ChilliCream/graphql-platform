@@ -100,7 +100,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                             .WithOptions(new GraphQLServerOptions
                             {
                                 EnableBatching = true,
-                                AllowedGetOperations = AllowedGetOperations.Query | AllowedGetOperations.Subscription
+                                AllowedGetOperations = AllowedGetOperations.Query | AllowedGetOperations.Subscription,
                             });
 
                         configureConventions?.Invoke(builder);

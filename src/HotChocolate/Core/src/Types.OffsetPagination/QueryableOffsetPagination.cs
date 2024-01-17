@@ -48,7 +48,7 @@ internal sealed class QueryableOffsetPagination<TEntity>
 
                         list.Add(item);
                     }
-                })
+                }, cancellationToken)
                 .ConfigureAwait(false);
         }
 
