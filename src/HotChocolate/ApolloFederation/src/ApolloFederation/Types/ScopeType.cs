@@ -12,7 +12,7 @@ public sealed class ScopeType : ScalarType<Scope, StringValueNode>
     /// <summary>
     /// Initializes a new instance of <see cref="ScopeType"/>.
     /// </summary>
-    public ScopeType() : this(WellKnownTypeNames.Scope)
+    public ScopeType() : this(FederationTypeNames.ScopeType_Name)
     {
     }
 

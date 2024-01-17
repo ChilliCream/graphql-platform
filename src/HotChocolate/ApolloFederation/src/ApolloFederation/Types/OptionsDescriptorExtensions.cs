@@ -9,7 +9,7 @@ internal static class OptionsDescriptorExtensions
         where T : DefinitionBase
     {
         var contextData = descriptor.Extend().Context.ContextData;
-        if (contextData.TryGetValue(Constants.FederationContextData.FederationVersion, out var value) &&
+        if (contextData.TryGetValue(FederationContextData.FederationVersion, out var value) &&
             value is FederationVersion version and > FederationVersion.Unknown)
         {
             return version;
