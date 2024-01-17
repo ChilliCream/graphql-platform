@@ -30,7 +30,11 @@ public static class ExtendServiceTypeDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.Directive(ExtendServiceTypeDirective.Default);
+        if (descriptor.Extend().Context.GetFederationVersion() == FederationVersion.Federation10)
+        {
+            descriptor.Directive(ExtendServiceTypeDirective.Default);
+        }
+        
         return descriptor;
     }
     
@@ -62,7 +66,11 @@ public static class ExtendServiceTypeDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor.Directive(ExtendServiceTypeDirective.Default);
+        if (descriptor.Extend().Context.GetFederationVersion() == FederationVersion.Federation10)
+        {
+            descriptor.Directive(ExtendServiceTypeDirective.Default);
+        }
+        
         return descriptor;
     }
 }

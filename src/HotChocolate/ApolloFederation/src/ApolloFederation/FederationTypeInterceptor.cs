@@ -102,9 +102,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
     }
-
     
-
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)

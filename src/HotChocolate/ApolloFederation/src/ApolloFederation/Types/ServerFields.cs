@@ -17,7 +17,7 @@ public static class ServerFields
     internal static ObjectFieldDefinition CreateServiceField(IDescriptorContext context)
     {
         var descriptor = ObjectFieldDescriptor.New(context, WellKnownFieldNames.Service);
-        descriptor.Resolve(_service);
+        descriptor.Type<NonNullType<ObjectType<_Service>>>().Resolve(_service);
         descriptor.Definition.PureResolver = Resolve;
 
         static _Service Resolve(IPureResolverContext ctx)
