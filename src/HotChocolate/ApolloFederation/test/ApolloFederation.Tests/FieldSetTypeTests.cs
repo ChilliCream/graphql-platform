@@ -1,7 +1,7 @@
-using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.ApolloFederation;
@@ -16,7 +16,7 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // assert
-        Assert.Equal(WellKnownTypeNames.FieldSet, type.Name);
+        Assert.Equal(FieldSetType_Name, type.Name);
     }
 
     [Fact]

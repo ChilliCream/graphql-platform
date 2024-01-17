@@ -5,7 +5,7 @@ using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using static HotChocolate.ApolloFederation.Constants.FederationContextData;
+using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -314,7 +314,6 @@ public class ReferenceResolverAttributeTests
 
     [Key("id")]
     [Key("sku")]
-
     public sealed class ExternalMultiKeyResolver
     {
         public string Id { get; set; } = default!;
