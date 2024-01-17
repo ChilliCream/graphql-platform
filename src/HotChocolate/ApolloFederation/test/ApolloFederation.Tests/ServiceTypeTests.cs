@@ -26,7 +26,63 @@ public class ServiceTypeTests
 
         var entityType = schema.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
-        
+
+        // act
+        var value = await sdlResolver(CreateResolverContext(schema));
+
+        // assert
+        Utf8GraphQLParser
+            .Parse((string)value!)
+            .MatchInlineSnapshot(
+                """
+                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.0", import: [ "@key", "FieldSet" ]) {
+                  query: Query
+                }
+
+                type Address @key(fieldSet: "matchCode") {
+                  matchCode: String
+                }
+
+                type Query {
+                  _service: _Service
+                  _entities(representations: [_Any!]!): [_Entity]!
+                }
+
+                "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+                type _Service {
+                  sdl: String!
+                }
+
+                "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+                union _Entity = Address
+
+                "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+                directive @key(fieldSet: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+
+                "Object representation of @link directive."
+                directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+
+                "Scalar representing a set of fields."
+                scalar FieldSet
+
+                "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+                scalar _Any
+                """);
+    }
+
+    [Fact]
+    public async Task TestServiceTypeTypePureCodeFirst()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync();
+
+        var entityType = schema.GetType<ObjectType>(ServiceType_Name);
+        var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
+
         // act
         var value = await sdlResolver(CreateResolverContext(schema));
 
@@ -44,6 +100,7 @@ public class ServiceTypeTests
                 }
                 
                 type Query {
+                  address(id: Int!): Address!
                   _service: _Service
                   _entities(representations: [_Any!]!): [_Entity]!
                 }
@@ -70,24 +127,6 @@ public class ServiceTypeTests
                 """);
     }
 
-    [Fact]
-    public async Task TestServiceTypeTypePureCodeFirst()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddApolloFederation()
-            .AddQueryType<Query>()
-            .Create();
-
-        // act
-        var entityType = schema.GetType<ObjectType>(ServiceType_Name);
-
-        // assert
-        var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-            CreateResolverContext(schema));
-        value.MatchSnapshot();
-    }
-
     public class Query
     {
         public Address GetAddress(int id) => default!;
@@ -95,7 +134,6 @@ public class ServiceTypeTests
 
     public class Address
     {
-        [Key]
-        public string? MatchCode { get; set; }
+        [Key] public string? MatchCode { get; set; }
     }
 }
