@@ -14,7 +14,8 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </summary>
 [ObjectType(ServiceType_Name)]
 [GraphQLDescription(ServiceType_Description)]
-public sealed class Service
+// ReSharper disable once InconsistentNaming
+public sealed class _Service
 {
     [GraphQLName(WellKnownFieldNames.Sdl)]
     public string GetSdl(ISchema schema)

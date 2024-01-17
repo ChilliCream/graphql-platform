@@ -11,20 +11,21 @@ namespace HotChocolate.ApolloFederation.Types;
 /// The _Any scalar is used to pass representations of entities
 /// from external services into the root _entities field for execution.
 /// </summary>
-public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
+// ReSharper disable once InconsistentNaming
+public sealed class _AnyType : ScalarType<Representation, ObjectValueNode>
 {
     public const string TypeNameField = "__typename";
 
     /// <summary>
-    /// Initializes a new instance of <see cref="AnyType"/>.
+    /// Initializes a new instance of <see cref="_AnyType"/>.
     /// </summary>
-    public AnyType()
+    public _AnyType()
         : this(AnyType_Name)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="AnyType"/>.
+    /// Initializes a new instance of <see cref="_AnyType"/>.
     /// </summary>
     /// <param name="name">
     /// The name the scalar shall have.
@@ -32,7 +33,7 @@ public sealed class AnyType : ScalarType<Representation, ObjectValueNode>
     /// <param name="bind">
     /// Defines if this scalar shall bind implicitly to <see cref="SelectionSetNode"/>.
     /// </param>
-    public AnyType(string name, BindingBehavior bind = BindingBehavior.Explicit)
+    public _AnyType(string name, BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
     {
         Description = FederationResources.Any_Description;

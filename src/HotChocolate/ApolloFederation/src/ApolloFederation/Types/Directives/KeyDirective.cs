@@ -1,6 +1,8 @@
+using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.ApolloFederation.FederationVersionUrls;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
+using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -28,12 +30,26 @@ namespace HotChocolate.ApolloFederation.Types;
     IsRepeatable = true)]
 [GraphQLDescription(KeyDirective_Description)]
 [KeyLegacySupport]
-public sealed class KeyDirective(string fieldSet, bool resolvable = true)
+public sealed class KeyDirective
 {
+    public KeyDirective(string fieldSet, bool resolvable = true)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
+        FieldSet = FieldSetType.ParseSelectionSet(fieldSet);
+        Resolvable = resolvable;
+    }
+    
+    public KeyDirective(SelectionSetNode fieldSet, bool resolvable = true)
+    {
+        ArgumentNullException.ThrowIfNull(fieldSet);
+        FieldSet = fieldSet;
+        Resolvable = resolvable;
+    }
+    
     [FieldSet]
-    public string FieldSet { get; } = fieldSet;
+    public SelectionSetNode FieldSet { get; }
     
     [GraphQLType<BooleanType>]
     [DefaultValue(true)]
-    public bool Resolvable { get; } = resolvable;
+    public bool Resolvable { get; }
 }

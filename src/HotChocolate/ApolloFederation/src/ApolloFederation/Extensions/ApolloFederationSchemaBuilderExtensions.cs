@@ -1,6 +1,5 @@
 using HotChocolate.ApolloFederation;
 using HotChocolate.ApolloFederation.Types;
-using ApolloAnyType = HotChocolate.ApolloFederation.Types.AnyType;
 
 namespace HotChocolate;
 

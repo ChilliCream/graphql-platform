@@ -8,7 +8,8 @@ namespace HotChocolate.ApolloFederation.Types;
 /// A union called _Entity which is a union of all types that use the @key directive,
 /// including both types native to the schema and extended types.
 /// </summary>
-public sealed class EntityType : UnionType
+// ReSharper disable once InconsistentNaming
+public sealed class _EntityType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)
     {

@@ -1,8 +1,10 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Execution;
 using HotChocolate.Types;
-using Snapshooter.Xunit;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.ApolloFederation.TestHelper;
 
@@ -14,19 +16,28 @@ public class ServiceTypeTests
     public async Task TestServiceTypeEmptyQueryTypePureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
-            .AddType<Address>()
             .AddQueryType<EmptyQuery>()
-            .Create();
+            .AddType<Address>()
+            .BuildRequestExecutorAsync();
 
         // act
-        var entityType = schema.GetType<ObjectType>(ServiceType_Name);
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                _service {
+                    sdl
+                }
+            }
+            """);
 
         // assert
-        var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-            CreateResolverContext(schema));
-        value.MatchSnapshot();
+        result.MatchInlineSnapshot(
+            """
+            
+            """);
     }
 
     [Fact]

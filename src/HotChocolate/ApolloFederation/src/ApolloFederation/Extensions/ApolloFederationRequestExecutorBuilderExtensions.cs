@@ -1,5 +1,7 @@
 using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution.Configuration;
+using FederationVersion = HotChocolate.ApolloFederation.FederationVersion;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -28,6 +30,7 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
         FederationVersion version = FederationVersion.Latest)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        builder.SetContextData(FederationContextData.FederationVersion, version);
         builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
         return builder;
     }

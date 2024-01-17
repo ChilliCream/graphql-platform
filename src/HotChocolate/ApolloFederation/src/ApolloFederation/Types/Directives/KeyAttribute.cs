@@ -88,7 +88,11 @@ public sealed class KeyAttribute : DescriptorAttribute
                 ConfigureType(type, descriptor);
                 break;
 
-            case MemberInfo { MemberType: Property | Method } member:
+            case PropertyInfo member:
+                ConfigureField(member, descriptor);
+                break;
+            
+            case MethodInfo member:
                 ConfigureField(member, descriptor);
                 break;
         }
@@ -115,7 +119,7 @@ public sealed class KeyAttribute : DescriptorAttribute
     
     private void ConfigureField(MemberInfo member, IDescriptor descriptor)
     {
-        if (string.IsNullOrEmpty(FieldSet))
+        if (!string.IsNullOrEmpty(FieldSet))
         {
             throw Key_FieldSet_MustBeEmpty(member);
         }

@@ -15,7 +15,6 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.Types.TagHelper;
-using AnyType = HotChocolate.ApolloFederation.Types.AnyType;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -46,6 +45,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     private ITypeInspector _typeInspector = default!;
     private ObjectType _queryType = default!;
     private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
+    private bool _registeredTypes;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -80,6 +80,21 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 objectTypeDefinition,
                 discoveryContext);
         }
+    }
+
+    public override IEnumerable<TypeReference> RegisterMoreTypes(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        if (_registeredTypes)
+        {
+            yield break;
+        }
+
+        _registeredTypes = true;
+        yield return _typeInspector.GetTypeRef(typeof(_Service));
+        yield return _typeInspector.GetTypeRef(typeof(_EntityType));
+        yield return _typeInspector.GetTypeRef(typeof(_AnyType));
+        yield return _typeInspector.GetTypeRef(typeof(FieldSetType));
     }
 
     internal override void OnAfterResolveRootType(
@@ -194,30 +209,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
 
         var objectTypeDefinition = (ObjectTypeDefinition)definition!;
-
-        var serviceFieldDescriptor = ObjectFieldDescriptor.New(
-            _context,
-            WellKnownFieldNames.Service);
-        serviceFieldDescriptor
-            .Type<NonNullType<NativeType<Service>>>()
-            .Resolve(_empty);
-        objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
-
-        var entitiesFieldDescriptor = ObjectFieldDescriptor.New(
-            _context,
-            WellKnownFieldNames.Entities);
-        entitiesFieldDescriptor
-            .Type<NonNullType<ListType<EntityType>>>()
-            .Argument(
-                WellKnownArgumentNames.Representations,
-                descriptor => descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>())
-            .Resolve(
-                c => EntitiesResolver.ResolveAsync(
-                    c.Schema,
-                    c.ArgumentValue<IReadOnlyList<Representation>>(
-                        WellKnownArgumentNames.Representations),
-                    c));
-        objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
+        objectTypeDefinition.Fields.Add(ServerFields.CreateServiceField(_context));
+        objectTypeDefinition.Fields.Add(ServerFields.CreateEntitiesField(_context));
     }
 
     private void ApplyMethodLevelReferenceResolvers(
@@ -323,7 +316,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase? definition)
     {
-        if (completionContext.Type is EntityType &&
+        if (completionContext.Type is _EntityType &&
             definition is UnionTypeDefinition unionTypeDefinition)
         {
             foreach (var objectType in _entityTypes)

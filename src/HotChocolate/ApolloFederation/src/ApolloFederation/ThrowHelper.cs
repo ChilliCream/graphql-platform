@@ -1,7 +1,6 @@
 using System.Reflection;
 using HotChocolate.ApolloFederation.Types;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
-using AnyType = HotChocolate.ApolloFederation.Types.AnyType;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -29,7 +28,7 @@ internal static class ThrowHelper
     /// node value has an invalid format.
     /// </summary>
     public static SerializationException Any_InvalidFormat(
-        AnyType anyType) =>
+        _AnyType anyType) =>
         new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_Any_HasInvalidFormat)

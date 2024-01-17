@@ -129,7 +129,7 @@ public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
         return false;
     }
 
-    private static SelectionSetNode ParseSelectionSet(string s)
+    internal static SelectionSetNode ParseSelectionSet(string s)
         => Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");
 
     private static string SerializeSelectionSet(SelectionSetNode selectionSet)
