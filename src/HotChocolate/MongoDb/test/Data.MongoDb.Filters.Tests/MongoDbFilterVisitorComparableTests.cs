@@ -16,18 +16,18 @@ public class MongoDbFilterVisitorComparableTests
         new()
         {
             BarShort = 12,
-            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
         },
         new()
         {
             BarShort = 14,
-            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
         },
         new()
         {
             BarShort = 13,
-            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
-        }
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
+        },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -35,19 +35,19 @@ public class MongoDbFilterVisitorComparableTests
         new()
         {
             BarShort = 12,
-            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
         },
         new() { BarShort = null, BarDateTime = null },
         new()
         {
             BarShort = 14,
-            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+            BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
         },
         new()
         {
             BarShort = 13,
-            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
-        }
+            BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
+        },
     };
 
     public MongoDbFilterVisitorComparableTests(MongoResource resource)

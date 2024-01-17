@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate.Utilities.Introspection;
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 internal static class WellKnownTypes
 {
     public const string __Directive = "__Directive";

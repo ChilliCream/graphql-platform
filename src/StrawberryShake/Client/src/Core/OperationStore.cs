@@ -265,7 +265,7 @@ public sealed partial class OperationStore : IOperationStore
                     operation.Request,
                     operation.LastResult,
                     operation.Subscribers,
-                    operation.LastModified)
+                    operation.LastModified),
             },
             kind);
 

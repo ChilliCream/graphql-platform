@@ -343,9 +343,9 @@ public class PersistedQueryTests : ServerTestBase
                 ["persistedQuery"] = new Dictionary<string, object?>
                 {
                     ["version"] = 1,
-                    [hashName] = key
-                }
-            }
+                    [hashName] = key,
+                },
+            },
         };
 
     private sealed class QueryStorage : IReadStoredQueries

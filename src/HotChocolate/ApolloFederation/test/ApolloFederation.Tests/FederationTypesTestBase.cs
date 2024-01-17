@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.ApolloFederation;
 
-public class FederationTypesTestBase
+public abstract class FederationTypesTestBase
 {
     protected ISchema CreateSchema(Action<ISchemaBuilder> configure)
     {
@@ -23,10 +24,10 @@ public class FederationTypesTestBase
         return builder.Create();
     }
 
-    protected void AssertDirectiveHasFieldsArgument(DirectiveType directive)
+    protected void AssertDirectiveHasFieldsArgument(IEnumerable<DirectiveArgument> directiveArguments)
     {
         Assert.Collection(
-            directive.Arguments,
+            directiveArguments,
             t =>
             {
                 Assert.Equal("fields", t.Name);

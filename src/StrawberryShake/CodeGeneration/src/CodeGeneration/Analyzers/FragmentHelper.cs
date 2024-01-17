@@ -25,7 +25,7 @@ public static class FragmentHelper
             directive.Arguments[0] is
             {
                 Name: { Value: "fragment" },
-                Value: StringValueNode { Value: { Length: > 0 } } sv
+                Value: StringValueNode { Value: { Length: > 0 } } sv,
             })
         {
             return sv.Value;

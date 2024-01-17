@@ -2,6 +2,9 @@
   someField(a: Int): TestType
 }
 
+"Scalar representing a JWT scope"
+scalar Scope
+
 type TestType @key(fields: "id") {
   id: Int!
   name: String!

@@ -31,7 +31,7 @@ internal static class ObjectTypeFactory
 
         var type = new ObjectType(typeName)
         {
-            Description = schema.Description
+            Description = schema.Description,
         };
 
         var typeInfo = context.GetSchemaTypeInfo(schema);
@@ -70,8 +70,8 @@ internal static class ObjectTypeFactory
             Description = property.Value.Description,
             ContextData =
             {
-                [OpenApiResources.OpenApiPropertyName] = property.Key
-            }
+                [OpenApiResources.OpenApiPropertyName] = property.Key,
+            },
         };
 
         ParseType(context, fieldType.NamedType().Name, typeInfo.RootSchema);

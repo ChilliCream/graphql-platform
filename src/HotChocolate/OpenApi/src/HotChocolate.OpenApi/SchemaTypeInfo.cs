@@ -89,7 +89,7 @@ public class SchemaTypeInfo
             "number" => ScalarNames.Float,
             "integer" => format == "int64" ? ScalarNames.Long : ScalarNames.Int,
             "boolean" => ScalarNames.Boolean,
-            _ => OpenApiNamingHelper.GetTypeName(openApiSchemaTypeName)
+            _ => OpenApiNamingHelper.GetTypeName(openApiSchemaTypeName),
         };
         return typename ?? throw new InvalidOperationException();
     }

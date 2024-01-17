@@ -13,7 +13,7 @@ public class MongoDbFilterCombinatorTests
     private static readonly Foo[] _fooEntities = 
     { 
         new() { Bar = true }, 
-        new() { Bar = false } 
+        new() { Bar = false },
     };
 
     public MongoDbFilterCombinatorTests(MongoResource resource)

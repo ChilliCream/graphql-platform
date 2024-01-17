@@ -204,7 +204,7 @@ public static class WebSocketClientFactoryServiceCollectionExtensions
         services.TryAddSingleton<IEnumerable<ISocketProtocolFactory>>(
             new ISocketProtocolFactory[]
             {
-                new GraphQLWebSocketProtocolFactory()
+                new GraphQLWebSocketProtocolFactory(),
             });
         services.TryAddSingleton<DefaultSocketClientFactory>();
         services.TryAddSingleton<ISocketClientFactory>(sp =>

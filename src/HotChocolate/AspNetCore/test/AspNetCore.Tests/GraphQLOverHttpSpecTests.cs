@@ -61,7 +61,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -97,8 +97,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 new ClientQueryRequest { Query = "{ __typename }" }),
             Headers =
             {
-                { "Accept", acceptHeader }
-            }
+                { "Accept", acceptHeader },
+            },
         };
 
         using var response = await client.SendAsync(request);
@@ -144,8 +144,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = new ByteArrayContent(Array.Empty<byte>())
             {
-                Headers = { ContentType = new("application/json") { CharSet = "utf-8" } }
-            }
+                Headers = { ContentType = new("application/json") { CharSet = "utf-8" } },
+            },
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -186,7 +186,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typ$ename }" })
+                new ClientQueryRequest { Query = "{ __typ$ename }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -229,7 +229,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __type name }" })
+                new ClientQueryRequest { Query = "{ __type name }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -275,7 +275,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }" }),
         };
 
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
@@ -308,7 +308,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }" }),
         };
 
         request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
@@ -346,7 +346,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" })
+                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -391,7 +391,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", acceptHeader } }
+            Headers = { { "Accept", acceptHeader } },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -431,7 +431,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", ContentType.GraphQLResponse } }
+            Headers = { { "Accept", ContentType.GraphQLResponse } },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -464,7 +464,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "subscription {delay(count: 2, delay:15000)}" }),
-            Headers = { { "Accept", "text/event-stream" } }
+            Headers = { { "Accept", "text/event-stream" } },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -502,7 +502,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             configureServices: s => s.AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    HttpTransportVersion = serverTransportVersion
+                    HttpTransportVersion = serverTransportVersion,
                 }));
 
         return server.CreateClient();
