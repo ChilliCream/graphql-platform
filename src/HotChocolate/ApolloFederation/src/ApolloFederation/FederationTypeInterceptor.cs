@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Configuration;
@@ -12,6 +11,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.Types.TagHelper;
@@ -20,8 +20,6 @@ namespace HotChocolate.ApolloFederation;
 
 internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
-    private static readonly object _empty = new();
-
     private static readonly MethodInfo _matches =
         typeof(ReferenceResolverHelper)
             .GetMethod(
@@ -47,6 +45,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     private ObjectType _queryType = default!;
     private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
     private SchemaTypeDefinition _schemaTypeDefinition = default!;
+    private RegisteredType _schemaType = default!;
     private bool _registeredTypes;
 
     internal override void InitializeContext(
@@ -104,12 +103,15 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
+    
+
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
         if (definition is SchemaTypeDefinition schemaDef)
         {
+            _schemaType = (RegisteredType)completionContext;
             _schemaTypeDefinition = schemaDef;
         }
     }
@@ -118,39 +120,71 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (definition is not ITypeDefinition typeDef)
+        if (definition is not ITypeDefinition and not DirectiveTypeDefinition)
         {
             return;
         }
 
-        if (typeDef.RuntimeType != typeof(object) &&
-            typeDef.RuntimeType.IsDefined(typeof(PackageAttribute)))
+        var hasRuntimeType = (IHasRuntimeType)definition;
+        var type = hasRuntimeType.RuntimeType;
+        
+        if (type != typeof(object) &&
+            type.IsDefined(typeof(PackageAttribute)))
         {
-            RegisterImport(typeDef.RuntimeType);
+            RegisterImport(type);
             return;
         }
 
-        var type = completionContext.Type.GetType();
-
+        type = completionContext.Type.GetType();
         if (type.IsDefined(typeof(PackageAttribute)))
         {
             RegisterImport(type);
         }
-        
+        return;
+
         void RegisterImport(MemberInfo element)
         {
             var package = element.GetCustomAttribute<PackageAttribute>();
 
-            if (package is not null)
+            if (package is null)
             {
-                if (!_imports.TryGetValue(package.Url, out var types))
-                {
-                    types = new HashSet<string>();
-                    _imports[package.Url] = types;
-                }
+                return;
+            }
 
+            if (!_imports.TryGetValue(package.Url, out var types))
+            {
+                types = new HashSet<string>();
+                _imports[package.Url] = types;
+            }
+
+            if (completionContext.Type is DirectiveType)
+            {
+                types.Add($"@{completionContext.Type.Name}");
+            }
+            else
+            {
                 types.Add(completionContext.Type.Name);
             }
+        }
+    }
+
+    public override void OnTypesCompletedName()
+    {
+        if (_imports.Count == 0)
+        {
+            return;
+        }
+
+        var dependency = new TypeDependency(
+            _typeInspector.GetTypeRef(typeof(LinkDirective)),
+            TypeDependencyFulfilled.Completed);
+        _schemaType.Dependencies.Add(dependency);
+
+        foreach (var import in _imports)
+        {
+            _schemaTypeDefinition
+                .GetLegacyDefinition()
+                .AddDirective(new LinkDirective(new Uri(import.Key), import.Value), _typeInspector);
         }
     }
 

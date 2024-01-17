@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -115,7 +116,7 @@ public static class LinkDescriptorExtensions
         builder.ConfigureSchema(
             sb =>
             {
-                sb.AddSchemaConfiguration(d => d.Directive(new LinkDirective(url, imports)));
+                sb.AddSchemaConfiguration(d => d.Directive(new LinkDirective(url, imports?.ToHashSet())));
             });
 
         return builder;

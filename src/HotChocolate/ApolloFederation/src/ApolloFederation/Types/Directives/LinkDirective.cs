@@ -27,6 +27,7 @@ public sealed class LinkDirective
     /// <summary>
     /// Gets imported specification url.
     /// </summary>
+    [GraphQLType<NonNullType<StringType>>]
     public Uri Url { get; }
 
     /// <summary>

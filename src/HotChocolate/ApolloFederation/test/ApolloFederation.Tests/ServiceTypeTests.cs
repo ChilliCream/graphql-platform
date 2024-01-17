@@ -20,7 +20,7 @@ public class ServiceTypeTests
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
-            .AddQueryType<EmptyQuery>()
+            .AddQueryType()
             .AddType<Address>()
             .BuildSchemaAsync();
 
@@ -35,15 +35,15 @@ public class ServiceTypeTests
             .Parse((string)value!)
             .MatchInlineSnapshot(
                 """
-                schema {
-                  query: EmptyQuery
+                schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.0", import: [ "@key", "FieldSet" ]) {
+                  query: Query
                 }
                 
                 type Address @key(fieldSet: "matchCode") {
                   matchCode: String
                 }
                 
-                type EmptyQuery {
+                type Query {
                   _service: _Service
                   _entities(representations: [_Any!]!): [_Entity]!
                 }
@@ -59,7 +59,8 @@ public class ServiceTypeTests
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
                 directive @key(fieldSet: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
                 
-                directive @tag(name: String!) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+                "Object representation of @link directive."
+                directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
                 
                 "Scalar representing a set of fields."
                 scalar FieldSet
@@ -85,10 +86,6 @@ public class ServiceTypeTests
         var value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
             CreateResolverContext(schema));
         value.MatchSnapshot();
-    }
-
-    public class EmptyQuery
-    {
     }
 
     public class Query
