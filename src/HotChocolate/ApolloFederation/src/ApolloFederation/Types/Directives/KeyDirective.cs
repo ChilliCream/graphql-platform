@@ -32,22 +32,22 @@ namespace HotChocolate.ApolloFederation.Types;
 [KeyLegacySupport]
 public sealed class KeyDirective
 {
-    public KeyDirective(string fieldSet, bool resolvable = true)
+    public KeyDirective(string fields, bool resolvable = true)
     {
-        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-        FieldSet = FieldSetType.ParseSelectionSet(fieldSet);
+        ArgumentException.ThrowIfNullOrEmpty(fields);
+        Fields = FieldSetType.ParseSelectionSet(fields);
         Resolvable = resolvable;
     }
     
-    public KeyDirective(SelectionSetNode fieldSet, bool resolvable = true)
+    public KeyDirective(SelectionSetNode fields, bool resolvable = true)
     {
-        ArgumentNullException.ThrowIfNull(fieldSet);
-        FieldSet = fieldSet;
+        ArgumentNullException.ThrowIfNull(fields);
+        Fields = fields;
         Resolvable = resolvable;
     }
     
     [FieldSet]
-    public SelectionSetNode FieldSet { get; }
+    public SelectionSetNode Fields { get; }
     
     [GraphQLType<BooleanType>]
     [DefaultValue(true)]
