@@ -34,7 +34,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 x => x
                     .Name("Query")
                     .Field("executable")
-                    .Resolve(_authors.AsExecutable()))
+                    .Resolve(_authors))
             .BuildRequestExecutorAsync();
 
         // act
@@ -65,7 +65,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(1).AsExecutable())
+                    .Resolve(_authors.Take(1))
                     .UseSingleOrDefault())
             .BuildRequestExecutorAsync();
 
@@ -97,7 +97,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -132,7 +132,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.Take(0).AsExecutable())
+                    .Resolve(_authors.Take(0))
                     .UseSingleOrDefault()
                     .UseProjection()
                     .UseFiltering()
@@ -167,7 +167,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<Author>>()
-                    .Resolve(_authors.AsExecutable())
+                    .Resolve(_authors)
                     .UseFirstOrDefault())
             .BuildRequestExecutorAsync();
 
@@ -199,7 +199,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Type<ObjectType<ZeroAuthor>>()
-                    .Resolve(_zeroAuthors.Take(0).AsExecutable())
+                    .Resolve(_zeroAuthors.Take(0))
                     .UseFirstOrDefault()
                     .UseProjection()
                     .UseFiltering()
