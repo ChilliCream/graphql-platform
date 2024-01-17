@@ -14,7 +14,7 @@ namespace HotChocolate.ApolloFederation.Properties {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class FederationResources {
+    internal partial class FederationResources {
         
         private static System.Resources.ResourceManager resourceMan;
         
@@ -51,27 +51,9 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ComposeDirective_Description {
-            get {
-                return ResourceManager.GetString("ComposeDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string FieldsetType_Description {
             get {
                 return ResourceManager.GetString("FieldsetType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string InaccessibleDirective_Description {
-            get {
-                return ResourceManager.GetString("InaccessibleDirective_Description", resourceCulture);
-            }
-        }
-        
-        internal static string KeyDirective_Description {
-            get {
-                return ResourceManager.GetString("KeyDirective_Description", resourceCulture);
             }
         }
         

@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -15,8 +19,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.Object)]
-[GraphQLDescription(Descriptions.InterfaceObjectDirective_Description)]
+[Package(Federation22)]
+[DirectiveType(InterfaceObject_Name, DirectiveLocation.Object)]
+[GraphQLDescription(InterfaceObjectDirective_Description)]
 public sealed class InterfaceObjectDirective
 {
     public static InterfaceObjectDirective Default { get; } = new();

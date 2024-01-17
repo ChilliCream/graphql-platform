@@ -1,5 +1,6 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;
 
@@ -23,13 +24,10 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ComposeDirectiveType : DirectiveType
-{
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
-            .Name(WellKnownTypeNames.ComposeDirective)
-            .Description(FederationResources.ComposeDirective_Description)
-            .Location(DirectiveLocation.Schema)
-            .Argument(WellKnownArgumentNames.Name)
-            .Type<NonNullType<StringType>>();
+[Package(Federation25)]
+[DirectiveType(ComposeDirective_Name, DirectiveLocation.Schema, IsRepeatable = true)]
+[GraphQLDescription(ComposeDirective_Description)]
+public sealed class ComposeDirective(string name)
+{    
+    public string Name { get; } = name;
 }

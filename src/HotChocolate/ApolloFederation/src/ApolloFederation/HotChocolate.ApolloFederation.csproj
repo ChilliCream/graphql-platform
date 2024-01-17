@@ -83,6 +83,21 @@
     <Compile Update="Types\Directives\InterfaceObjectDescriptorExtensions.cs">
       <DependentUpon>InterfaceObjectDirective.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Directives\KeyLegacySupportAttribute.cs">
+      <DependentUpon>KeyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\LinkDescriptorExtensions.cs">
+      <DependentUpon>LinkDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\PackageAttribute.cs">
+      <DependentUpon>LinkDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InaccessibleAttribute.cs">
+      <DependentUpon>InaccessibleDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InaccessibleDescriptorExtensions.cs">
+      <DependentUpon>InaccessibleDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -15,8 +19,12 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.Object | DirectiveLocation.Interface)]
-[GraphQLDescription(Descriptions.ExtendsDirective_Description)]
+[Package(Federation20)]
+[DirectiveType(
+    ExtendsDirective_Name, 
+    DirectiveLocation.Object | 
+    DirectiveLocation.Interface)]
+[GraphQLDescription(ExtendsDirective_Description)]
 public sealed class ExtendServiceTypeDirective
 {
     public static ExtendServiceTypeDirective Default { get; } = new();

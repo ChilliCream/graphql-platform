@@ -1,5 +1,6 @@
-using static HotChocolate.ApolloFederation.Types.Descriptions;
-using static HotChocolate.Types.DirectiveLocation;
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -30,7 +31,8 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(FieldDefinition)]
+[Package(Federation20)]
+[DirectiveType(ProvidesDirective_Name, DirectiveLocation.FieldDefinition)]
 [GraphQLDescription(ProvidesDirective_Description)]
 public sealed class ProvidesDirective(string fieldSet)
 {

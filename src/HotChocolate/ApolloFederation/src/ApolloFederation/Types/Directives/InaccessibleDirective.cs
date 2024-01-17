@@ -1,5 +1,6 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation.Types;
 
@@ -33,22 +34,21 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-public sealed class InaccessibleDirectiveType : DirectiveType
+[Package(Federation20)]
+[DirectiveType(
+    InaccessibleDirective_Name,
+    DirectiveLocation.FieldDefinition |
+    DirectiveLocation.Object |
+    DirectiveLocation.Interface |
+    DirectiveLocation.Union |
+    DirectiveLocation.Enum |
+    DirectiveLocation.EnumValue |
+    DirectiveLocation.Scalar |
+    DirectiveLocation.InputObject |
+    DirectiveLocation.InputFieldDefinition |
+    DirectiveLocation.ArgumentDefinition)]
+[GraphQLDescription(InaccessibleDirective_Description)]
+public sealed class InaccessibleDirective
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
-            .Name(WellKnownTypeNames.Inaccessible)
-            .Description(FederationResources.InaccessibleDirective_Description)
-            .Location(
-                DirectiveLocation.FieldDefinition
-                | DirectiveLocation.Object
-                | DirectiveLocation.Interface
-                | DirectiveLocation.Union
-                | DirectiveLocation.Enum
-                | DirectiveLocation.EnumValue
-                | DirectiveLocation.Scalar
-                | DirectiveLocation.Scalar
-                | DirectiveLocation.InputObject
-                | DirectiveLocation.InputFieldDefinition
-                | DirectiveLocation.ArgumentDefinition);
+    public static InaccessibleDirective Default { get; } = new();
 }

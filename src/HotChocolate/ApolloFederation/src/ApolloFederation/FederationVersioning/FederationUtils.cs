@@ -112,15 +112,16 @@ internal sealed class FederationUtils
     /// <returns>
     /// Federation @link information corresponding to the specified version.
     /// </returns>
-    internal static Link GetFederationLink(FederationVersion federationVersion)
+    internal static LinkDirective GetFederationLink(FederationVersion federationVersion)
     {
         if (!_imports.IsValidVersion(federationVersion))
         {
             throw ThrowHelper.FederationVersion_Unknown(federationVersion);
         }
 
-        return new Link(
+        return new LinkDirective(
             _urls[federationVersion],
             _imports[federationVersion]);
     }
 }
+

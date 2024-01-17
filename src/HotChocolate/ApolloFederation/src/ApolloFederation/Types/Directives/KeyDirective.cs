@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -16,8 +20,13 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.Object | DirectiveLocation.Interface, IsRepeatable = true)]
-[GraphQLDescription(Descriptions.KeyDirective_Description)]
+[Package(Federation20)]
+[DirectiveType(
+    KeyDirective_Name, 
+    DirectiveLocation.Object | 
+    DirectiveLocation.Interface, 
+    IsRepeatable = true)]
+[GraphQLDescription(KeyDirective_Description)]
 [KeyLegacySupport]
 public sealed class KeyDirective(string fieldSet, bool resolvable = true)
 {

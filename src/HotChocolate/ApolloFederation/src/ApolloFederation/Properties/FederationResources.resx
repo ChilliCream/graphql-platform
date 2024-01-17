@@ -120,17 +120,8 @@
   <data name="AuthenticatedDirective_Description" xml:space="preserve">
     <value>Indicates to composition that the target element is accessible only to the authenticated supergraph users.</value>
   </data>
-  <data name="ComposeDirective_Description" xml:space="preserve">
-    <value>Marks underlying custom directive to be included in the Supergraph schema.</value>
-  </data>
   <data name="FieldsetType_Description" xml:space="preserve">
     <value>Scalar representing a set of fields.</value>
-  </data>
-  <data name="InaccessibleDirective_Description" xml:space="preserve">
-    <value>Marks location within schema as inaccessible from the GraphQL Gateway</value>
-  </data>
-  <data name="KeyDirective_Description" xml:space="preserve">
-    <value>Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface.</value>
   </data>
   <data name="RequiresScopesDirective_Description" xml:space="preserve">
     <value>Indicates to composition that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes.</value>

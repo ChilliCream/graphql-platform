@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -20,8 +24,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.FieldDefinition)]
-[GraphQLDescription(Descriptions.RequiresDirective_Description)]
+[Package(Federation20)]
+[DirectiveType(RequiresDirective_Name, DirectiveLocation.FieldDefinition)]
+[GraphQLDescription(RequiresDirective_Description)]
 public sealed class RequiresDirective(string fieldSet)
 {
     [FieldSet]

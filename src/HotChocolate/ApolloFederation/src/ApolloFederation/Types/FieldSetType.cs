@@ -14,6 +14,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// This means it can represent a single field "upc", multiple fields "id countryCode",
 /// and even nested selection sets "id organization { id }".
 /// </summary>
+[Package(FederationVersionUrls.Federation20)]
 public sealed class FieldSetType : ScalarType<SelectionSetNode, StringValueNode>
 {
     /// <summary>

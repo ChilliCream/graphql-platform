@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -22,8 +26,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.FieldDefinition)]
-[GraphQLDescription(Descriptions.ExternalDirective_Description)]
+[Package(Federation20)]
+[DirectiveType(ExternalDirective_Name, DirectiveLocation.FieldDefinition)]
+[GraphQLDescription(ExternalDirective_Description)]
 public sealed class ExternalDirective
 {
     public static ExternalDirective Default { get; } = new();

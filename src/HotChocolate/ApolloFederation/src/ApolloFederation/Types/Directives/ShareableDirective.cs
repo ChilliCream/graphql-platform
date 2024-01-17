@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -22,8 +26,13 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.FieldDefinition | DirectiveLocation.Object, IsRepeatable = true)]
-[GraphQLDescription(Descriptions.ShareableDirective_Description)]
+[Package(Federation20)]
+[DirectiveType(
+    ShareableDirective_Name,
+    DirectiveLocation.FieldDefinition | 
+    DirectiveLocation.Object, 
+    IsRepeatable = true)]
+[GraphQLDescription(ShareableDirective_Description)]
 public sealed class ShareableDirective
 {
     public static ShareableDirective Default { get; } = new();

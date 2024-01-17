@@ -1,3 +1,7 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.FederationVersionUrls;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -16,8 +20,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.FieldDefinition)]
-[GraphQLDescription(Descriptions.OverrideDirective_Description)]
+[Package(Federation20)]
+[DirectiveType(OverrideDirective_Name, DirectiveLocation.FieldDefinition)]
+[GraphQLDescription(OverrideDirective_Description)]
 public sealed class OverrideDirective(string from)
 {
     public string From { get; } = from;

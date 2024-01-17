@@ -1,3 +1,6 @@
+using static HotChocolate.ApolloFederation.FederationTypeNames;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
+
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
@@ -29,8 +32,8 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </code>
 /// </example>
 /// </summary>
-[DirectiveType(DirectiveLocation.Schema)]
-[GraphQLDescription(Descriptions.ContactDirective_Description)]
+[DirectiveType(ContactDirective_Name, DirectiveLocation.Schema)]
+[GraphQLDescription(ContactDirective_Description)]
 public sealed class ContactDirective
 {
     /// <summary>

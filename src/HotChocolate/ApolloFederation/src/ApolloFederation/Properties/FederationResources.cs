@@ -1,6 +1,6 @@
-namespace HotChocolate.ApolloFederation.Types;
+namespace HotChocolate.ApolloFederation.Properties;
 
-internal static class Descriptions
+internal partial class FederationResources
 {
     public const string ProvidesDirective_Description =
         "Used to annotate the expected returned fieldset from a field on a base type " +
@@ -32,4 +32,11 @@ internal static class Descriptions
 
     public const string InterfaceObjectDirective_Description =
         "Provides meta information to the router that this entity type is an interface in the supergraph.";
+
+    public const string InaccessibleDirective_Description =
+        "Marks location within schema as inaccessible from the GraphQL Gateway.";
+
+    public const string ComposeDirective_Description =
+        "Marks underlying custom directive to be included in the Supergraph schema.";
+    
 }
