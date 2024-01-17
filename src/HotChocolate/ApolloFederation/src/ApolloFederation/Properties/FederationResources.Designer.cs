@@ -171,12 +171,6 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ServiceType_Description {
-            get {
-                return ResourceManager.GetString("ServiceType_Description", resourceCulture);
-            }
-        }
-        
         internal static string ThrowHelper_EntityResolver_NoEntityResolverFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_EntityResolver_NoEntityResolverFound", resourceCulture);

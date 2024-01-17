@@ -2,9 +2,9 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using static HotChocolate.ApolloFederation.Constants.FederationContextData;
+using static HotChocolate.ApolloFederation.FederationContextData;
 
-namespace HotChocolate.ApolloFederation.Helpers;
+namespace HotChocolate.ApolloFederation.Resolvers;
 
 /// <summary>
 /// This class contains the _entities resolver method.

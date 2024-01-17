@@ -39,4 +39,9 @@ internal partial class FederationResources
     public const string ComposeDirective_Description =
         "Marks underlying custom directive to be included in the Supergraph schema.";
     
+    public const string ServiceType_Description =
+        "This type provides a field named sdl: String! which exposes the SDL of the " +
+        "service's schema. This SDL (schema definition language) is a printed version " +
+        "of the service's schema including the annotations of federation directives. " +
+        "This SDL does not include the additions of the federation spec.";
 }

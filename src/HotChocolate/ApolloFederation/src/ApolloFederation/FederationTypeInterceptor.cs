@@ -14,7 +14,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.ThrowHelper;
-using static HotChocolate.ApolloFederation.Constants.FederationContextData;
+using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.Types.TagHelper;
 using AnyType = HotChocolate.ApolloFederation.Types.AnyType;
 
@@ -46,6 +46,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     private IDescriptorContext _context = default!;
     private ITypeInspector _typeInspector = default!;
     private ObjectType _queryType = default!;
+    private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -56,6 +57,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         _typeInspector = context.TypeInspector;
         _context = context;
+        _keyDirectiveReference = new ExtendedTypeDirectiveReference(_typeInspector.GetType(typeof(KeyDirective)));
         ModifyOptions(context, o => o.Mode = TagMode.ApolloFederation);
     }
 
@@ -198,7 +200,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             _context,
             WellKnownFieldNames.Service);
         serviceFieldDescriptor
-            .Type<NonNullType<ServiceType>>()
+            .Type<NonNullType<NativeType<Service>>>()
             .Resolve(_empty);
         objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
 
@@ -260,9 +262,8 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectType objectType,
         ObjectTypeDefinition objectTypeDefinition)
     {
-        if (objectTypeDefinition.Directives.Any(
-                d => d.Value is DirectiveNode { Name.Value: WellKnownTypeNames.Key }) ||
-            objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
+        if (objectTypeDefinition.Directives.Any(d => d.Value is KeyDirective) ||
+            objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker)))
         {
             _entityTypes.Add(objectType);
         }
@@ -276,8 +277,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         // if we find key markers on our fields, we need to construct the key directive
         // from the annotated fields.
         {
-            bool foundMarkers = objectTypeDefinition.Fields
-                .Any(f => f.ContextData.ContainsKey(KeyMarker));
+            var foundMarkers = objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker));
             if (!foundMarkers)
             {
                 return;
@@ -334,17 +334,13 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    private static void AddKeyDirective(
+    private void AddKeyDirective(
         ObjectTypeDefinition objectTypeDefinition,
         string fieldSet)
     {
-        var directiveNode = new DirectiveNode(
-            WellKnownTypeNames.Key,
-            new ArgumentNode(
-                WellKnownArgumentNames.Fields,
-                fieldSet));
-
         objectTypeDefinition.Directives.Add(
-            new DirectiveDefinition(directiveNode));
+            new DirectiveDefinition(
+                new KeyDirective(fieldSet), 
+                _keyDirectiveReference));
     }
 }

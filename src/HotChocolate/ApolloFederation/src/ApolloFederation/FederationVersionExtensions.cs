@@ -2,7 +2,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.ApolloFederation.Types;
 
-internal static class OptionsDescriptorExtensions
+internal static class FederationVersionExtensions
 {
     public static FederationVersion GetFederationVersion<T>(
         this IDescriptor<T> descriptor)
