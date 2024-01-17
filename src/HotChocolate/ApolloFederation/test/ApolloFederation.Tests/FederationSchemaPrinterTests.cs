@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;

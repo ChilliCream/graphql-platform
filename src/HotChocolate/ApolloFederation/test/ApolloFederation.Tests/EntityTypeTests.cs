@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation.Types;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;

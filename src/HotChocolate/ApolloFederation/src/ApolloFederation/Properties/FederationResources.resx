@@ -141,9 +141,6 @@
   <data name="ScopeType_Description" xml:space="preserve">
     <value>Scalar representing a JWT scope</value>
   </data>
-  <data name="ShareableDirective_Description" xml:space="preserve">
-    <value>Indicates that given object and/or field can be resolved by multiple subgraphs.</value>
-  </data>
   <data name="TagDirective_Description" xml:space="preserve">
     <value>Allows users to annotate fields and types with additional metadata information.</value>
   </data>

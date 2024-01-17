@@ -1,7 +1,4 @@
-using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Properties;
-
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
@@ -25,12 +22,9 @@ namespace HotChocolate.ApolloFederation;
 /// }
 /// </example>
 /// </summary>
-public sealed class ShareableDirectiveType : DirectiveType
+[DirectiveType(DirectiveLocation.FieldDefinition | DirectiveLocation.Object, IsRepeatable = true)]
+[GraphQLDescription(Descriptions.ShareableDirective_Description)]
+public sealed class ShareableDirective
 {
-    protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        => descriptor
-            .Name(WellKnownTypeNames.Shareable)
-            .Description(FederationResources.ShareableDirective_Description)
-            .Location(DirectiveLocation.FieldDefinition | DirectiveLocation.Object)
-            .Repeatable();
+    public static ShareableDirective Default { get; } = new();
 }

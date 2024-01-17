@@ -71,6 +71,12 @@
     <Compile Update="Types\Directives\OverrideDescriptorExtensions.cs">
       <DependentUpon>OverrideDirective.cs</DependentUpon>
     </Compile>
+    <Compile Update="Types\Directives\ShareableAttribute.cs">
+      <DependentUpon>ShareableDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ShareableDescriptorExtensions.cs">
+      <DependentUpon>ShareableDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 public static class RequiresDescriptorExtensions
 {

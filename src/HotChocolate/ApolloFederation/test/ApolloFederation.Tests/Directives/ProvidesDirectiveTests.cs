@@ -1,5 +1,6 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
@@ -89,7 +90,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
                 {
                     o.Name("Review").Key("id");
                     o.Field("id").Type<IntType>();
-                    o.Field("product").Provides("name").Type("Product");
+                    ProvidesDescriptorExtensions.Provides(o.Field("product"), "name").Type("Product");
                 }))
             .AddQueryType(
                 new ObjectType(o =>

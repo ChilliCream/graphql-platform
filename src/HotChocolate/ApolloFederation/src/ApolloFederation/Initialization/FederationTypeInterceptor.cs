@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Descriptors;
 using HotChocolate.ApolloFederation.Helpers;
 using HotChocolate.Configuration;
 using HotChocolate.Language;

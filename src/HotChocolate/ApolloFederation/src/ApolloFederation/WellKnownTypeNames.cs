@@ -19,7 +19,7 @@ internal static class WellKnownTypeNames
     //public const string Provides = "provides";
     //public const string Requires = "requires";
     public const string RequiresScopes = "requiresScopes";
-    public const string Shareable = "shareable";
+    // public const string Shareable = "shareable";
     public const string Tag = "tag";
     public const string FieldSet = "FieldSet";
     public const string Scope = "Scope";

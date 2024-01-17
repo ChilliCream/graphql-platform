@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

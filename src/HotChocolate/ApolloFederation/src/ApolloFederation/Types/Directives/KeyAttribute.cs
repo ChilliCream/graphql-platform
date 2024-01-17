@@ -5,7 +5,7 @@ using static System.Reflection.MemberTypes;
 using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>

@@ -93,12 +93,6 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ShareableDirective_Description {
-            get {
-                return ResourceManager.GetString("ShareableDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string TagDirective_Description {
             get {
                 return ResourceManager.GetString("TagDirective_Description", resourceCulture);

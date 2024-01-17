@@ -10,7 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 
-namespace HotChocolate.ApolloFederation.Descriptors;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// The entity descriptor allows to specify a reference resolver.

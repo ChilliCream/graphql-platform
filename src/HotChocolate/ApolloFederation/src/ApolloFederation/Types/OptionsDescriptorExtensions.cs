@@ -1,6 +1,6 @@
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 internal static class OptionsDescriptorExtensions
 {

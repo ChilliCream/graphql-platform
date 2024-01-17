@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.ApolloFederation.Helpers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using static HotChocolate.ApolloFederation.TestHelper;
 

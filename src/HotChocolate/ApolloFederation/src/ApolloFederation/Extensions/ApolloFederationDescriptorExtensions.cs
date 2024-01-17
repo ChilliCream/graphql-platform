@@ -1,5 +1,4 @@
 using HotChocolate.ApolloFederation.Constants;
-using HotChocolate.ApolloFederation.Descriptors;
 using HotChocolate.Language;
 using System.Collections.Generic;
 using System.Linq;
@@ -198,115 +197,9 @@ public static partial class ApolloFederationDescriptorExtensions
 
 
 
-    /// <summary>
-    /// Applies @shareable directive which indicates that given object and/or field can be resolved by multiple subgraphs.
-    /// If an object is marked as @shareable then all its fields are automatically shareable without the need
-    /// for explicitly marking them with @shareable directive. All fields referenced from @key directive are
-    /// automatically shareable as well.
-    /// <example>
-    /// type Foo @key(fields: "id") {
-    ///   id: ID!                           # shareable because id is a key field
-    ///   name: String                      # non-shareable
-    ///   description: String @shareable    # shareable
-    /// }
-    ///
-    /// type Bar @shareable {
-    ///   description: String               # shareable because User is marked shareable
-    ///   name: String                      # shareable because User is marked shareable
-    /// }
-    /// </example>
-    /// </summary>
-    /// <param name="descriptor">
-    /// The object field descriptor on which this directive shall be annotated.
-    /// </param>
-    /// <returns>
-    /// Returns the object field descriptor.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
-    public static IObjectFieldDescriptor Shareable(this IObjectFieldDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
+    
 
-        return descriptor.Directive(WellKnownTypeNames.Shareable);
-    }
-
-    /// <summary>
-    /// Applies @shareable directive which indicates that given object and/or field can be resolved by multiple subgraphs.
-    /// If an object is marked as @shareable then all its fields are automatically shareable without the need
-    /// for explicitly marking them with @shareable directive. All fields referenced from @key directive are
-    /// automatically shareable as well.
-    /// <example>
-    /// type Foo @key(fields: "id") {
-    ///   id: ID!                           # shareable because id is a key field
-    ///   name: String                      # non-shareable
-    ///   description: String @shareable    # shareable
-    /// }
-    ///
-    /// type Bar @shareable {
-    ///   description: String               # shareable because User is marked shareable
-    ///   name: String                      # shareable because User is marked shareable
-    /// }
-    /// </example>
-    /// </summary>
-    /// <param name="descriptor">
-    /// The object type descriptor on which this directive shall be annotated.
-    /// </param>
-    /// <returns>
-    /// Returns the object type descriptor.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
-    public static IObjectTypeDescriptor Shareable(this IObjectTypeDescriptor descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
-        return descriptor.Directive(WellKnownTypeNames.Shareable);
-    }
-
-    /// <summary>
-    /// Adds the @key directive which is used to indicate a combination of fields that can be used to uniquely
-    /// identify and fetch an object or interface. The specified field set can represent single field (e.g. "id"),
-    /// multiple fields (e.g. "id name") or nested selection sets (e.g. "id user { name }"). Multiple keys can
-    /// be specified on a target type.
-    /// <example>
-    /// type Foo @key(fields: "id") {
-    ///   id: ID!
-    ///   field: String
-    /// }
-    /// </example>
-    /// </summary>
-    /// <param name="descriptor">
-    /// The object type descriptor on which this directive shall be annotated.
-    /// </param>
-    /// <param name="fieldSet">
-    /// The field set that describes the key.
-    /// Grammatically, a field set is a selection set minus the braces.
-    /// </param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
-    /// <exception cref="ArgumentException">
-    /// <paramref name="fieldSet"/> is <c>null</c> or <see cref="string.Empty"/>.
-    /// </exception>
-    public static IEntityResolverDescriptor<T> Key<T>(
-        this IObjectTypeDescriptor<T> descriptor,
-        string fieldSet)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-
-        descriptor.Directive(
-            WellKnownTypeNames.Key,
-            new ArgumentNode(
-                WellKnownArgumentNames.Fields,
-                new StringValueNode(fieldSet)));
-
-        return new EntityResolverDescriptor<T>(descriptor);
-    }
+    
 
     /// <summary>
     /// Applies @extends directive which is used to represent type extensions in the schema. Federated extended types should have
@@ -370,37 +263,5 @@ public static partial class ApolloFederationDescriptorExtensions
         return descriptor.Directive(WellKnownTypeNames.InterfaceObject);
     }
 
-    /// <summary>
-    /// Applies @shareable directive which indicates that given object and/or field can be resolved by multiple subgraphs.
-    /// If an object is marked as @shareable then all its fields are automatically shareable without the need
-    /// for explicitly marking them with @shareable directive. All fields referenced from @key directive are
-    /// automatically shareable as well.
-    /// <example>
-    /// type Foo @key(fields: "id") {
-    ///   id: ID!                           # shareable because id is a key field
-    ///   name: String                      # non-shareable
-    ///   description: String @shareable    # shareable
-    /// }
-    ///
-    /// type Bar @shareable {
-    ///   description: String               # shareable because User is marked shareable
-    ///   name: String                      # shareable because User is marked shareable
-    /// }
-    /// </example>
-    /// </summary>
-    /// <param name="descriptor">
-    /// The object type descriptor on which this directive shall be annotated.
-    /// </param>
-    /// <returns>
-    /// Returns the object type descriptor.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="descriptor"/> is <c>null</c>.
-    /// </exception>
-    public static IObjectTypeDescriptor<T> Shareable<T>(this IObjectTypeDescriptor<T> descriptor)
-    {
-        ArgumentNullException.ThrowIfNull(descriptor);
-
-        return descriptor.Directive(WellKnownTypeNames.Shareable);
-    }
+   
 }

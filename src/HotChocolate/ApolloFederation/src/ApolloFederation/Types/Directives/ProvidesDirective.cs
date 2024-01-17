@@ -1,8 +1,7 @@
-using HotChocolate.ApolloFederation.Types;
 using static HotChocolate.ApolloFederation.Types.Descriptions;
 using static HotChocolate.Types.DirectiveLocation;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>

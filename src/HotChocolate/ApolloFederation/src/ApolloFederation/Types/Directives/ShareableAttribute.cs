@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
@@ -30,8 +30,7 @@ namespace HotChocolate.ApolloFederation;
     AttributeTargets.Class
     | AttributeTargets.Struct
     | AttributeTargets.Method
-    | AttributeTargets.Property
-)]
+    | AttributeTargets.Property)]
 public sealed class ShareableAttribute : DescriptorAttribute
 {
     protected internal override void TryConfigure(

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.ApolloFederation.Descriptors;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// A reference resolver definition.

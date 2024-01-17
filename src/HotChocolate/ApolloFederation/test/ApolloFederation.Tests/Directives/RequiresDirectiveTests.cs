@@ -1,5 +1,6 @@
 using System.Linq;
 using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;

@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;

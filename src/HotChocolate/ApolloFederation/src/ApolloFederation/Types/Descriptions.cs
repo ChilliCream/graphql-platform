@@ -26,4 +26,7 @@ internal static class Descriptions
     public const string OverrideDirective_Description =
         "Overrides fields resolution logic from other subgraph. " +
         "Used for migrating fields from one subgraph to another.";
+    
+    public const string ShareableDirective_Description =
+        "Indicates that given object and/or field can be resolved by multiple subgraphs.";
 }

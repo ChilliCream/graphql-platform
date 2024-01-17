@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace HotChocolate.ApolloFederation.Descriptors;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// The entity descriptor allows to specify a reference resolver.

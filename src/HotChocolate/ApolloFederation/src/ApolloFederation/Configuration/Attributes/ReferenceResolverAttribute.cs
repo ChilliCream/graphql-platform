@@ -1,5 +1,4 @@
 using System.Reflection;
-using HotChocolate.ApolloFederation.Descriptors;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
@@ -83,7 +82,7 @@ public class ReferenceResolverAttribute : DescriptorAttribute
         }
     }
 
-    private void OnConfigure(IObjectTypeDescriptor descriptor, MethodInfo method)
+    private static void OnConfigure(IObjectTypeDescriptor descriptor, MethodInfo method)
     {
         var entityResolverDescriptor = new EntityResolverDescriptor<object>(descriptor);
         entityResolverDescriptor.ResolveReferenceWith(method);

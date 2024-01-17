@@ -1,6 +1,4 @@
-using HotChocolate.ApolloFederation.Types;
-
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>

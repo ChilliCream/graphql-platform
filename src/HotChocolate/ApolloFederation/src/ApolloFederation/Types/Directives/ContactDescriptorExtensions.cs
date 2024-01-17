@@ -3,7 +3,7 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.Constants.FederationContextData;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 public static class ContactDescriptorExtensions
 {

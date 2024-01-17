@@ -1,6 +1,6 @@
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
