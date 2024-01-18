@@ -104,11 +104,15 @@
     <Compile Update="Types\Directives\RequiresScopesDescriptorExtensions.cs">
       <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
     </Compile>
-    <Compile Update="Types\Directives\FederationResources.Designer.cs">
+    <Compile Update="Properties\FederationResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>FederationResources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Update="Properties\FederationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <Compile Update="Types\Directives\RequiresScopesAttribute.cs">
       <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
     </Compile>
@@ -117,17 +121,6 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.props" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.ApolloFederation.targets" Pack="true" PackagePath="build/HotChocolate.ApolloFederation.targets" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Types\Directives\FederationResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

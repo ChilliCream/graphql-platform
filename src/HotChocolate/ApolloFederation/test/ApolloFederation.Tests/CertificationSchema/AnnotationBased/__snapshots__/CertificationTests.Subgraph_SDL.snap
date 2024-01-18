@@ -1,4 +1,4 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.0", import: [ "@key", "@provides", "FieldSet", "@external" ]) {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@key", "@provides", "FieldSet", "@external" ]) {
   query: Query
 }
 
