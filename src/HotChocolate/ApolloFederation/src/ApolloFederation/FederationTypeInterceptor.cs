@@ -42,6 +42,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     private readonly Dictionary<Uri, HashSet<string>> _imports = new();
     private IDescriptorContext _context = default!;
     private ITypeInspector _typeInspector = default!;
+    private TypeRegistry _typeRegistry = default!;
     private ObjectType _queryType = default!;
     private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
     private SchemaTypeDefinition _schemaTypeDefinition = default!;
@@ -57,6 +58,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         _typeInspector = context.TypeInspector;
         _context = context;
+        _typeRegistry = typeRegistry;
         _keyDirectiveReference = new ExtendedTypeDirectiveReference(_typeInspector.GetType(typeof(KeyDirective)));
         ModifyOptions(context, o => o.Mode = TagMode.ApolloFederation);
     }
@@ -169,6 +171,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnTypesCompletedName()
     {
+        RegisterExportedDirectives();
+        RegisterImports();
+    }
+
+    private void RegisterImports()
+    {
         if (_imports.Count == 0)
         {
             return;
@@ -195,7 +203,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                             string.Join(", ", import.Value))
                         .Build());
             }
-                
+
             federationTypes.UnionWith(import.Value);
         }
 
@@ -208,11 +216,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             _typeInspector.GetTypeRef(typeof(LinkDirective)),
             TypeDependencyFulfilled.Completed);
         _schemaType.Dependencies.Add(dependency);
-        
+
         _schemaTypeDefinition
             .GetLegacyDefinition()
             .AddDirective(
-                new LinkDirective(version.ToUrl(), federationTypes), 
+                new LinkDirective(version.ToUrl(), federationTypes),
                 _typeInspector);
 
         foreach (var import in _imports)
@@ -225,8 +233,42 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             _schemaTypeDefinition
                 .GetLegacyDefinition()
                 .AddDirective(
-                    new LinkDirective(import.Key, import.Value), 
+                    new LinkDirective(import.Key, import.Value),
                     _typeInspector);
+        }
+    }
+
+    private void RegisterExportedDirectives()
+    {
+        if (!_context.ContextData.TryGetValue(ExportedDirectives, out var value) ||
+            value is not List<Type> exportedDirectives)
+        {
+            return;
+        }
+
+        var composeDirectives = new List<ComposeDirective>();
+        foreach (var exportedDirective in exportedDirectives)
+        {
+            var typeReference = _typeInspector.GetTypeRef(exportedDirective);
+            if (_typeRegistry.TryGetType(typeReference, out var exportedDirectiveType))
+            {
+                composeDirectives.Add(new ComposeDirective(exportedDirectiveType.Type.Name));
+            }
+        }
+
+        if (composeDirectives.Count > 0)
+        {
+            var dependency = new TypeDependency(
+                _typeInspector.GetTypeRef(typeof(ComposeDirective)),
+                TypeDependencyFulfilled.Completed);
+            _schemaType.Dependencies.Add(dependency);
+
+            foreach (var directive in composeDirectives)
+            {
+                _schemaTypeDefinition
+                    .GetLegacyDefinition()
+                    .AddDirective(directive, _typeInspector);
+            }
         }
     }
 
