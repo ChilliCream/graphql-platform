@@ -21,9 +21,6 @@ public abstract class DirectiveAttribute<TDirective> : DescriptorAttribute where
     /// <param name="directive">
     /// The directive instance that shall be added to the type system member.
     /// </param>
-    /// <typeparam name="TDirective">
-    /// The directive type.
-    /// </typeparam>
     protected DirectiveAttribute(TDirective directive)
     {
         _directive = directive ?? throw new ArgumentNullException(nameof(directive));
