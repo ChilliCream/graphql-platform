@@ -1,8 +1,7 @@
 using System.Reflection;
-using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>

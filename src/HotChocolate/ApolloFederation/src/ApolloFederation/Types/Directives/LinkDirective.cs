@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// Object representation of @link directive.

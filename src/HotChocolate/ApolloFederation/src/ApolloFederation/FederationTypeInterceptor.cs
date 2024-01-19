@@ -39,9 +39,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 BindingFlags.Static | BindingFlags.Public)!;
 
     private readonly List<ObjectType> _entityTypes = new();
-    private readonly Dictionary<string, HashSet<string>> _imports = new();
+    private readonly Dictionary<Uri, HashSet<string>> _imports = new();
     private IDescriptorContext _context = default!;
     private ITypeInspector _typeInspector = default!;
+    private TypeRegistry _typeRegistry = default!;
     private ObjectType _queryType = default!;
     private ExtendedTypeDirectiveReference _keyDirectiveReference = default!;
     private SchemaTypeDefinition _schemaTypeDefinition = default!;
@@ -57,6 +58,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
         _typeInspector = context.TypeInspector;
         _context = context;
+        _typeRegistry = typeRegistry;
         _keyDirectiveReference = new ExtendedTypeDirectiveReference(_typeInspector.GetType(typeof(KeyDirective)));
         ModifyOptions(context, o => o.Mode = TagMode.ApolloFederation);
     }
@@ -102,7 +104,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             yield return _typeInspector.GetTypeRef(typeof(LinkDirective));
         }
     }
-    
+
     public override void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
@@ -125,7 +127,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         var hasRuntimeType = (IHasRuntimeType)definition;
         var type = hasRuntimeType.RuntimeType;
-        
+
         if (type != typeof(object) &&
             type.IsDefined(typeof(PackageAttribute)))
         {
@@ -134,6 +136,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
 
         type = completionContext.Type.GetType();
+
         if (type.IsDefined(typeof(PackageAttribute)))
         {
             RegisterImport(type);
@@ -168,7 +171,43 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     public override void OnTypesCompletedName()
     {
+        RegisterExportedDirectives();
+        RegisterImports();
+    }
+
+    private void RegisterImports()
+    {
         if (_imports.Count == 0)
+        {
+            return;
+        }
+
+        var version = _context.GetFederationVersion();
+        var federationTypes = new HashSet<string>();
+
+        foreach (var import in _imports)
+        {
+            if (!import.Key.TryToVersion(out var importVersion))
+            {
+                continue;
+            }
+
+            if (importVersion > version)
+            {
+                // todo: throw helper
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(
+                            "The following federation types were used and are not supported by " +
+                            "the current federation version: {0}",
+                            string.Join(", ", import.Value))
+                        .Build());
+            }
+
+            federationTypes.UnionWith(import.Value);
+        }
+
+        if (version == FederationVersion.Federation10)
         {
             return;
         }
@@ -178,11 +217,58 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             TypeDependencyFulfilled.Completed);
         _schemaType.Dependencies.Add(dependency);
 
+        _schemaTypeDefinition
+            .GetLegacyDefinition()
+            .AddDirective(
+                new LinkDirective(version.ToUrl(), federationTypes),
+                _typeInspector);
+
         foreach (var import in _imports)
         {
+            if (import.Key.TryToVersion(out _))
+            {
+                continue;
+            }
+
             _schemaTypeDefinition
                 .GetLegacyDefinition()
-                .AddDirective(new LinkDirective(new Uri(import.Key), import.Value), _typeInspector);
+                .AddDirective(
+                    new LinkDirective(import.Key, import.Value),
+                    _typeInspector);
+        }
+    }
+
+    private void RegisterExportedDirectives()
+    {
+        if (!_context.ContextData.TryGetValue(ExportedDirectives, out var value) ||
+            value is not List<Type> exportedDirectives)
+        {
+            return;
+        }
+
+        var composeDirectives = new List<ComposeDirective>();
+        foreach (var exportedDirective in exportedDirectives)
+        {
+            var typeReference = _typeInspector.GetTypeRef(exportedDirective);
+            if (_typeRegistry.TryGetType(typeReference, out var exportedDirectiveType))
+            {
+                composeDirectives.Add(new ComposeDirective(exportedDirectiveType.Type.Name));
+            }
+        }
+
+        if (composeDirectives.Count > 0)
+        {
+            var dependency = new TypeDependency(
+                _typeInspector.GetTypeRef(typeof(ComposeDirective)),
+                TypeDependencyFulfilled.Completed);
+            _schemaType.Dependencies.Add(dependency);
+
+            foreach (var directive in composeDirectives)
+            {
+                _schemaTypeDefinition
+                    .GetLegacyDefinition()
+                    .AddDirective(directive, _typeInspector);
+            }
         }
     }
 

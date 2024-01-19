@@ -1,4 +1,4 @@
-namespace HotChocolate.ApolloFederation.Constants;
+namespace HotChocolate.ApolloFederation;
 
 internal static class WellKnownFieldNames
 {

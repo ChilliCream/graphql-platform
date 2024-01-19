@@ -2,7 +2,7 @@ using static HotChocolate.ApolloFederation.FederationVersionUrls;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
