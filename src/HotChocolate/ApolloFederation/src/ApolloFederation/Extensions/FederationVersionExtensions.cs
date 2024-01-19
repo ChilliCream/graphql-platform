@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.ApolloFederation.Types;
+namespace HotChocolate.ApolloFederation;
 
 internal static class FederationVersionExtensions
 {

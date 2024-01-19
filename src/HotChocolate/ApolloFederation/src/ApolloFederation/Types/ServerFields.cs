@@ -1,14 +1,12 @@
+#nullable enable
+
 using System.Collections.Generic;
-using HotChocolate.ApolloFederation.Constants;
 using HotChocolate.ApolloFederation.Resolvers;
-using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-#nullable enable
-
-namespace HotChocolate.ApolloFederation;
+namespace HotChocolate.ApolloFederation.Types;
 
 public static class ServerFields
 {
