@@ -445,7 +445,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
     public enum StarWarsOnReviewSubCompletionClientProfileKind
     {
         InMemory,
-        Default
+        Default,
     }
 }
 
