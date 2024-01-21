@@ -1,5 +1,0 @@
-﻿enum Foo {
-  BAZ @bar
-}
-
-directive @bar on EnumValue
