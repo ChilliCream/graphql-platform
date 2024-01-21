@@ -50,9 +50,6 @@ partial class Build
             var projFile = File.ReadAllText(StarWarsProj);
             File.WriteAllText(StarWarsProj, projFile.Replace("11.1.0", SemVersion));
 
-            projFile = File.ReadAllText(EmptyServerProj);
-            File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", SemVersion));
-
             projFile = File.ReadAllText(EmptyServer12Proj);
             File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", SemVersion));
 
@@ -111,7 +108,6 @@ partial class Build
                 .SetConfiguration(Configuration)
                 .CombineWith(
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(EmptyServerTemplateNuSpec),
                     t => t.SetTargetPath(TemplatesNuSpec)));
         });
 
