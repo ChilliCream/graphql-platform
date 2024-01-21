@@ -12,9 +12,9 @@ namespace HotChocolate.Types.NodaTime;
 /// </summary>
 public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
 {
-    private static readonly string formatString = "uuuu'-'MM'-'dd'T'HH':'mm':'ss' 'z' 'o<g>";
+    private static readonly string _formatString = "uuuu'-'MM'-'dd'T'HH':'mm':'ss' 'z' 'o<g>";
     private static readonly ZonedDateTimePattern _default =
-        ZonedDateTimePattern.CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb);
+        ZonedDateTimePattern.CreateWithInvariantCulture(_formatString, DateTimeZoneProviders.Tzdb);
 
     private readonly IPattern<ZonedDateTime>[] _allowedPatterns;
     private readonly IPattern<ZonedDateTime> _serializationPattern;

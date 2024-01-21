@@ -284,4 +284,9 @@ public static class WellKnownContextData
     /// The key to access the tag options object.
     /// </summary>
     public const string TagOptions = "HotChocolate.Types.TagOptions";
+    
+    /// <summary>
+    /// Type key to access the internal schema options.
+    /// </summary>
+    public const string InternalSchemaOptions = "HotChocolate.Types.InternalSchemaOptions";
 }

@@ -57,7 +57,7 @@ public static class DescriptorExtensions
             INamedTypeDescriptor named =>
                 actualBuilder.SetName(named.RuntimeType.ToString()),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor)),
         };
     }
 
@@ -106,7 +106,7 @@ public static class DescriptorExtensions
 
             INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.ToString()),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
         };
     }
 }

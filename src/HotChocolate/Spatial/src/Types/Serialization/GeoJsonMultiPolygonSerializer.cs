@@ -131,7 +131,7 @@ Error:
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID))
+                        new IntValueNode(geometry.SRID)),
                 };
 
             return new ObjectValueNode(list);

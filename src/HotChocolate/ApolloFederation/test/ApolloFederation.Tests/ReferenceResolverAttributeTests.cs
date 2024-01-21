@@ -1,10 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Xunit;
-using static HotChocolate.ApolloFederation.Constants.WellKnownContextData;
+using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.ApolloFederation.TestHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -15,10 +18,11 @@ public class ReferenceResolverAttributeTests
     public async void InClassRefResolver_PureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(InClassRefResolver));
@@ -34,10 +38,11 @@ public class ReferenceResolverAttributeTests
     public async void ExternalRefResolver_PureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalRefResolver));
@@ -54,11 +59,12 @@ public class ReferenceResolverAttributeTests
     public async void SingleKey_CompiledResolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithSingleKeyResolver>()
-            .Create();
-
+            .BuildSchemaAsync();
+        
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalSingleKeyResolver));
 
@@ -72,10 +78,11 @@ public class ReferenceResolverAttributeTests
     public async void ExternalFields_Set()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalFields));
@@ -93,10 +100,11 @@ public class ReferenceResolverAttributeTests
     public async void ExternalFields_Not_Set()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithExternalField>()
-            .Create();
+            .BuildSchemaAsync();
 
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalFields));
@@ -112,10 +120,11 @@ public class ReferenceResolverAttributeTests
     public async void MultiKey_CompiledResolver()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryWithMultiKeyResolver>()
-            .Create();
+            .BuildSchemaAsync();
 
         var type = schema.GetType<ObjectType>(nameof(ExternalMultiKeyResolver));
 
@@ -132,11 +141,12 @@ public class ReferenceResolverAttributeTests
     public async void ExternalRefResolver_RenamedMethod_PureCodeFirst()
     {
         // arrange
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .Create();
-
+            .BuildSchemaAsync();
+        
         // act
         var type = schema.GetType<ObjectType>(nameof(ExternalRefResolverRenamedMethod));
 
@@ -151,34 +161,36 @@ public class ReferenceResolverAttributeTests
     public void InClassRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
     {
         // arrange
-        void SchemaCreation()
+        async Task SchemaCreation()
         {
-            SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query_InClass_Invalid>()
-                .Create();
+                .BuildSchemaAsync();
         }
 
         // act
         // assert
-        Assert.Throws<SchemaException>((Action)SchemaCreation);
+        Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
     [Fact]
     public void ExternalRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
     {
         // arrange
-        void SchemaCreation()
+        async Task SchemaCreation()
         {
-            SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query_ExternalClass_Invalid>()
-                .Create();
+                .BuildSchemaAsync();
         }
 
         // act
         // assert
-        Assert.Throws<SchemaException>((Action)SchemaCreation);
+        Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
     private ValueTask<object?> ResolveRef(ISchema schema, ObjectType type)
@@ -210,18 +222,18 @@ public class ReferenceResolverAttributeTests
         return entity;
     }
 
-    public class Query_InClass_Invalid
+    public sealed class Query_InClass_Invalid
     {
         public InvalidInClassRefResolver InvalidInClassRefResolver { get; set; } = default!;
     }
 
-    public class Query_ExternalClass_Invalid
+    public sealed class Query_ExternalClass_Invalid
     {
         public ExternalRefResolver_Invalid ExternalRefResolver_Invalid { get; set; } = default!;
     }
 
     [ReferenceResolver(EntityResolver = "non-existing-method")]
-    public class InvalidInClassRefResolver
+    public sealed class InvalidInClassRefResolver
     {
         [Key]
         public string? Id { get; set; }
@@ -230,19 +242,19 @@ public class ReferenceResolverAttributeTests
     [ReferenceResolver(
         EntityResolverType = typeof(InvalidExternalRefResolver),
         EntityResolver = "non-existing-method")]
-    public class ExternalRefResolver_Invalid
+    public sealed class ExternalRefResolver_Invalid
     {
         [Key]
         public string? Id { get; set; }
     }
 
-    public class InvalidExternalRefResolver
+    public sealed class InvalidExternalRefResolver
     {
         [Key]
         public string? Id { get; set; }
     }
 
-    public class Query
+    public sealed class Query
     {
         public InClassRefResolver InClassRefResolver { get; set; } = default!;
         public ExternalRefResolver ExternalRefResolver { get; set; } = default!;
@@ -250,23 +262,23 @@ public class ReferenceResolverAttributeTests
             default!;
     }
 
-    public class QueryWithSingleKeyResolver
+    public sealed class QueryWithSingleKeyResolver
     {
         public ExternalSingleKeyResolver ExternalRefResolver { get; set; } = default!;
     }
 
-    public class QueryWithMultiKeyResolver
+    public sealed class QueryWithMultiKeyResolver
     {
         public ExternalMultiKeyResolver ExternalRefResolver { get; set; } = default!;
     }
 
-    public class QueryWithExternalField
+    public sealed class QueryWithExternalField
     {
         public ExternalFields ExternalRefResolver { get; set; } = default!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
-    public class InClassRefResolver
+    public sealed class InClassRefResolver
     {
         [Key]
         public string? Id { get; set; }
@@ -274,7 +286,7 @@ public class ReferenceResolverAttributeTests
         public Task<InClassRefResolver> GetAsync([LocalState] ObjectValueNode data)
         {
             return Task.FromResult(
-                new InClassRefResolver()
+                new InClassRefResolver
                 {
                     Id = nameof(InClassRefResolver),
                 });
@@ -282,14 +294,14 @@ public class ReferenceResolverAttributeTests
     }
 
     [ReferenceResolver(EntityResolverType = typeof(ExternalReferenceResolver))]
-    public class ExternalRefResolver
+    public sealed class ExternalRefResolver
     {
         [Key]
         public string Id { get; set; } = default!;
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
-    public class ExternalSingleKeyResolver
+    public sealed class ExternalSingleKeyResolver
     {
         [Key]
         public string Id { get; set; } = default!;
@@ -299,7 +311,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
-    public class ExternalFields
+    public sealed class ExternalFields
     {
         [Key]
         public string Id { get; set; } = default!;
@@ -313,8 +325,7 @@ public class ReferenceResolverAttributeTests
 
     [Key("id")]
     [Key("sku")]
-
-    public class ExternalMultiKeyResolver
+    public sealed class ExternalMultiKeyResolver
     {
         public string Id { get; set; } = default!;
 
@@ -332,7 +343,7 @@ public class ReferenceResolverAttributeTests
     [ReferenceResolver(
         EntityResolverType = typeof(ExternalReferenceResolverRenamedMethod),
         EntityResolver = nameof(ExternalReferenceResolverRenamedMethod.SomeRenamedMethod))]
-    public class ExternalRefResolverRenamedMethod
+    public sealed class ExternalRefResolverRenamedMethod
     {
         [Key]
         public string Id { get; set; } = default!;
@@ -344,7 +355,7 @@ public class ReferenceResolverAttributeTests
             [LocalState] ObjectValueNode data)
         {
             return Task.FromResult(
-                new ExternalRefResolver()
+                new ExternalRefResolver
                 {
                     Id = nameof(ExternalRefResolverRenamedMethod),
                 });
@@ -357,7 +368,7 @@ public class ReferenceResolverAttributeTests
             [LocalState] ObjectValueNode data)
         {
             return Task.FromResult(
-                new ExternalRefResolver()
+                new ExternalRefResolver
                 {
                     Id = nameof(ExternalRefResolver),
                 });

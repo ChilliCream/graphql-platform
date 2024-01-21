@@ -74,7 +74,7 @@ public class StrawberryShakeSettings
         new()
         {
             Inputs = false,
-            Entities = false
+            Entities = false,
         };
 
     /// <summary>

@@ -35,7 +35,7 @@ internal sealed class RavenQueryableProjectionProvider : QueryableProjectionProv
             RavenAsyncDocumentQueryExecutable<TEntityType> q =>
                 new RavenAsyncDocumentQueryExecutable<TEntityType>(
                     q.Query.NoTracking().ToQueryable().Select(projection).ToAsyncDocumentQuery()),
-            _ => input
+            _ => input,
         };
 
     /// <inheritdoc />

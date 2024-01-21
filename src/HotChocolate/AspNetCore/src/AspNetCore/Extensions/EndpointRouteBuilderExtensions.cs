@@ -479,7 +479,7 @@ public static class EndpointRouteBuilderExtensions
         {
             AllowedGetOperations = httpOptions.AllowedGetOperations,
             EnableGetRequests = httpOptions.EnableGetRequests,
-            EnableMultipartRequests = httpOptions.EnableMultipartRequests
+            EnableMultipartRequests = httpOptions.EnableMultipartRequests,
         });
 
     /// <summary>
