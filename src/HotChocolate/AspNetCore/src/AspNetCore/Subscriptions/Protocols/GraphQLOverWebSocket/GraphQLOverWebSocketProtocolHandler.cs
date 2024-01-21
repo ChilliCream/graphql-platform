@@ -161,7 +161,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     ex.Message,
                     locations: new[]
                     {
-                        new Location(ex.Line, ex.Column)
+                        new Location(ex.Line, ex.Column),
                     });
 
                 await SendErrorMessageAsync(

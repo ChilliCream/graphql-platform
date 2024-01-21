@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.ApolloFederation.Types;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;
@@ -27,7 +28,7 @@ internal static class ThrowHelper
     /// node value has an invalid format.
     /// </summary>
     public static SerializationException Any_InvalidFormat(
-        AnyType anyType) =>
+        _AnyType anyType) =>
         new SerializationException(
             ErrorBuilder.New()
                 .SetMessage(ThrowHelper_Any_HasInvalidFormat)
@@ -41,14 +42,16 @@ internal static class ThrowHelper
     /// of the given type.
     /// </summary>
     public static SchemaException ExternalAttribute_InvalidTarget(
-        Type type, MemberInfo? member) =>
-        new SchemaException(SchemaErrorBuilder.New()
-            .SetMessage(
-                "The specified external attribute was applied to " +
-                "the member `{0}` of `{1}`, which is not a property.",
-                member?.Name,
-                type.FullName ?? type.Name)
-            .Build());
+        Type type,
+        MemberInfo? member) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified external attribute was applied to " +
+                    "the member `{0}` of `{1}`, which is not a property.",
+                    member?.Name,
+                    type.FullName ?? type.Name)
+                .Build());
 
     /// <summary>
     /// No ReferenceResolver was found for a type that is decorated with a ReferenceResolverAttribute.
@@ -56,12 +59,13 @@ internal static class ThrowHelper
     public static SchemaException ReferenceResolverAttribute_EntityResolverNotFound(
         Type type,
         string referenceResolver) =>
-        new SchemaException(SchemaErrorBuilder.New()
-            .SetMessage(
-                "The specified ReferenceResolver `{0}` does not exist on `{1}`.",
-                type.FullName ?? type.Name,
-                referenceResolver)
-            .Build());
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified ReferenceResolver `{0}` does not exist on `{1}`.",
+                    type.FullName ?? type.Name,
+                    referenceResolver)
+                .Build());
 
     /// <summary>
     /// The runtime type is not supported by the scalars ParseValue method.
@@ -103,8 +107,7 @@ internal static class ThrowHelper
                 .Build());
 
     /// <summary>
-    /// The key attribute is used on the type level without specifying the the
-    /// fieldset.
+    /// The key attribute is used on the type level without specifying the fieldset.
     /// </summary>
     public static SchemaException Key_FieldSet_CannotBeEmpty(
         Type type) =>
@@ -115,6 +118,23 @@ internal static class ThrowHelper
                     type.FullName ?? type.Name)
                 // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
                 .Build());
+
+    /// <summary>
+    /// The key attribute is used on the type level without specifying the fieldset.
+    /// </summary>
+    public static SchemaException Key_FieldSet_MustBeEmpty(
+        MemberInfo member)
+    {
+        var type = member.ReflectedType ?? member.DeclaringType!;
+        
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("The specified key attribute must not specify a fieldset when annotated to a field.")
+                .SetExtension("type", type.FullName ?? type.Name)
+                .SetExtension("member", member.Name)
+                // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
+                .Build());
+    }
 
     /// <summary>
     /// The provides attribute is used and the fieldset is set to <c>null</c> or
@@ -141,4 +161,58 @@ internal static class ThrowHelper
                 // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
                 .SetExtension(nameof(member), member)
                 .Build());
+
+    /// <summary>
+    /// The compose directive attribute is used on the type level without specifying the name.
+    /// </summary>
+    public static SchemaException ComposeDirective_Name_CannotBeEmpty(
+        Type type) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_ComposeDirective_Name_CannotBeEmpty,
+                    type.FullName ?? type.Name)
+                .Build());
+
+    /// <summary>
+    /// The link attribute is used on the schema without specifying the url.
+    /// </summary>
+    public static SchemaException Link_Url_CannotBeEmpty(
+        Type type) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_Link_Url_CannotBeEmpty,
+                    type.FullName ?? type.Name)
+                .Build());
+
+    /// <summary>
+    /// The contact attribute is used on the schema without specifying the name.
+    /// </summary>
+    public static SchemaException Contact_Name_CannotBeEmpty(
+        Type type) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_Contact_Name_CannotBeEmpty,
+                    type.FullName ?? type.Name)
+                .Build());
+
+    /// <summary>
+    /// Specified federation version is not supported.
+    /// </summary>
+    public static SchemaException FederationVersion_Unknown(
+        FederationVersion version) =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_FederationVersion_Unknown,
+                    version)
+                .Build());
+    
+    public static SchemaException Contact_Not_Repeatable() =>
+        new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage("The @contact directive is not repeatable and can.")
+                .Build()); 
 }

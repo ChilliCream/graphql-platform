@@ -476,7 +476,8 @@ public static class TypeExtensions
             return (INamedType) current;
         }
 
-        for (var i = 0; i < 6; i++)
+        const int maxDepth = 6;
+        for (var i = 0; i < maxDepth; i++)
         {
             current = current.InnerType();
 

@@ -1,1012 +1,1015 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <root>
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:element name="root" msdata:IsDataSet="true">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
 
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>1.3</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
     <value>The {0}-directive is missing the if-argument.</value>
   </data>
-    <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
+  <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
     <value>The argument type has to be an input-type.</value>
   </data>
-    <data name="ArgumentValueBuilder_NonNull" xml:space="preserve">
+  <data name="ArgumentValueBuilder_NonNull" xml:space="preserve">
     <value>Argument `{0}` of non-null type `{1}` must not be null.</value>
   </data>
-    <data name="BooleanType_Description" xml:space="preserve">
+  <data name="BooleanType_Description" xml:space="preserve">
     <value>The `Boolean` scalar type represents `true` or `false`.</value>
   </data>
-    <data name="ByteType_Description" xml:space="preserve">
+  <data name="ByteType_Description" xml:space="preserve">
     <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
   </data>
-    <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
+  <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
     <value>The specified IComplexTypeFieldBindingBuilder-implementation is not supported.</value>
   </data>
-    <data name="ComplexTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
+  <data name="ComplexTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
     <value>The field binding builder is not completed and cannot be added.</value>
   </data>
-    <data name="DataLoaderRegistry_KeyNullOrEmpty" xml:space="preserve">
+  <data name="DataLoaderRegistry_KeyNullOrEmpty" xml:space="preserve">
     <value>The DataLoader key cannot be null or empty.</value>
   </data>
-    <data name="DataLoaderResolverContextExtensions_RegistryIsNull" xml:space="preserve">
+  <data name="DataLoaderResolverContextExtensions_RegistryIsNull" xml:space="preserve">
     <value>No DataLoader registry was registered with your dependency injection.</value>
   </data>
-    <data name="DataLoaderResolverContextExtensions_UnableToRegister" xml:space="preserve">
+  <data name="DataLoaderResolverContextExtensions_UnableToRegister" xml:space="preserve">
     <value>Unable to register a DataLoader with your DataLoader registry.</value>
   </data>
-    <data name="DateTimeType_Description" xml:space="preserve">
+  <data name="DateTimeType_Description" xml:space="preserve">
     <value>The `DateTime` scalar represents an ISO-8601 compliant date time type.</value>
   </data>
-    <data name="DateType_Description" xml:space="preserve">
+  <data name="DateType_Description" xml:space="preserve">
     <value>The `Date` scalar represents an ISO-8601 compliant date type.</value>
   </data>
-    <data name="DecimalType_Description" xml:space="preserve">
+  <data name="DecimalType_Description" xml:space="preserve">
     <value>The built-in `Decimal` scalar type.</value>
   </data>
-    <data name="DefaultTypeInspector_MemberInvalid" xml:space="preserve">
+  <data name="DefaultTypeInspector_MemberInvalid" xml:space="preserve">
     <value>The specified member has to be a method or a property.</value>
   </data>
-    <data name="DependencyDescriptorBase_OnlyTsoIsAllowed" xml:space="preserve">
+  <data name="DependencyDescriptorBase_OnlyTsoIsAllowed" xml:space="preserve">
     <value>Only type system objects are allowed as schema type.</value>
   </data>
-    <data name="DirectiveCollection_DirectiveIsUnique" xml:space="preserve">
+  <data name="DirectiveCollection_DirectiveIsUnique" xml:space="preserve">
     <value>The specified directive `@{0}` is unique and cannot be added twice.</value>
   </data>
-    <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
+  <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
     <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
   </data>
-    <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
+  <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
     <value>Location adjacent to an argument definition</value>
   </data>
-    <data name="DirectiveLocation_Description" xml:space="preserve">
+  <data name="DirectiveLocation_Description" xml:space="preserve">
     <value>A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.</value>
   </data>
-    <data name="DirectiveLocation_Enum" xml:space="preserve">
+  <data name="DirectiveLocation_Enum" xml:space="preserve">
     <value>Location adjacent to an enum definition.</value>
   </data>
-    <data name="DirectiveLocation_EnumValue" xml:space="preserve">
+  <data name="DirectiveLocation_EnumValue" xml:space="preserve">
     <value>Location adjacent to an enum value definition.</value>
   </data>
-    <data name="DirectiveLocation_Field" xml:space="preserve">
+  <data name="DirectiveLocation_Field" xml:space="preserve">
     <value>Location adjacent to a field.</value>
   </data>
-    <data name="DirectiveLocation_FieldDefinition" xml:space="preserve">
+  <data name="DirectiveLocation_FieldDefinition" xml:space="preserve">
     <value>Location adjacent to a field definition.</value>
   </data>
-    <data name="DirectiveLocation_FragmentDefinition" xml:space="preserve">
+  <data name="DirectiveLocation_FragmentDefinition" xml:space="preserve">
     <value>Location adjacent to a fragment definition.</value>
   </data>
-    <data name="DirectiveLocation_FragmentSpread" xml:space="preserve">
+  <data name="DirectiveLocation_FragmentSpread" xml:space="preserve">
     <value>Location adjacent to a fragment spread.</value>
   </data>
-    <data name="DirectiveLocation_InlineFragment" xml:space="preserve">
+  <data name="DirectiveLocation_InlineFragment" xml:space="preserve">
     <value>Location adjacent to an inline fragment.</value>
   </data>
-    <data name="DirectiveLocation_InputFieldDefinition" xml:space="preserve">
+  <data name="DirectiveLocation_InputFieldDefinition" xml:space="preserve">
     <value>Location adjacent to an input object field definition.</value>
   </data>
-    <data name="DirectiveLocation_InputObject" xml:space="preserve">
+  <data name="DirectiveLocation_InputObject" xml:space="preserve">
     <value>Location adjacent to an input object type definition.</value>
   </data>
-    <data name="DirectiveLocation_Interface" xml:space="preserve">
+  <data name="DirectiveLocation_Interface" xml:space="preserve">
     <value>Location adjacent to an interface definition.</value>
   </data>
-    <data name="DirectiveLocation_Mutation" xml:space="preserve">
+  <data name="DirectiveLocation_Mutation" xml:space="preserve">
     <value>Location adjacent to a mutation operation.</value>
   </data>
-    <data name="DirectiveLocation_Object" xml:space="preserve">
+  <data name="DirectiveLocation_Object" xml:space="preserve">
     <value>Location adjacent to an object type definition.</value>
   </data>
-    <data name="DirectiveLocation_Query" xml:space="preserve">
+  <data name="DirectiveLocation_Query" xml:space="preserve">
     <value>Location adjacent to a query operation.</value>
   </data>
-    <data name="DirectiveLocation_Scalar" xml:space="preserve">
+  <data name="DirectiveLocation_Scalar" xml:space="preserve">
     <value>Location adjacent to a scalar definition.</value>
   </data>
-    <data name="DirectiveLocation_Schema" xml:space="preserve">
+  <data name="DirectiveLocation_Schema" xml:space="preserve">
     <value>Location adjacent to a schema definition.</value>
   </data>
-    <data name="DirectiveLocation_Subscription" xml:space="preserve">
+  <data name="DirectiveLocation_Subscription" xml:space="preserve">
     <value>Location adjacent to a subscription operation.</value>
   </data>
-    <data name="DirectiveLocation_Union" xml:space="preserve">
+  <data name="DirectiveLocation_Union" xml:space="preserve">
     <value>Location adjacent to a union definition.</value>
   </data>
-    <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
+  <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
     <value>Only property expressions are allowed to describe a directive type argument.</value>
   </data>
-    <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
+  <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
     <value>The specified location `{0}` is not supported.</value>
   </data>
-    <data name="DirectiveType_NoLocations" xml:space="preserve">
+  <data name="DirectiveType_NoLocations" xml:space="preserve">
     <value>The `{0}` directive does not declare any location on which it is valid.</value>
   </data>
-    <data name="DirectiveType_ReplaceWithUse" xml:space="preserve">
+  <data name="DirectiveType_ReplaceWithUse" xml:space="preserve">
     <value>Replace Middleware with `Use`.</value>
   </data>
-    <data name="DirectiveType_UnableToConvert" xml:space="preserve">
+  <data name="DirectiveType_UnableToConvert" xml:space="preserve">
     <value>Unable to convert the argument value to the specified type.</value>
   </data>
-    <data name="Directive_Description" xml:space="preserve">
+  <data name="Directive_Description" xml:space="preserve">
     <value>A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.
 
 In some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.</value>
   </data>
-    <data name="Directive_UseLocation" xml:space="preserve">
+  <data name="Directive_UseLocation" xml:space="preserve">
     <value>Use `locations`.</value>
   </data>
-    <data name="EnumTypeExtension_CannotMerge" xml:space="preserve">
+  <data name="EnumTypeExtension_CannotMerge" xml:space="preserve">
     <value>The enum type extension can only be merged with an enum type.</value>
   </data>
-    <data name="EnumTypeExtension_ValueTypeInvalid" xml:space="preserve">
+  <data name="EnumTypeExtension_ValueTypeInvalid" xml:space="preserve">
     <value>The enum value `{0}` of the enum type extension is not assignable with the target enum type.</value>
   </data>
-    <data name="EnumType_NoValues" xml:space="preserve">
+  <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
   </data>
-    <data name="EnumValue_Description" xml:space="preserve">
+  <data name="EnumValue_Description" xml:space="preserve">
     <value>One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.</value>
   </data>
-    <data name="EnumValue_ValueIsNull" xml:space="preserve">
+  <data name="EnumValue_ValueIsNull" xml:space="preserve">
     <value>The inner value of enum value cannot be null or empty.</value>
   </data>
-    <data name="FieldInitHelper_InvalidDefaultValue" xml:space="preserve">
+  <data name="FieldInitHelper_InvalidDefaultValue" xml:space="preserve">
     <value>Could not parse the native value of input field `{0}`.</value>
   </data>
-    <data name="FieldInitHelper_NoFields" xml:space="preserve">
+  <data name="FieldInitHelper_NoFields" xml:space="preserve">
     <value>{0} `{1}` has no fields declared.</value>
   </data>
-    <data name="Field_Description" xml:space="preserve">
+  <data name="Field_Description" xml:space="preserve">
     <value>Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.</value>
   </data>
-    <data name="FloatType_Description" xml:space="preserve">
+  <data name="FloatType_Description" xml:space="preserve">
     <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
   </data>
-    <data name="IdType_Description" xml:space="preserve">
+  <data name="IdType_Description" xml:space="preserve">
     <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.</value>
   </data>
-    <data name="InputField_CannotSetValue" xml:space="preserve">
+  <data name="InputField_CannotSetValue" xml:space="preserve">
     <value>Unable to set the input field value.</value>
   </data>
-    <data name="InputObjectTypeExtension_CannotMerge" xml:space="preserve">
+  <data name="InputObjectTypeExtension_CannotMerge" xml:space="preserve">
     <value>The input object type extension can only be merged with an input object type.</value>
   </data>
-    <data name="InputObjectType_CannotParseLiteral" xml:space="preserve">
+  <data name="InputObjectType_CannotParseLiteral" xml:space="preserve">
     <value>The input object type can only parse object value literals.</value>
   </data>
-    <data name="InputObjectType_NoFields" xml:space="preserve">
+  <data name="InputObjectType_NoFields" xml:space="preserve">
     <value>The input object `{0}` does not have any fields.</value>
   </data>
-    <data name="InputTypeNonNullCheck_ValueIsNull" xml:space="preserve">
+  <data name="InputTypeNonNullCheck_ValueIsNull" xml:space="preserve">
     <value>The input value of type `{0}` must not be null.</value>
   </data>
-    <data name="InputValue_DefaultValue" xml:space="preserve">
+  <data name="InputValue_DefaultValue" xml:space="preserve">
     <value>A GraphQL-formatted string representing the default value for this input value.</value>
   </data>
-    <data name="InputValue_Description" xml:space="preserve">
+  <data name="InputValue_Description" xml:space="preserve">
     <value>Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.</value>
   </data>
-    <data name="InterfaceImplRule_ArgumentsDontMatch" xml:space="preserve">
+  <data name="InterfaceImplRule_ArgumentsDontMatch" xml:space="preserve">
     <value>The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
   </data>
-    <data name="InterfaceImplRule_ArgumentsNotImpl" xml:space="preserve">
+  <data name="InterfaceImplRule_ArgumentsNotImpl" xml:space="preserve">
     <value>Object type {0} does not implement all arguments of field {1} from interface {2}.</value>
   </data>
-    <data name="InterfaceImplRule_FieldNotImpl" xml:space="preserve">
+  <data name="InterfaceImplRule_FieldNotImpl" xml:space="preserve">
     <value>Object type {0} does not implement the field {1} from interface {2}.</value>
   </data>
-    <data name="InterfaceImplRule_FieldTypeInvalid" xml:space="preserve">
+  <data name="InterfaceImplRule_FieldTypeInvalid" xml:space="preserve">
     <value>The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
   </data>
-    <data name="InterfaceImplRule_ReturnTypeInvalid" xml:space="preserve">
+  <data name="InterfaceImplRule_ReturnTypeInvalid" xml:space="preserve">
     <value>The return type of the interface field {0} does not match the field declared by object type {1}.</value>
   </data>
-    <data name="InterfaceTypeExtension_CannotMerge" xml:space="preserve">
+  <data name="InterfaceTypeExtension_CannotMerge" xml:space="preserve">
     <value>The interface type extension can only be merged with an interface type.</value>
   </data>
-    <data name="IntType_Description" xml:space="preserve">
+  <data name="IntType_Description" xml:space="preserve">
     <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
   </data>
-    <data name="LongType_Description" xml:space="preserve">
+  <data name="LongType_Description" xml:space="preserve">
     <value>The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.</value>
   </data>
-    <data name="MultiplierPathType_Description" xml:space="preserve">
+  <data name="MultiplierPathType_Description" xml:space="preserve">
     <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
   </data>
-    <data name="NameType_Description" xml:space="preserve">
+  <data name="NameType_Description" xml:space="preserve">
     <value>The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types.</value>
   </data>
-    <data name="Name_Cannot_BeEmpty" xml:space="preserve">
+  <data name="Name_Cannot_BeEmpty" xml:space="preserve">
     <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
   </data>
-    <data name="ObjectFieldDescriptorBase_FieldType" xml:space="preserve">
+  <data name="ObjectFieldDescriptorBase_FieldType" xml:space="preserve">
     <value>The field-type must be an output-type.</value>
   </data>
-    <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
+  <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
     <value>The interface base class cannot be used as interface implementation declaration.</value>
   </data>
-    <data name="InterfaceTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
+  <data name="InterfaceTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
     <value>The interface base class cannot be used as interface implementation declaration.</value>
   </data>
-    <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
+  <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field-expression must be a property-expression or a method-call-expression.</value>
   </data>
-    <data name="ObjectTypeDescriptor_ResolveWith_NonAbstract" xml:space="preserve">
+  <data name="ObjectTypeDescriptor_ResolveWith_NonAbstract" xml:space="preserve">
     <value>The resolver type {0} cannot be used, a non-abstract type is required.</value>
   </data>
-    <data name="NodeDescriptor_MustBeMethod" xml:space="preserve">
+  <data name="NodeDescriptor_MustBeMethod" xml:space="preserve">
     <value>A node-resolver-expression must be a method-call-expression.</value>
   </data>
-    <data name="NodeDescriptor_IdMember" xml:space="preserve">
+  <data name="NodeDescriptor_IdMember" xml:space="preserve">
     <value>An ID-member must be a property-expression or a method-call-expression.</value>
   </data>
-    <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
+  <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
     <value>Schema types cannot be used as resolver types.</value>
   </data>
-    <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
+  <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
     <value>The member expression must specify a property or method that is public and that belongs to the type {0}</value>
   </data>
-    <data name="ResolverCompiler_UnknownParameterType" xml:space="preserve">
+  <data name="ResolverCompiler_UnknownParameterType" xml:space="preserve">
     <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
   </data>
-    <data name="ResolverTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
+  <data name="ResolverTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
     <value>The specified IResolverFieldBindingBuilder-implementation is not supported.</value>
   </data>
-    <data name="ResolverTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
+  <data name="ResolverTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
     <value>The field binding builder is not completed and cannot be added.</value>
   </data>
-    <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
+  <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
     <value>{0} cannot deserialize the given value.</value>
   </data>
-    <data name="Scalar_Cannot_ParseLiteral" xml:space="preserve">
+  <data name="Scalar_Cannot_ParseLiteral" xml:space="preserve">
     <value>{0} cannot parse the given literal of type `{1}`.</value>
   </data>
-    <data name="Scalar_Cannot_ParseValue" xml:space="preserve">
+  <data name="Scalar_Cannot_ParseValue" xml:space="preserve">
     <value>{0} cannot parse the given value of type `{1}`.</value>
   </data>
-    <data name="Scalar_Cannot_Serialize" xml:space="preserve">
+  <data name="Scalar_Cannot_Serialize" xml:space="preserve">
     <value>{0} cannot serialize the given value.</value>
   </data>
-    <data name="SchemaBuilderExtensions_DirectiveTypeIsBaseType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_DirectiveTypeIsBaseType" xml:space="preserve">
     <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
   </data>
-    <data name="SchemaBuilderExtensions_MustBeDirectiveType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_MustBeDirectiveType" xml:space="preserve">
     <value>A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
   </data>
-    <data name="SchemaBuilderExtensions_SchemaIsEmpty" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_SchemaIsEmpty" xml:space="preserve">
     <value>The schema string cannot be null or empty.</value>
   </data>
-    <data name="SchemaBuilder_Binding_CannotBeHandled" xml:space="preserve">
+  <data name="SchemaBuilder_Binding_CannotBeHandled" xml:space="preserve">
     <value>There is no handler registered that can handle the specified schema binding.</value>
   </data>
-    <data name="SchemaBuilder_Binding_Invalid" xml:space="preserve">
+  <data name="SchemaBuilder_Binding_Invalid" xml:space="preserve">
     <value>The schema binding is not valid.</value>
   </data>
-    <data name="SchemaBuilder_ISchemaNotTso" xml:space="preserve">
+  <data name="SchemaBuilder_ISchemaNotTso" xml:space="preserve">
     <value>The given schema has to inherit from TypeSystemObjectBase in order to be initializable.</value>
   </data>
-    <data name="SchemaBuilder_NoQueryType" xml:space="preserve">
+  <data name="SchemaBuilder_NoQueryType" xml:space="preserve">
     <value>The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode.</value>
   </data>
-    <data name="SchemaBuilder_RootType_MustBeClass" xml:space="preserve">
+  <data name="SchemaBuilder_RootType_MustBeClass" xml:space="preserve">
     <value>A root type must be a class.</value>
   </data>
-    <data name="SchemaBuilder_RootType_MustBeObjectType" xml:space="preserve">
+  <data name="SchemaBuilder_RootType_MustBeObjectType" xml:space="preserve">
     <value>A root type must be an object type.</value>
   </data>
-    <data name="SchemaBuilder_RootType_NonGenericType" xml:space="preserve">
+  <data name="SchemaBuilder_RootType_NonGenericType" xml:space="preserve">
     <value>Non-generic schema types are not allowed.</value>
   </data>
-    <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
+  <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
     <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
   </data>
-    <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
+  <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
     <value>The error message mustn't be null or empty.</value>
   </data>
-    <data name="SchemaField_Description" xml:space="preserve">
+  <data name="SchemaField_Description" xml:space="preserve">
     <value>Access the current type schema of this server.</value>
   </data>
-    <data name="SchemaSyntaxVisitor_UnknownOperationType" xml:space="preserve">
+  <data name="SchemaSyntaxVisitor_UnknownOperationType" xml:space="preserve">
     <value>Unknown operation type.</value>
   </data>
-    <data name="Schema_Description" xml:space="preserve">
+  <data name="Schema_Description" xml:space="preserve">
     <value>A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.</value>
   </data>
-    <data name="Schema_Directives" xml:space="preserve">
+  <data name="Schema_Directives" xml:space="preserve">
     <value>A list of all directives supported by this server.</value>
   </data>
-    <data name="Schema_MutationType" xml:space="preserve">
+  <data name="Schema_MutationType" xml:space="preserve">
     <value>If this server supports mutation, the type that mutation operations will be rooted at.</value>
   </data>
-    <data name="Schema_QueryType" xml:space="preserve">
+  <data name="Schema_QueryType" xml:space="preserve">
     <value>The type that query operations will be rooted at.</value>
   </data>
-    <data name="Schema_SubscriptionType" xml:space="preserve">
+  <data name="Schema_SubscriptionType" xml:space="preserve">
     <value>If this server support subscription, the type that subscription operations will be rooted at.</value>
   </data>
-    <data name="Schema_Types" xml:space="preserve">
+  <data name="Schema_Types" xml:space="preserve">
     <value>A list of all types supported by this server.</value>
   </data>
-    <data name="ShortType_Description" xml:space="preserve">
+  <data name="ShortType_Description" xml:space="preserve">
     <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>
   </data>
-    <data name="StringType_Description" xml:space="preserve">
+  <data name="StringType_Description" xml:space="preserve">
     <value>The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.</value>
   </data>
-    <data name="String_Argument_NullOrEmpty" xml:space="preserve">
+  <data name="String_Argument_NullOrEmpty" xml:space="preserve">
     <value>The `{0}` cannot be null or empty.</value>
   </data>
-    <data name="TypeConfiguration_ConfigureIsNull" xml:space="preserve">
+  <data name="TypeConfiguration_ConfigureIsNull" xml:space="preserve">
     <value>The configuration delegate mustn't be null.</value>
   </data>
-    <data name="TypeConfiguration_DefinitionIsNull" xml:space="preserve">
+  <data name="TypeConfiguration_DefinitionIsNull" xml:space="preserve">
     <value>Definition mustn't be null.</value>
   </data>
-    <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
+  <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
     <value>The specified type is not a schema type.</value>
   </data>
-    <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
+  <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
     <value>The type structure is invalid.</value>
   </data>
-    <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
+  <data name="TypeExtensions_KindIsNotSupported" xml:space="preserve">
     <value>The specified type kind is not supported.</value>
   </data>
-    <data name="TypeExtensions_NoListType" xml:space="preserve">
+  <data name="TypeExtensions_NoListType" xml:space="preserve">
     <value>The specified type is not a valid list type.</value>
   </data>
-    <data name="TypeExtensions_TypeIsNotOfT" xml:space="preserve">
+  <data name="TypeExtensions_TypeIsNotOfT" xml:space="preserve">
     <value>The given type is not a {0}.</value>
   </data>
-    <data name="TypeField_Description" xml:space="preserve">
+  <data name="TypeField_Description" xml:space="preserve">
     <value>Request the type information of a single type.</value>
   </data>
-    <data name="TypeInitializer_CannotResolveDependency" xml:space="preserve">
+  <data name="TypeInitializer_CannotResolveDependency" xml:space="preserve">
     <value>Unable to resolve dependencies {1} for type `{0}`.</value>
   </data>
-    <data name="TypeInitializer_CompleteName_Duplicate" xml:space="preserve">
+  <data name="TypeInitializer_CompleteName_Duplicate" xml:space="preserve">
     <value>The name `{0}` was already registered by another type.</value>
   </data>
-    <data name="TypeInitializer_Merge_KindDoesNotMatch" xml:space="preserve">
+  <data name="TypeInitializer_Merge_KindDoesNotMatch" xml:space="preserve">
     <value>The kind of the extension does not match the kind of the type `{0}`.</value>
   </data>
-    <data name="TypeKind_Description" xml:space="preserve">
+  <data name="TypeKind_Description" xml:space="preserve">
     <value>An enum describing what kind of type a given `__Type` is.</value>
   </data>
-    <data name="TypeKind_Enum" xml:space="preserve">
+  <data name="TypeKind_Enum" xml:space="preserve">
     <value>Indicates this type is an enum. `enumValues` is a valid field.</value>
   </data>
-    <data name="TypeKind_InputObject" xml:space="preserve">
+  <data name="TypeKind_InputObject" xml:space="preserve">
     <value>Indicates this type is an input object. `inputFields` is a valid field.</value>
   </data>
-    <data name="TypeKind_Interface" xml:space="preserve">
+  <data name="TypeKind_Interface" xml:space="preserve">
     <value>Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.</value>
   </data>
-    <data name="TypeKind_List" xml:space="preserve">
+  <data name="TypeKind_List" xml:space="preserve">
     <value>Indicates this type is a list. `ofType` is a valid field.</value>
   </data>
-    <data name="TypeKind_NonNull" xml:space="preserve">
+  <data name="TypeKind_NonNull" xml:space="preserve">
     <value>Indicates this type is a non-null. `ofType` is a valid field.</value>
   </data>
-    <data name="TypeKind_Object" xml:space="preserve">
+  <data name="TypeKind_Object" xml:space="preserve">
     <value>Indicates this type is an object. `fields` and `interfaces` are valid fields.</value>
   </data>
-    <data name="TypeKind_Scalar" xml:space="preserve">
+  <data name="TypeKind_Scalar" xml:space="preserve">
     <value>Indicates this type is a scalar.</value>
   </data>
-    <data name="TypeKind_Union" xml:space="preserve">
+  <data name="TypeKind_Union" xml:space="preserve">
     <value>Indicates this type is a union. `possibleTypes` is a valid field.</value>
   </data>
-    <data name="TypeNameField_Description" xml:space="preserve">
+  <data name="TypeNameField_Description" xml:space="preserve">
     <value>The name of the current Object type at runtime.</value>
   </data>
-    <data name="TypeNameHelper_InvalidTypeStructure" xml:space="preserve">
+  <data name="TypeNameHelper_InvalidTypeStructure" xml:space="preserve">
     <value>Invalid type structure.</value>
   </data>
-    <data name="TypeNameHelper_OnlyTsosAreAllowed" xml:space="preserve">
+  <data name="TypeNameHelper_OnlyTsosAreAllowed" xml:space="preserve">
     <value>Only type system objects are allowed as dependency.</value>
   </data>
-    <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
+  <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
     <value>The typeName mustn't be null or empty.</value>
   </data>
-    <data name="Type_Description" xml:space="preserve">
+  <data name="Type_Description" xml:space="preserve">
     <value>The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
 
 Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.</value>
   </data>
-    <data name="UnionTypeExtension_CannotMerge" xml:space="preserve">
+  <data name="UnionTypeExtension_CannotMerge" xml:space="preserve">
     <value>The union type extension can only be merged with an union type.</value>
   </data>
-    <data name="VariableValueBuilder_InputType" xml:space="preserve">
+  <data name="VariableValueBuilder_InputType" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must be an input type.</value>
   </data>
-    <data name="VariableValueBuilder_InvalidValue" xml:space="preserve">
+  <data name="VariableValueBuilder_InvalidValue" xml:space="preserve">
     <value>Variable `{0}` got invalid value.</value>
   </data>
-    <data name="VariableValueBuilder_NodeKind" xml:space="preserve">
+  <data name="VariableValueBuilder_NodeKind" xml:space="preserve">
     <value>The type node kind is not supported.</value>
   </data>
-    <data name="VariableValueBuilder_NonNull" xml:space="preserve">
+  <data name="VariableValueBuilder_NonNull" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must not be null.</value>
   </data>
-    <data name="VariableValueBuilder_NonNull_In_Graph" xml:space="preserve">
+  <data name="VariableValueBuilder_NonNull_In_Graph" xml:space="preserve">
     <value>Detected non-null violation in variable `{0}`.</value>
   </data>
-    <data name="VariableValueBuilder_VarNameEmpty" xml:space="preserve">
+  <data name="VariableValueBuilder_VarNameEmpty" xml:space="preserve">
     <value>Variable name mustn't be null or empty.</value>
   </data>
-    <data name="Argument_TypeIsNull" xml:space="preserve">
+  <data name="Argument_TypeIsNull" xml:space="preserve">
     <value>The argument `{0}` has no type. Specify the type with `.Argument("{0}", a.Type&lt;MyType&gt;())` to fix this issue.</value>
   </data>
-    <data name="NonNullType_NotAnInputType" xml:space="preserve">
+  <data name="NonNullType_NotAnInputType" xml:space="preserve">
     <value>The specified type is not an input type.</value>
   </data>
-    <data name="NonNullType_TypeIsNunNullType" xml:space="preserve">
+  <data name="NonNullType_TypeIsNunNullType" xml:space="preserve">
     <value>The inner type of non-null type must be a nullable type.</value>
   </data>
-    <data name="NonNullType_ValueIsNull" xml:space="preserve">
+  <data name="NonNullType_ValueIsNull" xml:space="preserve">
     <value>A non null type cannot parse null value literals.</value>
   </data>
-    <data name="ObjectTypeExtension_CannotMerge" xml:space="preserve">
+  <data name="ObjectTypeExtension_CannotMerge" xml:space="preserve">
     <value>The object type extension can only be merged with an object type.</value>
   </data>
-    <data name="TypeSystemObjectBase_DefinitionIsNull" xml:space="preserve">
+  <data name="TypeSystemObjectBase_DefinitionIsNull" xml:space="preserve">
     <value>The type definition is null which means that the type was initialized incorrectly.</value>
   </data>
-    <data name="TypeSystemObjectBase_NameIsNull" xml:space="preserve">
+  <data name="TypeSystemObjectBase_NameIsNull" xml:space="preserve">
     <value>The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed.
 Type: `{0}`</value>
   </data>
-    <data name="TypeSystemObject_DescriptionImmutable" xml:space="preserve">
+  <data name="TypeSystemObject_DescriptionImmutable" xml:space="preserve">
     <value>The description becomes immutable once it was assigned.</value>
   </data>
-    <data name="TypeSystemObject_NameImmutable" xml:space="preserve">
+  <data name="TypeSystemObject_NameImmutable" xml:space="preserve">
     <value>The name becomes immutable once it was assigned.</value>
   </data>
-    <data name="UnionType_MustHaveTypes" xml:space="preserve">
+  <data name="UnionType_MustHaveTypes" xml:space="preserve">
     <value>A Union type must define one or more unique member types.</value>
   </data>
-    <data name="UnionType_UnableToResolveType" xml:space="preserve">
+  <data name="UnionType_UnableToResolveType" xml:space="preserve">
     <value>Unable to resolve the specified type reference.</value>
   </data>
-    <data name="SchemaBuilder_MustBeSchemaType" xml:space="preserve">
+  <data name="SchemaBuilder_MustBeSchemaType" xml:space="preserve">
     <value>schemaType must be a schema type.</value>
   </data>
-    <data name="TypeRegistrar_TypesInconsistent" xml:space="preserve">
+  <data name="TypeRegistrar_TypesInconsistent" xml:space="preserve">
     <value>Unable to infer or resolve a schema type from the type reference `{0}`.</value>
   </data>
-    <data name="TypeConvertion_ConvertNotSupported" xml:space="preserve">
+  <data name="TypeConvertion_ConvertNotSupported" xml:space="preserve">
     <value>Unable to convert type from `{0}` to `{1}`</value>
   </data>
-    <data name="SchemaBuilder_Interceptor_NotSuppported" xml:space="preserve">
+  <data name="SchemaBuilder_Interceptor_NotSuppported" xml:space="preserve">
     <value>The specified interceptor type is not supported.</value>
   </data>
-    <data name="IdSerializer_UnableToEncode" xml:space="preserve">
+  <data name="IdSerializer_UnableToEncode" xml:space="preserve">
     <value>Unable to encode data.</value>
   </data>
-    <data name="IdSerializer_UnableToDecode" xml:space="preserve">
+  <data name="IdSerializer_UnableToDecode" xml:space="preserve">
     <value>Unable to decode the id string.</value>
   </data>
-    <data name="SchemaBuilder_Convention_NotSuppported" xml:space="preserve">
+  <data name="SchemaBuilder_Convention_NotSuppported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
   </data>
-    <data name="TimeSpanType_Description" xml:space="preserve">
+  <data name="TimeSpanType_Description" xml:space="preserve">
     <value>The `TimeSpan` scalar represents an ISO-8601 compliant duration type.</value>
   </data>
-    <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
+  <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
     <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>
   </data>
-    <data name="DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType" xml:space="preserve">
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType" xml:space="preserve">
     <value>The DataLoader `{0}` needs to be register with the dependency injection provider.</value>
   </data>
-    <data name="DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate" xml:space="preserve">
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate" xml:space="preserve">
     <value>Unable to create DataLoader `{0}`.</value>
   </data>
-    <data name="NonNamedType_IsInstanceOfType_NotAnInputType" xml:space="preserve">
+  <data name="NonNamedType_IsInstanceOfType_NotAnInputType" xml:space="preserve">
     <value>The specified type is not an input type.</value>
   </data>
-    <data name="RegisteredType_CompletionContext_Not_Initialized" xml:space="preserve">
+  <data name="RegisteredType_CompletionContext_Not_Initialized" xml:space="preserve">
     <value>The completion context has not been initialized.</value>
   </data>
-    <data name="RegisteredType_CompletionContext_Already_Set" xml:space="preserve">
+  <data name="RegisteredType_CompletionContext_Already_Set" xml:space="preserve">
     <value>The completion context can only be set once.</value>
   </data>
-    <data name="DeferDirectiveType_Description" xml:space="preserve">
+  <data name="DeferDirectiveType_Description" xml:space="preserve">
     <value>The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.</value>
   </data>
-    <data name="DeferDirectiveType_Label_Description" xml:space="preserve">
+  <data name="DeferDirectiveType_Label_Description" xml:space="preserve">
     <value>If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.</value>
   </data>
-    <data name="DeferDirectiveType_If_Description" xml:space="preserve">
+  <data name="DeferDirectiveType_If_Description" xml:space="preserve">
     <value>Deferred when true.</value>
   </data>
-    <data name="StreamDirectiveType_Description" xml:space="preserve">
+  <data name="StreamDirectiveType_Description" xml:space="preserve">
     <value>The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.</value>
   </data>
-    <data name="StreamDirectiveType_Label_Description" xml:space="preserve">
+  <data name="StreamDirectiveType_Label_Description" xml:space="preserve">
     <value>If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.</value>
   </data>
-    <data name="StreamDirectiveType_InitialCount_Description" xml:space="preserve">
+  <data name="StreamDirectiveType_InitialCount_Description" xml:space="preserve">
     <value>The initial elements that shall be send down to the consumer.</value>
   </data>
-    <data name="StreamDirectiveType_If_Description" xml:space="preserve">
+  <data name="StreamDirectiveType_If_Description" xml:space="preserve">
     <value>Streamed when true.</value>
   </data>
-    <data name="SchemaBuilder_AddRootType_TypeAlreadyRegistered" xml:space="preserve">
+  <data name="SchemaBuilder_AddRootType_TypeAlreadyRegistered" xml:space="preserve">
     <value>The root type `{0}` has already been registered.</value>
   </data>
-    <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
+  <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
     <value>The ID field must be a property or a method.</value>
   </data>
-    <data name="DeprecatedDirectiveType_TypeDescription" xml:space="preserve">
+  <data name="DeprecatedDirectiveType_TypeDescription" xml:space="preserve">
     <value>The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.</value>
   </data>
-    <data name="DeprecatedDirectiveType_ReasonDescription" xml:space="preserve">
+  <data name="DeprecatedDirectiveType_ReasonDescription" xml:space="preserve">
     <value>Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).</value>
   </data>
-    <data name="IncludeDirectiveType_TypeDescription" xml:space="preserve">
+  <data name="IncludeDirectiveType_TypeDescription" xml:space="preserve">
     <value>Directs the executor to include this field or fragment only when the `if` argument is true.</value>
   </data>
-    <data name="IncludeDirectiveType_IfDescription" xml:space="preserve">
+  <data name="IncludeDirectiveType_IfDescription" xml:space="preserve">
     <value>Included when true.</value>
   </data>
-    <data name="SkipDirectiveType_TypeDescription" xml:space="preserve">
+  <data name="SkipDirectiveType_TypeDescription" xml:space="preserve">
     <value>Directs the executor to skip this field or fragment when the `if` argument is true.</value>
   </data>
-    <data name="SkipDirectiveType_IfDescription" xml:space="preserve">
+  <data name="SkipDirectiveType_IfDescription" xml:space="preserve">
     <value>Skipped when true.</value>
   </data>
-    <data name="SpecifiedByDirectiveType_TypeDescription" xml:space="preserve">
+  <data name="SpecifiedByDirectiveType_TypeDescription" xml:space="preserve">
     <value>The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.</value>
   </data>
-    <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
+  <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
     <value>The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.</value>
   </data>
-    <data name="NodeType_TypeDescription" xml:space="preserve">
+  <data name="NodeType_TypeDescription" xml:space="preserve">
     <value>The node interface is implemented by entities that have a global unique identifier.</value>
   </data>
-    <data name="AnyType_CycleInObjectGraph" xml:space="preserve">
+  <data name="AnyType_CycleInObjectGraph" xml:space="preserve">
     <value>Cycle in object graph detected.</value>
   </data>
-    <data name="UuidType_FormatUnknown" xml:space="preserve">
+  <data name="UuidType_FormatUnknown" xml:space="preserve">
     <value>Unknown format. Guid supports the following format chars: {{ `N`, `D`, `B`, `P` }}.
  https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8parser.tryparse?view=netcore-3.1#System_Buffers_Text_Utf8Parser_TryParse_System_ReadOnlySpan_System_Byte__System_Guid__System_Int32__System_Char</value>
   </data>
-    <data name="Directive_GetArgument_ArgumentNameIsInvalid" xml:space="preserve">
+  <data name="Directive_GetArgument_ArgumentNameIsInvalid" xml:space="preserve">
     <value>The argument name is invalid.</value>
   </data>
-    <data name="AppliedDirective_Description" xml:space="preserve">
+  <data name="AppliedDirective_Description" xml:space="preserve">
     <value>An Applied Directive is an instances of a directive as applied to a schema element. This type is NOT specified by the graphql specification presently.</value>
   </data>
-    <data name="DirectiveArgument_Description" xml:space="preserve">
+  <data name="DirectiveArgument_Description" xml:space="preserve">
     <value>Directive arguments can have names and values. The values are in graphql SDL syntax printed as a string. This type is NOT specified by the graphql specification presently.</value>
   </data>
-    <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
+  <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
     <value>Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.</value>
   </data>
-    <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
+  <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
     <value>The specified type `{0}` does not exist.</value>
   </data>
-    <data name="ErrorHelper_ObjectField_HasNoResolver" xml:space="preserve">
+  <data name="ErrorHelper_ObjectField_HasNoResolver" xml:space="preserve">
     <value>The field `{0}.{1}` has no resolver.</value>
   </data>
-    <data name="ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed" xml:space="preserve">
+  <data name="ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed" xml:space="preserve">
     <value>The non-generic IExecutable interface cannot be used as a type in the schema.</value>
   </data>
-    <data name="BindingCompiler_AddBinding_BindingCannotBeHandled" xml:space="preserve">
+  <data name="BindingCompiler_AddBinding_BindingCannotBeHandled" xml:space="preserve">
     <value>The specified binding cannot be handled.</value>
   </data>
-    <data name="Type_SpecifiedByUrl_Description" xml:space="preserve">
+  <data name="Type_SpecifiedByUrl_Description" xml:space="preserve">
     <value>`specifiedByURL` may return a String (in the form of a URL) for custom scalars, otherwise it will return `null`.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddObjectType_TIsSchemaType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddObjectType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddUnionType_TIsSchemaType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddUnionType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddUnionType&lt;T&gt; is a helper method to register a runtime type as GraphQL union type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddEnumType_TIsSchemaType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddEnumType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddEnumType&lt;T&gt; is a helper method to register a runtime type as GraphQL enum type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddInterfaceType&lt;T&gt; is a helper method to register a runtime type as GraphQL interface type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddInputObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL input object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
-    <data name="CostDirective_ComplexityCannotBeBelowOne" xml:space="preserve">
+  <data name="CostDirective_ComplexityCannotBeBelowOne" xml:space="preserve">
     <value>The complexity cannot be below one.</value>
   </data>
-    <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
+  <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
     <value>Default multiplier cannot be below two.</value>
   </data>
-    <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
+  <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
     <value>The event message parameter can only be used in a subscription context.</value>
   </data>
-    <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValidationError" xml:space="preserve">
+  <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValidationError" xml:space="preserve">
     <value>The public method should already have ensured that we do not have members other than method or property at this point.</value>
   </data>
-    <data name="DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed" xml:space="preserve">
+  <data name="DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed" xml:space="preserve">
     <value>Only methods are allowed.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddResolverConfig_ContextInvalid" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddResolverConfig_ContextInvalid" xml:space="preserve">
     <value>The schema builder context is invalid.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddResolver_EmptyCooridnates" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddResolver_EmptyCooridnates" xml:space="preserve">
     <value>Empty field coordinates are not allowed.</value>
   </data>
-    <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
+  <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`.</value>
   </data>
-    <data name="ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist" xml:space="preserve">
+  <data name="ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist" xml:space="preserve">
     <value>The specified context key does not exist.</value>
   </data>
-    <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
+  <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ScopedContextData`.</value>
   </data>
-    <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
+  <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
     <value>Could not resolve the claims principal.</value>
   </data>
-    <data name="DirectiveLocation_VariableDefinition" xml:space="preserve">
+  <data name="DirectiveLocation_VariableDefinition" xml:space="preserve">
     <value>Location adjacent to a variable definition.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddResolver_TypeConditionNotMet" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddResolver_TypeConditionNotMet" xml:space="preserve">
     <value>The resolver type needs to be a public non-abstract non-static class.</value>
   </data>
-    <data name="SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface" xml:space="preserve">
+  <data name="SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface" xml:space="preserve">
     <value>The resolver type needs to be a class or interface</value>
   </data>
-    <data name="Relay_NodeField_Description" xml:space="preserve">
+  <data name="Relay_NodeField_Description" xml:space="preserve">
     <value>Fetches an object given its ID.</value>
   </data>
-    <data name="Relay_NodeField_Id_Description" xml:space="preserve">
+  <data name="Relay_NodeField_Id_Description" xml:space="preserve">
     <value>ID of the object.</value>
   </data>
-    <data name="Relay_NodesField_Description" xml:space="preserve">
+  <data name="Relay_NodesField_Description" xml:space="preserve">
     <value>Lookup nodes by a list of IDs.</value>
   </data>
-    <data name="Relay_NodesField_Ids_Description" xml:space="preserve">
+  <data name="Relay_NodesField_Ids_Description" xml:space="preserve">
     <value>The list of node IDs.</value>
   </data>
-    <data name="ErrorHelper_MiddlewareOrderInvalid" xml:space="preserve">
+  <data name="ErrorHelper_MiddlewareOrderInvalid" xml:space="preserve">
     <value>The middleware pipeline order for the field `{0}` is invalid. Middleware order is important especially with data pipelines. The correct order of a data pipeline is as follows: UseDbContext -&gt; UsePaging -&gt; UseProjection -&gt; UseFiltering -&gt; UseSorting. You may omit any of these middleware or have other middleware in between but you need to abide by the overall order. Your order is: {1}.</value>
   </data>
-    <data name="ErrorHelper_NoSchemaTypesAllowedAsRuntimeType" xml:space="preserve">
+  <data name="ErrorHelper_NoSchemaTypesAllowedAsRuntimeType" xml:space="preserve">
     <value>The type {0} is invalid because the runtime type is a {1}. It is not supported to have type system members as runtime types.</value>
   </data>
-    <data name="FieldInitHelper_CompleteFields_MaxFieldCountToSmall" xml:space="preserve">
+  <data name="FieldInitHelper_CompleteFields_MaxFieldCountToSmall" xml:space="preserve">
     <value>The max expected field count cannot be smaller than 1.</value>
   </data>
-    <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
+  <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
     <value>The object is not yet ready for this action.</value>
   </data>
-    <data name="EdgeType_IsInstanceOfType_NonObject" xml:space="preserve">
+  <data name="EdgeType_IsInstanceOfType_NonObject" xml:space="preserve">
     <value>Edge types that have a non-object node are not supported.</value>
   </data>
-    <data name="EdgeType_Description" xml:space="preserve">
+  <data name="EdgeType_Description" xml:space="preserve">
     <value>An edge in a connection.</value>
   </data>
-    <data name="EdgeType_Cursor_Description" xml:space="preserve">
+  <data name="EdgeType_Cursor_Description" xml:space="preserve">
     <value>A cursor for use in pagination.</value>
   </data>
-    <data name="EdgeType_Node_Description" xml:space="preserve">
+  <data name="EdgeType_Node_Description" xml:space="preserve">
     <value>The item at the end of the edge.</value>
   </data>
-    <data name="ConnectionType_Description" xml:space="preserve">
+  <data name="ConnectionType_Description" xml:space="preserve">
     <value>A connection to a list of items.</value>
   </data>
-    <data name="ConnectionType_PageInfo_Description" xml:space="preserve">
+  <data name="ConnectionType_PageInfo_Description" xml:space="preserve">
     <value>Information to aid in pagination.</value>
   </data>
-    <data name="ConnectionType_Edges_Description" xml:space="preserve">
+  <data name="ConnectionType_Edges_Description" xml:space="preserve">
     <value>A list of edges.</value>
   </data>
-    <data name="ConnectionType_TotalCount_Description" xml:space="preserve">
+  <data name="ConnectionType_TotalCount_Description" xml:space="preserve">
     <value>Identifies the total count of items in the connection.</value>
   </data>
-    <data name="CollectionSegmentType_PageInfo_Description" xml:space="preserve">
+  <data name="CollectionSegmentType_PageInfo_Description" xml:space="preserve">
     <value>Information to aid in pagination.</value>
   </data>
-    <data name="CollectionSegmentType_Description" xml:space="preserve">
+  <data name="CollectionSegmentType_Description" xml:space="preserve">
     <value>A segment of a collection.</value>
   </data>
-    <data name="CollectionSegmentType_Items_Description" xml:space="preserve">
+  <data name="CollectionSegmentType_Items_Description" xml:space="preserve">
     <value>A flattened list of the items.</value>
   </data>
-    <data name="ConnectionType_Nodes_Description" xml:space="preserve">
+  <data name="ConnectionType_Nodes_Description" xml:space="preserve">
     <value>A flattened list of the nodes.</value>
   </data>
-    <data name="ServiceHelper_UseResolverServiceInternal_Order" xml:space="preserve">
+  <data name="ServiceHelper_UseResolverServiceInternal_Order" xml:space="preserve">
     <value>The middleware order is invalid since the service scope is missing.</value>
   </data>
-    <data name="DefaultNamingConventions_FormatFieldName_EmptyOrNull" xml:space="preserve">
+  <data name="DefaultNamingConventions_FormatFieldName_EmptyOrNull" xml:space="preserve">
     <value>The fieldName cannot be null or empty.</value>
   </data>
-    <data name="OneOfDirectiveType_Description" xml:space="preserve">
+  <data name="OneOfDirectiveType_Description" xml:space="preserve">
     <value>The `@oneOf` directive is used within the type system definition language
  to indicate:
 
  - an Input Object is a Oneof Input Object, or
  - an Object Type's Field is a Oneof Field.</value>
   </data>
-    <data name="ThrowHelper_OneOfNoFieldSet" xml:space="preserve">
+  <data name="ThrowHelper_OneOfNoFieldSet" xml:space="preserve">
     <value>The Oneof Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
-    <data name="ThrowHelper_OneOfMoreThanOneFieldSet" xml:space="preserve">
+  <data name="ThrowHelper_OneOfMoreThanOneFieldSet" xml:space="preserve">
     <value>More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
-    <data name="ThrowHelper_OneOfFieldIsNull" xml:space="preserve">
+  <data name="ThrowHelper_OneOfFieldIsNull" xml:space="preserve">
     <value>`null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
-    <data name="ReflectionUtils_ExtractMethod_MethodExpected" xml:space="preserve">
+  <data name="ReflectionUtils_ExtractMethod_MethodExpected" xml:space="preserve">
     <value>Member is not a method!</value>
   </data>
-    <data name="ResolverContextExtensions_ScopedContextData_KeyNotFound" xml:space="preserve">
+  <data name="ResolverContextExtensions_ScopedContextData_KeyNotFound" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ScopedContextData`</value>
   </data>
-    <data name="ResolverContextExtensions_LocalContextData_KeyNotFound" xml:space="preserve">
+  <data name="ResolverContextExtensions_LocalContextData_KeyNotFound" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.LocalContextData`</value>
   </data>
-    <data name="ResolverContextExtensions_ContextData_KeyNotFound" xml:space="preserve">
+  <data name="ResolverContextExtensions_ContextData_KeyNotFound" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`</value>
   </data>
-    <data name="SchemaTypes_GetType_DoesNotExist" xml:space="preserve">
+  <data name="SchemaTypes_GetType_DoesNotExist" xml:space="preserve">
     <value>The specified type `{0}` does not exist or is not of the specified kind `{1}`.</value>
   </data>
-    <data name="SchemaTypes_DefinitionInvalid" xml:space="preserve">
+  <data name="SchemaTypes_DefinitionInvalid" xml:space="preserve">
     <value>The schema types definition is in an invalid state.</value>
   </data>
-    <data name="InputObjectTypeDescriptor_OnlyProperties" xml:space="preserve">
+  <data name="InputObjectTypeDescriptor_OnlyProperties" xml:space="preserve">
     <value>Only properties are allowed for input types.</value>
   </data>
-    <data name="InterfaceTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
+  <data name="InterfaceTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field of an interface can only be inferred from a property or a method.</value>
   </data>
-    <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
+  <data name="ThrowHelper_FieldBase_Sealed" xml:space="preserve">
     <value>The field is already sealed and cannot be mutated.</value>
   </data>
-    <data name="TypeInitializer_CannotFindType" xml:space="preserve">
+  <data name="TypeInitializer_CannotFindType" xml:space="preserve">
     <value>Unable to find type(s) {0}</value>
   </data>
-    <data name="ThrowHelper_RelayIdFieldHelpers_NoFieldType" xml:space="preserve">
+  <data name="ThrowHelper_RelayIdFieldHelpers_NoFieldType" xml:space="preserve">
     <value>Unable to resolve type from field `{0}`.</value>
   </data>
-    <data name="ThrowHelper_NodeResolver_ObjNoDefinition" xml:space="preserve">
+  <data name="ThrowHelper_NodeResolver_ObjNoDefinition" xml:space="preserve">
     <value>An object type at this point is guaranteed to have a type definition, but we found none.</value>
   </data>
-    <data name="ThrowHelper_NodeResolver_ArgumentTypeMissing" xml:space="preserve">
+  <data name="ThrowHelper_NodeResolver_ArgumentTypeMissing" xml:space="preserve">
     <value>A field argument at this initialization state is guaranteed to have an argument type, but we found none.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_TypeNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_TypeNotFound" xml:space="preserve">
     <value>A type with the name `{0}` was not found.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_FieldNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_FieldNotFound" xml:space="preserve">
     <value>Field `{0}` was not found on type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_FieldArgNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_FieldArgNotFound" xml:space="preserve">
     <value>Argument `{0}` was not found on field `{1}.{2}`.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_InvalidCoordinate" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_InvalidCoordinate" xml:space="preserve">
     <value>The coordinate `{0}` is invalid for the type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_InputFieldNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_InputFieldNotFound" xml:space="preserve">
     <value>Input field `{0}` was not found on type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_EnumValueNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_EnumValueNotFound" xml:space="preserve">
     <value>Enum value `{0}` was not found on type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_DirectiveNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_DirectiveNotFound" xml:space="preserve">
     <value>Directive `@{0}` not found.</value>
   </data>
-    <data name="ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound" xml:space="preserve">
+  <data name="ThrowHelper_Schema_GetMember_DirectiveArgumentNotFound" xml:space="preserve">
     <value>Argument `{0}` was not found on directive `@{1}`.</value>
   </data>
-    <data name="ThrowHelper_FormatResultLeaf_InvalidSyntaxKind" xml:space="preserve">
+  <data name="ThrowHelper_FormatResultLeaf_InvalidSyntaxKind" xml:space="preserve">
     <value>The type `{0}` does mot expect `{1}`.</value>
   </data>
-    <data name="ThrowHelper_FormatResultList_InvalidObjectKind" xml:space="preserve">
+  <data name="ThrowHelper_FormatResultList_InvalidObjectKind" xml:space="preserve">
     <value>The list result value of {0} must implement IList but is of the type {1}.</value>
   </data>
-    <data name="ThrowHelper_FormatResultObject_InvalidObjectKind" xml:space="preserve">
+  <data name="ThrowHelper_FormatResultObject_InvalidObjectKind" xml:space="preserve">
     <value>The input object `{1}` must to be of type `{2}` or serialized as `IReadOnlyDictionary&lt;string. object?&gt;` but not as `{0}`.</value>
   </data>
-    <data name="ThrowHelper_FormatValueList_InvalidObjectKind" xml:space="preserve">
+  <data name="ThrowHelper_FormatValueList_InvalidObjectKind" xml:space="preserve">
     <value>The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}.</value>
   </data>
-    <data name="ThrowHelper_ParseList_InvalidObjectKind" xml:space="preserve">
+  <data name="ThrowHelper_ParseList_InvalidObjectKind" xml:space="preserve">
     <value>The list `{1}` must to be serialized as `{2}` or as `IList` but not as `{0}`.</value>
   </data>
-    <data name="ThrowHelper_ParseNestedList_InvalidSyntaxKind" xml:space="preserve">
+  <data name="ThrowHelper_ParseNestedList_InvalidSyntaxKind" xml:space="preserve">
     <value>The item syntax node for a nested list must be `ListValue` but the parser found `{0}`.</value>
   </data>
-    <data name="ThrowHelper_ParseInputObject_InvalidObjectKind" xml:space="preserve">
+  <data name="ThrowHelper_ParseInputObject_InvalidObjectKind" xml:space="preserve">
     <value>The input object `{1}` must to be serialized as `{2}` or as `IReadOnlyDictionary&lt;string. object?&gt;` but not as `{0}`.</value>
   </data>
-    <data name="ThrowHelper_ParseInputObject_InvalidSyntaxKind" xml:space="preserve">
+  <data name="ThrowHelper_ParseInputObject_InvalidSyntaxKind" xml:space="preserve">
     <value>The syntax node `{0}` is incompatible with the type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_NonNullInputViolation" xml:space="preserve">
+  <data name="ThrowHelper_NonNullInputViolation" xml:space="preserve">
     <value>Cannot accept null for non-nullable input.</value>
   </data>
-    <data name="ThrowHelper_InvalidInputFieldNames" xml:space="preserve">
+  <data name="ThrowHelper_InvalidInputFieldNames" xml:space="preserve">
     <value>The fields `{0}` do not exist on the type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_RequiredInputFieldIsMissing" xml:space="preserve">
+  <data name="ThrowHelper_RequiredInputFieldIsMissing" xml:space="preserve">
     <value>The required input field `{0}` is missing.</value>
   </data>
-    <data name="ThrowHelper_DataLoader_InvalidType" xml:space="preserve">
+  <data name="ThrowHelper_DataLoader_InvalidType" xml:space="preserve">
     <value>The provided type {0} is not a dataloader</value>
   </data>
-    <data name="ThrowHelper_Convention_ConventionCouldNotBeCreated" xml:space="preserve">
+  <data name="ThrowHelper_Convention_ConventionCouldNotBeCreated" xml:space="preserve">
     <value>Convention of type {0} in scope {1} could not be created</value>
   </data>
-    <data name="ThrowHelper_Convention_TwoConventionsRegisteredForScope" xml:space="preserve">
+  <data name="ThrowHelper_Convention_TwoConventionsRegisteredForScope" xml:space="preserve">
     <value>There are two conventions registered for {0} in scope {1}. Only one convention is allowed. Use convention extensions if additional configuration is needed. Colliding conventions are {2} and {3}</value>
   </data>
-    <data name="ThrowHelper_NodeAttribute_IdFieldNotFound" xml:space="preserve">
+  <data name="ThrowHelper_NodeAttribute_IdFieldNotFound" xml:space="preserve">
     <value>The specified id field `{0}` does not exist on `{1}`.</value>
   </data>
-    <data name="ThrowHelper_TypeCompletionContext_UnableToResolveType" xml:space="preserve">
+  <data name="ThrowHelper_TypeCompletionContext_UnableToResolveType" xml:space="preserve">
     <value>Unable to resolve type reference `{0}`.</value>
   </data>
-    <data name="ThrowHelper_TypeRegistrar_CreateInstanceFailed" xml:space="preserve">
+  <data name="ThrowHelper_TypeRegistrar_CreateInstanceFailed" xml:space="preserve">
     <value>Unable to create instance of type `{0}`.</value>
   </data>
-    <data name="ThrowHelper_Convention_UnableToCreateConvention" xml:space="preserve">
+  <data name="ThrowHelper_Convention_UnableToCreateConvention" xml:space="preserve">
     <value>Unable to create a convention instance from {0}.</value>
   </data>
-    <data name="ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound" xml:space="preserve">
+  <data name="ThrowHelper_SubscribeAttribute_SubscribeResolverNotFound" xml:space="preserve">
     <value>Unable to find the subscribe resolver `{2}` defined on {0}.{1}. The subscribe resolver bust be a method that is public, non-static and on the same type as the resolver. (SubscribeAttribute)</value>
   </data>
-    <data name="ThrowHelper_SubscribeAttribute_TopicTypeUnspecified" xml:space="preserve">
+  <data name="ThrowHelper_SubscribeAttribute_TopicTypeUnspecified" xml:space="preserve">
     <value>You need to specify the topic type on {0}.{1}. (SubscribeAttribute)</value>
   </data>
-    <data name="ThrowHelper_SubscribeAttribute_MessageTypeUnspecified" xml:space="preserve">
+  <data name="ThrowHelper_SubscribeAttribute_MessageTypeUnspecified" xml:space="preserve">
     <value>You need to specify the message type on {0}.{1}. (SubscribeAttribute)</value>
   </data>
-    <data name="ThrowHelper_EventMessage_NotFound" xml:space="preserve">
+  <data name="ThrowHelper_EventMessage_NotFound" xml:space="preserve">
     <value>There is no event message on the context.</value>
   </data>
-    <data name="ThrowHelper_EventMessage_InvalidCast" xml:space="preserve">
+  <data name="ThrowHelper_EventMessage_InvalidCast" xml:space="preserve">
     <value>The event message is of the type `{0}` and cannot be casted to `{1}.`</value>
   </data>
-    <data name="ErrorHelper_NeedsOneAtLeastField" xml:space="preserve">
+  <data name="ErrorHelper_NeedsOneAtLeastField" xml:space="preserve">
     <value>The {0} type `{1}` has to at least define one field in order to be valid.</value>
   </data>
-    <data name="ErrorHelper_TwoUnderscoresNotAllowedField" xml:space="preserve">
+  <data name="ErrorHelper_TwoUnderscoresNotAllowedField" xml:space="preserve">
     <value>Field names starting with `__` are reserved for the GraphQL specification.</value>
   </data>
-    <data name="ErrorHelper_TwoUnderscoresNotAllowedOnArgument" xml:space="preserve">
+  <data name="ErrorHelper_TwoUnderscoresNotAllowedOnArgument" xml:space="preserve">
     <value>Argument names starting with `__` are reserved for the GraphQL specification.</value>
   </data>
-    <data name="ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName" xml:space="preserve">
+  <data name="ErrorHelper_TwoUnderscoresNotAllowedOnDirectiveName" xml:space="preserve">
     <value>Names starting with `__` are reserved for the GraphQL specification.</value>
   </data>
-    <data name="ErrorHelper_NotTransitivelyImplemented" xml:space="preserve">
+  <data name="ErrorHelper_NotTransitivelyImplemented" xml:space="preserve">
     <value>The {0} type must also declare all interfaces declared by implemented interfaces.</value>
   </data>
-    <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
+  <data name="ErrorHelper_InvalidFieldType" xml:space="preserve">
     <value>Field `{0}` must return a type which is equal to or a subtype of (covariant) the return type `{1}` of the interface field.</value>
   </data>
-    <data name="ErrorHelper_FieldNotImplemented" xml:space="preserve">
+  <data name="ErrorHelper_FieldNotImplemented" xml:space="preserve">
     <value>The field `{0}` must be implemented by {1} type `{2}`.</value>
   </data>
-    <data name="ErrorHelper_InvalidArgumentType" xml:space="preserve">
+  <data name="ErrorHelper_InvalidArgumentType" xml:space="preserve">
     <value>The named argument `{0}` on field `{1}` must accept the same type `{2}` (invariant) as that named argument on the interface `{3}`.</value>
   </data>
-    <data name="ErrorHelper_AdditionalArgumentNotNullable" xml:space="preserve">
+  <data name="ErrorHelper_AdditionalArgumentNotNullable" xml:space="preserve">
     <value>The field `{0}` must only declare additional arguments to an implemented field that are nullable.</value>
   </data>
-    <data name="ErrorHelper_ArgumentNotImplemented" xml:space="preserve">
+  <data name="ErrorHelper_ArgumentNotImplemented" xml:space="preserve">
     <value>The argument `{0}` of the implemented field `{1}` must be defined. The field `{2}` must include an argument of the same name for every argument defined on the implemented field of the interface type `{3}`.</value>
   </data>
-    <data name="ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
+  <data name="ErrorHelper_OneofInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
     <value>Oneof Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
   </data>
-    <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">
+  <data name="ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf" xml:space="preserve">
+    <value>Cannot reference Input Object `{0}` within itself through a series of non-null fields `{1}`.</value>
+  </data>
+  <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">
     <value>Required argument {0} cannot be deprecated.</value>
   </data>
-    <data name="ErrorHelper_RequiredFieldCannotBeDeprecated" xml:space="preserve">
+  <data name="ErrorHelper_RequiredFieldCannotBeDeprecated" xml:space="preserve">
     <value>Required input field {0} cannot be deprecated.</value>
   </data>
-    <data name="ErrorHelper_InterfaceHasNoImplementation" xml:space="preserve">
+  <data name="ErrorHelper_InterfaceHasNoImplementation" xml:space="preserve">
     <value>There is no object type implementing interface `{0}`.</value>
   </data>
-    <data name="ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface" xml:space="preserve">
+  <data name="ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface" xml:space="preserve">
     <value>Unable to resolve the interface type. For more details look at the error object.</value>
   </data>
-    <data name="ErrorHelper_DirectiveCollection_ArgumentDoesNotExist" xml:space="preserve">
+  <data name="ErrorHelper_DirectiveCollection_ArgumentDoesNotExist" xml:space="preserve">
     <value>The argument `{0}` does not exist on the directive `{1}`.</value>
   </data>
-    <data name="ErrorHelper_DirectiveCollection_ArgumentNonNullViolation" xml:space="preserve">
+  <data name="ErrorHelper_DirectiveCollection_ArgumentNonNullViolation" xml:space="preserve">
     <value>The argument `{0}` of directive `{1}` mustn't be null.</value>
   </data>
-    <data name="ErrorHelper_ObjectType_UnableToInferOrResolveType" xml:space="preserve">
+  <data name="ErrorHelper_ObjectType_UnableToInferOrResolveType" xml:space="preserve">
     <value>Unable to infer or resolve the type of field {0}.{1}. Try to explicitly provide the type like the following: `descriptor.Field("field").Type&lt;List&lt;StringType&gt;&gt;()`.</value>
   </data>
-    <data name="ErrorHelper_Relay_NoNodeResolver" xml:space="preserve">
+  <data name="ErrorHelper_Relay_NoNodeResolver" xml:space="preserve">
     <value>There is no node resolver registered for type `{0}`.</value>
   </data>
-    <data name="ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg" xml:space="preserve">
+  <data name="ErrorHelper_NodeResolver_MustHaveExactlyOneIdArg" xml:space="preserve">
     <value>The node resolver `{0}` must specify exactly one argument.</value>
   </data>
-    <data name="ErrorHelper_NodeResolver_MustReturnObject" xml:space="preserve">
+  <data name="ErrorHelper_NodeResolver_MustReturnObject" xml:space="preserve">
     <value>The node resolver `{0}` must return an object type.</value>
   </data>
-    <data name="ErrorHelper_NodeResolver_NodeTypeHasNoId" xml:space="preserve">
+  <data name="ErrorHelper_NodeResolver_NodeTypeHasNoId" xml:space="preserve">
     <value>The type `{0}` implementing the node interface must expose an id field.</value>
   </data>
-    <data name="ThrowHelper_InvalidInputFieldNames_Single" xml:space="preserve">
+  <data name="ThrowHelper_InvalidInputFieldNames_Single" xml:space="preserve">
     <value>The field `{0}` does not exist on the type `{1}`.</value>
   </data>
-    <data name="ThrowHelper_MutationDuplicateErrorName" xml:space="preserve">
+  <data name="ThrowHelper_MutationDuplicateErrorName" xml:space="preserve">
     <value>Mutation conventions infer the error name from the mutation. In this case the error union was inferred from the mutation `{0}` as `{1}`, but the type initialization encountered another object with the name `{1}`. Either rename the error object or specify a naming exception for this particular mutation. You can do that by using the `UseMutationConventionAttribute` for instance.</value>
   </data>
-    <data name="ErrorHelper_NodeResolverMissing" xml:space="preserve">
+  <data name="ErrorHelper_NodeResolverMissing" xml:space="preserve">
     <value>The type `{0}` implements the node interface but does not provide a node resolver for re-fetching.</value>
   </data>
-    <data name="ThrowHelper_Flags_Enum_Shape_Unknown" xml:space="preserve">
+  <data name="ThrowHelper_Flags_Enum_Shape_Unknown" xml:space="preserve">
     <value>The shape of the enum {0} is not known</value>
   </data>
-    <data name="ThrowHelper_Flags_Parser_NoSelection" xml:space="preserve">
+  <data name="ThrowHelper_Flags_Parser_NoSelection" xml:space="preserve">
     <value>Flags need to have at least one selection. Type: {0}</value>
   </data>
-    <data name="ThrowHelper_Flags_Parser_UnknownSelection" xml:space="preserve">
+  <data name="ThrowHelper_Flags_Parser_UnknownSelection" xml:space="preserve">
     <value>The value {0} is not known for type {1}</value>
   </data>
-    <data name="ThrowHelper_Flags_IllegalFlagEnumName" xml:space="preserve">
+  <data name="ThrowHelper_Flags_IllegalFlagEnumName" xml:space="preserve">
     <value>One of the values of {0} does not have a valid name: {1}</value>
   </data>
-    <data name="Directive_GetArgumentValue_UnknownArgument" xml:space="preserve">
+  <data name="Directive_GetArgumentValue_UnknownArgument" xml:space="preserve">
     <value>The directive '{0}' has no argument with the name '{1}'.</value>
   </data>
-    <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
+  <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
     <value>The directive arguments have invalid values: '{0}' at {1}.</value>
   </data>
-    <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
+  <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
     <value>TypeReference kind not supported.</value>
   </data>
-    <data name="ErrorHelper_FetchedToManyNodesAtOnce" xml:space="preserve">
+  <data name="ErrorHelper_FetchedToManyNodesAtOnce" xml:space="preserve">
     <value>The maximum number of nodes that can be fetched at once is {0}. This selection tried to fetch {1} nodes that exceeded the maximum allowed amount.</value>
   </data>
-    <data name="ThrowHelper_InputTypeExpected_Message" xml:space="preserve">
+  <data name="ThrowHelper_InputTypeExpected_Message" xml:space="preserve">
     <value>The specified type `{0}` is expected to be an input type.</value>
   </data>
-    <data name="ThrowHelper_OutputTypeExpected_Message" xml:space="preserve">
+  <data name="ThrowHelper_OutputTypeExpected_Message" xml:space="preserve">
     <value>The specified type `{0}` is expected to be an output type.</value>
   </data>
-    <data name="TagDirective_Name_NotValid" xml:space="preserve">
+  <data name="TagDirective_Name_NotValid" xml:space="preserve">
     <value>The tag name must follow the GraphQL type name rules.</value>
   </data>
-    <data name="TagDirective_Descriptor_NotSupported" xml:space="preserve">
+  <data name="TagDirective_Descriptor_NotSupported" xml:space="preserve">
     <value>Tag is not supported on the specified descriptor.</value>
   </data>
-    <data name="MutationConvention_ShouldBeEnabled_WhenAddingErrorType" xml:space="preserve">
+  <data name="MutationConvention_ShouldBeEnabled_WhenAddingErrorType" xml:space="preserve">
     <value>Adding an error type `{0}` to field `{1}` failed as mutation conventions weren't enabled.</value>
   </data>
-    <data name="ErrorHelper_DuplicateFieldName_Message" xml:space="preserve">
+  <data name="ErrorHelper_DuplicateFieldName_Message" xml:space="preserve">
     <value>The following {0}{1} `{2}` {3} declared multiple times on `{4}`.</value>
   </data>
-    <data name="ErrorHelper_DuplicateDataMiddlewareDetected_Message" xml:space="preserve">
+  <data name="ErrorHelper_DuplicateDataMiddlewareDetected_Message" xml:space="preserve">
     <value>The field `{0}` declares the data middleware `{1}` more than once.</value>
   </data>
-    <data name="SchemaException_UnexpectedError" xml:space="preserve">
+  <data name="SchemaException_UnexpectedError" xml:space="preserve">
     <value>Unexpected schema exception occurred.</value>
   </data>
-    <data name="SchemaException_ErrorSummaryText" xml:space="preserve">
+  <data name="SchemaException_ErrorSummaryText" xml:space="preserve">
     <value>For more details look at the `Errors` property.</value>
   </data>
   <data name="ThrowHelper_PooledServicesNotAllowed" xml:space="preserve">

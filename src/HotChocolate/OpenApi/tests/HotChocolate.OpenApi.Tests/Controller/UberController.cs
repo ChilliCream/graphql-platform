@@ -51,7 +51,7 @@ public class UberController
     private static readonly List<Product> _products = new()
     {
         new Product("ProductA", "Desc", "Product A", "Cap", "http://img.png"),
-        new Product("ProductB", "Desc", "Product B", "Cap", "http://img.png")
+        new Product("ProductB", "Desc", "Product B", "Cap", "http://img.png"),
     };
 
     [HttpGet]

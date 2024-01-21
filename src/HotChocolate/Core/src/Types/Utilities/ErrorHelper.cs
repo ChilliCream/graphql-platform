@@ -177,6 +177,18 @@ internal static class ErrorHelper
             .SetSpecifiedBy(type.Kind, rfc: 825)
             .Build();
 
+    public static ISchemaError InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf(
+        InputObjectType type,
+        IEnumerable<string> path)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf,
+                type.Name,
+                string.Join(" --> ", path))
+            .SetType(type)
+            .SetSpecifiedBy(type.Kind, rfc: 445)
+            .Build();
+
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
         IComplexOutputType type,
         IOutputField field,
@@ -404,7 +416,7 @@ internal static class ErrorHelper
             .AddSyntaxNode(syntaxNode)
             .SetExtension(nameof(field), field)
             .Build();
-    
+
     public static ISchemaError DuplicateDataMiddlewareDetected(
         FieldCoordinate field,
         ITypeSystemObject type,
@@ -503,8 +515,8 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError DuplicateFieldName(
-        ITypeSystemObject type, 
-        ITypeSystemMember declaringMember, 
+        ITypeSystemObject type,
+        ITypeSystemMember declaringMember,
         IReadOnlyCollection<string> duplicateFieldNames)
     {
         var field = declaringMember is IType

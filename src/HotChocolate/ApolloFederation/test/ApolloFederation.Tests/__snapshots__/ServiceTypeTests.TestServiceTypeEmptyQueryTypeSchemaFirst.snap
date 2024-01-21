@@ -1,3 +1,7 @@
-﻿type Address @key(fields: "matchCode") {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@extends", "@external", "@key", "@inaccessible", "@override", "@provides", "@requires", "@shareable", "@tag", "FieldSet", "@composeDirective", "@interfaceObject", "@authenticated", "@requiresPolicy" ]) {
+  query: Query
+}
+
+type Address @key(fields: "matchCode") {
   matchCode: String!
 }

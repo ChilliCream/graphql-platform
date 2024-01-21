@@ -8,8 +8,8 @@ public class QueryableProjectionNestedTests
 {
     private static readonly Bar[] _barEntities =
     {
-        new() { Foo = new Foo { BarString = "testatest", } },
-        new() { Foo = new Foo { BarString = "testbtest", } }
+        new() { Foo = new Foo { BarString = "testatest" } },
+        new() { Foo = new Foo { BarString = "testbtest" } },
     };
 
     private readonly SchemaCache _cache;

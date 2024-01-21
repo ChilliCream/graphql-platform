@@ -84,7 +84,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLServerOptions
         {
-            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false }
+            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false },
         };
         var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
 
@@ -114,8 +114,8 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 GaTrackingId = "GA-FOO",
                 GraphQLEndpoint = "/foo/bar",
                 UseBrowserUrlAsGraphQLEndpoint = true,
-                DisableTelemetry = true
-            }
+                DisableTelemetry = true,
+            },
         };
         
         var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
@@ -147,7 +147,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLToolOptions
         {
-            ServeMode = GraphQLToolServeMode.Version("5.0.8")
+            ServeMode = GraphQLToolServeMode.Version("5.0.8"),
         };
         var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
 
