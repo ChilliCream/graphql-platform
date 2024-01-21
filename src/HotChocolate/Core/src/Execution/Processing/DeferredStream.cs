@@ -76,6 +76,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         uint patchId)
     {
         var operationContext = operationContextOwner.OperationContext;
+        var cancellationToken = operationContext.RequestAborted;
 
         try
         {
@@ -87,7 +88,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
             // if there is no child task, then there is no more data, so we can complete.
             if (_task.ChildTask is null)
             {
-                operationContext.DeferredScheduler.Complete(new(resultId, parentResultId));
+                operationContext.DeferredScheduler.Complete(new(resultId, parentResultId), cancellationToken);
                 return;
             }
 
@@ -103,14 +104,18 @@ internal sealed class DeferredStream : DeferredExecutionTask
             await _task.ChildTask.CompleteUnsafeAsync().ConfigureAwait(false);
 
             // we will register this same task again to get the next item.
-            operationContext.DeferredScheduler.Register(this, patchId);
-            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
+            var taskDispatcher = operationContext.DeferredScheduler.Register(this, patchId);
+            // we have to complete before dispatching the task again: this protects us from
+            // memory exhaustion if we dispatch tasks faster than we process results.
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result), cancellationToken);
+            // now we can dispatch the task.
+            taskDispatcher.Dispatch();
         }
         catch (Exception ex)
         {
             var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
             var result = QueryResultBuilder.CreateError(builder.Build());
-            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result), cancellationToken);
         }
         finally
         {

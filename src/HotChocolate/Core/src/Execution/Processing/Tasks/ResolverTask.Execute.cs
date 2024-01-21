@@ -232,7 +232,7 @@ internal sealed partial class ResolverTask
             {
                 // if the stream has more items than the initial requested items then we will
                 // defer the rest of the stream.
-                _operationContext.DeferredScheduler.Register(
+                var taskDispatcher = _operationContext.DeferredScheduler.Register(
                     new DeferredStream(
                         Selection,
                         streamDirective.Label,
@@ -242,6 +242,8 @@ internal sealed partial class ResolverTask
                         enumerator,
                         _context.ScopedContextData),
                     _context.ParentResult);
+
+                taskDispatcher.Dispatch();
             }
 
             return list;

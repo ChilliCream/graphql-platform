@@ -360,7 +360,7 @@ internal static class ResolverTaskFactory
             var fragment = fragments[i];
             if (!fragment.IsConditional || fragment.IsIncluded(includeFlags))
             {
-                operationContext.DeferredScheduler.Register(
+                var taskDispatcher = operationContext.DeferredScheduler.Register(
                     new DeferredFragment(
                         fragment,
                         fragment.GetLabel(operationContext.Variables),
@@ -368,6 +368,8 @@ internal static class ResolverTaskFactory
                         parent,
                         scopedContext),
                     parentResult);
+
+                taskDispatcher.Dispatch();
             }
         }
     }

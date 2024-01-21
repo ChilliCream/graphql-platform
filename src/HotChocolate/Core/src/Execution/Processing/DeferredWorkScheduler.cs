@@ -4,6 +4,7 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.QueryResultBuilder;
+using static HotChocolate.Execution.Processing.DeferredExecutionTask;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -60,7 +61,7 @@ internal sealed class DeferredWorkScheduler
     /// <summary>
     /// Registers deferred work
     /// </summary>
-    public void Register(DeferredExecutionTask task, ResultData parentResult)
+    public TaskDispatcher Register(DeferredExecutionTask task, ResultData parentResult)
     {
         // first we get the result identifier which is used to refer to the result that we defer.
         var resultId = StateOwner.State.CreateId();
@@ -79,20 +80,22 @@ internal sealed class DeferredWorkScheduler
         // patches that cannot be applied.
         _parentContext.Result.AddPatchId(patchId);
 
-        // with all in place we will start the execution of the deferred task.
-        task.Begin(taskContextOwner, resultId, patchId);
+        // finally we create a dispatcher for the deferred task.
+        return task.CreateDispatcher(taskContextOwner, resultId, patchId);
     }
 
-    public void Register(DeferredExecutionTask task, uint patchId)
+    public TaskDispatcher Register(DeferredExecutionTask task, uint patchId)
     {
         var resultId = StateOwner.State.CreateId();
         var taskContextOwner = _operationContextFactory.Create();
         taskContextOwner.OperationContext.InitializeFrom(_parentContext);
-        task.Begin(taskContextOwner, resultId, patchId);
+
+        // finally we create a dispatcher for the deferred task.
+        return task.CreateDispatcher(taskContextOwner, resultId, patchId);
     }
 
-    public void Complete(DeferredExecutionTaskResult result)
-        => StateOwner.State.Complete(result);
+    public void Complete(DeferredExecutionTaskResult result, CancellationToken cancellationToken)
+        => StateOwner.State.Complete(result, cancellationToken);
 
     public IAsyncEnumerable<IQueryResult> CreateResultStream(IQueryResult initialResult)
         => new DeferredResultStream(
