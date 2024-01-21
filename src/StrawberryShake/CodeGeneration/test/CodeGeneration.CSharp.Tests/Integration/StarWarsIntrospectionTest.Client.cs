@@ -2834,7 +2834,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         /// <summary>
         /// Indicates this type is a non-null. `ofType` is a valid field.
         /// </summary>
-        NonNull,
+        NonNull
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
