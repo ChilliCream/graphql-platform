@@ -1149,7 +1149,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     {
         NewHope,
         Empire,
-        Jedi
+        Jedi,
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
