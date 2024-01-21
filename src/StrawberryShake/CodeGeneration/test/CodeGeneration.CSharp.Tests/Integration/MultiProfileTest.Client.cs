@@ -1604,7 +1604,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     public enum MultiProfileClientProfileKind
     {
         InMemory,
-        Default
+        Default,
     }
 }
 
