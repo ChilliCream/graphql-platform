@@ -88,7 +88,6 @@ jobs:
       run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
   linting:
     name: "Markdown linting"
-    needs: check-changes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
