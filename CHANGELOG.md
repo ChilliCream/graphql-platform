@@ -461,7 +461,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed issue where input fields were no longer automatically converted.
 - Fixed issue where the float was rounded when provided as variable.
 
-## [10.3.1] - 2020-01-31
+## [10.3.1] - 2019-12-31
 
 ### Fixed
 
