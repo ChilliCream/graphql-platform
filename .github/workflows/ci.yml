@@ -86,7 +86,21 @@ jobs:
 
     - name: run cspell
       run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
-
+  linting:
+    name: "Markdown linting"
+    needs: check-changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Check out the code
+      - uses: actions/setup-node@v4
+        name: Setup node
+        with:
+          node-version: '20'
+      - run: npm install -g markdownlint-cli2
+        name: Install markdownlint-cli2
+      - run: markdownlint-cli2 --config ".github/linters/.markdownlint.yml" "website/src/**/*.md"
+        name: run Markdownlint
   website-tests:
     name: "Website Tests"
     needs: check-changes
