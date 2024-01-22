@@ -15,12 +15,14 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
     private string? _label;
     private Path? _path;
     private bool? _hasNext;
+    private bool? _isDataSet;
     private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
 
     public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {
         _data = data;
         _items = null;
+        _isDataSet = true;
         return this;
     }
 
@@ -176,7 +178,8 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             _label,
             _path,
             _hasNext,
-            _cleanupTasks);
+            _cleanupTasks,
+            _isDataSet ?? false);
 
     public static QueryResultBuilder New() => new();
 
@@ -210,6 +213,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         builder._label = result.Label;
         builder._path = result.Path;
         builder._hasNext = result.HasNext;
+        builder._isDataSet = result.IsDataSet;
 
         return builder;
     }
