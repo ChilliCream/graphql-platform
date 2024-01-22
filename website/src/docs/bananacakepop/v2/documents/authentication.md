@@ -66,9 +66,9 @@ The following fields are available required:
 
 - **[Grant Type](https://datatracker.ietf.org/doc/html/rfc6749#section-1.3)**: This is the method an application uses to obtain an access token. Common values include 'authorization_code', 'client_credentials', 'password', and 'refresh_token'. Each type serves a different use case, such as a web application, machine-to-machine, mobile apps, etc.
 
-- **Authorization URL**: This is the URL to which your application directs the user in the initial step of the authorization process. It usually looks something like 'https://auth.example.com/authorize'.
+- **Authorization URL**: This is the URL to which your application directs the user in the initial step of the authorization process. It usually looks something like '<https://auth.example.com/authorize>'.
 
-- **Access Token URL**: This is the URL your application uses to obtain the access token from the authorization server. It's typically of the form 'https://auth.example.com/token'.
+- **Access Token URL**: This is the URL your application uses to obtain the access token from the authorization server. It's typically of the form '<https://auth.example.com/token>'.
 
 - **[Client ID](https://datatracker.ietf.org/doc/html/rfc6749#section-2.2)**: This is a public identifier for your application, issued by the authorization server when you register your application. It's used to identify your application to the user during authorization.
 

@@ -47,7 +47,7 @@ Lets guide you through the process of creating your first GraphQL query document
 **Step 2:** Click on the "Create Document" button to initiate the creation of your first query document.
 
 **Step 3:** You'll see a new document called 'untitled 1' generated. Simultaneously, the connection settings dialog box will pop up automatically.
-Now, input the following link into the 'Schema Endpoint' field: https://workshop.chillicream.com/graphql
+Now, input the following link into the 'Schema Endpoint' field: <https://workshop.chillicream.com/graphql>
 It should resemble this:
 ![Banana Cake Pop - Start](./images/getting-started-1.png)
 
