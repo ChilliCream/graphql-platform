@@ -50,7 +50,7 @@ public abstract class TypeModule : ITypeModule
     /// </summary>
     public event EventHandler<EventArgs>? TypesChanged;
 
-    internal virtual ValueTask ConfigureAsync(
+    protected internal virtual ValueTask ConfigureAsync(
         ConfigurationContext context,
         CancellationToken cancellationToken)
         => default;

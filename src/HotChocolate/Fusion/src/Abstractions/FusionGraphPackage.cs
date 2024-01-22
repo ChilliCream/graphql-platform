@@ -69,7 +69,8 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(access));
         }
 
-        var package = Package.Open(stream, FileMode.OpenOrCreate, access);
+        // ReSharper disable once AccessToStaticMemberViaDerivedType
+        var package = ZipPackage.Open(stream, FileMode.OpenOrCreate, access);
         return new FusionGraphPackage(package);
     }
 
@@ -107,7 +108,8 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         var mode = access == FileAccess.Read
             ? FileMode.Open
             : FileMode.OpenOrCreate;
-        var package = Package.Open(path, mode, access);
+        // ReSharper disable once AccessToStaticMemberViaDerivedType
+        var package = ZipPackage.Open(path, mode, access);
         return new FusionGraphPackage(package);
     }
 
@@ -560,7 +562,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
 
         return new SubgraphConfiguration(
             config.Name,
-            schema.ToString(true),
+            schema.ToString(indented: true),
             extensions.Select(t => t.ToString(_syntaxSerializerOptions)).ToArray(),
             config.Clients,
             config.Extensions);

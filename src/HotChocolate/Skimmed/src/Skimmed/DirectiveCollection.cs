@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
@@ -85,12 +86,7 @@ public sealed class DirectiveCollection : ICollection<Directive>
         => _directives.Clear();
 
     public void CopyTo(Directive[] array, int arrayIndex)
-    {
-        foreach (var directive in _directives)
-        {
-            array[arrayIndex++] = directive;
-        }
-    }
+        => _directives.CopyTo(array, arrayIndex);
 
     /// <inheritdoc />
     public IEnumerator<Directive> GetEnumerator()
@@ -98,5 +94,4 @@ public sealed class DirectiveCollection : ICollection<Directive>
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-
 }

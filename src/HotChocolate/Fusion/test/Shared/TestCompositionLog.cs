@@ -16,7 +16,7 @@ public sealed class TestCompositionLog : ICompositionLog
 
     public void Write(LogEntry entry)
     {
-        if(entry.Severity == LogSeverity.Error)
+        if (entry.Severity == LogSeverity.Error)
         {
             HasErrors = true;
         }

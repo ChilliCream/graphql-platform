@@ -716,18 +716,20 @@ public static partial class SchemaBuilderExtensions
 
     private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
     {
-        if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
+        if (builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
         {
-            var resolverConfigs = new List<FieldResolverConfig>();
-            var resolverTypes = new List<(string, Type)>();
-            var runtimeTypes = new Dictionary<string, Type>();
-
-            builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
-            builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
-            builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
-
-            builder.TryAddTypeInterceptor(
-                new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
+            return;
         }
+
+        var resolverConfigs = new List<FieldResolverConfig>();
+        var resolverTypes = new List<(string, Type)>();
+        var runtimeTypes = new Dictionary<string, Type>();
+
+        builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
+        builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
+        builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
+
+        builder.TryAddTypeInterceptor(
+            new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
     }
 }
