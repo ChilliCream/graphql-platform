@@ -1662,7 +1662,7 @@ public class AnnotationBasedMutations
             {
                 new(),
                 new(),
-                new()
+                new(),
             };
 
         public class AddItemInput
