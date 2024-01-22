@@ -568,6 +568,6 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }
