@@ -3,7 +3,7 @@ title: "Open Telemetry"
 ---
 
 ![Image](images/telemetry-0.png)
-Banana Cake Pop can collect your open telemetry data and visualize your traces in the app. 
+Banana Cake Pop can collect your open telemetry data and visualize your traces in the app.
 With telemetry you can get a better understanding of how your application is performing and where you can improve it.
 
 ![Image](images/telemetry-1.png)
@@ -80,7 +80,7 @@ The monitoring dashboard in Banana Cake Pop offers various metrics and visualiza
 
 ## Changing the time range
 ![Image](images/telemetry-2.png)
-You can change the time range of the dashboard by clicking on the time range selector in the top right corner of the dashboard. 
+You can change the time range of the dashboard by clicking on the time range selector in the top right corner of the dashboard.
 You can either customize the time range or select one of the predefined ranges.
 
 ## Latency
@@ -105,7 +105,7 @@ Shows you the number of operations with errors over time.
 
 ## Insights
 ![Image](images/telemetry-7.png)
-This insights show you a list of executed operations. You can see the latency, the throughput and also how many percent of the operations had errors. You also have a column impact, which will help you to understand which operations are impacting your system the most.  You can sort the columns by clicking on the column header. 
+This insights show you a list of executed operations. You can see the latency, the throughput and also how many percent of the operations had errors. You also have a column impact, which will help you to understand which operations are impacting your system the most.  You can sort the columns by clicking on the column header.
 
 By clicking on an operation, you can see the telemetry information about the operation and it's traces.
 
@@ -128,7 +128,7 @@ You can also select a time range in the graph. This selection will impact which 
 
 ## Traces
 ![Image](images/telemetry-12.png)
-On the very bottom of the page you see sample traces of the selected operation with all of the spans. 
+On the very bottom of the page you see sample traces of the selected operation with all of the spans.
 
 If you click on a trace, the sidebar will show additional information about the trace including all the attributes of it.
 ![Image](images/telemetry-13.png)

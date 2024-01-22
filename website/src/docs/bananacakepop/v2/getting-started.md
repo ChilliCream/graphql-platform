@@ -1,7 +1,7 @@
 ---
 title: "Getting Started"
 ---
-Ready to explore the delicious features of Banana Cake Pop? In this getting started guide, we'll show you how to get up and running with Banana Cake Pop. 
+Ready to explore the delicious features of Banana Cake Pop? In this getting started guide, we'll show you how to get up and running with Banana Cake Pop.
 You have the option to choose between the convenience of the web app or the enhanced capabilities of the desktop version. We'll guide you through the setup process, so you can start enjoying all that Banana Cake Pop has to offer.
 
 Get ready to unlock the full potential of GraphQL with Banana Cake Pop. Choose your preferred option and follow the setup instructions to start enjoying the delicious features that Banana Cake Pop has to offer.
@@ -13,7 +13,7 @@ To begin your exploration, simply visit [eat.bananacakepop.com](https://eat.bana
 
 You can install the Banana Cake Pop App directly from our [download page](/products/bananacakepop). The download page provides DMG installers for macOS, x64 installers for Windows, and AppImage/Snap installers for Ubuntu and Ubuntu-based Linux distributions. Note that other Linux distributions or installer formats are currently unsupported.
 
-## Package Managers 
+## Package Managers
 
 1. **Homebrew**: If you have [Homebrew](https://brew.sh) installed, use this command to install the app:
 
@@ -37,12 +37,12 @@ Upon successful installation, follow the steps in the [Your first Query](#your-f
 
 Lets guide you through the process of creating your first GraphQL query document using Banana Cake Pop.
 
-**Step 1:** Start the Banana Cake Pop application. You should see an interface similar to this: 
+**Step 1:** Start the Banana Cake Pop application. You should see an interface similar to this:
 ![Banana Cake Pop - Start](./images/getting-started-0.png)
 
 **Step 2:** Click on the "Create Document" button to initiate the creation of your first query document.
 
-**Step 3:** You'll see a new document called 'untitled 1' generated. Simultaneously, the connection settings dialog box will pop up automatically. 
+**Step 3:** You'll see a new document called 'untitled 1' generated. Simultaneously, the connection settings dialog box will pop up automatically.
 Now, input the following link into the 'Schema Endpoint' field: https://workshop.chillicream.com/graphql
 It should resemble this:
 ![Banana Cake Pop - Start](./images/getting-started-1.png)
@@ -77,8 +77,8 @@ Take note of the following key elements:
 
 **Step 7:** Click on the 'Run' button. You should see a response with data in the 'Response' area. Congratulations, you have completed a GraphQL query!
 
-**Step 8:** 
-Now, let's save your document. 
+**Step 8:**
+Now, let's save your document.
 
 ![Banana Cake Pop - Start](./images/getting-started-3.png)
 Sign in to your account by clicking the 'Sign In' button on the user icon in the bottom left corner of the screen. If you don't have an account, you can create a new one.

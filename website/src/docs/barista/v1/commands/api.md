@@ -4,7 +4,7 @@ title: API Management
 
 The `barista api` command provides a set of subcommands that allow you to manage APIs.
 
-# Create an API 
+# Create an API
 
 The `barista api create` command is used to create a new API.
 
@@ -13,7 +13,7 @@ barista api create
 ```
 
 
-# Delete an API 
+# Delete an API
 
 The `barista api delete` command is used to delete an API by its ID.
 
@@ -46,7 +46,7 @@ barista api show abc123
 
 - `<id>`: Specifies the ID of the API whose details you want to see.
 
-# Set API Settings 
+# Set API Settings
 
 The `barista api set-settings` command is used to set the settings of an API.
 

@@ -5,7 +5,7 @@ title: Stages
 # Working with Stages
 
 ![Screenshot of the Stages overview](images/stages-0.png)
-A stage represents an environment of your service, such as development, staging, or production. Each stage can have an active schema and multiple active client versions. 
+A stage represents an environment of your service, such as development, staging, or production. Each stage can have an active schema and multiple active client versions.
 
 Stages are integral to the lifecycle management of your GraphQL APIs. They enable you to manage different environments of your service, such as development, staging, or production. Each stage can have an active schema, multiple active client versions and telemetry reports. The active schema and client versions for a stage represent the current state of your API for that environment.
 
@@ -19,7 +19,7 @@ If you do not have stages yet, you can go the the `Stages` tab and click on `Use
 You can always edit these stages or add new ones by clicking the `Edit Stages` button.
 ![Screenshot of the Stages overview](images/stages-2.png)
 
-The stages dialog allows you to add and edit stages. You can also delete stages, but only if they are not used by any client or schema. 
+The stages dialog allows you to add and edit stages. You can also delete stages, but only if they are not used by any client or schema.
 
 Stages are edited in a yaml editor. The default configuration looks like this:
 

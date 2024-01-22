@@ -3,7 +3,7 @@ title: Apis
 ---
 
 ![Image](images/apis-6.png)
-An API within the context of Banana Cake Pop, refers to an representation of your GraphQL Servers. 
+An API within the context of Banana Cake Pop, refers to an representation of your GraphQL Servers.
 This representation is more than a mere conceptual framework — it serves as a practical tool that allows you to group your documents and share common settings like connection and authorization parameters among them.
 
 Additionally, an API forms the foundation for your client registry, schema registry setup and the telemetry. For more detailed information on these features, refer to the [Schema Registry](/docs/bananacakepop/v2/apis/schema-registry) guide

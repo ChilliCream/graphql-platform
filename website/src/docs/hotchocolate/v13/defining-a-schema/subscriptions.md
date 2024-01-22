@@ -4,7 +4,7 @@ title: "Subscriptions"
 
 <Video videoId="wHC9gOk__y0" />
 
-GraphQL subscriptions provide real-time functionality to applications by allowing clients to subscribe to specific events. When these events trigger, the server immediately sends updates to the subscribed clients. 
+GraphQL subscriptions provide real-time functionality to applications by allowing clients to subscribe to specific events. When these events trigger, the server immediately sends updates to the subscribed clients.
 
 # Transport Mechanisms for GraphQL Subscriptions
 
@@ -40,9 +40,9 @@ Another advantage of SSE is its better compatibility with firewalls compared to 
 - Less Complex: SSE is less complex than WebSockets as it only allows for one-way communication.
 - Better Firewall Compatibility: SSE generally encounters fewer issues with firewalls.
 
-Choosing between GraphQL over WebSockets and GraphQL over SSE depends on the specific needs of your application. If you need full-duplex, real-time communication, WebSockets may be the best choice. If you only need server-to-client real-time communication and want to take advantage of existing HTTP infrastructure, SSE could be a better option. 
+Choosing between GraphQL over WebSockets and GraphQL over SSE depends on the specific needs of your application. If you need full-duplex, real-time communication, WebSockets may be the best choice. If you only need server-to-client real-time communication and want to take advantage of existing HTTP infrastructure, SSE could be a better option.
 
-Special thanks to Denis Badurina, @enisdenjo on [Twitter](https://twitter.com/enisdenjo) and [GitHub](https://github.com/enisdenjo). He is the creator of [graphql-http](https://github.com/enisdenjo/graphql-http), [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [graphql-sse](https://github.com/enisdenjo/graphql-sse). 
+Special thanks to Denis Badurina, @enisdenjo on [Twitter](https://twitter.com/enisdenjo) and [GitHub](https://github.com/enisdenjo). He is the creator of [graphql-http](https://github.com/enisdenjo/graphql-http), [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [graphql-sse](https://github.com/enisdenjo/graphql-sse).
 
 # Usage
 

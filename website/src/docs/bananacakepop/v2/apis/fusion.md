@@ -3,7 +3,7 @@ title: "Fusion"
 ---
 ![Image](images/fusion-0.png)
 
-BananaCakePop can be used as your orchestrator for your Fusion Gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion Gateway. 
+BananaCakePop can be used as your orchestrator for your Fusion Gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion Gateway.
 
 
 ![Image](images/fusion-2.png)
@@ -25,9 +25,9 @@ You also see the essential information about your gateway, such as the version, 
 
 ## Insights
 ![Image](images/fusion-5.png)
-The subgraph insights show you a quick overview over your connected subgraphs. You can see the latency, throughput and error rate of each subgraph. 
+The subgraph insights show you a quick overview over your connected subgraphs. You can see the latency, throughput and error rate of each subgraph.
 
-# Gateway Management 
+# Gateway Management
 With fusion you compose your gateway configuration locally when you deploy a subgraph. This means that you somehow need to inform your gateway that there is a new configuration available.
 
 With Banana Cake Pop you can automate this process. You can configure your gateway to automatically pull the latest configuration from Banana Cake Pop. This way you can be sure that your gateway always has the latest configuration. You can also validate your configuration against the schema and client registry to make sure that your change does not break any clients.
@@ -67,7 +67,7 @@ builder.Services
 
 Now your gateway will be notified whenever there is a new configuration available and will automatically pull it.
 
-## Configure Your Subgraphs 
+## Configure Your Subgraphs
 
 To set up your subgraphs to be linked with your gateway, you need to follow these steps:
 
@@ -108,7 +108,7 @@ services
 
 > **Tip: Using Environment Variables**
 >
-> Alternatively, you can also set the required values using environment variables. 
+> Alternatively, you can also set the required values using environment variables.
 
 This configuration enables your subgraph to interact with the BananaCakePop services, including telemetry and instrumentation.
 
@@ -130,21 +130,21 @@ Here’s an example of what the `subgraph-config.json` file should look like:
 }
 ```
 
-This file is required for the topology to recognize and display your subgraph correctly. 
+This file is required for the topology to recognize and display your subgraph correctly.
 
 ### Step 4: Pack your subgraph and compose your Gateway
 
-After configuring your subgraph you have to `pack` your subgraph and `compose` your gateway. 
+After configuring your subgraph you have to `pack` your subgraph and `compose` your gateway.
 This process links your subgraph with the gateway, ensuring a cohesive GraphQL architecture.
 
 ## Integration into your CI/CD pipeline
-The deployment of a subgraph is a multi step process. To integrate BananaCakePop into this process you need to install Barista, the BananaCakePop CLI. You can find more information about Barista in the [Barista Documentation](/docs/barista/v1). 
+The deployment of a subgraph is a multi step process. To integrate BananaCakePop into this process you need to install Barista, the BananaCakePop CLI. You can find more information about Barista in the [Barista Documentation](/docs/barista/v1).
 ```bash
 dotnet new tool-manifest
 dotnet tool install Barista
 ```
 
-You will also need the [Command Line Tools](https://www.nuget.org/packages/HotChocolate.Fusion.CommandLine) for packing and composing your subgraph. 
+You will also need the [Command Line Tools](https://www.nuget.org/packages/HotChocolate.Fusion.CommandLine) for packing and composing your subgraph.
 
 ```bash
 dotnet tool install HotChocolate.Fusion.CommandLine
@@ -163,7 +163,7 @@ dotnet fusion subgraph pack
 
 This step is usually done in a separate build step in your CI/CD pipeline where you build and test your project before you go into the deployment phase.
 
-### 2. Wait for a deployment slot 
+### 2. Wait for a deployment slot
 Once your changes are ready to be deployed, you need to wait for a deployment slot. There can only ever be one deployment at the time. If there is already a deployment in progress, you need to wait until it is finished.
 
 Banana Cake Pop helps you coordinate your subgraph deployments. You register for a deployment by calling:
@@ -188,7 +188,7 @@ dotnet barista fusion-configuration publish start --api-key <<api-key>>
 ### 4. Configure the subgraph
 As most likely, your connection information is different from environment to environment, you need to configure the url of your subgraph. You can do this by calling:
 
-```bash 
+```bash
 dotnet fusion subgraph config set http \
   --url <<url>> 
   -c path/to/your/subgraph/config.fsp
@@ -244,7 +244,7 @@ Banana Cake Pop provides a distributed telemetry solution for your Fusion Gatewa
 
 To enable telemetry for your gateway and subgraphs, all of them need to be configured to send telemetry data to Banana Cake Pop. Your subgraphs can be configured to send telemetry data by using the [BananaCakePop.Services](https://www.nuget.org/packages/BananaCakePop.Services/) package. You can find more information about how to configure your subgraphs in the [Open Telemetry](/docs/bananacakepop/v2/apis/open-telemetry) guide.
 
-To send telemetry data from the gateway you need to add the instrumentation and the exporter to your gateway. 
+To send telemetry data from the gateway you need to add the instrumentation and the exporter to your gateway.
 
 ```csharp
 builder.Services
