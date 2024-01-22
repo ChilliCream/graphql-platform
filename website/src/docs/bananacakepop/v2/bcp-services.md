@@ -11,11 +11,13 @@ To get started, follow these steps:
 1. Set up a client registry as instructed [here](/docs/bananacakepop/v2/apis/client-registry).
 
 2. Install the BananaCakePop package from NuGet using the following command:
+
 ```bash
 dotnet add package BananaCakePop.Services
 ```
 
 3. Configure your services as shown in the following code snippet:
+
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 

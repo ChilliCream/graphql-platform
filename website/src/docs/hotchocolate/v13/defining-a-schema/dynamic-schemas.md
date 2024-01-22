@@ -191,6 +191,7 @@ A resolver in Hot Chocolate is a delegate that fetches the data for a specific f
     ```csharp
     public delegate ValueTask<object?> FieldResolverDelegate(IResolverContext context);
     ```
+
     _Async Resolvers_ are are typically async and have access to a `IResolverContext`. They are usually used for fetching data from services or databases.
 
 2. **Pure Resolvers**:
@@ -198,6 +199,7 @@ A resolver in Hot Chocolate is a delegate that fetches the data for a specific f
     ```csharp
     public delegate object? PureFieldDelegate(IPureResolverContext context);
     ```
+
     _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate.
     The execution engine optimizes the execution of these resolvers (through inlining of the value completion) to make it significantly faster.
 

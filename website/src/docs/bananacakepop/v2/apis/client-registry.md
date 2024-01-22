@@ -106,6 +106,7 @@ public void ConfigureServices(IServiceCollection services)
 >- `BCP_API_KEY` maps to `ApiKey`
 >- `BCP_API_ID` maps to `ApiId`
 >- `BCP_STAGE` maps to `Stage`
+>
 >```csharp
 >public void ConfigureServices(IServiceCollection services)
 >{
@@ -116,6 +117,7 @@ public void ConfigureServices(IServiceCollection services)
 >        .UsePersistedQueryPipeline(); // Enable the persisted query pipeline
 >}
 >```
+>
 >In this setup, the API key, ID, and stage are set through environment variables.
 
 ## Block Ad-Hoc Queries

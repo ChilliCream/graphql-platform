@@ -23,10 +23,13 @@ brew install --cask banana-cake-pop
 ```
 
 2. **Windows Package Manager**: For Windows 11 or a supported version of Windows 10 with the [Windows Package Manager](https://docs.microsoft.com/en-us/windows/package-manager/) installed, use:
+
     ```powershell
     winget install banana-cake-pop
     ```
+
 3. **Scoop**: To install on Windows 7, 10, or 11 using [Scoop](https://scoop.sh/), run these commands:
+
     ```powershell
     scoop bucket add extras
     scoop install banana-cake-pop

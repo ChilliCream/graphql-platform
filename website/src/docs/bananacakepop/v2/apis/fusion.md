@@ -63,11 +63,13 @@ builder.Services
 >- `BCP_API_KEY` maps to `ApiKey`
 >- `BCP_API_ID` maps to `ApiId`
 >- `BCP_STAGE` maps to `Stage`
+>
 >```csharp
 > builder.Services
 >   .AddFusionGatewayServer()
 >   .ConfigureFromCloud();                
 >```
+>
 >In this setup, the API key, ID, and stage are set through environment variables.
 
 Now your gateway will be notified whenever there is a new configuration available and will automatically pull it.
@@ -145,6 +147,7 @@ This process links your subgraph with the gateway, ensuring a cohesive GraphQL a
 ## Integration into your CI/CD pipeline
 
 The deployment of a subgraph is a multi step process. To integrate BananaCakePop into this process you need to install Barista, the BananaCakePop CLI. You can find more information about Barista in the [Barista Documentation](/docs/barista/v1).
+
 ```bash
 dotnet new tool-manifest
 dotnet tool install Barista
@@ -276,6 +279,7 @@ builder.Services
 ```
 
 Now your gateway will send the telemetry data to Banana Cake Pop. To connect your subgraphs to the gateway, you need to add an extension to your `subgraph-config.json`. You need to specify the `apiId` of the subgraph
+
 ```json
 {
   "subgraph": "Order",

@@ -219,6 +219,7 @@ In the `user` query field, the `active` argument has a default value of `true`. 
 In resolvers, arguments with default values are treated as optional. If the client does not provide a value, the resolver will receive the default value. This makes handling optional fields in your resolvers much easier.
 
 This means you can write the following query against the schema described before:
+
 ```graphql
 query fetchUser {
   user { # active is not needed
@@ -305,6 +306,7 @@ input UserInput {
   active: Boolean! = true
 }
 ```
+
 </Schema>
 </ExampleTabs>
 
@@ -406,6 +408,7 @@ input UserProfileInput {
   preferences: PreferencesInput = { notifications: true, theme: "light" }
 }
 ```
+
 </Schema>
 </ExampleTabs>
 
