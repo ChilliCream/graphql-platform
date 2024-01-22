@@ -5,6 +5,7 @@ Ready to explore the delicious features of Banana Cake Pop? In this getting star
 You have the option to choose between the convenience of the web app or the enhanced capabilities of the desktop version. We'll guide you through the setup process, so you can start enjoying all that Banana Cake Pop has to offer.
 
 Get ready to unlock the full potential of GraphQL with Banana Cake Pop. Choose your preferred option and follow the setup instructions to start enjoying the delicious features that Banana Cake Pop has to offer.
+
 # Web App
 
 To begin your exploration, simply visit [eat.bananacakepop.com](https://eat.bananacakepop.com/) and experience the convenience of Banana Cake Pop's web-based version. This excellent starting point allows you to conveniently probe public GraphQL APIs and access most of the features that Banana Cake Pop offers. For an even more immersive experience, you can also install the web app as a Progressive Web App (PWA) on your device, providing a native-like experience.

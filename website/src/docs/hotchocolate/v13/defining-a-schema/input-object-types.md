@@ -240,6 +240,7 @@ type Query {
 Despite the addition of the `role` argument, the `fetchUser` query can still be executed without supplying this new argument, as the `role` will default to `"user"`.
 
 ## Specifying DefaultValues
+
 The `DefaultValueAttribute` or the `DefaultValue` method on the field descriptor, allow you to assign default values to your fields or arguments.
 
 Consider the following scenario where we have a `UserInput` type with different fields like `name`, `active`. By default, we would like `active` to be `true`.

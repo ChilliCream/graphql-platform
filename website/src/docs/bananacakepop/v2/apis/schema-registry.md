@@ -88,6 +88,7 @@ public async Task Schema_Should_Not_Change()
   schema.MatchSnapshot();
 }
 ```
+
 # Setting Up a Schema Registry
 
 To set up a schema registry, first, visit `eat.bananacakepop.com` and sign up for an account. Next, you'll need to download and install Barista, the .NET tool used to manage your schema registry. You can find more information about Barista in the [Barista Documentation](/docs/barista/v1).

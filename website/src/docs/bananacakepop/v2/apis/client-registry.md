@@ -119,6 +119,7 @@ public void ConfigureServices(IServiceCollection services)
 >In this setup, the API key, ID, and stage are set through environment variables.
 
 ## Block Ad-Hoc Queries
+
 While you want to allow ad-hoc queries during development, you might want to disable them in production.
 This can be done by setting the `OnlyAllowPersistedQueries` option to `true` in the `ModifyRequestOptions` method.
 

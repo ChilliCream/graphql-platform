@@ -17,6 +17,7 @@ By switching the active environment in Banana Cake Pop, the base URL will update
 Similarly, identifiers such as client ID and client secret can be defined as environment variable, which make it convenient to work with.
 
 # Creating Environments
+
 ![Screenshot showing the environment](images/env-0.png)
 To create a new environment, follow these steps:
 1. Click on the environment icon on the left side of your screen.
@@ -24,10 +25,12 @@ To create a new environment, follow these steps:
 3. Enter a name for the environment.
 
 # Rename Environments
+
 ![Screenshot showing the environment](images/env-1.png)
 You can rename by right-clicking on the environment and selecting the 'Rename' option.
 
 # Specifying Variables
+
 ![Screenshot showing the environment](images/env-2.png)
 
 To open the environment variable editor, click on the environment you would like to edit.
@@ -39,11 +42,13 @@ To open the environment variable editor, click on the environment you would like
 5. **Apply**: Clicking the 'Apply' button will save the environment variables.
 
 # Switching Environments
+
 ![Screenshot showing the environment](images/env-3.png)
 To switch environments, click on the environment name in the status bar. A dropdown menu will appear, listing all available environments.
 After selecting an environment, the environment variables of the selected environment will be active and applied to all documents.
 
 # Using Variables
+
 ![Screenshot showing the environment](images/env-4.png)
 Once you have defined an environment variable, you can reference it in your documents by using the following syntax: `{{variable_name}}`.
 Environment variable can be employed in a variety of places within Banana Cake Pop, such as URLs, GraphQL Variables, and Connection Settings. When a request is executed, any referenced environment variable will be substituted with their respective values.

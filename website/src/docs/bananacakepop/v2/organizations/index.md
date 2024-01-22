@@ -4,6 +4,7 @@ title: "Organizations"
 This guide will walk you through the features and functionalities of BCP Organizations, a structure designed to help teams and individuals work efficiently and effectively on GraphQL related services.
 
 # What is an Organization
+
  An organization typically represents an entire entity or a larger unit within an entity. Each organization can host multiple workspaces, allowing further categorization and organization of resources. A workspace might correspond to a specific project, a specific team within the organization, or a group of related APIs.
 
 Each BCP user has a personal organization. This is a private space for individual work or for projects that are not associated with any team or company organization. The personal organization is not visible to other users, is created by default and cannot be deleted.
@@ -24,6 +25,7 @@ The name must be lowercase and may only include dashes (-) and underscores (_).
 ![Screenshot of the create organization screen](images/create-2.png)
 
 # Managing Organizations
+
 To manage your organizations, you have to open the management portal.
 
 ![Screenshot showing the manage button in the organization switcher](images/manage-0.png)
@@ -33,6 +35,7 @@ In the client app, you can do this by clicking Manage Organizations'  and then '
 You can also navigate to [here](https://identity.chillicream.com/Organizations) to open the management portal and press 'Manage' on the organization that you like to manage.
 
 # Switching Organizations
+
 In Banana Cake Pop, you can be signed into multiple organizations at the same time and switch between them in the status bar. The organization switcher also allows you to create new organizations.
 
 ![Screenshot showing the organization switcher in the status bar](images/switch-0.png)
@@ -50,6 +53,7 @@ In Banana Cake Pop, you can be signed into multiple organizations at the same ti
 4. Open invitations are displayed below. You can revoke an invitation by clicking on the 'Cancel' button. Once an invitation is expired, you can resend it by clicking on the 'Resend' button.
 
 ## Joining an Organization
+
 Invited users can join an organization in two ways:
 
 1. By clicking on the join link they received via email.

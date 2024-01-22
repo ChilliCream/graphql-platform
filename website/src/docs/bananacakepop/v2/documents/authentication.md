@@ -44,6 +44,7 @@ You will need to provide at least the token. The following fields are available:
 - **Authorization Header**: A preview of the header that will be used for authentication. This field is auto-generated based on the provided token and prefix.
 
 Learn more about Bearer Token Authentication [here](https://swagger.io/docs/specification/authentication/bearer-authentication/).
+
 # OAuth 2.0
 
 OAuth 2.0 authentication flow is a industry-standard authorization framework. It allows third-party applications to gain limited access to a web service through a server that supports the OAuth 2.0 protocol. Most major identity providers support OAuth 2.0, including Auth0, Okta, AWS Cognito, Azure AD, and more.

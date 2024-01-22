@@ -223,6 +223,7 @@ services
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
 
 ## Postgres Provider
+
 The PostgreSQL Subscription Provider enables your GraphQL server to provide real-time updates to your clients using PostgreSQL's native `LISTEN/NOTIFY` mechanism. This provider is ideal for applications that already use PostgreSQL and want to avoid the overhead of running a separate pub/sub service.
 
 In order to use the PostgreSQL provider we have to add the `HotChocolate.Subscriptions.Postgres` package.

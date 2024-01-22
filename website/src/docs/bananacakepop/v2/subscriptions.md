@@ -37,6 +37,7 @@ If your subscription expires, all users except the organization owner will be de
 If your organization reaches its maximum seat limit, no new users will be able to join the organization. You can manage this by either upgrading your subscription to allow for more seats or by removing existing users from the organization to free up seats.
 
 # Billing
+
 In the client app you can directly access the billing portal by clicking 'Billing' and managing your running subscriptions:
 ![Description of visualization: Screenshot showing the subscription](images/subscription-1.png)
 
