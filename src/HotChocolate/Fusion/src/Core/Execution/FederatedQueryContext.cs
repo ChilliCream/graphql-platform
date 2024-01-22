@@ -38,7 +38,7 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(clientFactory));
         _idSerializer = idSerializer ??
             throw new ArgumentNullException(nameof(idSerializer));
-        _nodeIdParser = nodeIdParser ??
+        _nodeIdParser = nodeIdParser ?? 
             throw new ArgumentNullException(nameof(nodeIdParser));
         _schemaName = Schema.Name;
     }
@@ -101,7 +101,7 @@ internal sealed class FusionExecutionContext : IDisposable
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
-
+    
     public string ParseTypeNameFromId(string id)
         => _nodeIdParser.ParseTypeName(id);
 

@@ -39,7 +39,7 @@ public class QueryableFilterVisitorStringTests
                 .SetQuery(
                     """
                     {
-                      root(where: { bar: { eq: "testatest"}}) {
+                      root(where: { bar: { eq: "testatest"}}) { 
                         bar
                       }
                     }
