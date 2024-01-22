@@ -1122,7 +1122,6 @@ public class AnnotationBasedMutations
                 .AddGraphQL()
                 .AddQueryType(d => d.Field("abc").Resolve("def"))
                 .AddMutationType<ListReturnMutation>()
-                .AddType<ListReturnMutation.ResultItem>()
                 .AddMutationConventions()
                 .BuildSchemaAsync();
 
