@@ -41,13 +41,21 @@ public class NatsIntegrationTests : SubscriptionIntegrationTestBase, IClassFixtu
     public override Task Subscribe_Topic_With_2_Arguments()
         => base.Subscribe_Topic_With_2_Arguments();
 
+    [Fact]
+    public override Task Subscribe_And_Complete_Topic()
+        => base.Subscribe_And_Complete_Topic();
+
+    [Fact]
+    public override Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
+        => base.Subscribe_And_Complete_Topic_With_ValueTypeMessage();
+
     protected override void ConfigurePubSub(IRequestExecutorBuilder graphqlBuilder)
     {
         // register NATS
         graphqlBuilder.Services
             .AddNats(poolSize: 1, options => options with
             {
-                Url = _natsResource.NatsConnectionString
+                Url = _natsResource.NatsConnectionString,
             })
             .AddLogging();
 

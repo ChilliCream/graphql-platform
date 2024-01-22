@@ -6,10 +6,10 @@
       "Name": "dog",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -22,7 +22,7 @@
       "typeCondition": "Human",
       "selectionSetType": "Dog",
       "fragment": "fragmentDoesNotMatchType",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
     },
     "Exception": null,
     "SyntaxNode": {

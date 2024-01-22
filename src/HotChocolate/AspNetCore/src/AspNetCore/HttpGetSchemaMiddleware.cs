@@ -17,7 +17,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            default)
+            default),
     };
     private readonly MiddlewareRoutingType _routing;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
@@ -41,9 +41,9 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
         var handle = _routing == MiddlewareRoutingType.Integrated
             ? HttpMethods.IsGet(context.Request.Method) &&
               context.Request.Query.ContainsKey("SDL") &&
-              (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true)
+                GetOptions(context).EnableSchemaRequests
             : HttpMethods.IsGet(context.Request.Method) &&
-              (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true);
+                GetOptions(context).EnableSchemaRequests;
 
         if (handle)
         {

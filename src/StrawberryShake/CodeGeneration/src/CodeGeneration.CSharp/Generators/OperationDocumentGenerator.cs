@@ -28,11 +28,12 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             MutationOperationDescriptor => "Mutation",
             QueryOperationDescriptor => "Query",
             SubscriptionOperationDescriptor => "Subscription",
-            _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(descriptor)),
         };
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .AddImplements(TypeNames.IDocument)
             .SetComment(

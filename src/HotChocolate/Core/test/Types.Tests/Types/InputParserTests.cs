@@ -3,11 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using HotChocolate.Tests;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -29,7 +28,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -77,7 +76,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -124,7 +123,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -171,14 +170,14 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field2", 123 },
-            { "field3", 123 }
+            { "field3", 123 },
         };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, PathFactory.Instance.New("root"));
+            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -203,7 +202,7 @@ public class InputParserTests
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
+            => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -224,14 +223,14 @@ public class InputParserTests
         {
             { "field2", 123 },
             { "field3", 123 },
-            { "field4", 123 }
+            { "field4", 123 },
         };
 
         // act
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseResult(fieldData, type, PathFactory.Instance.New("root"));
+            => parser.ParseResult(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -257,10 +256,42 @@ public class InputParserTests
         var parser = new InputParser(new DefaultTypeConverter());
 
         void Action()
-            => parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
+            => parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_InputObject_AllIsSet_IgnoreAdditionalInputFields()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddInputObjectType<TestInput>()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .Create();
+
+        var type = schema.GetType<InputObjectType>("TestInput");
+
+        var fieldData = new ObjectValueNode(
+            new ObjectFieldNode("field1", "abc"),
+            new ObjectFieldNode("field2", 123),
+            new ObjectFieldNode("field3", 123),
+            new ObjectFieldNode("field4", 123));
+
+        var converter = new DefaultTypeConverter();
+
+        var options = new InputParserOptions
+        {
+            IgnoreAdditionalInputFields = true,
+        };
+
+        // act
+        var parser = new InputParser(converter, options);
+        var runtimeValue = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+        // assert
+        Assert.IsType<TestInput>(runtimeValue).MatchSnapshot();
     }
 
     [Fact]
@@ -279,7 +310,7 @@ public class InputParserTests
 
         // act
         var parser = new InputParser();
-        var obj = parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
+        var obj = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Equal("DefaultAbc", Assert.IsType<Test3Input>(obj).Field1);
@@ -303,7 +334,7 @@ public class InputParserTests
             => parser.ParseLiteral(
                 NullValueNode.Default,
                 type,
-                PathFactory.Instance.New("root"));
+                Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Action).MatchSnapshot();
@@ -330,7 +361,7 @@ public class InputParserTests
         // act
         var parser = new InputParser();
         var runtimeData =
-            parser.ParseLiteral(fieldData, type, PathFactory.Instance.New("root"));
+            parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
 
         // assert
         Assert.Collection(
@@ -382,8 +413,7 @@ public class InputParserTests
             new ObjectFieldNode("b", 123));
 
         // act
-        void Fail()
-            => parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
@@ -410,7 +440,7 @@ public class InputParserTests
 
         // act
         void Fail()
-            => parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
+            => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
         Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
@@ -436,7 +466,7 @@ public class InputParserTests
 
         // act
         var runtimeValue =
-            parser.ParseLiteral(data, oneOfInput, PathFactory.Instance.New("root"));
+            parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
 
         // assert
         runtimeValue.MatchSnapshot();
@@ -455,7 +485,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field1", "abc" }
+            { "field1", "abc" },
         };
 
         // act
@@ -518,7 +548,7 @@ public class InputParserTests
 
     public enum Bar
     {
-        Baz
+        Baz,
     }
 
     [OneOf]

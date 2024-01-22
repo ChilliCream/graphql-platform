@@ -24,14 +24,14 @@ public class JsonTypeTests
             schema {
               query: Query
             }
-
+            
             type Query {
               someJson: JSON!
               manyJson: [JSON!]
               inputJson(input: JSON!): JSON!
               jsonFromString: JSON!
             }
-
+            
             scalar JSON
             """);
     }

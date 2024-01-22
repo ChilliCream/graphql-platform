@@ -48,6 +48,12 @@ public partial class SchemaBuilder
                 {
                     builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
                 }
+                
+                if(context.Options.RemoveUnusedTypeSystemDirectives &&
+                    !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
+                {
+                    builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
+                }
 
                 InitializeInterceptors(
                     context.Services,
@@ -57,7 +63,7 @@ public partial class SchemaBuilder
                 ((AggregateTypeInterceptor)context.TypeInterceptor)
                     .SetInterceptors(typeInterceptors);
 
-                context.TypeInterceptor.OnBeforeCreateSchema(context, builder);
+                context.TypeInterceptor.OnBeforeCreateSchemaInternal(context, builder);
 
                 var typeReferences = CreateTypeReferences(builder, context);
                 var typeRegistry = InitializeTypes(builder, context, typeReferences);
@@ -84,7 +90,7 @@ public partial class SchemaBuilder
             var typeInterceptor = new AggregateTypeInterceptor();
 
             var context = DescriptorContext.Create(
-                builder._options,
+                () => builder._options,
                 services,
                 builder._conventions,
                 builder._contextData,
@@ -351,8 +357,8 @@ public partial class SchemaBuilder
             LazySchema lazySchema,
             TypeRegistry typeRegistry)
         {
-            var definition =
-                CreateSchemaDefinition(builder, context, typeRegistry);
+            var definition = CreateSchemaDefinition(builder, context, typeRegistry);
+            context.TypeInterceptor.OnBeforeRegisterSchemaTypes(context, definition);
 
             if (definition.QueryType is null && builder._options.StrictValidation)
             {
@@ -365,7 +371,7 @@ public partial class SchemaBuilder
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
-            context.TypeInterceptor.OnAfterCreateSchema(context, schema);
+            context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);
             return schema;
         }
 

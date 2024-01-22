@@ -14,7 +14,7 @@
       "field": "field",
       "type": "Query",
       "responseName": "field",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -53,7 +53,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -127,7 +127,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
     "Exception": null,
     "SyntaxNode": {

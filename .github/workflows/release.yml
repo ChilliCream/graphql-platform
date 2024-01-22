@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '14.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
+
+    - name: Get the version
+      id: get_version
+      run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Build Packages
+      run: |
+        ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
+
+    - name: Push Packages
+      run: |
+        ./build.cmd publish --skip
+      env:
+        NuGetApiKey: ${{ secrets.NUGETAPIKEY }}
+
+    - name: Get release
+      id: get_release
+      run: |
+        RELEASE_ID=$(gh api repos/ChilliCream/graphql-platform/releases/tags/${{ env.GIT_TAG }} --jq '.id')
+        UPLOAD_URL=$(gh api repos/ChilliCream/graphql-platform/releases/$RELEASE_ID --jq '.upload_url')
+        echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+        echo "UPLOAD_URL=${UPLOAD_URL}" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Release Assets
+      run: |
+        for file in ./output/packages/*.nupkg; do
+          echo "Uploading $file"
+          gh release upload ${{ env.GIT_TAG }} "$file" --repo ChilliCream/graphql-platform
+        done
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

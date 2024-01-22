@@ -1,17 +1,18 @@
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using HotChocolate.Fusion.Metadata;
+using HotChocolate.Transport;
 using HotChocolate.Transport.Sockets;
 using HotChocolate.Transport.Sockets.Client;
 
 namespace HotChocolate.Fusion.Clients;
 
-internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionClient
+public abstract class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionClient
 {
     private readonly WebSocketClientConfiguration _configuration;
     private readonly IWebSocketConnection _connection;
 
-    public WebSocketGraphQLSubscriptionClient(
+    protected WebSocketGraphQLSubscriptionClient(
         WebSocketClientConfiguration configuration,
         IWebSocketConnection connection)
     {
@@ -22,7 +23,7 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
     public string SubgraphName => _configuration.SubgraphName;
 
     public IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken)
     {
         if (request is null)
@@ -34,7 +35,7 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
     }
 
     private async IAsyncEnumerable<GraphQLResponse> SubscribeInternalAsync(
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         [EnumeratorCancellation] CancellationToken ct)
     {
         using var socket = await _connection.ConnectAsync(
@@ -52,7 +53,7 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
                 variables: request.VariableValues,
                 extensions: request.Extensions);
 
-            await using var client = await SocketClient.ConnectAsync(socket, ct)
+            await using var client = await ConnectAsync(request, socket, ct)
                 .ConfigureAwait(false);
             using var socketResult = await client.ExecuteAsync(operationRequest, ct)
                 .ConfigureAwait(false);
@@ -80,6 +81,12 @@ internal sealed class WebSocketGraphQLSubscriptionClient : IGraphQLSubscriptionC
             }
         }
     }
+
+    protected virtual ValueTask<SocketClient> ConnectAsync(
+        SubgraphGraphQLRequest request,
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+        => SocketClient.ConnectAsync(webSocket, cancellationToken);
 
     private static async Task CloseWebSocketAsync(
         WebSocket webSocket,

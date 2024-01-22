@@ -10,22 +10,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
-    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
+    <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess.Tests"/>
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0"/>
+    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)"/>
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AzureFunctions.props" Pack="true" PackagePath="build/HotChocolate.AzureFunctions.props" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AzureFunctions.targets" Pack="true" PackagePath="build/HotChocolate.AzureFunctions.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AzureFunctions.props" Pack="true" PackagePath="build/HotChocolate.AzureFunctions.props" Visible="false"/>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AzureFunctions.targets" Pack="true" PackagePath="build/HotChocolate.AzureFunctions.targets" Visible="false"/>
   </ItemGroup>
 
 </Project>

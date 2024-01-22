@@ -108,8 +108,8 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 {
                     Json = new JsonResultFormatterOptions
                     {
-                        Indented = indented
-                    }
+                        Indented = indented,
+                    },
                 }));
         return services;
     }

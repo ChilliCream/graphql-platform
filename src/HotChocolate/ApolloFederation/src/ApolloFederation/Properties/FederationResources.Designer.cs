@@ -14,7 +14,7 @@ namespace HotChocolate.ApolloFederation.Properties {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class FederationResources {
+    internal partial class FederationResources {
         
         private static System.Resources.ResourceManager resourceMan;
         
@@ -45,39 +45,33 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ExternalDirective_Description {
-            get {
-                return ResourceManager.GetString("ExternalDirective_Description", resourceCulture);
-            }
-        }
-        
         internal static string FieldsetType_Description {
             get {
                 return ResourceManager.GetString("FieldsetType_Description", resourceCulture);
             }
         }
         
-        internal static string KeyDirective_Description {
+        internal static string ScopeType_Description {
             get {
-                return ResourceManager.GetString("KeyDirective_Description", resourceCulture);
+                return ResourceManager.GetString("ScopeType_Description", resourceCulture);
             }
         }
         
-        internal static string ProvidesDirective_Description {
+        internal static string TagDirective_Description {
             get {
-                return ResourceManager.GetString("ProvidesDirective_Description", resourceCulture);
-            }
-        }
-        
-        internal static string RequiresDirective_Description {
-            get {
-                return ResourceManager.GetString("RequiresDirective_Description", resourceCulture);
+                return ResourceManager.GetString("TagDirective_Description", resourceCulture);
             }
         }
         
         internal static string EntityType_Description {
             get {
                 return ResourceManager.GetString("EntityType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PolicyDirective_Description {
+            get {
+                return ResourceManager.GetString("PolicyDirective_Description", resourceCulture);
             }
         }
         
@@ -111,6 +105,30 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
+        internal static string ThrowHelper_ComposeDirective_Name_CannotBeEmpty {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ComposeDirective_Name_CannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Link_Url_CannotBeEmpty {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Link_Url_CannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Contact_Name_CannotBeEmpty {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Contact_Name_CannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_FederationVersion_Unknown {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FederationVersion_Unknown", resourceCulture);
+            }
+        }
+        
         internal static string FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty", resourceCulture);
@@ -129,15 +147,15 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
-        internal static string ThrowHelper_EntityType_NoEntities {
+        internal static string FieldDescriptorExtensions_Override_From_CannotBeNullOrEmpty {
             get {
-                return ResourceManager.GetString("ThrowHelper_EntityType_NoEntities", resourceCulture);
+                return ResourceManager.GetString("FieldDescriptorExtensions_Override_From_CannotBeNullOrEmpty", resourceCulture);
             }
         }
         
-        internal static string ServiceType_Description {
+        internal static string ThrowHelper_EntityType_NoEntities {
             get {
-                return ResourceManager.GetString("ServiceType_Description", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_EntityType_NoEntities", resourceCulture);
             }
         }
         
@@ -159,6 +177,12 @@ namespace HotChocolate.ApolloFederation.Properties {
             }
         }
         
+        internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
+            }
+        }
+        
         internal static string Any_Description {
             get {
                 return ResourceManager.GetString("Any_Description", resourceCulture);
@@ -168,6 +192,12 @@ namespace HotChocolate.ApolloFederation.Properties {
         internal static string ResolveReference_MustBeMethod {
             get {
                 return ResourceManager.GetString("ResolveReference_MustBeMethod", resourceCulture);
+            }
+        }
+        
+        internal static string PolicyCollectionType_ParseValue_ExpectedStringArray {
+            get {
+                return ResourceManager.GetString("PolicyCollectionType_ParseValue_ExpectedStringArray", resourceCulture);
             }
         }
     }

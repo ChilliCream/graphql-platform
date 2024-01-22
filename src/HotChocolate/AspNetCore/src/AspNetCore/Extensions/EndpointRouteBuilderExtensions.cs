@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
-using Microsoft.Extensions.FileProviders;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
+using BananaCakePop.Middleware;
 using static HotChocolate.AspNetCore.MiddlewareRoutingType;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
@@ -77,28 +77,61 @@ public static class EndpointRouteBuilderExtensions
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
-        var fileProvider = CreateFileProvider();
 
-        requestPipeline
+        requestPipeline.MapGraphQL(path, schemaNameOrDefault);
+
+        return new GraphQLEndpointConventionBuilder(
+            endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+    }
+    
+    /// <summary>
+    /// Adds a GraphQL endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="applicationBuilder">
+    /// The <see cref="IApplicationBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the GraphQL endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// configuration can be chained.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="applicationBuilder" /> is <c>null</c>.
+    /// </exception>
+    public static IApplicationBuilder MapGraphQL(
+        this IApplicationBuilder applicationBuilder,
+        PathString path,
+        string schemaName)
+    {
+        if (applicationBuilder is null)
+        {
+            throw new ArgumentNullException(nameof(applicationBuilder));
+        }
+
+        path = path.ToString().TrimEnd('/');
+
+        applicationBuilder
             .UseCancellation()
-            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Integrated)
-            .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-            .UseMiddleware<ToolOptionsFileMiddleware>(path)
-            .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, path)
+            .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaName)
+            .UseMiddleware<HttpPostMiddleware>(schemaName)
+            .UseMiddleware<HttpMultipartMiddleware>(schemaName)
+            .UseMiddleware<HttpGetMiddleware>(schemaName)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, Integrated)
+            .UseBananaCakePop(path)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
                 return Task.CompletedTask;
             });
 
-        return new GraphQLEndpointConventionBuilder(
-            endpointRouteBuilder
-                .Map(pattern, requestPipeline.Build())
-                .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+        return applicationBuilder;
     }
 
     /// <summary>
@@ -167,7 +200,7 @@ public static class EndpointRouteBuilderExtensions
             .UseCancellation()
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault, default(PathString))
+            .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -323,9 +356,7 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .UseCancellation()
-            .UseMiddleware<HttpGetSchemaMiddleware>(
-                schemaNameOrDefault,
-                Explicit)
+            .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Explicit)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -391,13 +422,9 @@ public static class EndpointRouteBuilderExtensions
 
         var pattern = Parse(toolPath + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        var fileProvider = CreateFileProvider();
 
         requestPipeline
-            .UseCancellation()
-            .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, toolPath)
-            .UseMiddleware<ToolOptionsFileMiddleware>(toolPath)
-            .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, toolPath)
+            .UseBananaCakePop(toolPath)
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -407,7 +434,7 @@ public static class EndpointRouteBuilderExtensions
         var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
             .WithDisplayName("Banana Cake Pop Pipeline")
-            .WithMetadata(new GraphQLEndpointOptions { GraphQLEndpoint = relativeRequestPath });
+            .WithMetadata(new BananaCakePopOptions { GraphQLEndpoint = relativeRequestPath });
 
         return new BananaCakePopEndpointConventionBuilder(builder);
     }
@@ -427,8 +454,10 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
-        GraphQLServerOptions serverOptions) =>
-        builder.WithMetadata(serverOptions);
+        GraphQLServerOptions serverOptions) 
+        => builder
+            .WithMetadata(serverOptions)
+            .WithMetadata(serverOptions.Tool.ToBcpOptions());
 
     /// <summary>
     /// Specifies the GraphQL HTTP request options.
@@ -450,7 +479,7 @@ public static class EndpointRouteBuilderExtensions
         {
             AllowedGetOperations = httpOptions.AllowedGetOperations,
             EnableGetRequests = httpOptions.EnableGetRequests,
-            EnableMultipartRequests = httpOptions.EnableMultipartRequests
+            EnableMultipartRequests = httpOptions.EnableMultipartRequests,
         });
 
     /// <summary>
@@ -468,8 +497,11 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static BananaCakePopEndpointConventionBuilder WithOptions(
         this BananaCakePopEndpointConventionBuilder builder,
-        GraphQLToolOptions toolOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions { Tool = toolOptions });
+        GraphQLToolOptions toolOptions)
+    {
+        builder.Add(c => c.Metadata.Add(toolOptions.ToBcpOptions()));
+        return builder;
+    }
 
     /// <summary>
     /// Specifies the GraphQL over Websocket options.
@@ -489,13 +521,6 @@ public static class EndpointRouteBuilderExtensions
         GraphQLSocketOptions socketOptions) =>
         builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
 
-    private static IFileProvider CreateFileProvider()
-    {
-        var type = typeof(EndpointRouteBuilderExtensions);
-        var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
-        return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
-    }
-
     private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
         => builder.Use(next => async context =>
         {
@@ -508,4 +533,20 @@ public static class EndpointRouteBuilderExtensions
                 // we just catch cancellations here and do nothing.
             }
         });
+
+    internal static BananaCakePopOptions ToBcpOptions(this GraphQLToolOptions options)
+        => new()
+        {
+            ServeMode = ServeMode.Version(options.ServeMode.Mode),
+            Title = options.Title,
+            Document = options.Document,
+            UseBrowserUrlAsGraphQLEndpoint = options.UseBrowserUrlAsGraphQLEndpoint,
+            GraphQLEndpoint = options.GraphQLEndpoint,
+            IncludeCookies = options.IncludeCookies,
+            HttpHeaders = options.HttpHeaders,
+            UseGet = options.HttpMethod == DefaultHttpMethod.Get,
+            Enable = options.Enable,
+            GaTrackingId = options.GaTrackingId,
+            DisableTelemetry = options.DisableTelemetry,
+        };
 }

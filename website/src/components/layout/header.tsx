@@ -1,3 +1,4 @@
+import { useDocSearchKeyboardEvents } from "@docsearch/react";
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import React, {
@@ -10,12 +11,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled from "styled-components";
 import { useSelector } from "react-redux";
+import styled from "styled-components";
 
-import { State, WorkshopsState } from "@/state";
-import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
 import { WorkshopNdcCopenhagen } from "@/components/images/workshop-ndc-copenhagen";
+import { WorkshopNdcOslo } from "@/components/images/workshop-ndc-oslo";
+import { WorkshopOnline } from "@/components/images/workshop-online";
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
 import { SearchModal } from "@/components/misc/search-modal";
@@ -28,7 +29,7 @@ import {
   SiteSiteMetadataTools,
 } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
-import { useObservable } from "@/state";
+import { State, WorkshopsState, useObservable } from "@/state";
 
 // Brands
 import GithubIconSvg from "@/images/brands/github.svg";
@@ -143,6 +144,12 @@ export const Header: FC = () => {
       subscription.unsubscribe();
     };
   }, [showShadow$]);
+
+  useDocSearchKeyboardEvents({
+    isOpen: searchOpen,
+    onOpen: handleSearchOpen,
+    onClose: handleSearchClose,
+  });
 
   return (
     <Container ref={containerRef}>
@@ -363,22 +370,19 @@ const ProductsNavItem: FC<ProductsNavItemProps> = ({ firstBlogPost }) => {
         <TileLink to="/products/bananacakepop" onClick={hideSubNav}>
           <TileLinkTitle>Banana Cake Pop</TileLinkTitle>
           <TileLinkDescription>
-            The IDE to create, explore, manage, and test <em>GraphQL</em> APIs
-            with ease.
+            The IDE to create, explore, manage, and test GraphQL APIs with ease.
           </TileLinkDescription>
         </TileLink>
         <TileLink to="/products/hotchocolate" onClick={hideSubNav}>
           <TileLinkTitle>Hot Chocolate</TileLinkTitle>
           <TileLinkDescription>
-            The server to create high-performance <em>.NET GraphQL</em> APIs in
-            no time.
+            The server to create high-performance .NET GraphQL APIs in no time.
           </TileLinkDescription>
         </TileLink>
         <TileLink to="/products/strawberryshake" onClick={hideSubNav}>
           <TileLinkTitle>Strawberry Shake</TileLinkTitle>
           <TileLinkDescription>
-            The client to create modern <em>.NET</em> apps that consume{" "}
-            <em>GraphQL</em> APIs effortless.
+            Effortlessly create modern .NET apps that consume GraphQL APIs.
           </TileLinkDescription>
         </TileLink>
       </SubNavMain>
@@ -431,7 +435,7 @@ interface DeveloperNavItemProps {
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
   const workshop = useSelector<State, WorkshopsState[number] | undefined>(
-    (state) => state.workshops.find(({ promo }) => promo)
+    (state) => state.workshops.find(({ hero, active }) => hero && active)
   );
 
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (
@@ -499,9 +503,12 @@ const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
             <SubNavTitle>Upcoming Workshop</SubNavTitle>
             <TeaserLink to={workshop.url}>
               <TeaserImage>
-                <WorkshopHero id={workshop.id} />
+                <WorkshopHero image={workshop.image} />
               </TeaserImage>
-              <TeaserMetadata>{`${workshop.date} ・ ${workshop.host} ${workshop.place}`}</TeaserMetadata>
+              <TeaserMetadata>
+                {`${workshop.date} ・ ${workshop.host} `}
+                <NoWrap>{workshop.place}</NoWrap>
+              </TeaserMetadata>
               <TeaserTitle>{workshop.title}</TeaserTitle>
               <TeaserMessage>{workshop.teaser}</TeaserMessage>
             </TeaserLink>
@@ -917,16 +924,19 @@ const TeaserLink = styled(Link)`
 `;
 
 interface WorkshopHeroProps {
-  readonly id: string;
+  readonly image: string;
 }
 
-const WorkshopHero: FC<WorkshopHeroProps> = ({ id }) => {
-  switch (id) {
-    case "NDC_OSLO":
+const WorkshopHero: FC<WorkshopHeroProps> = ({ image }) => {
+  switch (image) {
+    case "ndc-oslo":
       return <WorkshopNdcOslo />;
 
-    case "NDC_COPENHAGEN":
+    case "ndc-copenhagen":
       return <WorkshopNdcCopenhagen />;
+
+    case "online":
+      return <WorkshopOnline />;
 
     default:
       return null;
@@ -952,11 +962,17 @@ const TeaserImage = styled.div`
 const TeaserMetadata = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   margin: 15px 0 7px;
   font-size: 0.778em;
+  line-height: 1.25;
   color: ${THEME_COLORS.text};
   transition: color 0.2s ease-in-out;
+`;
+
+const NoWrap = styled.span`
+  white-space: nowrap;
 `;
 
 const TeaserTitle = styled.h2`

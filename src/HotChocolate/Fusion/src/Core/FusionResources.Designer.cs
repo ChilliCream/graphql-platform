@@ -87,12 +87,6 @@ namespace HotChocolate.Fusion {
             }
         }
         
-        internal static string GraphQLHttpClient_InvalidContentType {
-            get {
-                return ResourceManager.GetString("GraphQLHttpClient_InvalidContentType", resourceCulture);
-            }
-        }
-        
         internal static string FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue {
             get {
                 return ResourceManager.GetString("FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue", resourceCulture);
@@ -114,6 +108,108 @@ namespace HotChocolate.Fusion {
         internal static string ThrowHelper_NoResolverInContext {
             get {
                 return ResourceManager.GetString("ThrowHelper_NoResolverInContext", resourceCulture);
+            }
+        }
+        
+        internal static string TransportConfigurationNotSupported {
+            get {
+                return ResourceManager.GetString("TransportConfigurationNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string CreateSelection_MustBePlaceholderOrSelectExpression {
+            get {
+                return ResourceManager.GetString("CreateSelection_MustBePlaceholderOrSelectExpression", resourceCulture);
+            }
+        }
+        
+        internal static string GatewayConfigurationFileObserver_FileNameNullOrEmpty {
+            get {
+                return ResourceManager.GetString("GatewayConfigurationFileObserver_FileNameNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string FileConfigurationSession_MustContainPath {
+            get {
+                return ResourceManager.GetString("FileConfigurationSession_MustContainPath", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionState_RegisterState_StateImmutable {
+            get {
+                return ResourceManager.GetString("ExecutionState_RegisterState_StateImmutable", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent {
+            get {
+                return ResourceManager.GetString("ExecutionNodeBuilderMiddleware_CreateResolveByKeyBatchNode_StateInconsistent", resourceCulture);
+            }
+        }
+        
+        internal static string ResolveNode_EntityResolver_Already_Registered {
+            get {
+                return ResourceManager.GetString("ResolveNode_EntityResolver_Already_Registered", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnableToCreateQueryPlan_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnableToCreateQueryPlan_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NoRootNode_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NoRootNode_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_Node_ReadOnly_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_Node_ReadOnly_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UnableToLoadConfiguration_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UnableToLoadConfiguration_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_NoConfigurationProvider_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_NoConfigurationProvider_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_QueryAndMutationMustExecute_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_QueryAndMutationMustExecute_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SubscriptionsMustSubscribe_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SubscriptionsMustSubscribe_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_RequestFormatter_SelectionSetEmpty_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RequestFormatter_SelectionSetEmpty_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_RequestFormatter_ArgumentVariableExpected_Message", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultIdParser_ParseTypeName_InvalidFormat {
+            get {
+                return ResourceManager.GetString("DefaultIdParser_ParseTypeName_InvalidFormat", resourceCulture);
             }
         }
     }

@@ -81,13 +81,50 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         return null;
     }
+    
+    /// <inheritdoc />
+    public Directive? FirstOrDefault<TRuntimeType>()
+    {
+        var span = _directives.AsSpan();
+        ref var start = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref start, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (start.AsValue<object>() is TRuntimeType)
+            {
+                return start;
+            }
+
+            // move pointer
+#pragma warning disable CS8619
+            start = ref Unsafe.Add(ref start, 1);
+#pragma warning restore CS8619
+        }
+
+        return null;
+    }
 
     /// <inheritdoc />
     public bool ContainsDirective(string directiveName)
         => FirstOrDefault(directiveName) is not null;
 
+    /// <inheritdoc />
+    public bool ContainsDirective<TRuntimeType>()
+        => FirstOrDefault<TRuntimeType>() is not null;
+
     internal static DirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,
+        object source,
+        IReadOnlyList<DirectiveDefinition> definitions)
+    {
+        var location = DirectiveHelper.InferDirectiveLocation(source);
+        return CreateAndComplete(context, location, source, definitions);
+    }
+
+    internal static DirectiveCollection CreateAndComplete(
+        ITypeCompletionContext context,
+        DirectiveLocation location,
         object source,
         IReadOnlyList<DirectiveDefinition> definitions)
     {
@@ -106,7 +143,6 @@ public sealed class DirectiveCollection : IDirectiveCollection
             throw new ArgumentNullException(nameof(definitions));
         }
 
-        var location = DirectiveHelper.InferDirectiveLocation(source);
         var directives = new Directive[definitions.Count];
         var directiveNames = TypeMemHelper.RentNameSet();
         var hasErrors = false;

@@ -9,6 +9,7 @@ interface Character {
   name: String!
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   appearsIn: [Episode]
+  traits: JSON
   height(unit: Unit): Float
 }
 
@@ -19,6 +20,7 @@ type Droid implements Character {
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   height(unit: Unit): Float
   primaryFunction: String
+  traits: JSON
 }
 
 "A connection to a list of items."
@@ -47,10 +49,12 @@ type Human implements Character {
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
+  traits: JSON
 }
 
 type Mutation {
   createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
 }
 
 "Information about pagination in a connection."
@@ -67,6 +71,7 @@ type PageInfo {
 
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: JSON!): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
@@ -106,3 +111,5 @@ enum Unit {
   FOOT
   METERS
 }
+
+scalar JSON

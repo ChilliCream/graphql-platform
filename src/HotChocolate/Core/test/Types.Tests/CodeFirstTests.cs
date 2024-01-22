@@ -72,7 +72,7 @@ public class CodeFirstTests
             .Create();
 
         // assert
-        var exists = schema.TryGetType("Url", out INamedType _);
+        var exists = schema.TryGetType<INamedType>("Url", out _);
         Assert.False(exists);
     }
 
@@ -149,6 +149,17 @@ public class CodeFirstTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Comparison_Is_Ignored()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryComparableEntity>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
 
     [Fact]
     public async Task Allow_PascalCasedArguments_Schema()
@@ -184,6 +195,18 @@ public class CodeFirstTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task Infer_Nullability_From_Nested_Classes()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryNestedClassNullableString>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
     }
 
     public class Query
@@ -308,10 +331,10 @@ public class CodeFirstTests
 
     public class QueryStructEquals
     {
-        public Example Foo(Example example) => example;
+        public EquatableExample Foo(EquatableExample example) => example;
     }
 
-    public class Example : IStructuralEquatable
+    public class EquatableExample : IStructuralEquatable
     {
         public string Some { get; set; } = default!;
 
@@ -320,8 +343,52 @@ public class CodeFirstTests
         public int GetHashCode(IEqualityComparer comparer) => throw new NotImplementedException();
     }
 
+    public class QueryComparableEntity
+    {
+        public ComparableExample Foo(ComparableExample example) => example;
+    }
+
+    public class ComparableExample : IComparable, IComparable<EquatableExample>
+    {
+        public string Some { get; set; } = default!;
+
+        public int CompareTo(object? obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CompareTo(EquatableExample? other)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class PascalCaseQuery
     {
         public string TestResolver(string TestArgument) => "abc";
+    }
+
+    public sealed class QueryNestedClassNullableString
+    {
+        public class Outer
+        {
+            public string? shouldBeNullable { get; set; }
+        }
+
+        public class Example
+        {
+            public class Inner
+            {
+                public string? shouldAlsoBeNullable { get; set; }
+            }
+
+            public Inner? inner { get; set; } = new();
+            public Outer? outer { get; set; } = new();
+        }
+
+        public Example NestedClassNullableString()
+        {
+            return new Example();
+        }
     }
 }

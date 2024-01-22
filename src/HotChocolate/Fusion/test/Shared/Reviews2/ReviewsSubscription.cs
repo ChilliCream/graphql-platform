@@ -2,6 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Shared.Reviews2;
 
+[GraphQLName("Subscription")]
 public sealed class ReviewsSubscription
 {
     public async IAsyncEnumerable<Review> CreateOnNewReviewStream()
@@ -9,7 +10,7 @@ public sealed class ReviewsSubscription
         var authors = new User[]
         {
             new User(1, "@ada"),
-            new User(2, "@complete")
+            new User(2, "@complete"),
         };
 
         var reviews = new Review[]
@@ -17,7 +18,7 @@ public sealed class ReviewsSubscription
             new Review(1, authors[0], new Product(1), "Love it!"),
             new Review(2, authors[1], new Product(2), "Too expensive."),
             new Review(3, authors[0], new Product(3), "Could be better."),
-            new Review(4, authors[1], new Product(1), "Prefer something else.")
+            new Review(4, authors[1], new Product(1), "Prefer something else."),
         };
 
         foreach (var review in reviews)

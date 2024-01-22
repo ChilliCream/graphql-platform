@@ -23,7 +23,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
         _context ??= completionContext;

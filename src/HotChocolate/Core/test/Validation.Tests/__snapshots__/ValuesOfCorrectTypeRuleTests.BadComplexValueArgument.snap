@@ -6,10 +6,10 @@
       "Name": "findDog",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -22,7 +22,7 @@
       "fieldName": "name",
       "fieldType": "String",
       "locationType": "String",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

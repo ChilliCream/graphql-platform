@@ -9,5 +9,7 @@ internal class InputField
     public string Description { get; set; }
     public TypeRef Type { get; set; }
     public string DefaultValue { get; set; }
+    public bool IsDeprecated { get; set; }
+    public string DeprecationReason { get; set; }
 }
 #pragma warning restore CA1812

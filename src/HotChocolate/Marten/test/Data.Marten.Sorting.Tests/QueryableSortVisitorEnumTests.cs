@@ -1,17 +1,18 @@
-using System.Threading.Tasks;
 using CookieCrumble;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Sorting.Expressions;
+namespace HotChocolate.Data;
 
-public class QueryableSortVisitorEnumTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableSortVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
         new() { BarEnum = FooEnum.BAR },
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
+        new() { BarEnum = FooEnum.QUX },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -20,7 +21,7 @@ public class QueryableSortVisitorEnumTests : IClassFixture<SchemaCache>
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
         new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
+        new() { BarEnum = FooEnum.QUX },
     };
 
     private readonly SchemaCache _cache;
@@ -108,7 +109,7 @@ public class QueryableSortVisitorEnumTests : IClassFixture<SchemaCache>
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooSortType : SortInputType<Foo>

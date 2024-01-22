@@ -22,7 +22,7 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "sha1Hash";
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected override string ComputeHash(ReadOnlySpan<byte> document, HashFormat format)
     {
@@ -40,7 +40,7 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
         {
             HashFormat.Base64 => Convert.ToBase64String(hashSpan),
             HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
+            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported),
         };
     }
 #else

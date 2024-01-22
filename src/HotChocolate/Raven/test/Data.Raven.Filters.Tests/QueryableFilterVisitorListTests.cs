@@ -16,37 +16,37 @@ public class QueryableFilterVisitorListTests
         {
             FooNested = new List<FooNested>()
             {
-                new() { Bar = "a" }, new() { Bar = "a" }, new() { Bar = "a" }
-            }
+                new() { Bar = "a" }, new() { Bar = "a" }, new() { Bar = "a" },
+            },
         },
         new()
         {
             FooNested = new List<FooNested>()
             {
-                new() { Bar = "c" }, new() { Bar = "a" }, new() { Bar = "a" }
-            }
+                new() { Bar = "c" }, new() { Bar = "a" }, new() { Bar = "a" },
+            },
         },
         new()
         {
             FooNested = new List<FooNested>()
             {
-                new() { Bar = "a" }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
+                new() { Bar = "a" }, new() { Bar = "d" }, new() { Bar = "b" },
+            },
         },
         new()
         {
             FooNested = new List<FooNested>()
             {
-                new() { Bar = "c" }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
+                new() { Bar = "c" }, new() { Bar = "d" }, new() { Bar = "b" },
+            },
         },
         new()
         {
             FooNested = new List<FooNested>()
             {
-                new() { Bar = null! }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
-        }
+                new() { Bar = null! }, new() { Bar = "d" }, new() { Bar = "b" },
+            },
+        },
     };
 
     private readonly SchemaCache _cache;

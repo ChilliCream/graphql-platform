@@ -1,12 +1,28 @@
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.Caching;
 
 internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
 {
-    public override void OnValidateType(ITypeSystemObjectContext validationContext,
+    private ITypeCompletionContext _queryContext = default!;
+
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    {
+        if (operationType is OperationType.Query)
+        {
+            _queryContext = completionContext;
+        }
+    }
+    
+    public override void OnValidateType(
+        ITypeSystemObjectContext validationContext,
         DefinitionBase definition)
     {
         if (validationContext.IsIntrospectionType)
@@ -18,7 +34,7 @@ internal sealed class CacheControlValidationTypeInterceptor : TypeInterceptor
         {
             case ObjectType objectType:
             {
-                var isQueryType = validationContext is ITypeCompletionContext { IsQueryType: true };
+                var isQueryType = ReferenceEquals(validationContext, _queryContext);
 
                 ValidateCacheControlOnType(validationContext, objectType);
 

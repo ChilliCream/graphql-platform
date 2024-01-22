@@ -1,0 +1,27 @@
+﻿{
+  "message": "Cannot reference Input Object `AnotherInputObject` within itself through a series of non-null fields `startLoop --> closeLoop`.",
+  "type": "AnotherInputObject",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/445",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "Cannot reference Input Object `YetAnotherInputObject` within itself through a series of non-null fields `startSecondLoop --> closeSecondLoop`.",
+  "type": "YetAnotherInputObject",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/445",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "Cannot reference Input Object `YetAnotherInputObject` within itself through a series of non-null fields `nonNullSelf`.",
+  "type": "YetAnotherInputObject",
+  "extensions": {
+    "rfc": "https://github.com/graphql/graphql-spec/pull/445",
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+  }
+}
+

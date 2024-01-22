@@ -20,7 +20,7 @@ namespace HotChocolate.Types;
 /// GraphQL document as an indicator that they should be evaluated differently by a
 /// validator, executor, or client tool such as a code generator.
 ///
-/// http://spec.graphql.org/draft/#sec-Type-System.Directives
+/// https://spec.graphql.org/draft/#sec-Type-System.Directives
 /// </summary>
 public partial class DirectiveType
 {

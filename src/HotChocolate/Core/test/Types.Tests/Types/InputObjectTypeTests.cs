@@ -836,7 +836,7 @@ public class InputObjectTypeTests : TypeTestBase
         }
     }
 
-    public class FooDirective { }
+    public class FooDirective;
 
     public class QueryType : ObjectType
     {
@@ -895,7 +895,7 @@ public class InputObjectTypeTests : TypeTestBase
             {
                 IsBarSet = input.Bar.HasValue,
                 Bar = input.Bar,
-                Baz = input.Baz
+                Baz = input.Baz,
             };
         }
     }
@@ -959,7 +959,15 @@ public class InputObjectTypeTests : TypeTestBase
         [DefaultValue(FooEnum.Bar)]
         public FooEnum Enum { get; set; }
 
+        [DefaultValueSyntax("[[{ foo: 1 } ]]")]
+        public List<List<ComplexInput>> ComplexInput { get; set; } = null!;
+
         public string? WithoutDefault { get; set; }
+    }
+
+    public class ComplexInput
+    {
+        public int Foo { get; set; }
     }
 
     public class InputWithDeprecatedField
@@ -974,6 +982,6 @@ public class InputObjectTypeTests : TypeTestBase
     public enum FooEnum
     {
         Bar,
-        Baz
+        Baz,
     }
 }

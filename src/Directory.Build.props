@@ -1,18 +1,21 @@
 <Project>
 
   <PropertyGroup>
-    <IsMacOsArm Condition="'$(NETCoreSdkPortableRuntimeIdentifier)' == 'osx-arm64'">true</IsMacOsArm>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
-    <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041</NoWarn>
+    <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041;AD0001;CS1591;NU5104;NU5128;NU5501</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+  <PropertyGroup Condition="'$(Configuration)' == 'debug'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'release'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,6 +29,7 @@
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageIcon>hotchocolate-signet.png</PackageIcon>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -38,13 +42,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks>net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
-    <Library2TargetFrameworks>net7.0; net6.0</Library2TargetFrameworks>
-    <TestTargetFrameworks>net7.0; net6.0</TestTargetFrameworks>
-    <AspNetTargetFrameworks>net7.0; net6.0</AspNetTargetFrameworks>
+    <LibraryTargetFrameworks>net8.0; net7.0; net6.0; netstandard2.0</LibraryTargetFrameworks>
+    <Library2TargetFrameworks>net8.0; net7.0; net6.0</Library2TargetFrameworks>
+    <Library3TargetFrameworks>net8.0; net7.0</Library3TargetFrameworks>
+    <TestTargetFrameworks>net8.0; net7.0; net6.0</TestTargetFrameworks>
+    <AspNetTargetFrameworks>net8.0; net7.0; net6.0</AspNetTargetFrameworks>
     <AzfTargetFrameworks>net7.0; net6.0</AzfTargetFrameworks>
-    <AzfIsoProcTargetFrameworks>net7.0; net6.0</AzfIsoProcTargetFrameworks>
-    <SourceGenTargetFrameworks>net7.0; net6.0; netstandard2.0</SourceGenTargetFrameworks>
+    <AzfIsoProcTargetFrameworks>net8.0; net7.0; net6.0</AzfIsoProcTargetFrameworks>
+    <SourceGenTargetFrameworks>netstandard2.0</SourceGenTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -53,7 +58,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
   </ItemGroup>
 
   <ItemGroup>

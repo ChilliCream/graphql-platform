@@ -1,4 +1,4 @@
-﻿schema {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@extends", "@external", "@key", "@inaccessible", "@override", "@provides", "@requires", "@shareable", "@tag", "FieldSet", "@composeDirective", "@interfaceObject", "@authenticated", "@requiresPolicy" ]) {
   query: Query
 }
 
@@ -25,14 +25,13 @@ type _Service {
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Review
 
-"Directive to indicate that a field is owned by another service, for example via Apollo federation."
-directive @external on FIELD_DEFINITION
-
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+directive @key(fields: _FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
-"Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
-directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+directive @link(url: String! import: [String!]) repeatable on SCHEMA
+
+"Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
+directive @override(from: String!) on FIELD_DEFINITION
 
 "Used to annotate the required input fieldset from a base type for a resolver."
 directive @requires(fields: _FieldSet!) on FIELD_DEFINITION

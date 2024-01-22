@@ -10,7 +10,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class RegexType : StringType
 {
-    protected const int DefaultRegexTimeoutInMs = 100;
+    protected internal const int DefaultRegexTimeoutInMs = 200;
 
     private readonly Regex _validationRegex;
 
@@ -49,15 +49,11 @@ public class RegexType : StringType
 
     /// <inheritdoc />
     protected override bool IsInstanceOfType(string runtimeValue)
-    {
-        return _validationRegex.IsMatch(runtimeValue);
-    }
+        => _validationRegex.IsMatch(runtimeValue);
 
     /// <inheritdoc />
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-    {
-        return _validationRegex.IsMatch(valueSyntax.Value);
-    }
+        => _validationRegex.IsMatch(valueSyntax.Value);
 
     /// <inheritdoc />
     public override bool TrySerialize(object? runtimeValue, out object? resultValue)

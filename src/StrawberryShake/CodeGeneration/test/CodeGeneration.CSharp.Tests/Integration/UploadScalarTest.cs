@@ -105,8 +105,8 @@ public class UploadScalarTest : ServerTestBase
             {
                 Bar = new BarInput()
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file") }
-                }
+                    Baz = new BazInput() { File = new Upload(data, "test-file") },
+                },
             },
             null,
             null,
@@ -138,16 +138,16 @@ public class UploadScalarTest : ServerTestBase
                 {
                     Bar = new BarInput()
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A") }
-                    }
+                        Baz = new BazInput() { File = new Upload(dataA, "A") },
+                    },
                 },
                 new TestInput()
                 {
                     Bar = new BarInput()
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B") }
-                    }
-                }
+                        Baz = new BazInput() { File = new Upload(dataB, "B") },
+                    },
+                },
             },
             null,
             cancellationToken: ct);
@@ -182,16 +182,16 @@ public class UploadScalarTest : ServerTestBase
                     {
                         Bar = new BarInput()
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A") }
-                        }
+                            Baz = new BazInput() { File = new Upload(dataA, "A") },
+                        },
                     },
                     new TestInput()
                     {
                         Bar = new BarInput()
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B") }
-                        }
-                    }
+                            Baz = new BazInput() { File = new Upload(dataB, "B") },
+                        },
+                    },
                 },
             },
             cancellationToken: ct);
@@ -205,7 +205,11 @@ public class UploadScalarTest : ServerTestBase
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddHttpClient(
             UploadScalarClient.ClientName,
-            c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
+            c =>
+            {
+                c.BaseAddress = new Uri("http://localhost:" + port + "/graphql");
+                c.DefaultRequestHeaders.Add("GraphQL-Preflight", "1");
+            });
         serviceCollection.AddWebSocketClient(
             UploadScalarClient.ClientName,
             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));

@@ -83,19 +83,6 @@ public interface ISchemaBuilder
     /// <summary>
     /// Binds a .NET runtime type to a GraphQL schema type.
     /// </summary>
-    /// <param name="clrType">
-    /// The .NET runtime type.
-    /// </param>
-    /// <param name="schemaType">
-    /// The GraphQL schema type.
-    /// </param>
-    /// <returns></returns>
-    [Obsolete("Use BindRuntimeType")]
-    ISchemaBuilder BindClrType(Type clrType, Type schemaType);
-
-    /// <summary>
-    /// Binds a .NET runtime type to a GraphQL schema type.
-    /// </summary>
     /// <param name="runtimeType">
     /// The .NET runtime type.
     /// </param>

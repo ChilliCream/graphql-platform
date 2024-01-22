@@ -1,16 +1,9 @@
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using StrawberryShake.Tools.Configuration;
-using StrawberryShake.Tools.OAuth;
 using static StrawberryShake.Tools.Configuration.FileContents;
 
 namespace StrawberryShake.Tools;
 
-public class InitCommandHandler
-    : CommandHandler<InitCommandArguments>
+public class InitCommandHandler : CommandHandler<InitCommandArguments>
 {
     public InitCommandHandler(
         IFileSystem fileSystem,
@@ -46,7 +39,10 @@ public class InitCommandHandler
             arguments.Uri.Value!,
             accessToken?.Token,
             accessToken?.Scheme,
-            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
+            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values),
+            arguments.TypeDepth.HasValue() && 
+            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) && 
+            typeDepth >= 3 ? typeDepth : 6);
 
         if (arguments.FromFile.HasValue())
         {
@@ -64,7 +60,7 @@ public class InitCommandHandler
                     SchemaExtensionFileContent)
                 .ConfigureAwait(false);
 
-            await WriteConfigurationAsync(context, cancellationToken);
+            await WriteConfigurationAsync(context);
 
             return 0;
         }
@@ -86,7 +82,7 @@ public class InitCommandHandler
 
         if (await DownloadSchemaAsync(context, cancellationToken).ConfigureAwait(false))
         {
-            await WriteConfigurationAsync(context, cancellationToken).ConfigureAwait(false);
+            await WriteConfigurationAsync(context).ConfigureAwait(false);
             return true;
         }
 
@@ -108,7 +104,7 @@ public class InitCommandHandler
             new(context.Uri), context.Token, context.Scheme, context.CustomHeaders);
 
         if (await IntrospectionHelper.DownloadSchemaAsync(
-                client, FileSystem, activity, schemaFilePath,
+                client, FileSystem, activity, schemaFilePath, context.TypeDepth,
                 cancellationToken)
             .ConfigureAwait(false))
         {
@@ -123,8 +119,7 @@ public class InitCommandHandler
     }
 
     private async Task WriteConfigurationAsync(
-        InitCommandContext context,
-        CancellationToken cancellationToken)
+        InitCommandContext context)
     {
         using var activity = Output.WriteActivity("Client configuration");
 
@@ -140,14 +135,11 @@ public class InitCommandHandler
                 {
                     Name = context.ClientName,
                     Namespace = context.CustomNamespace,
-                    Url = context.Uri
-                }
-            }
+                    Url = context.Uri,
+                },
+            },
         };
 
-        await FileSystem.WriteTextAsync(
-                configFilePath,
-                configuration.ToString())
-            .ConfigureAwait(false);
+        await FileSystem.WriteTextAsync(configFilePath, configuration.ToString()).ConfigureAwait(false);
     }
 }

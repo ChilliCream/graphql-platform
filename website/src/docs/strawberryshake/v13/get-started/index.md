@@ -16,7 +16,7 @@ In this tutorial, we will teach you:
 
 # Step 1: Add the Strawberry Shake CLI tools
 
-The Strawberry Shake tool will help you to setup your project to create a GraphQL client.
+The Strawberry Shake tool will help you to set up your project to create a GraphQL client.
 
 Open your preferred terminal and select a directory where you want to add the code of this tutorial.
 
@@ -66,7 +66,7 @@ dotnet add Demo package StrawberryShake.Blazor
 
 # Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
 In this tutorial we will use our ChilliCream demo project to create a list of crypto currencies that we will add to our Blazor application.
 
@@ -173,7 +173,7 @@ await builder.Build().RunAsync();
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
 @using Demo
-@using Demo.Shared
+@using Demo.Shared // (from .NET 8, `Demo.Layout`)
 @using Demo.GraphQL
 @using Demo.GraphQL.Components
 @using StrawberryShake
@@ -181,9 +181,9 @@ await builder.Build().RunAsync();
 
 # Step 5: Use the generated Razor component to display the data.
 
-In this section we will integrated the Razor component and print a simple list on our index page to display the crypto currencies.
+In this section we will integrate the Razor component and print a simple list on our index page to display the crypto currencies.
 
-1. Head over to `Pages/Index.razor`.
+1. Head over to `Pages/Index.razor` (from .NET 8, `Home.razor`).
 
 2. Remove everything from your page but the `@page "/"`
 
@@ -212,7 +212,7 @@ In this section we will integrated the Razor component and print a simple list o
 
 > The query component allows you to handle the loading and the error state when fetching data. Both states can be handled but do not have to be.
 
-4. With that done lets render the actual content.
+4. With that done let's render the actual content.
 
 ```csharp
 @page "/"
@@ -240,4 +240,4 @@ In this section we will integrated the Razor component and print a simple list o
 
 ![Started Blazor application in Microsoft Edge](../../../shared/berry_asset_list.png)
 
-Awesome you have created your first application with Blazor and GraphQL.
+Awesome! You have created your first application with Blazor and GraphQL.

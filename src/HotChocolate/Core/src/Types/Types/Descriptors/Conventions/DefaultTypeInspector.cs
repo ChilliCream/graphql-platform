@@ -723,7 +723,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
                 property.GetIndexParameters().Length == 0;
         }
 
-        if (member is MethodInfo method &&
+        if (member is MethodInfo { IsGenericMethodDefinition: false } method &&
             CanHandleReturnType(member, method.ReturnType, allowObjectType))
         {
             foreach (var parameter in method.GetParameters())

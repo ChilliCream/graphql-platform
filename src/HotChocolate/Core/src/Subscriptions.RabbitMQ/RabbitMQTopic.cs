@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Text;
-using System.Threading.Channels;
 using RabbitMQ.Client;
 using HotChocolate.Subscriptions.Diagnostics;
 using RabbitMQ.Client.Events;
@@ -37,17 +36,19 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
         var queueName = Guid.NewGuid().ToString();
         var consumer = CreateConsumer(channel, queueName);
 
-        async Task Received(object sender, BasicDeliverEventArgs args)
+        Task Received(object sender, BasicDeliverEventArgs args)
         {
             try
             {
                 var serializedMessage = Encoding.UTF8.GetString(args.Body.Span);
-                await DispatchAsync(serializedMessage, cancellationToken).ConfigureAwait(false);
+                DispatchMessage(_serializer, serializedMessage);
             }
             finally
             {
                 channel.BasicAck(args.DeliveryTag, false);
             }
+
+            return Task.CompletedTask;
         }
 
         consumer.Received += Received;
@@ -62,28 +63,6 @@ internal sealed class RabbitMQTopic<TMessage> : DefaultTopic<TMessage>
             consumer.Received -= Received;
             DiagnosticEvents.ProviderTopicInfo(Name, Subscription_UnsubscribedFromRabbitMQ);
         });
-    }
-
-    private async ValueTask DispatchAsync(
-        string serializedMessage,
-        CancellationToken cancellationToken)
-    {
-        // we ensure that if there is noise on the channel we filter it out.
-        if (!string.IsNullOrEmpty(serializedMessage))
-        {
-            DiagnosticEvents.Received(Name, serializedMessage);
-
-            var envelope = _serializer.Deserialize<TMessage>(serializedMessage);
-
-            if (envelope.Kind is MessageKind.Completed)
-            {
-                TryComplete();
-            }
-            else if (envelope.Body is { } body)
-            {
-                await PublishAsync(body, cancellationToken).ConfigureAwait(false);
-            }
-        }
     }
 
     private AsyncEventingBasicConsumer CreateConsumer(IModel channel, string queueName)

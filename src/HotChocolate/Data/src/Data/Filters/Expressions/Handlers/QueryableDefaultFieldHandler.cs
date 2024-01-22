@@ -94,7 +94,7 @@ public class QueryableDefaultFieldHandler
 
                 null => throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
 
-                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
+                _ => throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field),
             };
         }
 
@@ -160,6 +160,8 @@ public class QueryableDefaultFieldHandler
             _replacement = replacement;
             _parameter = parameter;
         }
+
+        protected override Expression VisitExtension(Expression node) => node.CanReduce ? base.VisitExtension(node) : node;
 
         protected override Expression VisitParameter(ParameterExpression node)
         {

@@ -34,7 +34,7 @@ public static class InternalSchemaServiceCollectionExtensions
             {
                 0 => new NoopExecutionDiagnosticEvents(),
                 1 => listeners[0],
-                _ => new AggregateExecutionDiagnosticEvents(listeners)
+                _ => new AggregateExecutionDiagnosticEvents(listeners),
             };
         });
         return services;
@@ -47,8 +47,8 @@ public static class InternalSchemaServiceCollectionExtensions
         return services;
     }
 
-    public static T GetApplicationService<T>(this IServiceProvider services) =>
-        services.GetApplicationServices().GetRequiredService<T>();
+    public static T GetApplicationService<T>(this IServiceProvider services) where T : notnull
+        => services.GetApplicationServices().GetRequiredService<T>();
 
     public static IServiceProvider GetApplicationServices(this IServiceProvider services) =>
         services.GetRequiredService<IApplicationServiceProvider>();

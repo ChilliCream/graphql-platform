@@ -44,10 +44,7 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
 
         // If the target enum type doesn't have a description, use the source enum type's
         // description
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Description;
-        }
+        target.MergeDescriptionWith(source);
 
         // Merge each value of the enum type
         foreach (var sourceValue in source.Values)
@@ -60,16 +57,14 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
                 target.Values.Add(targetValue);
             }
 
-            // Try to apply the source value to the target value
-            context.TryApplySource(sourceValue, sourceSchema, targetValue);
+            targetValue.MergeDescriptionWith(sourceValue);
 
             // If the source value is deprecated and the target value isn't, use the source
             // value's deprecation reason
-            if (sourceValue.IsDeprecated &&
-                string.IsNullOrEmpty(targetValue.DeprecationReason))
-            {
-                sourceValue.DeprecationReason = targetValue.DeprecationReason;
-            }
+            targetValue.MergeDeprecationWith(sourceValue);
+            
+            // Apply the source value to the target value
+            context.ApplySource(sourceValue, sourceSchema, targetValue);
         }
     }
 }

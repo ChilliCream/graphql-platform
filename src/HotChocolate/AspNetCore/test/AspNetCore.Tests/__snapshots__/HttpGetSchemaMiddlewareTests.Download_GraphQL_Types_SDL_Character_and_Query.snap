@@ -3,11 +3,13 @@ interface Character {
   name: String!
   friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   appearsIn: [Episode]
+  traits: JSON
   height(unit: Unit): Float
 }
 
 type Query {
   hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: JSON!): Character
   heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]

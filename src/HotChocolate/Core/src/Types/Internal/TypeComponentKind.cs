@@ -4,5 +4,5 @@ public enum TypeComponentKind
 {
     NonNull,
     List,
-    Named
+    Named,
 }

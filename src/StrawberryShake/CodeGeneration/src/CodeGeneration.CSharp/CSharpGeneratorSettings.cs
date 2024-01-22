@@ -18,6 +18,11 @@ public class CSharpGeneratorSettings
     /// The root namespace of the client.
     /// </summary>
     public string Namespace { get; set; } = "StrawberryShake.GraphQL";
+    
+    /// <summary>
+    /// The access modifier of the client.
+    /// </summary>
+    public AccessModifier AccessModifier { get; set; } = AccessModifier.Public;
 
     /// <summary>
     /// Defines if a schema needs to be fully valid.
@@ -70,6 +75,6 @@ public class CSharpGeneratorSettings
             new TransportProfile(
                 TransportProfile.DefaultProfileName,
                 TransportType.Http,
-                subscription: TransportType.WebSocket)
+                subscription: TransportType.WebSocket),
         };
 }

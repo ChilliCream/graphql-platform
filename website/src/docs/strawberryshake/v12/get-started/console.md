@@ -15,7 +15,7 @@ In this tutorial, we will teach you:
 
 ## Step 1: Add the Strawberry Shake CLI tools
 
-The Strawberry Shake tool will help you to setup your project to create a GraphQL client.
+The Strawberry Shake tool will help you to set up your project to create a GraphQL client.
 
 Open your preferred terminal and select a directory where you want to add the code of this tutorial.
 
@@ -85,7 +85,7 @@ dotnet add Demo package Microsoft.Extensions.Http
 
 ## Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
 In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our console application.
 

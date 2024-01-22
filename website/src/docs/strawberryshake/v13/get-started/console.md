@@ -15,7 +15,7 @@ In this tutorial, we will teach you:
 
 ## Step 1: Add the Strawberry Shake CLI tools
 
-The Strawberry Shake tool will help you to setup your project to create a GraphQL client.
+The Strawberry Shake tool will help you to set up your project to create a GraphQL client.
 
 Open your preferred terminal and select a directory where you want to add the code of this tutorial.
 
@@ -65,7 +65,7 @@ dotnet add Demo package StrawberryShake.Server
 
 ## Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
 In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our console application.
 
@@ -120,7 +120,7 @@ query GetSessions {
 dotnet build
 ```
 
-With the project compiled you now should see a directory `Generated`. The generated code is just there for the IDE, the actual code was injected directly into roslyn through source generators.
+With the project compiled, you should now see in the directory `./obj/<configuration>/<target-framework>/berry` the generated code that your applications can leverage. For example, if you've run a Debug build for .NET 8, the path would be `./obj/Debug/net8.0/berry`.
 
 ![Visual Studio code showing the generated directory.](../../../shared/berry_console_generated.png)
 

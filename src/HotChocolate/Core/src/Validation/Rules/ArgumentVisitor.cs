@@ -36,7 +36,7 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
     public ArgumentVisitor()
         : base(new SyntaxVisitorOptions
         {
-            VisitDirectives = true
+            VisitDirectives = true,
         })
     {
     }

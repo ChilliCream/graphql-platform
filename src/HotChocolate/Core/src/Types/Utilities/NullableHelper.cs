@@ -64,7 +64,7 @@ internal readonly struct NullableHelper
             {
                 Nullable.Yes => true,
                 Nullable.No => false,
-                _ => null
+                _ => null,
             };
         }
         return parent;
@@ -96,7 +96,7 @@ internal readonly struct NullableHelper
                 {
                     Nullable.Yes => true,
                     Nullable.No => false,
-                    _ => null
+                    _ => null,
                 };
             }
 

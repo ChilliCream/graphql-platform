@@ -15,26 +15,87 @@
             "title": "Introduction"
           },
           {
-            "path": "install",
-            "title": "Installation"
-          },
-          {
             "path": "getting-started",
             "title": "Getting Started"
           },
           {
-            "path": "schema-reference",
-            "title": "Schema Reference"
-          },
-          {
-            "path": "schema-definition",
-            "title": "Schema Definition"
-          },
-          {
-            "path": "actions",
-            "title": "Actions",
+            "path": "explore-the-ui",
+            "title": "Explore the UI",
             "items": [
-              { "path": "schema-refresh", "title": "Schema Refresh" },
+              { "path": "index", "title": "Overview" },
+              { "path": "status-bar", "title": "Status Bar" },
+              { "path": "explorer", "title": "Explorer" }
+            ]
+          },
+          {
+            "path": "documents",
+            "title": "Documents",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "operations", "title": "Operations" },
+              { "path": "response", "title": "Response Pane" },
+              { "path": "schema-reference", "title": "Schema Reference" },
+              { "path": "schema-definition", "title": "Schema Definition" },
+              { "path": "connection-settings", "title": "Connection Settings" },
+              { "path": "authentication", "title": "Authentication Flows" }
+            ]
+          },
+          {
+            "path": "apis",
+            "title": "Apis",
+            "items": [
+              { "path": "overview", "title": "Overview" },
+              { "path": "stages", "title": "Stages" },
+              { "path": "fusion", "title": "Fusion" },
+              {
+                "path": "schema-registry",
+                "title": "Schema Registry"
+              },
+              {
+                "path": "client-registry",
+                "title": "Client Registry"
+              },
+              {
+                "path": "operation-reporting",
+                "title": "Operation Reporting"
+              },
+              { "path": "open-telemetry", "title": "Open Telemetry" }
+            ]
+          },
+          {
+            "path": "environments",
+            "title": "Environments"
+          },
+          {
+            "path": "workspaces",
+            "title": "Workspaces"
+          },
+          {
+            "path": "organizations",
+            "title": "Organizations"
+          },
+          {
+            "path": "bcp-services",
+            "title": "Connect you API"
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions & Billing"
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              { "path": "express", "title": "Express Server" },
+              { "path": "hot-chocolate", "title": "Hot Chocolate" }
+            ]
+          },
+          {
+            "path": "settings",
+            "title": "Settings",
+            "items": [
+              { "path": "index", "title": "Overview" },
+              { "path": "themes", "title": "Themes" },
               { "path": "key-bindings", "title": "Key Bindings" }
             ]
           }
@@ -136,6 +197,10 @@
               {
                 "path": "relay",
                 "title": "Relay"
+              },
+              {
+                "path": "dynamic-schemas",
+                "title": "Dynamic Schemas"
               }
             ]
           },
@@ -268,6 +333,10 @@
               {
                 "path": "batching",
                 "title": "Batching"
+              },
+              {
+                "path": "command-line",
+                "title": "Command Line"
               }
             ]
           },
@@ -1385,6 +1454,45 @@
           {
             "path": "scalars",
             "title": "Scalars"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "barista",
+    "title": "Barista",
+    "description": "The CLI tool for orchestrating your GraphQL cloud services.",
+    "metaDescription": "Barista is a powerful .NET command-line tool used for managing your GraphQL API's schema and client registries. It provides a suite of commands that facilitate the handling of schemas, clients, stages, workspaces, environments, and API keys.",
+    "latestStableVersion": "v1",
+    "versions": [
+      {
+        "path": "v1",
+        "title": "v1",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "authentication",
+            "title": "Authentication"
+          },
+          {
+            "path": "commands",
+            "title": "Commands",
+            "items": [
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              { "path": "workspace", "title": "workspace" }
+            ]
           }
         ]
       }

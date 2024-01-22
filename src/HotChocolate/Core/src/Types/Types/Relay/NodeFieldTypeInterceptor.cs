@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
@@ -19,38 +20,52 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
-    public override void OnBeforeCompleteType(
-        ITypeCompletionContext context,
-        DefinitionBase definition)
+    private ITypeCompletionContext? _queryContext;
+    private ObjectTypeDefinition? _queryTypeDefinition;
+
+    internal override uint Position => uint.MaxValue - 100;
+
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition,
+        OperationType operationType)
     {
-        if ((context.IsQueryType ?? false) &&
-            definition is ObjectTypeDefinition objectTypeDefinition)
+        if (operationType is OperationType.Query)
         {
-            var typeInspector = context.TypeInspector;
+            _queryContext = completionContext;
+            _queryTypeDefinition = definition;
+        }
+    }
+
+    public override void OnBeforeCompleteTypes()
+    {
+        if (_queryContext is not null && _queryTypeDefinition is not null)
+        {
+            var typeInspector = _queryContext.TypeInspector;
 
             var serializer =
-                context.Services.GetService<IIdSerializer>() ??
+                _queryContext.Services.GetService<IIdSerializer>() ??
                 new IdSerializer();
 
             // the nodes fields shall be chained in after the introspection fields,
             // so we first get the index of the last introspection field,
             // which is __typename
-            var typeNameField = objectTypeDefinition.Fields.First(
+            var typeNameField = _queryTypeDefinition.Fields.First(
                 t => t.Name.EqualsOrdinal(IntrospectionFields.TypeName) &&
                     t.IsIntrospectionField);
-            var index = objectTypeDefinition.Fields.IndexOf(typeNameField);
-            var maxAllowedNodes = context.DescriptorContext.Options.MaxAllowedNodeBatchSize;
+            var index = _queryTypeDefinition.Fields.IndexOf(typeNameField);
+            var maxAllowedNodes = _queryContext.DescriptorContext.Options.MaxAllowedNodeBatchSize;
 
             CreateNodeField(
                 typeInspector,
                 serializer,
-                objectTypeDefinition.Fields,
+                _queryTypeDefinition.Fields,
                 index + 1);
 
             CreateNodesField(
                 typeInspector,
                 serializer,
-                objectTypeDefinition.Fields,
+                _queryTypeDefinition.Fields,
                 index + 2,
                 maxAllowedNodes);
         }
@@ -74,12 +89,11 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    next => async context =>
+                    _ => async context =>
                     {
                         await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                        await next(context).ConfigureAwait(false);
-                    })
-            }
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field
@@ -109,15 +123,12 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    next => async context =>
+                    _ => async context =>
                     {
-                        if (await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
-                            .ConfigureAwait(false))
-                        {
-                            await next(context).ConfigureAwait(false);
-                        }
-                    })
-            }
+                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
+                            .ConfigureAwait(false);
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field

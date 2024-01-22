@@ -60,10 +60,14 @@ public class EntityTypeGenerator : CSharpSyntaxGenerator<EntityTypeDescriptor>
                 recordDeclarationSyntax);
         }
 
+        var modifier = settings.AccessModifier == AccessModifier.Public
+            ? SyntaxKind.PublicKeyword
+            : SyntaxKind.InternalKeyword;
+
         var classDeclaration =
             ClassDeclaration(descriptor.RuntimeType.Name)
                 .AddModifiers(
-                    Token(SyntaxKind.PublicKeyword),
+                    Token(modifier),
                     Token(SyntaxKind.PartialKeyword))
                 .AddGeneratedAttribute()
                 .AddSummary(descriptor.Documentation);

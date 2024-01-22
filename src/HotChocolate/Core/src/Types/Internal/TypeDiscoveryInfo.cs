@@ -148,7 +148,7 @@ public readonly ref struct TypeDiscoveryInfo
                 IsValueType: true,
                 IsPrimitive: false,
                 IsEnum: false,
-                IsByRefLike: false
+                IsByRefLike: false,
             };
 
         if (isComplexValueType && unresolvedType.IsGeneric)

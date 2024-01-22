@@ -1,0 +1,126 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  hero(episode: Episode! = NEW_HOPE): Character
+  heroByTraits(traits: JSON!): Character
+  heroes(episodes: [Episode!]): [Character!]
+  character(characterIds: [String]): [Character!]!
+  search(text: String): [SearchResult]
+  human(id: String): Human
+  droid(id: String): Droid
+  time: Long!
+  evict: Boolean!
+  wait(m: Int!): Boolean!
+}
+
+type Mutation {
+  createReview(episode: Episode! review: ReviewInput!): Review!
+  complete(episode: Episode!): Boolean!
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+  onNext: String!
+  onException: String!
+  delay(delay: Int! count: Int!): String!
+}
+
+type Human implements Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode]
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  otherHuman: Human
+  height(unit: Unit): Float
+  homePlanet: String
+  traits: JSON
+}
+
+type Droid implements Character {
+  id: ID!
+  name: String!
+  appearsIn: [Episode]
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  height(unit: Unit): Float
+  primaryFunction: String
+  traits: JSON
+}
+
+enum Episode {
+  NEW_HOPE
+  EMPIRE
+  JEDI
+}
+
+interface Character {
+  id: ID!
+  name: String!
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
+  appearsIn: [Episode]
+  traits: JSON
+  height(unit: Unit): Float
+}
+
+union SearchResult = Starship | Human | Droid
+
+type Review {
+  commentary: String
+  stars: Int!
+}
+
+input ReviewInput {
+  stars: Int!
+  commentary: String
+}
+
+"A connection to a list of items."
+type FriendsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FriendsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character]
+}
+
+enum Unit {
+  FOOT
+  METERS
+}
+
+scalar JSON
+
+type Starship {
+  id: ID!
+  name: String!
+  length(unit: Unit): Float!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"An edge in a connection."
+type FriendsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Character
+}
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+directive @export(as: String) on FIELD

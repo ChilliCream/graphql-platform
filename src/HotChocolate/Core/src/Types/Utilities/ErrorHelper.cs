@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
+using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 
@@ -173,6 +175,18 @@ internal static class ErrorHelper
                 string.Join(", ", fieldNames))
             .SetType(type)
             .SetSpecifiedBy(type.Kind, rfc: 825)
+            .Build();
+
+    public static ISchemaError InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf(
+        InputObjectType type,
+        IEnumerable<string> path)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf,
+                type.Name,
+                string.Join(" --> ", path))
+            .SetType(type)
+            .SetSpecifiedBy(type.Kind, rfc: 445)
             .Build();
 
     public static ISchemaError RequiredArgumentCannotBeDeprecated(
@@ -403,6 +417,22 @@ internal static class ErrorHelper
             .SetExtension(nameof(field), field)
             .Build();
 
+    public static ISchemaError DuplicateDataMiddlewareDetected(
+        FieldCoordinate field,
+        ITypeSystemObject type,
+        ISyntaxNode? syntaxNode,
+        IEnumerable<string> duplicateMiddleware)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_DuplicateDataMiddlewareDetected_Message,
+                field.ToString(),
+                string.Join(", ", duplicateMiddleware))
+            .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension(nameof(field), field)
+            .Build();
+
     public static ISchemaError NoSchemaTypesAllowedAsRuntimeType(
         ITypeSystemObject type,
         Type runtimeType)
@@ -470,4 +500,53 @@ internal static class ErrorHelper
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();
+
+    public static ISchemaError NoFields(
+        ITypeSystemObject typeSystemObj,
+        IType type)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                FieldInitHelper_NoFields,
+                type.Kind.ToString(),
+                typeSystemObj.Name)
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(typeSystemObj)
+            .AddSyntaxNode((type as IHasSyntaxNode)?.SyntaxNode)
+            .Build();
+
+    public static ISchemaError DuplicateFieldName(
+        ITypeSystemObject type,
+        ITypeSystemMember declaringMember,
+        IReadOnlyCollection<string> duplicateFieldNames)
+    {
+        var field = declaringMember is IType
+            ? "field"
+            : "argument";
+
+        var coordinate = declaringMember is IType
+            ? new SchemaCoordinate(type.Name)
+            : new SchemaCoordinate(type.Name, ((IHasName)declaringMember).Name);
+
+        var s = string.Empty;
+        var @is = "is";
+
+        if (duplicateFieldNames.Count > 1)
+        {
+            s = "s";
+            @is = "are";
+        }
+
+        return SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_DuplicateFieldName_Message,
+                field,
+                s,
+                string.Join(", ", duplicateFieldNames),
+                @is,
+                coordinate.ToString())
+            .SetCode(ErrorCodes.Schema.DupplicateFieldNames)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode((declaringMember as IHasSyntaxNode)?.SyntaxNode)
+            .Build();
+    }
 }

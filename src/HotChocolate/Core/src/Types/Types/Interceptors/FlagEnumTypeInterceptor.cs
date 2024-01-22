@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Interceptors;
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
-    private const string FlagNameAddition = "Flags";
+    private const string _flagNameAddition = "Flags";
 
     private readonly Dictionary<Type, string> _outputTypeCache = new();
     private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = new();
@@ -113,11 +113,11 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return outputType;
         }
 
-        var typeName = _namingConventions.GetTypeName(type) + FlagNameAddition;
+        var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new ObjectTypeDefinition(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>)
+            RuntimeType = typeof(Dictionary<string, object>),
         };
 
         foreach (var value in Enum.GetValues(type))
@@ -144,11 +144,11 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return result;
         }
 
-        var typeName = $"{_namingConventions.GetTypeName(type)}{FlagNameAddition}Input";
+        var typeName = $"{_namingConventions.GetTypeName(type)}{_flagNameAddition}Input";
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new InputObjectTypeDefinition(typeName, desc)
         {
-            RuntimeType = typeof(Dictionary<string, object>)
+            RuntimeType = typeof(Dictionary<string, object>),
         };
 
         var metadata = new Dictionary<string, object>();

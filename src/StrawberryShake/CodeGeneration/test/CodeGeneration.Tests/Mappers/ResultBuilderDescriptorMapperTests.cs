@@ -46,7 +46,7 @@ public class ResultBuilderDescriptorMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default
+                TransportProfile.Default,
             });
         TypeDescriptorMapper.Map(clientModel, context);
         ResultBuilderDescriptorMapper.Map(clientModel, context);

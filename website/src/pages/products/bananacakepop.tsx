@@ -1,5 +1,4 @@
 import { SrOnly } from "@/components/misc/sr-only";
-import { OutboundLink } from "gatsby-plugin-google-analytics";
 import React, {
   FC,
   MouseEventHandler,
@@ -106,7 +105,7 @@ const BananaCakePopPage: FC = () => {
                 <h2>Organization Workspaces</h2>
               </header>
               <p>
-                Organize your GraphQL APIs and collaborate with colleges across
+                Organize your GraphQL APIs and collaborate with colleagues across
                 your organization with ease.
               </p>
             </CardOffer>
@@ -555,7 +554,7 @@ const DownloadButtonContainer = styled.div`
   overflow: visible;
 `;
 
-const DownloadLink = styled(OutboundLink).attrs({
+const DownloadLink = styled.a.attrs({
   rel: "noopener noreferrer",
 })`
   display: flex;

@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Unknown type \u0060LineString\u0060.",
+      "message": "Unknown type `LineString`.",
       "locations": [
         {
           "line": 1,
@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "typeCondition": "LineString",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-Spread-Type-Existence"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-Spread-Type-Existence"
       }
     }
   ]

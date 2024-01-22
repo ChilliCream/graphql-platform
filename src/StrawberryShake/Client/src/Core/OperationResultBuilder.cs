@@ -25,6 +25,7 @@ public abstract class OperationResultBuilder<TResultData>
         TResultData? data = null;
         IOperationResultDataInfo? dataInfo = null;
         IReadOnlyList<IClientError>? errors = null;
+        IReadOnlyDictionary<string, object?>? extensions = null;
 
         try
         {
@@ -42,6 +43,14 @@ public abstract class OperationResultBuilder<TResultData>
                 {
                     errors = JsonErrorParser.ParseErrors(errorsProp);
                 }
+
+                if (body.RootElement.TryGetProperty(
+                        ResultFields.Extensions,
+                        out var extensionsProp) &&
+                    extensionsProp.ValueKind is JsonValueKind.Object)
+                {
+                    extensions = JsonExtensionParser.ParseExtensions(extensionsProp);
+                }
             }
         }
         catch (Exception ex)
@@ -54,8 +63,8 @@ public abstract class OperationResultBuilder<TResultData>
                 exception: ex,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(ex.StackTrace), ex.StackTrace }
-                })
+                    { nameof(ex.StackTrace), ex.StackTrace },
+                }),
             };
 
             if (errors is not null)
@@ -78,8 +87,8 @@ public abstract class OperationResultBuilder<TResultData>
                     exception: response.Exception,
                     extensions: new Dictionary<string, object?>
                     {
-                        { nameof(response.Exception.StackTrace), response.Exception.StackTrace }
-                    })
+                        { nameof(response.Exception.StackTrace), response.Exception.StackTrace },
+                    }),
             };
         }
 
@@ -88,7 +97,7 @@ public abstract class OperationResultBuilder<TResultData>
             dataInfo,
             ResultDataFactory,
             errors,
-            response.Extensions,
+            extensions,
             response.ContextData);
     }
 

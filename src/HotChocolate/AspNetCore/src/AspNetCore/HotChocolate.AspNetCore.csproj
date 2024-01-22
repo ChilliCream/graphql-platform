@@ -11,6 +11,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests.Utilities" />
+    <InternalsVisibleTo Include="HotChocolate.AzureFunctions" />
     <InternalsVisibleTo Include="HotChocolate.AzureFunctions.IsolatedProcess" />
   </ItemGroup>
 
@@ -18,7 +19,12 @@
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Transport.Sockets\HotChocolate.Transport.Sockets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
   </ItemGroup>
 
   <ItemGroup>

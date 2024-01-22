@@ -1,0 +1,40 @@
+schema {
+  query: Query
+  mutation: MutationWithInterfaces
+}
+
+interface Error {
+  message: String!
+}
+
+interface IInterfaceError {
+  name: String!
+}
+
+interface IInterfaceError2 {
+  name: String!
+}
+
+type DoSomethingPayload {
+  boolean: Boolean
+  errors: [DoSomethingError!]
+}
+
+type ErrorWithInterface implements Error & IInterfaceError & IInterfaceError2 {
+  name: String!
+  message: String!
+}
+
+type MutationWithInterfaces {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type Query {
+  abc: String
+}
+
+union DoSomethingError = ErrorWithInterface
+
+input DoSomethingInput {
+  something: String!
+}

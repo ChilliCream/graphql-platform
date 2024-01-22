@@ -6,6 +6,8 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static System.Net.HttpStatusCode;
+using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -16,6 +18,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private const string _operations = "operations";
     private const string _map = "map";
     private readonly FormOptions _formOptions;
+    private readonly IQueryResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
@@ -39,9 +42,17 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     public override async Task InvokeAsync(HttpContext context)
     {
         if (HttpMethods.IsPost(context.Request.Method) &&
-            (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
+            GetOptions(context).EnableMultipartRequests &&
             ParseContentType(context) == RequestContentType.Form)
         {
+            if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) &&
+                GetOptions(context).EnforceMultipartRequestsPreflightHeader)
+            {
+                var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
+                await WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
+                return;
+            }
+            
             if (!IsDefaultSchema)
             {
                 context.Items[WellKnownContextData.SchemaName] = SchemaName;

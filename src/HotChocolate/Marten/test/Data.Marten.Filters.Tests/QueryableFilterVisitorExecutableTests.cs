@@ -1,22 +1,23 @@
 using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class QueryableFilterVisitorExecutableTests
-    : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     {
         new() { Bar = true },
-        new() { Bar = false }
+        new() { Bar = false },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
     {
         new() { Bar = true },
         new() { Bar = null },
-        new() { Bar = false }
+        new() { Bar = false },
     };
 
     private readonly SchemaCache _cache;
@@ -44,9 +45,7 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot.Create(), res1, "true"), res2, "false")
+        await Snapshot.Create().AddResult(res1, "true").AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -68,10 +67,8 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "true"), res2, "false")
+        await Snapshot
+            .Create().AddResult(res1, "true").AddResult(res2, "false")
             .MatchAsync();
     }
 
@@ -98,11 +95,8 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "true"), res2, "false"), res3, "null")
+        await Snapshot
+            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -129,11 +123,8 @@ public class QueryableFilterVisitorExecutableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "true"), res2, "false"), res3, "null")
+        await Snapshot
+            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
             .MatchAsync();
     }
 

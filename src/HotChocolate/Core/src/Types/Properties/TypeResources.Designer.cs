@@ -11,7 +11,7 @@ namespace HotChocolate.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TypeResources {
@@ -492,6 +492,12 @@ namespace HotChocolate.Properties {
         internal static string ObjectTypeDescriptor_MustBePropertyOrMethod {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
+        
+        internal static string ObjectTypeDescriptor_ResolveWith_NonAbstract {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_ResolveWith_NonAbstract", resourceCulture);
             }
         }
         
@@ -1167,15 +1173,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ___AppliedDirective_Description {
+        internal static string AppliedDirective_Description {
             get {
-                return ResourceManager.GetString("__AppliedDirective_Description", resourceCulture);
+                return ResourceManager.GetString("AppliedDirective_Description", resourceCulture);
             }
         }
         
-        internal static string ___DirectiveArgument_Description {
+        internal static string DirectiveArgument_Description {
             get {
-                return ResourceManager.GetString("__DirectiveArgument_Description", resourceCulture);
+                return ResourceManager.GetString("DirectiveArgument_Description", resourceCulture);
             }
         }
         
@@ -1815,6 +1821,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_RequiredArgumentCannotBeDeprecated {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequiredArgumentCannotBeDeprecated", resourceCulture);
@@ -1956,6 +1968,54 @@ namespace HotChocolate.Properties {
         internal static string ThrowHelper_OutputTypeExpected_Message {
             get {
                 return ResourceManager.GetString("ThrowHelper_OutputTypeExpected_Message", resourceCulture);
+            }
+        }
+        
+        internal static string TagDirective_Name_NotValid {
+            get {
+                return ResourceManager.GetString("TagDirective_Name_NotValid", resourceCulture);
+            }
+        }
+        
+        internal static string TagDirective_Descriptor_NotSupported {
+            get {
+                return ResourceManager.GetString("TagDirective_Descriptor_NotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string MutationConvention_ShouldBeEnabled_WhenAddingErrorType {
+            get {
+                return ResourceManager.GetString("MutationConvention_ShouldBeEnabled_WhenAddingErrorType", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DuplicateFieldName_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DuplicateFieldName_Message", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DuplicateDataMiddlewareDetected_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DuplicateDataMiddlewareDetected_Message", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaException_UnexpectedError {
+            get {
+                return ResourceManager.GetString("SchemaException_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaException_ErrorSummaryText {
+            get {
+                return ResourceManager.GetString("SchemaException_ErrorSummaryText", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_PooledServicesNotAllowed {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PooledServicesNotAllowed", resourceCulture);
             }
         }
     }

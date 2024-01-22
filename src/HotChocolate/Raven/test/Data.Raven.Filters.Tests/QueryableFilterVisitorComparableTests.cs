@@ -10,7 +10,7 @@ public class QueryableFilterVisitorComparableTests
     {
         new() { BarShort = 12 },
         new() { BarShort = 14 },
-        new() { BarShort = 13 }
+        new() { BarShort = 13 },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -18,7 +18,7 @@ public class QueryableFilterVisitorComparableTests
         new() { BarShort = 12 },
         new() { BarShort = null },
         new() { BarShort = 14 },
-        new() { BarShort = 13 }
+        new() { BarShort = 13 },
     };
 
     private readonly SchemaCache _cache;
@@ -897,7 +897,7 @@ public class QueryableFilterVisitorComparableTests
         public short? BarShort { get; set; }
     }
 
-    public class FooFilterInput : FilterInputType<Foo> { }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput : FilterInputType<FooNullable> { }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

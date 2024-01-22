@@ -1,9 +1,9 @@
 using System;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.FileSystem;
-using Microsoft.Extensions.Caching.Memory;
+using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -18,9 +18,6 @@ public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensi
     /// </summary>
     /// <param name="services">
     /// The service collection to which the services are added.
-    /// </param>
-    /// <param name="cacheDirectory">
-    /// The directory path that shall be used to store queries.
     /// </param>
     public static IServiceCollection AddInMemoryQueryStorage(
         this IServiceCollection services)
@@ -43,9 +40,6 @@ public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensi
     /// <param name="services">
     /// The service collection to which the services are added.
     /// </param>
-    /// <param name="cacheDirectory">
-    /// The directory path that shall be used to read queries from.
-    /// </param>
     public static IServiceCollection AddReadOnlyInMemoryQueryStorage(
         this IServiceCollection services)
     {
@@ -58,23 +52,9 @@ public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensi
             .RemoveService<IReadStoredQueries>()
             .RemoveService<IWriteStoredQueries>()
             .AddSingleton(c => new InMemoryQueryStorage(
-                c.GetService<IMemoryCache>() ?? 
+                c.GetService<IMemoryCache>() ??
                 c.GetApplicationService<IMemoryCache>()))
             .AddSingleton<IReadStoredQueries>(
                 sp => sp.GetRequiredService<InMemoryQueryStorage>());
-    }
-
-    private static IServiceCollection RemoveService<TService>(
-        this IServiceCollection services)
-    {
-        var serviceDescriptor =
-            services.FirstOrDefault(t => t.ServiceType == typeof(TService));
-
-        if (serviceDescriptor != null)
-        {
-            services.Remove(serviceDescriptor);
-        }
-
-        return services;
     }
 }

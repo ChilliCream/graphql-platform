@@ -152,7 +152,7 @@ internal class ConnectionType
         var definition = new ObjectTypeDefinition
         {
             Description = ConnectionType_Description,
-            RuntimeType = typeof(Connection)
+            RuntimeType = typeof(Connection),
         };
 
         definition.Fields.Add(new(

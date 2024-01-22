@@ -118,7 +118,7 @@ internal static class GraphQLWebSocketWriterExtension
             GraphQLWebSocketMessageType.Error => Error,
             GraphQLWebSocketMessageType.Complete => Complete,
             GraphQLWebSocketMessageType.Stop => Stop,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null),
         };
 
         writer.Writer.WriteStringValue(typeToWriter);

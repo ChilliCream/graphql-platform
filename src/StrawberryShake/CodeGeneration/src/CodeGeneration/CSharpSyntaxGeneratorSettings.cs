@@ -9,15 +9,23 @@ public class CSharpSyntaxGeneratorSettings
     /// Creates a new code generator settings instance.
     /// </summary>
     public CSharpSyntaxGeneratorSettings(
+        AccessModifier accessModifier,
         bool noStore,
         bool inputRecords,
-        bool entityRecords, bool razorComponents)
+        bool entityRecords,
+        bool razorComponents)
     {
+        AccessModifier = accessModifier;
         NoStore = noStore;
         InputRecords = inputRecords;
         EntityRecords = entityRecords;
         RazorComponents = razorComponents;
     }
+    
+    /// <summary>
+    /// Generates the client with specified access modifier.
+    /// </summary>
+    public AccessModifier AccessModifier { get; }
 
     /// <summary>
     /// Generates the client without a store

@@ -10,16 +10,16 @@
           "Name": "dog",
           "Parent": {
             "Parent": null,
-            "Length": -1,
+            "Length": 0,
             "IsRoot": true
           },
-          "Length": 0,
+          "Length": 1,
           "IsRoot": false
         },
-        "Length": 1,
+        "Length": 2,
         "IsRoot": false
       },
-      "Length": 2,
+      "Length": 3,
       "IsRoot": false
     },
     "Locations": [
@@ -30,7 +30,7 @@
     ],
     "Extensions": {
       "fragment": "dogFragment",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -37,5 +37,6 @@ public enum ActivityScopes
         CoerceVariables |
         CompileOperation |
         ExecuteOperation |
-        ResolveFieldValue
+        ResolveFieldValue |
+        DataLoaderBatch,
 }

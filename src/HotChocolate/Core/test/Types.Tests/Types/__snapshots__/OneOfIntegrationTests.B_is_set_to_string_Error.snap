@@ -15,7 +15,7 @@
         "fieldName": "b",
         "fieldType": "Int",
         "locationType": "Int",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

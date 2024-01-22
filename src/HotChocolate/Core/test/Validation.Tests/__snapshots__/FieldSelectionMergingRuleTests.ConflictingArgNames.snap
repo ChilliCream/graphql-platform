@@ -6,10 +6,10 @@
       "Name": "catOrDog",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -22,7 +22,7 @@
       "type": "Dog",
       "field": "isAtLocation",
       "responseName": "isAtLocation",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -87,10 +87,10 @@
       "Name": "catOrDog",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -103,7 +103,7 @@
       "type": "Dog",
       "field": "isAtLocation",
       "responseName": "isAtLocation",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {

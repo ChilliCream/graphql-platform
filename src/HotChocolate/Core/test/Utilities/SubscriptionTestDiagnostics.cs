@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.Diagnostics;
 using Xunit.Abstractions;
 
@@ -13,7 +12,7 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
 
     private readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public SubscriptionTestDiagnostics(ITestOutputHelper output)
@@ -46,13 +45,6 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
         T message,
         int subscribers)
         => _output.WriteLine($"Dispatched: {topicName} {Serialize(message)} {subscribers}");
-
-    public override void DelayedDispatch<T>(
-        string topicName,
-        int shard,
-        T message,
-        int subscribers)
-        => _output.WriteLine($"Delayed: {topicName}/{shard} {Serialize(message)} {subscribers}");
 
     public override void TrySubscribe(string topicName, int attempt)
         => _output.WriteLine($"TrySubscribe: {topicName} {attempt}");

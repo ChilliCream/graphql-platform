@@ -15,7 +15,7 @@ public static class SpecScalarTypes
             Boolean,
             Float,
             ID,
-            Int
+            Int,
         };
 
     public static bool IsSpecScalar(string name)

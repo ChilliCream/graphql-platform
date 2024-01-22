@@ -50,7 +50,7 @@ QueryPlan
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __typename } } }",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__2: id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -108,6 +108,10 @@ QueryPlan
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id"
   }
 }
 ---------------

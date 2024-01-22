@@ -9,21 +9,21 @@
 
 namespace HotChocolate.AspNetCore.Properties {
     using System;
-
-
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class AspNetCoreResources {
-
+        
         private static System.Resources.ResourceManager resourceMan;
-
+        
         private static System.Globalization.CultureInfo resourceCulture;
-
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal AspNetCoreResources() {
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.AspNetCore.Properties {
                 return resourceMan;
             }
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,250 +44,250 @@ namespace HotChocolate.AspNetCore.Properties {
                 resourceCulture = value;
             }
         }
-
+        
         internal static string ThrowHelper_DefaultHttpRequestParser_RequestIsEmpty {
             get {
                 return ResourceManager.GetString("ThrowHelper_DefaultHttpRequestParser_RequestIsEmpty", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_DefaultHttpRequestParser_QueryAndIdMissing {
             get {
                 return ResourceManager.GetString("ThrowHelper_DefaultHttpRequestParser_QueryAndIdMissing", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_DefaultHttpRequestParser_MaxRequestSizeExceeded {
             get {
                 return ResourceManager.GetString("ThrowHelper_DefaultHttpRequestParser_MaxRequestSizeExceeded", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported {
             get {
                 return ResourceManager.GetString("ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_Invalid_Form {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Invalid_Form", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_Fields_Misordered {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Fields_Misordered", resourceCulture);
             }
         }
-
+        
         internal static string HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable {
             get {
                 return ResourceManager.GetString("HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable", resourceCulture);
             }
         }
-
+        
         internal static string VariablePath_Parse_FirstSegmentMustBeKey {
             get {
                 return ResourceManager.GetString("VariablePath_Parse_FirstSegmentMustBeKey", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_NoObjectPath {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_NoObjectPath", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_FileMissing {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_FileMissing", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_VariableNotFound {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_InvalidPath {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_InvalidPath", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_InvalidMapJson {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_InvalidMapJson", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_HttpMultipartMiddleware_MapNotSpecified {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_MapNotSpecified", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_InvalidRequest {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidRequest", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_RequestHasNoElements {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequestHasNoElements", resourceCulture);
             }
         }
-
+        
         internal static string WebSocketSession_SessionEnded {
             get {
                 return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
             }
         }
-
+        
         internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
             get {
                 return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
             }
         }
-
+        
         internal static string OperationMessage_TypeCannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("OperationMessage_TypeCannotBeNullOrEmpty", resourceCulture);
             }
         }
-
+        
         internal static string TerminateConnectionMessageHandler_Message {
             get {
                 return ResourceManager.GetString("TerminateConnectionMessageHandler_Message", resourceCulture);
             }
         }
-
+        
         internal static string OperationManager_Register_SessionIdNullOrEmpty {
             get {
                 return ResourceManager.GetString("OperationManager_Register_SessionIdNullOrEmpty", resourceCulture);
             }
         }
-
+        
         internal static string Apollo_OnReceive_MessageMustBeJson {
             get {
                 return ResourceManager.GetString("Apollo_OnReceive_MessageMustBeJson", resourceCulture);
             }
         }
-
+        
         internal static string Apollo_OnReceive_TypePropMissing {
             get {
                 return ResourceManager.GetString("Apollo_OnReceive_TypePropMissing", resourceCulture);
             }
         }
-
+        
         internal static string Apollo_OnReceive_ToManyInitializations {
             get {
                 return ResourceManager.GetString("Apollo_OnReceive_ToManyInitializations", resourceCulture);
             }
         }
-
+        
         internal static string Apollo_OnReceive_InvalidSubscribeMessage {
             get {
                 return ResourceManager.GetString("Apollo_OnReceive_InvalidSubscribeMessage", resourceCulture);
             }
         }
-
+        
         internal static string Apollo_OnReceive_SubscriptionIdNotUnique {
             get {
                 return ResourceManager.GetString("Apollo_OnReceive_SubscriptionIdNotUnique", resourceCulture);
             }
         }
-
+        
         internal static string Apollo_OnReceive_InvalidMessageType {
             get {
                 return ResourceManager.GetString("Apollo_OnReceive_InvalidMessageType", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionStatus_Reject_Message_cannot_be_null_or_empty_ {
             get {
                 return ResourceManager.GetString("ConnectionStatus_Reject_Message_cannot_be_null_or_empty_", resourceCulture);
             }
         }
-
+        
         internal static string ConnectionStatus_Reject_MessageCannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("ConnectionStatus_Reject_MessageCannotBeNullOrEmpty", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_NoSupportedAcceptMediaType {
             get {
                 return ResourceManager.GetString("ErrorHelper_NoSupportedAcceptMediaType", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Formatter_ResultKindNotSupported {
             get {
                 return ResourceManager.GetString("ThrowHelper_Formatter_ResultKindNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Formatter_ResponseContentTypeNotSupported {
             get {
                 return ResourceManager.GetString("ThrowHelper_Formatter_ResponseContentTypeNotSupported", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_Formatter_InvalidAcceptMediaType {
             get {
                 return ResourceManager.GetString("ThrowHelper_Formatter_InvalidAcceptMediaType", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_InvalidAcceptMediaType {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidAcceptMediaType", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_TypeNotFound {
             get {
                 return ResourceManager.GetString("ErrorHelper_TypeNotFound", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_InvalidTypeName {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidTypeName", resourceCulture);
             }
         }
-
+        
         internal static string ErrorHelper_TypeNameIsEmpty {
             get {
                 return ResourceManager.GetString("ErrorHelper_TypeNameIsEmpty", resourceCulture);
             }
         }
-
-        internal static string GraphQLHttpClient_InvalidContentType {
+        
+        internal static string ErrorHelper_MultiPartRequestPreflightRequired {
             get {
-                return ResourceManager.GetString("GraphQLHttpClient_InvalidContentType", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_MultiPartRequestPreflightRequired", resourceCulture);
             }
         }
     }

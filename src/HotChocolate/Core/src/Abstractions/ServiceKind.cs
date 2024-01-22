@@ -34,5 +34,5 @@ public enum ServiceKind
     /// A service that is retrieved from a IServiceScope that is bound to the resolver
     /// execution.
     /// </summary>
-    Resolver
+    Resolver,
 }

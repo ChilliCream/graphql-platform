@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -49,9 +50,9 @@ internal sealed class ExportCommand : Command
 
         var sdl = schema.Schema.Print();
 
-        if (output is { })
+        if (output is not null)
         {
-            await File.WriteAllTextAsync(output.FullName, sdl, cancellationToken);
+            await File.WriteAllTextAsync(output.FullName, sdl, Encoding.UTF8, cancellationToken);
         }
         else
         {

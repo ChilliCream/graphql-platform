@@ -124,7 +124,20 @@ public interface IPureResolverContext : IHasContextData
     /// <returns>
     /// Returns the specified service.
     /// </returns>
-    T Service<T>();
+    T Service<T>() where T : notnull;
+    
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Gets as required service from the dependency injection container.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The service type.
+    /// </typeparam>
+    /// <returns>
+    /// Returns the specified service.
+    /// </returns>
+    T? Service<T>(object key) where T : notnull;
+#endif
 
     /// <summary>
     /// Gets a resolver object containing one or more resolvers.

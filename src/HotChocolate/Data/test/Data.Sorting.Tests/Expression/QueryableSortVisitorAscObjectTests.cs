@@ -246,7 +246,7 @@ public class QueryableSortVisitorAscObjectTests
     {
         Foo = 0,
         Bar = 1,
-        Baz = 2
+        Baz = 2,
     }
 
     public class FooNullableSortType<T>

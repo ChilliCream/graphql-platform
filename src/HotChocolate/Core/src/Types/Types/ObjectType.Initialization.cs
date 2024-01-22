@@ -71,7 +71,7 @@ public partial class ObjectType
         ITypeCompletionContext context,
         ObjectTypeDefinition definition)
     {
-        if (context.IsMutationType ?? false)
+        if (((RegisteredType)context).IsMutationType ?? false)
         {
             // if this type represents the mutation type we flag all fields as serially executable
             // so that the operation compiler and execution engine will uphold the spec

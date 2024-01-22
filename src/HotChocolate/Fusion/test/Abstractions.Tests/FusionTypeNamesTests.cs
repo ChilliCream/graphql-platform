@@ -16,7 +16,7 @@ public class FusionTypeNamesTests
         Assert.Equal("resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("source", fusionTypeNames.SourceDirective);
         Assert.Equal("is", fusionTypeNames.IsDirective);
-        Assert.Equal("httpClient", fusionTypeNames.HttpDirective);
+        Assert.Equal("transport", fusionTypeNames.TransportDirective);
         Assert.Equal("fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("_SelectionSet", fusionTypeNames.SelectionSetScalar);
@@ -37,7 +37,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyPrefix_resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("MyPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyPrefix_is", fusionTypeNames.IsDirective);
-        Assert.Equal("MyPrefix_httpClient", fusionTypeNames.HttpDirective);
+        Assert.Equal("MyPrefix_transport", fusionTypeNames.TransportDirective);
         Assert.Equal("MyPrefix_fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
@@ -60,7 +60,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyPrefix_resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("MyPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyPrefix_is", fusionTypeNames.IsDirective);
-        Assert.Equal("MyPrefix_httpClient", fusionTypeNames.HttpDirective);
+        Assert.Equal("MyPrefix_transport", fusionTypeNames.TransportDirective);
         Assert.Equal("fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);
@@ -83,7 +83,7 @@ public class FusionTypeNamesTests
         Assert.Equal("MyOtherPrefix_resolver", fusionTypeNames.ResolverDirective);
         Assert.Equal("MyOtherPrefix_source", fusionTypeNames.SourceDirective);
         Assert.Equal("MyOtherPrefix_is", fusionTypeNames.IsDirective);
-        Assert.Equal("MyOtherPrefix_httpClient", fusionTypeNames.HttpDirective);
+        Assert.Equal("MyOtherPrefix_transport", fusionTypeNames.TransportDirective);
         Assert.Equal("MyOtherPrefix_fusion", fusionTypeNames.FusionDirective);
         Assert.Equal("MyOtherPrefix_Selection", fusionTypeNames.SelectionScalar);
         Assert.Equal("MyOtherPrefix_SelectionSet", fusionTypeNames.SelectionSetScalar);

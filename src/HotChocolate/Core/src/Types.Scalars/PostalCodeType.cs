@@ -1,40 +1,153 @@
-using System.Linq;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
+using static HotChocolate.Types.RegexType;
 
 namespace HotChocolate.Types;
 
 /// <summary>
 /// The PostalCode scalar type represents a valid postal code.
 /// </summary>
+#if DISABLED_DUE_TO_COMPILER_ISSUE
+public partial class PostalCodeType : StringType
+#else
 public class PostalCodeType : StringType
+#endif
 {
     /// <summary>
     /// Different validation patterns for postal codes.
     /// </summary>
     private static readonly Regex[] _validationPatterns =
-        new[]
-        {
-            PostalCodePatterns.US,
-            PostalCodePatterns.UK,
-            PostalCodePatterns.DE,
-            PostalCodePatterns.CA,
-            PostalCodePatterns.FR,
-            PostalCodePatterns.IT,
-            PostalCodePatterns.AU,
-            PostalCodePatterns.NL,
-            PostalCodePatterns.ES,
-            PostalCodePatterns.DK,
-            PostalCodePatterns.SE,
-            PostalCodePatterns.BE,
-            PostalCodePatterns.IN,
-            PostalCodePatterns.AT,
-            PostalCodePatterns.PT,
-            PostalCodePatterns.CH,
-            PostalCodePatterns.LU
-        }
-        .Select(x => new Regex(x, RegexOptions.Compiled | RegexOptions.IgnoreCase))
-        .ToArray();
+    {
+        CreateRegexUs(),
+        CreateRegexUk(),
+        CreateRegexDe(),
+        CreateRegexCa(),
+        CreateRegexFr(),
+        CreateRegexIt(),
+        CreateRegexAu(),
+        CreateRegexNl(),
+        CreateRegexEs(),
+        CreateRegexDk(),
+        CreateRegexSe(),
+        CreateRegexBe(),
+        CreateRegexIn(),
+        CreateRegexAt(),
+        CreateRegexPt(),
+        CreateRegexCh(),
+        CreateRegexLu(),
+    };
+
+#if DISABLED_DUE_TO_COMPILER_ISSUE
+    [GeneratedRegex(PostalCodePatterns.US, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexUs();
+
+    [GeneratedRegex(PostalCodePatterns.UK, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexUk();
+
+    [GeneratedRegex(PostalCodePatterns.DE, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexDe();
+
+    [GeneratedRegex(PostalCodePatterns.CA, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexCa();
+
+    [GeneratedRegex(PostalCodePatterns.FR, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexFr();
+
+    [GeneratedRegex(PostalCodePatterns.IT, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexIt();
+
+    [GeneratedRegex(PostalCodePatterns.AU, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexAu();
+
+    [GeneratedRegex(PostalCodePatterns.NL, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexNl();
+
+    [GeneratedRegex(PostalCodePatterns.ES, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexEs();
+
+    [GeneratedRegex(PostalCodePatterns.DK, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexDk();
+
+    [GeneratedRegex(PostalCodePatterns.SE, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexSe();
+
+    [GeneratedRegex(PostalCodePatterns.BE, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexBe();
+
+    [GeneratedRegex(PostalCodePatterns.IN, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexIn();
+
+    [GeneratedRegex(PostalCodePatterns.AT, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexAt();
+
+    [GeneratedRegex(PostalCodePatterns.PT, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexPt();
+
+    [GeneratedRegex(PostalCodePatterns.CH, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexCh();
+
+    [GeneratedRegex(PostalCodePatterns.LU, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
+    private static partial Regex CreateRegexLu();
+#else
+    private static Regex CreateRegexUs()
+        => CreateRegex(PostalCodePatterns.US);
+
+    private static Regex CreateRegexUk()
+        => CreateRegex(PostalCodePatterns.UK);
+
+    private static Regex CreateRegexDe()
+        => CreateRegex(PostalCodePatterns.DE);
+
+    private static Regex CreateRegexCa()
+        => CreateRegex(PostalCodePatterns.CA);
+
+    private static Regex CreateRegexFr()
+        => CreateRegex(PostalCodePatterns.FR);
+
+    private static Regex CreateRegexIt()
+        => CreateRegex(PostalCodePatterns.IT);
+
+    private static Regex CreateRegexAu()
+        => CreateRegex(PostalCodePatterns.AU);
+
+    private static Regex CreateRegexNl()
+        => CreateRegex(PostalCodePatterns.NL);
+
+    private static Regex CreateRegexEs()
+        => CreateRegex(PostalCodePatterns.ES);
+
+    private static Regex CreateRegexDk()
+        => CreateRegex(PostalCodePatterns.DK);
+
+    private static Regex CreateRegexSe()
+        => CreateRegex(PostalCodePatterns.SE);
+
+    private static Regex CreateRegexBe()
+        => CreateRegex(PostalCodePatterns.BE);
+
+    private static Regex CreateRegexIn()
+        => CreateRegex(PostalCodePatterns.IN);
+
+    private static Regex CreateRegexAt()
+        => CreateRegex(PostalCodePatterns.AT);
+
+    private static Regex CreateRegexPt()
+        => CreateRegex(PostalCodePatterns.PT);
+
+    private static Regex CreateRegexCh()
+        => CreateRegex(PostalCodePatterns.CH);
+
+    private static Regex CreateRegexLu()
+        => CreateRegex(PostalCodePatterns.LU);
+
+    private static Regex CreateRegex(string pattern)
+        => new Regex(
+            pattern,
+            RegexOptions.Compiled | RegexOptions.IgnoreCase,
+            TimeSpan.FromMilliseconds(DefaultRegexTimeoutInMs));
+#endif
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
@@ -134,6 +247,7 @@ public class PostalCodeType : StringType
         return false;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     private static class PostalCodePatterns
     {
         public const string US =

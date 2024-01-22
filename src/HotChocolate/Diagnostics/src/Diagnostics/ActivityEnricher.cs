@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -26,6 +27,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
+    private readonly ConditionalWeakTable<ISyntaxNode, string> _queryCache = new();
 
     /// <summary>
     /// Initializes a new instance of <see cref="ActivityEnricher"/>.
@@ -108,7 +110,13 @@ public class ActivityEnricher
         if (request.Query is not null &&
             (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
         {
-            activity.SetTag("graphql.http.request.query.body", request.Query.Print());
+            if (!_queryCache.TryGetValue(request.Query, out var query))
+            {
+                query = request.Query.Print();
+                _queryCache.Add(request.Query, query);
+            }
+
+            activity.SetTag("graphql.http.request.query.body", query);
         }
 
         if (request.OperationName is not null &&
@@ -612,7 +620,7 @@ public class ActivityEnricher
         var tags = new List<KeyValuePair<string, object?>>
         {
             new("graphql.error.message", error.Message),
-            new("graphql.error.code", error.Code)
+            new("graphql.error.code", error.Code),
         };
 
         if (error.Locations is { Count: > 0 })

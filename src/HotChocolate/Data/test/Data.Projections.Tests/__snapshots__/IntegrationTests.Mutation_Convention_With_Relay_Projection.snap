@@ -1,0 +1,24 @@
+{
+  "data": {
+    "createRecord": {
+      "foo": [
+        {
+          "id": "Rm9vCmRB",
+          "fieldOfFoo": "fieldOfFoo"
+        },
+        {
+          "id": "Rm9vCmRC",
+          "fieldOfFoo": "fieldOfFoo"
+        }
+      ],
+      "errors": null,
+      "query": {
+        "node": {
+          "id": "QmFyCmRB",
+          "__typename": "Bar",
+          "fieldOfBar": "fieldOfBar"
+        }
+      }
+    }
+  }
+}

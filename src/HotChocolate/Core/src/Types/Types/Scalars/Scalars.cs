@@ -95,7 +95,7 @@ public static class Scalars
         { typeof(double?), ValueKind.Float },
         { typeof(decimal?), ValueKind.Float },
         { typeof(bool), ValueKind.Float },
-        { typeof(bool?), ValueKind.Float }
+        { typeof(bool?), ValueKind.Float },
     };
 
     internal static bool TryGetScalar(

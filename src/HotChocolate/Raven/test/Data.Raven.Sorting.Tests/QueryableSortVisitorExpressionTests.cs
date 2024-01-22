@@ -15,8 +15,8 @@ public class QueryableSortVisitorExpressionTests
         {
             Name = "Foo",
             LastName = "Galoo",
-            Bars = new List<Bar>() { new() { Value = "A" } }
-        }
+            Bars = new List<Bar>() { new() { Value = "A" } },
+        },
     };
 
     private readonly SchemaCache _cache;

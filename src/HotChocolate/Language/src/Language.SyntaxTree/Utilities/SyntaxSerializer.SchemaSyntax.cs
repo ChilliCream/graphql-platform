@@ -107,7 +107,8 @@ public sealed partial class SyntaxSerializer
             writer.WriteSpace();
             writer.Write(Keywords.Implements);
             writer.WriteSpace();
-            writer.WriteMany(node.Interfaces,
+            writer.WriteMany(
+                node.Interfaces,
                 (n, _) => writer.WriteNamedType(n),
                 " & ");
         }
@@ -226,6 +227,7 @@ public sealed partial class SyntaxSerializer
         }
 
         writer.WriteName(node.Name);
+
         if (node.MemberName is not null)
         {
             writer.Write(".");
@@ -388,7 +390,7 @@ public sealed partial class SyntaxSerializer
         WriteInputValueDefinition(node, writer);
     }
 
-    private static void WriteInputValueDefinition(
+    private void WriteInputValueDefinition(
         InputValueDefinitionNode node,
         ISyntaxWriter writer)
     {
@@ -435,14 +437,30 @@ public sealed partial class SyntaxSerializer
         }
     }
 
-    private static void WriteDirectives(
+    private void WriteDirectives(
         IReadOnlyList<DirectiveNode> directives,
         ISyntaxWriter writer)
     {
-        if (directives.Count > 0)
+        if (_maxDirectivesPerLine < directives.Count)
+        {
+            writer.WriteLine();
+            writer.Indent();
+            writer.WriteIndent();
+            writer.WriteMany(
+                directives,
+                (n, w) => w.WriteDirective(n),
+                w =>
+                {
+                    w.WriteLine();
+                    w.WriteIndent();
+                });
+            writer.Unindent();
+        }
+        else if (directives.Count > 0)
         {
             writer.WriteSpace();
-            writer.WriteMany(directives,
+            writer.WriteMany(
+                directives,
                 (n, w) => w.WriteDirective(n),
                 w => w.WriteSpace());
         }

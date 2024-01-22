@@ -619,5 +619,5 @@ public class TypeInfoTests
 
 #nullable disable
 
-    public class Foo { }
+    public class Foo;
 }

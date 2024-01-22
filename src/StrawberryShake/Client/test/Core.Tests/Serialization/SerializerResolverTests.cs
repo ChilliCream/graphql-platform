@@ -97,8 +97,8 @@ public class SerializerResolverTests
         ISerializer[] serializers =
         {
                 new CustomIntSerializer(),
-                new IntSerializer()
-            };
+                new IntSerializer(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act
@@ -114,8 +114,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new IntSerializer()
-            };
+                new IntSerializer(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act
@@ -132,8 +132,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new IntSerializer()
-            };
+                new IntSerializer(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act
@@ -149,8 +149,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new IntSerializer()
-            };
+                new IntSerializer(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act
@@ -166,8 +166,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new IntSerializer()
-            };
+                new IntSerializer(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act
@@ -184,8 +184,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new CustomInputValueFormatter()
-            };
+                new CustomInputValueFormatter(),
+        };
 
         var resolver = new SerializerResolver(serializers);
 
@@ -202,8 +202,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new CustomInputValueFormatter()
-            };
+                new CustomInputValueFormatter(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act
@@ -221,8 +221,8 @@ public class SerializerResolverTests
         serializerMock.Setup(x => x.TypeName).Returns("Int");
         ISerializer[] serializers =
         {
-                serializerMock.Object
-            };
+                serializerMock.Object,
+        };
 
         var resolver = new SerializerResolver(serializers);
 
@@ -239,8 +239,8 @@ public class SerializerResolverTests
         // arrange
         ISerializer[] serializers =
         {
-                new IntSerializer()
-            };
+                new IntSerializer(),
+        };
         var resolver = new SerializerResolver(serializers);
 
         // act

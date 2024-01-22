@@ -1,7 +1,6 @@
-/** @type import('gatsby').GatsbyConfig */
-
 const SITE_URL = `https://chillicream.com`;
 
+/** @type import('gatsby').GatsbyConfig */
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,
@@ -155,24 +154,6 @@ module.exports = {
         theme_color: `#3b4f74`,
         display: `standalone`,
         icon: `src/images/chillicream-favicon.png`,
-      },
-    },
-    {
-      resolve: "gatsby-plugin-google-tagmanager",
-      options: {
-        id: "G-RSKJWN1W8V",
-        includeInDevelopment: false,
-        defaultDataLayer: {
-          platform: "gatsby",
-        },
-        enableWebVitalsTracking: true,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-google-analytics`,
-      options: {
-        trackingId: "UA-72800164-1",
-        anonymize: true,
       },
     },
     {

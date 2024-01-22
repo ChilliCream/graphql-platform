@@ -1,0 +1,393 @@
+name: CI
+
+on:
+  pull_request_target:
+    branches:
+      - main
+
+concurrency:
+  group: ci-new-2-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-changes:
+    name: Check for Changes
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    outputs:
+      website_changes: ${{ steps.check-website.outputs.website_changes }}
+      library_changes: ${{ steps.check-library.outputs.library_changes }}
+      src_changes: ${{ steps.check-src.outputs.src_changes }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Check for changes in website directory
+      id: check-website
+      run: |
+        changes=$(git diff --name-only HEAD~1 HEAD -- ./website)
+        if [[ -n "$changes" ]]; then
+          echo "::set-output name=website_changes::true"
+        else
+          echo "::set-output name=website_changes::false"
+        fi
+
+    - name: Check for changes outside website directory
+      id: check-library
+      run: |
+        changes=$(git diff --name-only HEAD~1 HEAD -- ':!./website')
+        if [[ -n "$changes" ]]; then
+          echo "::set-output name=library_changes::true"
+        else
+          echo "::set-output name=library_changes::false"
+        fi
+
+    - name: Check for changes in src directory
+      id: check-src
+      run: |
+        changes=$(git diff --name-only HEAD~1 HEAD -- ./src)
+        if [[ -n "$changes" ]]; then
+          echo "::set-output name=src_changes::true"
+        else
+          echo "::set-output name=src_changes::false"
+        fi
+
+  pr-labeler:
+    name: Apply Labels
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/labeler@v3
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+  spellcheck:
+    name: "Spellcheck Documentation"
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.website_changes == 'true'
+    steps:
+    - uses: actions/checkout@v2
+      name: Check out the code
+
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+        cache: 'yarn'
+        cache-dependency-path: 'website/yarn.lock'
+
+    - name: Install cspell
+      run: npm install -g cspell
+
+    - name: run cspell
+      run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
+
+  website-tests:
+    name: "Website Tests"
+    needs: check-changes
+    if: needs.check-changes.outputs.website_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+        cache: 'yarn'
+        cache-dependency-path: 'website/yarn.lock'
+
+    - name: Cache Yarn Packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          website/.yarn/cache
+          website/.cache/yarn
+        key: ${{ runner.os }}-yarn-${{ hashFiles('website/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
+    - name: Install Packages
+      run: yarn --immutable --network-timeout 100000
+      working-directory: website
+
+    - name: Build Website
+      run: yarn build --prefix-paths
+      working-directory: website
+
+  configure:
+    name: Generate Test Matrix
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.library_changes == 'true'
+
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout to repository
+        uses: actions/checkout@v3
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            7.x
+            8.x
+
+      - name: Generate Test Matrix
+        run: dotnet run --project ./.build -- GenerateMatrix
+
+      - name: Export Test Matrix
+        id: set-matrix
+        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
+
+  library-tests:
+    name: Run ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: [configure, check-changes]
+    if: needs.check-changes.outputs.library_changes == 'true'
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.configure.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+            8.x
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Run Build
+        id: run-build
+        run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
+        timeout-minutes: 5
+
+      - name: Create directory for test results
+        run: mkdir -p ./.test-results
+
+      - name: Run tests
+        id: run-tests
+        timeout-minutes: 15
+        continue-on-error: true
+        run: |
+          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**" 2>&1 | tee test_output.txt
+          if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+            exit 1
+          fi
+        env:
+          CI_BUILD: true
+
+      - name: Upload test_output.txt for debugging
+        if: steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-output
+          path: test_output.txt
+
+      - name: Post test results to PR
+        if: steps.run-tests.outcome == 'failure'
+        run: |
+          # Check if test_output.txt exists
+          if [[ ! -f test_output.txt ]]; then
+            echo "test_output.txt does not exist."
+            exit 1
+          fi
+
+          # Get the failed tests (or continue if no match is found)
+          FAILED_TESTS=$(grep ".*\[FAIL\]$" test_output.txt || true)
+
+          # Iterate through the failed tests to prepare the comment
+          echo "$FAILED_TESTS" | while read -r test; do
+            TEST_NAME=$(echo $test | awk '{$NF=""; print $0}' | sed 's/ *$//' | sed 's/^\[xUnit\.net [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9][0-9]\] //')
+
+            MISMATCH_FILE=$(find . -name "__mismatch__" -type d | xargs -I {} find {} -name "$TEST_NAME.*" || true)
+
+            if [[ -f $MISMATCH_FILE ]]; then
+              CONTENT=$(cat $MISMATCH_FILE)
+              echo "${TEST_NAME} [FAIL]" >> comment.txt
+              echo "**$CONTENT**" >> comment.txt
+            else
+              echo "${TEST_NAME} [FAIL]" >> comment.txt
+            fi
+          done
+
+          # Use GitHub environment variable to get the PR number
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          # Comment on the PR using the PR number
+          # gh pr comment $PR_NUMBER --body-file comment.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy test results
+        continue-on-error: true
+        run: |
+          mkdir -p ./output/coverage
+          mkdir -p ./output/test-results
+          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
+          cp "${{ matrix.directoryPath }}/.test-results/${{ matrix.name }}.net7.0.xml" ./output/test-results/
+
+      - name: Upload Test Results as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results-${{ matrix.name }}
+          path: ./output/test-results/*.trx
+
+      - name: Upload Coverage Files as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-${{ matrix.name }}
+          path: ./output/coverage/*.xml
+
+      - name: Upload mismatch files as Artifacts
+        if: steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v2
+        with:
+          name: mismatch-files-${{ matrix.name }}
+          path: |
+            **/__mismatch__/*
+
+      - name: Fail if tests failed or were cancelled
+        run: exit 1
+        if: |
+          steps.run-tests.outcome == 'failure' ||
+          steps.run-tests.outcome == 'cancelled'
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.src_changes == 'true'
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore
+      run: ./build.sh restore
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: csharp
+
+    - name: Build
+      run: dotnet build ./src/All.sln --no-restore
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  merge-coverage:
+    name: Merge and Upload Coverage
+    needs: library-tests
+    if: always() && needs.library-tests.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install .NET
+      if: ${{ !cancelled() }}
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.x
+          7.x
+          8.x
+
+    - uses: actions/cache@v3
+      if: ${{ !cancelled() }}
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Create All.sln
+      if: ${{ !cancelled() }}
+      run: ./build.sh CreateAllSln
+
+    - name: Build
+      if: ${{ !cancelled() }}
+      run: dotnet build ./src/All.sln
+
+    - name: Download all coverage artifacts
+      if: ${{ !cancelled() }}
+      uses: actions/download-artifact@v2
+      with:
+        path: ./output/download
+
+    - name: Merge Coverage Files
+      if: ${{ !cancelled() }}
+      timeout-minutes: 10
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator "-reports:./output/download/**/*.xml" "-targetdir:./output/coverage/merged" -reporttypes:Opencover -license:$ReportGenerator_License
+      env:
+        ReportGenerator_License: ${{ secrets.REPORTGENERATOR_LICENSE }}
+
+    - name: Upload Combined Coverage to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/codecov-action@v2
+      timeout-minutes: 10
+      with:
+        file: ./output/coverage/merged/OpenCover.xml
+        token: ${{ secrets.CODECOV_TOKEN }}
+        name: graphql-platform
+        flags: unittests
+        fail_ci_if_error: true
+
+  ci-status-check:
+    name: "CI Status Check"
+    needs: [library-tests, website-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check if Library Tests or Website Tests failed
+      run: exit 1
+      if: |
+        always() &&
+        (needs.library-tests.result == 'failure' ||
+         needs.website-tests.result == 'failure')

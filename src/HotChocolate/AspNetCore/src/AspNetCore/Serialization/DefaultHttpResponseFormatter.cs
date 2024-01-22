@@ -47,8 +47,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         : this(
             new HttpResponseFormatterOptions
             {
-                Json = new JsonResultFormatterOptions { Indented = indented, Encoder = encoder }
-            }) { }
+                Json = new JsonResultFormatterOptions
+                {
+                    Indented = indented,
+                    Encoder = encoder,
+                },
+            })
+    {
+    }
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -165,11 +171,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
                 value is string cacheControlHeaderValue)
             {
-#if NET6_0_OR_GREATER
                 response.Headers.CacheControl = cacheControlHeaderValue;
-#else
-                response.Headers.Add(HeaderNames.CacheControl, cacheControlHeaderValue);
-#endif
             }
 
             OnWriteResponseHeaders(queryResult, format, response.Headers);
@@ -183,8 +185,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             response.ContentType = format.ContentType;
             response.StatusCode = statusCode;
-
-            response.Headers.Add(HttpHeaderKeys.CacheControl, HttpHeaderValues.NoCache);
+            response.Headers.CacheControl = HttpHeaderValues.NoCache;
             OnWriteResponseHeaders(responseStream, format, response.Headers);
 
             await response.Body.FlushAsync(cancellationToken);
@@ -408,7 +409,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             SingleResult => ResultKind.Single,
             SubscriptionResult => ResultKind.Subscription,
-            _ => ResultKind.Stream
+            _ => ResultKind.Stream,
         };
 
         ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
@@ -502,7 +503,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             {
                 // if the result is a subscription we consider this a perfect match and
                 // will use this format.
-                if (resultKind is ResultKind.Stream)
+                if (resultKind is ResultKind.Subscription or ResultKind.Stream)
                 {
                     possibleFormat = _eventStreamFormat;
                 }
@@ -567,7 +568,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         Single,
         Stream,
-        Subscription
+        Subscription,
     }
 
     private sealed class SealedDefaultHttpResponseFormatter : DefaultHttpResponseFormatter

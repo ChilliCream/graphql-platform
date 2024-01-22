@@ -105,12 +105,9 @@ public class ObjectTypeDefinition
     {
         get
         {
-            if (Fields.BindingBehavior == BindingBehavior.Explicit)
-            {
-                return FieldBindingFlags.Default;
-            }
-
-            return _fieldBindingFlags;
+            return Fields.BindingBehavior is BindingBehavior.Explicit
+                ? FieldBindingFlags.Default
+                : _fieldBindingFlags;
         }
         set
         {
@@ -247,7 +244,7 @@ public class ObjectTypeDefinition
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
                 { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
-                _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name))
+                _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name)),
             };
 
             var replaceField = field.BindToField?.Replace ?? false;

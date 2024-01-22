@@ -34,7 +34,7 @@ internal static class CSharpCompiler
     {
         // warning CS1702: Assuming assembly reference is of different version
         "CS1702",
-        "CS1701"
+        "CS1701",
     };
 
     public static IReadOnlyList<Diagnostic> GetDiagnosticErrors(params string[] sourceText)

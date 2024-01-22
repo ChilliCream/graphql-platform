@@ -22,7 +22,7 @@ internal static class HeaderUtilities
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            StringSegment.Empty)
+            StringSegment.Empty),
     };
 
     /// <summary>
@@ -167,9 +167,7 @@ MULTI_VALUES:
 
         public IQueryResult? ErrorResult { get; }
 
-#if NET5_0_OR_GREATER
         [MemberNotNullWhen(true, nameof(ErrorResult))]
-#endif
         public bool HasError { get; }
     }
 }

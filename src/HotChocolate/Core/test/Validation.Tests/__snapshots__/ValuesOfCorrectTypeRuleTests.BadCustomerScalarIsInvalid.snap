@@ -6,10 +6,10 @@
       "Name": "invalidArg",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -22,7 +22,7 @@
       "argument": "arg",
       "argumentValue": "123",
       "locationType": "Invalid",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -1,0 +1,93 @@
+BarAndFoo Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+BarAndFoo SQL:
+---------------
+.param set @__p_0 '[1,0]'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "f"."BarEnum" OR ("p"."value" IS NULL AND "f"."BarEnum" IS NULL))
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+.param set @__p_0 '[0]'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "f"."BarEnum" OR ("p"."value" IS NULL AND "f"."BarEnum" IS NULL))
+---------------
+
+nullAndFoo Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+nullAndFoo SQL:
+---------------
+.param set @__p_0 '[null,0]'
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE EXISTS (
+    SELECT 1
+    FROM json_each(@__p_0) AS "p"
+    WHERE "p"."value" = "f"."BarEnum" OR ("p"."value" IS NULL AND "f"."BarEnum" IS NULL))
+---------------

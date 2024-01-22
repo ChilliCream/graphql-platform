@@ -20,12 +20,13 @@ public class SchemaTests
                     b => b.TryAddRootType(
                         () => new ObjectType(
                             d => d.Name(OperationTypeNames.Query)),
-                        Language.OperationType.Query))
+                        Language.OperationType.Query)
+                        .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false))
                 .AddCacheControl()
                 .BuildSchemaAsync();
 
         schema.MatchInlineSnapshot(
-            """
+            """"
             schema {
               query: Query
             }
@@ -49,7 +50,21 @@ public class SchemaTests
 
             "The `@cacheControl` directive may be provided for individual fields or entire object, interface or union types to provide caching hints to the executor."
             directive @cacheControl("The maximum amount of time this field's cached value is valid, in seconds." maxAge: Int "If `PRIVATE`, the field's value is specific to a single user. The default value is `PUBLIC`, which means the field's value is not tied to a single user." scope: CacheControlScope "If `true`, the field inherits the `maxAge` of its parent field." inheritMaxAge: Boolean) on OBJECT | FIELD_DEFINITION | INTERFACE | UNION
-            """);
+
+            """
+            The @tag directive is used to apply arbitrary string
+            metadata to a schema location. Custom tooling can use
+            this metadata during any step of the schema delivery flow,
+            including composition, static analysis, and documentation.
+
+            interface Book {
+              id: ID! @tag(name: "your-value")
+              title: String!
+              author: String!
+            }
+            """
+            directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            """");
     }
 
     [QueryType]

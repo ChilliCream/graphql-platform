@@ -261,7 +261,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>())
                 .UsePaging<ObjectType<Car>>(options: new PagingOptions()
                 {
-                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true
+                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true,
                 })
                 .UseProjection()
                 .UseSorting()
@@ -271,7 +271,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>().AsExecutable())
                 .UsePaging<ObjectType<Car>>(options: new PagingOptions()
                 {
-                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true
+                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true,
                 });
 
             descriptor.Field("pagingRaven")

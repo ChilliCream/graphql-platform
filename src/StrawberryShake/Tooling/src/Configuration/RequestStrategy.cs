@@ -4,5 +4,5 @@ public enum RequestStrategy
 {
     Default = 0,
     PersistedQuery = 1,
-    AutomaticPersistedQuery = 2
+    AutomaticPersistedQuery = 2,
 }

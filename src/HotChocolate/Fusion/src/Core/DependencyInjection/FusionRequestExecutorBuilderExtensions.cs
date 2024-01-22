@@ -1,14 +1,16 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Fusion;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Pipeline;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using static HotChocolate.Fusion.Metadata.FusionGraphConfiguration;
+using static HotChocolate.Fusion.Utilities.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -19,10 +21,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// Adds a Fusion GraphQL Gateway to the service collection.
     /// </summary>
     /// <param name="services">
-    /// The service collection.
-    /// </param>
-    /// <param name="fusionGraphDocument">
-    /// The fusion graph document.
+    /// The service collection.1
     /// </param>
     /// <param name="graphName">
     /// The name of the fusion graph.
@@ -32,39 +31,82 @@ public static class FusionRequestExecutorBuilderExtensions
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="fusionGraphDocument"/> is <c>null</c>.
     /// </exception>
     public static FusionGatewayBuilder AddFusionGatewayServer(
         this IServiceCollection services,
-        DocumentNode fusionGraphDocument,
-        string? graphName = default)
+        string? graphName = null)
     {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
+        ArgumentNullException.ThrowIfNull(services);
 
-        if (fusionGraphDocument is null)
-        {
-            throw new ArgumentNullException(nameof(fusionGraphDocument));
-        }
+        services.TryAddSingleton<IWebSocketConnectionFactory>(
+            _ => new DefaultWebSocketConnectionFactory());
+        services.TryAddSingleton<IGraphQLClientFactory>(
+            sp => new DefaultHttpGraphQLClientFactory(
+                sp.GetRequiredService<IHttpClientFactory>()));
+        services.TryAddSingleton<IGraphQLSubscriptionClientFactory>(
+            sp => new DefaultWebSocketGraphQLSubscriptionClientFactory(
+                sp.GetRequiredService<IHttpClientFactory>(),
+                sp.GetRequiredService<IWebSocketConnectionFactory>()));
 
-        return services.AddFusionGatewayServer(
-            _ => new ValueTask<DocumentNode>(fusionGraphDocument),
-            graphName: graphName);
+        var builder = services
+            .AddGraphQLServer(graphName)
+            .UseField(next => next)
+            .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
+            .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
+            .AddConvention<INamingConventions>(_ => new DefaultNamingConventions())
+            .Configure(
+                c =>
+                {
+                    c.DefaultPipelineFactory = AddDefaultPipeline;
+
+                    c.OnConfigureSchemaServicesHooks.Add(
+                        (ctx, sc) =>
+                        {
+                            if (!ctx.SchemaBuilder.ContainsFusionGraphConfig())
+                            {
+                                throw NoConfigurationProvider();
+                            }
+
+                            var fusionGraphConfig = ctx.SchemaBuilder.GetFusionGraphConfig();
+                            sc.AddSingleton<GraphQLClientFactory>(
+                                sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
+                            sc.TryAddSingleton(fusionGraphConfig);
+                            sc.TryAddSingleton<QueryPlanner>();
+                            sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                        });
+                });
+
+        return new FusionGatewayBuilder(builder);
+    }
+    
+    /// <summary>
+    /// Adds a custom ID parser to the gateway.
+    /// </summary>
+    public static FusionGatewayBuilder AddNodeIdParser<T>(
+        this FusionGatewayBuilder builder)
+        where T : NodeIdParser
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.CoreBuilder.Configure(
+            c => c.OnConfigureSchemaServicesHooks.Add(
+                (_, sc) =>
+                {
+                    sc.RemoveAll<NodeIdParser>();
+                    sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                }));
+        
+        return builder;
     }
 
     /// <summary>
-    /// Adds a Fusion GraphQL Gateway to the service collection.
+    /// Specifies that the gateway configuration is loaded from a file.
     /// </summary>
-    /// <param name="services">
-    /// The service collection.
+    /// <param name="builder">
+    /// The gateway builder.
     /// </param>
-    /// <param name="fusionGraphFile">
-    /// The path to the fusion graph package file or fusion graph file.
-    /// </param>
-    /// <param name="graphName">
-    /// The name of the fusion graph.
+    /// <param name="gatewayConfigurationFile">
+    /// The path to the fusion gateway configuration file.
     /// </param>
     /// <param name="watchFileForUpdates">
     /// If set to <c>true</c> the fusion graph file will be watched for updates and
@@ -74,110 +116,175 @@ public static class FusionRequestExecutorBuilderExtensions
     /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="fusionGraphFile"/> is <c>null</c> or
-    /// <paramref name="fusionGraphFile"/> is equals to <see cref="string.Empty"/>.
+    /// <paramref name="builder"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationFile"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationFile"/> is equals to <see cref="string.Empty"/>.
     /// </exception>
-    public static FusionGatewayBuilder AddFusionGatewayServer(
-        this IServiceCollection services,
-        string fusionGraphFile,
-        string? graphName = default,
-        bool watchFileForUpdates = false)
+    public static FusionGatewayBuilder ConfigureFromFile(
+        this FusionGatewayBuilder builder,
+        string gatewayConfigurationFile,
+        bool watchFileForUpdates = true)
     {
-        if (services is null)
+        if (builder is null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        if (string.IsNullOrEmpty(fusionGraphFile))
+        if (string.IsNullOrEmpty(gatewayConfigurationFile))
         {
-            throw new ArgumentNullException(nameof(fusionGraphFile));
+            throw new ArgumentNullException(nameof(gatewayConfigurationFile));
         }
-
-        var builder = services.AddFusionGatewayServer(
-            ct => LoadDocumentAsync(fusionGraphFile, ct),
-            graphName: graphName);
 
         if (watchFileForUpdates)
         {
-            builder.CoreBuilder.AddTypeModule(_ => new FileWatcherTypeModule(fusionGraphFile));
+            builder.RegisterGatewayConfiguration(
+                _ => new GatewayConfigurationFileObserver(gatewayConfigurationFile));
+        }
+        else
+        {
+            builder.RegisterGatewayConfiguration(
+                _ => new StaticGatewayConfigurationFileObserver(gatewayConfigurationFile));
         }
 
         return builder;
     }
 
     /// <summary>
-    /// Adds a Fusion GraphQL Gateway to the service collection.
+    /// Specifies that the gateway configuration is loaded from an in-memory GraphQL document.
     /// </summary>
-    /// <param name="services">
-    /// The service collection.
+    /// <param name="builder">
+    /// The gateway builder.
     /// </param>
-    /// <param name="fusionGraphResolver">
-    /// A delegate that is used to resolve a fusion graph document.
-    /// </param>
-    /// <param name="graphName">
-    /// The name of the fusion graph.
+    /// <param name="gatewayConfigurationDoc">
+    /// The fusion gateway configuration document.
     /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="services"/> is <c>null</c> or
-    /// <paramref name="fusionGraphResolver"/> is <c>null</c>.
+    /// <paramref name="builder"/> is <c>null</c> or
+    /// <paramref name="gatewayConfigurationDoc"/> is <c>null</c>.
     /// </exception>
-    public static FusionGatewayBuilder AddFusionGatewayServer(
-        this IServiceCollection services,
-        ResolveFusionGraphDocAsync fusionGraphResolver,
-        string? graphName = default)
+    public static FusionGatewayBuilder ConfigureFromDocument(
+        this FusionGatewayBuilder builder,
+        DocumentNode gatewayConfigurationDoc)
     {
-        if (services is null)
+        if (builder is null)
         {
-            throw new ArgumentNullException(nameof(services));
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        if (fusionGraphResolver is null)
+        if (gatewayConfigurationDoc is null)
         {
-            throw new ArgumentNullException(nameof(fusionGraphResolver));
+            throw new ArgumentNullException(nameof(gatewayConfigurationDoc));
         }
 
-        var builder = services
-            .AddGraphQLServer(graphName)
-            .UseField(next => next)
-            .UseDefaultGatewayPipeline()
-            .AddOperationCompilerOptimizer<OperationQueryPlanCompiler>()
-            .AddOperationCompilerOptimizer<FieldFlagsOptimizer>()
-            .Configure(
-                c =>
-                {
-                    c.OnConfigureRequestExecutorOptionsHooks.Add(
-                        new OnConfigureRequestExecutorOptionsAction(
-                            async: async (ctx, _, ct) =>
-                            {
-                                var rewriter = new FusionGraphConfigurationToSchemaRewriter();
-                                var fusionGraphDoc = await fusionGraphResolver(ct);
-                                var fusionGraphConfig = Load(fusionGraphDoc);
-                                var schemaDoc = rewriter.Rewrite(fusionGraphDoc);
-
-                                ctx.SchemaBuilder
-                                    .AddDocument(schemaDoc)
-                                    .SetFusionGraphConfig(fusionGraphConfig);
-                            }));
-
-                    c.OnConfigureSchemaServicesHooks.Add(
-                        (ctx, sc) =>
-                        {
-                            var fusionGraphConfig = ctx.SchemaBuilder.GetFusionGraphConfig();
-                            sc.AddSingleton<GraphQLClientFactory>(
-                                sp => CreateGraphQLClientFactory(sp, fusionGraphConfig));
-                            sc.TryAddSingleton(fusionGraphConfig);
-                            sc.TryAddSingleton<QueryPlanner>();
-                        });
-                });
-
-        return new FusionGatewayBuilder(builder);
+        return builder
+            .RegisterGatewayConfiguration(
+                _ => new StaticGatewayConfigurationObserver(gatewayConfigurationDoc));
     }
 
-    private static IRequestExecutorBuilder UseDefaultGatewayPipeline(
+    /// <summary>
+    /// Registers an observable Gateway configuration.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="factory">
+    /// The factory that creates the observable Gateway configuration.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c> or
+    /// <paramref name="factory"/> is <c>null</c>.
+    /// </exception>
+    public static FusionGatewayBuilder RegisterGatewayConfiguration(
+        this FusionGatewayBuilder builder,
+        Func<IServiceProvider, IObservable<GatewayConfiguration>> factory)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (factory is null)
+        {
+            throw new ArgumentNullException(nameof(factory));
+        }
+
+        builder.Services.AddSingleton(factory);
+        builder.Services.AddSingleton<GatewayConfigurationTypeModule>();
+        builder.CoreBuilder.AddTypeModule<GatewayConfigurationTypeModule>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Uses the default fusion gateway pipeline.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static FusionGatewayBuilder UseDefaultPipeline(
+        this FusionGatewayBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseFusionDefaultPipeline();
+        return builder;
+    }
+
+    /// <summary>
+    /// Uses the persisted query pipeline with the Fusion gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static FusionGatewayBuilder UsePersistedQueryPipeline(
+        this FusionGatewayBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseFusionPersistedQueryPipeline();
+        return builder;
+    }
+
+    /// <summary>
+    /// Uses the automatic persisted query pipeline with the Fusion gateway.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static FusionGatewayBuilder UseAutomaticPersistedQueryPipeline(
+        this FusionGatewayBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.CoreBuilder.UseFusionAutomaticPersistedQueryPipeline();
+        return builder;
+    }
+
+    private static IRequestExecutorBuilder UseFusionDefaultPipeline(
         this IRequestExecutorBuilder builder)
     {
         return builder
@@ -191,7 +298,83 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
-            .UseRequest<OperationExecutionMiddleware>();
+            .UseDistributedOperationExecution();
+    }
+
+    private static IRequestExecutorBuilder UseFusionPersistedQueryPipeline(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentCache()
+            .UseReadPersistedQuery()
+            .UsePersistedQueryNotFound()
+            .UseOnlyPersistedQueriesAllowed()
+            .UseDocumentParser()
+            .UseDocumentValidation()
+            .UseOperationCache()
+            .UseOperationComplexityAnalyzer()
+            .UseOperationResolver()
+            .UseOperationVariableCoercion()
+            .UseDistributedOperationExecution();
+    }
+
+    private static IRequestExecutorBuilder UseFusionAutomaticPersistedQueryPipeline(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentCache()
+            .UseReadPersistedQuery()
+            .UseAutomaticPersistedQueryNotFound()
+            .UseWritePersistedQuery()
+            .UseDocumentParser()
+            .UseDocumentValidation()
+            .UseOperationCache()
+            .UseOperationComplexityAnalyzer()
+            .UseOperationResolver()
+            .UseOperationVariableCoercion()
+            .UseDistributedOperationExecution();
+    }
+
+    public static IRequestExecutorBuilder UseDistributedOperationExecution(
+        this IRequestExecutorBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        return builder.UseRequest<DistributedOperationExecutionMiddleware>();
+    }
+
+    internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
+    {
+        pipeline.Add(RequestClassMiddlewareFactory.Create<InstrumentationMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<TimeoutMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationComplexityMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
+        pipeline.Add(RequestClassMiddlewareFactory.Create<DistributedOperationExecutionMiddleware>());
     }
 
     private static GraphQLClientFactory CreateGraphQLClientFactory(
@@ -199,62 +382,40 @@ public static class FusionRequestExecutorBuilderExtensions
         FusionGraphConfiguration fusionGraphConfig)
     {
         var appSp = sp.GetApplicationServices();
-        var clientFactory = appSp.GetRequiredService<IHttpClientFactory>();
+        var clientFactory = appSp.GetRequiredService<IGraphQLClientFactory>();
         var map1 = new Dictionary<string, Func<IGraphQLClient>>();
         var map2 = new Dictionary<string, Func<IGraphQLSubscriptionClient>>();
 
-        IGraphQLClient CreateClient(
-            HttpClientConfiguration clientConfig)
-            => new HttpGraphQLClient(
-                clientConfig,
-                clientFactory.CreateClient(clientConfig.ClientName));
+        IGraphQLClient CreateClient(HttpClientConfiguration clientConfig)
+            => clientFactory.CreateClient(clientConfig);
 
         foreach (var config in fusionGraphConfig.HttpClients)
         {
             map1.Add(config.SubgraphName, () => CreateClient(config));
         }
 
-        var subClientFactory =
-            appSp.GetService<IWebSocketConnectionFactory>();
+        var subClientFactory = appSp.GetService<IGraphQLSubscriptionClientFactory>();
 
         if (subClientFactory is not null)
         {
-            IGraphQLSubscriptionClient Create(
-                WebSocketClientConfiguration clientConfig)
-                => new WebSocketGraphQLSubscriptionClient(
-                    clientConfig,
-                    subClientFactory.CreateConnection(
-                        clientConfig.ClientName));
-
+            IGraphQLSubscriptionClient Create(IGraphQLClientConfiguration clientConfig)
+                => subClientFactory.CreateClient(clientConfig);
 
             foreach (var config in fusionGraphConfig.WebSocketClients)
             {
                 map2.Add(config.SubgraphName, () => Create(config));
             }
+
+            foreach (var config in fusionGraphConfig.HttpClients)
+            {
+                if (!map2.ContainsKey(config.SubgraphName))
+                {
+                    map2.Add(config.SubgraphName, () => Create(config));
+                }
+            }
         }
 
         return new GraphQLClientFactory(map1, map2);
-    }
-
-    private static async ValueTask<DocumentNode> LoadDocumentAsync(
-        string fileName,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            // We first try to load the file name as a fusion graph package.
-            // This might fails as a the file that was provided is a fusion
-            // graph document.
-            await using var package = FusionGraphPackage.Open(fileName, FileAccess.Read);
-            return await package.GetFusionGraphAsync(cancellationToken);
-        }
-        catch
-        {
-            // If we fail to load the file as a fusion graph package we will
-            // try to load it as a GraphQL schema document.
-            var sourceText = await File.ReadAllTextAsync(fileName, cancellationToken);
-            return Utf8GraphQLParser.Parse(sourceText);
-        }
     }
 
     /// <summary>
@@ -295,18 +456,4 @@ public static class FusionRequestExecutorBuilderExtensions
         string? graphName = default,
         CancellationToken cancellationToken = default)
         => builder.CoreBuilder.BuildSchemaAsync(graphName, cancellationToken);
-}
-
-static file class FileExtensions
-{
-    private const string _fusionGraphConfig = "HotChocolate.Fusion.FusionGraphConfig";
-
-    public static FusionGraphConfiguration GetFusionGraphConfig(
-        this ISchemaBuilder builder)
-        => (FusionGraphConfiguration)builder.ContextData[_fusionGraphConfig]!;
-
-    public static ISchemaBuilder SetFusionGraphConfig(
-        this ISchemaBuilder builder,
-        FusionGraphConfiguration config)
-        => builder.SetContextData(_fusionGraphConfig, config);
 }

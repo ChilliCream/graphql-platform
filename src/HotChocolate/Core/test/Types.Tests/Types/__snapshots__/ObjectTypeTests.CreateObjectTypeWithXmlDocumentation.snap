@@ -4,6 +4,22 @@
 
 "Query Documentation."
 type QueryWithDocumentation {
-  "Foo Documentation-\n\n\n**Returns:**\n\nBar Returns Documentation."
+  """
+  Foo Documentation.
+  
+  
+  **Returns:**
+  
+  Bar Returns Documentation.
+  """
   foo("Bar Documentation." bar: String): String
+  """
+  This is a
+  multiline summary
+              
+  with a newline in between.
+  """
+  baz: String
+  "This is a single line summary."
+  qux: String
 }

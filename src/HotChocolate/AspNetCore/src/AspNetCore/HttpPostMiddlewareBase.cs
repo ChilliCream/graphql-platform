@@ -81,11 +81,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
             statusCode = HttpStatusCode.BadRequest;
 
-#if NET5_0_OR_GREATER
             var errors = headerResult.ErrorResult.Errors!;
-#else
-            var errors = headerResult.ErrorResult!.Errors!;
-#endif
             result = headerResult.ErrorResult;
             DiagnosticEvents.HttpRequestError(context, errors[0]);
             goto HANDLE_RESULT;
@@ -167,7 +163,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
 
                         if (!string.IsNullOrEmpty(operationNames) &&
                             TryParseOperations(operationNames, out var ops) &&
-                            (context.GetGraphQLServerOptions()?.EnableBatching ?? false))
+                            GetOptions(context).EnableBatching)
                         {
                             result = await ExecuteOperationBatchAsync(
                                 context,
@@ -211,7 +207,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // we need to execute a request batch where we need to execute multiple
                 // fully specified GraphQL requests at once.
                 default:
-                    if (context.GetGraphQLServerOptions()?.EnableBatching ?? false)
+                    if (GetOptions(context).EnableBatching)
                     {
                         result = await ExecuteBatchAsync(
                             context,

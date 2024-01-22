@@ -40,11 +40,15 @@ internal sealed class AuthorizeMiddleware
             {
                 await _next(context).ConfigureAwait(false);
 
-                var state = await handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
-
-                if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
+                if (context.Result is not null)
                 {
-                    SetError(context, state);
+                    var state = await handler.AuthorizeAsync(context, _directive)
+                        .ConfigureAwait(false);
+
+                    if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
+                    {
+                        SetError(context, state);
+                    }
                 }
                 break;
             }
@@ -97,11 +101,12 @@ internal sealed class AuthorizeMiddleware
             _
                 => ErrorBuilder.New()
                     .SetMessage(AuthorizeMiddleware_NotAuthorized)
-                    .SetCode(state == AuthorizeResult.NotAllowed
-                        ? ErrorCodes.Authentication.NotAuthorized
-                        : ErrorCodes.Authentication.NotAuthenticated)
+                    .SetCode(
+                        state == AuthorizeResult.NotAllowed
+                            ? ErrorCodes.Authentication.NotAuthorized
+                            : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
                     .AddLocation(context.Selection.SyntaxNode)
-                    .Build()
+                    .Build(),
         };
 }

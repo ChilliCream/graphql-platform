@@ -117,23 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ExternalDirective_Description" xml:space="preserve">
-    <value>Directive to indicate that a field is owned by another service, for example via Apollo federation.</value>
-  </data>
   <data name="FieldsetType_Description" xml:space="preserve">
     <value>Scalar representing a set of fields.</value>
   </data>
-  <data name="KeyDirective_Description" xml:space="preserve">
-    <value>Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface.</value>
+  <data name="ScopeType_Description" xml:space="preserve">
+    <value>Scalar representing a JWT scope</value>
   </data>
-  <data name="ProvidesDirective_Description" xml:space="preserve">
-    <value>Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway.</value>
-  </data>
-  <data name="RequiresDirective_Description" xml:space="preserve">
-    <value>Used to annotate the required input fieldset from a base type for a resolver.</value>
+  <data name="TagDirective_Description" xml:space="preserve">
+    <value>Allows users to annotate fields and types with additional metadata information.</value>
   </data>
   <data name="EntityType_Description" xml:space="preserve">
     <value>Union of all types that key directive applied. This information is needed by the Apollo federation gateway.</value>
+  </data>
+  <data name="PolicyDirective_Description" xml:space="preserve">
+    <value>Indicates to composition that the target element is restricted based on authorization policies that are evaluated in a Rhai script or coprocessor.</value>
   </data>
   <data name="ThrowHelper_FieldSet_HasInvalidFormat" xml:space="preserve">
     <value>The fieldset has an invalid format.</value>
@@ -142,13 +139,25 @@
     <value>{0} cannot parse the given value of type `{1}`</value>
   </data>
   <data name="ThrowHelper_Key_FieldSet_CannotBeEmpty" xml:space="preserve">
-    <value>The key attribute is used on `{0}` without specifying the the field set.</value>
+    <value>The key attribute is used on `{0}` without specifying the field set.</value>
   </data>
   <data name="ThrowHelper_Provides_FieldSet_CannotBeEmpty" xml:space="preserve">
     <value>FieldSet is null or empty on type</value>
   </data>
   <data name="ThrowHelper_Requires_FieldSet_CannotBeEmpty" xml:space="preserve">
     <value>FieldSet is null or empty on type</value>
+  </data>
+  <data name="ThrowHelper_ComposeDirective_Name_CannotBeEmpty" xml:space="preserve">
+    <value>The compose directive attribute is used on `{0}` without specifying the name.</value>
+  </data>
+  <data name="ThrowHelper_Link_Url_CannotBeEmpty" xml:space="preserve">
+    <value>The link attribute is used on `{0}` without specifying the url.</value>
+  </data>
+  <data name="ThrowHelper_Contact_Name_CannotBeEmpty" xml:space="preserve">
+    <value>The contact attribute is used on `{0}` without specifying the name.</value>
+  </data>
+  <data name="ThrowHelper_FederationVersion_Unknown" xml:space="preserve">
+    <value>Specified federation version `{0}` is not supported.</value>
   </data>
   <data name="FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
@@ -159,11 +168,11 @@
   <data name="FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="ThrowHelper_EntityType_NoEntities" xml:space="preserve">
-    <value>The schema has no types with a KeyDirective and therefor no entities. Apollo federation requires at least on entity.</value>
+  <data name="FieldDescriptorExtensions_Override_From_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
   </data>
-  <data name="ServiceType_Description" xml:space="preserve">
-    <value>This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec.</value>
+  <data name="ThrowHelper_EntityType_NoEntities" xml:space="preserve">
+    <value>The schema has no types with a KeyDirective and therefore no entities. Apollo federation requires at least one entity.</value>
   </data>
   <data name="ThrowHelper_EntityResolver_NoEntityResolverFound" xml:space="preserve">
     <value>The apollo gateway tries to resolve an entity for which no EntityResolver method was found.</value>
@@ -174,10 +183,16 @@
   <data name="ThrowHelper_Any_HasInvalidFormat" xml:space="preserve">
     <value>The given any representation has an invalid format.</value>
   </data>
+  <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ScopedContextData`.</value>
+  </data>
   <data name="Any_Description" xml:space="preserve">
     <value>The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema.</value>
   </data>
   <data name="ResolveReference_MustBeMethod" xml:space="preserve">
     <value>The expression must refer to a method representing the reference resolver.</value>
+  </data>
+  <data name="PolicyCollectionType_ParseValue_ExpectedStringArray" xml:space="preserve">
+    <value>Expected a string[][]</value>
   </data>
 </root>

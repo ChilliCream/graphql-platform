@@ -60,7 +60,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
             };
 
             using var testServer = CreateStarWarsServer(output: _output);

@@ -16,7 +16,7 @@ type TestType @key(fields: "id") {
 }
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+directive @key(fields: _FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Scalar representing a set of fields."
 scalar _FieldSet

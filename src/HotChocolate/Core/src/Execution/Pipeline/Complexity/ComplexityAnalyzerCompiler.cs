@@ -101,7 +101,7 @@ internal sealed class ComplexityAnalyzerCompiler : TypeDocumentValidatorVisitor
         {
             0 => CreateCalculateExpression(context, field, selection, _zero),
             1 => CreateCalculateExpression(context, field, selection, children[0]),
-            _ => CreateCalculateExpression(context, field, selection, Combine(children))
+            _ => CreateCalculateExpression(context, field, selection, Combine(children)),
         };
     }
 
@@ -136,6 +136,11 @@ internal sealed class ComplexityAnalyzerCompiler : TypeDocumentValidatorVisitor
 
     private Expression Combine(IReadOnlyList<Expression> expressions)
     {
+        if (expressions.Count > 2048)
+        {
+            throw new GraphQLException(ErrorHelper.MaxComplexityReached());
+        }
+
         var combinedComplexity = expressions[0];
 
         for (var i = 1; i < expressions.Count; i++)

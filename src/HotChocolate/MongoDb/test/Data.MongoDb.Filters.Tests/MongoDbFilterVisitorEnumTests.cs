@@ -15,7 +15,7 @@ public class MongoDbFilterVisitorEnumTests
         new() { BarEnum = FooEnum.BAR },
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
+        new() { BarEnum = FooEnum.QUX },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -24,7 +24,7 @@ public class MongoDbFilterVisitorEnumTests
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
         new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
+        new() { BarEnum = FooEnum.QUX },
     };
 
     public MongoDbFilterVisitorEnumTests(MongoResource resource)
@@ -301,7 +301,7 @@ public class MongoDbFilterVisitorEnumTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooFilterType : FilterInputType<Foo>
