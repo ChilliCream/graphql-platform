@@ -1115,6 +1115,20 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task List_Return_Type()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("abc").Resolve("def"))
+                .AddMutationType<ListReturnMutation>()
+                .AddMutationConventions()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Mutation_Aggregate_Error_Not_Mapped()
     {
         var result =
@@ -1640,6 +1654,27 @@ public class AnnotationBasedMutations
     }
 
     public record DoSomething2Payload(int? UserId);
+
+    public class ListReturnMutation
+    {
+        public MutationResult<List<ResultItem>> AddItem(AddItemInput input)
+            => new List<ResultItem>
+            {
+                new(),
+                new(),
+                new(),
+            };
+
+        public class AddItemInput
+        {
+            public int Count { get; set; }
+        }
+
+        public class ResultItem
+        {
+            public string Name { get; set; } = "Test";
+        }
+    }
 
     public record SomeNewError(string Message);
 
