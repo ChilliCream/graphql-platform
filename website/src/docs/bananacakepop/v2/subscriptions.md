@@ -16,7 +16,6 @@ You have the option to pay monthly or annually. Annual payments are discounted.
 
 You can cancel your subscription at any time. The subscription will remain active until the end of the current billing period. You can also change your subscription plan at any time. Check out the [Changing a Subscription](#changing-a-subscription) section for more information.
 
-
 # Changing a Subscription
 
 To change your subscription plan, follow these steps:

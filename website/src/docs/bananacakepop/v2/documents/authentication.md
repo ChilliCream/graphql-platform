@@ -128,4 +128,3 @@ These two methods allow you to conveniently manage and initiate your authenticat
 In the context of BCP (Banana Cake Pop), the Redirect URL plays a crucial role, particularly when you're using BCP within a web browser rather than the desktop application.
 
 The Redirect URL is where your browser is directed to after the authentication process. It must be configured to point back to the URL where BCP is hosted. This is essential because BCP needs to retrieve the authorization code from this URL to exchange it for a token.
-

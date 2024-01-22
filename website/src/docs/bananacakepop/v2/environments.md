@@ -38,7 +38,6 @@ To open the environment variable editor, click on the environment you would like
 4. **Secret**: If an environment variable is marked as secret, it will be shown as a password field within the Banana Cake Pop interface. This feature is designed to help prevent accidental exposure of the value. Please note that marking a value as secret does not mean it is encrypted; it is simply visually obscured in the user interface.
 5. **Apply**: Clicking the 'Apply' button will save the environment variables.
 
-
 # Switching Environments
 ![Screenshot showing the environment](images/env-3.png)
 To switch environments, click on the environment name in the status bar. A dropdown menu will appear, listing all available environments.

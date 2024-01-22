@@ -244,7 +244,6 @@ The `DefaultValueAttribute` or the `DefaultValue` method on the field descriptor
 
 Consider the following scenario where we have a `UserInput` type with different fields like `name`, `active`. By default, we would like `active` to be `true`.
 
-
 <ExampleTabs>
 <Annotation>
 

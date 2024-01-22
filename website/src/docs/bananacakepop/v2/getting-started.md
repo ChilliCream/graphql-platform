@@ -47,7 +47,6 @@ Now, input the following link into the 'Schema Endpoint' field: https://workshop
 It should resemble this:
 ![Banana Cake Pop - Start](./images/getting-started-1.png)
 
-
 **Step 4:** Click on the 'Apply' button. This will save your settings and close the dialog box.
 
 **Step 5:** At this point, your screen should look like this:
@@ -58,7 +57,6 @@ Take note of the following key elements:
 1. **Operation Pane:** This is where you will input your queries.
 1. **Response Pane:** Here, you will see the output or response of your queries.
 1. **Variables Pane:** This is where you can define variables for your query.
-
 
 **Step 6:** The green circle at the top right next to the schema url indicates that you are connected to the GraphQL server and that your schema is fetched. You now have full intellisense for your queries. Copy the following GraphQL query and paste it into the 'Operations' editor area:
 

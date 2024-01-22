@@ -154,7 +154,6 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-
 # Integrating with Continuous Integration
 
 Integrating the client registry into your Continuous Integration/Continuous Deployment (CI/CD) pipeline maximizes their benefits. It ensures that the clients in your API are always up-to-date and tested against potential breaking changes.

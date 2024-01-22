@@ -32,7 +32,6 @@ In the client app, you can do this by clicking Manage Organizations'  and then '
 
 You can also navigate to [here](https://identity.chillicream.com/Organizations) to open the management portal and press 'Manage' on the organization that you like to manage.
 
-
 # Switching Organizations
 In Banana Cake Pop, you can be signed into multiple organizations at the same time and switch between them in the status bar. The organization switcher also allows you to create new organizations.
 

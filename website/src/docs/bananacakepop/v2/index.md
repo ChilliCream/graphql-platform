@@ -27,6 +27,3 @@ The client registry feature of Banana Cake Pop complements the schema registry b
 
 6. **Intuitive Interface**
 Banana Cake Pop provides a user-friendly interface that is easy to navigate, even for those new to GraphQL. Its clean and intuitive design makes it a pleasure to work with, enabling developers to focus on their tasks without unnecessary distractions or complications.
-
-
-

@@ -5,7 +5,6 @@ title: "Fusion"
 
 BananaCakePop can be used as your orchestrator for your Fusion Gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion Gateway.
 
-
 ![Image](images/fusion-2.png)
 On the fusion dashboard you can now see the tracing information of your gateway and your subgraphs.
 
@@ -149,7 +148,6 @@ You will also need the [Command Line Tools](https://www.nuget.org/packages/HotCh
 ```bash
 dotnet tool install HotChocolate.Fusion.CommandLine
 ```
-
 
 ### 1. Pack the subgraph
 All changes to the gateway originate from a subgraph. Once the subgraph is ready to be deployed, you need to pack it. Packing a subgraph will create a subgraph package file that contains the schema, the extensions and the configuration of the subgraph.

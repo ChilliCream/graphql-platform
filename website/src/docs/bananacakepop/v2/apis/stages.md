@@ -55,5 +55,3 @@ prod:
 This configuration defines two QA stages, `QA 1` and `QA 2`. Both of them come after the `Development` stage. The `Production` stage comes after both QA stages. It will result in the following stage order:
 
 ![Image](images/stages-3.png)
-
-

@@ -9,7 +9,6 @@ This representation is more than a mere conceptual framework — it serves as a 
 Additionally, an API forms the foundation for your client registry, schema registry setup and the telemetry. For more detailed information on these features, refer to the [Schema Registry](/docs/bananacakepop/v2/apis/schema-registry) guide
  the [Client Registry](/docs/bananacakepop/v2/apis/client-registry) and the [Telemetry](/docs/bananacakepop/v2/apis/open-telemetry) guide.
 
-
 # API Types
 ![Image](images/apis-2.png)
 

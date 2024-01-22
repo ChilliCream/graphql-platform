@@ -12,7 +12,6 @@ The `barista environment create` command is used to create a new environment.
 barista environment create
 ```
 
-
 # List all Environments
 
 The `barista environment list` command is used to list all environments of a workspace.
@@ -20,7 +19,6 @@ The `barista environment list` command is used to list all environments of a wor
 ```shell
 barista environment list
 ```
-
 
 # Show Environment Details
 
@@ -33,4 +31,3 @@ barista environment show abc123
 **Arguments:**
 
 - `<id>`: Specifies the ID of the environment whose details you want to see.
-

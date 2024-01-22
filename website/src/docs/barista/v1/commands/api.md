@@ -12,7 +12,6 @@ The `barista api create` command is used to create a new API.
 barista api create
 ```
 
-
 # Delete an API
 
 The `barista api delete` command is used to delete an API by its ID.
@@ -32,7 +31,6 @@ The `barista api list` command is used to list all APIs of a workspace.
 ```shell
 barista api list
 ```
-
 
 # Show API Details
 

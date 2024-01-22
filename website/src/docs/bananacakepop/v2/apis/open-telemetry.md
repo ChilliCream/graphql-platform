@@ -74,7 +74,6 @@ public void ConfigureServices(IServiceCollection services)
 >```
 >In this setup, the API key, ID, and stage are set through environment variables.
 
-
 # Monitoring Dashboard
 The monitoring dashboard in Banana Cake Pop offers various metrics and visualizations to understand your service's performance better.
 
