@@ -453,7 +453,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         var type = CreatePayloadType(
             payloadTypeName,
-            new(payloadFieldName, EnsureNullable(mutation.Type!)),
+            new(payloadFieldName, EnsureNullable(NormalizeTypeRef(mutation.Type!))),
             errorField);
         RegisterType(type);
 
@@ -826,7 +826,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         return Create(CreateTypeNode(new NonNullType(type)));
     }
 
-    private ITypeNode CreateTypeNode(IType type)
+    private static ITypeNode CreateTypeNode(IType type)
         => type switch
         {
             NonNullType nnt => new NonNullTypeNode((INullableTypeNode) CreateTypeNode(nnt.Type)),
@@ -835,41 +835,42 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             _ => throw new NotSupportedException("Type is not supported."),
         };
 
-    private readonly ref struct Options
+    private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
-        public Options(
-            string? inputTypeNamePattern,
-            string? inputArgumentName,
-            string? payloadTypeNamePattern,
-            string? payloadErrorTypeNamePattern,
-            string? payloadErrorsFieldName,
-            bool? apply)
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef &&
+            typeof(IMutationResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
-            InputTypeNamePattern = inputTypeNamePattern ??
-                MutationConventionOptionDefaults.InputTypeNamePattern;
-            InputArgumentName = inputArgumentName ??
-                MutationConventionOptionDefaults.InputArgumentName;
-            PayloadTypeNamePattern = payloadTypeNamePattern ??
-                MutationConventionOptionDefaults.PayloadTypeNamePattern;
-            PayloadErrorsFieldName = payloadErrorsFieldName ??
-                MutationConventionOptionDefaults.PayloadErrorsFieldName;
-            PayloadErrorTypeNamePattern = payloadErrorTypeNamePattern ??
-                MutationConventionOptionDefaults.ErrorTypeNamePattern;
-            Apply = apply ??
-                MutationConventionOptionDefaults.ApplyToAllMutations;
+            return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);
         }
 
-        public string InputTypeNamePattern { get; }
+        return typeRef;
+    }
 
-        public string InputArgumentName { get; }
+    private readonly ref struct Options(
+        string? inputTypeNamePattern,
+        string? inputArgumentName,
+        string? payloadTypeNamePattern,
+        string? payloadErrorTypeNamePattern,
+        string? payloadErrorsFieldName,
+        bool? apply)
+    {
+        public string InputTypeNamePattern { get; } = inputTypeNamePattern ??
+            MutationConventionOptionDefaults.InputTypeNamePattern;
 
-        public string PayloadTypeNamePattern { get; }
+        public string InputArgumentName { get; } = inputArgumentName ??
+            MutationConventionOptionDefaults.InputArgumentName;
 
-        public string PayloadErrorTypeNamePattern { get; }
+        public string PayloadTypeNamePattern { get; } = payloadTypeNamePattern ??
+            MutationConventionOptionDefaults.PayloadTypeNamePattern;
 
-        public string PayloadErrorsFieldName { get; }
+        public string PayloadErrorTypeNamePattern { get; } = payloadErrorTypeNamePattern ??
+            MutationConventionOptionDefaults.ErrorTypeNamePattern;
 
-        public bool Apply { get; }
+        public string PayloadErrorsFieldName { get; } = payloadErrorsFieldName ??
+            MutationConventionOptionDefaults.PayloadErrorsFieldName;
+
+        public bool Apply { get; } = apply ??
+            MutationConventionOptionDefaults.ApplyToAllMutations;
 
         public string FormatInputTypeName(string mutationName)
             => InputTypeNamePattern.Replace(
