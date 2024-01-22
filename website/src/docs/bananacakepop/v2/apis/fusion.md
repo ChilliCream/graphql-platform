@@ -60,6 +60,7 @@ builder.Services
 > **Tip: Using Environment Variables**
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `ConfigureFromCloud` without explicitly passing parameters.
+>
 >- `BCP_API_KEY` maps to `ApiKey`
 >- `BCP_API_ID` maps to `ApiId`
 >- `BCP_STAGE` maps to `Stage`

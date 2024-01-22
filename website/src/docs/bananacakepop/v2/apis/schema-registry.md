@@ -30,6 +30,7 @@ Changes to the schema can be categorized into three levels of severity based on 
 1. **Safe**: These changes don't affect the existing functionality. Examples include changes to descriptions or adding a new optional field to a type. Safe changes are generally backward compatible and don't require modifications to existing clients.
 
 Examples are:
+
 - Adding a new field to an object type
 - Adding a new optional argument to a field or directive
 - Adding a new type
@@ -37,12 +38,14 @@ Examples are:
 2. **Dangerous**: These changes could potentially break existing functionality, depending on how your consumers interact with your API. An example of a dangerous change is adding a new member to an enum. If the client is not prepared to handle the new member, it might result in unexpected behavior.
 
 Examples are:
+
 - Adding a new member to an enum
 - Adding a new implementation to an interface
 
 3. **Breaking**: These changes will break existing functionality if the affected parts of the schema are being used by clients. Examples include changing the type of a field, adding a required field to an input type, removing a field, or adding a new required argument to a field or directive.
 
 Examples are:
+
 - Removing a field from an object type
 - Changing the type of a field
 - Change a non-null field to a nullable field

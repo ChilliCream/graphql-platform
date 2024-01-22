@@ -20,6 +20,7 @@ Similarly, identifiers such as client ID and client secret can be defined as env
 
 ![Screenshot showing the environment](images/env-0.png)
 To create a new environment, follow these steps:
+
 1. Click on the environment icon on the left side of your screen.
 2. Click the Plus icon to create a new environment.
 3. Enter a name for the environment.

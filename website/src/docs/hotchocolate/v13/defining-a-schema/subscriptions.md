@@ -20,6 +20,7 @@ Hot Chocolate, supports both protocols.
 In terms of specific protocols, the recommendation is to use graphql-ws or graphql-sse over the legacy subscription-transport-ws.
 
 **Key Features:**
+
 - Full-duplex: Both the client and server can initiate communication, allowing real-time bidirectional communication.
 - Persistent connection: The connection between client and server remains open, allowing for real-time data transfer.
 - Well-supported: There are several libraries available for managing WebSocket connections and GraphQL subscriptions.
@@ -35,6 +36,7 @@ Another advantage of SSE is its better compatibility with firewalls compared to 
 [graphql-sse](https://github.com/enisdenjo/graphql-sse) is a popular library for GraphQL over SSE.
 
 **Key Features:**
+
 - Efficient for one-way real-time data: The server can push updates to the client as soon as they occur.
 - Built on HTTP: SSE is built on HTTP, simplifying handling and compatibility. It benefits from HTTP features such as automatic reconnection, HTTP/2 multiplexing, and headers/cookies support.
 - Less Complex: SSE is less complex than WebSockets as it only allows for one-way communication.
