@@ -18,7 +18,7 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
             new Coordinate(140, 20),
             new Coordinate(20, 20),
             new Coordinate(70, 70),
-            new Coordinate(150, 150)
+            new Coordinate(150, 150),
         }));
 
     private static readonly Polygon _falsePolygon =
@@ -34,8 +34,8 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
     private static readonly Foo[] _fooEntities =
     [
         new() { Id = 1, Bar = _truePolygon },
-        new() { Id = 2, Bar = _falsePolygon }
-    ];
+        new() { Id = 2, Bar = _falsePolygon },
+    };
 
     public QueryableFilterVisitorOverlapsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)

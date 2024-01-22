@@ -81,10 +81,37 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         return null;
     }
+    
+    /// <inheritdoc />
+    public Directive? FirstOrDefault<TRuntimeType>()
+    {
+        var span = _directives.AsSpan();
+        ref var start = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref start, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (start.AsValue<object>() is TRuntimeType)
+            {
+                return start;
+            }
+
+            // move pointer
+#pragma warning disable CS8619
+            start = ref Unsafe.Add(ref start, 1);
+#pragma warning restore CS8619
+        }
+
+        return null;
+    }
 
     /// <inheritdoc />
     public bool ContainsDirective(string directiveName)
         => FirstOrDefault(directiveName) is not null;
+
+    /// <inheritdoc />
+    public bool ContainsDirective<TRuntimeType>()
+        => FirstOrDefault<TRuntimeType>() is not null;
 
     internal static DirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,

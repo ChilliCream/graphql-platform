@@ -22,7 +22,7 @@ internal static class HeaderUtilities
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            StringSegment.Empty)
+            StringSegment.Empty),
     ];
 
     /// <summary>

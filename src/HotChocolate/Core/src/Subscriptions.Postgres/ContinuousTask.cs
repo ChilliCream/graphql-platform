@@ -7,7 +7,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
     private readonly CancellationTokenSource _completion = new();
     private readonly Func<CancellationToken, Task> _handler;
     private readonly Task _task;
-    private bool disposed;
+    private bool _disposed;
 
     public ContinuousTask(Func<CancellationToken, Task> handler)
     {
@@ -47,7 +47,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if(disposed)
+        if(_disposed)
         {
             return;
         }
@@ -62,7 +62,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
         }
 
         _completion.Dispose();
-        disposed = true;
+        _disposed = true;
 
         await ValueTask.CompletedTask;
     }

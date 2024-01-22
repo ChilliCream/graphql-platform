@@ -52,7 +52,7 @@ public class MongoDbListAnyOperationHandler
                     new BsonDocument
                     {
                             { "$exists", true },
-                            { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
+                            { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } },
                     });
             }
 
@@ -62,7 +62,7 @@ public class MongoDbListAnyOperationHandler
                     new BsonDocument
                     {
                             { "$exists", true },
-                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value } }
+                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value } },
                     }),
                 new MongoDbFilterOperation(
                     path,

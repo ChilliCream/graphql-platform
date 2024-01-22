@@ -77,7 +77,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '16.x'
+        node-version: '20'
         cache: 'yarn'
         cache-dependency-path: 'website/yarn.lock'
 
@@ -86,7 +86,20 @@ jobs:
 
     - name: run cspell
       run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
-
+  linting:
+    name: "Markdown linting"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Check out the code
+      - uses: actions/setup-node@v4
+        name: Setup node
+        with:
+          node-version: '20'
+      - run: npm install -g markdownlint-cli2
+        name: Install markdownlint-cli2
+      - run: markdownlint-cli2 --config ".github/linters/.markdownlint.yml" "website/src/**/*.md"
+        name: run Markdownlint
   website-tests:
     name: "Website Tests"
     needs: check-changes
@@ -274,48 +287,6 @@ jobs:
         if: |
           steps.run-tests.outcome == 'failure' ||
           steps.run-tests.outcome == 'cancelled'
-
-  sonar:
-    runs-on: ubuntu-latest
-    name: Sonar Pull-Request
-    needs: check-changes
-    if: needs.check-changes.outputs.library_changes == 'true'
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Set up Java
-      uses: actions/setup-java@v2
-      with:
-        java-version: '17'
-        distribution: 'adopt'
-        architecture: x64
-
-    - name: Install .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: |
-          6.x
-          7.x
-          8.x
-
-    - uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-
-    - name: Run Sonar Analysis
-      run: ./build.cmd SonarPr --SonarToken $SONARTOKEN
-      env:
-        HC_GITHUB_PR_NR: ${{ github.event.pull_request.number }}
-        HC_GITHUB_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        HC_GITHUB_BASE_REF: ${{ github.event.pull_request.base.ref }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        SONARTOKEN: ${{ secrets.SONARTOKEN }}
 
   codeql:
     name: CodeQL

@@ -15,8 +15,8 @@ public class QueryableFilterVisitorListTests
             {
                 new() { Bar = "a" },
                 new() { Bar = "a" },
-                new() { Bar = "a" }
-            }
+                new() { Bar = "a" },
+            },
         },
         new()
         {
@@ -24,8 +24,8 @@ public class QueryableFilterVisitorListTests
             {
                 new() { Bar = "c" },
                 new() { Bar = "a" },
-                new() { Bar = "a" }
-            }
+                new() { Bar = "a" },
+            },
         },
         new()
         {
@@ -33,8 +33,8 @@ public class QueryableFilterVisitorListTests
             {
                 new() { Bar = "a" },
                 new() { Bar = "d" },
-                new() { Bar = "b" }
-            }
+                new() { Bar = "b" },
+            },
         },
         new()
         {
@@ -42,8 +42,8 @@ public class QueryableFilterVisitorListTests
             {
                 new() { Bar = "c" },
                 new() { Bar = "d" },
-                new() { Bar = "b" }
-            }
+                new() { Bar = "b" },
+            },
         },
         new()
         {
@@ -51,9 +51,9 @@ public class QueryableFilterVisitorListTests
             {
                 new() { Bar = null! },
                 new() { Bar = "d" },
-                new() { Bar = "b" }
-            }
-        }
+                new() { Bar = "b" },
+            },
+        },
     ];
 
     private readonly SchemaCache _cache;

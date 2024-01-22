@@ -104,7 +104,7 @@ public class SubscriptionType : ObjectType
                 var receiver = context.Service<ITopicEventReceiver>();
 
                 ISourceStream stream =
-                    await receiver.SubscribeAsync<string, Book>("bookAdded");
+                    await receiver.SubscribeAsync<Book>("bookAdded");
 
                 return stream;
             });
@@ -346,7 +346,7 @@ public class Subscription
 {
     public ValueTask<ISourceStream<Book>> SubscribeToBooks(
         [Service] ITopicEventReceiver receiver)
-        => receiver.SubscribeAsync<string, Book>("ExampleTopic");
+        => receiver.SubscribeAsync<Book>("ExampleTopic");
 
     [Subscribe(With = nameof(SubscribeToBooks))]
     public Book BookAdded([EventMessage] Book book)

@@ -36,7 +36,7 @@ public interface IArgumentDescriptor
     /// <summary>
     /// Marks the argument as deprecated
     /// <remarks>
-    /// The argument must be nullable. Non-Nullable arguments cannot be deprecated
+    /// The argument must be nullable or have a default value. Otherwise the argument cannot be deprecated
     /// </remarks>
     /// <example>
     /// <code lang="csharp">

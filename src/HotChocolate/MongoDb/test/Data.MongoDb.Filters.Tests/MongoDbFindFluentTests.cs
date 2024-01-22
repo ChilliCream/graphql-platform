@@ -17,21 +17,21 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
     private static readonly Foo[] _fooEntities =
     [
         new() { Bar = true },
-        new() { Bar = false }
-    ];
+        new() { Bar = false },
+    };
 
     private static readonly Bar[] _barEntities =
     [
         new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-    ];
+        new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) },
+    };
 
     private static readonly Baz[] _bazEntities =
     [
         new() { Bar = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
         new() { Bar = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) },
-        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-    ];
+        new() { Bar = new DateTimeOffset(1996, 1, 11, 0, 0, 0, TimeSpan.Zero) },
+    };
 
     private readonly MongoResource _resource;
 

@@ -33,7 +33,7 @@ public interface IInputFieldDescriptor
     /// <summary>
     /// Marks the field as deprecated
     /// <remarks>
-    /// The field must be nullable. Non-Nullable field cannot be deprecated
+    /// The field must be nullable or have a default value. Otherwise the field cannot be deprecated
     /// </remarks>
     /// <example>
     /// <code lang="csharp">

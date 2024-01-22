@@ -25,7 +25,7 @@ public static class GeneratorTestHelper
             {
                 Namespace = "Foo.Bar",
                 ClientName = "FooClient",
-                AccessModifier = AccessModifier.Public
+                AccessModifier = AccessModifier.Public,
             })
             .Result;
 
@@ -94,7 +94,7 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
             });
 
         Assert.False(
@@ -229,10 +229,7 @@ public static class GeneratorTestHelper
                 testName + "Test.Client.cs"),
             RequestStrategy = requestStrategy,
             NoStore = noStore,
-            Profiles = (profiles ?? new[]
-            {
-                TransportProfile.Default
-            }).ToList()
+            Profiles = (profiles ?? [TransportProfile.Default]).ToList(),
         };
     }
 

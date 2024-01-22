@@ -15,8 +15,8 @@ public class MongoDbSortVisitorEnumTests
         new() { BarEnum = FooEnum.BAR },
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
-    ];
+        new() { BarEnum = FooEnum.QUX },
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
@@ -24,8 +24,8 @@ public class MongoDbSortVisitorEnumTests
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
         new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
-    ];
+        new() { BarEnum = FooEnum.QUX },
+    };
 
     public MongoDbSortVisitorEnumTests(MongoResource resource)
     {
@@ -104,7 +104,7 @@ public class MongoDbSortVisitorEnumTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooSortType : SortInputType<Foo>

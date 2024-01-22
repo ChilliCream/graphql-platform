@@ -63,8 +63,8 @@ public abstract class OperationResultBuilder<TResultData>
                 exception: ex,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(ex.StackTrace), ex.StackTrace }
-                })
+                    { nameof(ex.StackTrace), ex.StackTrace },
+                }),
             };
 
             if (errors is not null)
@@ -87,8 +87,8 @@ public abstract class OperationResultBuilder<TResultData>
                     exception: response.Exception,
                     extensions: new Dictionary<string, object?>
                     {
-                        { nameof(response.Exception.StackTrace), response.Exception.StackTrace }
-                    })
+                        { nameof(response.Exception.StackTrace), response.Exception.StackTrace },
+                    }),
             };
         }
 

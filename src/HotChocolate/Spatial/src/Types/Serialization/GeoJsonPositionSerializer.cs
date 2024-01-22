@@ -290,16 +290,16 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             {
                     coordinate.X,
                     coordinate.Y,
-                    coordinate.Z
-                };
+                    coordinate.Z,
+            };
             return true;
         }
 
         serialized = new[]
         {
                 coordinate.X,
-                coordinate.Y
-            };
+                coordinate.Y,
+        };
         return true;
     }
 

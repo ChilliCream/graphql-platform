@@ -106,7 +106,9 @@ public partial class EnumType
         foreach (var enumValueDefinition in definition.Values)
         {
             if (enumValueDefinition.Ignore)
+            {
                 continue;
+            }
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {

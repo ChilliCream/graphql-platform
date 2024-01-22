@@ -13,15 +13,15 @@ public class MongoDbFilterVisitorBooleanTests
     private static readonly Foo[] _fooEntities =
     [
         new() { Bar = true },
-        new() { Bar = false }
-    ];
+        new() { Bar = false },
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
         new() { Bar = true },
         new() { Bar = null },
-        new() { Bar = false }
-    ];
+        new() { Bar = false },
+    };
 
     public MongoDbFilterVisitorBooleanTests(MongoResource resource)
     {

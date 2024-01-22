@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using static HotChocolate.Types.RegexType;
@@ -246,6 +247,7 @@ public class PostalCodeType : StringType
         return false;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     private static class PostalCodePatterns
     {
         public const string US =

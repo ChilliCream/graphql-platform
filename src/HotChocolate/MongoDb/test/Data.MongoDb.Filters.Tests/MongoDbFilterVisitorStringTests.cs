@@ -13,15 +13,15 @@ public class MongoDbFilterVisitorStringTests
     private static readonly Foo[] _fooEntities =
     [
         new() { Bar = "testatest" },
-        new() { Bar = "testbtest" }
-    ];
+        new() { Bar = "testbtest" },
+    };
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
         new() { Bar = "testatest" },
         new() { Bar = "testbtest" },
-        new() { Bar = null }
-    ];
+        new() { Bar = null },
+    };
 
     public MongoDbFilterVisitorStringTests(MongoResource resource)
     {

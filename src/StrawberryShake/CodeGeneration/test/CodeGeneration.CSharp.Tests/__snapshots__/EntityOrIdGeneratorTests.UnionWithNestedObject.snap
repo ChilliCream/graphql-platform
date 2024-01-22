@@ -16,7 +16,8 @@
 
 namespace Foo.Bar
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForResult : global::System.IEquatable<StoreUserSettingForResult>, IStoreUserSettingForResult
     {
         public StoreUserSettingForResult(global::Foo.Bar.IStoreUserSettingFor_StoreUserSettingFor storeUserSettingFor)
@@ -77,7 +78,8 @@ namespace Foo.Bar
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess : global::System.IEquatable<StoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess>, IStoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess
     {
         public StoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess(global::System.Int32 id)
@@ -138,7 +140,8 @@ namespace Foo.Bar
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingFor_StoreUserSettingFor_UserSettingError : global::System.IEquatable<StoreUserSettingFor_StoreUserSettingFor_UserSettingError>, IStoreUserSettingFor_StoreUserSettingFor_UserSettingError
     {
         public StoreUserSettingFor_StoreUserSettingFor_UserSettingError(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IStoreUserSettingFor_StoreUserSettingFor_Errors> errors)
@@ -203,7 +206,8 @@ namespace Foo.Bar
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode : global::System.IEquatable<StoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode>, IStoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode
     {
         public StoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode(global::Foo.Bar.ErrorCode? code, global::System.String? message)
@@ -276,30 +280,35 @@ namespace Foo.Bar
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingForResult
     {
         public global::Foo.Bar.IStoreUserSettingFor_StoreUserSettingFor StoreUserSettingFor { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingFor_StoreUserSettingFor
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess : IStoreUserSettingFor_StoreUserSettingFor
     {
         public global::System.Int32 Id { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingFor_StoreUserSettingFor_UserSettingError : IStoreUserSettingFor_StoreUserSettingFor
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IStoreUserSettingFor_StoreUserSettingFor_Errors> Errors { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingFor_StoreUserSettingFor_Errors
     {
         public global::Foo.Bar.ErrorCode? Code { get; }
@@ -307,12 +316,14 @@ namespace Foo.Bar
         public global::System.String? Message { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingFor_StoreUserSettingFor_Errors_ErrorNode : IStoreUserSettingFor_StoreUserSettingFor_Errors
     {
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
@@ -375,6 +386,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StoreUserSettingForInput : global::Foo.Bar.State.IStoreUserSettingForInputInfo, global::System.IEquatable<StoreUserSettingForInput>
     {
@@ -465,7 +477,8 @@ namespace Foo.Bar
         global::System.Boolean global::Foo.Bar.State.IStoreUserSettingForInputInfo.IsMobileSet => _set_mobile;
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public enum ErrorCode
     {
         Unknown,
@@ -474,7 +487,8 @@ namespace Foo.Bar
         Failed
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ErrorCodeSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, ErrorCode>
     {
         public global::System.String TypeName => "ErrorCode";
@@ -501,6 +515,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the StoreUserSettingFor GraphQL operation
     /// <code>
@@ -524,7 +539,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForMutationDocument : global::StrawberryShake.IDocument
     {
         private StoreUserSettingForMutationDocument()
@@ -545,6 +560,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the StoreUserSettingFor GraphQL operation
     /// <code>
@@ -568,7 +584,7 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForMutation : global::Foo.Bar.IStoreUserSettingForMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IStoreUserSettingForResult> _operationExecutor;
@@ -634,6 +650,7 @@ namespace Foo.Bar
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the StoreUserSettingFor GraphQL operation
     /// <code>
@@ -657,17 +674,18 @@ namespace Foo.Bar
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IStoreUserSettingForMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IStoreUserSettingForResult>> ExecuteAsync(global::System.Int32 userId, global::System.Int32 customerId, global::Foo.Bar.StoreUserSettingForInput input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IStoreUserSettingForResult>> Watch(global::System.Int32 userId, global::System.Int32 customerId, global::Foo.Bar.StoreUserSettingForInput input, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IStoreUserSettingForMutation _storeUserSettingFor;
@@ -680,10 +698,11 @@ namespace Foo.Bar
         public global::Foo.Bar.IStoreUserSettingForMutation StoreUserSettingFor => _storeUserSettingFor;
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the FooClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IFooClient
     {
         global::Foo.Bar.IStoreUserSettingForMutation StoreUserSettingFor { get; }
@@ -692,6 +711,7 @@ namespace Foo.Bar
 
 namespace Foo.Bar.State
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UserSettingSuccessEntity
     {
@@ -703,7 +723,8 @@ namespace Foo.Bar.State
         public global::System.Int32 Id { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.StoreUserSettingForResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -808,7 +829,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -830,6 +852,7 @@ namespace Foo.Bar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     internal interface IStoreUserSettingForInputInfo
     {
@@ -838,7 +861,8 @@ namespace Foo.Bar.State
         global::System.Boolean IsMobileSet { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingForBuilder : global::StrawberryShake.OperationResultBuilder<global::Foo.Bar.IStoreUserSettingForResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -878,7 +902,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -917,7 +941,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -932,7 +956,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -953,7 +977,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 throw new global::System.ArgumentNullException();
             }
@@ -974,7 +998,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -989,7 +1013,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            if (obj.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            if (obj.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null)
             {
                 return null;
             }
@@ -998,12 +1022,14 @@ namespace Foo.Bar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial interface IUserSettingResultData
     {
         global::System.String __typename { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UserSettingErrorData : IUserSettingResultData
     {
@@ -1018,6 +1044,7 @@ namespace Foo.Bar.State
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.ErrorNodeData>? Errors { get; }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ErrorNodeData
     {
@@ -1035,7 +1062,8 @@ namespace Foo.Bar.State
         public global::System.String? Message { get; }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StoreUserSettingFor_StoreUserSettingFor_UserSettingSuccessFromUserSettingSuccessEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.UserSettingSuccessEntity, StoreUserSettingFor_StoreUserSettingFor_UserSettingSuccess>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -1055,7 +1083,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -1095,7 +1124,8 @@ namespace Foo.Bar.State
         }
     }
 
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
@@ -1106,7 +1136,8 @@ namespace Foo.Bar.State
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)

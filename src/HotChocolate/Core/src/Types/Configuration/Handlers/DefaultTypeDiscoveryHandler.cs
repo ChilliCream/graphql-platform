@@ -9,14 +9,10 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class DefaultTypeDiscoveryHandler : TypeDiscoveryHandler
+internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) : TypeDiscoveryHandler
 {
-    public DefaultTypeDiscoveryHandler(ITypeInspector typeInspector)
-    {
-        TypeInspector = typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
-    }
-
-    private ITypeInspector TypeInspector { get; }
+    private ITypeInspector TypeInspector { get; } = 
+        typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
 
     public override bool TryInferType(
         TypeReference typeReference,

@@ -65,7 +65,7 @@ public static class JsonErrorParser
                 {
                     JsonValueKind.String => element.GetString()!,
                     JsonValueKind.Number => element.GetInt32(),
-                    _ => "NOT_SUPPORTED_VALUE"
+                    _ => "NOT_SUPPORTED_VALUE",
                 };
             }
 

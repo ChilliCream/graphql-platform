@@ -59,26 +59,3 @@ jobs:
         done
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  sonar_analysis:
-    name: Sonar
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Set up Java
-      uses: actions/setup-java@v2
-      with:
-        java-version: '17'
-        distribution: 'adopt'
-        architecture: x64
-
-    - name: Run Sonar Analysis
-      run: ./build.cmd Sonar --SonarToken $SONARTOKEN --SemVersion ${{ env.GIT_TAG }}
-      env:
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        SONARTOKEN: ${{ secrets.SONARTOKEN }}

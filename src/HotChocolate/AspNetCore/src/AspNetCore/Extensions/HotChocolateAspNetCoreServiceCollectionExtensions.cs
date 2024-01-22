@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.AspNetCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -7,6 +6,7 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.ServerDefaults;
 
 // ReSharper disable once CheckNamespace
@@ -46,7 +46,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             DefaultHttpResponseFormatter.Create(
                 new HttpResponseFormatterOptions
                 {
-                    HttpTransportVersion = HttpTransportVersion.Latest
+                    HttpTransportVersion = HttpTransportVersion.Latest,
                 }));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
@@ -61,29 +61,23 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             {
                 0 => new NoopServerDiagnosticEventListener(),
                 1 => listeners[0],
-                _ => new AggregateServerDiagnosticEventListener(listeners)
+                _ => new AggregateServerDiagnosticEventListener(listeners),
             };
         });
 
-        if (services.All(t => t.ImplementationType !=
-            typeof(HttpContextParameterExpressionBuilder)))
+        if (!services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder,
-                HttpContextParameterExpressionBuilder>();
+            services.AddSingleton<IParameterExpressionBuilder, HttpContextParameterExpressionBuilder>();
         }
 
-        if (services.All(t => t.ImplementationType !=
-            typeof(HttpRequestParameterExpressionBuilder)))
+        if (!services.IsImplementationTypeRegistered<HttpRequestParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder,
-                HttpRequestParameterExpressionBuilder>();
+            services.AddSingleton<IParameterExpressionBuilder, HttpRequestParameterExpressionBuilder>();
         }
 
-        if (services.All(t => t.ImplementationType !=
-            typeof(HttpResponseParameterExpressionBuilder)))
+        if (!services.IsImplementationTypeRegistered<HttpResponseParameterExpressionBuilder>())
         {
-            services.AddSingleton<IParameterExpressionBuilder,
-                HttpResponseParameterExpressionBuilder>();
+            services.AddSingleton<IParameterExpressionBuilder, HttpResponseParameterExpressionBuilder>();
         }
 
         return services;

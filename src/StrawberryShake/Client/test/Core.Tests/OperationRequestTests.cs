@@ -69,7 +69,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "a", "b" } })
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -82,7 +82,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "a", "b" } })
-                }
+                },
             });
 
         // act
@@ -272,7 +272,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "a", "b" } })
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -285,7 +285,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "c", "b" } })
-                }
+                },
             });
 
         // act
@@ -309,7 +309,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "a", "b" } })
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -322,7 +322,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "a", "c" } })
-                }
+                },
             });
 
         // act
@@ -369,7 +369,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "a", null } })
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -382,7 +382,7 @@ public class OperationRequestTests
                     "a",
                     new ConcurrentDictionary<string, object?>(
                         new Dictionary<string, object?> { { "c", "b" } })
-                }
+                },
             });
 
         // act
@@ -517,11 +517,11 @@ public class OperationRequestTests
                                         { "e", new List<object?> { 1, 2, 3, 4 } },
                                         { "f", true } }
                                     },
-                                { "g", 123 }
+                                { "g", 123 },
                             }
-                        }
+                        },
                     }
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -539,11 +539,11 @@ public class OperationRequestTests
                                         { "e", new List<object?> { 1, 2, 3, 4 } },
                                         { "f", true } }
                                     },
-                                { "g", 123 }
+                                { "g", 123 },
                             }
-                        }
+                        },
                     }
-                }
+                },
             });
 
         // act
@@ -566,10 +566,10 @@ public class OperationRequestTests
                     {
                         new KeyValuePair<string, object?>("b", new List<KeyValuePair<string, object?>>
                         {
-                            new KeyValuePair<string, object?>("id", "123456")
-                        })
+                            new KeyValuePair<string, object?>("id", "123456"),
+                        }),
                     }
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -582,10 +582,10 @@ public class OperationRequestTests
                     {
                         new KeyValuePair<string, object?>("b", new List<KeyValuePair<string, object?>>
                         {
-                            new KeyValuePair<string, object?>("id", "123456")
-                        })
+                            new KeyValuePair<string, object?>("id", "123456"),
+                        }),
                     }
-                }
+                },
             });
 
         // act

@@ -44,6 +44,7 @@ internal sealed class ComposeCommand : Command
 
         AddOption(fusionPackageFile);
         AddOption(subgraphPackageFile);
+        AddOption(fusionPackageSettingsFile);
         AddOption(workingDirectory);
         AddOption(enableNodes);
         AddOption(removeSubgraphs);
@@ -100,7 +101,7 @@ internal sealed class ComposeCommand : Command
 
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
-        if(removeSubgraphs is not null)
+        if (removeSubgraphs is not null)
         {
             foreach (var subgraph in removeSubgraphs)
             {
@@ -110,7 +111,7 @@ internal sealed class ComposeCommand : Command
 
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
 
-        // resolve subraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
+        // resolve subgraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
         if (removeSubgraphs is not { Count: > 0 } || subgraphPackageFiles is { Count: > 0 })
         {
             await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
@@ -150,7 +151,7 @@ internal sealed class ComposeCommand : Command
         var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
         var typeNames = FusionTypeNames.From(fusionGraphDoc);
         var rewriter = new Metadata.FusionGraphConfigurationToSchemaRewriter();
-        var schemaDoc = (DocumentNode) rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+        var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
         using var updateSettingsJson = JsonSerializer.SerializeToDocument(settings, new JsonSerializerOptions(Web));
 
         await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
@@ -247,7 +248,13 @@ internal sealed class ComposeCommand : Command
                                 extensions = [await File.ReadAllTextAsync(extensionFile, cancellationToken)];
                             }
 
-                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients, conf.Extensions));
+                            temp.Add(
+                                new SubgraphConfiguration(
+                                    conf.Name,
+                                    schema,
+                                    extensions,
+                                    conf.Clients,
+                                    conf.Extensions));
                         }
                     }
                     else

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-## [12.0.1]
+## [12.0.1] - 2021-10-01
 
 ### Hot Chocolate
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Return argument value as field definition runtimeType if requested as object type by @benmccallum (#4291)
 
-## [12.0.0]
+## [12.0.0] - 2021-09-27
 
 ### Hot Chocolate
 
@@ -106,7 +106,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Optimized component code splitting for better load times
 - Fixed shortcut label texts for Windows and Linux
 
-## [11.1.0]
+## [11.1.0] - 2021-03-30
 
 ### Added
 
@@ -181,7 +181,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed nullable matrix types in schema first. (#2998)
 - Fixed fragment projections issue with the operation compiler. (#2920)
 
-## [11.0.9]
+## [11.0.9] - 2021-01-27
 
 ### Added
 
@@ -197,7 +197,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed selection optimizer were not resolved correctly. (#2889)
 - Fixed projection of edge type (#2888)
 
-## [11.0.8]
+## [11.0.8] - 2021-01-14
 
 ### Added
 
@@ -218,7 +218,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed string literals in places of enum values have to raise a query errors. (#2846)
 - Fixed issues with Apollo active persisted queries flow. (#2864)
 
-## [11.0.7]
+## [11.0.7] - 2021-01-06
 
 ### Added
 
@@ -230,38 +230,38 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed argument renaming during schema stitching. (#2784)
 - Fixed cursor backward pagination with two list elements (#2777)
 
-## [11.0.6]
+## [11.0.6] - 2020-12-23
 
 ### Fixed
 
 - Fixed error filters not being activated (#2774)
 
-## [11.0.5]
+## [11.0.5] - 2020-12-18
 
 ### Fixed
 
 - Fixes query rewriting when fields are merged during stitching. (#2765)
 
-## [11.0.4]
+## [11.0.4] - 2020-12-16
 
 ### Fixed
 
 - Fixed executable detection (#2762)
 
-## [11.0.3]
+## [11.0.3] - 2020-12-15
 
 ### Fixed
 
 - Added back the syntax serializers for backward compatibility (#2758)
 
-## [11.0.2]
+## [11.0.2] - 2020-12-08
 
 ### Fixed
 
 - Fixed PagingAmountRewriter for stitching in migration guide (#2737)
 - Fixed execution of batch requests (#2726)
 
-## [11.0.1]
+## [11.0.1] - 2020-12-02
 
 ### Added
 
@@ -277,7 +277,7 @@ Return argument value as field definition runtimeType if requested as object typ
 
 - Removed legacy syntax printer and ensured that only the new one is used. (#2711)
 
-## [11.0.0]
+## [11.0.0] - 2020-11-23
 
 ### Added
 
@@ -338,37 +338,37 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed inference of enum values from GraphQL SDL
 - Fixed issue with non-null arguments that have defaults (#2441)
 
-## [10.5.5]
+## [10.5.5] - 2020-11-23
 
 ### Fixed
 
 - Fixed operation serialization [#2646](https://github.com/ChilliCream/graphql-platform/pull/2646)
 
-## [10.5.4]
+## [10.5.4] - 2020-11-18
 
 ### Fixed
 
 - Fixed QueryRequestBuild handling of extensions. [#2608](https://github.com/ChilliCream/graphql-platform/pull/2608)
 
-## [10.5.3]
+## [10.5.3] - 2020-09-27
 
 ### Fixed
 
 - Fixed ConnectionMiddleware and IEnumerable + IConnection [#2378](https://github.com/ChilliCream/graphql-platform/pull/2378)
 
-## [10.5.2]
+## [10.5.2] - 2020-07-28
 
 ### Fixed
 
 - Fixed ID serialization on input types [#2174](https://github.com/ChilliCream/graphql-platform/pull/2174)
 
-## [10.5.1]
+## [10.5.1] - 2020-07-28
 
 ### Fixed
 
 - Fixed field discovery [#2167](https://github.com/ChilliCream/graphql-platform/pull/2167)
 
-## [10.5.0]
+## [10.5.0] - 2020-07-27
 
 ### Added
 
@@ -402,7 +402,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed schema type discovery issues.
 - Fixed field discovery for object type extensions.
 
-## [10.4.0]
+## [10.4.0] - 2020-03-18
 
 ### Added
 
@@ -429,45 +429,45 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed issue where the type dependencies of type extension where not correctly merged with the target type.
 - Fixed `UUID` type serialization.
 
-## [10.3.6]
+## [10.3.6] - 2020-02-28
 
 ### Fixed
 
 - Fixed handling of variables when delegating data fetching through the stitching context. [#1390](https://github.com/ChilliCream/graphql-platform/pull/1390)
 
-## [10.3.5]
+## [10.3.5] - 2020-01-13
 
 ### Fixed
 
 - Fixed issue that caused errors when collecting fields on a directive context
 
-## [10.3.4]
+## [10.3.4] - 2020-01-09
 
 ### Fixed
 
 - Fixed default hash provider dependency injection configuration [#1363](https://github.com/ChilliCream/graphql-platform/pull/1363)
 
-## [10.3.3]
+## [10.3.3] - 2020-01-09
 
 ### Fixed
 
 - Fixed argument non-null validation.
 - Fixed variable coercion.
 
-## [10.3.2]
+## [10.3.2] - 2020-01-06
 
 ### Fixed
 
 - Fixed issue where input fields were no longer automatically converted.
 - Fixed issue where the float was rounded when provided as variable.
 
-## [10.3.1]
+## [10.3.1] - 2019-12-31
 
 ### Fixed
 
 - Fixed issue that private setters where not used during input deserialization.
 
-## [10.3.0]
+## [10.3.0] - 2019-12-26
 
 ### Added
 
@@ -499,7 +499,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed parser error handling in middleware. [#1028](https://github.com/ChilliCream/graphql-platform/pull/1028)
 - Fixed directive delegation (@skip/@include) in stitching. [#937](https://github.com/ChilliCream/graphql-platform/pull/937)
 
-## [10.2.0]
+## [10.2.0] - 2019-10-31
 
 ### Added
 
@@ -528,7 +528,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - The complecity middleware when multiplier where activated did only take the firs level into account. [#1137](https://github.com/ChilliCream/graphql-platform/pull/1137)
 - Errors when attempting to filter on nullable types. [#1121](https://github.com/ChilliCream/graphql-platform/pull/1121)
 
-## [10.1.0]
+## [10.1.0] - 2019-09-13
 
 ### Added
 
@@ -547,7 +547,7 @@ Return argument value as field definition runtimeType if requested as object typ
 - Fixed scoped service handling. [#1066](https://github.com/ChilliCream/graphql-platform/pull/1066)
 - Fixed Duplicate service registration. [#1066](https://github.com/ChilliCream/graphql-platform/pull/1066)
 
-## [10.0.0]
+## [10.0.0] - 2019-08-14
 
 ### Added
 
@@ -883,7 +883,42 @@ Return argument value as field definition runtimeType if requested as object typ
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 
-[unreleased]: https://github.com/ChilliCream/graphql-platform/compare/0.8.2...HEAD
+[unreleased]: https://github.com/ChilliCream/graphql-platform/compare/12.0.1...HEAD
+[12.0.1]: https://github.com/ChilliCream/graphql-platform/compare/12.0.0...12.0.1
+[12.0.0]: https://github.com/ChilliCream/graphql-platform/compare/11.1.0...12.0.0
+[11.1.0]: https://github.com/ChilliCream/graphql-platform/compare/11.0.9...11.1.0
+[11.0.9]: https://github.com/ChilliCream/graphql-platform/compare/11.0.8...11.0.9
+[11.0.8]: https://github.com/ChilliCream/graphql-platform/compare/11.0.7...11.0.8
+[11.0.7]: https://github.com/ChilliCream/graphql-platform/compare/11.0.6...11.0.7
+[11.0.6]: https://github.com/ChilliCream/graphql-platform/compare/11.0.5...11.0.6
+[11.0.5]: https://github.com/ChilliCream/graphql-platform/compare/11.0.4...11.0.5
+[11.0.4]: https://github.com/ChilliCream/graphql-platform/compare/11.0.3...11.0.4
+[11.0.3]: https://github.com/ChilliCream/graphql-platform/compare/11.0.2...11.0.3
+[11.0.2]: https://github.com/ChilliCream/graphql-platform/compare/11.0.1...11.0.2
+[11.0.1]: https://github.com/ChilliCream/graphql-platform/compare/11.0.0...11.0.1
+[11.0.0]: https://github.com/ChilliCream/graphql-platform/compare/10.5.5...11.0.0
+[10.5.5]: https://github.com/ChilliCream/graphql-platform/compare/10.5.4...10.5.5
+[10.5.4]: https://github.com/ChilliCream/graphql-platform/compare/10.5.3...10.5.4
+[10.5.3]: https://github.com/ChilliCream/graphql-platform/compare/10.5.2...10.5.3
+[10.5.2]: https://github.com/ChilliCream/graphql-platform/compare/10.5.1...10.5.2
+[10.5.1]: https://github.com/ChilliCream/graphql-platform/compare/10.5.0...10.5.1
+[10.5.0]: https://github.com/ChilliCream/graphql-platform/compare/10.4.0...10.5.0
+[10.4.0]: https://github.com/ChilliCream/graphql-platform/compare/10.3.6...10.4.0
+[10.3.6]: https://github.com/ChilliCream/graphql-platform/compare/10.3.5...10.3.6
+[10.3.5]: https://github.com/ChilliCream/graphql-platform/compare/10.3.4...10.3.5
+[10.3.4]: https://github.com/ChilliCream/graphql-platform/compare/10.3.3...10.3.4
+[10.3.3]: https://github.com/ChilliCream/graphql-platform/compare/10.3.2...10.3.3
+[10.3.2]: https://github.com/ChilliCream/graphql-platform/compare/10.3.1...10.3.2
+[10.3.1]: https://github.com/ChilliCream/graphql-platform/compare/10.3.0...10.3.1
+[10.3.0]: https://github.com/ChilliCream/graphql-platform/compare/10.2.0...10.3.0
+[10.2.0]: https://github.com/ChilliCream/graphql-platform/compare/10.1.0...10.2.0
+[10.1.0]: https://github.com/ChilliCream/graphql-platform/compare/10.0.0...10.1.0
+[10.0.0]: https://github.com/ChilliCream/graphql-platform/compare/9.0.4...10.0.0
+[9.0.4]: https://github.com/ChilliCream/graphql-platform/compare/9.0.3...9.0.4
+[9.0.3]: https://github.com/ChilliCream/graphql-platform/compare/9.0.2...9.0.3
+[9.0.2]: https://github.com/ChilliCream/graphql-platform/compare/9.0.1...9.0.2
+[9.0.1]: https://github.com/ChilliCream/graphql-platform/compare/9.0.0...9.0.1
+[9.0.0]: https://github.com/ChilliCream/graphql-platform/compare/0.8.2...9.0.0
 [0.8.2]: https://github.com/ChilliCream/graphql-platform/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/ChilliCream/graphql-platform/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/ChilliCream/graphql-platform/compare/0.7.0...0.8.0

@@ -22,7 +22,7 @@ public class RavenAsyncDocumentQueryTests
         new Foo { Bar = "b" },
         new Foo { Bar = "d" },
         new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
+        new Foo { Bar = "f" },
     };
 
     private readonly SchemaCache _resource;
