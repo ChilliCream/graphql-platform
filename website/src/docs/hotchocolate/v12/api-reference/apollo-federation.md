@@ -711,6 +711,7 @@ query {
 ```
 
 ## C# Records
+
 Records can be decorated almost in the same way as classes to add Apollo Federation support.
 The above Product example as a positional record would look like this:
 
