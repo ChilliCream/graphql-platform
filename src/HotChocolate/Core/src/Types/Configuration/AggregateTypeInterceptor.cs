@@ -14,7 +14,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
-    private readonly List<TypeReference> _typeReferences = new();
+    private readonly List<TypeReference> _typeReferences = [];
     private TypeInterceptor[] _typeInterceptors = Array.Empty<TypeInterceptor>();
     private TypeInterceptor? _mutationAggregator;
 

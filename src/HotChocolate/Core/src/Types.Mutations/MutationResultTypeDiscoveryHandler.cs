@@ -11,7 +11,7 @@ internal sealed class MutationResultTypeDiscoveryHandler(ITypeInspector typeInsp
     {
         var runtimeType = typeInfo.RuntimeType;
 
-        if (runtimeType is { IsValueType: true, IsGenericType: true } &&
+        if (runtimeType is { IsValueType: true, IsGenericType: true, } &&
             typeof(IMutationResult).IsAssignableFrom(runtimeType) &&
             typeReference is ExtendedTypeReference typeRef)
         {

@@ -15,7 +15,7 @@ public class InputObjectTypeDescriptor
     : DescriptorBase<InputObjectTypeDefinition>
     , IInputObjectTypeDescriptor
 {
-    private readonly List<InputFieldDescriptor> _fields = new();
+    private readonly List<InputFieldDescriptor> _fields = [];
 
     protected InputObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
         : base(context)

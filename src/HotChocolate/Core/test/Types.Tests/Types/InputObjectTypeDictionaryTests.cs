@@ -43,7 +43,7 @@ public class InputObjectTypeNonNullTests
     {
         public string GetFoo(FooInput input)
         {
-            if (input.ContextData is { Count: 1 })
+            if (input.ContextData is { Count: 1, })
             {
                 return input.ContextData.First().Value;
             }

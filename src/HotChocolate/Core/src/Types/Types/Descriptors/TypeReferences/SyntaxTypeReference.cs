@@ -139,7 +139,7 @@ public sealed class SyntaxTypeReference
         Optional<string?> scope = default,
         Optional<Func<IDescriptorContext, TypeSystemObjectBase>?> factory = default)
     {
-        if (type is { HasValue: true, Value: null })
+        if (type is { HasValue: true, Value: null, })
         {
             throw new ArgumentNullException(nameof(type));
         }

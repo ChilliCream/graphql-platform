@@ -21,10 +21,10 @@ public class QueryableFilterVisitorDateOnlyTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Value = new DateOnly(2020,12,12) };
+        var a = new Foo { Value = new DateOnly(2020,12,12), };
         Assert.True(func(a));
 
-        var b = new Foo { Value = new DateOnly(2020,12,13) };
+        var b = new Foo { Value = new DateOnly(2020,12,13), };
         Assert.False(func(b));
     }
 
@@ -41,10 +41,10 @@ public class QueryableFilterVisitorDateOnlyTests
 
 
         // assert
-        var a = new Foo { Value = new DateOnly(2020,12,13) };
+        var a = new Foo { Value = new DateOnly(2020,12,13), };
         Assert.True(func(a));
 
-        var b = new Foo { Value = new DateOnly(2020,12,12)};
+        var b = new Foo { Value = new DateOnly(2020,12,12), };
         Assert.False(func(b));
     }
 
@@ -60,10 +60,10 @@ public class QueryableFilterVisitorDateOnlyTests
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { Value = null };
+        var a = new FooNullable { Value = null, };
         Assert.True(func(a));
 
-        var b = new FooNullable { Value = new DateOnly(2020,12,13) };
+        var b = new FooNullable { Value = new DateOnly(2020,12,13), };
         Assert.False(func(b));
     }
 

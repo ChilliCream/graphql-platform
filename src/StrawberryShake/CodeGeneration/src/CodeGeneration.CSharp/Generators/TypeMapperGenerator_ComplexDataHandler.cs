@@ -115,7 +115,7 @@ public partial class TypeMapperGenerator
             else if (prop.Type.IsNonNull())
             {
                 if (prop.Type.InnerType() is ILeafTypeDescriptor
-                        { RuntimeType: { IsValueType: true } })
+                        { RuntimeType: { IsValueType: true, }, })
                 {
                     block
                         .AddCode(IfBuilder

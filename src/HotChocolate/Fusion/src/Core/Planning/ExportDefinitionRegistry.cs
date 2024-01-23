@@ -7,10 +7,10 @@ namespace HotChocolate.Fusion.Planning;
 
 internal sealed class ExportDefinitionRegistry
 {
-    private readonly HashSet<string> _temp = new();
+    private readonly HashSet<string> _temp = [];
     private readonly Dictionary<(ISelectionSet, string), string> _stateKeyLookup = new();
     private readonly Dictionary<string, ExportDefinition> _exportLookup = new(StringComparer.Ordinal);
-    private readonly List<ExportDefinition> _exports = new();
+    private readonly List<ExportDefinition> _exports = [];
     private readonly string _groupKey = "_fusion_exports_";
     private int _stateId;
 

@@ -12,13 +12,13 @@ namespace HotChocolate.AspNetCore;
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
     private static readonly AcceptMediaType[] _mediaTypes =
-    {
+    [
         new AcceptMediaType(
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
             default),
-    };
+    ];
     private readonly MiddlewareRoutingType _routing;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
 

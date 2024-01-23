@@ -12,5 +12,6 @@
   "Extensions": null,
   "Incremental": null,
   "ContextData": null,
-  "HasNext": null
+  "HasNext": null,
+  "IsDataSet": true
 }

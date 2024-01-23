@@ -156,11 +156,11 @@ internal static class RelayIdFieldHelpers
         var typeInspector = completionContext.TypeInspector;
         IExtendedType? resultType;
 
-        if (definition is InputFieldDefinition { RuntimeType: { } runtimeType })
+        if (definition is InputFieldDefinition { RuntimeType: { } runtimeType, })
         {
             resultType = typeInspector.GetType(runtimeType);
         }
-        else if (definition is InputFieldDefinition { Property: not null } inputField)
+        else if (definition is InputFieldDefinition { Property: not null, } inputField)
         {
             resultType = typeInspector.GetReturnType(inputField.Property, true);
         }

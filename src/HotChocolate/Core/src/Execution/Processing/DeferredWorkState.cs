@@ -13,10 +13,10 @@ internal sealed class DeferredWorkState
     private readonly object _deliverSync = new();
     private readonly object _patchSync = new();
 
-    private readonly List<DeferredExecutionTaskResult> _ready = new();
+    private readonly List<DeferredExecutionTaskResult> _ready = [];
     private readonly Queue<IQueryResult> _deliverable = new();
-    private readonly HashSet<uint> _completed = new();
-    private readonly HashSet<uint> _notPatchable = new();
+    private readonly HashSet<uint> _completed = [];
+    private readonly HashSet<uint> _notPatchable = [];
     private SemaphoreSlim _semaphore = new(0);
     private uint _taskId;
     private uint _work;

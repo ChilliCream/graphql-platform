@@ -88,7 +88,7 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
                 if (objectType.IsEntity())
                 {
                     var entityDefinition = objectType.GetEntityDefinition();
-                    List<ISelectionNode> fields = new();
+                    List<ISelectionNode> fields = [];
 
                     foreach (var selection in entityDefinition.Selections)
                     {

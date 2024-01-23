@@ -6,8 +6,8 @@ internal static class Utf8MessageProperties
     // This uses C# compiler's ability to refer to static data directly.
     // For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
     public static ReadOnlySpan<byte> Id
-        => new[] { (byte)'i', (byte)'d' };
+        => new[] { (byte)'i', (byte)'d', };
 
     public static ReadOnlySpan<byte> Type
-        => new[] { (byte)'t', (byte)'y', (byte)'p', (byte)'e' };
+        => new[] { (byte)'t', (byte)'y', (byte)'p', (byte)'e', };
 }

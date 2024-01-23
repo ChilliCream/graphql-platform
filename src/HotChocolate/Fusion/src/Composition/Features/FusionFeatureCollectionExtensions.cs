@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Composition.Features;
 /// </summary>
 public static class FusionFeatureCollectionExtensions
 {
-    private static readonly HashSet<string> _empty = new();
+    private static readonly HashSet<string> _empty = [];
 
     /// <summary>
     /// Specifies if the fusion graph shall support the global identification spec.

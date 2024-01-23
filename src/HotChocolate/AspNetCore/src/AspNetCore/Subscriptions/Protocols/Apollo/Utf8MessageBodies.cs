@@ -3,7 +3,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 internal static class Utf8MessageBodies
 {
     private static readonly byte[] _keepAlive =
-    {
+    [
         (byte)'{',
         (byte)'"',
         (byte)'t',
@@ -17,7 +17,7 @@ internal static class Utf8MessageBodies
         (byte)'a',
         (byte)'"',
         (byte)'}',
-    };
+    ];
 
     public static ReadOnlyMemory<byte> KeepAlive => _keepAlive;
 }

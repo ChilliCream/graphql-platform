@@ -21,9 +21,9 @@ public class BatchScheduler
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly object _sync = new();
     private readonly object _syncTaskEnqueued = new();
-    private readonly List<Func<ValueTask>> _tasks = new();
+    private readonly List<Func<ValueTask>> _tasks = [];
     private bool _dispatchOnSchedule;
-    private readonly List<EventHandler> _listeners = new();
+    private readonly List<EventHandler> _listeners = [];
 
     /// <inheritdoc />
     public event EventHandler TaskEnqueued
@@ -117,7 +117,7 @@ public class BatchScheduler
 
                 default:
                     // we will try to reuse the pooled list.
-                    tasks = Exchange(ref _localTasks, null) ?? new();
+                    tasks = Exchange(ref _localTasks, null) ?? [];
                     tasks.AddRange(_tasks);
                     _tasks.Clear();
                     break;
@@ -163,7 +163,7 @@ public class BatchScheduler
         await Task.Yield();
 
         // First we will get a list to hold on to the tasks.
-        var processing = Exchange(ref _localProcessing, null) ?? new();
+        var processing = Exchange(ref _localProcessing, null) ?? [];
 
         foreach (var task in tasks)
         {

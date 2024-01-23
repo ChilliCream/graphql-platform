@@ -148,7 +148,7 @@ public static class TestHelper
         Action<IRequestExecutorBuilder>? configure = null,
         ITestOutputHelper? output = null)
     {
-        var configuration = new TestConfiguration { Configure = configure };
+        var configuration = new TestConfiguration { Configure = configure, };
 
         return await CreateExecutorAsync(configuration, output);
     }

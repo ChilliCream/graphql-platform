@@ -163,7 +163,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
             }
 
-            var file = filename is { Length: > 0 }
+            var file = filename is { Length: > 0, }
                 ? files.GetFile(filename)
                 : null;
 

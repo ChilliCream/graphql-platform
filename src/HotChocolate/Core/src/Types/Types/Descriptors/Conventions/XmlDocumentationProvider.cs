@@ -370,7 +370,7 @@ public class XmlDocumentationProvider : IDocumentationProvider
         char prefixCode;
 
         var memberName =
-            member is Type { FullName: { Length: > 0 } } memberType
+            member is Type { FullName: { Length: > 0, }, } memberType
             ? memberType.FullName
             : member.DeclaringType is null
                 ? member.Name

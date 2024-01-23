@@ -72,7 +72,7 @@ internal sealed class EnumTypeFactory
 
             SdlToTypeSystemHelper.AddDirectives(context, valueDefinition, value, path);
 
-            if (value.DeprecationReason() is { Length: > 0 } reason)
+            if (value.DeprecationReason() is { Length: > 0, } reason)
             {
                 valueDefinition.DeprecationReason = reason;
             }

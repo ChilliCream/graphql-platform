@@ -44,7 +44,7 @@ public class ErrorBuilder : IErrorBuilder
 
         if (error.Locations is { } && error.Locations.Count > 0)
         {
-            _locations = new List<Location>(error.Locations);
+            _locations = [..error.Locations,];
         }
     }
 
@@ -102,11 +102,11 @@ public class ErrorBuilder : IErrorBuilder
     {
         if (_dirtyLocation && _locations is { })
         {
-            _locations = new List<Location>(_locations);
+            _locations = [.._locations,];
             _dirtyLocation = false;
         }
 
-        (_locations ??= new List<Location>()).Add(location);
+        (_locations ??= []).Add(location);
         return this;
     }
 

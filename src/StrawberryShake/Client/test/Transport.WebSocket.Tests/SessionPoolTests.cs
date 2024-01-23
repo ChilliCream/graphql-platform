@@ -45,7 +45,7 @@ public class SessionPoolTests
         var optionsMonitor = optionsMonitorMock.Object;
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
-            .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" });
+            .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", });
         var pool = new SessionPool(optionsMonitor);
 
         // act
@@ -65,7 +65,7 @@ public class SessionPoolTests
         var optionsMonitor = optionsMonitorMock.Object;
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
-            .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" });
+            .Returns(() => new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", });
         var pool = new SessionPool(optionsMonitor);
         var first = await pool.CreateAsync("Foo");
 
@@ -83,7 +83,7 @@ public class SessionPoolTests
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = optionsMonitorMock.Object;
-        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
+        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
@@ -103,7 +103,7 @@ public class SessionPoolTests
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = optionsMonitorMock.Object;
-        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
+        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
@@ -125,7 +125,7 @@ public class SessionPoolTests
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = optionsMonitorMock.Object;
-        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
+        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
@@ -148,7 +148,7 @@ public class SessionPoolTests
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = optionsMonitorMock.Object;
-        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
+        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
@@ -169,7 +169,7 @@ public class SessionPoolTests
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = optionsMonitorMock.Object;
-        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
+        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);
@@ -190,7 +190,7 @@ public class SessionPoolTests
         Mock<ISocketClientFactory> optionsMonitorMock = new(MockBehavior.Strict);
         Mock<ISocketProtocol> protocol = new();
         var optionsMonitor = optionsMonitorMock.Object;
-        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo" };
+        var socket = new SocketClientStub() { Protocol = protocol.Object, Name = "Foo", };
         optionsMonitorMock
             .Setup(x => x.CreateClient("Foo"))
             .Returns(() => socket);

@@ -11,7 +11,7 @@ internal static class JsonOptionDefaults
     /// Gets the default <see cref="JsonWriterOptions"/>.
     /// </summary>
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false };
+        new() { Indented = false, };
 
     /// <summary>
     /// Gets the default <see cref="JsonSerializerOptions"/>.

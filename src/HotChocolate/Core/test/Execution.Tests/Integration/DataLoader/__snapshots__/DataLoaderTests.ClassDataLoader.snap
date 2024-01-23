@@ -23,7 +23,8 @@
     },
     "Incremental": null,
     "ContextData": null,
-    "HasNext": null
+    "HasNext": null,
+    "IsDataSet": true
   },
   {
     "Kind": "SingleResult",
@@ -43,7 +44,8 @@
     },
     "Incremental": null,
     "ContextData": null,
-    "HasNext": null
+    "HasNext": null,
+    "IsDataSet": true
   },
   {
     "Kind": "SingleResult",
@@ -63,6 +65,7 @@
     },
     "Incremental": null,
     "ContextData": null,
-    "HasNext": null
+    "HasNext": null,
+    "IsDataSet": true
   }
 ]

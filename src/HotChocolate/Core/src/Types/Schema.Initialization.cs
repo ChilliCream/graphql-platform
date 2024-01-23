@@ -130,7 +130,7 @@ internal static class SchemaTools
 
         if (!builder.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value))
         {
-            options = new List<Action<ISchemaTypeDescriptor>>();
+            options = [];
             builder.ContextData.Add(WellKnownContextData.InternalSchemaOptions, options);
             value = options;
         }
@@ -157,7 +157,7 @@ internal static class SchemaTools
 
         if (!context.ContextData.TryGetValue(WellKnownContextData.InternalSchemaOptions, out var value))
         {
-            options = new List<Action<ISchemaTypeDescriptor>>();
+            options = [];
             context.ContextData.Add(WellKnownContextData.InternalSchemaOptions, options);
             value = options;
         }

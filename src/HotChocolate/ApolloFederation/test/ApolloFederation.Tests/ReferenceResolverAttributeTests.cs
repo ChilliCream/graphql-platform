@@ -307,7 +307,7 @@ public class ReferenceResolverAttributeTests
         public string Id { get; set; } = default!;
 
         public static Task<ExternalSingleKeyResolver> GetAsync(string id)
-            => Task.FromResult(new ExternalSingleKeyResolver { Id = id });
+            => Task.FromResult(new ExternalSingleKeyResolver { Id = id, });
     }
 
     [ReferenceResolver(EntityResolver = nameof(GetAsync))]
@@ -320,7 +320,7 @@ public class ReferenceResolverAttributeTests
         public string Foo { get; private set; } = default!;
 
         public static Task<ExternalFields> GetAsync(string id)
-            => Task.FromResult(new ExternalFields { Id = id });
+            => Task.FromResult(new ExternalFields { Id = id, });
     }
 
     [Key("id")]
@@ -333,11 +333,11 @@ public class ReferenceResolverAttributeTests
 
         [ReferenceResolver]
         public static Task<ExternalMultiKeyResolver> GetByIdAsync(string id)
-            => Task.FromResult(new ExternalMultiKeyResolver { Id = id });
+            => Task.FromResult(new ExternalMultiKeyResolver { Id = id, });
 
         [ReferenceResolver]
         public static Task<ExternalMultiKeyResolver> GetBySkuAsync(string sku)
-            => Task.FromResult(new ExternalMultiKeyResolver { Sku = sku });
+            => Task.FromResult(new ExternalMultiKeyResolver { Sku = sku, });
     }
 
     [ReferenceResolver(

@@ -11,7 +11,7 @@ internal sealed class DefaultCompositionLog : ICompositionLog, IEnumerable<LogEn
         _innerLog = innerLog;
     }
 
-    private readonly List<LogEntry> _entries = new();
+    private readonly List<LogEntry> _entries = [];
 
     public bool HasErrors { get; private set; }
 

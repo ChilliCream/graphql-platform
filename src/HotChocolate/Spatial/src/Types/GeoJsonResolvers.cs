@@ -35,7 +35,7 @@ internal class GeoJsonResolvers
         var envelope = geometry.EnvelopeInternal;
 
         // TODO: support Z
-        return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
+        return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY, };
     }
 
     public int GetCrs([Parent] Geometry geometry) =>

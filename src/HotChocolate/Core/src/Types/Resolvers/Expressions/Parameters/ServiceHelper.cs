@@ -31,7 +31,7 @@ internal static class ServiceHelper
         Type serviceType)
         => _usePooledService
             .MakeGenericMethod(serviceType)
-            .Invoke(null, new object?[] { definition });
+            .Invoke(null, [definition,]);
 
     internal static void UsePooledService<TService>(
         ObjectFieldDefinition definition)
@@ -71,7 +71,7 @@ internal static class ServiceHelper
         Type serviceType)
         => _useResolverService
             .MakeGenericMethod(serviceType)
-            .Invoke(null, new object?[] { definition });
+            .Invoke(null, [definition,]);
 
     private static void UseResolverServiceInternal<TService>(
         ObjectFieldDefinition definition)
@@ -136,7 +136,7 @@ internal static class ServiceHelper
         string key)
         => _useResolverKeyedService
             .MakeGenericMethod(serviceType)
-            .Invoke(null, new object?[] { definition, key });
+            .Invoke(null, [definition, key,]);
     
     private static void UseResolverKeyedServiceInternal<TService>(
         ObjectFieldDefinition definition,

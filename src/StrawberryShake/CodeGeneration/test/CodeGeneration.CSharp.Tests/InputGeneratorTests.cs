@@ -58,7 +58,7 @@ public class InputGeneratorTests
     public void Operation_With_Comments_With_Input_Records()
     {
         AssertResult(
-            new AssertSettings { InputRecords = true },
+            new AssertSettings { InputRecords = true, },
             @"query test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
                     foo(single: $single, list: $list, nestedList:$nestedList)
                 }",

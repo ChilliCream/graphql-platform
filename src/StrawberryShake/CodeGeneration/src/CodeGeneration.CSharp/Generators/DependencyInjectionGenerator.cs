@@ -26,7 +26,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
     private const string _ct = "ct";
 
     private static readonly string[] _builtInSerializers =
-    {
+    [
         StringSerializer,
         BooleanSerializer,
         ByteSerializer,
@@ -43,7 +43,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ByteArraySerializer,
         TimeSpanSerializer,
         JsonSerializer,
-    };
+    ];
 
     private static readonly Dictionary<string, string> _alternativeTypeNames = new()
     {

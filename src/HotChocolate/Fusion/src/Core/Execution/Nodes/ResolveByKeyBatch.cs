@@ -357,8 +357,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             StringValueNode value => value.Value,
             IntValueNode value => value.ToString(),
             FloatValueNode value => value.ToString(),
-            BooleanValueNode { Value: true } => "true",
-            BooleanValueNode { Value: false } => "false",
+            BooleanValueNode { Value: true, } => "true",
+            BooleanValueNode { Value: false, } => "false",
             NullValueNode => "null",
             _ => throw new NotSupportedException(),
         };

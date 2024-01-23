@@ -48,6 +48,6 @@ internal sealed class RemovedUnusedFragmentRewriter
 
     internal sealed class Context : ISyntaxVisitorContext
     {
-        public HashSet<string> Used { get; } = new();
+        public HashSet<string> Used { get; } = [];
     }
 }

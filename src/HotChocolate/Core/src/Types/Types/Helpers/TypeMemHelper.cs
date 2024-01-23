@@ -93,7 +93,7 @@ internal static class TypeMemHelper
 
     public static HashSet<MemberInfo> RentMemberSet()
         => Interlocked.Exchange(ref _memberSet, null) ??
-            new HashSet<MemberInfo>();
+            [];
 
     public static void Return(HashSet<MemberInfo> set)
     {

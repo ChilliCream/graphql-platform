@@ -38,7 +38,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                 nameof(ReferenceResolverHelper.Invalid),
                 BindingFlags.Static | BindingFlags.Public)!;
 
-    private readonly List<ObjectType> _entityTypes = new();
+    private readonly List<ObjectType> _entityTypes = [];
     private readonly Dictionary<Uri, HashSet<string>> _imports = new();
     private IDescriptorContext _context = default!;
     private ITypeInspector _typeInspector = default!;
@@ -154,7 +154,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
             if (!_imports.TryGetValue(package.Url, out var types))
             {
-                types = new HashSet<string>();
+                types = [];
                 _imports[package.Url] = types;
             }
 
@@ -370,7 +370,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                     current);
             }
 
-            current = Expression.Block(new[] { variable }, current, variable);
+            current = Expression.Block(new[] { variable, }, current, variable);
 
             typeDef.ContextData[EntityResolver] =
                 Expression.Lambda<FieldResolverDelegate>(current, context).Compile();

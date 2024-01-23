@@ -49,7 +49,7 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
                 // these.
                 foreach (var field in objectType.Fields)
                 {
-                    if (field.Type.NamedType() is { Kind: TypeKind.Interface } type)
+                    if (field.Type.NamedType() is { Kind: TypeKind.Interface, } type)
                     {
                         fieldTypes.Add(type);
                     }

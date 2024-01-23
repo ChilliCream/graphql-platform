@@ -9,7 +9,7 @@ public class ArrayBuilder : ICode
     private string? _type;
     private bool _determineStatement = true;
     private bool _setReturn;
-    private readonly List<ICode> _assigment = new();
+    private readonly List<ICode> _assigment = [];
 
     private ArrayBuilder()
     {

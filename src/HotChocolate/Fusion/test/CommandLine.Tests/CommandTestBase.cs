@@ -12,12 +12,12 @@ namespace CommandLine.Tests;
 
 public abstract class CommandTestBase : IDisposable
 {
-    private readonly ConcurrentBag<string> _files = new();
-    private readonly ConcurrentBag<string> _dirs = new();
+    private readonly ConcurrentBag<string> _files = [];
+    private readonly ConcurrentBag<string> _dirs = [];
 
     protected Files CreateFiles(SubgraphConfiguration configuration)
     {
-        var files = new Files(CreateTempFile(), CreateTempFile(), new[] { CreateTempFile() });
+        var files = new Files(CreateTempFile(), CreateTempFile(), [CreateTempFile(),]);
         var configJson = PackageHelper.FormatSubgraphConfig(
             new(configuration.Name, configuration.Clients, configuration.ConfigurationExtensions));
         File.WriteAllText(files.SchemaFile, configuration.Schema);

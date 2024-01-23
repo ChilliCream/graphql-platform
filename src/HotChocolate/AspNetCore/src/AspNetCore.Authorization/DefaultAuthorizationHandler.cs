@@ -129,7 +129,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         bool authenticated,
         object context)
     {
-        var checkRoles = roles is { Count: > 0 };
+        var checkRoles = roles is { Count: > 0, };
         var checkPolicy = !string.IsNullOrWhiteSpace(policyName);
 
         // if the current directive has neither roles nor policies specified we will check if there

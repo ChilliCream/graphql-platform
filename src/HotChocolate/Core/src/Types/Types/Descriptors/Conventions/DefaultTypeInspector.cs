@@ -230,7 +230,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         var extendedType = ExtendedType.FromType(type, _typeCache);
 
-        return nullable is { Length: > 0 }
+        return nullable is { Length: > 0, }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
             : extendedType;
     }
@@ -245,7 +245,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
 
         var extendedType = ExtendedType.FromType(type, _typeCache);
 
-        return nullable is { Length: > 0 }
+        return nullable is { Length: > 0, }
             ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
             : extendedType;
     }
@@ -710,9 +710,9 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             return false;
         }
 
-        if (member is PropertyInfo { CanRead: false } ||
-            member is PropertyInfo { IsSpecialName: true } ||
-            member is MethodInfo { IsSpecialName: true })
+        if (member is PropertyInfo { CanRead: false, } ||
+            member is PropertyInfo { IsSpecialName: true, } ||
+            member is MethodInfo { IsSpecialName: true, })
         {
             return false;
         }
@@ -723,7 +723,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
                 property.GetIndexParameters().Length == 0;
         }
 
-        if (member is MethodInfo { IsGenericMethodDefinition: false } method &&
+        if (member is MethodInfo { IsGenericMethodDefinition: false, } method &&
             CanHandleReturnType(member, method.ReturnType, allowObjectType))
         {
             foreach (var parameter in method.GetParameters())

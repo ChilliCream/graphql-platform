@@ -56,7 +56,7 @@ public class SortInputTypeDescriptor
         new SortInputTypeDefinition();
 
     protected BindableList<SortFieldDescriptor> Fields { get; } =
-        new BindableList<SortFieldDescriptor>();
+        [];
 
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
