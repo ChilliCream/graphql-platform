@@ -20,7 +20,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         DefinitionBase definition)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
             return;
         }
@@ -84,7 +84,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
             return;
         }

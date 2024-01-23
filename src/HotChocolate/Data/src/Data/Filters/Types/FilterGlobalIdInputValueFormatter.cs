@@ -42,7 +42,7 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
 
         if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
         {
-            List<object?> list = new();
+            List<object?> list = [];
             foreach (var idv in nullableIdEnumerable)
             {
                 if (!idv.HasValue)
@@ -60,7 +60,7 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
 
         if (runtimeValue is IEnumerable<IdValue> idEnumerable)
         {
-            List<object?> list = new();
+            List<object?> list = [];
 
             foreach (var idv in idEnumerable)
             {
@@ -74,7 +74,7 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
         {
             try
             {
-                List<object?> list = new();
+                List<object?> list = [];
 
                 foreach (var sv in stringEnumerable)
                 {

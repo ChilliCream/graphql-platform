@@ -58,7 +58,7 @@ internal abstract class RequestDocumentFormatter
                     null,
                     unspecifiedArguments);
 
-            rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
+            rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver, });
             path = p;
         }
 
@@ -83,7 +83,7 @@ internal abstract class RequestDocumentFormatter
             rootSelectionSetNode);
 
         return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode }),
+            new DocumentNode(new[] { operationDefinitionNode, }),
             path);
     }
 
@@ -96,7 +96,7 @@ internal abstract class RequestDocumentFormatter
         while (current is not null)
         {
             selectionSet = new SelectionSetNode(
-                new[] { current.Selection.SyntaxNode.WithSelectionSet(selectionSet) });
+                new[] { current.Selection.SyntaxNode.WithSelectionSet(selectionSet), });
 
             current = current.Parent;
         }
@@ -262,14 +262,14 @@ internal abstract class RequestDocumentFormatter
 
             if (next && single)
             {
-                selectionNodes = new List<ISelectionNode>();
+                selectionNodes = [];
                 single = false;
             }
             else if (single && isAbstractType && !ReferenceEquals(parentType, possibleType))
             {
                 if (!onlyIntrospection)
                 {
-                    selectionNodes = new List<ISelectionNode>();
+                    selectionNodes = [];
                     single = false;
                 }
             }
@@ -301,7 +301,7 @@ internal abstract class RequestDocumentFormatter
                 Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(typeSelectionNodes));
             selectionNodes.Add(inlineFragment);
-            typeSelectionNodes = new List<ISelectionNode>();
+            typeSelectionNodes = [];
         }
     }
 
@@ -549,7 +549,7 @@ internal abstract class RequestDocumentFormatter
         {
             if (argument.IsDefaultValue)
             {
-                unspecifiedArguments ??= new List<string>();
+                unspecifiedArguments ??= [];
                 unspecifiedArguments.Add(argument.Name);
             }
         }

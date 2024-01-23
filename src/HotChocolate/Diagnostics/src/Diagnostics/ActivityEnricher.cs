@@ -620,10 +620,10 @@ public class ActivityEnricher
         var tags = new List<KeyValuePair<string, object?>>
         {
             new("graphql.error.message", error.Message),
-            new("graphql.error.code", error.Code)
+            new("graphql.error.code", error.Code),
         };
 
-        if (error.Locations is { Count: > 0 })
+        if (error.Locations is { Count: > 0, })
         {
             if (error.Locations.Count == 1)
             {

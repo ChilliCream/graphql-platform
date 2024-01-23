@@ -34,7 +34,7 @@ public static class SnapshotExtensions
             await using var memoryStream = new MemoryStream();
             await using var jsonWriter = new Utf8JsonWriter(
                 memoryStream,
-                new JsonWriterOptions { Indented = true });
+                new JsonWriterOptions { Indented = true, });
 
             jsonWriter.WriteStartArray();
 

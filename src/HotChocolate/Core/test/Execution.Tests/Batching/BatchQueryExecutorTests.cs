@@ -206,11 +206,11 @@ public class BatchQueryExecutorTests
 
                     if (list is null)
                     {
-                        return new List<string>
-                        {
+                        return
+                        [
                             "123",
                             "456",
-                        };
+                        ];
                     }
 
                     list.Add("789");
@@ -267,13 +267,14 @@ public class BatchQueryExecutorTests
 
                 if (list is null)
                 {
-                    return new List<object>
-                    {
+                    return
+                    [
                         new Dictionary<string, object>
                         {
-                            { "bar" , "123" },
+                            { "bar", "123" },
                         },
-                    };
+
+                    ];
                 }
 
                 list.Add(new Dictionary<string, object>
@@ -350,7 +351,7 @@ public class BatchQueryExecutorTests
                     @"query foo1($b: [String]) {
                             foo(bar: $b) @export(as: ""b"")
                         }")
-                .AddVariableValue("b", new[] { "123" })
+                .AddVariableValue("b", new[] { "123", })
                 .Create(),
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -401,7 +402,7 @@ public class BatchQueryExecutorTests
                     @"query foo1($b1: [String]) {
                             foo(bar: $b1) @export(as: ""b2"")
                         }")
-                .AddVariableValue("b1", new[] { "123" })
+                .AddVariableValue("b1", new[] { "123", })
                 .Create(),
             QueryRequestBuilder.New()
                 .SetQuery(

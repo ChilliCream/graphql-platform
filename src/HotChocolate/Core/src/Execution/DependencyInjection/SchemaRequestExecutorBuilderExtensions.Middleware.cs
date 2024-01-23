@@ -118,7 +118,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         {
             if (!_lookup.TryGetValue(reference.TypeName, out var middlewares))
             {
-                middlewares = new List<FieldMiddlewareReference>();
+                middlewares = [];
                 _lookup[reference.TypeName] = middlewares;
             }
 
@@ -131,7 +131,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         public const string ContextKey = "HotChocolate.Execution.FieldMiddlewareLookup";
 
         private bool CanHandle(ITypeSystemObjectContext context) =>
-            context.Type is ObjectType { Name: { } typeName } &&
+            context.Type is ObjectType { Name: { } typeName, } &&
             context.ContextData.TryGetValue(ContextKey, out var value) &&
             value is FieldMiddlewareLookup lookup &&
             lookup.HasFieldMiddleware(typeName);

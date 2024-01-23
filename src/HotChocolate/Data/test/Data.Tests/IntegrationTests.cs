@@ -667,7 +667,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 }
             }
             """,
-            new Dictionary<string, object?> { ["title"] = "BookTitle" });
+            new Dictionary<string, object?> { ["title"] = "BookTitle", });
 
         // assert
         await Snapshot
@@ -703,7 +703,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 }
             }
             """,
-            new Dictionary<string, object?> { ["title"] = "BookTitle" });
+            new Dictionary<string, object?> { ["title"] = "BookTitle", });
 
         // assert
         await Snapshot
@@ -820,7 +820,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         [UseOffsetPaging]
         public static IEnumerable<Bar> GetBars()
-            => new[] { Bar.Create("tox") };
+            => new[] { Bar.Create("tox"), };
     }
 
     public class FooType : ObjectType
@@ -847,7 +847,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         public string Qux { get; set; } = default!;
 
-        public static Bar Create(string qux) => new() { Qux = qux };
+        public static Bar Create(string qux) => new() { Qux = qux, };
     }
 
     public class PagingAndProjection
@@ -861,7 +861,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 {
                     Id = 1,
                     Title = "BookTitle",
-                    Author = new Author { Name = "Author" },
+                    Author = new Author { Name = "Author", },
                 },
             }.AsQueryable();
     }
@@ -880,7 +880,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 {
                     Id = 1,
                     Title = "BookTitle",
-                    Author = new Author { Name = "Author" },
+                    Author = new Author { Name = "Author", },
                 },
             }.AsQueryable();
     }
@@ -961,7 +961,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book> { book },
+                    Books = new List<Book> { book, },
                 },
             }.AsQueryable();
     }
@@ -976,7 +976,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 new Author
                 {
                     Name = "Author",
-                    Books = new List<Book> { book },
+                    Books = new List<Book> { book, },
                 },
             }.AsQueryable();
     }

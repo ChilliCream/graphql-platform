@@ -253,7 +253,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         TypeDiscoveryHandler[] array;
 
         if (self.ContextData.TryGetValue(TypeDiscoveryHandlers, out var value) &&
-            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0 } h)
+            value is IReadOnlyList<Func<IDescriptorContext, TypeDiscoveryHandler>> { Count: > 0, } h)
         {
             array = new TypeDiscoveryHandler[h.Count + 2];
 

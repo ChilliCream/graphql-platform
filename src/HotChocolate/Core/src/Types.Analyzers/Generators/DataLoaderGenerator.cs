@@ -502,12 +502,12 @@ public class DataLoaderGenerator : ISyntaxGenerator
     }
 
     private static bool IsKeysArgument(ITypeSymbol type)
-        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } nt &&
+        => type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } nt &&
             ReadOnlyList.Equals(ToTypeNameNoGenerics(nt), Ordinal);
 
     private static ITypeSymbol ExtractKeyType(ITypeSymbol type)
     {
-        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1 } namedType &&
+        if (type is INamedTypeSymbol { IsGenericType: true, TypeArguments.Length: 1, } namedType &&
             ReadOnlyList.Equals(ToTypeNameNoGenerics(namedType), Ordinal))
         {
             return namedType.TypeArguments[0];
@@ -522,12 +522,12 @@ public class DataLoaderGenerator : ISyntaxGenerator
 
     private static bool IsReturnTypeDictionary(ITypeSymbol returnType, ITypeSymbol keyType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType)
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
         {
             var resultType = namedType.TypeArguments[0];
 
             if (IsReadOnlyDictionary(resultType) &&
-                resultType is INamedTypeSymbol { TypeArguments.Length: 2 } dictionaryType &&
+                resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType &&
                 dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
@@ -538,12 +538,12 @@ public class DataLoaderGenerator : ISyntaxGenerator
 
     private static bool IsReturnTypeLookup(ITypeSymbol returnType, ITypeSymbol keyType)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType)
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
         {
             var resultType = namedType.TypeArguments[0];
 
             if (ToTypeNameNoGenerics(resultType).Equals(Lookup, Ordinal) &&
-                resultType is INamedTypeSymbol { TypeArguments.Length: 2 } dictionaryType &&
+                resultType is INamedTypeSymbol { TypeArguments.Length: 2, } dictionaryType &&
                 dictionaryType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default))
             {
                 return true;
@@ -572,10 +572,10 @@ public class DataLoaderGenerator : ISyntaxGenerator
 
     private static ITypeSymbol ExtractValueType(ITypeSymbol returnType, DataLoaderKind kind)
     {
-        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1 } namedType)
+        if (returnType is INamedTypeSymbol { TypeArguments.Length: 1, } namedType)
         {
             if (kind is DataLoaderKind.Batch or DataLoaderKind.Group &&
-                namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2 } dict)
+                namedType.TypeArguments[0] is INamedTypeSymbol { TypeArguments.Length: 2, } dict)
             {
                 return dict.TypeArguments[1];
             }

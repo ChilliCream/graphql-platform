@@ -54,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
         public class QueryResolvers
         {
             [GraphQLType(typeof(NonNullType<AnyType>))]
-            public Dictionary<string, object> GetJson() => new() { { "abc", "def" } };
+            public Dictionary<string, object> GetJson() => new() { { "abc", "def" }, };
         }
     }
 }

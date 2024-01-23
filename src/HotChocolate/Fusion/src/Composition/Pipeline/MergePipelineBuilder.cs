@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Composition.Pipeline;
 /// </summary>
 internal sealed class MergePipelineBuilder
 {
-    private readonly List<MergeMiddleware> _pipeline = new();
+    private readonly List<MergeMiddleware> _pipeline = [];
 
     private MergePipelineBuilder()
     {

@@ -111,7 +111,7 @@ public class MutationResultTests
     public void Union_1_Errors_Enum()
     {
         var error = new object();
-        var result = new MutationResult<string>(new List<object> { error, error });
+        var result = new MutationResult<string>(new List<object> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -131,7 +131,7 @@ public class MutationResultTests
     [Fact]
     public void Union_1_Errors_Enum_Element_Null()
     {
-        void Error() => new MutationResult<string>(new List<object> { default });
+        void Error() => new MutationResult<string>(new List<object> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -266,7 +266,7 @@ public class MutationResultTests
     public void Union_2_Errors_Enum()
     {
         var error = new ErrorObj1();
-        var result = new MutationResult<string, ErrorObj1>(new List<ErrorObj1> { error, error });
+        var result = new MutationResult<string, ErrorObj1>(new List<ErrorObj1> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -286,7 +286,7 @@ public class MutationResultTests
     [Fact]
     public void Union_2_Errors_Enum_Element_Null()
     {
-        void Error() => new MutationResult<string, ErrorObj1>(new List<ErrorObj1> { default });
+        void Error() => new MutationResult<string, ErrorObj1>(new List<ErrorObj1> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -389,7 +389,7 @@ public class MutationResultTests
     {
         var error = new object();
         var result =
-            new MutationResult<string, ErrorObj1, ErrorObj2>(new List<object> { error, error });
+            new MutationResult<string, ErrorObj1, ErrorObj2>(new List<object> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -410,7 +410,7 @@ public class MutationResultTests
     public void Union_3_Errors_Enum_Element_Null()
     {
         void Error()
-            => new MutationResult<string, ErrorObj1, ErrorObj2>(new List<object> { default });
+            => new MutationResult<string, ErrorObj1, ErrorObj2>(new List<object> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -508,7 +508,7 @@ public class MutationResultTests
     {
         var error = new ErrorObj1();
         var result =
-            new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj1> { error, error });
+            new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj1> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -529,7 +529,7 @@ public class MutationResultTests
     public void Union_3_Errors_1_Enum_Element_Null()
     {
         void Error()
-            => new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj1> { default });
+            => new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj1> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -627,7 +627,7 @@ public class MutationResultTests
     {
         var error = new ErrorObj2();
         var result =
-            new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj2> { error, error });
+            new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj2> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -648,7 +648,7 @@ public class MutationResultTests
     public void Union_3_Errors_2_Enum_Element_Null()
     {
         void Error()
-            => new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj2> { default });
+            => new MutationResult<string, ErrorObj1, ErrorObj2>(new List<ErrorObj2> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -759,7 +759,7 @@ public class MutationResultTests
         var error = new object();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<object> { error, error });
+                new List<object> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -782,7 +782,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<object> { default });
+                new List<object> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -887,7 +887,7 @@ public class MutationResultTests
         var error = new ErrorObj1();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj1> { error, error });
+                new List<ErrorObj1> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -910,7 +910,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj1> { default });
+                new List<ErrorObj1> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1015,7 +1015,7 @@ public class MutationResultTests
         var error = new ErrorObj2();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj2> { error, error });
+                new List<ErrorObj2> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1038,7 +1038,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj2> { default });
+                new List<ErrorObj2> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1143,7 +1143,7 @@ public class MutationResultTests
         var error = new ErrorObj3();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj3> { error, error });
+                new List<ErrorObj3> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1166,7 +1166,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3>(
-                new List<ErrorObj3> { default });
+                new List<ErrorObj3> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1283,7 +1283,7 @@ public class MutationResultTests
         var error = new object();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<object> { error, error });
+                new List<object> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1307,7 +1307,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<object> { default });
+                new List<object> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1416,7 +1416,7 @@ public class MutationResultTests
         var error = new ErrorObj1();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj1> { error, error });
+                new List<ErrorObj1> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1440,7 +1440,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj1> { default });
+                new List<ErrorObj1> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1549,7 +1549,7 @@ public class MutationResultTests
         var error = new ErrorObj2();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj2> { error, error });
+                new List<ErrorObj2> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1573,7 +1573,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj2> { default });
+                new List<ErrorObj2> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1682,7 +1682,7 @@ public class MutationResultTests
         var error = new ErrorObj3();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj3> { error, error });
+                new List<ErrorObj3> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1706,7 +1706,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj3> { default });
+                new List<ErrorObj3> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1815,7 +1815,7 @@ public class MutationResultTests
         var error = new ErrorObj4();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj4> { error, error });
+                new List<ErrorObj4> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1839,7 +1839,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4>(
-                new List<ErrorObj4> { default });
+                new List<ErrorObj4> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -1965,7 +1965,7 @@ public class MutationResultTests
         var error = new object();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<object> { error, error });
+                new List<object> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -1989,7 +1989,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<object> { default });
+                new List<object> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2104,7 +2104,7 @@ public class MutationResultTests
         var error = new ErrorObj1();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj1> { error, error });
+                new List<ErrorObj1> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -2128,7 +2128,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj1> { default });
+                new List<ErrorObj1> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2243,7 +2243,7 @@ public class MutationResultTests
         var error = new ErrorObj2();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj2> { error, error });
+                new List<ErrorObj2> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -2267,7 +2267,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj2> { default });
+                new List<ErrorObj2> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2382,7 +2382,7 @@ public class MutationResultTests
         var error = new ErrorObj3();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj3> { error, error });
+                new List<ErrorObj3> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -2406,7 +2406,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj3> { default });
+                new List<ErrorObj3> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2521,7 +2521,7 @@ public class MutationResultTests
         var error = new ErrorObj4();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj4> { error, error });
+                new List<ErrorObj4> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -2545,7 +2545,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj4> { default });
+                new List<ErrorObj4> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }
@@ -2660,7 +2660,7 @@ public class MutationResultTests
         var error = new ErrorObj5();
         var result =
             new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj5> { error, error });
+                new List<ErrorObj5> { error, error, });
 
         Assert.False(result.IsSuccess);
         Assert.Collection(
@@ -2684,7 +2684,7 @@ public class MutationResultTests
     {
         void Error()
             => new MutationResult<string, ErrorObj1, ErrorObj2, ErrorObj3, ErrorObj4, ErrorObj5>(
-                new List<ErrorObj5> { default });
+                new List<ErrorObj5> { default, });
 
         Assert.Throws<ArgumentException>(Error);
     }

@@ -15,15 +15,15 @@ namespace HotChocolate.Data.MongoDb.Sorting;
 public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-            new Foo { Bar = true }, new Foo { Bar = false }
-        };
+    [
+        new Foo { Bar = true, }, new Foo { Bar = false, },
+    ];
 
     private static readonly Bar[] _barEntities =
-    {
-            new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
-            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) }
-        };
+    [
+        new Bar { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero), },
+            new Bar { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero), },
+    ];
 
     private readonly MongoResource _resource;
 

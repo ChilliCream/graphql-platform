@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 public partial class DocumentAnalyzer
 {
-    private readonly List<DocumentNode> _documents = new();
+    private readonly List<DocumentNode> _documents = [];
     private ISchema? _schema;
 
     public static DocumentAnalyzer New() => new();
@@ -44,7 +44,7 @@ public partial class DocumentAnalyzer
         }
 
         var operationDocuments = await CreateOperationDocumentsAsync(_documents, _schema);
-        List<OperationModel> operations = new();
+        List<OperationModel> operations = [];
         Dictionary<string, LeafTypeModel> leafTypes = new(StringComparer.Ordinal);
         Dictionary<string, InputObjectTypeModel> inputObjectType = new(StringComparer.Ordinal);
         Dictionary<SelectionSetInfo, SelectionSetNode> selectionSets = new();

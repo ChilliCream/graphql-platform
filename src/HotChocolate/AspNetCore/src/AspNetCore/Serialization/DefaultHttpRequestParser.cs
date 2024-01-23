@@ -57,7 +57,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // so, if we do not find a top-level query or top-level id we will try to parse
             // the extensions and look in the extensions for Apollo`s active persisted
             // query extensions.
-            if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+            if ((string?)parameters[ExtensionsKey] is { Length: > 0, } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -80,7 +80,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             string? queryHash = null;
             DocumentNode? document = null;
 
-            if (query is { Length: > 0 })
+            if (query is { Length: > 0, })
             {
                 var result = ParseQueryString(query);
                 queryHash = result.QueryHash;
@@ -90,13 +90,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             IReadOnlyDictionary<string, object?>? variables = null;
 
             // if we find variables we do need to parse them
-            if ((string?)parameters[_variablesKey] is { Length: > 0 } sv)
+            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
             {
                 variables = ParseVariables(sv);
             }
 
             if (extensions is null &&
-                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -209,6 +209,6 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         var queryHash = _documentHashProvider.ComputeHash(graphQLData);
         var document = requestParser.Parse();
 
-        return new[] { new GraphQLRequest(document, queryHash) };
+        return new[] { new GraphQLRequest(document, queryHash), };
     }
 }

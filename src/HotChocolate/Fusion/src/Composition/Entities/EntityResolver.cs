@@ -72,7 +72,7 @@ internal sealed class EntityResolver
                 null,
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
-                new[] { new DirectiveNode("schema", new ArgumentNode("name", SubgraphName)) },
+                new[] { new DirectiveNode("schema", new ArgumentNode("name", SubgraphName)), },
                 SelectionSet),
         };
 

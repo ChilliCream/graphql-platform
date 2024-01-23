@@ -42,7 +42,7 @@ public class NodeResolverTests
             {
                 d.ImplementsNode()
                     .ResolveNode<string>(
-                        (_, id) => Task.FromResult(new Entity { Name = id }))
+                        (_, id) => Task.FromResult(new Entity { Name = id, }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
             })
             .AddQueryType<Query>()
@@ -69,7 +69,7 @@ public class NodeResolverTests
             {
                 d.ImplementsNode()
                     .ResolveNode<string>((_, id) =>
-                        Task.FromResult(new Entity { Name = id }))
+                        Task.FromResult(new Entity { Name = id, }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
             })
             .AddQueryType<Query>()
@@ -97,7 +97,7 @@ public class NodeResolverTests
                 d.Name("Entity");
                 d.ImplementsNode()
                     .ResolveNode<string>(
-                        (_, id) => Task.FromResult<object>(new Entity { Name = id }))
+                        (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
                 d.Field("name")
                     .Type<StringType>()
@@ -108,7 +108,7 @@ public class NodeResolverTests
                 d.Name("Query")
                     .Field("entity")
                     .Type(new NamedTypeNode("Entity"))
-                    .Resolve(new Entity { Name = "foo" });
+                    .Resolve(new Entity { Name = "foo", });
             })
             .Create();
 
@@ -134,7 +134,7 @@ public class NodeResolverTests
                 d.Name("Entity");
                 d.ImplementsNode()
                     .ResolveNode<string>(
-                        (_, id) => Task.FromResult<object>(new Entity { Name = id }))
+                        (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
                     .Resolve(ctx => ctx.Parent<Entity>().Id);
                 d.Field("name")
                     .Type<StringType>()
@@ -145,7 +145,7 @@ public class NodeResolverTests
                 d.Name("Query")
                     .Field("entity")
                     .Type(new NamedTypeNode("Entity"))
-                    .Resolve(new Entity { Name = "foo" });
+                    .Resolve(new Entity { Name = "foo", });
             })
             .Create();
 
@@ -235,9 +235,9 @@ public class NodeResolverTests
 
     public class Query
     {
-        public Entity GetEntity(string name) => new Entity { Name = name };
+        public Entity GetEntity(string name) => new Entity { Name = name, };
 
-        public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
+        public Entity2 GetEntity2(string name) => new Entity2 { Name = name, };
     }
 
     public class EntityType
@@ -249,7 +249,7 @@ public class NodeResolverTests
             descriptor
                 .ImplementsNode()
                 .IdField(t => t.Id)
-                .ResolveNode((_, id) => Task.FromResult(new Entity { Name = id }));
+                .ResolveNode((_, id) => Task.FromResult(new Entity { Name = id, }));
         }
     }
 
@@ -264,14 +264,14 @@ public class NodeResolverTests
         public string Id => Name;
         public string Name { get; set; }
 
-        public static Entity2 Get(string id) => new() { Name = id };
+        public static Entity2 Get(string id) => new() { Name = id, };
     }
 
     [Node]
     [ExtendObjectType(typeof(Entity))]
     public class EntityExtension
     {
-        public static Entity GetEntity(string id) => new() { Name = id };
+        public static Entity GetEntity(string id) => new() { Name = id, };
     }
 
     [Node]
@@ -279,7 +279,7 @@ public class NodeResolverTests
     public class EntityExtension2
     {
         [NodeResolver]
-        public static Entity Foo(string id) => new() { Name = id };
+        public static Entity Foo(string id) => new() { Name = id, };
     }
 
     [Node]
@@ -287,13 +287,13 @@ public class NodeResolverTests
     public class EntityExtension3
     {
         [NodeResolver]
-        public static Entity Foo(string id) => new() { Name = id };
+        public static Entity Foo(string id) => new() { Name = id, };
     }
 
     [Node]
     [ExtendObjectType(typeof(Entity))]
     public class EntityExtension4
     {
-        public static Entity GetEntity(string id) => new() { Name = id };
+        public static Entity GetEntity(string id) => new() { Name = id, };
     }
 }

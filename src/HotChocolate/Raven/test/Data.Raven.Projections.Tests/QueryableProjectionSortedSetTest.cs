@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Raven;
 public class QueryableProjectionSortedSetTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -19,13 +19,13 @@ public class QueryableProjectionSortedSetTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "a" }
+                        Foo = new FooDeep { BarShort = 12, BarString = "a", },
                     },
                 ObjectSet = new SortedSet<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                },
+            },
         },
         new()
         {
@@ -38,15 +38,15 @@ public class QueryableProjectionSortedSetTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "d" }
+                        Foo = new FooDeep { BarShort = 12, BarString = "d", },
                     },
                 ObjectSet = new SortedSet<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
-            }
-        }
-    };
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
+                },
+            },
+        },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -196,6 +196,6 @@ public class QueryableProjectionSortedSetTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

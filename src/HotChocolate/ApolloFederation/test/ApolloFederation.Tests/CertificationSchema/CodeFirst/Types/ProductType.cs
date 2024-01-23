@@ -1,4 +1,6 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst.Types;
@@ -23,9 +25,9 @@ public class ProductType : ObjectType<Product>
             .Key("sku variation { id }")
             .ResolveReferenceWith(t => GetProductByVariation(default!, default!, default!));
 
-        descriptor
-            .Field(t => t.CreatedBy)
-            .Provides("totalProductsCreated")
+        ProvidesDescriptorExtensions.Provides(
+                descriptor
+                    .Field(t => t.CreatedBy), "totalProductsCreated")
             .Type<NonNullType<UserType>>();
     }
 

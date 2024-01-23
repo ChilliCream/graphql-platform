@@ -22,9 +22,9 @@ public sealed class EnumType : INamedType, INamedTypeSystemMember<EnumType>
 
     public string? Description { get; set; }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
-    public EnumValueCollection Values { get; } = new();
+    public EnumValueCollection Values { get; } = [];
 
     public IDictionary<string, object?> ContextData { get; } =
         new Dictionary<string, object?>();

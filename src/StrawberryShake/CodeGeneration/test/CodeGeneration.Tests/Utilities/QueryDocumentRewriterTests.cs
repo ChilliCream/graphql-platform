@@ -27,7 +27,7 @@ public class QueryDocumentRewriterTests
                 new GraphQLFile[]
                 {
                     new(schema.ToDocument()),
-                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                    new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
                 });
 
         var document =

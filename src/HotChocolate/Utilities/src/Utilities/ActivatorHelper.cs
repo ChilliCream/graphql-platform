@@ -104,7 +104,7 @@ internal static class ActivatorHelper
         Type type)
 #endif
     {
-        if (type is { IsClass: false, IsValueType: false } || type.IsAbstract)
+        if (type is { IsClass: false, IsValueType: false, } || type.IsAbstract)
         {
             throw new InvalidOperationException(
                 string.Format(

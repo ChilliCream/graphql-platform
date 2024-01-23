@@ -23,7 +23,7 @@ public sealed partial class OperationCompiler
         public Dictionary<string, Selection> Fields { get; } =
             new(Ordinal);
 
-        public List<Fragment> Fragments { get; } = new();
+        public List<Fragment> Fragments { get; } = [];
 
         public SelectionVariants SelectionVariants { get; private set; } = default!;
 

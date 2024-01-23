@@ -108,13 +108,13 @@ internal sealed class SchemaTypes
 
         foreach (var objectType in types.OfType<ObjectType>())
         {
-            possibleTypes[objectType.Name] = new List<ObjectType> { objectType };
+            possibleTypes[objectType.Name] = [objectType,];
 
             foreach (var interfaceType in objectType.Implements)
             {
                 if (!possibleTypes.TryGetValue(interfaceType.Name, out var pt))
                 {
-                    pt = new List<ObjectType>();
+                    pt = [];
                     possibleTypes[interfaceType.Name] = pt;
                 }
 
@@ -129,7 +129,7 @@ internal sealed class SchemaTypes
                 if (!possibleTypes.TryGetValue(
                     unionType.Name, out var pt))
                 {
-                    pt = new List<ObjectType>();
+                    pt = [];
                     possibleTypes[unionType.Name] = pt;
                 }
 

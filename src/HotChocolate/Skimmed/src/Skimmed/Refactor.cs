@@ -203,7 +203,7 @@ public static class Refactor
 
     private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveType>
     {
-        private readonly List<Directive> _remove = new();
+        private readonly List<Directive> _remove = [];
 
         public override void VisitDirectives(DirectiveCollection directives, DirectiveType directiveType)
         {
@@ -227,7 +227,7 @@ public static class Refactor
     private sealed class RemoveDirectiveArgRewriter
         : SchemaVisitor<(DirectiveType Type, string Arg)>
     {
-        private readonly List<(Directive, Directive)> _replace = new();
+        private readonly List<(Directive, Directive)> _replace = [];
 
         public override void VisitDirectives(
             DirectiveCollection directives,
@@ -264,8 +264,8 @@ public static class Refactor
     {
         // note: by removing fields this could clash with directive arguments
         // we should make this more robust and also remove these.
-        private readonly List<OutputField> _removeOutputFields = new();
-        private readonly List<InputField> _removeInputFields = new();
+        private readonly List<OutputField> _removeOutputFields = [];
+        private readonly List<InputField> _removeInputFields = [];
 
         public override void VisitOutputFields(FieldCollection<OutputField> fields, INamedType context)
         {

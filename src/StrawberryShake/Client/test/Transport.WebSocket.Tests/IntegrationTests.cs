@@ -48,7 +48,7 @@ public class IntegrationTests : ServerTestBase
                 var sessionPool =
                     services.GetRequiredService<ISessionPool>();
 
-                List<JsonDocument> results = new();
+                List<JsonDocument> results = [];
                 MockDocument document = new("subscription Test { onTest(id:1) }");
                 OperationRequest request = new("Test", document);
 
@@ -96,7 +96,7 @@ public class IntegrationTests : ServerTestBase
                 IServiceProvider services = serviceCollection.BuildServiceProvider();
                 var sessionPool = services.GetRequiredService<ISessionPool>();
 
-                List<JsonDocument> results = new();
+                List<JsonDocument> results = [];
                 MockDocument document = new("subscription Test { onTest }");
                 OperationRequest request = new("Test", document);
 
@@ -144,7 +144,7 @@ public class IntegrationTests : ServerTestBase
                 var sessionPool =
                     services.GetRequiredService<ISessionPool>();
 
-                List<string> results = new();
+                List<string> results = [];
                 MockDocument document = new(@"subscription Test { onTest(id:""Foo"") }");
                 OperationRequest request = new("Test", document);
 
@@ -175,7 +175,7 @@ public class IntegrationTests : ServerTestBase
             async ct =>
             {
                 // arrange
-                var payload = new Dictionary<string, object> { ["Key"] = "Value" };
+                var payload = new Dictionary<string, object> { ["Key"] = "Value", };
                 var sessionInterceptor = new StubSessionInterceptor();
                 using var host = TestServerHelper.CreateServer(
                     builder => builder
@@ -195,7 +195,7 @@ public class IntegrationTests : ServerTestBase
                 IServiceProvider services = serviceCollection.BuildServiceProvider();
                 var sessionPool = services.GetRequiredService<ISessionPool>();
 
-                List<string> results = new();
+                List<string> results = [];
                 MockDocument document = new("subscription Test { onTest(id:1) }");
                 OperationRequest request = new("Test", document);
 
@@ -235,7 +235,7 @@ public class IntegrationTests : ServerTestBase
                         x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                         out var port);
 
-                ServiceCollection serviceCollection = new();
+                ServiceCollection serviceCollection = [];
                 serviceCollection
                     .AddProtocol<GraphQLWebSocketProtocolFactory>()
                     .AddWebSocketClient(
@@ -262,7 +262,7 @@ public class IntegrationTests : ServerTestBase
                         {
                             results.AddOrUpdate(
                                 id,
-                                _ => new List<JsonDocument> { response.Body },
+                                _ => [response.Body,],
                                 (_, l) =>
                                 {
                                     l.Add(response.Body);

@@ -36,7 +36,7 @@ public class SubscriptionTypeTests : TypeTestBase
                             .Field("test")
                             .Type<StringType>()
                             .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(_ => new List<string> { "a", "b", "c" }))
+                            .Subscribe(_ => new List<string> { "a", "b", "c", }))
                     .ModifyOptions(t => t.StrictValidation = false)
                     .Create();
 
@@ -76,7 +76,7 @@ public class SubscriptionTypeTests : TypeTestBase
                             .Resolve(ctx => ctx.GetEventMessage<string>())
                             .Subscribe(
                                 _ => Task.FromResult<IEnumerable<string>>(
-                                    new List<string> { "a", "b", "c" })))
+                                    new List<string> { "a", "b", "c", })))
                     .ModifyOptions(t => t.StrictValidation = false)
                     .Create();
 
@@ -757,7 +757,7 @@ public class SubscriptionTypeTests : TypeTestBase
                 {
                     await Task.Delay(250);
 
-                    foreach (var s in new[] { "a", "b", "c" })
+                    foreach (var s in new[] { "a", "b", "c", })
                     {
                         observer.OnNext(s);
                     }
@@ -894,7 +894,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
     public class PureCodeFirstQueryable
     {
-        private readonly List<string> _strings = new() { "a", "b", "c" };
+        private readonly List<string> _strings = ["a", "b", "c",];
 
         [SubscribeAndResolve]
         public IQueryable<string?> OnSomething() => _strings.AsQueryable();

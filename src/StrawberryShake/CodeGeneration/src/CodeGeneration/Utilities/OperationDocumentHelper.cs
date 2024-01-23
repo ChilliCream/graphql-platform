@@ -73,7 +73,7 @@ internal static class OperationDocumentHelper
         {
             foreach (var definition in document.Definitions)
             {
-                if (definition is OperationDefinitionNode { Name: { } name } op)
+                if (definition is OperationDefinitionNode { Name: { } name, } op)
                 {
                     name = name.WithValue(GetClassName(name.Value));
                     op = op.WithName(name);
@@ -147,7 +147,7 @@ internal static class OperationDocumentHelper
         {
             visitor.Visit(context.Operation, context);
 
-            var definitions = new List<IDefinitionNode> { context.Operation };
+            var definitions = new List<IDefinitionNode> { context.Operation, };
             definitions.AddRange(context.ExportedFragments);
             var operationDoc = new DocumentNode(definitions);
             operationDocs.Add(context.Operation.Name!.Value, operationDoc);

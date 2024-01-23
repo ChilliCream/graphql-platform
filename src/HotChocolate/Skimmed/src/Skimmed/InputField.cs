@@ -55,7 +55,7 @@ public sealed class InputField : IField, INamedTypeSystemMember<InputField>
         }
     }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
     public IDictionary<string, object?> ContextData => new Dictionary<string, object?>();
 

@@ -6,9 +6,9 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Type Definition section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<EnumValueDefinitionNode> _emptyEnumValues = new();
-    private static readonly List<InputValueDefinitionNode> _emptyInputValues = new();
-    private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions = new();
+    private static readonly List<EnumValueDefinitionNode> _emptyEnumValues = [];
+    private static readonly List<InputValueDefinitionNode> _emptyInputValues = [];
+    private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions = [];
 
     /// <summary>
     /// Parses a description.

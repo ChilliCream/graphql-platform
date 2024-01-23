@@ -143,7 +143,7 @@ public class DocumentValidationMiddlewareTests
     {
         // arrange
         var validationResult = new DocumentValidatorResult(
-            new[] { ErrorBuilder.New().SetMessage("Foo").Build() });
+            new[] { ErrorBuilder.New().SetMessage("Foo").Build(), });
 
         var validator = new Mock<IDocumentValidator>();
         validator.Setup(t => t.ValidateAsync(

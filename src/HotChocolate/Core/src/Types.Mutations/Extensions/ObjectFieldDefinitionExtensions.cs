@@ -57,7 +57,7 @@ public static class ObjectFieldDefinitionExtensions
         if (!fieldDefinition.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
             value is not List<ErrorDefinition> errorFactories)
         {
-            errorFactories = new List<ErrorDefinition>();
+            errorFactories = [];
             fieldDefinition.ContextData[ErrorDefinitions] = errorFactories;
         }
 

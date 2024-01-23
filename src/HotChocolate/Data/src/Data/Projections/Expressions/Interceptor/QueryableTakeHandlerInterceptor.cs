@@ -22,7 +22,7 @@ public abstract class QueryableTakeHandlerInterceptor
     }
 
     public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo { CanWrite: true } &&
+        selection.Field.Member is PropertyInfo { CanWrite: true, } &&
         selection.Field.ContextData.ContainsKey(_contextDataKey);
 
     public void BeforeProjection(
@@ -38,7 +38,7 @@ public abstract class QueryableTakeHandlerInterceptor
                 Expression.Call(
                     typeof(Enumerable),
                     nameof(Enumerable.Take),
-                    new[] { selection.Type.ToRuntimeType() },
+                    [selection.Type.ToRuntimeType(),],
                     instance,
                     Expression.Constant(_take)));
         }

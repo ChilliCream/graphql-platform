@@ -12,7 +12,7 @@ namespace HotChocolate.Configuration.Validation;
 /// </summary>
 internal sealed class DirectiveValidationRule : ISchemaValidationRule
 {
-    private const char _underscore = '_';
+    private const char _prefixCharacter = '_';
 
     public void Validate(
         ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
@@ -41,8 +41,8 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
         {
             var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
 
-            if (firstTwoLetters[0] == _underscore &&
-                firstTwoLetters[1] == _underscore)
+            if (firstTwoLetters[0] == _prefixCharacter &&
+                firstTwoLetters[1] == _prefixCharacter)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
             }

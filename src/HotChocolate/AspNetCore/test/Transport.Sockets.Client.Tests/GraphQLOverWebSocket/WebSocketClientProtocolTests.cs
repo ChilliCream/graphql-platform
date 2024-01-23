@@ -60,7 +60,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
             };
 
             using var testServer = CreateStarWarsServer(output: _output);
@@ -200,7 +200,7 @@ public class WebSocketClientProtocolTests : SubscriptionTestBase
             using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
             // act
-            await SocketClient.ConnectAsync(webSocket, new Auth { Token = "abc" }, ct);
+            await SocketClient.ConnectAsync(webSocket, new Auth { Token = "abc", }, ct);
 
             // assert
             // no error

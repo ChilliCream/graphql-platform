@@ -53,7 +53,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
         object result = await executable.ToListAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 
     [Fact]
@@ -79,6 +79,6 @@ public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
         var result = await executable.FirstOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 }

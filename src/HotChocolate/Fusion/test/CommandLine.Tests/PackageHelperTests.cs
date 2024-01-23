@@ -84,7 +84,7 @@ public class PackageHelperTests : CommandTestBase
         {
             using var stream = new MemoryStream();
             using var writer =
-                new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+                new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true, });
             config.ConfigurationExtensions.Value.WriteTo(writer);
             writer.Flush();
 

@@ -50,11 +50,11 @@ public class TestGeneration
     [Fact]
     public void MultiProfile() =>
         AssertStarWarsResult(
-            CreateIntegrationTest(profiles: new[]
-            {
+            CreateIntegrationTest(profiles:
+            [
                 new TransportProfile("InMemory", TransportType.InMemory),
-                TransportProfile.Default
-            }),
+                TransportProfile.Default,
+            ]),
             @"query GetHero {
                 hero(episode: NEW_HOPE) {
                     name
@@ -146,10 +146,10 @@ public class TestGeneration
     [Fact]
     public void EntityIdOrData() =>
         AssertResult(
-            CreateIntegrationTest(profiles: new[]
-            {
-                new TransportProfile("Default", TransportType.InMemory)
-            }),
+            CreateIntegrationTest(profiles:
+            [
+                new TransportProfile("Default", TransportType.InMemory),
+            ]),
             skipWarnings: true,
             @"
                 query GetFoo {
@@ -240,11 +240,11 @@ public class TestGeneration
     [Fact]
     public void StarWarsOnReviewSubCompletion() =>
         AssertStarWarsResult(
-            CreateIntegrationTest(profiles: new[]
-            {
+            CreateIntegrationTest(profiles:
+            [
                 new TransportProfile("InMemory", TransportType.InMemory),
-                TransportProfile.Default
-            }),
+                TransportProfile.Default,
+            ]),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
                     __typename
@@ -268,10 +268,10 @@ public class TestGeneration
     [Fact]
     public void StarWarsOnReviewSubGraphQLSSE() =>
         AssertStarWarsResult(
-            CreateIntegrationTest(profiles: new[]
-            {
-                new TransportProfile("default", TransportType.Http)
-            }),
+            CreateIntegrationTest(profiles:
+            [
+                new TransportProfile("default", TransportType.Http),
+            ]),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
                     __typename
@@ -348,10 +348,10 @@ public class TestGeneration
     [Fact]
     public void UploadScalar() =>
         AssertResult(
-            CreateIntegrationTest(profiles: new[]
-            {
-                new TransportProfile("Default", TransportType.Http)
-            }),
+            CreateIntegrationTest(profiles:
+            [
+                new TransportProfile("Default", TransportType.Http),
+            ]),
             skipWarnings: true,
             UploadQueries,
             UploadSchema,
@@ -360,10 +360,10 @@ public class TestGeneration
     [Fact]
     public void UploadScalar_InMemory() =>
         AssertResult(
-            CreateIntegrationTest(profiles: new[]
-            {
-                new TransportProfile("Default", TransportType.InMemory)
-            }),
+            CreateIntegrationTest(profiles:
+            [
+                new TransportProfile("Default", TransportType.InMemory),
+            ]),
             skipWarnings: true,
             UploadQueries,
             UploadSchema,

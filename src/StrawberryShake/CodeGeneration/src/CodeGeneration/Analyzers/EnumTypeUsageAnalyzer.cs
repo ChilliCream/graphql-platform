@@ -7,8 +7,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 internal sealed class EnumTypeUsageAnalyzer : QuerySyntaxWalker<object?>
 {
-    private readonly HashSet<EnumType> _enumTypes = new();
-    private readonly HashSet<IInputType> _visitedTypes = new();
+    private readonly HashSet<EnumType> _enumTypes = [];
+    private readonly HashSet<IInputType> _visitedTypes = [];
     private readonly Stack<IType> _typeContext = new();
     private readonly Stack<IOutputField> _fieldContext = new();
     private readonly ISchema _schema;

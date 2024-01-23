@@ -8,7 +8,7 @@ namespace HotChocolate.OpenApi;
 /// </summary>
 internal sealed class Operation(string operationId, string path, HttpMethod method, OpenApiOperation openApiOperation)
 {
-    private readonly List<OpenApiParameter> _parameters = new();
+    private readonly List<OpenApiParameter> _parameters = [];
 
     /// <summary>
     /// Id of the operation

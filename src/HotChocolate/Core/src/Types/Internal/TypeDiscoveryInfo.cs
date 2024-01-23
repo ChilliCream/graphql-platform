@@ -121,7 +121,7 @@ public readonly ref struct TypeDiscoveryInfo
 
         foreach (var attr in runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), true))
         {
-            if (attr is ITypeAttribute { Inherited: true } typeAttribute)
+            if (attr is ITypeAttribute { Inherited: true, } typeAttribute)
             {
                 return typeAttribute;
             }

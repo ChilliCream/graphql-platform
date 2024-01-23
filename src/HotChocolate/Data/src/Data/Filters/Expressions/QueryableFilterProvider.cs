@@ -165,7 +165,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory })
+        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory, })
         {
             return inMemory;
         }

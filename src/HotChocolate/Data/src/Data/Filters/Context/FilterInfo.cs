@@ -66,12 +66,12 @@ public class FilterInfo : FilterValueNode, IFilterInfo
                     switch (field)
                     {
                         case FilterOperationField operationField:
-                            operationInfos ??= new();
+                            operationInfos ??= [];
                             operationInfos.Add(new FilterOperationInfo(operationField, value));
                             break;
 
                         case FilterField filterField:
-                            fieldInfos ??= new();
+                            fieldInfos ??= [];
                             fieldInfos.Add(new FilterFieldInfo(filterField, value));
                             break;
                     }

@@ -16,14 +16,14 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class RavenAsyncDocumentQueryTests
 {
-    private readonly List<Foo> foos = new()
-    {
-        new Foo { Bar = "a" },
-        new Foo { Bar = "b" },
-        new Foo { Bar = "d" },
-        new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
-    };
+    private readonly List<Foo> foos =
+    [
+        new Foo { Bar = "a", },
+        new Foo { Bar = "b", },
+        new Foo { Bar = "d", },
+        new Foo { Bar = "e", },
+        new Foo { Bar = "f", },
+    ];
 
     private readonly SchemaCache _resource;
 
@@ -396,7 +396,7 @@ public class RavenAsyncDocumentQueryTests
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
 
                     descriptor
                         .Field("foosOffset")
@@ -422,7 +422,7 @@ public class RavenAsyncDocumentQueryTests
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
                 })
             .UseRequest(
                 next => async context =>

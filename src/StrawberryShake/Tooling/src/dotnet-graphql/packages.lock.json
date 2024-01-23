@@ -1242,7 +1242,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
-          "HotChocolate.Utilities.DependencyInjection": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[6.0.0, )",
           "System.Threading.Channels": "[6.0.0, )"
@@ -2628,7 +2628,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
-          "HotChocolate.Utilities.DependencyInjection": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[7.0.0, )",
           "System.Threading.Channels": "[7.0.0, )"
@@ -4014,7 +4014,7 @@
           "HotChocolate.Execution.Abstractions": "[0.0.0, )",
           "HotChocolate.Fetching": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )",
-          "HotChocolate.Utilities.DependencyInjection": "[14.0.0-preview.build.0, )",
+          "HotChocolate.Utilities.DependencyInjection": "[0.0.0, )",
           "HotChocolate.Validation": "[0.0.0, )",
           "Microsoft.Extensions.DependencyInjection": "[8.0.0, )",
           "System.Threading.Channels": "[8.0.0, )"

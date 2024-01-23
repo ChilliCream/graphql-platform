@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Composition;
 /// </summary>
 internal sealed class CompositionContext
 {
-    private static readonly HashSet<SchemaCoordinate> _empty = new();
+    private static readonly HashSet<SchemaCoordinate> _empty = [];
     private readonly Dictionary<string, HashSet<SchemaCoordinate>> _taggedTypes =
         new(StringComparer.Ordinal);
 
@@ -59,12 +59,12 @@ internal sealed class CompositionContext
     /// <summary>
     /// Gets the subgraph schemas.
     /// </summary>
-    public List<Schema> Subgraphs { get; } = new();
+    public List<Schema> Subgraphs { get; } = [];
 
     /// <summary>
     /// Get the grouped subgraph entities.
     /// </summary>
-    public List<EntityGroup> Entities { get; } = new();
+    public List<EntityGroup> Entities { get; } = [];
 
     /// <summary>
     /// Gets the fusion graph schema.

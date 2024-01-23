@@ -12,7 +12,7 @@ namespace HotChocolate.Caching;
 
 internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 {
-    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = new();
+    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
     private readonly ICacheControlOptions _cacheControlOptions;
     private TypeDependency? _cacheControlDependency;
 
@@ -129,7 +129,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             return true;
         }
 
-        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
             type == typeof(CacheControlDirective))
         {
             return true;

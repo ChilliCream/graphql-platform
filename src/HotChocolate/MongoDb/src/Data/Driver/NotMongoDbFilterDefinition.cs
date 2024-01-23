@@ -40,7 +40,7 @@ public sealed class NotMongoDbFilterDefinition : MongoDbFilterDefinition
         else
         {
             // $not only works as a meta operator on a single operator so simulate Not using $nor
-            return new BsonDocument("$nor", new BsonArray { filter });
+            return new BsonDocument("$nor", new BsonArray { filter, });
         }
     }
 
@@ -116,7 +116,7 @@ public sealed class NotMongoDbFilterDefinition : MongoDbFilterDefinition
         switch (element.Name)
         {
             case "$and":
-                return new BsonDocument("$nor", new BsonArray { filter });
+                return new BsonDocument("$nor", new BsonArray { filter, });
             case "$or":
                 return new BsonDocument("$nor", element.Value);
             case "$nor":

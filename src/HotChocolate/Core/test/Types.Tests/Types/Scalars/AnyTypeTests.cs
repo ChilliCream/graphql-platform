@@ -44,7 +44,7 @@ public class AnyTypeTests
                 .Name("Query")
                 .Field("foo")
                 .Type<AnyType>()
-                .Resolve(_ => new List<Foo> { new() }))
+                .Resolve(_ => new List<Foo> { new(), }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -389,7 +389,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new List<object> { "abc" })
+                .SetVariableValue("foo", new List<object> { "abc", })
                 .Create());
 
         // assert
@@ -525,7 +525,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new { a = "b" })
+                .SetVariableValue("foo", new { a = "b", })
                 .Create());
 
         // assert
@@ -551,7 +551,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" } })
+                .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" }, })
                 .Create());
 
         // assert
@@ -577,7 +577,7 @@ public class AnyTypeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" } })
+                .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" }, })
                 .Create());
 
         // assert
@@ -1063,7 +1063,7 @@ public class AnyTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}}},
+            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}, }},
         };
 
         // act
@@ -1089,7 +1089,7 @@ public class AnyTypeTests
 
         var type = schema.GetType<AnyType>("Any");
         var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
+            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar"), };
 
         // act
         var value = type.Deserialize(toDeserialize);
@@ -1162,6 +1162,6 @@ public class AnyTypeTests
     {
         [GraphQLType(typeof(AnyType))]
         public IDictionary<string, object> SomeObject =>
-            new Dictionary<string, object> { { "a", "b" } };
+            new Dictionary<string, object> { { "a", "b" }, };
     }
 }

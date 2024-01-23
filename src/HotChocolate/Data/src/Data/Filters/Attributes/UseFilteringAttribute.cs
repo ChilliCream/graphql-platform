@@ -52,7 +52,7 @@ public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            _generic.MakeGenericMethod(Type).Invoke(null, new object?[] { descriptor, Scope });
+            _generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope,]);
         }
     }
 }
