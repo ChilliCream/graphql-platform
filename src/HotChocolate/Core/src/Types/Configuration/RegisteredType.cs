@@ -79,11 +79,11 @@ internal sealed partial class RegisteredType : IHasRuntimeType
 
     public List<ISchemaError> Errors => _errors ??= [];
 
-    public bool HasErrors => _errors is { Count: > 0 };
+    public bool HasErrors => _errors is { Count: > 0, };
 
     public void ClearConditionals()
     {
-        if (_conditionals is { Count: > 0 })
+        if (_conditionals is { Count: > 0, })
         {
             _conditionals.Clear();
         }
@@ -96,7 +96,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             return "Schema";
         }
 
-        if (Type is IHasName { Name: { Length: > 0 } name })
+        if (Type is IHasName { Name: { Length: > 0, } name, })
         {
             return IsDirective ? $"@{name}" : name;
         }

@@ -148,7 +148,7 @@ public class DirectiveDefinitionNodeTests
 
         // act
         directiveDefinition = directiveDefinition
-            .WithLocations(new List<NameNode> { new NameNode("BAR") });
+            .WithLocations(new List<NameNode> { new NameNode("BAR"), });
 
         // assert
         directiveDefinition.MatchSnapshot();
@@ -222,7 +222,7 @@ public class DirectiveDefinitionNodeTests
         var name = new NameNode("foo");
         var description = new StringValueNode("bar");
         var arguments = new List<InputValueDefinitionNode>();
-        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()) };
+        var locations = new List<NameNode> { new(DirectiveLocation.Field.ToString()), };
 
         // act
         var directiveDefinition = new DirectiveDefinitionNode(

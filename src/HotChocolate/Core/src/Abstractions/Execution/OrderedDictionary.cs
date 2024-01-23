@@ -46,7 +46,7 @@ public class OrderedDictionary<TKey, TValue>
             throw new System.ArgumentNullException(nameof(source));
         }
 
-        _order = [..source._order];
+        _order = [..source._order,];
         _map = new Dictionary<TKey, TValue>(source._map);
     }
 

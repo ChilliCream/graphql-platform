@@ -19,12 +19,12 @@ public class QueryableProjectionSortingTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectArray =
                 [
-                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a", }, },
                 ],
             },
         },
@@ -37,15 +37,15 @@ public class QueryableProjectionSortingTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
                 ObjectArray =
                 [
-                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a", }, },
                 ],
             },
-        }
+        },
     ];
 
     private static readonly BarNullable[] _barNullableEntities =
@@ -59,12 +59,12 @@ public class QueryableProjectionSortingTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 NestedObject =
-                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectArray =
                 [
-                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a", }, },
                 ],
             },
         },
@@ -77,12 +77,12 @@ public class QueryableProjectionSortingTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject =
-                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectArray =
                 [
-                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a", }, },
                 ],
             },
         },
@@ -95,12 +95,12 @@ public class QueryableProjectionSortingTests
                 BarEnum = BarEnum.QUX,
                 BarString = "testctest",
                 NestedObject =
-                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectArray =
                 [
-                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                    new() { Foo = new FooDeep { BarShort = 1, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                    new() { Foo = new FooDeep { BarShort = 3, BarString = "a", }, },
                 ],
             },
         },
@@ -114,7 +114,7 @@ public class QueryableProjectionSortingTests
                 BarString = "testdtest",
                 ObjectArray = null!,
             },
-        }
+        },
     ];
 
     private readonly SchemaCache _cache = new();

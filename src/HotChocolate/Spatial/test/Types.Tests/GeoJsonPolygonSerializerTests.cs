@@ -33,7 +33,7 @@ public class GeoJsonPolygonSerializerTests
                 new Coordinate(40, 40),
                 new Coordinate(20, 40),
                 new Coordinate(10, 20),
-                new Coordinate(30, 10)
+                new Coordinate(30, 10),
         ]));
 
     private readonly string _geometryType = "Polygon";
@@ -44,19 +44,19 @@ public class GeoJsonPolygonSerializerTests
             {
                 [
                     30.0,
-                    10.0
+                    10.0,
                 ],
                 [
                     40.0,
-                    40.0
+                    40.0,
                 ],
                 [
                     20.0,
-                    40.0
+                    40.0,
                 ],
                 [
                     10.0,
-                    20.0
+                    20.0,
                 ],
                 new[]
                 {
@@ -170,7 +170,7 @@ public class GeoJsonPolygonSerializerTests
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
                 [
-                    new Point(1, 2)
+                    new Point(1, 2),
                 ])));
     }
 

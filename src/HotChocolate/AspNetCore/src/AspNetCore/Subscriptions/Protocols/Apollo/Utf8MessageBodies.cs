@@ -16,7 +16,7 @@ internal static class Utf8MessageBodies
         (byte)'k',
         (byte)'a',
         (byte)'"',
-        (byte)'}'
+        (byte)'}',
     ];
 
     public static ReadOnlyMemory<byte> KeepAlive => _keepAlive;

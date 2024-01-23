@@ -63,7 +63,7 @@ internal sealed class ExportGraphCommand : Command
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
         var graph = await package.GetFusionGraphAsync(cancellationToken);
-        var options = new SyntaxSerializerOptions { Indented = true, MaxDirectivesPerLine = 0 };
+        var options = new SyntaxSerializerOptions { Indented = true, MaxDirectivesPerLine = 0, };
         
         await File.WriteAllTextAsync(graphFile.FullName, graph.ToString(options), Encoding.UTF8, cancellationToken);
     }

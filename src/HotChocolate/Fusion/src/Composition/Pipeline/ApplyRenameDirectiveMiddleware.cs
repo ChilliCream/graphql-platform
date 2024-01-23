@@ -65,7 +65,7 @@ static file class ApplyRenameDirectiveMiddlewareExtensions
                 continue;
             }
 
-            if (argumentValue is not StringValueNode { Value: { Length: > 0 } newName })
+            if (argumentValue is not StringValueNode { Value: { Length: > 0, } newName, })
             {
                 context.Log.Write(DirectiveArgumentValueInvalid(NewNameArg, directive, schema));
                 continue;

@@ -10,7 +10,7 @@ namespace HotChocolate.Validation;
 public sealed class DocumentValidatorContext : IDocumentValidatorContext
 {
     private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer()];
+    private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
     private readonly List<IError> _errors = [];
 
     private ISchema? _schema;

@@ -63,7 +63,7 @@ public class ObjectFieldExpressionTests
 
     public class Foo
     {
-        public IEnumerable<Bar> Bars => new[] { new Bar() };
+        public IEnumerable<Bar> Bars => new[] { new Bar(), };
 
         public Bar Bar => new Bar();
 

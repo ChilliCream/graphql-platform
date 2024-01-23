@@ -77,7 +77,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -102,7 +102,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -127,7 +127,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -152,7 +152,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -177,7 +177,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -202,7 +202,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -228,7 +228,7 @@ public class CursorPagingHandlerTests
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-            Foo.Create(4)
+            Foo.Create(4),
         ];
 
         // act
@@ -253,7 +253,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -278,7 +278,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -303,7 +303,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -328,7 +328,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -353,7 +353,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -378,7 +378,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -403,7 +403,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -429,7 +429,7 @@ public class CursorPagingHandlerTests
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-            Foo.Create(4)
+            Foo.Create(4),
         ];
 
         // act
@@ -454,7 +454,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act
@@ -479,7 +479,7 @@ public class CursorPagingHandlerTests
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
-            Foo.Create(3)
+            Foo.Create(3),
         ];
 
         // act

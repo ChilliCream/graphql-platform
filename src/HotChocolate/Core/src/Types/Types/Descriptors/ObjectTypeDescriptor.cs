@@ -202,7 +202,7 @@ public class ObjectTypeDescriptor
                 foreach (var member in allMembers)
                 {
                     if (member.IsDefined(typeof(SubscribeAttribute)) &&
-                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null, } a)
                     {
                         subscribeResolver ??= [];
                         subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
@@ -431,7 +431,7 @@ public class ObjectTypeDescriptor
     public static ObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType) =>
-        new(context, schemaType) { Definition = { RuntimeType = typeof(object) } };
+        new(context, schemaType) { Definition = { RuntimeType = typeof(object), }, };
 
     public static ObjectTypeDescriptor From(
         IDescriptorContext context,

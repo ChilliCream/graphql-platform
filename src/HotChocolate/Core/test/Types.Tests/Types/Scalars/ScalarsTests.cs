@@ -46,8 +46,8 @@ public class ScalarsTests
         // arrange
         var type = typeof(Nullable<>).MakeGenericType(value.GetType());
         var constructor =
-            type.GetConstructor([value.GetType()]);
-        var nullableValue = constructor!.Invoke([value]);
+            type.GetConstructor([value.GetType(),]);
+        var nullableValue = constructor!.Invoke([value,]);
 
         // act
         var isScalar = Scalars.TryGetKind(

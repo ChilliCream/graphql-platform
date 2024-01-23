@@ -14,7 +14,7 @@ public class GeoJsonPolygonTypeTests
             new Coordinate(40, 40),
             new Coordinate(20, 40),
             new Coordinate(10, 20),
-            new Coordinate(30, 10)
+            new Coordinate(30, 10),
         ]));
 
     [Fact]

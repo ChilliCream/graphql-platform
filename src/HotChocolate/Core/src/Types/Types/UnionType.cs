@@ -88,7 +88,7 @@ public class UnionType
     /// Returns the newly created union type.
     /// </returns>
     public static UnionType CreateUnsafe(UnionTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;

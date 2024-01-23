@@ -64,7 +64,7 @@ internal sealed partial class TypeRegistrar(
                 SchemaTypeReference.InferTypeContext(obj),
                 scope);
 
-        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
+        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit, };
 
         if (explicitBind)
         {
@@ -188,7 +188,7 @@ internal sealed partial class TypeRegistrar(
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
+            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity, })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(

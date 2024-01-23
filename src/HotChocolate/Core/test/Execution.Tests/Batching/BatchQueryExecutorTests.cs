@@ -209,7 +209,7 @@ public class BatchQueryExecutorTests
                         return
                         [
                             "123",
-                            "456"
+                            "456",
                         ];
                     }
 
@@ -272,7 +272,7 @@ public class BatchQueryExecutorTests
                         new Dictionary<string, object>
                         {
                             { "bar", "123" },
-                        }
+                        },
 
                     ];
                 }
@@ -351,7 +351,7 @@ public class BatchQueryExecutorTests
                     @"query foo1($b: [String]) {
                             foo(bar: $b) @export(as: ""b"")
                         }")
-                .AddVariableValue("b", new[] { "123" })
+                .AddVariableValue("b", new[] { "123", })
                 .Create(),
             QueryRequestBuilder.New()
                 .SetQuery(
@@ -402,7 +402,7 @@ public class BatchQueryExecutorTests
                     @"query foo1($b1: [String]) {
                             foo(bar: $b1) @export(as: ""b2"")
                         }")
-                .AddVariableValue("b1", new[] { "123" })
+                .AddVariableValue("b1", new[] { "123", })
                 .Create(),
             QueryRequestBuilder.New()
                 .SetQuery(

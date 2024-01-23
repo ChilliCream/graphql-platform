@@ -98,7 +98,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         // on the mutations.
         if (_mutationTypeDef is not null)
         {
-            HashSet<MutationContextData> unprocessed = [.._mutations];
+            HashSet<MutationContextData> unprocessed = [.._mutations,];
             var defLookup = _mutations.ToDictionary(t => t.Definition);
             var nameLookup = _mutations.ToDictionary(t => t.Name);
             var rootOptions = CreateOptions(_context.ContextData);
@@ -660,7 +660,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
 
-        if (resultType is { IsValueType: true, IsGenericType: true } &&
+        if (resultType is { IsValueType: true, IsGenericType: true, } &&
             typeof(IMutationResult).IsAssignableFrom(resultType))
         {
             var types = resultType.GenericTypeArguments;
@@ -837,7 +837,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
-        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true } extendedTypeRef &&
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
             typeof(IMutationResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);

@@ -166,13 +166,13 @@ internal class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { CustomSettings = { ContextDataKeys.Edges } });
+        { CustomSettings = { ContextDataKeys.Edges, }, });
 
         definition.Fields.Add(new(
             Names.Nodes,
             ConnectionType_Nodes_Description,
             pureResolver: GetNodes)
-        { CustomSettings = { ContextDataKeys.Nodes } });
+        { CustomSettings = { ContextDataKeys.Nodes, }, });
 
         if (withTotalCount)
         {

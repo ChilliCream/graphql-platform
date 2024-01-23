@@ -720,7 +720,7 @@ public class SelectionIncludeConditionTests
         public Person Person() => new Person();
 
         [UsePaging]
-        public Person[] Persons() => [new Person()];
+        public Person[] Persons() => [new Person(),];
     }
 
     public sealed class Person

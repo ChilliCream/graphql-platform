@@ -128,7 +128,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
         {
             throw new SchemaException(errors);
         }

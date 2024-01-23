@@ -512,7 +512,7 @@ public static class GraphQLHttpClientExtensions
             throw new ArgumentNullException(nameof(client));
         }
         
-        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post };
+        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post, };
         return client.SendAsync(request, cancellationToken);
     }
 

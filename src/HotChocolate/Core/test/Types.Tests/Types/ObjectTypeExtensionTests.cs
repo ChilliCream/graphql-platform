@@ -950,7 +950,7 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Properties_Globally_PersonDto),
-        IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId)])]
+        IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId),])]
     public class Remove_Properties_Globally_PersonResolvers
     {
     }
@@ -964,7 +964,7 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Fields_Globally_PersonDto),
-        IgnoreProperties = ["internalId"])]
+        IgnoreProperties = ["internalId",])]
     public class Remove_Fields_Globally_PersonResolvers
     {
     }

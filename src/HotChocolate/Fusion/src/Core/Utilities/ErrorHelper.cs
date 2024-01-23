@@ -17,7 +17,7 @@ internal static class ErrorHelper
         => ErrorBuilder.New()
             .SetMessage("The id value has an invalid format.")
             .AddLocation(selection.SyntaxNode)
-            .SetPath(new[] { selection.ResponseName })
+            .SetPath(new[] { selection.ResponseName, })
             .SetException(exception)
             .Build();
 }

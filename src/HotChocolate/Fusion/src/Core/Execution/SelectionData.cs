@@ -61,7 +61,7 @@ internal readonly struct SelectionData
 
         if (Multiple is null)
         {
-            return new SelectionData([Single, result]);
+            return new SelectionData([Single, result,]);
         }
 
         var array = new JsonResult[Multiple.Length + 1];

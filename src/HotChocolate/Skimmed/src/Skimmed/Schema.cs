@@ -146,5 +146,5 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
         return false;
     }
 
-    public static Schema Create(string name) => new() { Name = name };
+    public static Schema Create(string name) => new() { Name = name, };
 }

@@ -30,7 +30,7 @@ public static class BuiltInScalarNames
         ScalarNames.ByteArray,
         ScalarNames.Any,
         ScalarNames.JSON,
-        ScalarNames.TimeSpan
+        ScalarNames.TimeSpan,
     ];
 
     public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);

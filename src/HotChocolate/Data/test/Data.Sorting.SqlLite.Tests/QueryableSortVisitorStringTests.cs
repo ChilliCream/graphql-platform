@@ -9,15 +9,15 @@ public class QueryableSortVisitorStringTests
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" }
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
     ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-        new() { Bar = null }
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+        new() { Bar = null, },
     ];
 
     private readonly SchemaCache _cache;

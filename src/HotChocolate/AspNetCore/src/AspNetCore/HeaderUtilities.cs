@@ -22,7 +22,7 @@ internal static class HeaderUtilities
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
-            StringSegment.Empty)
+            StringSegment.Empty),
     ];
 
     /// <summary>
@@ -50,7 +50,7 @@ internal static class HeaderUtilities
 
                 if (TryParseMediaType(headerValue, out var parsedValue))
                 {
-                    return new AcceptHeaderResult([parsedValue]);
+                    return new AcceptHeaderResult([parsedValue,]);
                 }
 
                 // note: this is a workaround for now. we need to parse this properly.

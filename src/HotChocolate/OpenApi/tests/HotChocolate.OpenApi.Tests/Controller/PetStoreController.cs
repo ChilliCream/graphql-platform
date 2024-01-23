@@ -13,7 +13,7 @@ public class PetStoreController : ControllerBase
     private static readonly List<Pet> _pets =
     [
         new Pet("Chopper", 1, null),
-        new Pet("Rex", 2, null)
+        new Pet("Rex", 2, null),
     ];
 
     [HttpPost]

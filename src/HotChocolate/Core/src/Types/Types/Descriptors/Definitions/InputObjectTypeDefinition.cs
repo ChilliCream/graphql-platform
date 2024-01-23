@@ -73,7 +73,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     {
         base.CopyTo(target);
 
-        if (Fields is { Count: > 0 })
+        if (Fields is { Count: > 0, })
         {
             target.Fields.Clear();
 

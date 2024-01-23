@@ -17,17 +17,17 @@ internal static class QueryResultHelper
     {
         var formatted = new OrderedDictionary();
 
-        if (result.Errors is { Count: > 0 })
+        if (result.Errors is { Count: > 0, })
         {
             formatted[_errors] = SerializeErrors(result.Errors);
         }
 
-        if (result.Data is { Count: > 0 })
+        if (result.Data is { Count: > 0, })
         {
             formatted[_data] = result.Data;
         }
 
-        if (result.Extensions is { Count: > 0 })
+        if (result.Extensions is { Count: > 0, })
         {
             formatted[_extensions] = result.Extensions;
         }
@@ -42,9 +42,9 @@ internal static class QueryResultHelper
 
         foreach (var error in errors)
         {
-            var formattedError = new OrderedDictionary { [_message] = error.Message };
+            var formattedError = new OrderedDictionary { [_message] = error.Message, };
 
-            if (error.Locations is { Count: > 0 })
+            if (error.Locations is { Count: > 0, })
             {
                 formattedError[_locations] = SerializeLocations(error.Locations);
             }
@@ -54,7 +54,7 @@ internal static class QueryResultHelper
                 formattedError[_path] = error.Path.ToList();
             }
 
-            if (error.Extensions is { Count: > 0 })
+            if (error.Extensions is { Count: > 0, })
             {
                 formattedError[_extensions] = error.Extensions;
             }

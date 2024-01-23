@@ -42,7 +42,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         DateSerializer,
         ByteArraySerializer,
         TimeSpanSerializer,
-        JsonSerializer
+        JsonSerializer,
     ];
 
     private static readonly Dictionary<string, string> _alternativeTypeNames = new()

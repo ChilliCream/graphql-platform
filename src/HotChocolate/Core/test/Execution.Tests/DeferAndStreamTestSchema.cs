@@ -31,7 +31,7 @@ internal static class DeferAndStreamTestSchema
             new Person(1, "Pascal"),
             new Person(2, "Rafi"),
             new Person(3, "Martin"),
-            new Person(4, "Michael")
+            new Person(4, "Michael"),
         ];
 
         [NodeResolver]

@@ -23,7 +23,7 @@ internal sealed class FieldInfoListBuffer
         [],
         [],
         [],
-        []
+        [],
     ];
     private readonly int _max = 16;
     private int _index = 0;

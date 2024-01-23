@@ -31,7 +31,7 @@ public static class WellKnownTypes
         UnionType,
         InputObjectType,
         EnumType,
-        ScalarType
+        ScalarType,
     ];
 
     public static HashSet<string> TypeExtensionClass { get; } =
@@ -40,6 +40,6 @@ public static class WellKnownTypes
         InterfaceTypeExtension,
         UnionTypeExtension,
         InputObjectTypeExtension,
-        EnumTypeExtension
+        EnumTypeExtension,
     ];
 }

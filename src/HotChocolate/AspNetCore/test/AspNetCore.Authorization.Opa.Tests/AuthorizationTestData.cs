@@ -39,7 +39,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
                 Policies.HasDefinedAge,
                 response => response.GetResult<HasAgeDefinedResponse>() switch
                 {
-                    { Allow: true } => AuthorizeResult.Allowed,
+                    { Allow: true, } => AuthorizeResult.Allowed,
                     _ => AuthorizeResult.NotAllowed,
                 })
             .UseField(_schemaMiddleware);
@@ -56,15 +56,15 @@ public class AuthorizationTestData : IEnumerable<object[]>
                 Policies.HasDefinedAge,
                 response => response.GetResult<HasAgeDefinedResponse>() switch
                 {
-                    { Allow: true } => AuthorizeResult.Allowed,
+                    { Allow: true, } => AuthorizeResult.Allowed,
                     _ => AuthorizeResult.NotAllowed,
                 })
             .UseField(_schemaMiddleware);
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return [CreateSchema()];
-        yield return [CreateSchemaWithBuilder()];
+        yield return [CreateSchema(),];
+        yield return [CreateSchemaWithBuilder(),];
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

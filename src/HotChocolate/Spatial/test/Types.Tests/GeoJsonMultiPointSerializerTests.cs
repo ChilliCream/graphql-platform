@@ -27,17 +27,17 @@ public class GeoJsonMultiPointSerializerTests
         new Point(new Coordinate(10, 40)),
         new Point(new Coordinate(40, 30)),
         new Point(new Coordinate(20, 20)),
-        new Point(new Coordinate(30, 10))
+        new Point(new Coordinate(30, 10)),
     ]);
 
     private const string _geometryType = "MultiPoint";
 
     private readonly object _geometryParsed = new[]
     {
-        [10.0, 40.0],
-        [40.0, 30.0],
-        [20.0, 20.0],
-        new[] { 30.0, 10.0 },
+        [10.0, 40.0,],
+        [40.0, 30.0,],
+        [20.0, 20.0,],
+        new[] { 30.0, 10.0, },
     };
 
     [Theory]
@@ -128,7 +128,7 @@ public class GeoJsonMultiPointSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    [new Point(1, 2)])));
+                    [new Point(1, 2),])));
     }
 
     [Theory]

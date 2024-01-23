@@ -19,7 +19,7 @@ public static class IntrospectionTypes
         __Type.Names.__Type,
         __TypeKind.Names.__TypeKind,
         __AppliedDirective.Names.__AppliedDirective,
-        __DirectiveArgument.Names.__DirectiveArgument
+        __DirectiveArgument.Names.__DirectiveArgument,
     ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(

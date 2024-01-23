@@ -39,7 +39,7 @@ public static class CSharpGenerator
         new ResultTypeGenerator(), new StoreAccessorGenerator(), new NoStoreAccessorGenerator(),
         new InputTypeGenerator(), new InputTypeStateInterfaceGenerator(),
         new ResultInterfaceGenerator(), new DataTypeGenerator(), new RazorQueryGenerator(),
-        new RazorSubscriptionGenerator()
+        new RazorSubscriptionGenerator(),
     ];
 
     public static async Task<CSharpGeneratorResult> GenerateAsync(

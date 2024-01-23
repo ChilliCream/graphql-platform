@@ -267,7 +267,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                 }
             }
 
-            if (processed is { Count: > 0 })
+            if (processed is { Count: > 0, })
             {
                 var temp = selections.ToList();
 

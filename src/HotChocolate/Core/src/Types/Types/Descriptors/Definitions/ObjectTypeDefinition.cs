@@ -89,7 +89,7 @@ public class ObjectTypeDefinition
     /// <summary>
     /// Specifies if this definition has interfaces.
     /// </summary>
-    public bool HasInterfaces => _interfaces is { Count: > 0 };
+    public bool HasInterfaces => _interfaces is { Count: > 0, };
 
     /// <summary>
     /// Gets the fields of this object type.
@@ -184,22 +184,22 @@ public class ObjectTypeDefinition
     {
         base.CopyTo(target);
 
-        if (_knownClrTypes is { Count: > 0 })
+        if (_knownClrTypes is { Count: > 0, })
         {
-            target._knownClrTypes = [.._knownClrTypes];
+            target._knownClrTypes = [.._knownClrTypes,];
         }
 
-        if (_interfaces is { Count: > 0 })
+        if (_interfaces is { Count: > 0, })
         {
-            target._interfaces = [.._interfaces];
+            target._interfaces = [.._interfaces,];
         }
 
-        if (_fieldIgnores is { Count: > 0 })
+        if (_fieldIgnores is { Count: > 0, })
         {
-            target._fieldIgnores = [.._fieldIgnores];
+            target._fieldIgnores = [.._fieldIgnores,];
         }
 
-        if (Fields is { Count: > 0 })
+        if (Fields is { Count: > 0, })
         {
             target.Fields.Clear();
 
@@ -218,19 +218,19 @@ public class ObjectTypeDefinition
     {
         base.MergeInto(target);
 
-        if (_knownClrTypes is { Count: > 0 })
+        if (_knownClrTypes is { Count: > 0, })
         {
             target._knownClrTypes ??= [];
             target._knownClrTypes.AddRange(_knownClrTypes);
         }
 
-        if (_interfaces is { Count: > 0 })
+        if (_interfaces is { Count: > 0, })
         {
             target._interfaces ??= [];
             target._interfaces.AddRange(_interfaces);
         }
 
-        if (_fieldIgnores is { Count: > 0 })
+        if (_fieldIgnores is { Count: > 0, })
         {
             target._fieldIgnores ??= [];
             target._fieldIgnores.AddRange(_fieldIgnores);
@@ -240,9 +240,9 @@ public class ObjectTypeDefinition
         {
             var targetField = field switch
             {
-                { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
+                { BindToField: { Type: ObjectFieldBindingType.Property, } bindTo, } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Member?.Name!)),
-                { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
+                { BindToField: { Type: ObjectFieldBindingType.Field, } bindTo, } =>
                     target.Fields.FirstOrDefault(t => bindTo.Name.EqualsOrdinal(t.Name)),
                 _ => target.Fields.FirstOrDefault(t => field.Name.EqualsOrdinal(t.Name)),
             };
@@ -252,7 +252,7 @@ public class ObjectTypeDefinition
 
             // we skip fields that have an incompatible parent.
             if (field.Member is MethodInfo p &&
-                p.GetParameters() is { Length: > 0 } parameters)
+                p.GetParameters() is { Length: > 0, } parameters)
             {
                 var parent = parameters.FirstOrDefault(
                     t => t.IsDefined(typeof(ParentAttribute), true));

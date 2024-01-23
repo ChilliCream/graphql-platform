@@ -40,6 +40,6 @@ public class UseDbContextAttribute : ObjectFieldDescriptorAttribute
                     .Build());
         }
 
-        _useDbContext.MakeGenericMethod(_dbContext).Invoke(null, [descriptor]);
+        _useDbContext.MakeGenericMethod(_dbContext).Invoke(null, [descriptor,]);
     }
 }

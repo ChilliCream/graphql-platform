@@ -219,7 +219,7 @@ public static class FilterObjectFieldDescriptorExtensions
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = (FieldMiddleware)factory.Invoke(null,
         [
-            convention
+            convention,
         ])!;
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =

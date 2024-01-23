@@ -22,7 +22,7 @@ internal sealed class ScalarTypeDiscoveryHandler(ITypeInspector typeInspector)
         if (Scalars.TryGetScalar(typeInfo.RuntimeType, out var scalarType))
         {
             var schemaTypeRef = TypeInspector.GetTypeRef(scalarType);
-            schemaTypeRefs = [schemaTypeRef];
+            schemaTypeRefs = [schemaTypeRef,];
             return true;
         }
 

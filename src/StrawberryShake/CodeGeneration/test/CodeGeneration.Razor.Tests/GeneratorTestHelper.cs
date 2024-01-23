@@ -47,7 +47,7 @@ public static class GeneratorTestHelper
         bool strictValidation,
         params string[] sourceTexts) =>
         AssertResult(
-            new AssertSettings { StrictValidation = strictValidation },
+            new AssertSettings { StrictValidation = strictValidation, },
             sourceTexts);
 
     public static void AssertResult(
@@ -177,7 +177,7 @@ public static class GeneratorTestHelper
 
     public static void AssertStarWarsResult(params string[] sourceTexts) =>
         AssertStarWarsResult(
-            new AssertSettings { StrictValidation = true },
+            new AssertSettings { StrictValidation = true, },
             sourceTexts);
 
 
@@ -233,7 +233,7 @@ public static class GeneratorTestHelper
             NoStore = noStore,
             Profiles = (profiles ??
             [
-                TransportProfile.Default
+                TransportProfile.Default,
             ]).ToList(),
         };
     }

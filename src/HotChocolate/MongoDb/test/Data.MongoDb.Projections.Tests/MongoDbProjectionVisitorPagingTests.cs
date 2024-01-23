@@ -10,15 +10,15 @@ public class MongoDbProjectionVisitorPagingTests : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = true, Baz = "a" },
-        new() { Bar = false, Baz = "b" }
+        new() { Bar = true, Baz = "a", },
+        new() { Bar = false, Baz = "b", },
     ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
-        new() { Bar = true, Baz = "a" },
-        new() { Bar = null, Baz = null },
-        new() { Bar = false, Baz = "c" }
+        new() { Bar = true, Baz = "a", },
+        new() { Bar = null, Baz = null, },
+        new() { Bar = false, Baz = "c", },
     ];
 
     private readonly SchemaCache _cache;

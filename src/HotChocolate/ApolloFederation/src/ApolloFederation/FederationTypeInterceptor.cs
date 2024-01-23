@@ -370,7 +370,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
                     current);
             }
 
-            current = Expression.Block(new[] { variable }, current, variable);
+            current = Expression.Block(new[] { variable, }, current, variable);
 
             typeDef.ContextData[EntityResolver] =
                 Expression.Lambda<FieldResolverDelegate>(current, context).Compile();

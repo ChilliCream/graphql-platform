@@ -79,7 +79,7 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error, });
             context.Result = MarkerObjects.ErrorObject;
         }
     }

@@ -18,7 +18,7 @@ public static class BuiltInTypes
         WellKnownTypes.Boolean,
         WellKnownTypes.Float,
         WellKnownTypes.ID,
-        WellKnownTypes.Int
+        WellKnownTypes.Int,
     ];
 
     private static readonly HashSet<string> _directiveNames =
@@ -28,7 +28,7 @@ public static class BuiltInTypes
         WellKnownDirectives.Deprecated,
         WellKnownDirectives.Defer,
         WellKnownDirectives.Stream,
-        WellKnownDirectives.SpecifiedBy
+        WellKnownDirectives.SpecifiedBy,
     ];
 
     public static bool IsBuiltInType(string name)

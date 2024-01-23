@@ -12,14 +12,14 @@ public class QueryableProjectionUnionTypeTests
 {
     private static readonly AbstractType[] _barEntities =
     [
-        new Bar { Name = "Bar", BarProp = "BarProp" },
-        new Foo { Name = "Foo", FooProp = "FooProp" }
+        new Bar { Name = "Bar", BarProp = "BarProp", },
+        new Foo { Name = "Foo", FooProp = "FooProp", },
     ];
 
     private static readonly NestedObject[] _barNestedEntities =
     [
-        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
-        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } }
+        new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp", }, },
+        new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp", }, },
     ];
 
     private static readonly NestedList[] _barListEntities =
@@ -28,18 +28,18 @@ public class QueryableProjectionUnionTypeTests
         {
             List =
             [
-                new Foo { Name = "Foo", FooProp = "FooProp" },
-                new Bar { Name = "Bar", BarProp = "BarProp" }
+                new Foo { Name = "Foo", FooProp = "FooProp", },
+                new Bar { Name = "Bar", BarProp = "BarProp", },
             ],
         },
         new()
         {
             List =
             [
-                new Bar { Name = "Bar", BarProp = "BarProp" },
-                new Foo { Name = "Foo", FooProp = "FooProp" }
+                new Bar { Name = "Bar", BarProp = "BarProp", },
+                new Foo { Name = "Foo", FooProp = "FooProp", },
             ],
-        }
+        },
     ];
 
     private readonly SchemaCache _cache = new SchemaCache();

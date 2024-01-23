@@ -58,7 +58,7 @@ internal abstract class RequestDocumentFormatter
                     null,
                     unspecifiedArguments);
 
-            rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver });
+            rootSelectionSetNode = new SelectionSetNode(new[] { rootResolver, });
             path = p;
         }
 
@@ -83,7 +83,7 @@ internal abstract class RequestDocumentFormatter
             rootSelectionSetNode);
 
         return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode }),
+            new DocumentNode(new[] { operationDefinitionNode, }),
             path);
     }
 
@@ -96,7 +96,7 @@ internal abstract class RequestDocumentFormatter
         while (current is not null)
         {
             selectionSet = new SelectionSetNode(
-                new[] { current.Selection.SyntaxNode.WithSelectionSet(selectionSet) });
+                new[] { current.Selection.SyntaxNode.WithSelectionSet(selectionSet), });
 
             current = current.Parent;
         }

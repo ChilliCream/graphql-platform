@@ -85,7 +85,7 @@ public class TypeScopeInterceptorTests
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition)
         {
-            if (discoveryContext is { Scope: { } } && definition is ObjectTypeDefinition def)
+            if (discoveryContext is { Scope: { }, } && definition is ObjectTypeDefinition def)
             {
                 _contexts.Add(discoveryContext);
 
@@ -103,7 +103,7 @@ public class TypeScopeInterceptorTests
             ITypeCompletionContext completionContext,
             DefinitionBase definition)
         {
-            if (completionContext is { Scope: { } })
+            if (completionContext is { Scope: { }, })
             {
                 definition.Name = completionContext.Scope + "_" + definition.Name;
             }

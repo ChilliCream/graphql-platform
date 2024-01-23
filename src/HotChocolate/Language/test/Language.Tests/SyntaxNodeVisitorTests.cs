@@ -76,7 +76,7 @@ public class SyntaxNodeVisitorTests
 
         // assert
         Assert.Equal(enterNames, leaveNames);
-        new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
+        new List<string>[] { enterNames, leaveNames, }.MatchSnapshot();
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class SyntaxNodeVisitorTests
 
         // assert
         Assert.Equal(enterNames, leaveNames);
-        new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
+        new List<string>[] { enterNames, leaveNames, }.MatchSnapshot();
     }
 
     [Fact]

@@ -49,7 +49,7 @@ public class GeoJsonMultiPolygonSerializerTests
                         new Coordinate(30, 20),
                             new Coordinate(45, 40),
                             new Coordinate(10, 40),
-                            new Coordinate(30, 20)
+                            new Coordinate(30, 20),
                     ])),
                 new Polygon(
                     new LinearRing(
@@ -58,8 +58,8 @@ public class GeoJsonMultiPolygonSerializerTests
                             new Coordinate(40, 10),
                             new Coordinate(10, 20),
                             new Coordinate(5, 15),
-                            new Coordinate(15, 5)
-                    ]))
+                            new Coordinate(15, 5),
+                    ])),
     ]);
 
     private readonly string _geometryType = "MultiPolygon";
@@ -68,21 +68,21 @@ public class GeoJsonMultiPolygonSerializerTests
     {
         [
             [
-                [30.0, 20.0],
-                [45.0, 40.0],
-                [10.0, 40.0],
-                [30.0, 20.0]
-            ]
+                [30.0, 20.0,],
+                [45.0, 40.0,],
+                [10.0, 40.0,],
+                [30.0, 20.0,],
+            ],
         ],
             new[]
             {
                 new[]
                 {
-                    [15.0, 5.0],
-                    [40.0, 10.0],
-                    [10.0, 20.0],
-                    [5.0, 15.0],
-                    new[] { 15.0, 5.0 },
+                    [15.0, 5.0,],
+                    [40.0, 10.0,],
+                    [10.0, 20.0,],
+                    [5.0, 15.0,],
+                    new[] { 15.0, 5.0, },
                 },
             },
     };
@@ -190,7 +190,7 @@ public class GeoJsonMultiPolygonSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    [new Point(1, 2)])));
+                    [new Point(1, 2),])));
     }
 
     [Theory]

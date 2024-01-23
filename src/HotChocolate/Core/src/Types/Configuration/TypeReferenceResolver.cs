@@ -59,7 +59,7 @@ internal sealed class TypeReferenceResolver
             throw new ArgumentNullException(nameof(typeRef));
         }
 
-        if (typeRef is SchemaTypeReference { Type: IType schemaType })
+        if (typeRef is SchemaTypeReference { Type: IType schemaType, })
         {
             type = schemaType;
             return true;

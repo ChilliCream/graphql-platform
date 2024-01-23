@@ -16,49 +16,49 @@ public class MongoDbFilterVisitorListTests
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
             },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
             },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
             },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" },
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
             },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = null },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" },
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
             },
         },
-        new() { FooNested = null },
-        new() { FooNested = Array.Empty<FooNested>() }
+        new() { FooNested = null, },
+        new() { FooNested = Array.Empty<FooNested>(), },
     ];
 
     private static readonly FooSimple[] _fooSimple =
@@ -108,8 +108,8 @@ public class MongoDbFilterVisitorListTests
                 "b",
             },
         },
-        new() { Bar = null },
-        new() { Bar = Array.Empty<string>() }
+        new() { Bar = null, },
+        new() { Bar = Array.Empty<string>(), },
     ];
 
     public MongoDbFilterVisitorListTests(MongoResource resource)

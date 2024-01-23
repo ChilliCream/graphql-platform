@@ -131,7 +131,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         public const string ContextKey = "HotChocolate.Execution.FieldMiddlewareLookup";
 
         private bool CanHandle(ITypeSystemObjectContext context) =>
-            context.Type is ObjectType { Name: { } typeName } &&
+            context.Type is ObjectType { Name: { } typeName, } &&
             context.ContextData.TryGetValue(ContextKey, out var value) &&
             value is FieldMiddlewareLookup lookup &&
             lookup.HasFieldMiddleware(typeName);

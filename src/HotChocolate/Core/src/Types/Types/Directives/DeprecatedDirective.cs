@@ -72,7 +72,7 @@ public sealed class DeprecatedDirective
 
         var arguments = reason is null
             ? Array.Empty<ArgumentNode>()
-            : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason)];
+            : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason),];
 
         return new DirectiveNode(
             null,

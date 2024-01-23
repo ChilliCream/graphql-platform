@@ -44,10 +44,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             public IBar[] GetFoo() =>
             [
-                new Baz { Id = "BarId" },
-                new Baz2 { Id = "Bar2Id" },
-                new Quox { Foo = "QuoxFoo" },
-                new Quox2 { Foo = "Quox2Foo" }
+                new Baz { Id = "BarId", },
+                new Baz2 { Id = "Bar2Id", },
+                new Quox { Foo = "QuoxFoo", },
+                new Quox2 { Foo = "Quox2Foo", },
             ];
         }
 

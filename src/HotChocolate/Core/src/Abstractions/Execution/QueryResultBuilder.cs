@@ -182,11 +182,11 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
 
     public static QueryResultBuilder FromResult(IQueryResult result)
     {
-        var builder = new QueryResultBuilder { _data = result.Data };
+        var builder = new QueryResultBuilder { _data = result.Data, };
 
         if (result.Errors is not null)
         {
-            builder._errors = [..result.Errors];
+            builder._errors = [..result.Errors,];
         }
 
         if (result.Extensions is ExtensionData ext)
@@ -219,7 +219,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new QueryResult(null, new List<IError> { error }, contextData: contextData);
+            : new QueryResult(null, new List<IError> { error, }, contextData: contextData);
 
     public static IQueryResult CreateError(
         IReadOnlyList<IError> errors,

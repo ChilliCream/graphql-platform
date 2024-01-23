@@ -48,7 +48,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
         }
 
         Value = default;
-        Errors = new[] { error };
+        Errors = new[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -223,7 +223,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -437,7 +437,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -547,7 +547,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -865,7 +865,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -975,7 +975,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1085,7 +1085,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1431,7 +1431,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1541,7 +1541,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1651,7 +1651,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -1761,7 +1761,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2135,7 +2135,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2245,7 +2245,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2355,7 +2355,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2465,7 +2465,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }
@@ -2575,7 +2575,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
         }
 
         Value = default;
-        Errors = new object[] { error };
+        Errors = new object[] { error, };
         IsSuccess = false;
         IsError = !IsSuccess;
     }

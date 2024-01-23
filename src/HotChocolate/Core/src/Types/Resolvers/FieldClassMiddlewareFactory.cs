@@ -56,7 +56,7 @@ public static class FieldClassMiddlewareFactory
     {
         return (FieldMiddleware)_createGeneric
             .MakeGenericMethod(middlewareType)
-            .Invoke(null, [services]);
+            .Invoke(null, [services,]);
     }
 
     public static FieldMiddleware Create<TMiddleware>(

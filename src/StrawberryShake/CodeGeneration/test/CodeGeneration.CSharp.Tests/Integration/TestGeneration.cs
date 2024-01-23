@@ -53,7 +53,7 @@ public class TestGeneration
             CreateIntegrationTest(profiles:
             [
                 new TransportProfile("InMemory", TransportType.InMemory),
-                TransportProfile.Default
+                TransportProfile.Default,
             ]),
             @"query GetHero {
                 hero(episode: NEW_HOPE) {
@@ -148,7 +148,7 @@ public class TestGeneration
         AssertResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("Default", TransportType.InMemory)
+                new TransportProfile("Default", TransportType.InMemory),
             ]),
             skipWarnings: true,
             @"
@@ -243,7 +243,7 @@ public class TestGeneration
             CreateIntegrationTest(profiles:
             [
                 new TransportProfile("InMemory", TransportType.InMemory),
-                TransportProfile.Default
+                TransportProfile.Default,
             ]),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
@@ -270,7 +270,7 @@ public class TestGeneration
         AssertStarWarsResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("default", TransportType.Http)
+                new TransportProfile("default", TransportType.Http),
             ]),
             @"subscription OnReviewSub {
                 onReview(episode: NEW_HOPE) {
@@ -350,7 +350,7 @@ public class TestGeneration
         AssertResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("Default", TransportType.Http)
+                new TransportProfile("Default", TransportType.Http),
             ]),
             skipWarnings: true,
             UploadQueries,
@@ -362,7 +362,7 @@ public class TestGeneration
         AssertResult(
             CreateIntegrationTest(profiles:
             [
-                new TransportProfile("Default", TransportType.InMemory)
+                new TransportProfile("Default", TransportType.InMemory),
             ]),
             skipWarnings: true,
             UploadQueries,

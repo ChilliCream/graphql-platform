@@ -101,7 +101,7 @@ internal sealed partial class SubscriptionExecutor
                 return aggregateError.Errors;
             }
 
-            return new[] { error };
+            return new[] { error, };
         }
     }
 }

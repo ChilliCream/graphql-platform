@@ -17,7 +17,7 @@ public abstract class CommandTestBase : IDisposable
 
     protected Files CreateFiles(SubgraphConfiguration configuration)
     {
-        var files = new Files(CreateTempFile(), CreateTempFile(), [CreateTempFile()]);
+        var files = new Files(CreateTempFile(), CreateTempFile(), [CreateTempFile(),]);
         var configJson = PackageHelper.FormatSubgraphConfig(
             new(configuration.Name, configuration.Clients, configuration.ConfigurationExtensions));
         File.WriteAllText(files.SchemaFile, configuration.Schema);

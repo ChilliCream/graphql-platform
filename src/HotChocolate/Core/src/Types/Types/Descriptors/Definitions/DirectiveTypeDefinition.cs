@@ -82,7 +82,7 @@ public class DirectiveTypeDefinition
     /// <summary>
     /// Specifies if this directive definition has an arguments.
     /// </summary>
-    public bool HasArguments => _arguments is { Count: > 0 };
+    public bool HasArguments => _arguments is { Count: > 0, };
 
 
     /// <summary>

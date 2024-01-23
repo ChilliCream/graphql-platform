@@ -16,7 +16,7 @@ internal sealed class TagContext
         }
         else
         {
-            _taggedTypes.Add(name, [coordinate]);
+            _taggedTypes.Add(name, [coordinate,]);
         }
     }
     

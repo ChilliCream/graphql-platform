@@ -423,7 +423,7 @@ internal static class Utf8JsonWriterHelper
         }
         else
         {
-            list = [path];
+            list = [path,];
             files.Add(file, list);
         }
     }

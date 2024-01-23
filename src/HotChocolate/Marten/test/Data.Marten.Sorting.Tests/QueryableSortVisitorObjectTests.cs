@@ -19,7 +19,7 @@ public class QueryableSortVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } },
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
                 },
             },
         },
@@ -56,7 +56,7 @@ public class QueryableSortVisitorObjectTests
                 //ScalarArray = null,
                 ObjectArray = null,
             },
-        }
+        },
     ];
 
     private static readonly BarNullable[] _barNullableEntities =
@@ -139,7 +139,7 @@ public class QueryableSortVisitorObjectTests
                 ObjectArray = null,
             },
         },
-        new() { Foo = null }
+        new() { Foo = null, },
     ];
 
     private readonly SchemaCache _cache;
@@ -545,13 +545,13 @@ public class QueryableSortVisitorObjectTests
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barShort", "ASC" } }
+                                "foo", new Dictionary<string, object> { { "barShort", "ASC" }, }
                             },
                         },
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barBool", "ASC" } }
+                                "foo", new Dictionary<string, object> { { "barBool", "ASC" }, }
                             },
                         },
                     })
@@ -605,13 +605,13 @@ public class QueryableSortVisitorObjectTests
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barShort", "DESC" } }
+                                "foo", new Dictionary<string, object> { { "barShort", "DESC" }, }
                             },
                         },
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barBool", "DESC" } }
+                                "foo", new Dictionary<string, object> { { "barBool", "DESC" }, }
                             },
                         },
                     })

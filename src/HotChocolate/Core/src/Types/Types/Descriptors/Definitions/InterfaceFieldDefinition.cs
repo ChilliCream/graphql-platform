@@ -69,9 +69,9 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     {
         base.CopyTo(target);
 
-        if (_expressionBuilders is { Count: > 0 })
+        if (_expressionBuilders is { Count: > 0, })
         {
-            target._expressionBuilders = [.._expressionBuilders];
+            target._expressionBuilders = [.._expressionBuilders,];
         }
 
         target.Member = Member;
@@ -81,7 +81,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     {
         base.MergeInto(target);
 
-        if (_expressionBuilders is { Count: > 0 })
+        if (_expressionBuilders is { Count: > 0, })
         {
             target._expressionBuilders ??= [];
             target._expressionBuilders.AddRange(_expressionBuilders);

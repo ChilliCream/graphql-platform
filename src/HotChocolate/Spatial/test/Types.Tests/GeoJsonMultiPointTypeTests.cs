@@ -12,7 +12,7 @@ public class GeoJsonMultiPointTypeTests
         new Point(new Coordinate(10, 40)),
         new Point(new Coordinate(40, 30)),
         new Point(new Coordinate(20, 20)),
-        new Point(new Coordinate(30, 10))
+        new Point(new Coordinate(30, 10)),
     ]);
 
     [Fact]

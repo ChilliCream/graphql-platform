@@ -16,7 +16,7 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             LastName = "Galoo",
             Bars = new[]
             {
-                new Bar { Value="A" },
+                new Bar { Value="A", },
             },
         },
         new()
@@ -24,7 +24,7 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
             Name = "Sam",
             LastName = "Sampleman",
             Bars = Array.Empty<Bar>(),
-        }
+        },
     ];
 
     private readonly SchemaCache _cache;

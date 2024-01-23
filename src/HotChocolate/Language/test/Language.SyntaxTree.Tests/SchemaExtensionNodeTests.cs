@@ -19,7 +19,7 @@ public class SchemaExtensionNodeTests
             new List<OperationTypeDefinitionNode>(0));
         var c = new SchemaExtensionNode(
             new Location(1, 1, 1, 1),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<OperationTypeDefinitionNode>(0));
 
         // act
@@ -49,7 +49,7 @@ public class SchemaExtensionNodeTests
             new List<OperationTypeDefinitionNode>(0));
         var c = new SchemaExtensionNode(
             new Location(3, 3, 3, 3),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<OperationTypeDefinitionNode>(0));
 
         // act
@@ -71,19 +71,19 @@ public class SchemaExtensionNodeTests
         // arrange
         var a = new SchemaExtensionNode(
             new Location(1, 1, 1, 1),
-            new List<DirectiveNode> { new("aa") },
+            new List<DirectiveNode> { new("aa"), },
             new List<OperationTypeDefinitionNode>(0));
         var b = new SchemaExtensionNode(
             new Location(2, 2, 2, 2),
-            new List<DirectiveNode> { new("aa") },
+            new List<DirectiveNode> { new("aa"), },
             new List<OperationTypeDefinitionNode>(0));
         var c = new SchemaExtensionNode(
             new Location(1, 1, 1, 1),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<OperationTypeDefinitionNode>(0));
         var d = new SchemaExtensionNode(
             new Location(2, 2, 2, 2),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new List<OperationTypeDefinitionNode>(0));
 
         // act

@@ -61,7 +61,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 BarString = "testctest",
                 ObjectArray = null,
             },
-        }
+        },
     ];
 
     private static readonly BarNullable[] _barNullableEntities =
@@ -140,7 +140,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         new()
         {
             Foo = null,
-        }
+        },
     ];
 
     private readonly SchemaCache _cache;

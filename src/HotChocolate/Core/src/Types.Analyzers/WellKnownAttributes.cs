@@ -23,6 +23,6 @@ public static class WellKnownAttributes
         InputObjectTypeAttribute,
         QueryTypeAttribute,
         MutationTypeAttribute,
-        SubscriptionTypeAttribute
+        SubscriptionTypeAttribute,
     ];
 }

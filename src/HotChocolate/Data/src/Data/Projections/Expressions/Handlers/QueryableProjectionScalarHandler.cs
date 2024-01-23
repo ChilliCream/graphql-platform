@@ -19,7 +19,7 @@ public class QueryableProjectionScalarHandler
         ISelection selection,
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
-        if (selection.Field.Member is PropertyInfo { CanWrite: true })
+        if (selection.Field.Member is PropertyInfo { CanWrite: true, })
         {
             action = SelectionVisitor.SkipAndLeave;
             return true;

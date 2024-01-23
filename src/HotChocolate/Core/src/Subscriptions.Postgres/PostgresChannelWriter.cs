@@ -79,7 +79,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             await _channel.Reader.WaitToReadAsync(ct);
         }
 
-        var messages = new List<PostgresMessageEnvelope> { firstItem };
+        var messages = new List<PostgresMessageEnvelope> { firstItem, };
         while (!ct.IsCancellationRequested &&
                _maxSendBatchSize > messages.Count &&
                _channel.Reader.TryRead(out var item))

@@ -14,8 +14,8 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = true },
-        new() { Bar = false }
+        new() { Bar = true, },
+        new() { Bar = false, },
     ];
 
     [Fact]
@@ -86,11 +86,11 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         ClientQueryRequest request1 =
-            new() { Query = query, Variables = new() { ["order"] = "ASC" } };
+            new() { Query = query, Variables = new() { ["order"] = "ASC", }, };
         var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
-            new() { Query = query, Variables = new() { ["order"] = "DESC" } };
+            new() { Query = query, Variables = new() { ["order"] = "DESC", }, };
         var res2 = await server.PostAsync(request2);
 
         // assert
@@ -111,11 +111,11 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         ClientQueryRequest request1 =
-            new() { Query = query, Variables = new() { ["order"] = "ASC" } };
+            new() { Query = query, Variables = new() { ["order"] = "ASC", }, };
         var res1 = await server.PostAsync(request1);
 
         ClientQueryRequest request2 =
-            new() { Query = query, Variables = new() { ["order"] = "DESC" } };
+            new() { Query = query, Variables = new() { ["order"] = "DESC", }, };
         var res2 = await server.PostAsync(request2);
 
         // assert

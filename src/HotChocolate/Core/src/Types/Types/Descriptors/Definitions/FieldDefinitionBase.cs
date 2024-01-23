@@ -100,9 +100,9 @@ public abstract class FieldDefinitionBase
     {
         base.CopyTo(target);
 
-        if (_directives is { Count: > 0 })
+        if (_directives is { Count: > 0, })
         {
-            target._directives = [.._directives];
+            target._directives = [.._directives,];
         }
 
         target.Type = Type;
@@ -113,7 +113,7 @@ public abstract class FieldDefinitionBase
     {
         base.MergeInto(target);
 
-        if (_directives is { Count: > 0 })
+        if (_directives is { Count: > 0, })
         {
             target._directives ??= [];
             target._directives.AddRange(_directives);

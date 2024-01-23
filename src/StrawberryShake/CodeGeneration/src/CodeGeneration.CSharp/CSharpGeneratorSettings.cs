@@ -74,7 +74,7 @@ public class CSharpGeneratorSettings
         new TransportProfile(
             TransportProfile.DefaultProfileName,
             TransportType.Http,
-            subscription: TransportType.WebSocket)
+            subscription: TransportType.WebSocket),
 
     ];
 }

@@ -50,7 +50,7 @@ public class DescriptorContextTests
         var conventions = new Dictionary<(Type, string), List<CreateConvention>>
         {
             {
-                (typeof(INamingConventions), null), [_ => naming]
+                (typeof(INamingConventions), null), [_ => naming,]
             },
         };
 

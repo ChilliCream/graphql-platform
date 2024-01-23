@@ -31,7 +31,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -85,12 +85,12 @@ public class ComposeCommandTests : CommandTestBase
         var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", accountSubgraphPackageFile]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", accountSubgraphPackageFile,]);
 
         // act
         app = App.CreateBuilder().Build();
         await app.InvokeAsync(
-            ["compose", "-p", packageFile, "-s", reviewSubgraphPackageFile]);
+            ["compose", "-p", packageFile, "-s", reviewSubgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -134,7 +134,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -165,7 +165,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile, "--enable-nodes"]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile, "--enable-nodes",]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -214,7 +214,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -242,7 +242,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphDir]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphDir,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -296,16 +296,16 @@ public class ComposeCommandTests : CommandTestBase
         var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", accountSubgraphPackageFile]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", accountSubgraphPackageFile,]);
 
         app = App.CreateBuilder().Build();
         await app.InvokeAsync(
-            ["compose", "-p", packageFile, "-s", reviewSubgraphPackageFile]);
+            ["compose", "-p", packageFile, "-s", reviewSubgraphPackageFile,]);
 
         // act
         app = App.CreateBuilder().Build();
         await app.InvokeAsync(
-            ["compose", "-p", packageFile, "-r", "Reviews2"]);
+            ["compose", "-p", packageFile, "-r", "Reviews2",]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -352,7 +352,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphDir]);
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphDir,]);
 
         // assert
         Assert.True(File.Exists(packageFile));

@@ -40,8 +40,8 @@ public class AuthorizationTestData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return [CreateSchema()];
-        yield return [CreateSchemaWithBuilder()];
+        yield return [CreateSchema(),];
+        yield return [CreateSchemaWithBuilder(),];
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

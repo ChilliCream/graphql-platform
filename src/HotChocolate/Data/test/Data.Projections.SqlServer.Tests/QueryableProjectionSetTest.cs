@@ -21,11 +21,11 @@ public class QueryableProjectionISetTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "a" },
+                        Foo = new FooDeep { BarShort = 12, BarString = "a", },
                     },
                 ObjectSet = new HashSet<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 },
             },
         },
@@ -40,14 +40,14 @@ public class QueryableProjectionISetTests
                 NestedObject =
                     new BarDeep
                     {
-                        Foo = new FooDeep { BarShort = 12, BarString = "d" },
+                        Foo = new FooDeep { BarShort = 12, BarString = "d", },
                     },
                 ObjectSet = new HashSet<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } },
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
                 },
             },
-        }
+        },
     ];
 
     private readonly SchemaCache _cache = new();

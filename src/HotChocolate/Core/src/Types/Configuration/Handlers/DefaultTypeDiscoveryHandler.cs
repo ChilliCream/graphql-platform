@@ -99,7 +99,7 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
             return false;
         }
 
-        schemaTypeRefs = [schemaType];
+        schemaTypeRefs = [schemaType,];
         return true;
     }
 
@@ -157,43 +157,43 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsStaticObjectTypeExtension(TypeDiscoveryInfo typeInfo)
         => typeInfo.IsStatic &&
-            typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
+            typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true, };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsObjectTypeExtension(TypeDiscoveryInfo typeInfo)
-        => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
+        => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true, };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsObjectType(TypeDiscoveryInfo typeInfo)
         => !typeInfo.IsDirectiveRef &&
-            (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } ||
+            (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false, } ||
                 typeInfo.Attribute is null && typeInfo.IsComplex) &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None };
+            typeInfo is { Context: TypeContext.Output or TypeContext.None, };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsUnionType(TypeDiscoveryInfo typeInfo)
-        => typeInfo.Attribute is { Kind: TypeKind.Union, IsTypeExtension: false } &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None };
+        => typeInfo.Attribute is { Kind: TypeKind.Union, IsTypeExtension: false, } &&
+            typeInfo is { Context: TypeContext.Output or TypeContext.None, };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInterfaceType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.Interface, IsTypeExtension: false } ||
+        => (typeInfo.Attribute is { Kind: TypeKind.Interface, IsTypeExtension: false, } ||
                 typeInfo.Attribute is null && typeInfo.IsInterface) &&
-            typeInfo is { Context: TypeContext.Output or TypeContext.None };
+            typeInfo is { Context: TypeContext.Output or TypeContext.None, };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsInputObjectType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.InputObject, IsTypeExtension: false } ||
+        => (typeInfo.Attribute is { Kind: TypeKind.InputObject, IsTypeExtension: false, } ||
                 typeInfo.Attribute is null && typeInfo.IsComplex) &&
-            typeInfo is { IsAbstract: false, Context: TypeContext.Input };
+            typeInfo is { IsAbstract: false, Context: TypeContext.Input, };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsEnumType(TypeDiscoveryInfo typeInfo)
-        => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false } ||
+        => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false, } ||
                 typeInfo.Attribute is null && typeInfo.IsEnum) &&
             typeInfo.IsPublic;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsDirectiveType(TypeDiscoveryInfo typeInfo)
-        => typeInfo.Attribute is { Kind: TypeKind.Directive, IsTypeExtension: false };
+        => typeInfo.Attribute is { Kind: TypeKind.Directive, IsTypeExtension: false, };
 }

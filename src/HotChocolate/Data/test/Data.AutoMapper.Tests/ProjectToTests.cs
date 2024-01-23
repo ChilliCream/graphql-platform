@@ -23,9 +23,9 @@ public class ProjectToTests
                 new Author()
                 {
                     Name = "Phil",
-                    Membership = new PremiumMember { Name = "foo", Premium = "A" },
+                    Membership = new PremiumMember { Name = "foo", Premium = "A", },
                 },
-            TitleImage = new Image() { Url = "https://testa.com/image.png" },
+            TitleImage = new Image() { Url = "https://testa.com/image.png", },
             Posts = new[]
             {
                 new Post
@@ -36,7 +36,7 @@ public class ProjectToTests
                     {
                         Name = "Anna",
                         Membership =
-                            new StandardMember() { Name = "foo", Standard = "FLAT" },
+                            new StandardMember() { Name = "foo", Standard = "FLAT", },
                     },
                 },
                 new Post
@@ -47,7 +47,7 @@ public class ProjectToTests
                     {
                         Name = "Max",
                         Membership =
-                            new StandardMember() { Name = "foo", Standard = "FLAT" },
+                            new StandardMember() { Name = "foo", Standard = "FLAT", },
                     },
                 },
             },
@@ -56,12 +56,12 @@ public class ProjectToTests
         {
             Name = "TestB",
             Url = "testb.com",
-            TitleImage = new Image() { Url = "https://testb.com/image.png" },
+            TitleImage = new Image() { Url = "https://testb.com/image.png", },
             Author = new Author()
             {
                 Name = "Kurt",
                 Membership =
-                    new StandardMember() { Name = "foo", Standard = "FLAT" },
+                    new StandardMember() { Name = "foo", Standard = "FLAT", },
             },
             Posts = new[]
             {
@@ -73,7 +73,7 @@ public class ProjectToTests
                     {
                         Name = "Charles",
                         Membership =
-                            new PremiumMember { Name = "foo", Premium = "FLAT" },
+                            new PremiumMember { Name = "foo", Premium = "FLAT", },
                     },
                 },
                 new Post
@@ -84,11 +84,11 @@ public class ProjectToTests
                     {
                         Name = "Simone",
                         Membership =
-                            new PremiumMember { Name = "foo", Premium = "FLAT" },
+                            new PremiumMember { Name = "foo", Premium = "FLAT", },
                     },
                 },
             },
-        }
+        },
     ];
 
     [Fact]

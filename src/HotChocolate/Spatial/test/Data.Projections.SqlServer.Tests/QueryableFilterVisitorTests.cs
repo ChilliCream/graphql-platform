@@ -17,7 +17,7 @@ public class QueryableProjectionVisitorTests
                 new Coordinate(0, 2),
                 new Coordinate(2, 2),
                 new Coordinate(2, 0),
-                new Coordinate(0, 0)
+                new Coordinate(0, 0),
         ]));
 
     private static readonly Polygon _falsePolygon =
@@ -27,13 +27,13 @@ public class QueryableProjectionVisitorTests
                 new Coordinate(0, -2),
                 new Coordinate(-2, -2),
                 new Coordinate(-2, 0),
-                new Coordinate(0, 0)
+                new Coordinate(0, 0),
         ]));
 
     private static readonly Foo[] _fooEntities =
     [
-        new() { Id = 1, Bar = _truePolygon },
-        new() { Id = 2, Bar = _falsePolygon }
+        new() { Id = 1, Bar = _truePolygon, },
+        new() { Id = 2, Bar = _falsePolygon, },
     ];
 
     public QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> resource)

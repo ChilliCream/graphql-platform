@@ -16,7 +16,7 @@ public sealed class AndFilterDefinition : MongoDbFilterDefinition
         "$geoWithin",
             "$near",
             "$geoIntersects",
-            "$nearSphere"
+            "$nearSphere",
     ];
 
     private readonly MongoDbFilterDefinition[] _filters;

@@ -9,8 +9,8 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 {
     private static readonly BarInterface[] _barEntities =
     [
-        new() { Test = new InterfaceImpl1 { Prop = "a" } },
-        new() { Test = new InterfaceImpl1 { Prop = "b" } }
+        new() { Test = new InterfaceImpl1 { Prop = "a", }, },
+        new() { Test = new InterfaceImpl1 { Prop = "b", }, },
     ];
 
     private readonly SchemaCache _cache;

@@ -66,7 +66,7 @@ internal sealed class FusionGraphConfigurationReader
             }
         }
 
-        if (httpClientConfigs is not { Count: > 0 })
+        if (httpClientConfigs is not { Count: > 0, })
         {
             throw ServiceConfNoClientsSpecified();
         }
@@ -526,7 +526,7 @@ internal sealed class FusionGraphConfigurationReader
 
                     return SyntaxVisitor.Continue;
                 },
-                options: new() { VisitArguments = true })
+                options: new() { VisitArguments = true, })
             .Visit(select);
 
         return new ResolverDefinition(

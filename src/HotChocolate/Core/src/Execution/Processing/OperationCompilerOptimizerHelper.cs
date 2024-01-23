@@ -19,7 +19,7 @@ public static class OperationCompilerOptimizerHelper
             return;
         }
 
-        optimizers = [optimizer];
+        optimizers = [optimizer,];
         contextData[_key] = optimizers;
     }
 

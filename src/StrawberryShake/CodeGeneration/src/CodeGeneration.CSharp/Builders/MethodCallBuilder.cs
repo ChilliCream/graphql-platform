@@ -31,7 +31,7 @@ public class MethodCallBuilder : ICode
     {
         _methodName =
         [
-            methodName
+            methodName,
         ];
         return this;
     }

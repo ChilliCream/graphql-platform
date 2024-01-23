@@ -23,8 +23,8 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
          {
              Name = "Foo",
              LastName = "Galoo",
-             Bars = new Bar[] { new() { Value = "A" } },
-         }
+             Bars = new Bar[] { new() { Value = "A", }, },
+         },
     ];
 
     private readonly SchemaCache _cache;

@@ -199,7 +199,7 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var variables = new Dictionary<string, object?>
         {
-            ["traits"] = JsonSerializer.SerializeToElement(new { lastJedi = true }),
+            ["traits"] = JsonSerializer.SerializeToElement(new { lastJedi = true, }),
         };
 
         var requestUri = CreateUrl("/graphql");
@@ -685,7 +685,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
         };
 
         // act
@@ -730,7 +730,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var request = new GraphQLHttpRequest(operation, requestUri)
         {
             Method = GraphQLHttpMethod.Post,
-            EnableFileUploads = true
+            EnableFileUploads = true,
         };
 
         // act

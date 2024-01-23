@@ -1296,9 +1296,9 @@ public class RequestPlannerTests
                     "",
                     new []
                     {
-                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
                     },
-                    null)
+                    null),
             });
 
         // act
@@ -1339,9 +1339,9 @@ public class RequestPlannerTests
                     "",
                     new []
                     {
-                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
                     },
-                    null)
+                    null),
             });
 
         // act
@@ -1382,9 +1382,9 @@ public class RequestPlannerTests
                     "",
                     new []
                     {
-                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
                     },
-                    null)
+                    null),
             });
 
         // act
@@ -1425,9 +1425,9 @@ public class RequestPlannerTests
                     "",
                     new []
                     {
-                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
                     },
-                    null)
+                    null),
             });
 
         // act
@@ -1472,9 +1472,9 @@ public class RequestPlannerTests
                     "",
                     new []
                     {
-                        new HttpClientConfiguration(new Uri("http://client"), "Test")
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
                     },
-                    null)
+                    null),
             });
 
         // act
@@ -1509,7 +1509,7 @@ public class RequestPlannerTests
             .AddDocumentFromString(rewritten.ToString())
             .UseField(n => n);
 
-        if (document.Definitions.Any(d => d is ScalarTypeDefinitionNode { Name.Value: "Upload" }))
+        if (document.Definitions.Any(d => d is ScalarTypeDefinitionNode { Name.Value: "Upload", }))
         {
             services.AddUploadType();
         }
@@ -1537,6 +1537,6 @@ public class RequestPlannerTests
     private static IClientConfiguration[] CreateClients()
         =>
         [
-            new HttpClientConfiguration(new Uri("http://nothing"))
+            new HttpClientConfiguration(new Uri("http://nothing")),
         ];
 }

@@ -57,7 +57,7 @@ public partial class InputObjectType
     /// Returns the newly created input object type.
     /// </returns>
     public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.InputObject;

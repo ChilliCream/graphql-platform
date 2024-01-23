@@ -155,7 +155,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         {
             var options = GetOptions(context);
 
-            if (options is null or { AllowedGetOperations: AllowedGetOperations.Query })
+            if (options is null or { AllowedGetOperations: AllowedGetOperations.Query, })
             {
                 requestFlags = (requestFlags & AllowStreams) == AllowStreams
                     ? AllowQuery | AllowStreams

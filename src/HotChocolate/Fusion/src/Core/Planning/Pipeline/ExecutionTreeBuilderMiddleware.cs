@@ -103,7 +103,7 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
 
             if (batch.Length > 0)
             {
-                backlog.Enqueue(next with { Batch = batch });
+                backlog.Enqueue(next with { Batch = batch, });
             }
         }
 

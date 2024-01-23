@@ -54,7 +54,7 @@ public class OutputFieldDefinitionBase
     {
         base.MergeInto(target);
 
-        if (_arguments is { Count: > 0 })
+        if (_arguments is { Count: > 0, })
         {
             target._arguments ??= [];
 

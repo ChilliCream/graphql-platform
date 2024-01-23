@@ -15,10 +15,10 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         [Authorize(Policy = Policies.HasDefinedAge)]
         public string GetAge() => "foo";
 
-        [Authorize(Roles = ["a"])]
+        [Authorize(Roles = ["a",])]
         public string GetRoles() => "foo";
 
-        [Authorize(Roles = ["a", "b"])]
+        [Authorize(Roles = ["a", "b",])]
         [GraphQLName("roles_ab")]
         public string GetRolesAb() => "foo";
 
@@ -42,7 +42,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
                 Policies.HasDefinedAge,
                 response => response.GetResult<HasAgeDefinedResponse>() switch
                 {
-                    { Allow: true } => AuthorizeResult.Allowed,
+                    { Allow: true, } => AuthorizeResult.Allowed,
                     _ => AuthorizeResult.NotAllowed,
                 });
 
@@ -50,7 +50,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
     {
         yield return
         [
-            CreateSchema()
+            CreateSchema(),
         ];
     }
 

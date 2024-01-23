@@ -50,7 +50,7 @@ public class UploadScalarTest : ServerTestBase
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
             null,
-            new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") },
+            new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B"), },
             null,
             null,
             null,
@@ -76,7 +76,7 @@ public class UploadScalarTest : ServerTestBase
             "foo",
             null,
             null,
-            new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B") } },
+            new[] { new Upload?[] { new Upload(dataA, "A"), new Upload(dataB, "B"), }, },
             null,
             null,
             null,
@@ -105,7 +105,7 @@ public class UploadScalarTest : ServerTestBase
             {
                 Bar = new BarInput()
                 {
-                    Baz = new BazInput() { File = new Upload(data, "test-file") },
+                    Baz = new BazInput() { File = new Upload(data, "test-file"), },
                 },
             },
             null,
@@ -138,14 +138,14 @@ public class UploadScalarTest : ServerTestBase
                 {
                     Bar = new BarInput()
                     {
-                        Baz = new BazInput() { File = new Upload(dataA, "A") },
+                        Baz = new BazInput() { File = new Upload(dataA, "A"), },
                     },
                 },
                 new TestInput()
                 {
                     Bar = new BarInput()
                     {
-                        Baz = new BazInput() { File = new Upload(dataB, "B") },
+                        Baz = new BazInput() { File = new Upload(dataB, "B"), },
                     },
                 },
             },
@@ -182,14 +182,14 @@ public class UploadScalarTest : ServerTestBase
                     {
                         Bar = new BarInput()
                         {
-                            Baz = new BazInput() { File = new Upload(dataA, "A") },
+                            Baz = new BazInput() { File = new Upload(dataA, "A"), },
                         },
                     },
                     new TestInput()
                     {
                         Bar = new BarInput()
                         {
-                            Baz = new BazInput() { File = new Upload(dataB, "B") },
+                            Baz = new BazInput() { File = new Upload(dataB, "B"), },
                         },
                     },
                 },
@@ -232,7 +232,7 @@ public class UploadScalarTest : ServerTestBase
         var result = await client.TestUpload.ExecuteAsync(
             "foo",
             null,
-            new Upload?[] { new Upload(dataA, "A"), null, new Upload(dataB, "B") },
+            new Upload?[] { new Upload(dataA, "A"), null, new Upload(dataB, "B"), },
             null,
             null,
             null,

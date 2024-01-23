@@ -64,7 +64,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 //ScalarArray = null,
                 ObjectArray = null,
             },
-        }
+        },
     ];
 
     private static readonly BarNullable?[] _barNullableEntities =
@@ -151,7 +151,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         {
             Foo =null,
         },
-        null
+        null,
     ];
 
     private readonly SchemaCache _cache;

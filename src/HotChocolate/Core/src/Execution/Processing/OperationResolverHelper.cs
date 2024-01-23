@@ -47,7 +47,7 @@ internal static class OperationResolverHelper
         {
             for (var i = 0; i < document.Definitions.Count; i++)
             {
-                if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
+                if (document.Definitions[i] is OperationDefinitionNode { Name: { }, } op &&
                     op.Name!.Value.EqualsOrdinal(operationName))
                 {
                     return op;

@@ -16,13 +16,13 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new ClassBaseClassInspector(),
         new ModuleInspector(),
         new DataLoaderInspector(),
-        new DataLoaderDefaultsInspector()
+        new DataLoaderDefaultsInspector(),
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
     [
         new ModuleGenerator(),
-        new DataLoaderGenerator()
+        new DataLoaderGenerator(),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -59,13 +59,13 @@ public class TypeModuleGenerator : IIncrementalGenerator
             IsMethodWithAttribute(node);
 
     private static bool IsClassWithBaseClass(SyntaxNode node)
-        => node is ClassDeclarationSyntax { BaseList.Types.Count: > 0 };
+        => node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, };
 
     private static bool IsTypeWithAttribute(SyntaxNode node)
-        => node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0 };
+        => node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, };
 
     private static bool IsMethodWithAttribute(SyntaxNode node)
-        => node is MethodDeclarationSyntax { AttributeLists.Count: > 0 };
+        => node is MethodDeclarationSyntax { AttributeLists.Count: > 0, };
 
     private static bool IsAssemblyAttributeList(SyntaxNode node)
         => node is AttributeListSyntax;

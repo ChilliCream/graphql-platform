@@ -121,7 +121,7 @@ internal sealed class FusionExecutionContext : IDisposable
     {
         if(requests.Count == 1)
         {
-            return [await ExecuteAsync(subgraphName, requests[0], cancellationToken)];
+            return [await ExecuteAsync(subgraphName, requests[0], cancellationToken),];
         }
 
         await using var client = _clientFactory.CreateClient(subgraphName);

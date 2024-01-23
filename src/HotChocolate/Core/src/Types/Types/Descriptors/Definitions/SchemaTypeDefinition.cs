@@ -20,7 +20,7 @@ public class SchemaTypeDefinition
     /// <summary>
     /// Specifies if this schema has directives.
     /// </summary>
-    internal bool HasDirectives => _directives is { Count: > 0 };
+    internal bool HasDirectives => _directives is { Count: > 0, };
 
     /// <summary>
     /// Gets the list of directives that are annotated to this schema.

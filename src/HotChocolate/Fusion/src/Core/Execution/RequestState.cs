@@ -118,12 +118,12 @@ internal sealed class RequestState
 
             state = new ExecutionState(selectionSet, result, exportKeys)
             {
-                SelectionSetData = { [0] = parentData },
+                SelectionSetData = { [0] = parentData, },
             };
 
             if (!_map.TryGetValue(state.SelectionSet, out states))
             {
-                var temp = new List<ExecutionState> { state };
+                var temp = new List<ExecutionState> { state, };
                 _map.Add(state.SelectionSet, temp);
             }
         }
@@ -154,7 +154,7 @@ internal sealed class RequestState
 
             if (!_map.TryGetValue(state.SelectionSet, out states))
             {
-                var temp = new List<ExecutionState> { state };
+                var temp = new List<ExecutionState> { state, };
                 _map.Add(state.SelectionSet, temp);
             }
         }

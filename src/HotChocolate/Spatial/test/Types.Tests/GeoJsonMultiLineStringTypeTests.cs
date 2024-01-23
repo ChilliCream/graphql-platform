@@ -13,15 +13,15 @@ public class GeoJsonMultiLineStringTypeTests
         [
             new Coordinate(10, 10),
                 new Coordinate(20, 20),
-                new Coordinate(10, 40)
+                new Coordinate(10, 40),
         ]),
             new LineString(
         [
             new Coordinate(40, 40),
                 new Coordinate(30, 30),
                 new Coordinate(40, 20),
-                new Coordinate(30, 10)
-        ])
+                new Coordinate(30, 10),
+        ]),
     ]);
 
     [Fact]

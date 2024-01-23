@@ -33,7 +33,7 @@ internal static class CSharpCompiler
     private static readonly HashSet<string> _excludedCodes =
     [
         "CS1702",
-        "CS1701"
+        "CS1701",
     ];
 
     public static IReadOnlyList<Diagnostic> GetDiagnosticErrors(params string[] sourceText)

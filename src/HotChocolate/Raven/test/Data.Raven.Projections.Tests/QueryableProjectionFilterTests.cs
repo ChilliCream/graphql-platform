@@ -16,10 +16,10 @@ public class QueryableProjectionFilterTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 },
             },
         },
@@ -31,13 +31,13 @@ public class QueryableProjectionFilterTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                NestedObject = new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } },
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
                 },
             },
-        }
+        },
     ];
 
     private static readonly BarNullable[] _barNullableEntities =
@@ -52,7 +52,7 @@ public class QueryableProjectionFilterTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12 } },
+                    new() { Foo = new FooDeep { BarShort = 12, }, },
                 },
             },
         },
@@ -66,7 +66,7 @@ public class QueryableProjectionFilterTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } },
+                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9, }, },
                 },
             },
         },
@@ -80,7 +80,7 @@ public class QueryableProjectionFilterTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } },
+                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14, }, },
                 },
             },
         },
@@ -94,7 +94,7 @@ public class QueryableProjectionFilterTests
                 BarString = "testdtest",
                 ObjectArray = null,
             },
-        }
+        },
     ];
 
     private static readonly BarNullable[] _barWithoutRelation =
@@ -122,7 +122,7 @@ public class QueryableProjectionFilterTests
                 BarShort = 14,
             },
         },
-        new()
+        new(),
     ];
 
     private readonly SchemaCache _cache;

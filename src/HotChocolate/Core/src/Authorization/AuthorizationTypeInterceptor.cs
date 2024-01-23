@@ -606,8 +606,8 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             var directiveDef = directives[i];
 #endif
 
-            if (directiveDef.Type is NameDirectiveReference { Name: Authorize } ||
-                (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
+            if (directiveDef.Type is NameDirectiveReference { Name: Authorize, } ||
+                (directiveDef.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
                     type == typeof(AuthorizeDirective)))
             {
                 return true;

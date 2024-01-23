@@ -42,7 +42,7 @@ public class InterfaceTypeDefinition
     /// <summary>
     /// Specifies if this definition has interfaces.
     /// </summary>
-    public bool HasInterfaces => _interfaces is { Count: > 0 };
+    public bool HasInterfaces => _interfaces is { Count: > 0, };
 
     public IBindableList<InterfaceFieldDefinition> Fields { get; } =
         new BindableList<InterfaceFieldDefinition>();

@@ -108,7 +108,7 @@ internal sealed class SchemaTypes
 
         foreach (var objectType in types.OfType<ObjectType>())
         {
-            possibleTypes[objectType.Name] = [objectType];
+            possibleTypes[objectType.Name] = [objectType,];
 
             foreach (var interfaceType in objectType.Implements)
             {
