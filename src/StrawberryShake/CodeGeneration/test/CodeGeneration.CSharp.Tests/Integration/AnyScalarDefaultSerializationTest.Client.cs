@@ -188,7 +188,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
 
         public static GetJsonQueryDocument Instance { get; } = new GetJsonQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x4a, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6a, 0x73, 0x6f, 0x6e, 0x20, 0x7d, };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x4a, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6a, 0x73, 0x6f, 0x6e, 0x20, 0x7d};
         public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "90a00e07ca153decc5937eb356401940e7c6b66a");
         public override global::System.String ToString()
         {
@@ -397,20 +397,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
     public partial class AnyScalarDefaultSerializationClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        {Indented = false, };
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                _ => throw new global::System.NotSupportedException(), };
+                _ => throw new global::System.NotSupportedException()};
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                _ => throw new global::System.NotSupportedException(), };
+                _ => throw new global::System.NotSupportedException()};
         }
     }
 
