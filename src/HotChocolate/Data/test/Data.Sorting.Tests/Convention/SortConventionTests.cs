@@ -37,14 +37,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -259,14 +259,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -305,14 +305,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),
@@ -354,14 +354,14 @@ public class SortConventionTests
         var func = executor.Build<Foo>(value);
 
         // assert
-        var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+        var a = new[] { new Foo { Bar = "a", }, new Foo { Bar = "b", }, new Foo { Bar = "c", }, };
         Assert.Collection(
             func(a),
             x => Assert.Equal("a", x.Bar),
             x => Assert.Equal("b", x.Bar),
             x => Assert.Equal("c", x.Bar));
 
-        var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+        var b = new[] { new Foo { Bar = "c", }, new Foo { Bar = "b", }, new Foo { Bar = "a", }, };
         Assert.Collection(
             func(b),
             x => Assert.Equal("a", x.Bar),

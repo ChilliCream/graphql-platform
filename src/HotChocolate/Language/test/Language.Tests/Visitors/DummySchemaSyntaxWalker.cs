@@ -5,7 +5,7 @@ namespace HotChocolate.Language;
 public class DummySchemaSyntaxWalker
     : SchemaSyntaxWalker<object>
 {
-    private HashSet<string> _visited = new HashSet<string>();
+    private HashSet<string> _visited = [];
 
     public DummySchemaSyntaxWalker() { }
 

@@ -32,10 +32,10 @@ internal static class ExternalSetterExpressionHelper
         foreach (var field in type.Fields)
         {
             if (field.Directives.ContainsDirective<ExternalDirective>() &&
-                field.Member is PropertyInfo { SetMethod: { } } property)
+                field.Member is PropertyInfo { SetMethod: { }, } property)
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
-                (block ??= new()).Add(expression);
+                (block ??= []).Add(expression);
             }
         }
 
@@ -54,7 +54,7 @@ internal static class ExternalSetterExpressionHelper
         string fieldName)
     {
         var trySetValue = _trySetExternal.MakeGenericMethod(property.PropertyType);
-        var path = Constant(new[] { fieldName });
+        var path = Constant(new[] { fieldName, });
         var setter = CreateSetValue(runtimeType, property);
         return Call(trySetValue, _type, _data, _entity, path, setter);
     }
@@ -64,7 +64,7 @@ internal static class ExternalSetterExpressionHelper
         PropertyInfo property)
         => (Expression)_createSetValueExpression
             .MakeGenericMethod(property.PropertyType)
-            .Invoke(null, [runtimeType, property])!;
+            .Invoke(null, [runtimeType, property,])!;
 
 
     private static Expression CreateSetValueExpression<TValue>(

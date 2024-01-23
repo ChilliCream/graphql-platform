@@ -623,7 +623,7 @@ public class ActivityEnricher
             new("graphql.error.code", error.Code),
         };
 
-        if (error.Locations is { Count: > 0 })
+        if (error.Locations is { Count: > 0, })
         {
             if (error.Locations.Count == 1)
             {

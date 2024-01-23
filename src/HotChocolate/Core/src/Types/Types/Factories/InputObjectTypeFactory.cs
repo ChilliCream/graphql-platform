@@ -73,7 +73,7 @@ internal sealed class InputObjectTypeFactory
                 inputFieldDefinition.SyntaxNode = inputField;
             }
 
-            if (inputField.DeprecationReason() is { Length: > 0 } reason)
+            if (inputField.DeprecationReason() is { Length: > 0, } reason)
             {
                 inputFieldDefinition.DeprecationReason = reason;
             }

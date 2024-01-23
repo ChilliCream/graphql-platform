@@ -13,7 +13,7 @@ public class RazorGeneratorTests
         Assert.NotNull(typeof(UseQuery<>));
 
         AssertResult(
-            settings: new() { RazorComponents = true },
+            settings: new() { RazorComponents = true, },
             @"query GetBars($a: String! $b: String) {
                 bars(a: $a b: $b) {
                     id

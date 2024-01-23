@@ -95,7 +95,7 @@ public class DiagnosticListenerTests
 
     private sealed class TestListener : ExecutionDiagnosticEventListener
     {
-        public List<object> Results { get; } = new();
+        public List<object> Results { get; } = [];
 
         public override bool EnableResolveFieldValue => true;
 

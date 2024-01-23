@@ -291,7 +291,7 @@ public static partial class SchemaBuilderExtensions
         if (!builder.ContextData.TryGetValue(SchemaDirectives, out var value) ||
             value is not List<ISchemaDirective> directives)
         {
-            directives = new();
+            directives = [];
             builder.ContextData[SchemaDirectives] = directives;
         }
 

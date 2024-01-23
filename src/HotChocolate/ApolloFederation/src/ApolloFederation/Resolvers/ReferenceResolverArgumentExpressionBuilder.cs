@@ -55,7 +55,7 @@ internal sealed class ReferenceResolverArgumentExpressionBuilder :
     {
         var path = parameter.GetCustomAttribute<MapAttribute>() is { } attr
             ? attr.Path.Split('.')
-            : [parameter.Name!];
+            : [parameter.Name!,];
 
         _requiredPaths.Add(path);
 

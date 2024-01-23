@@ -48,7 +48,7 @@ public partial class EnumType
     /// Returns the newly created enum type.
     /// </returns>
     public static EnumType CreateUnsafe(EnumTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <summary>
     /// Override this in order to specify the type configuration explicitly.

@@ -70,11 +70,11 @@ public class CSharpGeneratorSettings
     /// The transport profiles that shall be generated.
     /// </summary>
     public List<TransportProfile> TransportProfiles { get; set; } =
-        new()
-        {
-            new TransportProfile(
-                TransportProfile.DefaultProfileName,
-                TransportType.Http,
-                subscription: TransportType.WebSocket),
-        };
+    [
+        new TransportProfile(
+            TransportProfile.DefaultProfileName,
+            TransportType.Http,
+            subscription: TransportType.WebSocket),
+
+    ];
 }

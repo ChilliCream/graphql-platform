@@ -198,10 +198,10 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Leaf }:
+            case ComplexTypeDescriptor { Kind: TypeKind.Leaf, }:
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData, } d:
                 AddEntityOrUnionDataHandler(
                     settings,
                     classBuilder,
@@ -212,7 +212,7 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.AbstractData, } d:
                 AddComplexDataHandler(
                     settings,
                     classBuilder,
@@ -223,7 +223,7 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Data } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.Data, } d:
                 AddDataHandler(
                     settings,
                     classBuilder,
@@ -234,7 +234,7 @@ public partial class TypeMapperGenerator
                     isNonNullable);
                 break;
 
-            case ComplexTypeDescriptor { Kind: TypeKind.Entity } d:
+            case ComplexTypeDescriptor { Kind: TypeKind.Entity, } d:
                 AddEntityHandler(
                     classBuilder,
                     constructorBuilder,

@@ -50,7 +50,7 @@ public abstract class MongoDbListOperationHandlerBase
         }
 
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } args)
         {
             var element = args[0];
             context.RuntimeTypes.Push(element);

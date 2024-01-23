@@ -16,7 +16,7 @@ public class GeoJsonPointSerializerTests
 
     private readonly string _geometryType = "Point";
 
-    private readonly object _geometryParsed = new[] { 30.0, 10.0 };
+    private readonly object _geometryParsed = new[] { 30.0, 10.0, };
 
     [Theory]
     [InlineData(GeometryTypeName)]
@@ -121,7 +121,7 @@ public class GeoJsonPointSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    new Geometry[] { new Point(1, 2) })));
+                    [new Point(1, 2),])));
     }
 
     [Theory]

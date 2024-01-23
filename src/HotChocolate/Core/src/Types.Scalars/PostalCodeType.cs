@@ -19,7 +19,7 @@ public class PostalCodeType : StringType
     /// Different validation patterns for postal codes.
     /// </summary>
     private static readonly Regex[] _validationPatterns =
-    {
+    [
         CreateRegexUs(),
         CreateRegexUk(),
         CreateRegexDe(),
@@ -37,7 +37,7 @@ public class PostalCodeType : StringType
         CreateRegexPt(),
         CreateRegexCh(),
         CreateRegexLu(),
-    };
+    ];
 
 #if DISABLED_DUE_TO_COMPILER_ISSUE
     [GeneratedRegex(PostalCodePatterns.US, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]

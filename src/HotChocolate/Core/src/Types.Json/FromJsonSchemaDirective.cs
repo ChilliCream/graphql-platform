@@ -58,7 +58,7 @@ internal sealed class FromJsonSchemaDirective : ISchemaDirective
         {
             var argument = directive.Arguments[0];
             if (argument.Name.Value.EqualsOrdinal("name") &&
-                argument.Value is StringValueNode { Value: { Length: > 0 } name })
+                argument.Value is StringValueNode { Value: { Length: > 0, } name, })
             {
                 return name;
             }

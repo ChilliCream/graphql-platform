@@ -142,7 +142,7 @@ public class ScalarExecutionErrorTests
                 return true;
             }
 
-            return literal is StringValueNode { Value: "a" };
+            return literal is StringValueNode { Value: "a", };
         }
 
         public override bool IsInstanceOfType(object? value)
@@ -167,7 +167,7 @@ public class ScalarExecutionErrorTests
                 return null;
             }
 
-            if (literal is StringValueNode { Value: "a" })
+            if (literal is StringValueNode { Value: "a", })
             {
                 return "a";
             }

@@ -26,10 +26,10 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         List<string>? names = null;
         CycleValidationContext cycleValidationContext = new()
         {
-            Visited = new(),
+            Visited = [],
             CycleStartIndex = new(),
             Errors = errors,
-            FieldPath = new(),
+            FieldPath = [],
         };
         
         foreach (var type in typeSystemObjects)
@@ -131,7 +131,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             return;
         }
 
-        temp ??= new List<string>();
+        temp ??= [];
 
         foreach (var field in type.Fields)
         {

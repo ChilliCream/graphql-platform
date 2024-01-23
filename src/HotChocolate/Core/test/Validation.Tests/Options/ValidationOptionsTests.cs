@@ -10,7 +10,7 @@ public class ValidationOptionsTests
     [Theory]
     public void MaxDepth(int value, int expected)
     {
-        var options = new ValidationOptions { MaxAllowedExecutionDepth = value };
+        var options = new ValidationOptions { MaxAllowedExecutionDepth = value, };
         Assert.Equal(expected, options.MaxAllowedExecutionDepth);
     }
 
@@ -19,7 +19,7 @@ public class ValidationOptionsTests
     [Theory]
     public void SkipIntrospection(bool value)
     {
-        var options = new ValidationOptions { SkipIntrospectionFields = value };
+        var options = new ValidationOptions { SkipIntrospectionFields = value, };
         Assert.Equal(value, options.SkipIntrospectionFields);
     }
 
@@ -31,7 +31,7 @@ public class ValidationOptionsTests
     [Theory]
     public void MaxAllowedErrors(int value, int expected)
     {
-        var options = new ValidationOptions { MaxAllowedErrors = value };
+        var options = new ValidationOptions { MaxAllowedErrors = value, };
         Assert.Equal(expected, options.MaxAllowedErrors);
     }
 }

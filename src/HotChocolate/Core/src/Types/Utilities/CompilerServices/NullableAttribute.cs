@@ -7,7 +7,7 @@ internal sealed class NullableAttribute
     private readonly byte[] _flags;
 
     public NullableAttribute(byte flag)
-        : this(new[] { flag })
+        : this([flag,])
     {
     }
 

@@ -291,7 +291,7 @@ internal static class ClassBuilderExtensions
             {
                 NonNullTypeDescriptor d =>
                     BuildPropertyInternal(d.InnerType, false),
-                ILeafTypeDescriptor { SerializationType.IsValueType: true } =>
+                ILeafTypeDescriptor { SerializationType.IsValueType: true, } =>
                     CodeInlineBuilder
                         .New()
                         .SetText($"global::System.Object.{nameof(Equals)}({propertyName}, {other}.{propertyName})"),

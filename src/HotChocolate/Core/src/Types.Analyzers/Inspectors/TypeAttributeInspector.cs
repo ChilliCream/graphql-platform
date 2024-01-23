@@ -13,7 +13,7 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
-        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
+        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {

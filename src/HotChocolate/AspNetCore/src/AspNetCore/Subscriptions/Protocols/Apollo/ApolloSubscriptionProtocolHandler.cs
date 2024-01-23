@@ -172,7 +172,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                 await SendErrorMessageAsync(
                     session,
                     idProp.GetString()!,
-                    new[] { syntaxError },
+                    new[] { syntaxError, },
                     cancellationToken);
             }
 
@@ -184,7 +184,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         {
             if (root.TryGetProperty(Utf8MessageProperties.Id, out idProp) &&
                 idProp.ValueKind is JsonValueKind.String &&
-                idProp.GetString() is { Length: > 0 } id)
+                idProp.GetString() is { Length: > 0, } id)
             {
                 session.Operations.Complete(id);
             }

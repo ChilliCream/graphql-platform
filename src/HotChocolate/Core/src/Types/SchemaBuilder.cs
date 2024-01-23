@@ -23,21 +23,21 @@ public partial class SchemaBuilder : ISchemaBuilder
     private delegate TypeReference CreateRef(ITypeInspector typeInspector);
 
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<FieldMiddleware> _globalComponents = new();
-    private readonly List<LoadSchemaDocument> _documents = new();
-    private readonly List<CreateRef> _types = new();
+    private readonly List<FieldMiddleware> _globalComponents = [];
+    private readonly List<LoadSchemaDocument> _documents = [];
+    private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
 
-    private readonly List<object> _typeInterceptors = new()
-    {
+    private readonly List<object> _typeInterceptors =
+    [
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(CostTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor),
         typeof(EnableTrueNullabilityTypeInterceptor),
-    };
+    ];
 
     private SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
@@ -201,7 +201,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             (convention, scope),
             out var factories))
         {
-            factories = new List<CreateConvention>();
+            factories = [];
             _conventions[(convention, scope)] = factories;
         }
 

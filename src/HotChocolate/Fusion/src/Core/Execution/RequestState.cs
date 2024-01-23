@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class RequestState
 {
     private readonly Dictionary<SelectionSet, List<ExecutionState>> _map = new();
-    private readonly HashSet<SelectionSet> _immutable = new();
+    private readonly HashSet<SelectionSet> _immutable = [];
 
     public bool ContainsState(SelectionSet selectionSet)
     {
@@ -118,12 +118,12 @@ internal sealed class RequestState
 
             state = new ExecutionState(selectionSet, result, exportKeys)
             {
-                SelectionSetData = { [0] = parentData },
+                SelectionSetData = { [0] = parentData, },
             };
 
             if (!_map.TryGetValue(state.SelectionSet, out states))
             {
-                var temp = new List<ExecutionState> { state };
+                var temp = new List<ExecutionState> { state, };
                 _map.Add(state.SelectionSet, temp);
             }
         }
@@ -154,7 +154,7 @@ internal sealed class RequestState
 
             if (!_map.TryGetValue(state.SelectionSet, out states))
             {
-                var temp = new List<ExecutionState> { state };
+                var temp = new List<ExecutionState> { state, };
                 _map.Add(state.SelectionSet, temp);
             }
         }

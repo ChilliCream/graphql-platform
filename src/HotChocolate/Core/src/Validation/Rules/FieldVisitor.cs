@@ -152,7 +152,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union } unionType &&
+            type.NamedType() is { Kind: TypeKind.Union, } unionType &&
             HasFields(node))
         {
             context.ReportError(context.UnionFieldError(node, (UnionType) unionType));

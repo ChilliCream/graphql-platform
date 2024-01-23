@@ -36,7 +36,7 @@ public abstract partial class ScalarType
     }
 
     protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        => new() { Name = Name, Description = Description };
+        => new() { Name = Name, Description = Description, };
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,

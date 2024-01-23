@@ -23,7 +23,7 @@ internal sealed partial class ResolverDefinition
         Requires = requires;
         ArgumentTypes = argumentTypes;
 
-        if (select.Selections is [FieldNode field])
+        if (select.Selections is [FieldNode field,])
         {
             _field = field;
         }
@@ -67,7 +67,7 @@ internal sealed partial class ResolverDefinition
                     CreateSelection_MustBePlaceholderOrSelectExpression);
             }
 
-            return (fieldNode.WithSelectionSet(selectionSet), new[] { fieldNode.Name.Value });
+            return (fieldNode.WithSelectionSet(selectionSet), new[] { fieldNode.Name.Value, });
         }
 
         return ((ISelectionNode)selection!, context.SelectionPath);

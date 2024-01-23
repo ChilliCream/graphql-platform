@@ -38,19 +38,19 @@ public sealed class FusionTypes
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var booleanType))
         {
-            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true };
+            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(booleanType);
         }
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var intType))
         {
-            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true };
+            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(intType);
         }
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.String, out var stringType))
         {
-            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true };
+            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(stringType);
         }
 
@@ -213,7 +213,7 @@ public sealed class FusionTypes
             new(SubgraphArg, subgraphName), new(SelectArg, select.ToString(false)),
         };
 
-        if (arguments is { Count: > 0 })
+        if (arguments is { Count: > 0, })
         {
             var argumentDefs = new List<IValueNode>();
 

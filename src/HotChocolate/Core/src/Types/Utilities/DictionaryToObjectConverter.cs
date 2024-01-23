@@ -27,7 +27,7 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
             throw new ArgumentNullException(nameof(to));
         }
 
-        var context = new ConverterContext { ClrType = to };
+        var context = new ConverterContext { ClrType = to, };
         Visit(from, context);
         return context.Object;
     }
@@ -79,7 +79,7 @@ public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterCon
 
             for (var i = 0; i < list.Count; i++)
             {
-                var valueContext = new ConverterContext { ClrType = elementType };
+                var valueContext = new ConverterContext { ClrType = elementType, };
                 Visit(list[i], valueContext);
                 temp!.Add(valueContext.Object);
             }

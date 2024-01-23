@@ -126,7 +126,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
             typeReference,
             out var configurations))
         {
-            configurations = new List<ConfigureSortEnumType>();
+            configurations = [];
             Definition.EnumConfigurations.Add(typeReference, configurations);
         }
 
@@ -142,7 +142,7 @@ public class SortConventionDescriptor : ISortConventionDescriptor
             typeReference,
             out var configurations))
         {
-            configurations = new List<ConfigureSortInputType>();
+            configurations = [];
             Definition.Configurations.Add(typeReference, configurations);
         }
 

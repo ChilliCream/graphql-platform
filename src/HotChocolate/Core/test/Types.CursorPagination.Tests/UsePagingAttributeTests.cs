@@ -159,8 +159,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new Foo { Bar = "first", },
+                new Foo { Bar = "second", },
             }.AsQueryable();
         }
     }
@@ -171,8 +171,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new Foo { Bar = "first", },
+                new Foo { Bar = "second", },
             }.AsQueryable();
         }
     }
@@ -187,8 +187,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new Foo { Bar = "first", },
+                new Foo { Bar = "second", },
             }.AsQueryable();
         }
 

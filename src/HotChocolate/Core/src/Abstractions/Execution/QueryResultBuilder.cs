@@ -45,7 +45,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             throw new ArgumentNullException(nameof(error));
         }
 
-        _errors ??= new List<IError>();
+        _errors ??= [];
         _errors.Add(error);
         return this;
     }
@@ -57,7 +57,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             throw new ArgumentNullException(nameof(errors));
         }
 
-        _errors ??= new List<IError>();
+        _errors ??= [];
         _errors.AddRange(errors);
         return this;
     }
@@ -131,7 +131,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             throw new ArgumentNullException(nameof(patch));
         }
 
-        _incremental ??= new List<IQueryResult>();
+        _incremental ??= [];
         _incremental.Add(patch);
         return this;
     }
@@ -185,11 +185,11 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
 
     public static QueryResultBuilder FromResult(IQueryResult result)
     {
-        var builder = new QueryResultBuilder { _data = result.Data };
+        var builder = new QueryResultBuilder { _data = result.Data, };
 
         if (result.Errors is not null)
         {
-            builder._errors = new List<IError>(result.Errors);
+            builder._errors = [..result.Errors,];
         }
 
         if (result.Extensions is ExtensionData ext)
@@ -223,7 +223,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new QueryResult(null, new List<IError> { error }, contextData: contextData);
+            : new QueryResult(null, new List<IError> { error, }, contextData: contextData);
 
     public static IQueryResult CreateError(
         IReadOnlyList<IError> errors,

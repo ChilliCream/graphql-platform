@@ -8,7 +8,7 @@ namespace HotChocolate.Data;
 public class QueryableSortVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -19,7 +19,7 @@ public class QueryableSortVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<Bar>
                 {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } },
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
                 },
             },
         },
@@ -57,10 +57,10 @@ public class QueryableSortVisitorObjectTests
                 ObjectArray = null,
             },
         },
-    };
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -139,8 +139,8 @@ public class QueryableSortVisitorObjectTests
                 ObjectArray = null,
             },
         },
-        new() { Foo = null },
-    };
+        new() { Foo = null, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -545,13 +545,13 @@ public class QueryableSortVisitorObjectTests
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barShort", "ASC" } }
+                                "foo", new Dictionary<string, object> { { "barShort", "ASC" }, }
                             },
                         },
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barBool", "ASC" } }
+                                "foo", new Dictionary<string, object> { { "barBool", "ASC" }, }
                             },
                         },
                     })
@@ -605,13 +605,13 @@ public class QueryableSortVisitorObjectTests
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barShort", "DESC" } }
+                                "foo", new Dictionary<string, object> { { "barShort", "DESC" }, }
                             },
                         },
                         new()
                         {
                             {
-                                "foo", new Dictionary<string, object> { { "barBool", "DESC" } }
+                                "foo", new Dictionary<string, object> { { "barBool", "DESC" }, }
                             },
                         },
                     })
@@ -650,7 +650,7 @@ public class QueryableSortVisitorObjectTests
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new();
+        public List<Bar>? ObjectArray { get; set; } = [];
     }
 
     public class FooNullable

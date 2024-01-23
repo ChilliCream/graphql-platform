@@ -5,33 +5,31 @@ namespace HotChocolate.Utilities.Introspection;
 public static class BuiltInTypes
 {
     private static readonly HashSet<string> _typeNames =
-        new()
-        {
-            WellKnownTypes.__Directive,
-            WellKnownTypes.__DirectiveLocation,
-            WellKnownTypes.__EnumValue,
-            WellKnownTypes.__Field,
-            WellKnownTypes.__InputValue,
-            WellKnownTypes.__Schema,
-            WellKnownTypes.__Type,
-            WellKnownTypes.__TypeKind,
-            WellKnownTypes.String,
-            WellKnownTypes.Boolean,
-            WellKnownTypes.Float,
-            WellKnownTypes.ID,
-            WellKnownTypes.Int,
-        };
+    [
+        WellKnownTypes.__Directive,
+        WellKnownTypes.__DirectiveLocation,
+        WellKnownTypes.__EnumValue,
+        WellKnownTypes.__Field,
+        WellKnownTypes.__InputValue,
+        WellKnownTypes.__Schema,
+        WellKnownTypes.__Type,
+        WellKnownTypes.__TypeKind,
+        WellKnownTypes.String,
+        WellKnownTypes.Boolean,
+        WellKnownTypes.Float,
+        WellKnownTypes.ID,
+        WellKnownTypes.Int,
+    ];
 
     private static readonly HashSet<string> _directiveNames =
-        new()
-        {
-            WellKnownDirectives.Skip,
-            WellKnownDirectives.Include,
-            WellKnownDirectives.Deprecated,
-            WellKnownDirectives.Defer,
-            WellKnownDirectives.Stream,
-            WellKnownDirectives.SpecifiedBy,
-        };
+    [
+        WellKnownDirectives.Skip,
+        WellKnownDirectives.Include,
+        WellKnownDirectives.Deprecated,
+        WellKnownDirectives.Defer,
+        WellKnownDirectives.Stream,
+        WellKnownDirectives.SpecifiedBy,
+    ];
 
     public static bool IsBuiltInType(string name)
         => _typeNames.Contains(name) || _directiveNames.Contains(name);

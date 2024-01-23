@@ -65,7 +65,7 @@ internal sealed partial class TypeInfo
                     var rewritten = current.IsNullable
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
-                            current, new bool?[] { true }, cache);
+                            current, new bool?[] { true, }, cache);
 
                     list.Add((TypeComponentKind.List, rewritten));
                     current = current.ElementType;
@@ -75,7 +75,7 @@ internal sealed partial class TypeInfo
                     var rewritten = current.IsNullable
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
-                            current, new bool?[] { true }, cache);
+                            current, new bool?[] { true, }, cache);
 
                     list.Add((TypeComponentKind.Named, rewritten));
                     namedType = current;

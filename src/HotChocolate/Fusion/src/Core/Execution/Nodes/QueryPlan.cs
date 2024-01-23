@@ -21,7 +21,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 internal sealed class QueryPlan
 {
-    private static readonly JsonWriterOptions _jsonOptions = new() { Indented = true };
+    private static readonly JsonWriterOptions _jsonOptions = new() { Indented = true, };
     private readonly IOperation _operation;
     private readonly Dictionary<ISelectionSet, string[]> _exportKeysLookup = new();
     private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();

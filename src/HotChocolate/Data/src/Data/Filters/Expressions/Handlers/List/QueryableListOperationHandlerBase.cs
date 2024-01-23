@@ -51,7 +51,7 @@ public abstract class QueryableListOperationHandlerBase
         }
 
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } args)
         {
             var nestedProperty = context.GetInstance();
             context.PushInstance(nestedProperty);

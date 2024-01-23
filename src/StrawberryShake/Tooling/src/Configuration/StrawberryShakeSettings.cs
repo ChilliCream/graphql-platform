@@ -80,5 +80,5 @@ public class StrawberryShakeSettings
     /// <summary>
     /// Gets the transport profiles.
     /// </summary>
-    public List<StrawberryShakeSettingsTransportProfile> TransportProfiles { get; } = new();
+    public List<StrawberryShakeSettingsTransportProfile> TransportProfiles { get; } = [];
 }

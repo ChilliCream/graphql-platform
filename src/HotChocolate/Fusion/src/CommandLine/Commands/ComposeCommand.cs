@@ -22,7 +22,7 @@ internal sealed class ComposeCommand : Command
         "List<String>, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
     public ComposeCommand() : base("compose")
     {
-        var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true };
+        var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true, };
         fusionPackageFile.AddAlias("--package");
         fusionPackageFile.AddAlias("-p");
 
@@ -112,7 +112,7 @@ internal sealed class ComposeCommand : Command
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
 
         // resolve subgraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
-        if (removeSubgraphs is not { Count: > 0 } || subgraphPackageFiles is { Count: > 0 })
+        if (removeSubgraphs is not { Count: > 0, } || subgraphPackageFiles is { Count: > 0, })
         {
             await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
         }
@@ -245,7 +245,7 @@ internal sealed class ComposeCommand : Command
 
                             if (File.Exists(extensionFile))
                             {
-                                extensions = new[] { await File.ReadAllTextAsync(extensionFile, cancellationToken) };
+                                extensions = [await File.ReadAllTextAsync(extensionFile, cancellationToken),];
                             }
 
                             temp.Add(

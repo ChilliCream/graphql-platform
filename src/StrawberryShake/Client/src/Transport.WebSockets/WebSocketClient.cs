@@ -222,7 +222,7 @@ public sealed class WebSocketClient : IWebSocketClient
                 {
                     break;
                 }
-            } while (socketResult is not { EndOfMessage: true });
+            } while (socketResult is not { EndOfMessage: true, });
         }
         catch (ObjectDisposedException)
         {

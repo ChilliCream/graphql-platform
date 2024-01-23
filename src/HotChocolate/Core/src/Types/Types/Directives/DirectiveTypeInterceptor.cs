@@ -11,7 +11,7 @@ namespace HotChocolate.Types;
 
 internal sealed class DirectiveTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<DirectiveType> _usedDirectives = new();
+    private readonly HashSet<DirectiveType> _usedDirectives = [];
 
     public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
@@ -35,7 +35,7 @@ internal sealed class DirectiveTypeInterceptor : TypeInterceptor
                 !directiveType.IsExecutableDirective &&
                 !_usedDirectives.Contains(directiveType))
             {
-                (discarded ??= new()).Add(directiveType);
+                (discarded ??= []).Add(directiveType);
             }
         }
 

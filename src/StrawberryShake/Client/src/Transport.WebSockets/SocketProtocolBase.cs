@@ -13,7 +13,7 @@ namespace StrawberryShake.Transport.WebSockets;
 public abstract class SocketProtocolBase : ISocketProtocol
 {
     private bool _disposed;
-    private readonly HashSet<OnReceiveAsync> _listeners = new();
+    private readonly HashSet<OnReceiveAsync> _listeners = [];
 
     /// <inheritdoc />
     public event EventHandler Disposed = default!;

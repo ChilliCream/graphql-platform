@@ -21,8 +21,8 @@ public abstract class SortProvider<TContext>
     , ISortProviderConvention
     where TContext : ISortVisitorContext
 {
-    private readonly List<ISortFieldHandler<TContext>> _fieldHandlers = new();
-    private readonly List<ISortOperationHandler<TContext>> _operationHandlers = new();
+    private readonly List<ISortFieldHandler<TContext>> _fieldHandlers = [];
+    private readonly List<ISortOperationHandler<TContext>> _operationHandlers = [];
 
     private Action<ISortProviderDescriptor<TContext>>? _configure;
 

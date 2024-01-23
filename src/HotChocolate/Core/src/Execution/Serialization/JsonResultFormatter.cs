@@ -308,7 +308,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteItems(Utf8JsonWriter writer, IReadOnlyList<object?>? items)
     {
-        if (items is { Count: > 0 })
+        if (items is { Count: > 0, })
         {
             writer.WritePropertyName(Items);
 
@@ -325,7 +325,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
-        if (errors is { Count: > 0 })
+        if (errors is { Count: > 0, })
         {
             writer.WritePropertyName(Errors);
 
@@ -355,7 +355,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
     {
-        if (locations is { Count: > 0 })
+        if (locations is { Count: > 0, })
         {
             writer.WritePropertyName(Locations);
 
@@ -433,7 +433,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict)
     {
-        if (dict is { Count: > 0 })
+        if (dict is { Count: > 0, })
         {
             writer.WritePropertyName(Extensions);
             WriteDictionary(writer, dict);
@@ -442,7 +442,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IQueryResult>? patches)
     {
-        if (patches is { Count: > 0 })
+        if (patches is { Count: > 0, })
         {
             writer.WritePropertyName(Incremental);
 
