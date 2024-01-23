@@ -1,0 +1,25 @@
+schema {
+  query: Query
+}
+
+type Foo {
+  bar: String
+}
+
+type Query {
+  error3: String
+  error6: String
+  error9: String
+  error12: String
+  error1: String
+  error2: String
+  error4: String
+  error5: String
+  error7: String
+  error8: String
+  error10: String
+  error11: String
+  error13: Foo
+  error14: String
+  error15: String!
+}

@@ -23,5 +23,6 @@
   "ContextData": {
     "HotChocolate.Execution.Transport.HttpStatusCode": 400
   },
-  "HasNext": null
+  "HasNext": null,
+  "IsDataSet": false
 }
