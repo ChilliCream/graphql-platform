@@ -950,14 +950,14 @@ public class ObjectTypeExtensionTests
     public class BindResolver_With_Property_PersonResolvers
     {
         [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
-        public List<BindResolver_With_Property_PersonDto?> Friends() => new();
+        public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 
     [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
     public class BindResolver_With_Field_PersonResolvers
     {
         [BindFieldAttribute("friendId")]
-        public List<BindResolver_With_Property_PersonDto?> Friends() => new();
+        public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 
     public class Remove_Properties_Globally_PersonDto
@@ -969,7 +969,7 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Properties_Globally_PersonDto),
-        IgnoreProperties = new[] { nameof(Remove_Properties_Globally_PersonDto.InternalId) })]
+        IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId),])]
     public class Remove_Properties_Globally_PersonResolvers
     {
     }
@@ -983,7 +983,7 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Fields_Globally_PersonDto),
-        IgnoreProperties = new[] { "internalId" })]
+        IgnoreProperties = ["internalId",])]
     public class Remove_Fields_Globally_PersonResolvers
     {
     }

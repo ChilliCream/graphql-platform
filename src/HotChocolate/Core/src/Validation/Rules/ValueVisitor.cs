@@ -430,7 +430,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (internalType is ListType { ElementType: IInputType elementType } &&
+        if (internalType is ListType { ElementType: IInputType elementType, } &&
             value is ListValueNode list)
         {
             for (var i = 0; i < list.Items.Count; i++)

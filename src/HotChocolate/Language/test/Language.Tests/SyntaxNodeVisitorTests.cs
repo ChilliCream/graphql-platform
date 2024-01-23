@@ -76,7 +76,7 @@ public class SyntaxNodeVisitorTests
 
         // assert
         Assert.Equal(enterNames, leaveNames);
-        new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
+        new List<string>[] { enterNames, leaveNames, }.MatchSnapshot();
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class SyntaxNodeVisitorTests
 
         // assert
         Assert.Equal(enterNames, leaveNames);
-        new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
+        new List<string>[] { enterNames, leaveNames, }.MatchSnapshot();
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class SyntaxNodeVisitorTests
         : VisitationMap
     {
         public List<ISyntaxNode> VisitedNodes { get; } =
-            new List<ISyntaxNode>();
+            [];
 
         public override void ResolveChildren(
             ISyntaxNode node,

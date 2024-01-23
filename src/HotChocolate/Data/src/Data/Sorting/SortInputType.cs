@@ -54,7 +54,7 @@ public class SortInputType
         InputObjectTypeDefinition definition)
     {
         base.OnRegisterDependencies(context, definition);
-        if (definition is SortInputTypeDefinition {EntityType: { }} sortDefinition)
+        if (definition is SortInputTypeDefinition {EntityType: { }, } sortDefinition)
         {
             SetTypeIdentity(
                 typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
@@ -67,7 +67,7 @@ public class SortInputType
     {
         base.OnCompleteType(context, definition);
 
-        if (definition is SortInputTypeDefinition { EntityType: not null } ft)
+        if (definition is SortInputTypeDefinition { EntityType: not null, } ft)
         {
             EntityType = context.TypeInspector.GetType(ft.EntityType);
         }
@@ -82,7 +82,7 @@ public class SortInputType
 
         foreach (var fieldDefinition in definition.Fields)
         {
-            if (fieldDefinition is SortFieldDefinition {Ignore: false} field)
+            if (fieldDefinition is SortFieldDefinition {Ignore: false, } field)
             {
                 fields[index] = new SortField(field, index);
                 index++;

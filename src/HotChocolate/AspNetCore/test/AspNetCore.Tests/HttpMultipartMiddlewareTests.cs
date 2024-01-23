@@ -318,7 +318,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "input", new Dictionary<string, object?> { { "file", null } } },
+                    { "input", new Dictionary<string, object?> { { "file", null }, } },
                 },
             });
 
@@ -392,7 +392,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                 Query = query,
                 Variables = new Dictionary<string, object?>
                 {
-                    { "input", new Dictionary<string, object?> { { "file", null } } },
+                    { "input", new Dictionary<string, object?> { { "file", null }, } },
                 },
             });
 
@@ -472,7 +472,7 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
                         {
                             new List<object>
                             {
-                                new Dictionary<string, object?> { { "file", null } },
+                                new Dictionary<string, object?> { { "file", null }, },
                             },
                         }
                     },

@@ -65,7 +65,7 @@ public class ConfigurationRewriterTests
             CancellationToken cancellationToken)
         {
             return base.RewriteAsync(
-                configuration with { EndpointUri = new Uri("http://client") },
+                configuration with { EndpointUri = new Uri("http://client"), },
                 cancellationToken);
         }
     }

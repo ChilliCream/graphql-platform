@@ -145,7 +145,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // act
-                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc " }, ct);
+                await webSocket.SendConnectionInitAsync(new() { ["token"] = "abc ", }, ct);
 
                 // assert
                 var message = await webSocket.ReceiveServerMessageAsync(ct);
@@ -671,7 +671,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // act
                 await webSocket.SendPingAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def" },
+                    new Dictionary<string, object?> { ["abc"] = "def", },
                     ct);
 
                 // assert
@@ -722,7 +722,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
 
                 // act
                 await webSocket.SendPongAsync(
-                    new Dictionary<string, object?> { ["abc"] = "def" },
+                    new Dictionary<string, object?> { ["abc"] = "def", },
                     ct);
 
                 // assert
@@ -930,7 +930,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             CancellationToken cancellationToken = default)
         {
             var payload = pingMessage.As<Dictionary<string, string?>>();
-            var responsePayload = new Dictionary<string, object?> { ["touched"] = true };
+            var responsePayload = new Dictionary<string, object?> { ["touched"] = true, };
 
             if (payload is not null)
             {

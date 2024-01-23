@@ -48,10 +48,10 @@ internal sealed class SubgraphPackCommand : Command
     {
         schemaFile ??= new FileInfo(Combine(workingDirectory.FullName, SchemaFile));
         configFile ??= new FileInfo(Combine(workingDirectory.FullName, ConfigFile));
-        extensionFiles ??= new List<FileInfo>
-        {
-            new FileInfo(Combine(workingDirectory.FullName, ExtensionFile))
-        };
+        extensionFiles ??=
+        [
+            new FileInfo(Combine(workingDirectory.FullName, ExtensionFile)),
+        ];
 
         if (!schemaFile.Exists)
         {

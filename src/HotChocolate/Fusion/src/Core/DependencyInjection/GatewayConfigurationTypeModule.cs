@@ -81,7 +81,7 @@ internal sealed class GatewayConfigurationTypeModule : TypeModule
             .AddDocument(schemaDoc)
             .SetFusionGraphConfig(fusionGraphConfig);
 
-        if (schemaDoc.Definitions.Any(t => t is ScalarTypeDefinitionNode { Name.Value: "Upload" }))
+        if (schemaDoc.Definitions.Any(t => t is ScalarTypeDefinitionNode { Name.Value: "Upload", }))
         {
             schemaBuilder.AddType<UploadType>();
         }

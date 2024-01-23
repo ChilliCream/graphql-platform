@@ -17,7 +17,7 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
             Culture = CultureInfo.InvariantCulture,
             ContractResolver = ChildFirstContractResolver.Instance,
-            Converters = new List<JsonConverter> { new StringEnumConverter() }
+            Converters = new List<JsonConverter> { new StringEnumConverter(), },
         };
 
     public bool CanHandle(object? value)

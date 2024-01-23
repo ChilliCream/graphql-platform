@@ -177,7 +177,7 @@ internal sealed partial class ExtendedType
                 return new ExtendedType(
                     type,
                     ExtendedTypeKind.Extended,
-                    typeArguments: new[] { elementType },
+                    typeArguments: new[] { elementType, },
                     elementType: elementType,
                     source: type,
                     isNullable: state ?? false);

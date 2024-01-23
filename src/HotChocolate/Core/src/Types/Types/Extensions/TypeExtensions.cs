@@ -549,7 +549,7 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
-        if (type is IHasRuntimeType { RuntimeType: { } } t)
+        if (type is IHasRuntimeType { RuntimeType: { }, } t)
         {
             return t.RuntimeType;
         }

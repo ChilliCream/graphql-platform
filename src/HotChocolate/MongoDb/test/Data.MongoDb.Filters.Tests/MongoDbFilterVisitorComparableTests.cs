@@ -12,7 +12,7 @@ public class MongoDbFilterVisitorComparableTests
     , IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             BarShort = 12,
@@ -28,16 +28,16 @@ public class MongoDbFilterVisitorComparableTests
             BarShort = 13,
             BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
         },
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
+    [
         new()
         {
             BarShort = 12,
             BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
         },
-        new() { BarShort = null, BarDateTime = null },
+        new() { BarShort = null, BarDateTime = null, },
         new()
         {
             BarShort = 14,
@@ -48,7 +48,7 @@ public class MongoDbFilterVisitorComparableTests
             BarShort = 13,
             BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
         },
-    };
+    ];
 
     public MongoDbFilterVisitorComparableTests(MongoResource resource)
     {

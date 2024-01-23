@@ -434,7 +434,7 @@ public static class EndpointRouteBuilderExtensions
         var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
             .WithDisplayName("Banana Cake Pop Pipeline")
-            .WithMetadata(new BananaCakePopOptions { GraphQLEndpoint = relativeRequestPath });
+            .WithMetadata(new BananaCakePopOptions { GraphQLEndpoint = relativeRequestPath, });
 
         return new BananaCakePopEndpointConventionBuilder(builder);
     }
@@ -519,7 +519,7 @@ public static class EndpointRouteBuilderExtensions
     public static WebSocketEndpointConventionBuilder WithOptions(
         this WebSocketEndpointConventionBuilder builder,
         GraphQLSocketOptions socketOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions });
+        builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions, });
 
     private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
         => builder.Use(next => async context =>

@@ -13,7 +13,7 @@ public class ProjectionConventionDefinition : IHasScope
     public IProjectionProvider? ProviderInstance { get; set; }
 
     public List<IProjectionProviderExtension> ProviderExtensions { get; } =
-        new List<IProjectionProviderExtension>();
+        [];
 
-    public List<Type> ProviderExtensionsTypes { get; } = new List<Type>();
+    public List<Type> ProviderExtensionsTypes { get; } = [];
 }

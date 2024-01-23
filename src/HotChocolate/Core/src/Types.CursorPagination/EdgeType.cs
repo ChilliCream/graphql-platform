@@ -79,7 +79,7 @@ internal sealed class EdgeType : ObjectType, IEdgeType
     /// <inheritdoc />
     public override bool IsInstanceOfType(IResolverContext context, object resolverResult)
     {
-        if (resolverResult is IEdge { Node: not null } edge)
+        if (resolverResult is IEdge { Node: not null, } edge)
         {
             IType nodeType = NodeType;
 

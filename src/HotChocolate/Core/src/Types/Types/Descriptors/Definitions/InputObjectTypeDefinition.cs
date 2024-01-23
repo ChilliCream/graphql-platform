@@ -53,7 +53,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
 
         if (HasConfigurations)
         {
-            configs ??= new();
+            configs ??= [];
             configs.AddRange(Configurations);
         }
 
@@ -61,7 +61,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
         {
             if (field.HasConfigurations)
             {
-                configs ??= new();
+                configs ??= [];
                 configs.AddRange(field.Configurations);
             }
         }
@@ -73,7 +73,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     {
         base.CopyTo(target);
 
-        if (Fields is { Count: > 0 })
+        if (Fields is { Count: > 0, })
         {
             target.Fields.Clear();
 

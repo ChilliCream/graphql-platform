@@ -530,7 +530,7 @@ public class InputParserTests
 
     public class FooInput
     {
-        public List<Bar?> Bars { get; set; } = new();
+        public List<Bar?> Bars { get; set; } = [];
     }
 
     public class Query4

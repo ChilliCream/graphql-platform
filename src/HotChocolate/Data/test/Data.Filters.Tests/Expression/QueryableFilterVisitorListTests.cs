@@ -20,10 +20,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+        var a = new FooSimple { Bar = new[] { "c", "d", "a", }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+        var b = new FooSimple { Bar = new[] { "c", "d", "b", }, };
         Assert.False(func(b));
     }
 
@@ -39,13 +39,13 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+        var a = new FooSimple { Bar = new[] { "c", "d", "a", }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new string[0] };
+        var b = new FooSimple { Bar = new string[0], };
         Assert.False(func(b));
 
-        var c = new FooSimple { Bar = null };
+        var c = new FooSimple { Bar = null, };
         Assert.False(func(c));
     }
 
@@ -61,13 +61,13 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new[] { "c", null, "a" } };
+        var a = new FooSimple { Bar = new[] { "c", null, "a", }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new[] { "c", null, "b" } };
+        var b = new FooSimple { Bar = new[] { "c", null, "b", }, };
         Assert.False(func(b));
 
-        var c = new FooSimple { Bar = null };
+        var c = new FooSimple { Bar = null, };
         Assert.False(func(c));
     }
 
@@ -87,10 +87,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
+                new FooNested { Bar = "c", },
                 null,
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(a));
 
@@ -98,10 +98,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
+                new FooNested { Bar = "c", },
                 null,
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(b));
     }
@@ -119,10 +119,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(a));
 
@@ -130,10 +130,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(b));
 
@@ -142,11 +142,11 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
             FooNested = new[]
             {
                 null,
-                new FooNested { Bar = null },
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(c));
     }
@@ -166,10 +166,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.False(func(a));
 
@@ -177,10 +177,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.True(func(b));
         var c = new Foo
@@ -188,10 +188,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
             FooNested = new[]
             {
                 null,
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = null },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.True(func(c));
     }
@@ -212,10 +212,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(a));
 
@@ -223,10 +223,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.False(func(b));
 
@@ -234,10 +234,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(c));
 
@@ -245,10 +245,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(d));
 
@@ -257,10 +257,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
             FooNested = new[]
             {
                 null,
-                new FooNested { Bar = null },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(e));
     }
@@ -281,18 +281,18 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(a));
 
-        var b = new Foo { FooNested = new FooNested[] { } };
+        var b = new Foo { FooNested = new FooNested[] { }, };
         Assert.False(func(b));
-        var c = new Foo { FooNested = null };
+        var c = new Foo { FooNested = null, };
         Assert.False(func(c));
-        var d = new Foo { FooNested = new FooNested[] { null! } };
+        var d = new Foo { FooNested = new FooNested[] { null!, }, };
         Assert.True(func(d));
     }
 
@@ -312,19 +312,19 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.False(func(a));
 
-        var b = new Foo { FooNested = new FooNested[] { } };
+        var b = new Foo { FooNested = new FooNested[] { }, };
         Assert.True(func(b));
-        var c = new Foo { FooNested = null };
+        var c = new Foo { FooNested = null, };
         Assert.False(func(c));
 
-        var d = new Foo { FooNested = new FooNested[] { null! } };
+        var d = new Foo { FooNested = new FooNested[] { null!, }, };
         Assert.False(func(d));
     }
 
@@ -341,10 +341,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new[] { "c", null, "a" } };
+        var a = new FooSimple { Bar = new[] { "c", null, "a", }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+        var b = new FooSimple { Bar = new[] { "c", "d", "b", }, };
         Assert.False(func(b));
     }
 
@@ -360,10 +360,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+        var a = new FooSimple { Bar = new[] { "c", "d", "a", }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new[] { "c", null, "b" } };
+        var b = new FooSimple { Bar = new[] { "c", null, "b", }, };
         Assert.False(func(b));
     }
 
@@ -379,10 +379,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new string[] { null!, null!, null! } };
+        var a = new FooSimple { Bar = new string[] { null!, null!, null!, }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+        var b = new FooSimple { Bar = new[] { "c", "d", "b", }, };
         Assert.False(func(b));
     }
 
@@ -398,10 +398,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         var func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+        var a = new FooSimple { Bar = new[] { "c", "d", "a", }, };
         Assert.True(func(a));
 
-        var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+        var b = new FooSimple { Bar = new[] { "c", "d", "b", }, };
         Assert.False(func(b));
     }
 
@@ -421,10 +421,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(a));
 
@@ -432,10 +432,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.True(func(b));
 
@@ -443,10 +443,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.True(func(c));
 
@@ -454,10 +454,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(d));
 
@@ -466,10 +466,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
             FooNested = new[]
             {
                 null,
-                new FooNested { Bar = null },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         };
         Assert.False(func(e));
 
@@ -478,10 +478,10 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
             OtherProperty = "ShouldBeNull",
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         };
         Assert.False(func(f));
     }

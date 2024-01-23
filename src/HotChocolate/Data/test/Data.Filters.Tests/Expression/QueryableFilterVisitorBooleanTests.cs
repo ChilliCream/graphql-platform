@@ -15,10 +15,10 @@ public class QueryableFilterVisitorBooleanTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = true };
+        var a = new Foo { Bar = true, };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = false };
+        var b = new Foo { Bar = false, };
         Assert.False(func(b));
     }
 
@@ -33,10 +33,10 @@ public class QueryableFilterVisitorBooleanTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = false };
+        var a = new Foo { Bar = false, };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = true };
+        var b = new Foo { Bar = true, };
         Assert.False(func(b));
     }
 
@@ -51,13 +51,13 @@ public class QueryableFilterVisitorBooleanTests : FilterVisitorTestBase
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { Bar = true };
+        var a = new FooNullable { Bar = true, };
         Assert.True(func(a));
 
-        var b = new FooNullable { Bar = false };
+        var b = new FooNullable { Bar = false, };
         Assert.False(func(b));
 
-        var c = new FooNullable { Bar = null };
+        var c = new FooNullable { Bar = null, };
         Assert.False(func(c));
     }
 
@@ -72,13 +72,13 @@ public class QueryableFilterVisitorBooleanTests : FilterVisitorTestBase
         var func = tester.Build<FooNullable>(value);
 
         // assert
-        var a = new FooNullable { Bar = false };
+        var a = new FooNullable { Bar = false, };
         Assert.True(func(a));
 
-        var b = new FooNullable { Bar = true };
+        var b = new FooNullable { Bar = true, };
         Assert.False(func(b));
 
-        var c = new FooNullable { Bar = null };
+        var c = new FooNullable { Bar = null, };
         Assert.False(func(c));
     }
 

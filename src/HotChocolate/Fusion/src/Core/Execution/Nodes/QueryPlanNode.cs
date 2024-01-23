@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 internal abstract class QueryPlanNode
 {
-    private readonly List<QueryPlanNode> _nodes = new();
+    private readonly List<QueryPlanNode> _nodes = [];
     private bool _isReadOnly;
 
     /// <summary>

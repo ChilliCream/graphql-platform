@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Sorting.Expressions;
 public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -63,12 +63,12 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarString = "testctest",
                 //ScalarArray = null,
                 ObjectArray = null,
-            }
-        }
-    };
+            },
+        },
+    ];
 
     private static readonly BarNullable?[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -151,8 +151,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         {
             Foo =null
         },
-        null
-    };
+        null,
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -472,7 +472,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new();
+        public List<Bar>? ObjectArray { get; set; } = [];
     }
 
     public class FooNullable

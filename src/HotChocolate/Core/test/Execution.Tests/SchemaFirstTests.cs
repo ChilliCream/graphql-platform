@@ -287,7 +287,7 @@ public class SchemaFirstTests
                 Assert.IsType<Dictionary<string, object>>(
                     input.ParameterChangeInfo[0].Value)["a"]);
 
-            return Task.FromResult(new ChangeChannelParameterPayload { Message = message });
+            return Task.FromResult(new ChangeChannelParameterPayload { Message = message, });
         }
     }
 

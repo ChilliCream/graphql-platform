@@ -3,7 +3,7 @@
   "type": "YetAnotherInputObject",
   "extensions": {
     "rfc": "https://github.com/graphql/graphql-spec/pull/445",
-    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
+    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Input-Objects.Type-Validation"
   }
 }
 

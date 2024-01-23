@@ -73,12 +73,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data);
@@ -98,12 +98,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, first: 10);
@@ -123,12 +123,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, first: 2);
@@ -148,12 +148,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, first: 20);
@@ -173,12 +173,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, ToBase64(1));
@@ -198,12 +198,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, ToBase64(1), first: 10);
@@ -223,13 +223,13 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
             Foo.Create(4),
-        };
+        ];
 
         // act
         var result = await Apply(data, ToBase64(1), first: 2);
@@ -249,12 +249,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, ToBase64(1), first: 20);
@@ -274,12 +274,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(3));
@@ -299,12 +299,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(3), last: 10);
@@ -324,12 +324,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(3), last: 2);
@@ -349,12 +349,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(3), last: 20);
@@ -374,12 +374,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(2));
@@ -399,12 +399,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(2), last: 10);
@@ -424,13 +424,13 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
             Foo.Create(4),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(3), last: 2);
@@ -450,12 +450,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, before: ToBase64(2), last: 20);
@@ -475,12 +475,12 @@ public class CursorPagingHandlerTests
     {
         // arrange
         Foo[] data =
-        {
+        [
             Foo.Create(0),
             Foo.Create(1),
             Foo.Create(2),
             Foo.Create(3),
-        };
+        ];
 
         // act
         var result = await Apply(data, after: ToBase64(0), before: ToBase64(3));

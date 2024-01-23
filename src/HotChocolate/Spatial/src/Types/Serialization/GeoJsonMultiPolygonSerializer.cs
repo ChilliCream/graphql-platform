@@ -30,7 +30,7 @@ internal class GeoJsonMultiPolygonSerializer
 
         Polygon[]? geometries;
 
-        if (coordinates is IList { Count: > 0 } list)
+        if (coordinates is IList { Count: > 0, } list)
         {
             if (list.Count != 0)
             {

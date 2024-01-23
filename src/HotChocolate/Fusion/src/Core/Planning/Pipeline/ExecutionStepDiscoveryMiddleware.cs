@@ -147,7 +147,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
 
                 if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
-                    (leftovers ??= new()).Add(selection);
+                    (leftovers ??= []).Add(selection);
                     continue;
                 }
 
@@ -251,7 +251,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         field,
                         operation.RootType,
                         selectionSetTypeMetadata);
-                    (processed ??= new()).Add(i);
+                    (processed ??= []).Add(i);
                     continue;
                 }
 
@@ -263,11 +263,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         selection,
                         selectionSetTypeMetadata,
                         context.ParentSelections);
-                    (processed ??= new()).Add(i);
+                    (processed ??= []).Add(i);
                 }
             }
 
-            if (processed is { Count: > 0 })
+            if (processed is { Count: > 0, })
             {
                 var temp = selections.ToList();
 
@@ -391,7 +391,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             }
             else
             {
-                (leftovers ??= new()).Add(selection);
+                (leftovers ??= []).Add(selection);
             }
             
             path.RemoveAt(pathIndex);
@@ -553,7 +553,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             operation,
             nodeSelection,
             null,
-            new List<ISelection>(),
+            [],
             executionStep,
             entityType,
             preferBatching,

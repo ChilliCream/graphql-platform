@@ -1,5 +1,5 @@
 ﻿{
-  "message": "The field `def` must be implement by object type `Foo`.",
+  "message": "The field `def` must be implemented by object type `Foo`.",
   "type": "Foo",
   "extensions": {
     "implementedField": "def",
@@ -8,7 +8,7 @@
 }
 
 {
-  "message": "The field `def` must be implement by object type `Foo`.",
+  "message": "The field `def` must be implemented by object type `Foo`.",
   "type": "Foo",
   "extensions": {
     "implementedField": "def",
@@ -17,7 +17,7 @@
 }
 
 {
-  "message": "The field `def` must be implement by object type `Foo`.",
+  "message": "The field `def` must be implemented by object type `Foo`.",
   "type": "Foo",
   "extensions": {
     "implementedField": "def",

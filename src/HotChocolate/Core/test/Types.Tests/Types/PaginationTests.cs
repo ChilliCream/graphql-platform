@@ -22,7 +22,7 @@ public class PaginationTests
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync(cancellationToken: ct);
@@ -55,7 +55,7 @@ public class PaginationTests
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50, })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync(cancellationToken: ct);
@@ -108,8 +108,8 @@ public class PaginationTests
                 .UseOffsetPaging<UserType>()
                 .Resolve(() => new[]
                 {
-                    new User { FirstName = "Mother" },
-                    new User { FirstName = "Father" }
+                    new User { FirstName = "Mother", },
+                    new User { FirstName = "Father", },
                 });
 
             descriptor
@@ -117,7 +117,7 @@ public class PaginationTests
                 .UseOffsetPaging<GroupType>()
                 .Resolve(() => new[]
                 {
-                    new Group { FirstName = "Admin" }
+                    new Group { FirstName = "Admin", },
                 });
         }
     }
@@ -131,15 +131,15 @@ public class PaginationTests
                 .UseOffsetPaging<UserType>()
                 .Resolve(() => new[]
                 {
-                    new User { FirstName = "Mother" },
-                    new User { FirstName = "Father" }
+                    new User { FirstName = "Mother", },
+                    new User { FirstName = "Father", },
                 });
         }
     }
 
     public class Query
     {
-        public List<User> Users => new() { new User() };
+        public List<User> Users => [new User(),];
     }
 
     public class QueryType : ObjectType<Query>

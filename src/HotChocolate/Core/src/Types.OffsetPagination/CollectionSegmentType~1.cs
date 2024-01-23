@@ -95,7 +95,7 @@ internal class CollectionSegmentType
         definition.Fields.Add(new(
             Names.Items,
             CollectionSegmentType_Items_Description,
-            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items}});
+            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items, }, });
 
         if (withTotalCount)
         {

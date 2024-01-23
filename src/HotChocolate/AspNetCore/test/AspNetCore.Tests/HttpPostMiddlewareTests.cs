@@ -30,7 +30,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -47,7 +47,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ s: __typename }" });
+            new ClientQueryRequest { Query = "{ s: __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -64,7 +64,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ s: __typename t: __typename }" });
+            new ClientQueryRequest { Query = "{ s: __typename t: __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -78,7 +78,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -92,7 +92,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" },
+            new ClientQueryRequest { Query = "{ __typename }", },
             includeQueryPlan: true);
 
         // assert
@@ -108,7 +108,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostRawAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -123,7 +123,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostRawAsync(
-            new ClientQueryRequest { Query = "{ __typename }" });
+            new ClientQueryRequest { Query = "{ __typename }", });
 
         // assert
         result.MatchSnapshot();
@@ -137,7 +137,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = "{ __typename }" },
+            new ClientQueryRequest { Query = "{ __typename }", },
             "/foo");
 
         // assert
@@ -236,7 +236,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                 });
 
         // assert
@@ -261,7 +261,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                 });
 
         // assert
@@ -305,7 +305,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "id", "1000" } },
+                    Variables = new Dictionary<string, object?> { { "id", "1000" }, },
                 });
 
         // assert
@@ -511,7 +511,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { ["if"] = true },
+                    Variables = new Dictionary<string, object?> { ["if"] = true, },
                 });
 
         // assert
@@ -540,7 +540,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             }
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { ["if"] = false },
+                    Variables = new Dictionary<string, object?> { ["if"] = false, },
                 });
 
         // assert
@@ -798,7 +798,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" } },
+                    Variables = new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                 });
 
         // assert
@@ -843,7 +843,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Float) {
                                  double_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", 1.539 } },
+                    Variables = new Dictionary<string, object?> { { "d", 1.539 }, },
                 },
                 "/arguments");
 
@@ -866,12 +866,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Float) {
                                  double_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue } },
+                    Variables = new Dictionary<string, object?> { { "d", double.MaxValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { double.MaxValue, result }.MatchSnapshot();
+        new { double.MaxValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -889,12 +889,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object?> { { "d", double.MinValue } },
+                    Variables = new Dictionary<string, object?> { { "d", double.MinValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { double.MinValue, result }.MatchSnapshot();
+        new { double.MinValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -912,12 +912,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Decimal) {
                                  decimal_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue } },
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MaxValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { decimal.MaxValue, result }.MatchSnapshot();
+        new { decimal.MaxValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -935,12 +935,12 @@ public class HttpPostMiddlewareTests : ServerTestBase
                             query ($d: Decimal) {
                                  decimal_arg(d: $d)
                             }",
-                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue } },
+                    Variables = new Dictionary<string, object?> { { "d", decimal.MinValue }, },
                 },
                 "/arguments");
 
         // assert
-        new { decimal.MinValue, result }.MatchSnapshot();
+        new { decimal.MinValue, result, }.MatchSnapshot();
     }
 
     [Fact]
@@ -1328,14 +1328,14 @@ public class HttpPostMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
                 _ => new DefaultHttpResponseFormatter(
-                    new() { Json = new() { NullIgnoreCondition = Fields } })));
+                    new() { Json = new() { NullIgnoreCondition = Fields, }, })));
         var client = server.CreateClient();
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" }),
+                new ClientQueryRequest { Query = "{ __schema { description } }", }),
         };
 
         using var response = await client.SendAsync(request);
@@ -1363,7 +1363,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
             configureServices: s => s.AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields },
+                    Json = new JsonResultFormatterOptions { NullIgnoreCondition = Fields, },
                 }));
         var client = server.CreateClient();
 
@@ -1371,7 +1371,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __schema { description } }" }),
+                new ClientQueryRequest { Query = "{ __schema { description } }", }),
         };
 
         using var response = await client.SendAsync(request);
@@ -1405,7 +1405,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                 .AddHttpResponseFormatter(
                     new HttpResponseFormatterOptions
                     {
-                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists },
+                        Json = new JsonResultFormatterOptions { NullIgnoreCondition = Lists, },
                     }));
         var client = server.CreateClient();
 
@@ -1413,7 +1413,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ nullValues }" }),
+                new ClientQueryRequest { Query = "{ nullValues }", }),
         };
 
         using var response = await client.SendAsync(request);
@@ -1458,6 +1458,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
     public class NullListQuery
     {
-        public List<string?> NullValues => new() { null, "abc", null };
+        public List<string?> NullValues => [null, "abc", null,];
     }
 }

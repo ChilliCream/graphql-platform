@@ -7,10 +7,10 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterCombinatorTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = false }
-    };
+    [
+        new() { Bar = true, },
+        new() { Bar = false, },
+    ];
 
     private readonly SchemaCache _cache = new();
 

@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverTypeInterceptor : TypeInterceptor
 {
-    private readonly List<IDictionary<string, object?>> _nodes = new();
+    private readonly List<IDictionary<string, object?>> _nodes = [];
 
     internal override uint Position => uint.MaxValue - 101;
 

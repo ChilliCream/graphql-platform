@@ -161,7 +161,7 @@ public class SchemaSerializerTests
         // act
         using var stream = new MemoryStream();
         await SchemaPrinter.PrintAsync(
-            new INamedType[] { schema.QueryType },
+            new INamedType[] { schema.QueryType, },
             stream,
             true);
 
@@ -201,7 +201,7 @@ public class SchemaSerializerTests
         // act
         using var stream = new MemoryStream();
         async Task Fail() => await SchemaPrinter.PrintAsync(
-            new INamedType[] { schema.QueryType },
+            new INamedType[] { schema.QueryType, },
             null,
             true);
 

@@ -56,7 +56,7 @@ public class SortingInfo : SortingValueNode, ISortingInfo
                     var value = CreateValueInfo(fieldValue.Value, field.Type);
                     if (field is SortField fieldInfo)
                     {
-                        fieldInfos ??= new();
+                        fieldInfos ??= [];
                         fieldInfos.Add(new SortingFieldInfo(fieldInfo, value));
                     }
                 }

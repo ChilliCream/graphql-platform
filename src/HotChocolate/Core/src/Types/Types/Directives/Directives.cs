@@ -10,15 +10,14 @@ namespace HotChocolate.Types;
 public static class Directives
 {
     private static readonly HashSet<string> _directiveNames =
-        new()
-        {
-            WellKnownDirectives.Skip,
-            WellKnownDirectives.Include,
-            WellKnownDirectives.Deprecated,
-            WellKnownDirectives.Stream,
-            WellKnownDirectives.Defer,
-            WellKnownDirectives.OneOf
-        };
+    [
+        WellKnownDirectives.Skip,
+        WellKnownDirectives.Include,
+        WellKnownDirectives.Deprecated,
+        WellKnownDirectives.Stream,
+        WellKnownDirectives.Defer,
+        WellKnownDirectives.OneOf,
+    ];
 
     internal static IReadOnlyList<TypeReference> CreateReferences(
         IDescriptorContext descriptorContext)
@@ -40,7 +39,7 @@ public static class Directives
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(StreamDirectiveType)));
         }
-        
+
         if (descriptorContext.Options.EnableTrueNullability)
         {
             directiveTypes.Add(typeInspector.GetTypeRef(typeof(NullBubblingDirective)));

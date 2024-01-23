@@ -731,7 +731,7 @@ public class DocumentValidatorTests
                 }));
 
         document = document.WithDefinitions(
-            new List<IDefinitionNode>(document.Definitions.Skip(1)) { operationWithDuplicates });
+            new List<IDefinitionNode>(document.Definitions.Skip(1)) { operationWithDuplicates, });
 
         var services = new ServiceCollection()
             .AddValidation()

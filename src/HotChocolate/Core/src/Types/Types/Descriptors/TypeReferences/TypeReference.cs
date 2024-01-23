@@ -105,7 +105,7 @@ public abstract class TypeReference : IEquatable<TypeReference>
         ITypeSystemMember type,
         string? scope = null)
     {
-        if (scope is null && type is IHasScope { Scope: not null } withScope)
+        if (scope is null && type is IHasScope { Scope: not null, } withScope)
         {
             scope = withScope.Scope;
         }

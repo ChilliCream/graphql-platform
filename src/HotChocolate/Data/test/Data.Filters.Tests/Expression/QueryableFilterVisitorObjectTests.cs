@@ -16,10 +16,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarShort = 12 } };
+        var a = new Bar { Foo = new Foo { BarShort = 12, }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarShort = 13 } };
+        var b = new Bar { Foo = new Foo { BarShort = 13, }, };
         Assert.False(func(b));
     }
 
@@ -35,10 +35,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarShort = 13 } };
+        var a = new Bar { Foo = new Foo { BarShort = 13, }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarShort = 12 } };
+        var b = new Bar { Foo = new Foo { BarShort = 12, }, };
         Assert.False(func(b));
     }
 
@@ -54,13 +54,13 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<BarNullable>(value);
 
         // assert
-        var a = new BarNullable { Foo = new FooNullable { BarShort = 12 } };
+        var a = new BarNullable { Foo = new FooNullable { BarShort = 12, }, };
         Assert.True(func(a));
 
-        var b = new BarNullable { Foo = new FooNullable { BarShort = 13 } };
+        var b = new BarNullable { Foo = new FooNullable { BarShort = 13, }, };
         Assert.False(func(b));
 
-        var c = new BarNullable { Foo = new FooNullable { BarShort = null } };
+        var c = new BarNullable { Foo = new FooNullable { BarShort = null, }, };
         Assert.False(func(c));
     }
 
@@ -76,13 +76,13 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<BarNullable>(value);
 
         // assert
-        var a = new BarNullable { Foo = new FooNullable { BarShort = 13 } };
+        var a = new BarNullable { Foo = new FooNullable { BarShort = 13, }, };
         Assert.True(func(a));
 
-        var b = new BarNullable { Foo = new FooNullable { BarShort = 12 } };
+        var b = new BarNullable { Foo = new FooNullable { BarShort = 12, }, };
         Assert.False(func(b));
 
-        var c = new BarNullable { Foo = new FooNullable { BarShort = null } };
+        var c = new BarNullable { Foo = new FooNullable { BarShort = null, }, };
         Assert.False(func(c));
     }
 
@@ -98,10 +98,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarBool = true } };
+        var a = new Bar { Foo = new Foo { BarBool = true, }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarBool = false } };
+        var b = new Bar { Foo = new Foo { BarBool = false, }, };
         Assert.False(func(b));
     }
 
@@ -117,13 +117,13 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<BarNullable>(value);
 
         // assert
-        var a = new BarNullable { Foo = new FooNullable { BarBool = true } };
+        var a = new BarNullable { Foo = new FooNullable { BarBool = true, }, };
         Assert.True(func(a));
 
-        var b = new BarNullable { Foo = new FooNullable { BarBool = false } };
+        var b = new BarNullable { Foo = new FooNullable { BarBool = false, }, };
         Assert.False(func(b));
 
-        var c = new BarNullable { Foo = new FooNullable { BarBool = null } };
+        var c = new BarNullable { Foo = new FooNullable { BarBool = null, }, };
         Assert.False(func(c));
     }
 
@@ -139,10 +139,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarEnum = BarEnum.BAR } };
+        var a = new Bar { Foo = new Foo { BarEnum = BarEnum.BAR, }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarEnum = BarEnum.BAZ } };
+        var b = new Bar { Foo = new Foo { BarEnum = BarEnum.BAZ, }, };
         Assert.False(func(b));
     }
 
@@ -158,10 +158,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarEnum = BarEnum.BAZ } };
+        var a = new Bar { Foo = new Foo { BarEnum = BarEnum.BAZ, }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarEnum = BarEnum.BAR } };
+        var b = new Bar { Foo = new Foo { BarEnum = BarEnum.BAR, }, };
         Assert.False(func(b));
     }
 
@@ -177,13 +177,13 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<BarNullable>(value);
 
         // assert
-        var a = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAR } };
+        var a = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAR, }, };
         Assert.True(func(a));
 
-        var b = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAZ } };
+        var b = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAZ, }, };
         Assert.False(func(b));
 
-        var c = new BarNullable { Foo = new FooNullable { BarEnum = null } };
+        var c = new BarNullable { Foo = new FooNullable { BarEnum = null, }, };
         Assert.False(func(c));
     }
 
@@ -199,13 +199,13 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<BarNullable>(value);
 
         // assert
-        var a = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAZ } };
+        var a = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAZ, }, };
         Assert.True(func(a));
 
-        var b = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAR } };
+        var b = new BarNullable { Foo = new FooNullable { BarEnum = BarEnum.BAR, }, };
         Assert.False(func(b));
 
-        var c = new BarNullable { Foo = new FooNullable { BarEnum = null } };
+        var c = new BarNullable { Foo = new FooNullable { BarEnum = null, }, };
         Assert.False(func(c));
     }
 
@@ -221,10 +221,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarString = "a" } };
+        var a = new Bar { Foo = new Foo { BarString = "a", }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarString = "b" } };
+        var b = new Bar { Foo = new Foo { BarString = "b", }, };
         Assert.False(func(b));
     }
 
@@ -240,10 +240,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { BarString = "a" } };
+        var a = new Bar { Foo = new Foo { BarString = "a", }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { BarString = "b" } };
+        var b = new Bar { Foo = new Foo { BarString = "b", }, };
         Assert.False(func(b));
     }
 
@@ -259,10 +259,10 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { ScalarArray = new[] { "c", "d", "a" } } };
+        var a = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "a",], }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { ScalarArray = new[] { "c", "d", "b" } } };
+        var b = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "b",], }, };
         Assert.False(func(b));
     }
 
@@ -278,13 +278,13 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         var func = tester.Build<Bar>(value);
 
         // assert
-        var a = new Bar { Foo = new Foo { ScalarArray = new[] { "c", "d", "a" } } };
+        var a = new Bar { Foo = new Foo { ScalarArray = ["c", "d", "a",], }, };
         Assert.True(func(a));
 
-        var b = new Bar { Foo = new Foo { ScalarArray = new string[0] } };
+        var b = new Bar { Foo = new Foo { ScalarArray = new string[0], }, };
         Assert.False(func(b));
 
-        var c = new Bar { Foo = new Foo { ScalarArray = null } };
+        var c = new Bar { Foo = new Foo { ScalarArray = null, }, };
         Assert.False(func(c));
     }
 
@@ -304,14 +304,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                ScalarArray = new[] { "c", "d", "a" }
-                            }
-                        }
-                    }
-            }
+                                ScalarArray = ["c", "d", "a",],
+                            },
+                        },
+                ],
+            },
         };
         Assert.True(func(a));
 
@@ -319,14 +320,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                ScalarArray = new[] { "c", "d", "b" }
-                            }
-                        }
-                    }
-            }
+                                ScalarArray = ["c", "d", "b",],
+                            },
+                        },
+                ],
+            },
         };
         Assert.False(func(b));
     }
@@ -347,14 +349,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                ScalarArray = new[] { "c", "d", "a" }
-                            }
-                        }
-                    }
-            }
+                                ScalarArray = ["c", "d", "a",],
+                            },
+                        },
+                ],
+            },
         };
         Assert.True(func(a));
 
@@ -362,14 +365,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                ScalarArray = new string[0]
-                            }
-                        }
-                    }
-            }
+                                ScalarArray = new string[0],
+                            },
+                        },
+                ],
+            },
         };
         Assert.False(func(b));
 
@@ -377,14 +381,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                ScalarArray = null
-                            }
-                        }
-                    }
-            }
+                                ScalarArray = null,
+                            },
+                        },
+                ],
+            },
         };
         Assert.False(func(c));
     }
@@ -405,14 +410,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                BarString = "a"
-                            }
-                        }
-                    }
-            }
+                                BarString = "a",
+                            },
+                        },
+                ],
+            },
         };
         Assert.True(func(a));
 
@@ -420,14 +426,15 @@ public class QueryableFilterVisitorObjectTests : FilterVisitorTestBase
         {
             Foo = new Foo
             {
-                ObjectArray = new Bar[] {
-                        new Bar {
+                ObjectArray =
+                [
+                    new Bar {
                             Foo = new Foo {
-                                BarString = "b"
-                            }
-                        }
-                    }
-            }
+                                BarString = "b",
+                            },
+                        },
+                ],
+            },
         };
         Assert.False(func(b));
     }

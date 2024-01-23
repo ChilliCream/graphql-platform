@@ -8,21 +8,21 @@ public class QueryableFilterVisitorEnumTests
     : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = null, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     private readonly SchemaCache _cache;
 

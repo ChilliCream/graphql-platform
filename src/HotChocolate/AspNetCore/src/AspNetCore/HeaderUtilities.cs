@@ -17,13 +17,13 @@ internal static class HeaderUtilities
         new(StringComparer.Ordinal);
 
     public static readonly AcceptMediaType[] GraphQLResponseContentTypes =
-    {
+    [
         new AcceptMediaType(
             ContentType.Types.Application,
             ContentType.SubTypes.GraphQLResponse,
             null,
             StringSegment.Empty),
-    };
+    ];
 
     /// <summary>
     /// Gets the parsed accept header values from a request.
@@ -50,7 +50,7 @@ internal static class HeaderUtilities
 
                 if (TryParseMediaType(headerValue, out var parsedValue))
                 {
-                    return new AcceptHeaderResult(new[] { parsedValue });
+                    return new AcceptHeaderResult([parsedValue,]);
                 }
 
                 // note: this is a workaround for now. we need to parse this properly.

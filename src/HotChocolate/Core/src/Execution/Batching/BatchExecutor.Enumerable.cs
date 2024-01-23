@@ -22,7 +22,7 @@ internal partial class BatchExecutor
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConverter _typeConverter;
         private readonly InputFormatter _inputFormatter;
-        private readonly ConcurrentBag<ExportedVariable> _exportedVariables = new();
+        private readonly ConcurrentBag<ExportedVariable> _exportedVariables = [];
         private readonly CollectVariablesVisitor _visitor;
         private readonly CollectVariablesVisitationMap _visitationMap = new();
         private DocumentNode? _previous;

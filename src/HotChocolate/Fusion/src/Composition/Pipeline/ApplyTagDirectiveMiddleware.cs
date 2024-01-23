@@ -225,9 +225,9 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     {
         var coordinate = parent switch
         {
-            { OfDirective: true } => new SchemaCoordinate(parent.Name, argumentName: field.Name, ofDirective: true),
-            { MemberName: null } => new SchemaCoordinate(parent.Name, field.Name),
-            { MemberName: not null } => new SchemaCoordinate(parent.Name, parent.MemberName, field.Name),
+            { OfDirective: true, } => new SchemaCoordinate(parent.Name, argumentName: field.Name, ofDirective: true),
+            { MemberName: null, } => new SchemaCoordinate(parent.Name, field.Name),
+            { MemberName: not null, } => new SchemaCoordinate(parent.Name, parent.MemberName, field.Name),
         };
 
         ApplyDirectives(context, tagContext, field, coordinate, tagDirectiveType, tags, makePublic);

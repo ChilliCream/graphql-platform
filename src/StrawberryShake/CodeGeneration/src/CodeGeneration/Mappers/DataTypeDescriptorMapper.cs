@@ -91,8 +91,8 @@ public static class DataTypeDescriptorMapper
         public DataTypeInfo(string name, string? description)
         {
             Name = name;
-            Components = new HashSet<string>();
-            AbstractTypeParentName = new List<string>();
+            Components = [];
+            AbstractTypeParentName = [];
             Description = description;
         }
 

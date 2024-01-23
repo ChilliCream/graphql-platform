@@ -33,11 +33,11 @@ public sealed partial class OperationCompiler
     private readonly Dictionary<int, SelectionVariants> _selectionVariants = new();
     private readonly Dictionary<string, FragmentDefinitionNode> _fragmentDefinitions = new(Ordinal);
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<IOperationOptimizer> _operationOptimizers = new();
-    private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = new();
-    private readonly List<Selection> _selections = new();
+    private readonly List<IOperationOptimizer> _operationOptimizers = [];
+    private readonly List<ISelectionSetOptimizer> _selectionSetOptimizers = [];
+    private readonly List<Selection> _selections = [];
     private readonly HashSet<string> _directiveNames = new(Ordinal);
-    private readonly List<FieldMiddleware> _pipelineComponents = new();
+    private readonly List<FieldMiddleware> _pipelineComponents = [];
     private IncludeCondition[] _includeConditions = Array.Empty<IncludeCondition>();
     private CompilerContext? _deferContext;
     private int _nextSelectionId;
@@ -112,7 +112,7 @@ public sealed partial class OperationCompiler
             var rootPath = SelectionPath.Root;
             var id = GetOrCreateSelectionSetRefId(operationDefinition.SelectionSet, rootPath);
             var variants = GetOrCreateSelectionVariants(id);
-            SelectionSetInfo[] infos = { new(operationDefinition.SelectionSet, 0) };
+            SelectionSetInfo[] infos = [new(operationDefinition.SelectionSet, 0),];
 
             var context = new CompilerContext(schema, document, enableNullBubbling);
             context.Initialize(operationType, variants, infos, rootPath, rootOptimizers);
@@ -522,7 +522,7 @@ public sealed partial class OperationCompiler
                     arguments: CoerceArgumentValues(field, selection, responseName),
                     includeConditions: includeCondition == 0
                         ? null
-                        : new[] { includeCondition });
+                        : [includeCondition,]);
 
                 context.Fields.Add(responseName, preparedSelection);
 
@@ -531,7 +531,7 @@ public sealed partial class OperationCompiler
                     var selectionSetInfo = new SelectionSetInfo(
                         selection.SelectionSet!,
                         includeCondition);
-                    _selectionLookup.Add(preparedSelection, new[] { selectionSetInfo });
+                    _selectionLookup.Add(preparedSelection, [selectionSetInfo,]);
                 }
             }
         }
@@ -601,7 +601,7 @@ public sealed partial class OperationCompiler
 
                 var id = GetOrCreateSelectionSetRefId(selectionSet, context.Path);
                 var variants = GetOrCreateSelectionVariants(id);
-                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition) };
+                var infos = new SelectionSetInfo[] { new(selectionSet, includeCondition), };
 
                 if (!variants.ContainsSelectionSet(context.Type))
                 {
@@ -843,7 +843,7 @@ public sealed partial class OperationCompiler
         if (newSelection.SyntaxNode.SelectionSet is not null)
         {
             var selectionSetInfo = new SelectionSetInfo(newSelection.SelectionSet!, 0);
-            _selectionLookup.Add(newSelection, new[] { selectionSetInfo });
+            _selectionLookup.Add(newSelection, [selectionSetInfo,]);
         }
     }
 

@@ -7,7 +7,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 
 public class TestServerFactory : IDisposable
 {
-    private readonly List<TestServer> _instances = new();
+    private readonly List<TestServer> _instances = [];
 
     public TestServer Create(
         Action<IServiceCollection> configureServices,

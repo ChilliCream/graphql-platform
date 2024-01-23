@@ -303,9 +303,9 @@ internal class GeoJsonCoordinatesSerializer : GeoJsonSerializerBase
 
     public object DeserializeCoordinate(IType type, object? runtimeValue)
     {
-        if (runtimeValue is IList { Count: > 0 } top)
+        if (runtimeValue is IList { Count: > 0, } top)
         {
-            if (top[0] is IList { Count: > 0 })
+            if (top[0] is IList { Count: > 0, })
             {
                 var result = new object[top.Count];
                 for (var y = 0; y < result.Length; y++)

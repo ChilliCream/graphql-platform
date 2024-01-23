@@ -17,7 +17,7 @@ public static class ErrorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (syntaxNode is { Location: not null })
+        if (syntaxNode is { Location: not null, })
         {
             builder.SetSyntaxNode(syntaxNode);
 

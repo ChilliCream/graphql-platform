@@ -40,7 +40,7 @@ public class GraphQLClientException : Exception
         }
 
         Message = error.Message;
-        Errors = new[] { error };
+        Errors = new[] { error, };
     }
 
     /// <summary>

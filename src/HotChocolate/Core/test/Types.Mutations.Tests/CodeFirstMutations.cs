@@ -23,7 +23,7 @@ public class CodeFirstMutations
                             .Resolve("Abc");
                     })
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true })
+                    new MutationConventionOptions { ApplyToAllMutations = true, })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 

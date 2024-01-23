@@ -57,5 +57,5 @@ public class TestHttpContextHelper
     }
 
     public static string CreateRequestBody(string query)
-        => JObject.FromObject(new { query = query }).ToString(Formatting.Indented);
+        => JObject.FromObject(new { query = query, }).ToString(Formatting.Indented);
 }

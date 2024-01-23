@@ -254,7 +254,7 @@ public class QueryRequestBuilderTests
         var request =
             QueryRequestBuilder.New()
                 .SetQuery("{ foo }")
-                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123" })
+                .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123", })
                 .Create();
 
         // assert
@@ -297,7 +297,7 @@ public class QueryRequestBuilderTests
     public void BuildRequest_QueryAndServices_RequestIsCreated()
     {
         // arrange
-        var service = new { a = "123" };
+        var service = new { a = "123", };
 
         // act
         var request =
@@ -315,7 +315,7 @@ public class QueryRequestBuilderTests
     public void BuildRequest_SetAll_RequestIsCreated()
     {
         // arrange
-        var service = new { a = "123" };
+        var service = new { a = "123", };
 
         // act
         var request =

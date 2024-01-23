@@ -171,11 +171,11 @@ public class NodeFieldSupportTests
             .AddQueryType(
                 x => x.Name("Query")
                     .Field("childs")
-                    .Resolve(new Child { Id = "123" }))
+                    .Resolve(new Child { Id = "123", }))
             .AddObjectType<Child>(d => d
                 .ImplementsNode()
                 .IdField(t => t.Id)
-                .ResolveNode((_, id) => Task.FromResult(new Child { Id = id })))
+                .ResolveNode((_, id) => Task.FromResult(new Child { Id = id, })))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -382,7 +382,7 @@ public class NodeFieldSupportTests
 
     public class Foo
     {
-        public Bar Bar { get; set; } = new() { Id = "123" };
+        public Bar Bar { get; set; } = new() { Id = "123", };
     }
 
     public class Bar
@@ -392,12 +392,12 @@ public class NodeFieldSupportTests
 
     public class BarResolver
     {
-        public Task<Bar> GetBarAsync(string id) => Task.FromResult(new Bar { Id = id });
+        public Task<Bar> GetBarAsync(string id) => Task.FromResult(new Bar { Id = id, });
     }
 
     public class Foo1
     {
-        public Bar1 Bar { get; set; } = new() { Id = "123" };
+        public Bar1 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -406,12 +406,12 @@ public class NodeFieldSupportTests
     {
         public string Id { get; set; }
 
-        public static Bar1 GetBar1(string id) => new() { Id = id };
+        public static Bar1 GetBar1(string id) => new() { Id = id, };
     }
 
     public class Foo2
     {
-        public Bar2 Bar { get; set; } = new() { Id = "123" };
+        public Bar2 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -420,12 +420,12 @@ public class NodeFieldSupportTests
     {
         public string Id { get; set; }
 
-        public static Bar2 GetFoo(string id) => new() { Id = id };
+        public static Bar2 GetFoo(string id) => new() { Id = id, };
     }
 
     public class Foo3
     {
-        public Bar3 Bar { get; set; } = new() { Id = "123" };
+        public Bar3 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -437,12 +437,12 @@ public class NodeFieldSupportTests
 
     public static class Bar3Resolver
     {
-        public static Bar3 GetBar3(string id) => new() { Id = id };
+        public static Bar3 GetBar3(string id) => new() { Id = id, };
     }
 
     public class Foo4
     {
-        public Bar4 Bar { get; set; } = new() { Id1 = "123" };
+        public Bar4 Bar { get; set; } = new() { Id1 = "123", };
     }
 
     [ObjectType("Bar")]
@@ -453,7 +453,7 @@ public class NodeFieldSupportTests
     {
         public string Id1 { get; set; }
 
-        public static Bar2 GetFoo(string id) => new() { Id = id };
+        public static Bar2 GetFoo(string id) => new() { Id = id, };
     }
 
     [ObjectType("Bar")]
@@ -462,19 +462,19 @@ public class NodeFieldSupportTests
     {
         public string Id { get; set; }
 
-        public static Bar5 Get(string id) => new() { Id = id };
+        public static Bar5 Get(string id) => new() { Id = id, };
     }
 
     public class Foo6
     {
-        public Bar6 Bar { get; set; } = new() { Id = "123" };
+        public Bar6 Bar { get; set; } = new() { Id = "123", };
     }
 
     public abstract class Bar6Base<T> where T : Bar6Base<T>, new()
     {
         public string Id { get; set; }
 
-        public static T Get(string id) => new() { Id = id };
+        public static T Get(string id) => new() { Id = id, };
     }
 
     [ObjectType("Bar")]
@@ -485,7 +485,7 @@ public class NodeFieldSupportTests
 
     public class Foo7
     {
-        public Bar7 Bar { get; set; } = new() { Id = "123" };
+        public Bar7 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -497,7 +497,7 @@ public class NodeFieldSupportTests
 
     public abstract class Bar7ResolverBase
     {
-        public static Bar7 GetBar7(string id) => new() { Id = id };
+        public static Bar7 GetBar7(string id) => new() { Id = id, };
     }
 
     public class Bar7Resolver : Bar7ResolverBase
@@ -506,7 +506,7 @@ public class NodeFieldSupportTests
 
     public class Foo8
     {
-        public Bar8 Bar { get; set; } = new() { Id = "123" };
+        public Bar8 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -518,7 +518,7 @@ public class NodeFieldSupportTests
 
     public class Bar8ResolverBase
     {
-        public Bar8 GetBar8(string id) => new() { Id = id };
+        public Bar8 GetBar8(string id) => new() { Id = id, };
     }
 
     public class Bar8Resolver : Bar8ResolverBase
@@ -527,7 +527,7 @@ public class NodeFieldSupportTests
 
     public class Foo9
     {
-        public Bar9 Bar { get; set; } = new() { Id = "123" };
+        public Bar9 Bar { get; set; } = new() { Id = "123", };
     }
 
     [ObjectType("Bar")]
@@ -544,7 +544,7 @@ public class NodeFieldSupportTests
 
     public class Bar9Resolver : IBar9Resolver
     {
-        public Bar9 GetBar9(string id) => new() { Id = id };
+        public Bar9 GetBar9(string id) => new() { Id = id, };
     }
 
     public class Parent

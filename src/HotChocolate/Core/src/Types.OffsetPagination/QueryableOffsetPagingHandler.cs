@@ -48,7 +48,7 @@ public class QueryableOffsetPagingHandler<TEntity>
         // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
         // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
         if (IncludeTotalCount &&
-            context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null })
+            context.Selection is { Type: ObjectType objectType, SyntaxNode.SelectionSet: not null, })
         {
             var selections = context.GetSelections(objectType, null, true);
 

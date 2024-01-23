@@ -9,53 +9,53 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorListTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = null },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
-        }
-    };
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
+        },
+    ];
 
     private readonly SchemaCache _cache = new();
 

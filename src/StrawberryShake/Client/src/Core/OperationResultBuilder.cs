@@ -77,7 +77,7 @@ public abstract class OperationResultBuilder<TResultData>
 
         // If we have a transport error but the response does not contain any client errors
         // we will create a client error from the provided transport error.
-        if (response.Exception is not null && errors is not { Count: > 0 })
+        if (response.Exception is not null && errors is not { Count: > 0, })
         {
             errors = new IClientError[]
             {

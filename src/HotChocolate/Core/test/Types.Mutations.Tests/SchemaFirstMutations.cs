@@ -166,7 +166,7 @@ public class SchemaFirstMutations
                     ctx => ctx.ArgumentValue<string?>("something"))
                 .BindRuntimeType<Mutation>()
                 .AddMutationConventions(
-                    new MutationConventionOptions { ApplyToAllMutations = true })
+                    new MutationConventionOptions { ApplyToAllMutations = true, })
                 .ModifyOptions(o => o.StrictValidation = false)
                 .ExecuteRequestAsync(
                     @"mutation {

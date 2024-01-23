@@ -14,7 +14,7 @@ internal static class FusionContextExtensions
 
         var workItem = new ExecutionState(selectionSet, result, exportKeys)
         {
-            SelectionSetData = { [0] = parentData }
+            SelectionSetData = { [0] = parentData, },
         };
 
         context.State.RegisterState(workItem);

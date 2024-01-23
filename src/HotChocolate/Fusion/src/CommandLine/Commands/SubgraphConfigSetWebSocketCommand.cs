@@ -77,7 +77,7 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
 
             await ReplaceSubgraphConfigInSubgraphPackageAsync(
                 configFile.FullName,
-                config with { Clients = clients });
+                config with { Clients = clients, });
         }
         else
         {
@@ -88,7 +88,7 @@ internal sealed class SubgraphConfigSetWebSocketCommand : Command
             clients.RemoveAll(t => t is WebSocketClientConfiguration);
             clients.Add(new WebSocketClientConfiguration(uri, clientName));
 
-            var configJson = FormatSubgraphConfig(config with { Clients = clients });
+            var configJson = FormatSubgraphConfig(config with { Clients = clients, });
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
         }
     }

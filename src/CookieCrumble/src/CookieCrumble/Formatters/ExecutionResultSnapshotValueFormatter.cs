@@ -105,7 +105,7 @@ internal class JsonResultPatcher
                 "You must first set the initial response before you can apply patches.");
         }
 
-        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
+        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true, });
 
         _json.Remove("hasNext");
 

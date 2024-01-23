@@ -7,21 +7,21 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionVisitorIsProjectedTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { IsProjectedTrue = true, IsProjectedFalse = false },
-        new() { IsProjectedTrue = true, IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+    ];
 
     private static readonly MultipleFoo[] _fooMultipleEntities =
-    {
-        new() { IsProjectedTrue1 = true, IsProjectedFalse = false },
-        new() { IsProjectedTrue1 = true, IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue1 = true, IsProjectedFalse = false, },
+    ];
 
     private static readonly Bar[] _barEntities =
-    {
-        new() { IsProjectedFalse = false }, new() { IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedFalse = false, }, new() { IsProjectedFalse = false, },
+    ];
 
     private readonly SchemaCache _cache = new();
 

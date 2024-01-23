@@ -147,7 +147,7 @@ public class IdDescriptorTests
         public string IntId(int id) => id.ToString();
         public string StringId(string id) => id;
         public string GuidId(Guid id) => id.ToString();
-        public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId };
+        public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId, };
     }
 
     public class FooInput

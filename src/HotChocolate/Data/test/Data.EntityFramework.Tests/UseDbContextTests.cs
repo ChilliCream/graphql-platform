@@ -35,7 +35,7 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -71,7 +71,7 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -107,7 +107,7 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -143,8 +143,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -192,8 +192,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -241,8 +241,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -290,8 +290,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -339,8 +339,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -387,8 +387,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -435,8 +435,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -483,7 +483,7 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -649,8 +649,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -698,8 +698,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -747,8 +747,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -796,8 +796,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -845,8 +845,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -893,8 +893,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -941,8 +941,8 @@ public class UseDbContextTests
 
         await using (var context = await contextFactory.CreateDbContextAsync())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 

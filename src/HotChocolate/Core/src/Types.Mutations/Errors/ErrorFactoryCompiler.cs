@@ -40,12 +40,12 @@ internal static class ErrorFactoryCompiler
         if (ExtendedType.Tools.IsGenericBaseType(errorType) &&
             typeof(ObjectType).IsAssignableFrom(errorType))
         {
-            return new[] { new ErrorDefinition(errorType.GetGenericArguments()[0], errorType) };
+            return new[] { new ErrorDefinition(errorType.GetGenericArguments()[0], errorType), };
         }
         
         // else we will create a schema type.
         var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-        return new[] { new ErrorDefinition(errorType, schemaType) };
+        return new[] { new ErrorDefinition(errorType, schemaType), };
     }
 
     private static bool TryCreateFactoryFromException(
@@ -83,7 +83,7 @@ internal static class ErrorFactoryCompiler
 
         var exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
-        List<ErrorDefinition> errorDefinitions = new();
+        List<ErrorDefinition> errorDefinitions = [];
 
         Expression? instance = null;
 
@@ -190,7 +190,7 @@ internal static class ErrorFactoryCompiler
                         {
                             variable
                         },
-                        new List<Expression> { previous, variable }),
+                        new List<Expression> { previous, variable, }),
                     exception)
                 .Compile();
             var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);

@@ -25,7 +25,7 @@ public sealed class DirectiveType : IHasName, IHasContextData, INamedTypeSystemM
     /// </summary>
     public bool IsRepeatable { get; set; }
 
-    public FieldCollection<InputField> Arguments { get; } = new();
+    public FieldCollection<InputField> Arguments { get; } = [];
 
     public DirectiveLocation Locations { get; set; }
 

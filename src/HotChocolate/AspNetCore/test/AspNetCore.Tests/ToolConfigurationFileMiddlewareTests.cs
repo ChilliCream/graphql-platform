@@ -32,7 +32,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
         var server = CreateServer(builder => builder.MapBananaCakePop().WithOptions(options));
 
         // act
@@ -46,7 +46,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
         var server = CreateServer(builder =>
         {
             builder.MapGraphQLHttp();
@@ -64,7 +64,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
         var server = CreateServer(b => b.MapBananaCakePop("/foo/bar").WithOptions(options));
 
         // act
@@ -84,7 +84,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLServerOptions
         {
-            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false },
+            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false, },
         };
         var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
 
@@ -107,7 +107,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
                 Document = "# foo",
                 IncludeCookies = true,
                 HttpHeaders =
-                    new HeaderDictionary { { "Content-Type", "application/json" } },
+                    new HeaderDictionary { { "Content-Type", "application/json" }, },
                 HttpMethod = DefaultHttpMethod.Get,
                 Enable = true,
                 Title = "Hello",
@@ -131,7 +131,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapBananaCakePop_Tool_Config()
     {
         // arrange
-        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded, };
         var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
 
         // act

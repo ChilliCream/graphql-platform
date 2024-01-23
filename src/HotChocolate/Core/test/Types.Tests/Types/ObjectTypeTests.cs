@@ -1437,7 +1437,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         Assert.Throws<SchemaException>(Action)
-            .Errors.Select(t => new { t.Message, t.Code })
+            .Errors.Select(t => new { t.Message, t.Code, })
             .MatchSnapshot();
     }
 
@@ -1507,7 +1507,7 @@ public class ObjectTypeTests : TypeTestBase
                 .SetQuery("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
-                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
+                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value", })
                 .Create());
 
         // assert
@@ -2379,7 +2379,7 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithNestedList
     {
         public List<List<FooIgnore>> FooMatrix =>
-            new() { new() { new() } };
+            [[new(),],];
     }
 
     public class ResolveWithQuery

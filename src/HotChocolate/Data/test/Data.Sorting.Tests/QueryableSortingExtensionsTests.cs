@@ -14,10 +14,10 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortingExtensionsTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true, Baz = "a" },
-        new() { Bar = false, Baz = "b" }
-    };
+    [
+        new() { Bar = true, Baz = "a", },
+        new() { Bar = false, Baz = "b", },
+    ];
 
     [Fact]
     public async Task Extensions_Should_SortQuery()

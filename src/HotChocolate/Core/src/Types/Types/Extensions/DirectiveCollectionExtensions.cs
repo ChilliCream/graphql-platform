@@ -56,7 +56,7 @@ public static class DirectiveCollectionExtensions
 
         // a fragment is not deferrable if we do not find a defer directive or
         // if the `if` of the defer directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false };
+        return directive is not null && ifValue is not BooleanValueNode { Value: false, };
     }
 
     internal static bool IsStreamable(this FieldNode field)
@@ -66,7 +66,7 @@ public static class DirectiveCollectionExtensions
 
         // a field is not streamable if we do not find a streamable directive or
         // if the `if` of the streamable directive is a bool literal with a false value.
-        return directive is not null && ifValue is not BooleanValueNode { Value: false };
+        return directive is not null && ifValue is not BooleanValueNode { Value: false, };
     }
 
     internal static bool HasStreamOrDeferDirective(this IReadOnlyList<DirectiveNode> directives)

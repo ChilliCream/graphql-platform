@@ -14,7 +14,7 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 
 public sealed class MockHttpRequestData : HttpRequestData, IDisposable
 {
-    private readonly List<IHttpCookie> _cookiesList = new();
+    private readonly List<IHttpCookie> _cookiesList = [];
 
     public MockHttpRequestData(
         FunctionContext functionContext,
@@ -63,7 +63,7 @@ public sealed class MockHttpRequestData : HttpRequestData, IDisposable
 
     public override Stream Body { get; } = new MemoryStream();
 
-    public override HttpHeadersCollection Headers { get; } = new();
+    public override HttpHeadersCollection Headers { get; } = [];
 
     public override IReadOnlyCollection<IHttpCookie> Cookies => _cookiesList.AsReadOnly();
 

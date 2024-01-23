@@ -175,7 +175,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
         content.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         return content;
     }
@@ -203,7 +203,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
         operation.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         form.Add(operation, "operations");
 
@@ -212,7 +212,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
         fileMap.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         form.Add(fileMap, "map");
 

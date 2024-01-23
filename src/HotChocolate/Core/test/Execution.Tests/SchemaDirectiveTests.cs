@@ -90,7 +90,7 @@ public class SchemaDirectiveTests
         protected override void Configure(IObjectTypeDescriptor<Person> descriptor)
         {
             descriptor.Directive(new Resolve());
-            descriptor.Field(t => t.Name).Directive(new BDirective { Append = "Bar" });
+            descriptor.Field(t => t.Name).Directive(new BDirective { Append = "Bar", });
         }
     }
 

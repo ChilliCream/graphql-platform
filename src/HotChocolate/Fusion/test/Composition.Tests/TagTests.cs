@@ -69,7 +69,7 @@ public class TagTests(ITestOutputHelper output)
             },
             new FusionFeatureCollection(FusionFeatures.TagDirective(
                 makeTagsPublic: true, 
-                exclude: new[] {"review"})));
+                exclude: new[] {"review", })));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
@@ -92,7 +92,7 @@ public class TagTests(ITestOutputHelper output)
             },
             new FusionFeatureCollection(FusionFeatures.TagDirective(
                 makeTagsPublic: true, 
-                exclude: new[] {"internal"})));
+                exclude: new[] {"internal", })));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)
@@ -115,7 +115,7 @@ public class TagTests(ITestOutputHelper output)
             },
             new FusionFeatureCollection(FusionFeatures.TagDirective(
                 makeTagsPublic: false, 
-                exclude: new[] {"internal"})));
+                exclude: new[] {"internal", })));
 
         SchemaFormatter
             .FormatAsString(fusionConfig)

@@ -8,32 +8,32 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" }
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-        new() { Bar = null }
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+        new() { Bar = null, },
+    ];
 
     private static readonly FooShort[] _fooShortEntities =
-    {
-        new() { BarShort = 12 },
-        new() { BarShort = 14 },
-        new() { BarShort = 13 }
-    };
+    [
+        new() { BarShort = 12, },
+        new() { BarShort = 14, },
+        new() { BarShort = 13, },
+    ];
 
     private static readonly FooShortNullable[] _fooShortNullableEntities =
-    {
-        new() { BarShort = 12 },
-        new() { BarShort = null },
-        new() { BarShort = 14 },
-        new() { BarShort = 13 }
-    };
+    [
+        new() { BarShort = 12, },
+        new() { BarShort = null, },
+        new() { BarShort = 14, },
+        new() { BarShort = 13, },
+    ];
 
     private readonly SchemaCache _cache;
 

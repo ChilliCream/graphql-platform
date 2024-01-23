@@ -11,15 +11,15 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class ResultBuilder
 {
     private static readonly Func<ValueTask>[] _emptyCleanupTasks = Array.Empty<Func<ValueTask>>();
-    private readonly List<IError> _errors = new();
-    private readonly HashSet<ISelection> _fieldErrors = new();
-    private readonly List<NonNullViolation> _nonNullViolations = new();
-    private readonly HashSet<uint> _removedResults = new();
-    private readonly HashSet<uint> _patchIds = new();
+    private readonly List<IError> _errors = [];
+    private readonly HashSet<ISelection> _fieldErrors = [];
+    private readonly List<NonNullViolation> _nonNullViolations = [];
+    private readonly HashSet<uint> _removedResults = [];
+    private readonly HashSet<uint> _patchIds = [];
 
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<Func<ValueTask>> _cleanupTasks = new();
+    private readonly List<Func<ValueTask>> _cleanupTasks = [];
 
     private ResultMemoryOwner _resultOwner = default!;
     private ObjectResult? _data;

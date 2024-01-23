@@ -44,7 +44,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<JsonDocument> results = new();
+        List<JsonDocument> results = [];
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -90,7 +90,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<JsonDocument> results = new();
+        List<JsonDocument> results = [];
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -142,7 +142,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<string> results = new();
+        List<string> results = [];
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -189,7 +189,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<string> results = new();
+        List<string> results = [];
         MockDocument document = new("subscription Test { onTest(id:1) }");
         OperationRequest request = new("Test", document);
 

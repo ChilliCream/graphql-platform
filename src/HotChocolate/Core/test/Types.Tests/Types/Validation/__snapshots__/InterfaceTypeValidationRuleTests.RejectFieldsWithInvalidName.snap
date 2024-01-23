@@ -1,5 +1,5 @@
 ﻿{
-  "message": "The field `__badField` must be implement by object type `Bar`.",
+  "message": "The field `__badField` must be implemented by object type `Bar`.",
   "type": "Bar",
   "extensions": {
     "implementedField": "__badField",

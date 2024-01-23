@@ -118,7 +118,7 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
+        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated, };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes

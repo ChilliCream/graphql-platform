@@ -62,11 +62,11 @@ public class ClientControlledNullabilityTests
 
     public class Query
     {
-        public List<Person> Persons { get; } = new()
-        {
-            new Person {Name = "Abc", Bio = "Def"},
-            new Person {Name = "Ghi", Bio = null}
-        };
+        public List<Person> Persons { get; } =
+        [
+            new Person { Name = "Abc", Bio = "Def", },
+            new Person { Name = "Ghi", Bio = null, },
+        ];
     }
 
     public class Person

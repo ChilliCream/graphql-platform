@@ -14,16 +14,15 @@ public static class WellKnownAttributes
     public const string DataLoaderAttribute = "HotChocolate.DataLoaderAttribute";
 
     public static HashSet<string> TypeAttributes { get; } =
-        new()
-        {
-            ExtendObjectTypeAttribute,
-            ObjectTypeAttribute,
-            InterfaceTypeAttribute,
-            UnionTypeAttribute,
-            EnumTypeAttribute,
-            InputObjectTypeAttribute,
-            QueryTypeAttribute,
-            MutationTypeAttribute,
-            SubscriptionTypeAttribute
-        };
+    [
+        ExtendObjectTypeAttribute,
+        ObjectTypeAttribute,
+        InterfaceTypeAttribute,
+        UnionTypeAttribute,
+        EnumTypeAttribute,
+        InputObjectTypeAttribute,
+        QueryTypeAttribute,
+        MutationTypeAttribute,
+        SubscriptionTypeAttribute,
+    ];
 }

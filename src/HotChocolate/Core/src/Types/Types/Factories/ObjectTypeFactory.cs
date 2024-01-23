@@ -84,7 +84,7 @@ internal sealed class ObjectTypeFactory
 
             SdlToTypeSystemHelper.AddDirectives(context, fieldDefinition, field, path);
 
-            if (field.DeprecationReason() is { Length: > 0 } reason)
+            if (field.DeprecationReason() is { Length: > 0, } reason)
             {
                 fieldDefinition.DeprecationReason = reason;
             }
@@ -120,7 +120,7 @@ internal sealed class ObjectTypeFactory
                 argumentDefinition.SyntaxNode = argument;
             }
 
-            if (argument.DeprecationReason() is { Length: > 0 } reason)
+            if (argument.DeprecationReason() is { Length: > 0, } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

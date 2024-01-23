@@ -58,8 +58,7 @@ public class ServiceTypeTests
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
                 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
-                "Object representation of @link directive."
-                directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+                directive @link(url: String! import: [String!]) repeatable on SCHEMA
 
                 "Scalar representing a set of fields."
                 scalar FieldSet
@@ -115,8 +114,7 @@ public class ServiceTypeTests
                 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
                 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
                 
-                "Object representation of @link directive."
-                directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+                directive @link(url: String! import: [String!]) repeatable on SCHEMA
                 
                 "Scalar representing a set of fields."
                 scalar FieldSet

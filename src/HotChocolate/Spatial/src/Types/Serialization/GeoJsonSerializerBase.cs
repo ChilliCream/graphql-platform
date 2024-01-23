@@ -81,7 +81,7 @@ internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
 
     public virtual IValueNode ParseCoordinateResult(IType type, object? runtimeValue)
     {
-        if (runtimeValue is IList { Count: > 0 } list && list[0] is IList)
+        if (runtimeValue is IList { Count: > 0, } list && list[0] is IList)
         {
             var results = new IValueNode[list.Count];
             for (var i = 0; i < list.Count; i++)

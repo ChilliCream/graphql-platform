@@ -110,7 +110,7 @@ public sealed class Cache<TValue>
     {
         lock (_sync)
         {
-            var entry = new Entry { Key = key, Value = value };
+            var entry = new Entry { Key = key, Value = value, };
             AppendEntryUnsafe(entry);
             ClearSpaceForNewEntryUnsafe();
             return entry;

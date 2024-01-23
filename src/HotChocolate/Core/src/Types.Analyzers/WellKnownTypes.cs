@@ -25,23 +25,21 @@ public static class WellKnownTypes
     public const string Task = "System.Threading.Tasks.Task";
 
     public static HashSet<string> TypeClass { get; } =
-        new()
-        {
-            ObjectType,
-            InterfaceType,
-            UnionType,
-            InputObjectType,
-            EnumType,
-            ScalarType,
-        };
+    [
+        ObjectType,
+        InterfaceType,
+        UnionType,
+        InputObjectType,
+        EnumType,
+        ScalarType,
+    ];
 
     public static HashSet<string> TypeExtensionClass { get; } =
-        new()
-        {
-            ObjectTypeExtension,
-            InterfaceTypeExtension,
-            UnionTypeExtension,
-            InputObjectTypeExtension,
-            EnumTypeExtension
-        };
+    [
+        ObjectTypeExtension,
+        InterfaceTypeExtension,
+        UnionTypeExtension,
+        InputObjectTypeExtension,
+        EnumTypeExtension,
+    ];
 }

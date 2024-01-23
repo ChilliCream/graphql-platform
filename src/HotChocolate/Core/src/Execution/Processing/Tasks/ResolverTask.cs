@@ -12,7 +12,7 @@ internal sealed partial class ResolverTask : IExecutionTask
 {
     private readonly ObjectPool<ResolverTask> _objectPool;
     private readonly MiddlewareContext _context = new();
-    private readonly List<ResolverTask> _taskBuffer = new();
+    private readonly List<ResolverTask> _taskBuffer = [];
     private readonly Dictionary<string, ArgumentValue> _args = new(StringComparer.Ordinal);
     private OperationContext _operationContext = default!;
     private ISelection _selection = default!;

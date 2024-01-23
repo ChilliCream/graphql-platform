@@ -8,13 +8,13 @@ namespace HotChocolate.Configuration.Validation;
 internal static class SchemaValidator
 {
     private static readonly ISchemaValidationRule[] _rules =
-    {
+    [
         new ObjectTypeValidationRule(),
         new InterfaceTypeValidationRule(),
         new InputObjectTypeValidationRule(),
         new DirectiveValidationRule(),
-        new InterfaceHasAtLeastOneImplementationRule()
-    };
+        new InterfaceHasAtLeastOneImplementationRule(),
+    ];
 
     public static IReadOnlyCollection<ISchemaError> Validate(
         IEnumerable<ITypeSystemObject> typeSystemObjects,

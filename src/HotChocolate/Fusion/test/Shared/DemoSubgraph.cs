@@ -47,7 +47,7 @@ public sealed class DemoSubgraph
                 Name,
                 Schema.ToString(_serializerOptions),
                 Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
-                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri), },
                 null)
             : new SubgraphConfiguration(
                 Name,
@@ -69,7 +69,7 @@ public sealed class DemoSubgraph
                 Name,
                 Schema.ToString(_serializerOptions),
                 Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
-                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri), },
                 configurationExtensions)
             : new SubgraphConfiguration(
                 Name,
@@ -88,7 +88,7 @@ public sealed class DemoSubgraph
                 Name,
                 Schema.ToString(_serializerOptions),
                 Array.Empty<string>(),
-                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri), },
                 null)
             : new SubgraphConfiguration(
                 Name,

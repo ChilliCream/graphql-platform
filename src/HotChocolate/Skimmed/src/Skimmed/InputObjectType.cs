@@ -23,9 +23,9 @@ public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputOb
 
     public string? Description { get; set; }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
-    public FieldCollection<InputField> Fields { get; } = new();
+    public FieldCollection<InputField> Fields { get; } = [];
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 

@@ -16,8 +16,8 @@ internal sealed partial class TypeRegistrar(
     TypeInterceptor typeInterceptor)
     : ITypeRegistrar
 {
-    private readonly HashSet<TypeReference> _unresolved = new();
-    private readonly HashSet<RegisteredType> _handled = new();
+    private readonly HashSet<TypeReference> _unresolved = [];
+    private readonly HashSet<RegisteredType> _handled = [];
     private readonly TypeRegistry _typeRegistry = typeRegistry ??
         throw new ArgumentNullException(nameof(typeRegistry));
     private readonly TypeLookup _typeLookup = typeLookup ??
@@ -64,7 +64,7 @@ internal sealed partial class TypeRegistrar(
                 SchemaTypeReference.InferTypeContext(obj),
                 scope);
 
-        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
+        var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit, };
 
         if (explicitBind)
         {
@@ -188,7 +188,7 @@ internal sealed partial class TypeRegistrar(
                         scope));
             }
 
-            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity })
+            if (typeSystemObject is IHasTypeIdentity { TypeIdentity: { } typeIdentity, })
             {
                 var reference =
                     _context.TypeInspector.GetTypeRef(

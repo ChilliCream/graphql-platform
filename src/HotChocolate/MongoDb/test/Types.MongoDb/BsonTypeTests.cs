@@ -146,7 +146,7 @@ public class BsonTypeTests
             "query Test($val: Bson){ in(val:$val) }",
             new Dictionary<string, object?>
             {
-                ["val"] = new List<string> { "foo", "bar" },
+                ["val"] = new List<string> { "foo", "bar", },
             });
 
         // assert
@@ -308,7 +308,7 @@ public class BsonTypeTests
                 .Name("Query")
                 .Field("foo")
                 .Type<BsonType>()
-                .Resolve(_ => new BsonDocument { { "foo", "bar" } }))
+                .Resolve(_ => new BsonDocument { { "foo", "bar" }, }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -329,7 +329,7 @@ public class BsonTypeTests
                 .Name("Query")
                 .Field("foo")
                 .Type<BsonType>()
-                .Resolve(_ => new BsonArray { new BsonDocument() }))
+                .Resolve(_ => new BsonArray { new BsonDocument(), }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -543,7 +543,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", new List<object> { "abc" })
+                .SetVariableValue("foo", new List<object> { "abc", })
                 .Create());
 
         // assert
@@ -571,7 +571,7 @@ public class BsonTypeTests
                 .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
                 .SetVariableValue(
                     "foo",
-                    new List<object> { new Dictionary<string, object> { { "abc", "def" } } })
+                    new List<object> { new Dictionary<string, object> { { "abc", "def" }, }, })
                 .Create());
 
         // assert
@@ -675,7 +675,7 @@ public class BsonTypeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", new BsonDocument { { "a", "b" } })
+                .SetVariableValue("foo", new BsonDocument { { "a", "b" }, })
                 .Create());
 
         // assert
@@ -1139,7 +1139,7 @@ public class BsonTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") } } },
+            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") }, } },
         };
 
         // act
@@ -1165,7 +1165,7 @@ public class BsonTypeTests
 
         var type = schema.GetType<BsonType>("Bson");
         var toDeserialize =
-            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
+            new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar"), };
 
         // act
         var value = type.Deserialize(toDeserialize);
@@ -1191,7 +1191,7 @@ public class BsonTypeTests
     {
         [GraphQLType(typeof(BsonType))]
         public IDictionary<string, object> SomeObject =>
-            new Dictionary<string, object> { { "a", "b" } };
+            new Dictionary<string, object> { { "a", "b" }, };
     }
 
     public class OutputQuery
@@ -1206,15 +1206,15 @@ public class BsonTypeTests
 
         public BsonObjectId ObjectId => new BsonObjectId(new ObjectId("6124e80f3f5fc839830c1f6b"));
 
-        public BsonBinaryData Binary => new BsonBinaryData(new byte[]
-        {
+        public BsonBinaryData Binary => new BsonBinaryData(
+        [
             1,
             2,
             3,
             4,
             5,
             6,
-        });
+        ]);
 
         public BsonDecimal128 Decimal => new(42.123456789123456789123456789123456789123456789m);
 
@@ -1241,15 +1241,15 @@ public class BsonTypeTests
             ["DateTime"] = new BsonDateTime(1638147536),
             ["Timestamp"] = new BsonTimestamp(1638147536),
             ["ObjectId"] = new BsonObjectId(new ObjectId("6124e80f3f5fc839830c1f6b")),
-            ["BinaryData"] = new BsonBinaryData(new byte[]
-            {
+            ["BinaryData"] = new BsonBinaryData(
+            [
                 1,
                 2,
                 3,
                 4,
                 5,
                 6,
-            }),
+            ]),
             ["Double"] = new BsonDouble(42.23),
             ["Double"] = new BsonDouble(42.23),
             ["Boolean"] = new BsonBoolean(true),
