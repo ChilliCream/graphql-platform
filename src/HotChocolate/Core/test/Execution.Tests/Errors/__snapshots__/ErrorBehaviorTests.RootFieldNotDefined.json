@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "The field `doesNotExist` does not exist on the type `Query`.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 9
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "doesNotExist",
+        "responseName": "doesNotExist",
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
+    }
+  ]
+}

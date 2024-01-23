@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "The field `a` does not exist on the type `Query`.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "a",
+        "responseName": "a",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
+    }
+  ]
+}

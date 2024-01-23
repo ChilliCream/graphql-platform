@@ -897,7 +897,8 @@ public class AnnotationBasedAuthorizationTests
                         "originalValue": "abc"
                       }
                     }
-                  ]
+                  ],
+                  "data": null
                 }
                 """);
     }

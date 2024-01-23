@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "message": "abc"
+    },
+    {
+      "message": "def"
+    }
+  ],
+  "data": {
+    "foo": "Hello"
+  }
+}
