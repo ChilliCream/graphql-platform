@@ -27,11 +27,11 @@ internal sealed class ExtractOperationContext : ISyntaxVisitorContext
 
     public OperationDefinitionNode Operation { get; private set; } = default!;
 
-    public List<FragmentDefinitionNode> ExportedFragments { get; } = new();
+    public List<FragmentDefinitionNode> ExportedFragments { get; } = [];
 
     public Dictionary<string, FragmentDefinitionNode> AllFragments { get; }
 
-    public HashSet<string> VisitedFragments { get; } = new();
+    public HashSet<string> VisitedFragments { get; } = [];
 
     public bool Next()
     {

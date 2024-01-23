@@ -35,7 +35,7 @@ public sealed class Snapshot
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
-    private readonly List<SnapshotSegment> _segments = new();
+    private readonly List<SnapshotSegment> _segments = [];
     private readonly string _fileName;
     private string _extension;
     private string? _postFix;

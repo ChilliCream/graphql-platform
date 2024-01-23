@@ -12,7 +12,7 @@ namespace HotChocolate.Caching;
 
 internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 {
-    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = new();
+    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
     private readonly ICacheControlOptions _cacheControlOptions;
     private TypeDependency? _cacheControlDependency;
 

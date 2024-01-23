@@ -21,7 +21,7 @@ public abstract class FilterProvider<TContext>
     , IFilterProviderConvention
     where TContext : IFilterVisitorContext
 {
-    private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers = new();
+    private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers = [];
     private Action<IFilterProviderDescriptor<TContext>>? _configure;
     private IFilterConvention? _filterConvention;
 

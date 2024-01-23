@@ -14,7 +14,7 @@ public class OutputFieldDefinitionBase
     private List<ArgumentDefinition>? _arguments;
 
     public IList<ArgumentDefinition> Arguments
-        => _arguments ??= new List<ArgumentDefinition>();
+        => _arguments ??= [];
 
     /// <summary>
     /// Specifies if this field has any arguments.
@@ -37,7 +37,7 @@ public class OutputFieldDefinitionBase
 
         if (_arguments?.Count > 0)
         {
-            target._arguments = new List<ArgumentDefinition>();
+            target._arguments = [];
 
             foreach (var argument in _arguments)
             {
@@ -56,7 +56,7 @@ public class OutputFieldDefinitionBase
 
         if (_arguments is { Count: > 0 })
         {
-            target._arguments ??= new List<ArgumentDefinition>();
+            target._arguments ??= [];
 
             foreach (var argument in _arguments)
             {

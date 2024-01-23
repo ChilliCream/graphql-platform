@@ -35,7 +35,7 @@ internal static class ExternalSetterExpressionHelper
                 field.Member is PropertyInfo { SetMethod: { } } property)
             {
                 var expression = CreateTrySetValue(type.RuntimeType, property, field.Name);
-                (block ??= new()).Add(expression);
+                (block ??= []).Add(expression);
             }
         }
 

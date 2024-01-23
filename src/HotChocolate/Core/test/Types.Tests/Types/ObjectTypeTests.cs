@@ -2322,7 +2322,7 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithNestedList
     {
         public List<List<FooIgnore>> FooMatrix =>
-            new() { new() { new() } };
+            [[new()]];
     }
 
     public class ResolveWithQuery

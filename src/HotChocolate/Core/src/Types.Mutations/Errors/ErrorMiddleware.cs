@@ -38,7 +38,7 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
 
                 if (!handled)
                 {
-                    unhandledErrors ??= new List<Exception>();
+                    unhandledErrors ??= [];
                     unhandledErrors.Add(exception);
                 }
             }

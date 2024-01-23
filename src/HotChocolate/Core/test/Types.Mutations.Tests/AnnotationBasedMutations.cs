@@ -1278,7 +1278,7 @@ public class AnnotationBasedMutations
     public class SimpleMutationReturnList
     {
         public System.Collections.Generic.List<string> DoSomething(string something)
-            => new() { something };
+            => [something];
     }
 
     [ExtendObjectType("Mutation")]

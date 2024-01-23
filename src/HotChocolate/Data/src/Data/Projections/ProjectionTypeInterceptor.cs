@@ -72,7 +72,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             List<string>? alwaysProjected = null;
             foreach (var field in objectTypeDefinition.Fields)
             {
-                alwaysProjected ??= new List<string>();
+                alwaysProjected ??= [];
                 if (field.GetContextData().TryGetValue(IsProjectedKey, out var value) &&
                     value is true)
                 {

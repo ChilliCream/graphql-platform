@@ -51,7 +51,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
         var custom = customParameterExpressionBuilders is not null
-            ? new List<IParameterExpressionBuilder>(customParameterExpressionBuilders)
+            ? [..customParameterExpressionBuilders]
             : new List<IParameterExpressionBuilder>();
 
         // explicit internal expression builders will be added first.
@@ -116,7 +116,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         }
         else
         {
-            _defaultParameterExpressionBuilders = new();
+            _defaultParameterExpressionBuilders = [];
         }
 
         _parameterExpressionBuilders = expressionBuilders;

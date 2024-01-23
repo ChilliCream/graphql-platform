@@ -34,7 +34,7 @@ public class SynchronizedMessageWriterTests
         await using var writer = new SynchronizedMessageWriter(socketClient);
 
         // act
-        List<Task> tasks = new();
+        List<Task> tasks = [];
         for (var i = 0; i < 10; i++)
         {
             tasks.Add(Task.Run(async () =>

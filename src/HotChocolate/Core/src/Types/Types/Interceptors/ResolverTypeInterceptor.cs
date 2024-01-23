@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Interceptors;
 
 internal sealed class ResolverTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ITypeDefinition> _typeDefs = new();
+    private readonly List<ITypeDefinition> _typeDefs = [];
     private readonly List<FieldResolverConfig> _fieldResolvers;
     private readonly List<(string, Type)> _resolverTypeList;
     private readonly Dictionary<string, Type> _runtimeTypes;
@@ -452,7 +452,7 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
             {
                 if (typeDef.RuntimeType == typeof(object))
                 {
-                    updated ??= new List<ITypeDefinition>();
+                    updated ??= [];
                     runtimeType ??= Unwrap(_typeInspector.GetReturnType(member), type);
                     typeDef.RuntimeType = runtimeType;
                     updated.Add(typeDef);

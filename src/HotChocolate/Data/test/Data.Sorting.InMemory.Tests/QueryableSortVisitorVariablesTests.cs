@@ -13,10 +13,10 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new() { Bar = true },
-        new() { Bar = false },
-    };
+        new() { Bar = false }
+    ];
 
     [Fact]
     public async Task Create_Boolean_OrderBy()

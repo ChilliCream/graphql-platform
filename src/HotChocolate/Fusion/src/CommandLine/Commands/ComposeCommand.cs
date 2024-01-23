@@ -245,7 +245,7 @@ internal sealed class ComposeCommand : Command
 
                             if (File.Exists(extensionFile))
                             {
-                                extensions = new[] { await File.ReadAllTextAsync(extensionFile, cancellationToken) };
+                                extensions = [await File.ReadAllTextAsync(extensionFile, cancellationToken)];
                             }
 
                             temp.Add(

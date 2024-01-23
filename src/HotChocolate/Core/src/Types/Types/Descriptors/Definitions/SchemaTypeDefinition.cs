@@ -15,7 +15,7 @@ public class SchemaTypeDefinition
     /// Gets the list of directives that are annotated to this schema.
     /// </summary>
     internal IList<DirectiveDefinition> Directives =>
-        _directives ??= new List<DirectiveDefinition>();
+        _directives ??= [];
 
     /// <summary>
     /// Specifies if this schema has directives.

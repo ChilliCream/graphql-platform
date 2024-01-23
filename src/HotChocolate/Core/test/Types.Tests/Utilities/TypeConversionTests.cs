@@ -271,7 +271,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ListOfString()
     {
         // arrange
-        string[] list = { "a", "b", "c" };
+        string[] list = ["a", "b", "c"];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -291,7 +291,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ListOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3"];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -311,7 +311,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ArrayOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3"];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -331,7 +331,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_IListOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3"];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(
@@ -351,7 +351,7 @@ public class TypeConverterTests
     public void Convert_ArrayOfString_ICollectionOfInt()
     {
         // arrange
-        string[] list = { "1", "2", "3" };
+        string[] list = ["1", "2", "3"];
 
         // act
         var success = DefaultTypeConverter.Default.TryConvert(

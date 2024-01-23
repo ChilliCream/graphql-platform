@@ -19,11 +19,11 @@ namespace HotChocolate.Authorization;
 
 internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ObjectTypeInfo> _objectTypes = new();
-    private readonly List<UnionTypeInfo> _unionTypes = new();
+    private readonly List<ObjectTypeInfo> _objectTypes = [];
+    private readonly List<UnionTypeInfo> _unionTypes = [];
     private readonly Dictionary<ObjectType, IDirectiveCollection> _directives = new();
-    private readonly HashSet<TypeReference> _completedTypeRefs = new();
-    private readonly HashSet<RegisteredType> _completedTypes = new();
+    private readonly HashSet<TypeReference> _completedTypeRefs = [];
+    private readonly HashSet<RegisteredType> _completedTypes = [];
     private State? _state;
 
     private IDescriptorContext _context = default!;
@@ -216,7 +216,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                                         typeRef,
                                         out var authTypeRefs))
                                     {
-                                        authTypeRefs = new List<TypeReference>();
+                                        authTypeRefs = [];
                                         state.AbstractToConcrete.Add(typeRef, authTypeRefs);
                                     }
 
@@ -252,7 +252,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     if (authTypeRefs is null &&
                         !state.AbstractToConcrete.TryGetValue(unionTypeRef, out authTypeRefs))
                     {
-                        authTypeRefs = new List<TypeReference>();
+                        authTypeRefs = [];
                         state.AbstractToConcrete.Add(unionTypeRef, authTypeRefs);
                     }
 

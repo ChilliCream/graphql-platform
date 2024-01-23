@@ -83,7 +83,7 @@ internal static class ErrorFactoryCompiler
 
         var exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
-        List<ErrorDefinition> errorDefinitions = new();
+        List<ErrorDefinition> errorDefinitions = [];
 
         Expression? instance = null;
 

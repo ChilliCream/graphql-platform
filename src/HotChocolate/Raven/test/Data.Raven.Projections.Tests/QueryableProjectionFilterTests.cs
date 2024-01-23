@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Raven;
 public class QueryableProjectionFilterTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -37,11 +37,11 @@ public class QueryableProjectionFilterTests
                     new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } },
                 },
             },
-        },
-    };
+        }
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -94,11 +94,11 @@ public class QueryableProjectionFilterTests
                 BarString = "testdtest",
                 ObjectArray = null,
             },
-        },
-    };
+        }
+    ];
 
     private static readonly BarNullable[] _barWithoutRelation =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -122,8 +122,8 @@ public class QueryableProjectionFilterTests
                 BarShort = 14,
             },
         },
-        new(),
-    };
+        new()
+    ];
 
     private readonly SchemaCache _cache;
 

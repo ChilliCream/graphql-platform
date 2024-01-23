@@ -11,19 +11,19 @@ namespace HotChocolate.Types.Analyzers;
 public class TypeModuleGenerator : IIncrementalGenerator
 {
     private static readonly ISyntaxInspector[] _inspectors =
-    {
+    [
         new TypeAttributeInspector(),
         new ClassBaseClassInspector(),
         new ModuleInspector(),
         new DataLoaderInspector(),
-        new DataLoaderDefaultsInspector(),
-    };
+        new DataLoaderDefaultsInspector()
+    ];
 
     private static readonly ISyntaxGenerator[] _generators =
-    {
+    [
         new ModuleGenerator(),
-        new DataLoaderGenerator(),
-    };
+        new DataLoaderGenerator()
+    ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {

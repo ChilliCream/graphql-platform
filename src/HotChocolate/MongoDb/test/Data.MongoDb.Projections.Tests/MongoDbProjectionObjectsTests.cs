@@ -8,7 +8,7 @@ namespace HotChocolate.Data.MongoDb.Projections;
 public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
 {
     private static readonly BarNullable[] _barWithoutRelation =
-    {
+    [
         new()
         {
             Number = 2,
@@ -26,8 +26,8 @@ public class MongoDbProjectionObjectTests : IClassFixture<MongoResource>
         {
             Number = 2, Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 },
         },
-        new() { Number = 2 },
-    };
+        new() { Number = 2 }
+    ];
 
     private readonly SchemaCache _cache;
 

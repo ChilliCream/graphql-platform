@@ -47,7 +47,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
     {
         get
         {
-            return _expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            return _expressionBuilders ??= [];
         }
     }
 
@@ -71,7 +71,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
 
         if (_expressionBuilders is { Count: > 0 })
         {
-            target._expressionBuilders = new(_expressionBuilders);
+            target._expressionBuilders = [.._expressionBuilders];
         }
 
         target.Member = Member;
@@ -83,7 +83,7 @@ public class InterfaceFieldDefinition : OutputFieldDefinitionBase
 
         if (_expressionBuilders is { Count: > 0 })
         {
-            target._expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            target._expressionBuilders ??= [];
             target._expressionBuilders.AddRange(_expressionBuilders);
         }
 

@@ -121,7 +121,7 @@ public class GeoJsonPointSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    new Geometry[] { new Point(1, 2) })));
+                    [new Point(1, 2)])));
     }
 
     [Theory]

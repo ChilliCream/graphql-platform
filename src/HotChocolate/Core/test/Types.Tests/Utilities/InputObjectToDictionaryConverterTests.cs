@@ -24,7 +24,7 @@ public class InputObjectToDictionaryConverterTests
         var foo = new Foo
         {
             Bar = bar1,
-            Bars = new List<Bar> { bar2, bar3 },
+            Bars = [bar2, bar3],
         };
 
         // act
@@ -52,7 +52,7 @@ public class InputObjectToDictionaryConverterTests
         var foo = new Foo
         {
             Bar = null,
-            Bars = new List<Bar> { bar2, bar3 },
+            Bars = [bar2, bar3],
         };
 
         // act
@@ -80,7 +80,7 @@ public class InputObjectToDictionaryConverterTests
         var foo = new Foo
         {
             Bar = bar1,
-            Bars = new List<Bar> { bar2, null },
+            Bars = [bar2, null],
         };
 
         // act

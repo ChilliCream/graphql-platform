@@ -273,7 +273,7 @@ public sealed class InputParser
                     }
                     else
                     {
-                        invalidFieldNames ??= new List<string>();
+                        invalidFieldNames ??= [];
                         invalidFieldNames.Add(fieldValue.Name.Value);
                     }
                 }
@@ -421,7 +421,7 @@ public sealed class InputParser
                 }
                 else
                 {
-                    invalidFieldNames ??= new List<string>();
+                    invalidFieldNames ??= [];
                     invalidFieldNames.Add(fieldValue.Name.Value);
                 }
             }

@@ -76,7 +76,7 @@ public abstract class FieldDefinitionBase
     /// Gets the list of directives that are annotated to this field.
     /// </summary>
     public IList<DirectiveDefinition> Directives
-        => _directives ??= new List<DirectiveDefinition>();
+        => _directives ??= [];
 
     /// <summary>
     /// Specifies if this field has any directives.
@@ -102,7 +102,7 @@ public abstract class FieldDefinitionBase
 
         if (_directives is { Count: > 0 })
         {
-            target._directives = new List<DirectiveDefinition>(_directives);
+            target._directives = [.._directives];
         }
 
         target.Type = Type;
@@ -115,7 +115,7 @@ public abstract class FieldDefinitionBase
 
         if (_directives is { Count: > 0 })
         {
-            target._directives ??= new List<DirectiveDefinition>();
+            target._directives ??= [];
             target._directives.AddRange(_directives);
         }
 

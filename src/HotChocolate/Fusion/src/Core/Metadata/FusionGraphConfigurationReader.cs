@@ -12,8 +12,8 @@ namespace HotChocolate.Fusion.Metadata;
 internal sealed class FusionGraphConfigurationReader
 {
     private readonly Dictionary<string, ITypeNode> _emptyArgumentDefs = new();
-    private readonly HashSet<string> _assert = new();
-    private readonly HashSet<string> _subgraphNames = new();
+    private readonly HashSet<string> _assert = [];
+    private readonly HashSet<string> _subgraphNames = [];
     private readonly Dictionary<string, SubgraphInfo> _subgraphInfos = new();
 
     public FusionGraphConfiguration Read(string sourceText)
@@ -454,7 +454,7 @@ internal sealed class FusionGraphConfigurationReader
         {
             if (directiveNode.Name.Value.EqualsOrdinal(typeNames.ResolverDirective))
             {
-                (definitions ??= new()).Add(ReadResolverDefinition(typeNames, directiveNode));
+                (definitions ??= []).Add(ReadResolverDefinition(typeNames, directiveNode));
             }
         }
 
@@ -596,7 +596,7 @@ internal sealed class FusionGraphConfigurationReader
             if (directiveNode.Name.Value.EqualsOrdinal(typeNames.SourceDirective))
             {
                 var memberBinding = ReadMemberBinding(typeNames, directiveNode, annotatedMember);
-                (definitions ??= new()).Add(memberBinding);
+                (definitions ??= []).Add(memberBinding);
             }
         }
 

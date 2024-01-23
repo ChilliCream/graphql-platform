@@ -139,7 +139,7 @@ public class PaginationTests
 
     public class Query
     {
-        public List<User> Users => new() { new User() };
+        public List<User> Users => [new User()];
     }
 
     public class QueryType : ObjectType<Query>

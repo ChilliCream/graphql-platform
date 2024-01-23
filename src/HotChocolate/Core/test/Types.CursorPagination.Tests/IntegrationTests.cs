@@ -989,8 +989,8 @@ public class IntegrationTests
 
     public class Query
     {
-        public string[] Letters => new[]
-        {
+        public string[] Letters =>
+        [
             "a",
             "b",
             "c",
@@ -1002,17 +1002,17 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l",
-        };
+            "l"
+        ];
 
-        public List<List<Foo>> Foos() => new()
-        {
-            new List<Foo> { new() { Bar = "a" } },
-            new List<Foo> { new() { Bar = "b" }, new() { Bar = "c" } },
-            new List<Foo> { new() { Bar = "d" } },
-            new List<Foo> { new() { Bar = "e" } },
-            new List<Foo> { new() { Bar = "f" } },
-        };
+        public List<List<Foo>> Foos() =>
+        [
+            [new() { Bar = "a" }],
+            [new() { Bar = "b" }, new() { Bar = "c" }],
+            [new() { Bar = "d" }],
+            [new() { Bar = "e" }],
+            [new() { Bar = "f" }]
+        ];
     }
 
     public class ExecutableQuery
@@ -1037,8 +1037,8 @@ public class IntegrationTests
     public class QueryAttr
     {
         [UsePaging]
-        public string[] Letters => new[]
-        {
+        public string[] Letters =>
+        [
             "a",
             "b",
             "c",
@@ -1050,8 +1050,8 @@ public class IntegrationTests
             "i",
             "j",
             "k",
-            "l",
-        };
+            "l"
+        ];
 
         [UsePaging(typeof(NonNullType<StringType>))]
         public string[] ExplicitType => Letters;
@@ -1060,14 +1060,14 @@ public class IntegrationTests
         [UsePaging(
             MaxPageSize = 2,
             IncludeTotalCount = true)]
-        public List<List<Foo>> Foos() => new()
-        {
-            new List<Foo> { new() { Bar = "a" } },
-            new List<Foo> { new() { Bar = "b" }, new() { Bar = "c" } },
-            new List<Foo> { new() { Bar = "d" } },
-            new List<Foo> { new() { Bar = "e" } },
-            new List<Foo> { new() { Bar = "f" } },
-        };
+        public List<List<Foo>> Foos() =>
+        [
+            [new() { Bar = "a" }],
+            [new() { Bar = "b" }, new() { Bar = "c" }],
+            [new() { Bar = "d" }],
+            [new() { Bar = "e" }],
+            [new() { Bar = "f" }]
+        ];
     }
 
     public interface ISome
@@ -1095,7 +1095,7 @@ public class IntegrationTests
 
     public class InferConnectionNameFromField
     {
-        public string[] Names() => new[] { "a", "b" };
+        public string[] Names() => ["a", "b"];
     }
 
     public class ExplicitConnectionName

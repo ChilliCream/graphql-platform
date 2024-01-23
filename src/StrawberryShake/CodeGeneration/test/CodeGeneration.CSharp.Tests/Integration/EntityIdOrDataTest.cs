@@ -42,13 +42,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
         public class Query
         {
-            public IBar[] GetFoo() => new IBar[]
-            {
+            public IBar[] GetFoo() =>
+            [
                 new Baz { Id = "BarId" },
                 new Baz2 { Id = "Bar2Id" },
                 new Quox { Foo = "QuoxFoo" },
-                new Quox2 { Foo = "Quox2Foo" },
-            };
+                new Quox2 { Foo = "Quox2Foo" }
+            ];
         }
 
         [UnionType("Bar")]

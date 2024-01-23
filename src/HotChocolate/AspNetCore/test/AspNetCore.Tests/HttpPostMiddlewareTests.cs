@@ -1458,6 +1458,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
 
     public class NullListQuery
     {
-        public List<string?> NullValues => new() { null, "abc", null };
+        public List<string?> NullValues => [null, "abc", null];
     }
 }

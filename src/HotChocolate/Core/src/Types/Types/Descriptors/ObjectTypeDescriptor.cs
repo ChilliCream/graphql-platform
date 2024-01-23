@@ -17,7 +17,7 @@ public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
     , IObjectTypeDescriptor
 {
-    private readonly List<ObjectFieldDescriptor> _fields = new();
+    private readonly List<ObjectFieldDescriptor> _fields = [];
 
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
@@ -204,7 +204,7 @@ public class ObjectTypeDescriptor
                     if (member.IsDefined(typeof(SubscribeAttribute)) &&
                         member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
                     {
-                        subscribeResolver ??= new HashSet<string>();
+                        subscribeResolver ??= [];
                         subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
                         subscribeResolver.Add(a.With);
                         subscribeResolverLookup.Add(member, a.With);

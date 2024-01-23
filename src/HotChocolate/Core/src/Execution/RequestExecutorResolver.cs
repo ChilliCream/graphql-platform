@@ -506,7 +506,7 @@ internal sealed partial class RequestExecutorResolver
 
     private sealed class TypeModuleChangeMonitor : IDisposable
     {
-        private readonly List<ITypeModule> _typeModules = new();
+        private readonly List<ITypeModule> _typeModules = [];
         private readonly RequestExecutorResolver _resolver;
         private bool _disposed;
 
@@ -629,7 +629,7 @@ internal sealed partial class RequestExecutorResolver
     private sealed class EventObservable : IObservable<RequestExecutorEvent>, IDisposable
     {
         private readonly object _sync = new();
-        private readonly List<Subscription> _subscriptions = new();
+        private readonly List<Subscription> _subscriptions = [];
         private bool _disposed;
 
         public IDisposable Subscribe(IObserver<RequestExecutorEvent> observer)
@@ -727,7 +727,7 @@ internal sealed partial class RequestExecutorResolver
     /// </summary>
     internal static class ApplicationUpdateHandler
     {
-        private static readonly List<Action> _actions = new();
+        private static readonly List<Action> _actions = [];
 
         public static void RegisterForApplicationUpdate(Action action)
             => _actions.Add(action);

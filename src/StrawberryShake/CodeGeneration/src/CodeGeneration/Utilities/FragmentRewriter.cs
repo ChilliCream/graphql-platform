@@ -58,6 +58,6 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
 
     internal sealed class Context : ISyntaxVisitorContext
     {
-        public HashSet<string> Deferred { get; } = new();
+        public HashSet<string> Deferred { get; } = [];
     }
 }

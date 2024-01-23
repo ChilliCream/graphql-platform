@@ -13,8 +13,8 @@ namespace HotChocolate.Types;
 
 internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<Type> _handled = new();
-    private readonly List<ErrorDefinition> _tempErrors = new();
+    private readonly HashSet<Type> _handled = [];
+    private readonly List<ErrorDefinition> _tempErrors = [];
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;

@@ -13,9 +13,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
     private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
-    private readonly HashSet<Type> _interfaceRuntimeTypes = new();
-    private readonly HashSet<string> _completed = new();
-    private readonly HashSet<string> _completedFields = new();
+    private readonly HashSet<Type> _interfaceRuntimeTypes = [];
+    private readonly HashSet<string> _completed = [];
+    private readonly HashSet<string> _completedFields = [];
     private readonly Queue<InterfaceType> _backlog = new();
 
     public override void OnAfterInitialize(

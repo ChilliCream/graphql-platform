@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Projections;
 public class QueryableSingleOrDefaultTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -47,11 +47,11 @@ public class QueryableSingleOrDefaultTests
                     new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } },
                 },
             },
-        },
-    };
+        }
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -104,8 +104,8 @@ public class QueryableSingleOrDefaultTests
                 BarString = "testdtest",
                 ObjectArray = null,
             },
-        },
-    };
+        }
+    ];
 
     private readonly SchemaCache _cache = new();
 

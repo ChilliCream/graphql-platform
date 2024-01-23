@@ -262,14 +262,14 @@ internal abstract class RequestDocumentFormatter
 
             if (next && single)
             {
-                selectionNodes = new List<ISelectionNode>();
+                selectionNodes = [];
                 single = false;
             }
             else if (single && isAbstractType && !ReferenceEquals(parentType, possibleType))
             {
                 if (!onlyIntrospection)
                 {
-                    selectionNodes = new List<ISelectionNode>();
+                    selectionNodes = [];
                     single = false;
                 }
             }
@@ -301,7 +301,7 @@ internal abstract class RequestDocumentFormatter
                 Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(typeSelectionNodes));
             selectionNodes.Add(inlineFragment);
-            typeSelectionNodes = new List<ISelectionNode>();
+            typeSelectionNodes = [];
         }
     }
 
@@ -549,7 +549,7 @@ internal abstract class RequestDocumentFormatter
         {
             if (argument.IsDefaultValue)
             {
-                unspecifiedArguments ??= new List<string>();
+                unspecifiedArguments ??= [];
                 unspecifiedArguments.Add(argument.Name);
             }
         }

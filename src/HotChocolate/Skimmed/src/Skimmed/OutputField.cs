@@ -51,9 +51,9 @@ public sealed class OutputField : IField, INamedTypeSystemMember<OutputField>
         }
     }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
-    public FieldCollection<InputField> Arguments { get; } = new();
+    public FieldCollection<InputField> Arguments { get; } = [];
 
     public IType Type { get; set; }
 

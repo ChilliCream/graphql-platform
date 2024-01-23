@@ -12,8 +12,8 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
-         new()
+    [
+        new()
          {
              Name = "Sam",
              LastName = "Sampleman",
@@ -24,8 +24,8 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
              Name = "Foo",
              LastName = "Galoo",
              Bars = new Bar[] { new() { Value = "A" } },
-         },
-    };
+         }
+    ];
 
     private readonly SchemaCache _cache;
 

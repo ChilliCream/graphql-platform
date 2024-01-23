@@ -56,7 +56,7 @@ public static class ActivityTestHelper
     {
         if (!(parent.TryGetValue("activities", out var value) && value is List<object> children))
         {
-            children = new List<object>();
+            children = [];
             parent["activities"] = children;
         }
 

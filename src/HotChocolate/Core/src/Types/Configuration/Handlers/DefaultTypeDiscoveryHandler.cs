@@ -99,7 +99,7 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
             return false;
         }
 
-        schemaTypeRefs = new[] { schemaType };
+        schemaTypeRefs = [schemaType];
         return true;
     }
 

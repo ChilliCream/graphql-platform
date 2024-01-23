@@ -202,7 +202,7 @@ public class SyntaxNodeVisitorTests
         : VisitationMap
     {
         public List<ISyntaxNode> VisitedNodes { get; } =
-            new List<ISyntaxNode>();
+            [];
 
         public override void ResolveChildren(
             ISyntaxNode node,

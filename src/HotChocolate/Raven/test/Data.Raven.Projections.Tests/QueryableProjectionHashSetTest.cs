@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Raven;
 public class QueryableProjectionHashSetTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -45,8 +45,8 @@ public class QueryableProjectionHashSetTests
                     new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } },
                 },
             },
-        },
-    };
+        }
+    ];
 
     private readonly SchemaCache _cache;
 

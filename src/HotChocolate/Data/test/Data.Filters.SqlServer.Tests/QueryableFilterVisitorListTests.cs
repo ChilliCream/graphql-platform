@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorListTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             FooNested = new[]
@@ -54,8 +54,8 @@ public class QueryableFilterVisitorListTests
                 new FooNested { Bar = "d" },
                 new FooNested { Bar = "b" },
             },
-        },
-    };
+        }
+    ];
 
     private readonly SchemaCache _cache = new();
 

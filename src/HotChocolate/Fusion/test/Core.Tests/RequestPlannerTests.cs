@@ -1535,8 +1535,8 @@ public class RequestPlannerTests
     }
 
     private static IClientConfiguration[] CreateClients()
-        => new IClientConfiguration[]
-        {
-            new HttpClientConfiguration(new Uri("http://nothing")),
-        };
+        =>
+        [
+            new HttpClientConfiguration(new Uri("http://nothing"))
+        ];
 }

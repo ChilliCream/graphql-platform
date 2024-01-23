@@ -206,11 +206,11 @@ public class BatchQueryExecutorTests
 
                     if (list is null)
                     {
-                        return new List<string>
-                        {
+                        return
+                        [
                             "123",
-                            "456",
-                        };
+                            "456"
+                        ];
                     }
 
                     list.Add("789");
@@ -267,13 +267,14 @@ public class BatchQueryExecutorTests
 
                 if (list is null)
                 {
-                    return new List<object>
-                    {
+                    return
+                    [
                         new Dictionary<string, object>
                         {
-                            { "bar" , "123" },
-                        },
-                    };
+                            { "bar", "123" },
+                        }
+
+                    ];
                 }
 
                 list.Add(new Dictionary<string, object>

@@ -118,7 +118,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         {
             if (!_lookup.TryGetValue(reference.TypeName, out var middlewares))
             {
-                middlewares = new List<FieldMiddlewareReference>();
+                middlewares = [];
                 _lookup[reference.TypeName] = middlewares;
             }
 

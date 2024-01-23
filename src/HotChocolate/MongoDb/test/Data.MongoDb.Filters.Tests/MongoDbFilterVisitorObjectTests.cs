@@ -11,7 +11,7 @@ public class MongoDbFilterVisitorObjectTests
     , IClassFixture<MongoResource>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -51,11 +51,11 @@ public class MongoDbFilterVisitorObjectTests
                 //ScalarArray = null,
                 ObjectArray = null,
             },
-        },
-    };
+        }
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -108,8 +108,8 @@ public class MongoDbFilterVisitorObjectTests
                 BarString = "testdtest",
                 ObjectArray = null,
             },
-        },
-    };
+        }
+    ];
 
     public MongoDbFilterVisitorObjectTests(MongoResource resource)
     {

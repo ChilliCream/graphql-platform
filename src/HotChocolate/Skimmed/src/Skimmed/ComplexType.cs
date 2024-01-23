@@ -21,11 +21,11 @@ public abstract class ComplexType : INamedType
 
     public string? Description { get; set; }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
     public IList<InterfaceType> Implements { get; } = new List<InterfaceType>();
 
-    public FieldCollection<OutputField> Fields { get; } = new();
+    public FieldCollection<OutputField> Fields { get; } = [];
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 

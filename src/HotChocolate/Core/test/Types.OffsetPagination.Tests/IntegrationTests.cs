@@ -683,19 +683,19 @@ namespace HotChocolate.Types.Pagination
 
         public class Query
         {
-            public string[] Letters => new[]
-            {
-                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
-            };
+            public string[] Letters =>
+            [
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
+            ];
 
-            public List<List<Foo>> Foos() => new()
-            {
-                new List<Foo> { new Foo { Bar = "a" } },
-                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
-                new List<Foo> { new Foo { Bar = "d" } },
-                new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } },
-            };
+            public List<List<Foo>> Foos() =>
+            [
+                [new Foo { Bar = "a" }],
+                [new Foo { Bar = "b" }, new Foo { Bar = "c" }],
+                [new Foo { Bar = "d" }],
+                [new Foo { Bar = "e" }],
+                [new Foo { Bar = "f" }]
+            ];
         }
 
         public class ExecutableQuery
@@ -732,10 +732,10 @@ namespace HotChocolate.Types.Pagination
         public class QueryAttr
         {
             [UseOffsetPaging]
-            public string[] Letters => new[]
-            {
-                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
-            };
+            public string[] Letters =>
+            [
+                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"
+            ];
 
             [UseOffsetPaging(typeof(NonNullType<StringType>))]
             public string[] ExplicitType => Letters;
@@ -744,14 +744,14 @@ namespace HotChocolate.Types.Pagination
             [UseOffsetPaging(
                 MaxPageSize = 2,
                 IncludeTotalCount = true)]
-            public List<List<Foo>> Foos() => new List<List<Foo>>
-            {
-                new List<Foo> { new Foo { Bar = "a" } },
-                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
-                new List<Foo> { new Foo { Bar = "d" } },
-                new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } },
-            };
+            public List<List<Foo>> Foos() =>
+            [
+                [new Foo { Bar = "a" }],
+                [new Foo { Bar = "b" }, new Foo { Bar = "c" }],
+                [new Foo { Bar = "d" }],
+                [new Foo { Bar = "e" }],
+                [new Foo { Bar = "f" }]
+            ];
         }
 
         public interface ISome

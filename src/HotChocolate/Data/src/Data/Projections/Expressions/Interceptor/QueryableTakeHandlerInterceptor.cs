@@ -38,7 +38,7 @@ public abstract class QueryableTakeHandlerInterceptor
                 Expression.Call(
                     typeof(Enumerable),
                     nameof(Enumerable.Take),
-                    new[] { selection.Type.ToRuntimeType() },
+                    [selection.Type.ToRuntimeType()],
                     instance,
                     Expression.Constant(_take)));
         }

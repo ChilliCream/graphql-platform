@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Execution;
 internal sealed class RequestState
 {
     private readonly Dictionary<SelectionSet, List<ExecutionState>> _map = new();
-    private readonly HashSet<SelectionSet> _immutable = new();
+    private readonly HashSet<SelectionSet> _immutable = [];
 
     public bool ContainsState(SelectionSet selectionSet)
     {

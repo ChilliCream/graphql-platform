@@ -287,7 +287,7 @@ public class SessionTests
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
             var manager = new Session(client);
             await manager.OpenSessionAsync(ct);
-            List<OperationMessage> messages = new();
+            List<OperationMessage> messages = [];
 
             // act
             var operation = await manager.StartOperationAsync(request, ct);
@@ -319,7 +319,7 @@ public class SessionTests
             var manager = new Session(client);
             await manager.OpenSessionAsync(ct);
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            List<OperationMessage> messages = new();
+            List<OperationMessage> messages = [];
 
             // act
             var operation = await manager.StartOperationAsync(request, ct);
@@ -368,7 +368,7 @@ public class SessionTests
             var manager = new Session(client);
             await manager.OpenSessionAsync(ct);
             var operation = await manager.StartOperationAsync(request, ct);
-            List<OperationMessage> messages = new();
+            List<OperationMessage> messages = [];
 
             // act
             await manager.DisposeAsync();

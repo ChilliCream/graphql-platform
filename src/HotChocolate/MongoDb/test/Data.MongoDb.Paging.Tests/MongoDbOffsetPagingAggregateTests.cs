@@ -13,14 +13,14 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbOffsetPagingAggregateTests : IClassFixture<MongoResource>
 {
-    private readonly List<Foo> _foos = new()
-    {
+    private readonly List<Foo> _foos =
+    [
         new Foo { Bar = "a" },
         new Foo { Bar = "b" },
         new Foo { Bar = "d" },
         new Foo { Bar = "e" },
-        new Foo { Bar = "f" },
-    };
+        new Foo { Bar = "f" }
+    ];
 
     private readonly MongoResource _resource;
 

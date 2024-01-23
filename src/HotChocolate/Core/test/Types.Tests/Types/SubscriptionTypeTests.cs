@@ -894,7 +894,7 @@ public class SubscriptionTypeTests : TypeTestBase
 
     public class PureCodeFirstQueryable
     {
-        private readonly List<string> _strings = new() { "a", "b", "c" };
+        private readonly List<string> _strings = ["a", "b", "c"];
 
         [SubscribeAndResolve]
         public IQueryable<string?> OnSomething() => _strings.AsQueryable();

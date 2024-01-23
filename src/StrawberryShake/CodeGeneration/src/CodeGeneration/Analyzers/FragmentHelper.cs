@@ -172,7 +172,7 @@ public static class FragmentHelper
         bool isFragment = false)
     {
         var levels = new Stack<ISet<string>>();
-        var rootImplements = implements?.ToList() ?? new();
+        var rootImplements = implements?.ToList() ?? [];
         levels.Push(new HashSet<string>());
         return CreateInterface(context, fragmentNode, path, levels, rootImplements, isFragment);
     }

@@ -16,8 +16,8 @@ internal sealed partial class TypeRegistrar(
     TypeInterceptor typeInterceptor)
     : ITypeRegistrar
 {
-    private readonly HashSet<TypeReference> _unresolved = new();
-    private readonly HashSet<RegisteredType> _handled = new();
+    private readonly HashSet<TypeReference> _unresolved = [];
+    private readonly HashSet<RegisteredType> _handled = [];
     private readonly TypeRegistry _typeRegistry = typeRegistry ??
         throw new ArgumentNullException(nameof(typeRegistry));
     private readonly TypeLookup _typeLookup = typeLookup ??

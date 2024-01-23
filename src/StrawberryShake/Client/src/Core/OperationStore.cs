@@ -62,7 +62,7 @@ public sealed partial class OperationStore : IOperationStore
     {
         _setGeneric
             .MakeGenericMethod(operationResult.DataType)
-            .Invoke(this, new object[] { operationRequest, operationResult });
+            .Invoke(this, [operationRequest, operationResult]);
     }
 
     public void Reset(OperationRequest operationRequest)

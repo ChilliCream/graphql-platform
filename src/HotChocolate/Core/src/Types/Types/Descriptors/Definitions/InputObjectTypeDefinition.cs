@@ -53,7 +53,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
 
         if (HasConfigurations)
         {
-            configs ??= new();
+            configs ??= [];
             configs.AddRange(Configurations);
         }
 
@@ -61,7 +61,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
         {
             if (field.HasConfigurations)
             {
-                configs ??= new();
+                configs ??= [];
                 configs.AddRange(field.Configurations);
             }
         }

@@ -99,7 +99,7 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
                 ImmutableDictionary<string, object?>.Empty);
             resolverTask.BeginExecute(ct);
 
-            asyncTasks ??= new List<Task>();
+            asyncTasks ??= [];
             asyncTasks.Add(resolverTask.WaitForCompletionAsync(ct));
 
             NEXT:

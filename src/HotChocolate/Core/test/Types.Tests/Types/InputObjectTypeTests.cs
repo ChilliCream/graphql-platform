@@ -821,7 +821,7 @@ public class InputObjectTypeTests : TypeTestBase
     public class SerializationInputObject2
     {
         public List<SerializationInputObject1?>? FooList { get; set; } =
-            new() { new SerializationInputObject1() };
+            [new SerializationInputObject1()];
     }
 
     public class FooDirectiveType : DirectiveType<FooDirective>

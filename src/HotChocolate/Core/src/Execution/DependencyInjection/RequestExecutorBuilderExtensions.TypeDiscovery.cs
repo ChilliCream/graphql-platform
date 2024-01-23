@@ -54,7 +54,7 @@ public static partial class RequestExecutorBuilderExtensions
                 {
                     if (value is not List<Func<IDescriptorContext, TypeDiscoveryHandler>> list)
                     {
-                        list = new List<Func<IDescriptorContext, TypeDiscoveryHandler>>();
+                        list = [];
                     }
 
                     list.Add(factory);

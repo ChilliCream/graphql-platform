@@ -229,10 +229,10 @@ public static class GeneratorTestHelper
                 testName + "Test.Client.cs"),
             RequestStrategy = requestStrategy,
             NoStore = noStore,
-            Profiles = (profiles ?? new[]
-            {
-                TransportProfile.Default,
-            }).ToList(),
+            Profiles = (profiles ??
+            [
+                TransportProfile.Default
+            ]).ToList(),
         };
     }
 
@@ -281,7 +281,7 @@ public static class GeneratorTestHelper
 
         public bool RazorComponents { get; set; }
 
-        public List<TransportProfile> Profiles { get; set; } = new();
+        public List<TransportProfile> Profiles { get; set; } = [];
 
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;

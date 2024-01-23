@@ -11,7 +11,7 @@ public class MongoDbFilterVisitorListTests
     , IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             FooNested = new[]
@@ -58,11 +58,11 @@ public class MongoDbFilterVisitorListTests
             },
         },
         new() { FooNested = null },
-        new() { FooNested = Array.Empty<FooNested>() },
-    };
+        new() { FooNested = Array.Empty<FooNested>() }
+    ];
 
     private static readonly FooSimple[] _fooSimple =
-    {
+    [
         new()
         {
             Bar = new[]
@@ -109,8 +109,8 @@ public class MongoDbFilterVisitorListTests
             },
         },
         new() { Bar = null },
-        new() { Bar = Array.Empty<string>() },
-    };
+        new() { Bar = Array.Empty<string>() }
+    ];
 
     public MongoDbFilterVisitorListTests(MongoResource resource)
     {

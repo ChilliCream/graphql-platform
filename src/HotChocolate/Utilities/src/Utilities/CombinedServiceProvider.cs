@@ -9,7 +9,7 @@ namespace HotChocolate.Utilities;
 
 internal sealed class CombinedServiceProvider : IServiceProvider
 {
-    private static List<object>? _buffer = new();
+    private static List<object>? _buffer = [];
     private static readonly Type _enumerable = typeof(IEnumerable<>);
     private readonly IServiceProvider _first;
     private readonly IServiceProvider _second;
@@ -58,7 +58,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
 
         try
         {
-            var buffer = Interlocked.Exchange(ref _buffer, null) ?? new List<object>();
+            var buffer = Interlocked.Exchange(ref _buffer, null) ?? [];
 
             while (enumeratorA.MoveNext())
             {

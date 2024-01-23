@@ -8,9 +8,9 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionVisitorScalarTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" },
-    };
+    [
+        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
+    ];
 
     private readonly SchemaCache _cache = new();
 

@@ -55,11 +55,11 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             ? hasClrType.RuntimeType
             : typeof(object);
 
-    public List<TypeReference> References { get; } = new();
+    public List<TypeReference> References { get; } = [];
 
-    public List<TypeDependency> Dependencies { get; } = new();
+    public List<TypeDependency> Dependencies { get; } = [];
 
-    public List<TypeDependency> Conditionals => _conditionals ??= new();
+    public List<TypeDependency> Conditionals => _conditionals ??= [];
 
     public bool IsInferred { get; }
 
@@ -77,7 +77,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
 
     public bool IsDirective => IsDirectiveType;
 
-    public List<ISchemaError> Errors => _errors ??= new();
+    public List<ISchemaError> Errors => _errors ??= [];
 
     public bool HasErrors => _errors is { Count: > 0 };
 

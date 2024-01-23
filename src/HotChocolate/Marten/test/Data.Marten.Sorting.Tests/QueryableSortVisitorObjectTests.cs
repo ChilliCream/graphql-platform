@@ -8,7 +8,7 @@ namespace HotChocolate.Data;
 public class QueryableSortVisitorObjectTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -56,11 +56,11 @@ public class QueryableSortVisitorObjectTests
                 //ScalarArray = null,
                 ObjectArray = null,
             },
-        },
-    };
+        }
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -139,8 +139,8 @@ public class QueryableSortVisitorObjectTests
                 ObjectArray = null,
             },
         },
-        new() { Foo = null },
-    };
+        new() { Foo = null }
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -650,7 +650,7 @@ public class QueryableSortVisitorObjectTests
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new();
+        public List<Bar>? ObjectArray { get; set; } = [];
     }
 
     public class FooNullable

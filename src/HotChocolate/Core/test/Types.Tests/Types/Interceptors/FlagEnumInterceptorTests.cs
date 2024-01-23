@@ -437,16 +437,16 @@ public class FlagEnumInterceptorTests
     {
         public FlagsEnum Single() => Bar | FlagsEnum.Foo;
 
-        public FlagsEnum[] List() => new[] { Bar | FlagsEnum.Foo };
+        public FlagsEnum[] List() => [Bar | FlagsEnum.Foo];
 
-        public FlagsEnum[][] NestedList() => new[] { new[] { Bar | FlagsEnum.Foo } };
+        public FlagsEnum[][] NestedList() => [[Bar | FlagsEnum.Foo]];
 
         public FlagsEnum? NullableSingle() => Bar | FlagsEnum.Foo;
 
-        public FlagsEnum?[]? NullableList() => new FlagsEnum?[] { Bar | FlagsEnum.Foo };
+        public FlagsEnum?[]? NullableList() => [Bar | FlagsEnum.Foo];
 
         public FlagsEnum?[]?[]? NullableNestedList()
-            => new[] { new FlagsEnum?[] { Bar | FlagsEnum.Foo } };
+            => [[Bar | FlagsEnum.Foo]];
     }
 
     [GraphQLDescription("This is the type desc")]

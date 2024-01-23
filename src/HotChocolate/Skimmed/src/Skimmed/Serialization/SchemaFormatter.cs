@@ -478,7 +478,7 @@ public static class SchemaFormatter
 
                 if (directives.Count == 0)
                 {
-                    directives = new List<DirectiveNode> { deprecateDirective };
+                    directives = [deprecateDirective];
                 }
                 else
                 {
@@ -500,7 +500,7 @@ public static class SchemaFormatter
 
             var arguments = reason is null
                 ? Array.Empty<ArgumentNode>()
-                : new[] { new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason) };
+                : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason)];
 
             return new DirectiveNode(
                 null,

@@ -48,11 +48,11 @@ public record Product(
 [ApiController]
 public class UberController
 {
-    private static readonly List<Product> _products = new()
-    {
+    private static readonly List<Product> _products =
+    [
         new Product("ProductA", "Desc", "Product A", "Cap", "http://img.png"),
-        new Product("ProductB", "Desc", "Product B", "Cap", "http://img.png"),
-    };
+        new Product("ProductB", "Desc", "Product B", "Cap", "http://img.png")
+    ];
 
     [HttpGet]
     [Route("/products")]

@@ -62,13 +62,13 @@ public class ObjectTypeDefinition
     /// Runtime types that also represent this GraphQL type.
     /// </summary>
     public IList<Type> KnownRuntimeTypes =>
-        _knownClrTypes ??= new List<Type>();
+        _knownClrTypes ??= [];
 
     /// <summary>
     /// Gets fields that shall be ignored.
     /// </summary>
     public IList<ObjectFieldBinding> FieldIgnores =>
-        _fieldIgnores ??= new List<ObjectFieldBinding>();
+        _fieldIgnores ??= [];
 
     /// <summary>
     /// A delegate to determine if a resolver result is of this object type.
@@ -84,7 +84,7 @@ public class ObjectTypeDefinition
     /// Gets the interfaces that this object type implements.
     /// </summary>
     public IList<TypeReference> Interfaces =>
-        _interfaces ??= new List<TypeReference>();
+        _interfaces ??= [];
 
     /// <summary>
     /// Specifies if this definition has interfaces.
@@ -125,7 +125,7 @@ public class ObjectTypeDefinition
 
         if (HasConfigurations)
         {
-            configs ??= new();
+            configs ??= [];
             configs.AddRange(Configurations);
         }
 
@@ -133,7 +133,7 @@ public class ObjectTypeDefinition
         {
             if (field.HasConfigurations)
             {
-                configs ??= new();
+                configs ??= [];
                 configs.AddRange(field.Configurations);
             }
 
@@ -141,7 +141,7 @@ public class ObjectTypeDefinition
             {
                 if (argument.HasConfigurations)
                 {
-                    configs ??= new();
+                    configs ??= [];
                     configs.AddRange(argument.Configurations);
                 }
             }
@@ -186,17 +186,17 @@ public class ObjectTypeDefinition
 
         if (_knownClrTypes is { Count: > 0 })
         {
-            target._knownClrTypes = new List<Type>(_knownClrTypes);
+            target._knownClrTypes = [.._knownClrTypes];
         }
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces = new List<TypeReference>(_interfaces);
+            target._interfaces = [.._interfaces];
         }
 
         if (_fieldIgnores is { Count: > 0 })
         {
-            target._fieldIgnores = new List<ObjectFieldBinding>(_fieldIgnores);
+            target._fieldIgnores = [.._fieldIgnores];
         }
 
         if (Fields is { Count: > 0 })
@@ -220,19 +220,19 @@ public class ObjectTypeDefinition
 
         if (_knownClrTypes is { Count: > 0 })
         {
-            target._knownClrTypes ??= new List<Type>();
+            target._knownClrTypes ??= [];
             target._knownClrTypes.AddRange(_knownClrTypes);
         }
 
         if (_interfaces is { Count: > 0 })
         {
-            target._interfaces ??= new List<TypeReference>();
+            target._interfaces ??= [];
             target._interfaces.AddRange(_interfaces);
         }
 
         if (_fieldIgnores is { Count: > 0 })
         {
-            target._fieldIgnores ??= new List<ObjectFieldBinding>();
+            target._fieldIgnores ??= [];
             target._fieldIgnores.AddRange(_fieldIgnores);
         }
 

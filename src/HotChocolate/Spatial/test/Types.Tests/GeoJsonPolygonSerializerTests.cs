@@ -27,14 +27,14 @@ public class GeoJsonPolygonSerializerTests
                 new IntValueNode(10))));
 
     private readonly Geometry _geometry = new Polygon(
-        new LinearRing(new[]
-        {
-                new Coordinate(30, 10),
+        new LinearRing(
+        [
+            new Coordinate(30, 10),
                 new Coordinate(40, 40),
                 new Coordinate(20, 40),
                 new Coordinate(10, 20),
-                new Coordinate(30, 10),
-        }));
+                new Coordinate(30, 10)
+        ]));
 
     private readonly string _geometryType = "Polygon";
 
@@ -42,26 +42,22 @@ public class GeoJsonPolygonSerializerTests
     {
             new[]
             {
-                new[]
-                {
+                [
                     30.0,
-                    10.0,
-                },
-                new[]
-                {
+                    10.0
+                ],
+                [
                     40.0,
-                    40.0,
-                },
-                new[]
-                {
+                    40.0
+                ],
+                [
                     20.0,
-                    40.0,
-                },
-                new[]
-                {
+                    40.0
+                ],
+                [
                     10.0,
-                    20.0,
-                },
+                    20.0
+                ],
                 new[]
                 {
                     30.0,
@@ -173,10 +169,9 @@ public class GeoJsonPolygonSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    new Geometry[]
-                    {
-                            new Point(1, 2),
-                    })));
+                [
+                    new Point(1, 2)
+                ])));
     }
 
     [Theory]

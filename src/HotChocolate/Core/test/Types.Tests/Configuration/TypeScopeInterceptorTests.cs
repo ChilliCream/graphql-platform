@@ -74,7 +74,7 @@ public class TypeScopeInterceptorTests
     public class TypeScopeInterceptor : TypeInterceptor
     {
         private readonly ICollection<ITypeSystemMember> _types;
-        private readonly List<ITypeDiscoveryContext> _contexts = new();
+        private readonly List<ITypeDiscoveryContext> _contexts = [];
 
         public TypeScopeInterceptor(ICollection<ITypeSystemMember> types)
         {

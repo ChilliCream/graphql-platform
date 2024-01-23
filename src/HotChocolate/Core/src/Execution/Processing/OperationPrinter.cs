@@ -88,7 +88,7 @@ internal static class OperationPrinter
                             Array.Empty<VariableDefinitionNode>(),
                             new NamedTypeNode(typeContext.Name),
                             Array.Empty<DirectiveNode>(),
-                            CreateSelectionSet(context, fragment.SelectionSet, new()));
+                            CreateSelectionSet(context, fragment.SelectionSet, []));
                 }
 
                 selections.Add(
