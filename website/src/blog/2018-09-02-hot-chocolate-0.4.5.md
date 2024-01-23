@@ -81,4 +81,3 @@ With version 0.5 we will focus on subscriptions and custom directives.
 Custom will allow for writing field resolver middlewares that alter or replace the default execution behavior.
 
 Subscriptions is one of our last spec gaps.
-

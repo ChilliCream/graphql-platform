@@ -67,7 +67,7 @@ autonumber
     Root->>Root:  OnAfterLeave `query GetFoos`
 ```
 
-1. We start walking down the tree and _enter_. <br/> 
+1. We start walking down the tree and _enter_. <br/>
 2. Call `OnBeforeEnter(OperationDefinitionNode node, TContext context)`
 3. Call `Enter(OperationDefinitionNode node, TContext context)`
 4. Call `OnAfterEnter(OperationDefinitionNode node, TContext context)`
