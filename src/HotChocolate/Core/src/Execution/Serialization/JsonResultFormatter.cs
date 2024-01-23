@@ -244,7 +244,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         writer.WriteStartObject();
 
         WriteErrors(writer, result.Errors);
-        WriteData(writer, result.Data);
+        WriteData(writer, result);
         WriteItems(writer, result.Items);
         WriteIncremental(writer, result.Incremental);
         WriteExtensions(writer, result.Extensions);
@@ -281,20 +281,28 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteData(
         Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?>? data)
+        IQueryResult result)
     {
-        if (data is not null)
+        if (!result.IsDataSet)
         {
-            writer.WritePropertyName(Data);
+            return;
+        }
 
-            if (data is ObjectResult resultMap)
-            {
-                WriteObjectResult(writer, resultMap);
-            }
-            else
-            {
-                WriteDictionary(writer, data);
-            }
+        if (result.Data is null)
+        {
+            writer.WriteNull(Data);
+            return;
+        }
+        
+        writer.WritePropertyName(Data);
+
+        if (result.Data is ObjectResult resultMap)
+        {
+            WriteObjectResult(writer, resultMap);
+        }
+        else
+        {
+            WriteDictionary(writer, result.Data);
         }
     }
 

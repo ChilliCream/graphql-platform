@@ -221,7 +221,7 @@ internal sealed partial class ResultBuilder
             throw new InvalidOperationException(Resources.ResultHelper_BuildResult_InvalidResult);
         }
 
-        if (_errors.Count > 0)
+        if (_errors.Count > 1)
         {
             _errors.Sort(ErrorComparer.Default);
         }
@@ -252,7 +252,8 @@ internal sealed partial class ResultBuilder
             hasNext: _hasNext,
             cleanupTasks: _cleanupTasks.Count == 0 
                 ? _emptyCleanupTasks 
-                : _cleanupTasks.ToArray());
+                : _cleanupTasks.ToArray(),
+            isDataSet: true);
 
         if (_data is not null)
         {
