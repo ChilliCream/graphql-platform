@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Types.Mutations</PackageId>
-    <AssemblyName>HotChocolate.Types.Mutations</AssemblyName>
+    <PackageId>HotChocolate.Types.Queries</PackageId>
+  <AssemblyName>HotChocolate.Types.Queries</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
-    <Description>This package provides helpers for creating GraphQL mutations.</Description>
+    <Description>This package provides helpers for creating GraphQL queries.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,21 +30,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.Errors.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\MutationResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>MutationResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\MutationResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>MutationResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Types.Mutations</PackageId>
-    <AssemblyName>HotChocolate.Types.Mutations</AssemblyName>
+    <PackageId>HotChocolate.Types.Errors</PackageId>
+    <AssemblyName>HotChocolate.Types.Errors</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
-    <Description>This package provides helpers for creating GraphQL mutations.</Description>
+    <Description>This package provides shared error types for GraphQL query and mutation conventions.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,8 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types\HotChocolate.Types.Errors.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
   <ItemGroup>
