@@ -12,7 +12,7 @@ public class MongoDbProjectionVisitorScalarTests : IClassFixture<MongoResource>
     [
         new() { Bar = true, Baz = "a" },
         new() { Bar = false, Baz = "b" },
-    };
+    ];
 
     private readonly SchemaCache _cache;
 

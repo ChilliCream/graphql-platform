@@ -17,13 +17,13 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
     [
         new() { Bar = true },
         new() { Bar = false },
-    };
+    ];
 
     private static readonly Bar[] _barEntities =
     [
         new() { Baz = new DateTimeOffset(2020, 1, 12, 0, 0, 0, TimeSpan.Zero) },
         new() { Baz = new DateTimeOffset(2020, 1, 11, 0, 0, 0, TimeSpan.Zero) },
-    };
+    ];
 
     private readonly MongoResource _resource;
 

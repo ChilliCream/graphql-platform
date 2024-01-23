@@ -33,7 +33,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
     [
         new() { Id = 1, Bar = _truePolygon },
         new() { Id = 2, Bar = _falsePolygon },
-    };
+    ];
 
     public QueryableFilterVisitorWithinTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)

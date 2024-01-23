@@ -51,7 +51,7 @@ public class MongoDbSortVisitorObjectTests
                 ObjectArray = null!,
             },
         },
-    };
+    ];
 
     private static readonly BarNullable?[] _barNullableEntities =
     [
@@ -109,7 +109,7 @@ public class MongoDbSortVisitorObjectTests
             },
         },
         new() { Foo = null },
-    };
+    ];
 
     public MongoDbSortVisitorObjectTests(MongoResource resource)
     {

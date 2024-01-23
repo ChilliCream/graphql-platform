@@ -16,7 +16,7 @@ public class MongoDbFilterVisitorEnumTests
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
         new() { BarEnum = FooEnum.QUX },
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
@@ -25,7 +25,7 @@ public class MongoDbFilterVisitorEnumTests
         new() { BarEnum = FooEnum.FOO },
         new() { BarEnum = null },
         new() { BarEnum = FooEnum.QUX },
-    };
+    ];
 
     public MongoDbFilterVisitorEnumTests(MongoResource resource)
     {

@@ -14,14 +14,14 @@ public class MongoDbSortVisitorBooleanTests
     [
         new() { Bar = true },
         new() { Bar = false },
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
         new() { Bar = true },
         new() { Bar = null },
         new() { Bar = false },
-    };
+    ];
 
     public MongoDbSortVisitorBooleanTests(MongoResource resource)
     {

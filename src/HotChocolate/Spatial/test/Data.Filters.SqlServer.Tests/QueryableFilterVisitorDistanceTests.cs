@@ -34,7 +34,7 @@ public class QueryableFilterVisitorDistanceTests
     [
         new() { Id = 1, Bar = _truePolygon },
         new() { Id = 2, Bar = _falsePolygon },
-    };
+    ];
 
     public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)

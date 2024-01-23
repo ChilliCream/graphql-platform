@@ -52,7 +52,7 @@ public class MongoDbFilterVisitorObjectTests
                 ObjectArray = null,
             },
         },
-    };
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
     [
@@ -109,7 +109,7 @@ public class MongoDbFilterVisitorObjectTests
                 ObjectArray = null,
             },
         },
-    };
+    ];
 
     public MongoDbFilterVisitorObjectTests(MongoResource resource)
     {

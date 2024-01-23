@@ -59,7 +59,7 @@ public class MongoDbFilterVisitorListTests
         },
         new() { FooNested = null },
         new() { FooNested = Array.Empty<FooNested>() },
-    };
+    ];
 
     private static readonly FooSimple[] _fooSimple =
     [
@@ -110,7 +110,7 @@ public class MongoDbFilterVisitorListTests
         },
         new() { Bar = null },
         new() { Bar = Array.Empty<string>() },
-    };
+    ];
 
     public MongoDbFilterVisitorListTests(MongoResource resource)
     {

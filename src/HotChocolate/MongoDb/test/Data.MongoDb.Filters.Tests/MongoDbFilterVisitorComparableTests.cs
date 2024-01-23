@@ -28,7 +28,7 @@ public class MongoDbFilterVisitorComparableTests
             BarShort = 13,
             BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
         },
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
@@ -48,7 +48,7 @@ public class MongoDbFilterVisitorComparableTests
             BarShort = 13,
             BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
         },
-    };
+    ];
 
     public MongoDbFilterVisitorComparableTests(MongoResource resource)
     {

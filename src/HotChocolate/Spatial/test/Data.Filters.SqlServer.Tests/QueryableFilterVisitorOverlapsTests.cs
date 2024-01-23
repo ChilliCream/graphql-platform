@@ -35,7 +35,7 @@ public class QueryableFilterVisitorOverlapsTests : SchemaCache
     [
         new() { Id = 1, Bar = _truePolygon },
         new() { Id = 2, Bar = _falsePolygon },
-    };
+    ];
 
     public QueryableFilterVisitorOverlapsTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)

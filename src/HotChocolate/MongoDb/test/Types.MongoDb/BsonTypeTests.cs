@@ -1214,7 +1214,7 @@ public class BsonTypeTests
             4,
             5,
             6,
-        });
+        ]);
 
         public BsonDecimal128 Decimal => new(42.123456789123456789123456789123456789123456789m);
 
@@ -1249,7 +1249,7 @@ public class BsonTypeTests
                 4,
                 5,
                 6,
-            }),
+            ]),
             ["Double"] = new BsonDouble(42.23),
             ["Double"] = new BsonDouble(42.23),
             ["Boolean"] = new BsonBoolean(true),

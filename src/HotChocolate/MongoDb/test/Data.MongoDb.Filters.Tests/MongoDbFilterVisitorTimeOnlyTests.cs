@@ -17,14 +17,14 @@ public class MongoDbFilterVisitorTimeOnlyTests
     [
         new() { Bar = new TimeOnly(06, 30) },
         new() { Bar = new TimeOnly(16, 00) },
-    };
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
         new() { Bar = new TimeOnly(06, 30) },
         new() { Bar = null },
         new() { Bar = new TimeOnly(16, 00) },
-    };
+    ];
 
     public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
     {
