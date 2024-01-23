@@ -261,7 +261,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>())
                 .UsePaging<ObjectType<Car>>(options: new PagingOptions()
                 {
-                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true
+                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true,
                 })
                 .UseProjection()
                 .UseSorting()
@@ -271,7 +271,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
                 .Resolve(ctx => ctx.AsyncSession().Query<Car>().AsExecutable())
                 .UsePaging<ObjectType<Car>>(options: new PagingOptions()
                 {
-                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true
+                    ProviderName = RavenPagination.ProviderName, IncludeTotalCount = true,
                 });
 
             descriptor.Field("pagingRaven")
@@ -298,9 +298,9 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
 
         using var session = documentStore.OpenSession();
 
-        session.Store(new Car { Name = "Subaru", Engine = new Engine() { CylinderCount = 6 } });
-        session.Store(new Car { Name = "Toyota", Engine = new Engine() { CylinderCount = 4 } });
-        session.Store(new Car { Name = "Telsa", Engine = new Engine() { CylinderCount = 0 } });
+        session.Store(new Car { Name = "Subaru", Engine = new Engine() { CylinderCount = 6, }, });
+        session.Store(new Car { Name = "Toyota", Engine = new Engine() { CylinderCount = 4, }, });
+        session.Store(new Car { Name = "Telsa", Engine = new Engine() { CylinderCount = 0, }, });
 
         session.SaveChanges();
 

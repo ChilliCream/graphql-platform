@@ -23,7 +23,10 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
     {
         var operations = context.GetMutationOperations();
 
-        if (operations.Count == 0) return;
+        if (operations.Count == 0)
+        {
+            return;
+        }
 
         var mutationType = new ObjectType(OpenApiResources.RootTypeMutation);
 
@@ -31,7 +34,7 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
         {
             var outputField = new OutputField(GetFieldName(operation.Value.OperationId))
             {
-                Type = context.OperationPayloadTypeLookup[operation.Value.OperationId]
+                Type = context.OperationPayloadTypeLookup[operation.Value.OperationId],
             };
 
             if (operation.Value.Parameters.Count > 0 || operation.Value.RequestBody is not null)

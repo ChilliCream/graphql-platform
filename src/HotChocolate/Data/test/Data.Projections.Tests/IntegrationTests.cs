@@ -461,7 +461,7 @@ public class Query
 {
     [UseProjection]
     public IQueryable<Foo> Foos
-        => new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+        => new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
 }
 
 public class Mutation
@@ -470,7 +470,7 @@ public class Mutation
     [UseProjection]
     public IQueryable<Foo> Modify()
     {
-        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+        return new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
     }
 
     [UseMutationConvention]
@@ -478,7 +478,7 @@ public class Mutation
     [UseProjection]
     public IQueryable<Foo> ModifySingleOrDefault()
     {
-        return new Foo[] { new() { Bar = "A" } }.AsQueryable();
+        return new Foo[] { new() { Bar = "A", }, }.AsQueryable();
     }
 
     [Error<AnError>]
@@ -486,8 +486,12 @@ public class Mutation
     [UseProjection]
     public IQueryable<Foo> CreateRecord(bool throwError)
     {
-        if (throwError) throw new AnError("this is only a test");
-        return new Foo[] { new() { Bar = "A" }, new() { Bar = "B" } }.AsQueryable();
+        if (throwError)
+        {
+            throw new AnError("this is only a test");
+        }
+
+        return new Foo[] { new() { Bar = "A", }, new() { Bar = "B", }, }.AsQueryable();
     }
 
     public class AnError : Exception
@@ -504,11 +508,11 @@ public class FooExtensions
 {
     public string Baz => "baz";
 
-    public IEnumerable<string> Qux => new[] { "baz" };
+    public IEnumerable<string> Qux => new[] { "baz", };
 
-    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C" } };
+    public IEnumerable<Foo> NestedList => new[] { new Foo() { Bar = "C", }, };
 
-    public Foo Nested => new() { Bar = "C" };
+    public Foo Nested => new() { Bar = "C", };
 }
 
 public class Foo
@@ -535,20 +539,20 @@ public class QueryWithNodeResolvers
 {
     [UseProjection]
     public IQueryable<Foo> All()
-        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> GetById(string id)
-        => new Foo[] { new() { Bar = "A" } }.AsQueryable();
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [NodeResolver]
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Baz> GetBazById(string id)
-        => new Baz[] { new() { Bar2 = "A" } }.AsQueryable();
+        => new Baz[] { new() { Bar2 = "A", }, }.AsQueryable();
 
     [NodeResolver]
-    public Bar GetBarById(string id) => new() { IdOfBar = "A" };
+    public Bar GetBarById(string id) => new() { IdOfBar = "A", };
 }

@@ -33,16 +33,16 @@ public class InterfaceTypeDefinition
         Description = description;
     }
 
-    public IList<Type> KnownRuntimeTypes => _knownClrTypes ??= new List<Type>();
+    public IList<Type> KnownRuntimeTypes => _knownClrTypes ??= [];
 
     public ResolveAbstractType? ResolveAbstractType { get; set; }
 
-    public IList<TypeReference> Interfaces => _interfaces ??= new List<TypeReference>();
+    public IList<TypeReference> Interfaces => _interfaces ??= [];
 
     /// <summary>
     /// Specifies if this definition has interfaces.
     /// </summary>
-    public bool HasInterfaces => _interfaces is { Count: > 0 };
+    public bool HasInterfaces => _interfaces is { Count: > 0, };
 
     public IBindableList<InterfaceFieldDefinition> Fields { get; } =
         new BindableList<InterfaceFieldDefinition>();
@@ -53,7 +53,7 @@ public class InterfaceTypeDefinition
 
         if (HasConfigurations)
         {
-            configs ??= new();
+            configs ??= [];
             configs.AddRange(Configurations);
         }
 
@@ -61,7 +61,7 @@ public class InterfaceTypeDefinition
         {
             if (field.HasConfigurations)
             {
-                configs ??= new();
+                configs ??= [];
                 configs.AddRange(field.Configurations);
             }
 
@@ -71,7 +71,7 @@ public class InterfaceTypeDefinition
                 {
                     if (argument.HasConfigurations)
                     {
-                        configs ??= new();
+                        configs ??= [];
                         configs.AddRange(argument.Configurations);
                     }
                 }

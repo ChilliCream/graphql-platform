@@ -14,7 +14,7 @@ using static System.IO.Path;
 
 namespace CookieCrumble;
 
-public sealed class Snapshot
+public class Snapshot
 {
     private static readonly object _sync = new();
     private static readonly UTF8Encoding _encoding = new();
@@ -35,7 +35,7 @@ public sealed class Snapshot
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
-    private readonly List<SnapshotSegment> _segments = new();
+    private readonly List<SnapshotSegment> _segments = [];
     private readonly string _fileName;
     private string _extension;
     private string? _postFix;
@@ -48,6 +48,9 @@ public sealed class Snapshot
     }
 
     public static Snapshot Create(string? postFix = null, string? extension = null)
+        => new(postFix, extension);
+    
+    public static DisposableSnapshot Start(string? postFix = null, string? extension = null)
         => new(postFix, extension);
 
     public static void Match(
@@ -473,4 +476,11 @@ public sealed class Snapshot
 
         public ISnapshotValueFormatter Formatter { get; }
     }
+}
+
+public sealed class DisposableSnapshot(string? postFix = null, string? extension = null)
+    : Snapshot(postFix, extension)
+    , IDisposable
+{
+    public void Dispose() => Match();
 }

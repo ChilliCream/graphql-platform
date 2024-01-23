@@ -756,7 +756,7 @@ public class StarWarsCodeFirstTests
                             stars
                         }
                     }",
-                new Dictionary<string, object> { { "ep", "NEW_HOPE" } },
+                new Dictionary<string, object> { { "ep", "NEW_HOPE" }, },
                 CancellationToken.None);
 
         // assert

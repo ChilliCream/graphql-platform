@@ -993,7 +993,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var fusionGraph =
             await new FusionGraphComposer(logFactory: _logFactory)
                 .ComposeAsync(
-                    new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl) },
+                    new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl), },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var config = new HotReloadConfiguration(

@@ -85,7 +85,7 @@ public static class SyntaxExtensions
         string? value)
         where TMember : MemberDeclarationSyntax
     {
-        if (value is { Length: > 0 })
+        if (value is { Length: > 0, })
         {
             using var reader = new StringReader(value);
             var list = new List<XmlNodeSyntax>();

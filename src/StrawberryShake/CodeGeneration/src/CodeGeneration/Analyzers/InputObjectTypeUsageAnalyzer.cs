@@ -7,8 +7,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers;
 
 internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
 {
-    private readonly HashSet<INamedInputType> _inputTypes = new();
-    private readonly HashSet<IInputType> _visitedTypes = new();
+    private readonly HashSet<INamedInputType> _inputTypes = [];
+    private readonly HashSet<IInputType> _visitedTypes = [];
     private readonly ISchema _schema;
 
     public InputObjectTypeUsageAnalyzer(ISchema schema)

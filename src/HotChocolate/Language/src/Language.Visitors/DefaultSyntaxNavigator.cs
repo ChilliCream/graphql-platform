@@ -11,7 +11,7 @@ namespace HotChocolate.Language.Visitors;
 /// </summary>
 public class DefaultSyntaxNavigator : ISyntaxNavigator
 {
-    private readonly List<ISyntaxNode> _ancestors = new();
+    private readonly List<ISyntaxNode> _ancestors = [];
     private readonly ISyntaxNode[] _coordinate = new ISyntaxNode[3];
 
     /// <inheritdoc cref="ISyntaxNavigator.Count"/>

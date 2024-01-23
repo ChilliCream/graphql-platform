@@ -41,7 +41,7 @@ public class IntegrationTests
             });
 
         await openApiServer.Host.StartAsync();
-        var apiDocument  = await File.ReadAllTextAsync(Combine("__resources__", "PetStore.yaml"));
+        var apiDocument  = FileResource.Open("PetStore.yaml");
 
         var schema = await new ServiceCollection()
             .AddSingleton(httpClientFactoryMock.Object)
@@ -82,7 +82,7 @@ public class IntegrationTests
             .Returns(() => openApiServer.CreateClient());
 
         await openApiServer.Host.StartAsync();
-        var apiDocument  = await File.ReadAllTextAsync(Combine("__resources__", "Uber.json"));
+        var apiDocument  = FileResource.Open("Uber.json");
 
         var schema = await new ServiceCollection()
             .AddSingleton(httpClientFactoryMock.Object)

@@ -305,10 +305,14 @@ internal struct Iso8601Duration
 
                 // Normalize to nanosecond intervals
                 for (; numDigits > 9; numDigits--)
+                {
                     value /= 10;
+                }
 
                 for (; numDigits < 9; numDigits++)
+                {
                     value *= 10;
+                }
 
                 nanoseconds |= (uint)value;
 

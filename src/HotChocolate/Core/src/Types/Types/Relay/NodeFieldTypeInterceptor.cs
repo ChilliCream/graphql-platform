@@ -85,7 +85,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodeField_Description,
             node)
         {
-            Arguments = { new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id) },
+            Arguments = { new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id), },
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
@@ -119,7 +119,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodesField_Description,
             nodes)
         {
-            Arguments = { new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids) },
+            Arguments = { new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids), },
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(

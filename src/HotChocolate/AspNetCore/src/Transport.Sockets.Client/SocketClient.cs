@@ -13,9 +13,9 @@ namespace HotChocolate.Transport.Sockets.Client;
 public sealed class SocketClient : ISocket
 {
     private static readonly IProtocolHandler[] _protocolHandlers =
-    {
-        new GraphQLOverWebSocketProtocolHandler()
-    };
+    [
+        new GraphQLOverWebSocketProtocolHandler(),
+    ];
 
     private readonly CancellationTokenSource _cts = new();
     private readonly CancellationToken _ct;

@@ -518,9 +518,9 @@ services.AddGraphQLServer()
 
 </ExampleTabs>
 
-In the above snippet two things may pop out as strnage to you:
+In the above snippet two things may pop out as strange to you:
 
-1. Why did we explictly ignore the `ProductId` property?
+1. Why did we explicitly ignore the `ProductId` property?
    - The `ProductId` is, in essence, a "foreign key" to the other graph. Instead of presenting that data as a field of the `Review` type, we're presenting it through the `product: Product!` GraphQL field that is produced by the `GetProduct()` method. This allows the Apollo supergraph to stitch the `Review` and `Product` types together and represent that a query can traverse from the `Review` to the `Product` it is reviewing and make the API more graph-like. With that said, it is not strictly necessary to ignore the `ProductId` or any other external entity Id property.
 2. Why does the `GetProduct()` method instantiate its own `new Product { Id = ProductId }` object?
    - Since our goal with Apollo Federation is decomposition and [concern-based separation](https://www.apollographql.com/docs/federation/#concern-based-separation), a second subgraph is likely to have that "foreign key" reference to the type that is reference from the other subgraph. However, this graph does not "own" the actual data of the entity itself. This is why our sample simply performs a `new Product { Id = ProductId }` statement for the resolver: it's not opinionated about how the other data of a `Product` is resolved from its owning graph.
@@ -545,7 +545,7 @@ As a reminder, you can create and configure a supergraph by following either the
 
 ## Contributing fields through resolvers
 
-Now that our new subgraph has the `Product` reference we can [contibute additional fields to the type](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields). Similar to other types in Hot Chocolate, you can create new fields by defining different method or property resolvers. For a full set of details and examples on creating resolvers, you can read our [documentation on resolvers](/docs/hotchocolate/v12/fetching-data/resolvers).
+Now that our new subgraph has the `Product` reference we can [contribute additional fields to the type](https://www.apollographql.com/docs/federation/entities#contributing-entity-fields). Similar to other types in Hot Chocolate, you can create new fields by defining different method or property resolvers. For a full set of details and examples on creating resolvers, you can read our [documentation on resolvers](/docs/hotchocolate/v12/fetching-data/resolvers).
 
 For now, we'll focus on giving our supergraph the ability to retrieve all reviews for a given product by adding a `reviews: [Review!]!` property to the type.
 

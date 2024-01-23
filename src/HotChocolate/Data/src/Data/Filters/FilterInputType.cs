@@ -54,7 +54,7 @@ public class FilterInputType
         InputObjectTypeDefinition definition)
     {
         base.OnRegisterDependencies(context, definition);
-        if (definition is FilterInputTypeDefinition { EntityType: { } } filterDefinition)
+        if (definition is FilterInputTypeDefinition { EntityType: { }, } filterDefinition)
         {
             SetTypeIdentity(typeof(FilterInputType<>)
                 .MakeGenericType(filterDefinition.EntityType));
@@ -85,13 +85,13 @@ public class FilterInputType
         var fields = new InputField[definition.Fields.Count + 2];
         var index = 0;
 
-        if (definition is FilterInputTypeDefinition { UseAnd: true } def)
+        if (definition is FilterInputTypeDefinition { UseAnd: true, } def)
         {
             fields[index] = new AndField(context.DescriptorContext, index, def.Scope);
             index++;
         }
 
-        if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
+        if (definition is FilterInputTypeDefinition { UseOr: true, } defOr)
         {
             fields[index] = new OrField(context.DescriptorContext, index, defOr.Scope);
             index++;

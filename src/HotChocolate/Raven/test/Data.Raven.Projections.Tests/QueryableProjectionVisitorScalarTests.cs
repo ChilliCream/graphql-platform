@@ -9,9 +9,9 @@ namespace HotChocolate.Data.Raven;
 public class QueryableProjectionVisitorScalarTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true, Baz = "a" }, new() { Bar = false, Baz = "b" }
-    };
+    [
+        new() { Bar = true, Baz = "a", }, new() { Bar = false, Baz = "b", },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -101,7 +101,7 @@ public class QueryableProjectionVisitorScalarTests
             objectType: new ObjectType<Foo>(
                 x => x
                     .Field("foo")
-                    .Resolve(new[] { "foo" })
+                    .Resolve(new[] { "foo", })
                     .Type<ListType<StringType>>()));
 
         // act

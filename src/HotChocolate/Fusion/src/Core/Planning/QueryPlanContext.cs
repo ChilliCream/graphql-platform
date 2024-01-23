@@ -12,8 +12,8 @@ internal sealed class QueryPlanContext(IOperation operation)
     private readonly Dictionary<ExecutionStep, QueryPlanNode> _stepToNode = new();
     private readonly Dictionary<QueryPlanNode, ExecutionStep> _nodeToStep = new();
     private readonly Dictionary<object, SelectionExecutionStep> _selectionLookup = new();
-    private readonly HashSet<ISelectionSet> _selectionSets = new();
-    private readonly HashSet<ExecutionStep> _completed = new();
+    private readonly HashSet<ISelectionSet> _selectionSets = [];
+    private readonly HashSet<ExecutionStep> _completed = [];
     private readonly string _opName = operation.Name ?? CreateOperationName(operation);
     private QueryPlanNode? _rootNode;
     private int _opId;
@@ -24,7 +24,7 @@ internal sealed class QueryPlanContext(IOperation operation)
 
     public ExportDefinitionRegistry Exports { get; } = new();
 
-    public List<ExecutionStep> Steps { get; } = new();
+    public List<ExecutionStep> Steps { get; } = [];
 
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 

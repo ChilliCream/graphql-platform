@@ -50,22 +50,22 @@ public class PostgresChannelWriterTests
         Assert.Equal("dGVzdA==:test", result[25..]);
     }
 
-#if DEBUG
-    [Fact] // TODO: This test needs to be fixed
+    [Fact]
     public async Task SendAsync_Should_WriteManyMessage_When_CalledManyTimes()
     {
         // Arrange
         var postgresChannelWriter = new PostgresChannelWriter(_events, _options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
-        var message =
-            PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
         var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
 
         // Act
         await Parallel.ForEachAsync(Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (_, _) =>
             {
+                var message =
+                    PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
+
                 await postgresChannelWriter.SendAsync(message, CancellationToken.None);
             });
 
@@ -77,7 +77,6 @@ public class PostgresChannelWriterTests
 
         Assert.Equal(1000, testChannel.ReceivedMessages.Count);
     }
-#endif
 
     [Fact]
     public async Task Initialize_Should_InitializeResilientNpgsqlConnection_When_Called()

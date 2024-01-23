@@ -9,7 +9,7 @@ public class DirectiveNodeTests
     public void Equals_With_Same_Location()
     {
         // arrange
-        var arguments = new List<ArgumentNode> { new("abc", "def") };
+        var arguments = new List<ArgumentNode> { new("abc", "def"), };
 
         var a = new DirectiveNode(
             TestLocations.Location1,
@@ -41,7 +41,7 @@ public class DirectiveNodeTests
     public void Equals_With_Different_Location()
     {
         // arrange
-        var arguments = new List<ArgumentNode> { new("abc", "def") };
+        var arguments = new List<ArgumentNode> { new("abc", "def"), };
 
         var a = new DirectiveNode(
             TestLocations.Location1,
@@ -73,7 +73,7 @@ public class DirectiveNodeTests
     public void GetHashCode_With_Location()
     {
         // arrange
-        var arguments = new List<ArgumentNode> { new("abc", "def") };
+        var arguments = new List<ArgumentNode> { new("abc", "def"), };
 
         var a = new DirectiveNode(
             TestLocations.Location1,

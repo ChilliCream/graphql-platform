@@ -8,21 +8,21 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { BarEnum = FooEnum.BAR },
-        new() { BarEnum = FooEnum.BAZ },
-        new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
-    };
+    [
+        new() { BarEnum = FooEnum.BAR, },
+        new() { BarEnum = FooEnum.BAZ, },
+        new() { BarEnum = FooEnum.FOO, },
+        new() { BarEnum = null, },
+        new() { BarEnum = FooEnum.QUX, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -299,7 +299,7 @@ public class QueryableFilterVisitorEnumTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooFilterInput : FilterInputType<Foo>

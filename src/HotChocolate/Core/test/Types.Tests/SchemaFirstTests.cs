@@ -168,7 +168,7 @@ public class SchemaFirstTests
         // act
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(sourceText)
-            .AddRootResolver(new { Query = new Query() })
+            .AddRootResolver(new { Query = new Query(), })
             .Create();
 
         // assert
@@ -545,31 +545,31 @@ public class SchemaFirstTests
     public class QueryWithItems
     {
         [UsePaging]
-        public string[] GetItems() => new[] { "a", "b" };
+        public string[] GetItems() => ["a", "b",];
     }
 
     public class QueryWithOffsetItems
     {
         [UseOffsetPaging]
-        public string[] GetItems() => new[] { "a", "b" };
+        public string[] GetItems() => ["a", "b",];
     }
 
     public class QueryWithPersons
     {
         [UsePaging]
-        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        public Person[] GetItems() => [new Person { Name = "Foo", },];
     }
 
     public class QueryWithOffsetPersons
     {
         [UseOffsetPaging]
-        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+        public Person[] GetItems() => [new Person { Name = "Foo", },];
     }
 
     public class QueryCodeFirst
     {
         [GraphQLType("Person!")]
-        public object GetPerson() => new Person { Name = "Hello" };
+        public object GetPerson() => new Person { Name = "Hello", };
     }
 
     public class Person

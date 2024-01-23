@@ -92,7 +92,7 @@ public class ProjectionConvention
         IServiceProvider serviceProvider,
         ProjectionConventionDefinition definition)
     {
-        List<IProjectionProviderExtension> extensions = new();
+        List<IProjectionProviderExtension> extensions = [];
         extensions.AddRange(definition.ProviderExtensions);
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {

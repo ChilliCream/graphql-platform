@@ -5,7 +5,7 @@ namespace GreenDonut;
 
 internal class Batch<TKey> where TKey : notnull
 {
-    private readonly List<TKey> _keys = new();
+    private readonly List<TKey> _keys = [];
     private readonly Dictionary<TKey, object> _items = new();
 
     public int Size => _keys.Count;

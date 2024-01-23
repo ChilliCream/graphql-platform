@@ -24,7 +24,7 @@ public class FilterConventionDefinition : IHasScope
 
     public IFilterProvider? ProviderInstance { get; set; }
 
-    public List<FilterOperationConventionDefinition> Operations { get; } = new();
+    public List<FilterOperationConventionDefinition> Operations { get; } = [];
 
     public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
@@ -32,9 +32,9 @@ public class FilterConventionDefinition : IHasScope
         new Dictionary<TypeReference, List<ConfigureFilterInputType>>(
             TypeReferenceComparer.Default);
 
-    public List<IFilterProviderExtension> ProviderExtensions { get; } = new();
+    public List<IFilterProviderExtension> ProviderExtensions { get; } = [];
 
-    public List<Type> ProviderExtensionsTypes { get; } = new();
+    public List<Type> ProviderExtensionsTypes { get; } = [];
 
     public bool UseOr { get; set; } = true;
 

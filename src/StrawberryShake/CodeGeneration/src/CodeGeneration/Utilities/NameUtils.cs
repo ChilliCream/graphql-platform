@@ -27,7 +27,7 @@ public static class NameUtils
         var builder = new StringBuilder();
         var current = path;
 
-        while (current is not null or { IsRoot: false })
+        while (current is not null or { IsRoot: false, })
         {
             if (current is NamePathSegment nameSegment)
             {
@@ -98,7 +98,7 @@ public static class NameUtils
 
     public static string GetLeftPropertyAssignment(string property)
     {
-        if (property is { Length: >0 } && property[0] == '_')
+        if (property is { Length: >0, } && property[0] == '_')
         {
             return $"this.{property}";
 

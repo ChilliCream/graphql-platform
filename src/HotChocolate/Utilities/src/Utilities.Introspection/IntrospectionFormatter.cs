@@ -62,7 +62,7 @@ internal static class IntrospectionFormatter
         OperationType operation,
         ICollection<OperationTypeDefinitionNode> operations)
     {
-        if (rootType is { Name: not null })
+        if (rootType is { Name: not null, })
         {
             operations.Add(new OperationTypeDefinitionNode(
                 null,
@@ -169,7 +169,9 @@ internal static class IntrospectionFormatter
                 CreateDescription(field.Description),
                 CreateTypeReference(field.Type),
                 ParseDefaultValue(field.DefaultValue),
-                Array.Empty<DirectiveNode>()
+                CreateDeprecatedDirective(
+                    field.IsDeprecated,
+                    field.DeprecationReason)
             ));
         }
 

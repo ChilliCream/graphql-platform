@@ -179,7 +179,7 @@ public static partial class VisitorExtensions
                 }
                 else if (action == VisitorAction.Skip)
                 {
-                    level.Push(new List<SyntaxNodeInfo>());
+                    level.Push([]);
                 }
 
                 parent = current;

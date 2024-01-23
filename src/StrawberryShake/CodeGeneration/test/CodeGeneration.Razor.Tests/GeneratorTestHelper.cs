@@ -29,7 +29,7 @@ public static class GeneratorTestHelper
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
-                ClientName = "FooClient"
+                ClientName = "FooClient",
             })
             .Result;
 
@@ -47,7 +47,7 @@ public static class GeneratorTestHelper
         bool strictValidation,
         params string[] sourceTexts) =>
         AssertResult(
-            new AssertSettings { StrictValidation = strictValidation },
+            new AssertSettings { StrictValidation = strictValidation, },
             sourceTexts);
 
     public static void AssertResult(
@@ -97,7 +97,7 @@ public static class GeneratorTestHelper
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
             });
 
         Assert.False(
@@ -177,7 +177,7 @@ public static class GeneratorTestHelper
 
     public static void AssertStarWarsResult(params string[] sourceTexts) =>
         AssertStarWarsResult(
-            new AssertSettings { StrictValidation = true },
+            new AssertSettings { StrictValidation = true, },
             sourceTexts);
 
 
@@ -231,10 +231,10 @@ public static class GeneratorTestHelper
                 testName + "Test.Client.cs"),
             RequestStrategy = requestStrategy,
             NoStore = noStore,
-            Profiles = (profiles ?? new[]
-            {
-                TransportProfile.Default
-            }).ToList()
+            Profiles = (profiles ??
+            [
+                TransportProfile.Default,
+            ]).ToList(),
         };
     }
 
@@ -280,7 +280,7 @@ public static class GeneratorTestHelper
 
         public bool RazorComponents { get; set; }
 
-        public List<TransportProfile> Profiles { get; set; } = new();
+        public List<TransportProfile> Profiles { get; set; } = [];
 
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;

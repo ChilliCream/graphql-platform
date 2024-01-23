@@ -144,7 +144,7 @@ public sealed class TaskCache : ITaskCache
     {
         lock (_sync)
         {
-            var entry = new Entry { Key = key, Value = value };
+            var entry = new Entry { Key = key, Value = value, };
             AppendEntryUnsafe(entry);
             ClearSpaceForNewEntryUnsafe();
             return entry;

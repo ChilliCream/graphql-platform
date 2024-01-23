@@ -11,43 +11,43 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorListTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "a" }, new() { Bar = "a" }, new() { Bar = "a" }
-            }
+            FooNested =
+            [
+                new() { Bar = "a", }, new() { Bar = "a", }, new() { Bar = "a", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "c" }, new() { Bar = "a" }, new() { Bar = "a" }
-            }
+            FooNested =
+            [
+                new() { Bar = "c", }, new() { Bar = "a", }, new() { Bar = "a", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "a" }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
+            FooNested =
+            [
+                new() { Bar = "a", }, new() { Bar = "d", }, new() { Bar = "b", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "c" }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
+            FooNested =
+            [
+                new() { Bar = "c", }, new() { Bar = "d", }, new() { Bar = "b", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = null! }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
-        }
-    };
+            FooNested =
+            [
+                new() { Bar = null!, }, new() { Bar = "d", }, new() { Bar = "b", },
+            ],
+        },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -169,12 +169,12 @@ public class QueryableFilterVisitorListTests
     {
         public string? Id { get; set; }
 
-        public List<FooNested> FooNested { get; set; } = new();
+        public List<FooNested> FooNested { get; set; } = [];
     }
 
     public class FooSimple
     {
-        public List<string> Bar { get; set; } = new();
+        public List<string> Bar { get; set; } = [];
     }
 
     public class FooNested

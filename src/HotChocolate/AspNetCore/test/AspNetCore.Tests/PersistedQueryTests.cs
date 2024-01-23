@@ -34,7 +34,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key },
+            new ClientQueryRequest { Id = key, },
             path: "/starwars");
 
         // assert
@@ -61,7 +61,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key },
+            new ClientQueryRequest { Id = key, },
             path: "/starwars");
 
         // assert
@@ -88,7 +88,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key },
+            new ClientQueryRequest { Id = key, },
             path: "/starwars");
 
         // assert
@@ -115,7 +115,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Id = key },
+            new ClientQueryRequest { Id = key, },
             path: "/starwars");
 
         // assert
@@ -245,7 +245,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query },
+            new ClientQueryRequest { Query = query, },
             path: "/starwars");
 
         // assert
@@ -269,7 +269,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query },
+            new ClientQueryRequest { Query = query, },
             path: "/starwars");
 
         // assert
@@ -300,7 +300,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query },
+            new ClientQueryRequest { Query = query, },
             path: "/starwars");
 
         // assert
@@ -328,7 +328,7 @@ public class PersistedQueryTests : ServerTestBase
 
         // act
         var result = await server.PostAsync(
-            new ClientQueryRequest { Query = query },
+            new ClientQueryRequest { Query = query, },
             path: "/starwars");
 
         // assert
@@ -343,9 +343,9 @@ public class PersistedQueryTests : ServerTestBase
                 ["persistedQuery"] = new Dictionary<string, object?>
                 {
                     ["version"] = 1,
-                    [hashName] = key
-                }
-            }
+                    [hashName] = key,
+                },
+            },
         };
 
     private sealed class QueryStorage : IReadStoredQueries

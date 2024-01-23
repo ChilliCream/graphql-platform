@@ -406,10 +406,10 @@ public class IdAttributeTests
 
         [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
-        [ID, InterceptedID]
+        [ID, InterceptedID,]
         public int? InterceptedId { get; }
 
-        [ID, InterceptedID]
+        [ID, InterceptedID,]
         public IReadOnlyList<int>? InterceptedIds { get; }
     }
 

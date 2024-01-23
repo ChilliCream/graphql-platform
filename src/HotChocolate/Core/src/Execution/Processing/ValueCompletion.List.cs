@@ -90,7 +90,7 @@ internal static partial class ValueCompletion
             return resultList;
         }
 
-        if (result is JsonElement { ValueKind: JsonValueKind.Array } node)
+        if (result is JsonElement { ValueKind: JsonValueKind.Array, } node)
         {
             var resultList = operationContext.Result.RentList(4);
             resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;

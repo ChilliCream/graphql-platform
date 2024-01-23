@@ -1,0 +1,14 @@
+{
+  "errors": [
+    {
+      "message": "ERROR"
+    }
+  ],
+  "data": {
+    "foo": {
+      "nonnull_list_nullable_element": [
+        null
+      ]
+    }
+  }
+}

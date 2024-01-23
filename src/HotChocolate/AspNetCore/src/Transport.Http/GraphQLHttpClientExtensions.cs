@@ -217,7 +217,7 @@ public static class GraphQLHttpClientExtensions
         
         var request = new GraphQLHttpRequest(operation)
         {
-            Method = GraphQLHttpMethod.Get
+            Method = GraphQLHttpMethod.Get,
         };
         
         return client.SendAsync(request, cancellationToken);
@@ -259,7 +259,7 @@ public static class GraphQLHttpClientExtensions
         
         var request = new GraphQLHttpRequest(operation, new Uri(uri))
         {
-            Method = GraphQLHttpMethod.Get
+            Method = GraphQLHttpMethod.Get,
         };
         
         return client.SendAsync(request, cancellationToken);
@@ -301,7 +301,7 @@ public static class GraphQLHttpClientExtensions
         
         var request = new GraphQLHttpRequest(operation, uri)
         {
-            Method = GraphQLHttpMethod.Get
+            Method = GraphQLHttpMethod.Get,
         };
         
         return client.SendAsync(request, cancellationToken);
@@ -512,7 +512,7 @@ public static class GraphQLHttpClientExtensions
             throw new ArgumentNullException(nameof(client));
         }
         
-        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post };
+        var request = new GraphQLHttpRequest(operation) { Method = GraphQLHttpMethod.Post, };
         return client.SendAsync(request, cancellationToken);
     }
 
@@ -552,7 +552,7 @@ public static class GraphQLHttpClientExtensions
         
         var request = new GraphQLHttpRequest(operation, new Uri(uri))
         {
-            Method = GraphQLHttpMethod.Post
+            Method = GraphQLHttpMethod.Post,
         };
         
         return client.SendAsync(request, cancellationToken);
@@ -594,7 +594,7 @@ public static class GraphQLHttpClientExtensions
         
         var request = new GraphQLHttpRequest(operation, uri)
         {
-            Method = GraphQLHttpMethod.Post
+            Method = GraphQLHttpMethod.Post,
         };
         
         return client.SendAsync(request, cancellationToken);

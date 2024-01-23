@@ -12,7 +12,7 @@ internal sealed class SyntaxNodeListPool : DefaultObjectPool<List<ISyntaxNode>>
 
     private sealed class Policy : IPooledObjectPolicy<List<ISyntaxNode>>
     {
-        public List<ISyntaxNode> Create() => new();
+        public List<ISyntaxNode> Create() => [];
 
         public bool Return(List<ISyntaxNode> obj)
         {

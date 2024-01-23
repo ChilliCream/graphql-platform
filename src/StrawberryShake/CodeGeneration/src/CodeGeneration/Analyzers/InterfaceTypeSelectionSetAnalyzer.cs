@@ -92,7 +92,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
                     context,
                     returnTypeFragment,
                     fieldSelection.Path,
-                    new[] { returnType });
+                    new[] { returnType, });
 
             var @class =
                 FragmentHelper.CreateClass(
@@ -156,7 +156,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
                     context,
                     returnTypeFragment,
                     fieldSelection.Path,
-                    new[] { returnType });
+                    new[] { returnType, });
 
             var @class =
                 FragmentHelper.CreateClass(

@@ -64,7 +64,7 @@ internal sealed partial class ResolverDefinition
                         var path = context.Path.ToArray();
                         context.SelectionPath = path;
                         context.PlaceholderFound = true;
-                        rewrittenList = new List<ISelectionNode>();
+                        rewrittenList = [];
 
                         if (context.ResponseName is not null)
                         {

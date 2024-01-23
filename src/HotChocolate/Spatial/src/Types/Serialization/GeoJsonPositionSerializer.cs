@@ -111,7 +111,7 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
                 z = coordinate.Z;
                 break;
 
-            case double[] { Length: > 1 and < 4 } coordinateArray:
+            case double[] { Length: > 1 and < 4, } coordinateArray:
                 x = coordinateArray[0];
                 y = coordinateArray[1];
                 z = coordinateArray.Length == 3 ? coordinateArray[2] : double.NaN;
@@ -290,16 +290,16 @@ internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
             {
                     coordinate.X,
                     coordinate.Y,
-                    coordinate.Z
-                };
+                    coordinate.Z,
+            };
             return true;
         }
 
         serialized = new[]
         {
                 coordinate.X,
-                coordinate.Y
-            };
+                coordinate.Y,
+        };
         return true;
     }
 

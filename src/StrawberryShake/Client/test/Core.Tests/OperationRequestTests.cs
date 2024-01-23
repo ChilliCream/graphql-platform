@@ -16,13 +16,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         // act
         // assert
@@ -39,14 +39,14 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
             new ConcurrentDictionary<string, object?>(
-                new Dictionary<string, object?> { { "a", "a" } }));
+                new Dictionary<string, object?> { { "a", "a" }, }));
 
         // act
         // assert
@@ -68,8 +68,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "a", "b" } })
-                }
+                        new Dictionary<string, object?> { { "a", "b" }, })
+                },
             });
 
         var b = new OperationRequest(
@@ -81,8 +81,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "a", "b" } })
-                }
+                        new Dictionary<string, object?> { { "a", "b" }, })
+                },
             });
 
         // act
@@ -95,7 +95,7 @@ public class OperationRequestTests
     {
         // arrange
         var document = new Mock<IDocument>();
-        var dict = new Dictionary<string, object?> { { "a", "a" } };
+        var dict = new Dictionary<string, object?> { { "a", "a" }, };
 
         var a = new OperationRequest(
             null,
@@ -119,20 +119,20 @@ public class OperationRequestTests
     {
         // arrange
         var document = new Mock<IDocument>();
-        var dict = new Dictionary<string, object?> { { "a", "a" } };
+        var dict = new Dictionary<string, object?> { { "a", "a" }, };
 
 
         var a = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", dict } });
+            new Dictionary<string, object?> { { "a", dict }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", dict } });
+            new Dictionary<string, object?> { { "a", dict }, });
 
         // act
         // assert
@@ -149,13 +149,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "b" } });
+            new Dictionary<string, object?> { { "a", "b" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         // act
         // assert
@@ -172,13 +172,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" }, { "b", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, { "b", "a" }, });
 
         // act
         // assert
@@ -195,14 +195,14 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
             new ConcurrentDictionary<string, object?>(
-                new Dictionary<string, object?> { { "a", "b" } }));
+                new Dictionary<string, object?> { { "a", "b" }, }));
 
         // act
         // assert
@@ -219,14 +219,14 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" }, { "b", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, { "b", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
             new ConcurrentDictionary<string, object?>(
-                new Dictionary<string, object?> { { "a", "b" } }));
+                new Dictionary<string, object?> { { "a", "b" }, }));
 
         // act
         // assert
@@ -243,13 +243,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "b", "a" } });
+            new Dictionary<string, object?> { { "b", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" }, { "b", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, { "b", "a" }, });
 
         // act
         // assert
@@ -271,8 +271,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "a", "b" } })
-                }
+                        new Dictionary<string, object?> { { "a", "b" }, })
+                },
             });
 
         var b = new OperationRequest(
@@ -284,8 +284,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "c", "b" } })
-                }
+                        new Dictionary<string, object?> { { "c", "b" }, })
+                },
             });
 
         // act
@@ -308,8 +308,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "a", "b" } })
-                }
+                        new Dictionary<string, object?> { { "a", "b" }, })
+                },
             });
 
         var b = new OperationRequest(
@@ -321,8 +321,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "a", "c" } })
-                }
+                        new Dictionary<string, object?> { { "a", "c" }, })
+                },
             });
 
         // act
@@ -340,7 +340,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "b" } });
+            new Dictionary<string, object?> { { "a", "b" }, });
 
         var b = new OperationRequest(
             null,
@@ -368,8 +368,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "a", null } })
-                }
+                        new Dictionary<string, object?> { { "a", null }, })
+                },
             });
 
         var b = new OperationRequest(
@@ -381,8 +381,8 @@ public class OperationRequestTests
                 {
                     "a",
                     new ConcurrentDictionary<string, object?>(
-                        new Dictionary<string, object?> { { "c", "b" } })
-                }
+                        new Dictionary<string, object?> { { "c", "b" }, })
+                },
             });
 
         // act
@@ -400,13 +400,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new List<object?> { 1, 2, 3 } } });
+            new Dictionary<string, object?> { { "a", new List<object?> { 1, 2, 3, } }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new List<object?> { 1, 2, 3 } } });
+            new Dictionary<string, object?> { { "a", new List<object?> { 1, 2, 3, } }, });
 
         // act
         // assert
@@ -416,7 +416,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new List<object?> { 1, 3, 2 } } });
+            new Dictionary<string, object?> { { "a", new List<object?> { 1, 3, 2, } }, });
 
         // act
         // assert
@@ -426,7 +426,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new List<object?> { 1, 3 } } });
+            new Dictionary<string, object?> { { "a", new List<object?> { 1, 3, } }, });
 
         // act
         // assert
@@ -436,7 +436,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new List<object?> { 1, 2, 3, 4 } } });
+            new Dictionary<string, object?> { { "a", new List<object?> { 1, 2, 3, 4, } }, });
 
         // act
         // assert
@@ -453,13 +453,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3 } } } } });
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3, } }, } }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3 } } } } });
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3, } }, } }, });
 
         // act
         // assert
@@ -469,7 +469,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 3, 2 } } } } });
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 3, 2, } }, } }, });
 
         // act
         // assert
@@ -479,7 +479,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 3 } } } } });
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 3, } }, } }, });
 
         // act
         // assert
@@ -489,7 +489,7 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3, 4 } } } } });
+            new Dictionary<string, object?> { { "a", new Dictionary<string, object?> { { "b", new List<object?> { 1, 2, 3, 4, } }, } }, });
 
         // act
         // assert
@@ -514,14 +514,14 @@ public class OperationRequestTests
                                 { "c", "123456" },
                                 { "d", new Dictionary<string, object?>
                                     {
-                                        { "e", new List<object?> { 1, 2, 3, 4 } },
-                                        { "f", true } }
+                                        { "e", new List<object?> { 1, 2, 3, 4, } },
+                                        { "f", true }, }
                                     },
-                                { "g", 123 }
+                                { "g", 123 },
                             }
-                        }
+                        },
                     }
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -536,14 +536,14 @@ public class OperationRequestTests
                                 { "c", "123456" },
                                 { "d", new Dictionary<string, object?>
                                     {
-                                        { "e", new List<object?> { 1, 2, 3, 4 } },
-                                        { "f", true } }
+                                        { "e", new List<object?> { 1, 2, 3, 4, } },
+                                        { "f", true }, }
                                     },
-                                { "g", 123 }
+                                { "g", 123 },
                             }
-                        }
+                        },
                     }
-                }
+                },
             });
 
         // act
@@ -566,10 +566,10 @@ public class OperationRequestTests
                     {
                         new KeyValuePair<string, object?>("b", new List<KeyValuePair<string, object?>>
                         {
-                            new KeyValuePair<string, object?>("id", "123456")
-                        })
+                            new KeyValuePair<string, object?>("id", "123456"),
+                        }),
                     }
-                }
+                },
             });
 
         var b = new OperationRequest(
@@ -582,10 +582,10 @@ public class OperationRequestTests
                     {
                         new KeyValuePair<string, object?>("b", new List<KeyValuePair<string, object?>>
                         {
-                            new KeyValuePair<string, object?>("id", "123456")
-                        })
+                            new KeyValuePair<string, object?>("id", "123456"),
+                        }),
                     }
-                }
+                },
             });
 
         // act
@@ -624,13 +624,13 @@ public class OperationRequestTests
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         var b = new OperationRequest(
             null,
             "abc",
             document.Object,
-            new Dictionary<string, object?> { { "a", "a" } });
+            new Dictionary<string, object?> { { "a", "a" }, });
 
         // act
         var hashCodeA = a.GetHashCode();

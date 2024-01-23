@@ -92,12 +92,12 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 #if NET6_0_OR_GREATER
             if (!internalLookup.TryAdd(field.Name, field))
             {
-                (duplicates ??= new()).Add(field.Name);
+                (duplicates ??= []).Add(field.Name);
             }
 #else
             if (internalLookup.ContainsKey(field.Name))
             {
-                (duplicates ??= new()).Add(field.Name);
+                (duplicates ??= []).Add(field.Name);
                 continue;
             }
             

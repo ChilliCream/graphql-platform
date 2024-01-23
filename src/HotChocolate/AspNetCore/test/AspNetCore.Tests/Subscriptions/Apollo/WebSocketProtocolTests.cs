@@ -68,8 +68,8 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                     new GraphQLServerOptions { Sockets =
                     {
                         ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                        KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                    }}));
+                        KeepAliveInterval = TimeSpan.FromMilliseconds(150),
+                    }, }));
             var client = CreateWebSocketClient(testServer);
 
             // act
@@ -95,7 +95,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
             // act
-            await webSocket.SendConnectionInitializeAsync(new() { ["token"] = "abc " }, ct);
+            await webSocket.SendConnectionInitializeAsync(new() { ["token"] = "abc ", }, ct);
 
             // assert
             var message = await webSocket.ReceiveServerMessageAsync(ct);
@@ -238,7 +238,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                             }) {
                                 stars
                             }
-                        }"
+                        }",
                 });
 
             var message = await WaitForMessage(webSocket, "data", ct);
@@ -397,7 +397,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
             });
 
             await WaitForMessage(webSocket, "data", ct);
@@ -415,7 +415,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
                         }) {
                             stars
                         }
-                    }"
+                    }",
             });
 
             // assert

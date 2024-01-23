@@ -201,7 +201,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
 
         foreach (var step in executionStep.DependsOn)
         {
-            if (step is SelectionExecutionStep { SubgraphName: { } subgraphName })
+            if (step is SelectionExecutionStep { SubgraphName: { } subgraphName, })
             {
                 dependsOnSubgraph.Add(subgraphName);
             }

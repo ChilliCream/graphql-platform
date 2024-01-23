@@ -1,5 +1,4 @@
 using HotChocolate.Configuration.Validation;
-using Xunit;
 
 namespace HotChocolate.Types.Validation;
 
@@ -8,106 +7,180 @@ public class InputObjectTypeValidationRuleTests : TypeValidationTestBase
     [Fact]
     public void RejectInputTypeWithoutFields()
     {
-        ExpectError(@"
+        ExpectError("""
           type Query { stub: String }
 
           input Foo {}
-        ");
+        """);
     }
 
     [Fact]
     public void AcceptInputTypeWithFields()
     {
-        ExpectValid(@"
+        ExpectValid("""
           type Query { stub: String }
 
           input Foo {
               nullable: String
               nonNullable: String!
-              defaultNullable: String = ""Foo""
-              defaultNonNullable: String! = ""Foo""
+              defaultNullable: String = "Foo"
+              defaultNonNullable: String! = "Foo"
           }
-        ");
+        """);
     }
 
     [Fact]
     public void AcceptInputTypeWithFieldsAndDirectives()
     {
-        ExpectValid(@"
+        ExpectValid("""
           type Query { stub: String }
 
           input Foo @inputObject {
               nullable: String @inputFieldDefinition
               nonNullable: String! @inputFieldDefinition
-              defaultNullable: String = ""Foo"" @inputFieldDefinition
-              defaultNonNullable: String! = ""Foo"" @inputFieldDefinition
+              defaultNullable: String = "Foo" @inputFieldDefinition
+              defaultNonNullable: String! = "Foo" @inputFieldDefinition
           }
 
           directive @inputFieldDefinition on INPUT_FIELD_DEFINITION
 
           directive @inputObject on INPUT_OBJECT
-        ");
+        """);
     }
 
     [Fact]
     public void RejectFieldsWithInvalidName()
     {
-        ExpectError(@"
+        ExpectError("""
           type Query { stub: String }
 
           input Foo {
               __badField: String
           }
-        ");
+        """);
     }
 
     [Fact]
     public void AcceptOneOfWithNullableFields()
     {
-        ExpectValid(@"
+        ExpectValid("""
           type Query { stub: String }
 
           input Foo @oneOf {
               first: String
               second: Int
           }
-        ");
+        """);
     }
 
     [Fact]
     public void RejectOneOfWithNullableFields()
     {
-        ExpectError(@"
+        ExpectError("""
           type Query { stub: String }
 
           input Foo @oneOf {
               first: String!
               second: Int!
           }
-        ");
+        """);
     }
 
     [Fact]
     public void AcceptNonRequiredInputThatIsDeprecated()
     {
-        ExpectValid(@"
+        ExpectValid("""
           type Query { stub: String }
 
           input Foo {
               field: Int @deprecated
           }
-        ");
+        """);
     }
 
     [Fact]
     public void RejectRequiredFieldThatIsDeprecated()
     {
-        ExpectError(@"
+        ExpectError("""
           type Query { stub: String }
 
           input Foo {
               field: Int! @deprecated
           }
-        ");
+        """);
+    }
+
+    // https://github.com/graphql/graphql-js/pull/1359/files
+    [Fact]
+    public void AcceptsBreakableCircularReferences()
+    {
+        ExpectValid("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              self: SomeInputObject
+              arrayOfSelf: [SomeInputObject]
+              nonNullArrayOfSelf: [SomeInputObject]!
+              nonNullArrayOfNonNullSelf: [SomeInputObject!]!
+              intermediateSelf: AnotherInputObject
+          }
+          input AnotherInputObject {
+              parent: SomeInputObject
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsNonBreakableDirectCircularReference()
+    {
+        ExpectError("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              nonNullSelf: SomeInputObject!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsCircularReferenceThroughOtherType()
+    {
+        ExpectError("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              startLoop: AnotherInputObject!
+          }
+          input AnotherInputObject {
+              nextInLoop: YetAnotherInputObject!
+          }
+          input YetAnotherInputObject {
+              closeLoop: SomeInputObject!
+          }
+        """);
+    }
+
+    [Fact]
+    public void RejectsMultipleCircularReferences()
+    {
+        ExpectError("""
+          type Query {
+              field(arg: SomeInputObject): String
+          }
+          input SomeInputObject {
+              startLoop: AnotherInputObject!
+          }
+          input AnotherInputObject {
+              closeLoop: SomeInputObject!
+              startSecondLoop: YetAnotherInputObject!
+          }
+          input YetAnotherInputObject {
+              closeSecondLoop: AnotherInputObject!
+              nonNullSelf: YetAnotherInputObject!
+          }
+        """);
     }
 }

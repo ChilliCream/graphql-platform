@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 public class EnumBuilder : ITypeBuilder
 {
     private AccessModifier _accessModifier;
-    private readonly List<(string, long?, XmlCommentBuilder?)> _elements = new();
+    private readonly List<(string, long?, XmlCommentBuilder?)> _elements = [];
     private string? _name;
     private string? _underlyingType;
     private XmlCommentBuilder? _xmlComment;

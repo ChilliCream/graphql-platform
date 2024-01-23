@@ -118,7 +118,7 @@ public static class SchemaPrinter
             typeDefinitions.Insert(0, PrintSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated };
+        var builtInDirectives = new HashSet<string> { Skip, Include, Deprecated, };
 
         var directiveTypeDefinitions =
             schema.DirectiveTypes
@@ -533,5 +533,17 @@ public static class SchemaPrinter
         => directive.AsSyntaxNode(true);
 
     private static StringValueNode PrintDescription(string description)
-        => string.IsNullOrEmpty(description) ? null : new StringValueNode(description);
+    {
+        if (string.IsNullOrEmpty(description))
+        {
+            return null;
+        }
+
+        // Get rid of any unnecessary whitespace.
+        description = description.Trim();
+
+        var isBlock = description.Contains("\n");
+
+        return new StringValueNode(null, description, isBlock);
+    }
 }

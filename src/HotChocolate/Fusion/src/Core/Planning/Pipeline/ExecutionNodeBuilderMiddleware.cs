@@ -169,7 +169,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             if (_schema.TryGetType<InputObjectType>(typeName, out var inputObjectType))
             {
-                processed ??= new HashSet<InputObjectType>();
+                processed ??= [];
                 next ??= new Stack<InputObjectType>();
 
                 processed.Add(inputObjectType);

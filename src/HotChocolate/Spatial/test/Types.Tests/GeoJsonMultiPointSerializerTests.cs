@@ -22,22 +22,22 @@ public class GeoJsonMultiPointSerializerTests
             new IntValueNode(30),
             new IntValueNode(10)));
 
-    private readonly Geometry _geometry = new MultiPoint(new[]
-    {
+    private readonly Geometry _geometry = new MultiPoint(
+    [
         new Point(new Coordinate(10, 40)),
         new Point(new Coordinate(40, 30)),
         new Point(new Coordinate(20, 20)),
         new Point(new Coordinate(30, 10)),
-    });
+    ]);
 
     private const string _geometryType = "MultiPoint";
 
     private readonly object _geometryParsed = new[]
     {
-        new[] { 10.0, 40.0 },
-        new[] { 40.0, 30.0 },
-        new[] { 20.0, 20.0 },
-        new[] { 30.0, 10.0 }
+        [10.0, 40.0,],
+        [40.0, 30.0,],
+        [20.0, 20.0,],
+        new[] { 30.0, 10.0, },
     };
 
     [Theory]
@@ -128,7 +128,7 @@ public class GeoJsonMultiPointSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    new Geometry[] { new Point(1, 2) })));
+                    [new Point(1, 2),])));
     }
 
     [Theory]
@@ -437,7 +437,7 @@ public class GeoJsonMultiPointSerializerTests
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 }
+                { WellKnownFields.CrsFieldName, 26912 },
             };
 
         // act
@@ -458,7 +458,7 @@ public class GeoJsonMultiPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
             };
 
         // act
@@ -479,7 +479,7 @@ public class GeoJsonMultiPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
             };
 
         // act
@@ -498,7 +498,7 @@ public class GeoJsonMultiPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
             };
 
         // act

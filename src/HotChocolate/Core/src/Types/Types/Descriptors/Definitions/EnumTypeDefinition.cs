@@ -55,7 +55,7 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
 
         if (HasConfigurations)
         {
-            configs ??= new();
+            configs ??= [];
             configs.AddRange(Configurations);
         }
 
@@ -63,7 +63,7 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
         {
             if (value.HasConfigurations)
             {
-                configs ??= new();
+                configs ??= [];
                 configs.AddRange(value.Configurations);
             }
         }

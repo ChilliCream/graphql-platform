@@ -28,7 +28,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
         DefinitionBase definition)
     {
         if (ReferenceEquals(completionContext, _queryContext) &&
-            completionContext.Type is ObjectType { Fields: var fields })
+            completionContext.Type is ObjectType { Fields: var fields, })
         {
             var foundNode = false;
             var foundNodes = false;
@@ -72,7 +72,7 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
             List<string>? alwaysProjected = null;
             foreach (var field in objectTypeDefinition.Fields)
             {
-                alwaysProjected ??= new List<string>();
+                alwaysProjected ??= [];
                 if (field.GetContextData().TryGetValue(IsProjectedKey, out var value) &&
                     value is true)
                 {

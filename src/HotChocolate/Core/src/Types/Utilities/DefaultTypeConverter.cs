@@ -11,7 +11,7 @@ namespace HotChocolate.Utilities;
 public partial class DefaultTypeConverter : ITypeConverter
 {
     private readonly ConcurrentDictionary<(Type, Type), ChangeType> _converters = new();
-    private readonly List<IChangeTypeProvider> _changeTypeProvider = new();
+    private readonly List<IChangeTypeProvider> _changeTypeProvider = [];
 
     public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
     {
