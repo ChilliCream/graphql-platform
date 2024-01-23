@@ -69,7 +69,7 @@ public class ObjectIdTypeTests
 
     public class Query
     {
-        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b") };
+        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b"), };
 
         public ObjectId Loopback(ObjectId objectId) => objectId;
     }

@@ -75,7 +75,7 @@ public abstract class SubscriptionIntegrationTestBase
         var results = responseStream.ReadResultsAsync().ConfigureAwait(false);
 
         // assert
-        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello" }, cts.Token)
+        await sender.SendAsync("OnMessage", new Foo { Bar = "Hello", }, cts.Token)
             .ConfigureAwait(false);
         await sender.CompleteAsync("OnMessage").ConfigureAwait(false);
 

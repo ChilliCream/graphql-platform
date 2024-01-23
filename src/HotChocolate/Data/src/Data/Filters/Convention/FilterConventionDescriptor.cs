@@ -112,7 +112,7 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
                 typeReference,
                 out var configurations))
         {
-            configurations = new List<ConfigureFilterInputType>();
+            configurations = [];
             Definition.Configurations.Add(typeReference, configurations);
         }
 

@@ -10,13 +10,13 @@ namespace HotChocolate.Execution.Configuration;
 /// </summary>
 public sealed class RequestExecutorSetup
 {
-    private readonly List<OnConfigureSchemaBuilderAction> _onConfigureSchemaBuilderHooks = new();
-    private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = new();
-    private readonly List<RequestCoreMiddleware> _pipeline = new();
-    private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = new();
-    private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = new();
-    private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = new();
-    private readonly List<ITypeModule> _typeModules = new();
+    private readonly List<OnConfigureSchemaBuilderAction> _onConfigureSchemaBuilderHooks = [];
+    private readonly List<OnConfigureRequestExecutorOptionsAction> _onConfigureRequestExecutorOptionsHooks = [];
+    private readonly List<RequestCoreMiddleware> _pipeline = [];
+    private readonly List<OnConfigureSchemaServices> _onConfigureSchemaServicesHooks = [];
+    private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreatedHooks = [];
+    private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvictedHooks = [];
+    private readonly List<ITypeModule> _typeModules = [];
 
     /// <summary>
     /// This allows to specify a schema and short-circuit the schema creation.

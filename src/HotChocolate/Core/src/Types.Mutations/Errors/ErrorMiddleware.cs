@@ -38,7 +38,7 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
 
                 if (!handled)
                 {
-                    unhandledErrors ??= new List<Exception>();
+                    unhandledErrors ??= [];
                     unhandledErrors.Add(exception);
                 }
             }
@@ -79,7 +79,7 @@ internal sealed class ErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateEr
                 throw;
             }
 
-            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error });
+            context.SetScopedState(ErrorContextDataKeys.Errors, new[] { error, });
             context.Result = MarkerObjects.ErrorObject;
         }
     }

@@ -57,9 +57,9 @@ public class FilterInputTypeDescriptor
     protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
         new();
 
-    protected BindableList<FilterFieldDescriptor> Fields { get; } = new();
+    protected BindableList<FilterFieldDescriptor> Fields { get; } = [];
 
-    protected BindableList<FilterOperationFieldDescriptor> Operations { get; } = new();
+    protected BindableList<FilterOperationFieldDescriptor> Operations { get; } = [];
 
     Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 

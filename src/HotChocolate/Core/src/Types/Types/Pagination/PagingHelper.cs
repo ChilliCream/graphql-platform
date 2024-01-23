@@ -127,7 +127,7 @@ public static class PagingHelper
             if (context.TryInferSchemaType(
                 r.WithType(typeInspector.GetType(typeInfo.NamedType)),
                 out var schemaTypeRefs) &&
-                schemaTypeRefs is { Length:> 0 } &&
+                schemaTypeRefs is { Length:> 0, } &&
                 schemaTypeRefs[0] is ExtendedTypeReference schemaTypeRef)
             {
                 // if we are able to infer the type we will reconstruct its structure so that
@@ -147,7 +147,7 @@ public static class PagingHelper
                     }
                 }
 
-                if (typeInspector.GetType(current) is { IsArrayOrList: true } schemaType)
+                if (typeInspector.GetType(current) is { IsArrayOrList: true, } schemaType)
                 {
                     return schemaType.ElementType!;
                 }

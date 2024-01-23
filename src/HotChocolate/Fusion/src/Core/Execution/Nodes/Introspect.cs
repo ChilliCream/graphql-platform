@@ -52,7 +52,7 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
             List<Task>? asyncTasks = null;
             ExecutePureFieldsAndEnqueueResolvers(context, value, cancellationToken, ref asyncTasks);
             
-            if(asyncTasks is { Count: > 0 })
+            if(asyncTasks is { Count: > 0, })
             {
                 await Task.WhenAll(asyncTasks).ConfigureAwait(false);
             }
@@ -99,7 +99,7 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
                 ImmutableDictionary<string, object?>.Empty);
             resolverTask.BeginExecute(ct);
 
-            asyncTasks ??= new List<Task>();
+            asyncTasks ??= [];
             asyncTasks.Add(resolverTask.WaitForCompletionAsync(ct));
 
             NEXT:

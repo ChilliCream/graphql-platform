@@ -190,7 +190,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .SetPath(new List<object> { "foo" })
+            .SetPath(new List<object> { "foo", })
             .Build();
 
         // assert

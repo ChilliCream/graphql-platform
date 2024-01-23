@@ -114,7 +114,7 @@ public class QueryableSortVisitorAscTests
 
         // assert
         var inputs =
-            data.Select(x => new FooNullable<string> { Bar = x }).ToArray();
+            data.Select(x => new FooNullable<string> { Bar = x, }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -135,7 +135,7 @@ public class QueryableSortVisitorAscTests
         var func = tester.Build<Foo<T>>(value);
 
         // assert
-        var inputs = data.Select(x => new Foo<T> { Bar = x }).ToArray();
+        var inputs = data.Select(x => new Foo<T> { Bar = x, }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)

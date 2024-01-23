@@ -133,7 +133,7 @@ public class ProjectionVisitor<TContext>
 
             for (var index = selections.Count - 1; index >= 0; index--)
             {
-                if (selections[index] is { ResponseName : CombinedEdgeField } selection)
+                if (selections[index] is { ResponseName : CombinedEdgeField, } selection)
                 {
                     context.Selection.Push(selection);
 

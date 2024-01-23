@@ -66,7 +66,7 @@ public class DirectiveTypeDefinition
     /// Gets or the associated middleware components.
     /// </summary>
     public IList<DirectiveMiddleware> MiddlewareComponents =>
-        _middlewareComponents ??= new List<DirectiveMiddleware>();
+        _middlewareComponents ??= [];
 
     /// <summary>
     /// Defines the location on which a directive can be annotated.
@@ -77,12 +77,12 @@ public class DirectiveTypeDefinition
     /// Gets the directive arguments.
     /// </summary>
     public IBindableList<DirectiveArgumentDefinition> Arguments
-        => _arguments ??= new BindableList<DirectiveArgumentDefinition>();
+        => _arguments ??= [];
 
     /// <summary>
     /// Specifies if this directive definition has an arguments.
     /// </summary>
-    public bool HasArguments => _arguments is { Count: > 0 };
+    public bool HasArguments => _arguments is { Count: > 0, };
 
 
     /// <summary>

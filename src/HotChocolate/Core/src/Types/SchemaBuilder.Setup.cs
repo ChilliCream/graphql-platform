@@ -253,7 +253,7 @@ public partial class SchemaBuilder
 
             if (registered.Count > 0)
             {
-                var serviceFactory = new ServiceFactory { Services = services };
+                var serviceFactory = new ServiceFactory { Services = services, };
 
                 foreach (var interceptorOrType in registered)
                 {

@@ -13,7 +13,7 @@ public class TestDataLoader : BatchDataLoader<string, string>, ITestDataLoader
     {
     }
 
-    public List<IReadOnlyList<string>> Loads { get; } = new();
+    public List<IReadOnlyList<string>> Loads { get; } = [];
 
     protected override async Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
         IReadOnlyList<string> keys,

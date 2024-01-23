@@ -400,7 +400,7 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteType(node.Type);
 
-        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue } value)
+        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue, } value)
         {
             writer.WriteSpace();
             writer.Write("=");

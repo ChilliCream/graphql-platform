@@ -26,13 +26,13 @@ internal static class DeferAndStreamTestSchema
 
     public class Query
     {
-        private readonly List<Person> _persons = new()
-        {
+        private readonly List<Person> _persons =
+        [
             new Person(1, "Pascal"),
             new Person(2, "Rafi"),
             new Person(3, "Martin"),
             new Person(4, "Michael"),
-        };
+        ];
 
         [NodeResolver]
         public async Task<Person> GetPersonAsync(int id)

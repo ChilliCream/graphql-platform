@@ -176,7 +176,7 @@ public class BsonType : ScalarType
 
         if (value is BsonDocument doc)
         {
-            List<ObjectFieldNode> fields = new();
+            List<ObjectFieldNode> fields = [];
             foreach (var field in doc)
             {
                 fields.Add(new ObjectFieldNode(field.Name, ParseValue(field.Value)));
@@ -187,7 +187,7 @@ public class BsonType : ScalarType
 
         if (value is BsonArray arr)
         {
-            List<IValueNode> valueList = new();
+            List<IValueNode> valueList = [];
             foreach (var element in arr)
             {
                 valueList.Add(ParseValue(element));

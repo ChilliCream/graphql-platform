@@ -235,7 +235,7 @@ public static class SortObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
+        var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =
             new(middleware, key: WellKnownMiddleware.Sorting);

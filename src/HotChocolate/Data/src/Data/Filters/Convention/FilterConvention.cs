@@ -333,7 +333,7 @@ public class FilterConvention
             return true;
         }
 
-        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
 

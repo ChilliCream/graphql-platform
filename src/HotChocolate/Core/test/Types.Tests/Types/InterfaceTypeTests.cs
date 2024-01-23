@@ -835,7 +835,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         public string Hello => "World!";
 
-        public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple() };
+        public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple(), };
     }
 
     [InterfaceType]
@@ -878,7 +878,7 @@ public class InterfaceTypeTests : TypeTestBase
 
     public class PetQuery
     {
-        public Pet GetDog() => new Dog { Name = "Foo" };
+        public Pet GetDog() => new Dog { Name = "Foo", };
     }
 
     [InterfaceType(Inherited = true)]

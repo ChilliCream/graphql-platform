@@ -46,7 +46,7 @@ public partial class DirectiveType
     /// Returns the newly created directive type.
     /// </returns>
     public static DirectiveType CreateUnsafe(DirectiveTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <summary>
     /// The associated syntax node from the GraphQL SDL.

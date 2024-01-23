@@ -59,7 +59,7 @@ internal static class InputObjectCompiler
         expressions.Add(Expression.Assign(variable, instance));
         CompileSetProperties(variable, fields.Values, _fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable }, expressions);
+        Expression body = Expression.Block(new[] { variable, }, expressions);
 
         var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
 
@@ -109,7 +109,7 @@ internal static class InputObjectCompiler
         expressions.Add(Expression.Assign(variable, instance));
         CompileSetProperties(variable, arguments.Values, _fieldValues, expressions);
         expressions.Add(Expression.Convert(variable, typeof(object)));
-        Expression body = Expression.Block(new[] { variable }, expressions);
+        Expression body = Expression.Block(new[] { variable, }, expressions);
 
         var func = Expression.Lambda<Func<object?[], object>>(body, _fieldValues).Compile();
 
@@ -200,7 +200,7 @@ internal static class InputObjectCompiler
                 fields.Remove(field.Property!.Name);
                 var value = GetFieldValue(field, fieldValues);
 
-                if (field is InputField { IsOptional: true })
+                if (field is InputField { IsOptional: true, })
                 {
                     value = CreateOptional(value, field.RuntimeType);
                 }
@@ -228,7 +228,7 @@ internal static class InputObjectCompiler
             var setter = field.Property!.GetSetMethod(true)!;
             var value = GetFieldValue(field, fieldValues);
 
-            if (field is InputField { IsOptional: true })
+            if (field is InputField { IsOptional: true, })
             {
                 value = CreateOptional(value, field.RuntimeType);
             }

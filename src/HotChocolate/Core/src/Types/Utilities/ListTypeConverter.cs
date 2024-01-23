@@ -54,18 +54,18 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
             {
                 var converterMethod =
                     _dictionaryConvert.MakeGenericMethod(targetElement.GetGenericArguments());
-                converter = s => converterMethod.Invoke(null, new[] { s, elementConverter });
+                converter = s => converterMethod.Invoke(null, [s, elementConverter,]);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsInterface: true })
+            if (target is { IsGenericType: true, IsInterface: true, })
             {
                 var typeDefinition = target.GetGenericTypeDefinition();
 
                 if (typeDefinition == typeof(ISet<>))
                 {
                     var converterMethod = _setConvert.MakeGenericMethod(targetElement);
-                    converter = s => converterMethod.Invoke(null, new[] { s, elementConverter });
+                    converter = s => converterMethod.Invoke(null, [s, elementConverter,]);
                     return true;
                 }
 
@@ -81,18 +81,18 @@ internal sealed class ListTypeConverter : IChangeTypeProvider
                 }
             }
 
-            if (target is { IsGenericType: true, IsClass: true } &&
+            if (target is { IsGenericType: true, IsClass: true, } &&
                 typeof(ICollection).IsAssignableFrom(target))
             {
                 converter = s => GenericListConverter((ICollection?)s, target, elementConverter);
                 return true;
             }
 
-            if (target is { IsGenericType: true, IsClass: true } &&
+            if (target is { IsGenericType: true, IsClass: true, } &&
                 IsGenericCollection(target))
             {
                 var converterMethod = _collectionConvert.MakeGenericMethod(targetElement);
-                converter = s => converterMethod.Invoke(null, new[] { s, target, elementConverter });
+                converter = s => converterMethod.Invoke(null, [s, target, elementConverter,]);
                 return true;
             }
         }

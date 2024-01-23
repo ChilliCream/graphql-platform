@@ -33,7 +33,7 @@ internal sealed class CreatePayloadTypesMiddleware : IOpenApiWrapperMiddleware
             var payloadType = new ObjectType(typeName);
             var field = new OutputField(OpenApiResources.PayloadSuccessField)
             {
-                Type = new ObjectType(nameof(Boolean))
+                Type = new ObjectType(nameof(Boolean)),
             };
             payloadType.Fields.Add(field);
             context.MutableSchema.Types.Add(payloadType);

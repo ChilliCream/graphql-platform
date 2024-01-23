@@ -15,12 +15,14 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
     private string? _label;
     private Path? _path;
     private bool? _hasNext;
+    private bool? _isDataSet;
     private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
 
     public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {
         _data = data;
         _items = null;
+        _isDataSet = true;
         return this;
     }
 
@@ -43,7 +45,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             throw new ArgumentNullException(nameof(error));
         }
 
-        _errors ??= new List<IError>();
+        _errors ??= [];
         _errors.Add(error);
         return this;
     }
@@ -55,7 +57,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             throw new ArgumentNullException(nameof(errors));
         }
 
-        _errors ??= new List<IError>();
+        _errors ??= [];
         _errors.AddRange(errors);
         return this;
     }
@@ -129,7 +131,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             throw new ArgumentNullException(nameof(patch));
         }
 
-        _incremental ??= new List<IQueryResult>();
+        _incremental ??= [];
         _incremental.Add(patch);
         return this;
     }
@@ -176,17 +178,18 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             _label,
             _path,
             _hasNext,
-            _cleanupTasks);
+            _cleanupTasks,
+            _isDataSet ?? false);
 
     public static QueryResultBuilder New() => new();
 
     public static QueryResultBuilder FromResult(IQueryResult result)
     {
-        var builder = new QueryResultBuilder { _data = result.Data };
+        var builder = new QueryResultBuilder { _data = result.Data, };
 
         if (result.Errors is not null)
         {
-            builder._errors = new List<IError>(result.Errors);
+            builder._errors = [..result.Errors,];
         }
 
         if (result.Extensions is ExtensionData ext)
@@ -210,6 +213,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         builder._label = result.Label;
         builder._path = result.Path;
         builder._hasNext = result.HasNext;
+        builder._isDataSet = result.IsDataSet;
 
         return builder;
     }
@@ -219,7 +223,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new QueryResult(null, new List<IError> { error }, contextData: contextData);
+            : new QueryResult(null, new List<IError> { error, }, contextData: contextData);
 
     public static IQueryResult CreateError(
         IReadOnlyList<IError> errors,

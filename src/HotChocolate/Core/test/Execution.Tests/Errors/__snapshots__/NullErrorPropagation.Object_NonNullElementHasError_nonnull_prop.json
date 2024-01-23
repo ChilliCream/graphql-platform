@@ -1,0 +1,10 @@
+{
+  "errors": [
+    {
+      "message": "ERROR"
+    }
+  ],
+  "data": {
+    "foo": null
+  }
+}

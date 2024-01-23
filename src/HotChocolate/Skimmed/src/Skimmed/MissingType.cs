@@ -21,7 +21,7 @@ public sealed class MissingType : INamedType
 
     public string? Description { get; set; }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 

@@ -25,7 +25,7 @@ public class SchemaCoordinateVisitorTests
                     }
                     return SyntaxVisitor.Continue;
                 },
-                options: new() { VisitNames = true })
+                options: new() { VisitNames = true, })
             .Visit(node);
 
         // assert
@@ -80,7 +80,7 @@ public class SchemaCoordinateVisitorTests
         private readonly List<string> _list;
 
         public CustomSyntaxWalker(List<string> list)
-            : base(new() { VisitNames = true })
+            : base(new() { VisitNames = true, })
         {
             _list = list;
         }
@@ -95,7 +95,7 @@ public class SchemaCoordinateVisitorTests
     public class CustomGenericSyntaxWalker : SyntaxWalker<CustomContext>
     {
         public CustomGenericSyntaxWalker()
-            : base(new() { VisitNames = true })
+            : base(new() { VisitNames = true, })
         {
         }
 

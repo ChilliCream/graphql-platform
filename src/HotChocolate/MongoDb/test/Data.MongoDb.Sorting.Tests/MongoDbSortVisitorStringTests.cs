@@ -11,17 +11,17 @@ public class MongoDbSortVisitorStringTests
       IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" }
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-        new() { Bar = null }
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+        new() { Bar = null, },
+    ];
 
     public MongoDbSortVisitorStringTests(MongoResource resource)
     {

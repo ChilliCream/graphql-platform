@@ -52,7 +52,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
         foreach (var directive in schema.Directives[WellKnownDirectives.Tag])
         {
-            if (directive.Arguments[0] is { Name: WellKnownDirectives.Name, Value: StringValueNode name } &&
+            if (directive.Arguments[0] is { Name: WellKnownDirectives.Name, Value: StringValueNode name, } &&
                 excludedTags.Contains(name.Value))
             {
                 return false;

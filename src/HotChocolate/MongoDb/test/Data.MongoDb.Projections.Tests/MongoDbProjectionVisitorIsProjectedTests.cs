@@ -9,16 +9,16 @@ public class MongoDbProjectionVisitorIsProjectedTests
     : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { IsProjectedTrue = true, IsProjectedFalse = false },
-        new() { IsProjectedTrue = true, IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+    ];
 
     private static readonly Bar[] _barEntities =
-    {
-        new() { IsProjectedFalse = false },
-        new() { IsProjectedFalse = false }
-    };
+    [
+        new() { IsProjectedFalse = false, },
+        new() { IsProjectedFalse = false, },
+    ];
 
     private readonly SchemaCache _cache;
 

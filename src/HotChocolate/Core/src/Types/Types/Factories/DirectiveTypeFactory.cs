@@ -132,7 +132,7 @@ internal sealed class DirectiveTypeFactory
                 argumentDefinition.SyntaxNode = argument;
             }
 
-            if (argument.DeprecationReason() is { Length: > 0 } reason)
+            if (argument.DeprecationReason() is { Length: > 0, } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

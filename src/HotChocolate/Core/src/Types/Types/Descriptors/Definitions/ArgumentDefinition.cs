@@ -46,7 +46,7 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     public Type? RuntimeType { get; set; }
 
     public IList<IInputValueFormatter> Formatters =>
-        _formatters ??= new List<IInputValueFormatter>();
+        _formatters ??= [];
 
     public IReadOnlyList<IInputValueFormatter> GetFormatters()
     {
@@ -73,9 +73,9 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     {
         base.MergeInto(target);
 
-        if (_formatters is { Count: > 0 })
+        if (_formatters is { Count: > 0, })
         {
-            target._formatters ??= new List<IInputValueFormatter>();
+            target._formatters ??= [];
             target._formatters.AddRange(_formatters);
         }
 

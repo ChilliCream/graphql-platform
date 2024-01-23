@@ -40,7 +40,7 @@ public abstract class DescriptorBase<T>
 
             do
             {
-                if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
+                if (configurations[i] is { On: ApplyConfigurationOn.Create, } config)
                 {
                     configurations.RemoveAt(i);
                     ((CreateConfiguration)config).Configure(Context);

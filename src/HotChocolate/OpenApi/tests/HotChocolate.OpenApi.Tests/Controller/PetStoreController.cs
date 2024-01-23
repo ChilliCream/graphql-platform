@@ -10,11 +10,11 @@ public record Pet([Required]string Name, [Required] long Id, string? Tag) : NewP
 [ApiController]
 public class PetStoreController : ControllerBase
 {
-    private static readonly List<Pet> _pets = new()
-    {
+    private static readonly List<Pet> _pets =
+    [
         new Pet("Chopper", 1, null),
         new Pet("Rex", 2, null),
-    };
+    ];
 
     [HttpPost]
     [Route("/pets")]
@@ -32,7 +32,11 @@ public class PetStoreController : ControllerBase
     {
         var toDelete = _pets.FirstOrDefault(p => p.Id == id);
 
-        if (toDelete is null) return BadRequest("Pet not found");
+        if (toDelete is null)
+        {
+            return BadRequest("Pet not found");
+        }
+
         _pets.Remove(toDelete);
         return Ok();
 

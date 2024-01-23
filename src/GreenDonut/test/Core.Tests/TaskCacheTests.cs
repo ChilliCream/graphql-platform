@@ -37,11 +37,11 @@ public class TaskCacheTests
         Assert.Equal(expectedCacheSize, result);
     }
 
-    [InlineData(new[] { "Foo" }, 1)]
-    [InlineData(new[] { "Foo", "Bar" }, 2)]
-    [InlineData(new[] { "Foo", "Bar", "Baz" }, 3)]
+    [InlineData(new[] { "Foo", }, 1)]
+    [InlineData(new[] { "Foo", "Bar", }, 2)]
+    [InlineData(new[] { "Foo", "Bar", "Baz", }, 3)]
     [InlineData(new[] { "Foo", "Bar", "Baz", "Qux", "Quux", "Corge",
-        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy" }, 10)]
+        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy", }, 10)]
     [Theory(DisplayName = "Usage: Should return the expected cache usage")]
     public void Usage(string[] values, int expectedUsage)
     {

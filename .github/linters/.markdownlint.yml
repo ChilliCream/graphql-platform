@@ -1,0 +1,41 @@
+---
+###########################
+###########################
+## Markdown Linter rules ##
+###########################
+###########################
+
+# Linter rules doc:
+# - https://github.com/DavidAnson/markdownlint
+#
+# Note:
+# To comment out a single error:
+#   <!-- markdownlint-disable -->
+#   any violations you want
+#   <!-- markdownlint-restore -->
+#
+
+###############
+# Rules by id #
+###############
+MD001: false
+MD009: false
+MD012: false
+MD013: false
+MD018: false
+MD022: false
+MD024: false
+MD025: false
+MD026: false
+MD028: false
+MD029: false
+MD031: false
+MD032: false
+MD033: false
+MD034: false
+MD036: false
+MD037: false
+MD040: false
+MD041: false
+MD045: false
+MD053: false

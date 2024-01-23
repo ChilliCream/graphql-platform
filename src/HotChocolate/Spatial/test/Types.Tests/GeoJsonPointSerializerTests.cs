@@ -16,7 +16,7 @@ public class GeoJsonPointSerializerTests
 
     private readonly string _geometryType = "Point";
 
-    private readonly object _geometryParsed = new[] { 30.0, 10.0 };
+    private readonly object _geometryParsed = new[] { 30.0, 10.0, };
 
     [Theory]
     [InlineData(GeometryTypeName)]
@@ -121,7 +121,7 @@ public class GeoJsonPointSerializerTests
         Assert.False(
             type.IsInstanceOfType(
                 GeometryFactory.Default.CreateGeometryCollection(
-                    new Geometry[] { new Point(1, 2) })));
+                    [new Point(1, 2),])));
     }
 
     [Theory]
@@ -443,7 +443,7 @@ public class GeoJsonPointSerializerTests
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 }
+                { WellKnownFields.CrsFieldName, 26912 },
             };
 
         // act
@@ -464,7 +464,7 @@ public class GeoJsonPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
             };
 
         // act
@@ -485,7 +485,7 @@ public class GeoJsonPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
             };
 
         // act
@@ -504,7 +504,7 @@ public class GeoJsonPointSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
             };
 
         // act

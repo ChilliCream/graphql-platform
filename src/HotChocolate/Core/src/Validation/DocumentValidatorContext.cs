@@ -10,8 +10,8 @@ namespace HotChocolate.Validation;
 public sealed class DocumentValidatorContext : IDocumentValidatorContext
 {
     private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
-    private readonly List<FieldInfoListBuffer> _buffers = new() { new FieldInfoListBuffer() };
-    private readonly List<IError> _errors = new();
+    private readonly List<FieldInfoListBuffer> _buffers = [new FieldInfoListBuffer(),];
+    private readonly List<IError> _errors = [];
 
     private ISchema? _schema;
     private IOutputType? _nonNullString;
@@ -106,11 +106,11 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public IDictionary<string, object?> ContextData { get; set; } = default!;
 
-    public List<FieldInfoPair> CurrentFieldPairs { get; } = new();
+    public List<FieldInfoPair> CurrentFieldPairs { get; } = [];
 
-    public List<FieldInfoPair> NextFieldPairs { get; } = new();
+    public List<FieldInfoPair> NextFieldPairs { get; } = [];
 
-    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = new();
+    public HashSet<FieldInfoPair> ProcessedFieldPairs { get; } = [];
 
     public IList<FieldInfo> RentFieldInfoList()
     {

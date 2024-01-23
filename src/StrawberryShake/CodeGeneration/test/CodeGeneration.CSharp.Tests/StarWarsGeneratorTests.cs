@@ -97,7 +97,7 @@ public class StarWarsGeneratorTests
         AssertStarWarsResult(
             new AssertSettings {
                 StrictValidation = true,
-                AccessModifier = AccessModifier.Internal
+                AccessModifier = AccessModifier.Internal,
             },
             @"query GetHero {
                     hero(episode: NEW_HOPE) {

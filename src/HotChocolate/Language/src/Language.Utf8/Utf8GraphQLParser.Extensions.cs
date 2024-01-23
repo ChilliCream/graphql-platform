@@ -5,7 +5,7 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs = new();
+    private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs = [];
 
     private ITypeSystemExtensionNode ParseTypeExtension()
     {

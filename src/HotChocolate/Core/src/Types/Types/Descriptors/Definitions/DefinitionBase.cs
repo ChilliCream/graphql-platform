@@ -48,25 +48,25 @@ public class DefinitionBase : IDefinition
     /// Gets access to additional type dependencies.
     /// </summary>
     public IList<TypeDependency> Dependencies
-        => _dependencies ??= new List<TypeDependency>();
+        => _dependencies ??= [];
 
     /// <summary>
     /// Defines if this type has dependencies.
     /// </summary>
     public bool HasDependencies
-        => _dependencies is { Count: > 0 };
+        => _dependencies is { Count: > 0, };
 
     /// <summary>
     /// Gets configurations that shall be applied at a later point.
     /// </summary>
     public IList<ITypeSystemMemberConfiguration> Configurations
-        => _configurations ??= new List<ITypeSystemMemberConfiguration>();
+        => _configurations ??= [];
 
     /// <summary>
     /// Defines if this type has configurations.
     /// </summary>
     public bool HasConfigurations
-        => _configurations is { Count: > 0 };
+        => _configurations is { Count: > 0, };
 
     /// <summary>
     /// Defines whether descriptor attributes have been applied or not.
@@ -120,12 +120,12 @@ public class DefinitionBase : IDefinition
     {
         if (_dependencies is not null && _dependencies.Count > 0)
         {
-            target._dependencies = new List<TypeDependency>(_dependencies);
+            target._dependencies = [.._dependencies,];
         }
 
         if (_configurations is not null && _configurations.Count > 0)
         {
-            target._configurations = new List<ITypeSystemMemberConfiguration>();
+            target._configurations = [];
 
             foreach (var configuration in _configurations)
             {
@@ -148,13 +148,13 @@ public class DefinitionBase : IDefinition
     {
         if (_dependencies is not null && _dependencies.Count > 0)
         {
-            target._dependencies ??= new List<TypeDependency>();
+            target._dependencies ??= [];
             target._dependencies.AddRange(_dependencies);
         }
 
         if (_configurations is not null && _configurations.Count > 0)
         {
-            target._configurations ??= new List<ITypeSystemMemberConfiguration>();
+            target._configurations ??= [];
 
             foreach (var configuration in _configurations)
             {

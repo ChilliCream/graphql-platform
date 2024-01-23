@@ -20,7 +20,7 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     {
         // Backwards compatibility with the original code's behavior
         _serializationPattern = OffsetDateTimePattern.GeneralIso;
-        _allowedPatterns = new IPattern<OffsetDateTime>[] { OffsetDateTimePattern.ExtendedIso };
+        _allowedPatterns = [OffsetDateTimePattern.ExtendedIso,];
     }
 
     /// <summary>

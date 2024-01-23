@@ -13,20 +13,22 @@ internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
     {
         var typeRef = (SchemaTypeReference)typeReference;
 
-        if (!typeRegistrar.IsResolved(typeReference))
+        if (typeRegistrar.IsResolved(typeReference))
         {
-            var tsm = typeRef.Type;
+            return;
+        }
+        
+        var tsm = typeRef.Type;
 
-            // if it is a type object we will make sure it is unwrapped.
-            if (typeRef.Type is IType type)
-            {
-                tsm = type.NamedType();
-            }
+        // if it is a type object we will make sure it is unwrapped.
+        if (typeRef.Type is IType type)
+        {
+            tsm = type.NamedType();
+        }
 
-            if (tsm is TypeSystemObjectBase tso)
-            {
-                typeRegistrar.Register(tso, typeReference.Scope);
-            }
+        if (tsm is TypeSystemObjectBase tso)
+        {
+            typeRegistrar.Register(tso, typeReference.Scope);
         }
     }
 }

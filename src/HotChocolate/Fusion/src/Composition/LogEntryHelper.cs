@@ -74,7 +74,7 @@ internal static class LogEntryHelper
                 sourceKind,
                 targetKind),
             LogEntryCodes.TypeKindMismatch,
-            extension: new[] { sourceKind, targetKind });
+            extension: new[] { sourceKind, targetKind, });
 
     public static LogEntry OutputFieldArgumentMismatch(
         SchemaCoordinate coordinate,
@@ -139,7 +139,7 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error,
             coordinate: schemaCoordinate,
             member: source,
-            extension: new[] { targetType, sourceType });
+            extension: new[] { targetType, sourceType, });
     
     public static LogEntry InputFieldTypeMismatch(
         SchemaCoordinate schemaCoordinate, 
@@ -156,7 +156,7 @@ internal static class LogEntryHelper
             severity: LogSeverity.Error,
             coordinate: schemaCoordinate,
             member: source,
-            extension: new[] { targetType, sourceType });
+            extension: new[] { targetType, sourceType, });
     
     public static LogEntry RootTypeNameMismatch(
         OperationType operationType,

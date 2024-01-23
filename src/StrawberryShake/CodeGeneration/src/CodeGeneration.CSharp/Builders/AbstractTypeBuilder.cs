@@ -7,11 +7,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public abstract class AbstractTypeBuilder : ITypeBuilder
 {
-    protected List<PropertyBuilder> Properties { get; } = new();
+    protected List<PropertyBuilder> Properties { get; } = [];
 
     protected string? Name { get; private set; }
 
-    protected List<string> Implements { get; } = new();
+    protected List<string> Implements { get; } = [];
 
     public abstract void Build(CodeWriter writer);
 

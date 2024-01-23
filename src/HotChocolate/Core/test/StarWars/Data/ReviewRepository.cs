@@ -13,7 +13,7 @@ public class ReviewRepository
     {
         if (!_data.TryGetValue(episode, out List<Review> reviews))
         {
-            reviews = new List<Review>();
+            reviews = [];
             _data[episode] = reviews;
         }
 

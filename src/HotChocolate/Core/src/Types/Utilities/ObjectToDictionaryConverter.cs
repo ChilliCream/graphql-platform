@@ -26,7 +26,7 @@ internal class ObjectToDictionaryConverter
 
         object value = null;
         void SetValue(object v) => value = v;
-        VisitValue(obj, SetValue, new HashSet<object>());
+        VisitValue(obj, SetValue, []);
         return value;
     }
 

@@ -12,14 +12,14 @@ namespace HotChocolate.Data.MongoDb.Paging;
 
 public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
 {
-    private readonly List<Foo> foos = new()
-    {
-        new Foo { Bar = "a" },
-        new Foo { Bar = "b" },
-        new Foo { Bar = "d" },
-        new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
-    };
+    private readonly List<Foo> foos =
+    [
+        new Foo { Bar = "a", },
+        new Foo { Bar = "b", },
+        new Foo { Bar = "d", },
+        new Foo { Bar = "e", },
+        new Foo { Bar = "f", },
+    ];
 
     private readonly MongoResource _resource;
 
@@ -289,7 +289,7 @@ public class MongoDbCursorPagingFindFluentTests : IClassFixture<MongoResource>
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
                 })
             .UseRequest(
                 next => async context =>

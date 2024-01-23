@@ -98,7 +98,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null);
 
             // Create a new SelectionSetNode for the entity resolver
-            var selectionSet = new SelectionSetNode(new[] { selection });
+            var selectionSet = new SelectionSetNode(new[] { selection, });
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
@@ -211,7 +211,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null);
 
             // Create a new SelectionSetNode for the entity resolver
-            var selectionSet = new SelectionSetNode(new[] { selection });
+            var selectionSet = new SelectionSetNode(new[] { selection, });
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(

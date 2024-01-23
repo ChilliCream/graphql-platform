@@ -15,7 +15,7 @@ public abstract class CacheDataLoader<TKey, TValue>
         : base(
             AutoBatchScheduler.Default,
             options is null
-                ? new DataLoaderOptions { MaxBatchSize = 1 }
+                ? new DataLoaderOptions { MaxBatchSize = 1, }
                 : CreateLocalOptions(options))
     { }
 

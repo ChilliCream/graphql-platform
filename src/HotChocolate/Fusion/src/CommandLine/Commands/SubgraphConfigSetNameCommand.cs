@@ -56,12 +56,12 @@ internal sealed class SubgraphConfigSetNameCommand : Command
 
             await ReplaceSubgraphConfigInSubgraphPackageAsync(
                 configFile.FullName,
-                config with { Name = subgraphName });
+                config with { Name = subgraphName, });
         }
         else
         {
             var config = await LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
-            var configJson = FormatSubgraphConfig(config with { Name = subgraphName });
+            var configJson = FormatSubgraphConfig(config with { Name = subgraphName, });
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
         }
     }

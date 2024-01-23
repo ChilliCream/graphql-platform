@@ -28,7 +28,7 @@ internal class GeoJsonMultiPointSerializer
 
         Point[]? geometries;
 
-        if (coordinates is IList { Count: > 0 } listObjects &&
+        if (coordinates is IList { Count: > 0, } listObjects &&
             listObjects.TryConvertToCoordinates(out var list))
         {
             geometries = new Point[list.Length];

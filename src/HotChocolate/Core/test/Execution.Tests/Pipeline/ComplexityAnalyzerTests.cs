@@ -568,7 +568,7 @@ public class ComplexityAnalyzerTests
     {
         [UsePaging]
         public IQueryable<Person> GetPersons()
-            => new[] { new Person() }.AsQueryable();
+            => new[] { new Person(), }.AsQueryable();
 
         public Task<Person> GetPersonAsync()
             => Task.FromResult(new Person());

@@ -44,11 +44,11 @@ public class Error : IError
         {
             if (Extensions is null)
             {
-                Extensions = new OrderedDictionary<string, object?> { { _code, code } };
+                Extensions = new OrderedDictionary<string, object?> { { _code, code }, };
             }
             else if (!Extensions.TryGetValue(_code, out var value) || !ReferenceEquals(value, code))
             {
-                Extensions = new OrderedDictionary<string, object?>(Extensions) { { _code, code } };
+                Extensions = new OrderedDictionary<string, object?>(Extensions) { { _code, code }, };
             }
         }
     }
@@ -98,8 +98,8 @@ public class Error : IError
         }
 
         var extensions = Extensions is null
-            ? new OrderedDictionary<string, object?> { [_code] = code }
-            : new OrderedDictionary<string, object?>(Extensions) { [_code] = code };
+            ? new OrderedDictionary<string, object?> { [_code] = code, }
+            : new OrderedDictionary<string, object?>(Extensions) { [_code] = code, };
         return new Error(Message, code, Path, Locations, extensions, Exception);
     }
 

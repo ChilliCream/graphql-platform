@@ -39,7 +39,7 @@ public class MongoDbListAnyOperationHandler
         object? parsedValue)
     {
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } &&
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } &&
             parsedValue is bool parsedBool &&
             context.Scopes.Peek() is MongoDbFilterScope scope)
         {
@@ -52,7 +52,7 @@ public class MongoDbListAnyOperationHandler
                     new BsonDocument
                     {
                             { "$exists", true },
-                            { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
+                            { "$nin", new BsonArray { new BsonArray(), BsonNull.Value, } },
                     });
             }
 
@@ -62,11 +62,11 @@ public class MongoDbListAnyOperationHandler
                     new BsonDocument
                     {
                             { "$exists", true },
-                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value } }
+                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value, } },
                     }),
                 new MongoDbFilterOperation(
                     path,
-                    new BsonDocument { { "$exists", false } }));
+                    new BsonDocument { { "$exists", false }, }));
         }
 
         throw new InvalidOperationException();

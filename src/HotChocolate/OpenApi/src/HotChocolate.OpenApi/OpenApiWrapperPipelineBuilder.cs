@@ -2,7 +2,7 @@ namespace HotChocolate.OpenApi;
 
 internal sealed class OpenApiWrapperPipelineBuilder
 {
-    private readonly List<OpenApiWrapperMiddleware> _pipeline = new();
+    private readonly List<OpenApiWrapperMiddleware> _pipeline = [];
 
     private OpenApiWrapperPipelineBuilder()
     {
@@ -11,7 +11,11 @@ internal sealed class OpenApiWrapperPipelineBuilder
     public OpenApiWrapperDelegate Build()
     {
         OpenApiWrapperDelegate next = _ => { };
-        for (var i = _pipeline.Count - 1; i >= 0; i--) next = _pipeline[i].Invoke(next);
+        for (var i = _pipeline.Count - 1; i >= 0; i--)
+        {
+            next = _pipeline[i].Invoke(next);
+        }
+
         return next;
     }
 

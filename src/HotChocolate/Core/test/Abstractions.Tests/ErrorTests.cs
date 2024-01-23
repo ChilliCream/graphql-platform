@@ -80,7 +80,7 @@ public class ErrorTests
 
         // act
         error = error.WithExtensions(
-            new Dictionary<string, object> { { "a", "b" } });
+            new Dictionary<string, object> { { "a", "b" }, });
 
         // assert
         Assert.Collection(error.Extensions,
@@ -146,7 +146,7 @@ public class ErrorTests
 
         // act
         error = error.WithLocations(
-            new List<Location> { new Location(1, 2) });
+            new List<Location> { new Location(1, 2), });
 
         // assert
         Assert.Collection(error.Locations,

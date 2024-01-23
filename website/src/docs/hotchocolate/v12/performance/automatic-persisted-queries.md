@@ -26,10 +26,10 @@ In the following tutorial, we will walk you through creating a Hot Chocolate Gra
 
 Open your preferred terminal and select a directory where you want to add the code of this tutorial.
 
-1. Install the Hot Chocolate GraphQL server template.
+1. Install the Hot Chocolate templates.
 
 ```bash
-dotnet new -i HotChocolate.Templates.Server
+dotnet new install HotChocolate.Templates
 ```
 
 2. Create a new Hot Chocolate GraphQL server project.

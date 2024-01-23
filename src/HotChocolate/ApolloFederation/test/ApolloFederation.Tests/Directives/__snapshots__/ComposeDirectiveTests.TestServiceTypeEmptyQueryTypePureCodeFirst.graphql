@@ -1,0 +1,37 @@
+schema @composeDirective(name: "custom") @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.5", import: [ "@composeDirective", "@key", "FieldSet" ]) @link(url: "https:\/\/specs.custom.dev\/custom\/v1.0", import: [ "@custom" ]) {
+  query: Query
+}
+
+type Address @key(fields: "field") {
+  field: String! @custom
+}
+
+type Query {
+  _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
+}
+
+"This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
+type _Service {
+  sdl: String!
+}
+
+"Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
+union _Entity = Address
+
+"Marks underlying custom directive to be included in the Supergraph schema."
+directive @composeDirective(name: String!) repeatable on SCHEMA
+
+directive @custom on FIELD_DEFINITION
+
+"Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
+directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+
+"Object representation of @link directive."
+directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+
+"Scalar representing a set of fields."
+scalar FieldSet
+
+"The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
+scalar _Any

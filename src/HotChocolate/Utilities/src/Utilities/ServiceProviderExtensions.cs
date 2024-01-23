@@ -77,7 +77,7 @@ public static class ServiceProviderExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        var factory = new ServiceFactory { Services = services };
+        var factory = new ServiceFactory { Services = services, };
         if (factory.CreateInstance(type) is T casted)
         {
             return casted;
@@ -102,7 +102,7 @@ public static class ServiceProviderExtensions
             throw new ArgumentNullException(nameof(services));
         }
 
-        var factory = new ServiceFactory { Services = services };
+        var factory = new ServiceFactory { Services = services, };
         if (factory.CreateInstance(type) is T casted)
         {
             service = casted;

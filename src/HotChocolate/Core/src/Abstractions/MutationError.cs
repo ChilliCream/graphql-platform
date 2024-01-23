@@ -22,7 +22,7 @@ public sealed class MutationError : IMutationResult
             throw new ArgumentNullException(nameof(error));
         }
 
-        Errors = new[] { error };
+        Errors = new[] { error, };
     }
 
     /// <summary>

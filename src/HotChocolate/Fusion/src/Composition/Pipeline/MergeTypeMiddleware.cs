@@ -26,7 +26,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
             {
                 if (!groupedTypes.TryGetValue(type.Name, out var types))
                 {
-                    types = new List<TypePart>();
+                    types = [];
                     groupedTypes.Add(type.Name, types);
                 }
                 types.Add(new TypePart(type, schema));

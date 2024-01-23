@@ -29,7 +29,7 @@ public class SortingContext : ISortingContext
             ? listValueNode.Items
                 .Select(x => new SortingInfo(type, x, inputParser))
                 .ToArray()
-            : new[] {new SortingInfo(type, valueNode, inputParser)};
+            : [new SortingInfo(type, valueNode, inputParser),];
         _context = context;
     }
 

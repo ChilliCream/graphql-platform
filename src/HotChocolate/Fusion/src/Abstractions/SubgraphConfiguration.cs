@@ -63,7 +63,7 @@ public sealed class SubgraphConfiguration
         string extensions,
         IReadOnlyList<IClientConfiguration> clients,
         JsonElement? configurationExtensions)
-        : this(name, schema, new[] { extensions }, clients, configurationExtensions) { }
+        : this(name, schema, new[] { extensions, }, clients, configurationExtensions) { }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SubgraphConfiguration"/> class.
@@ -89,7 +89,7 @@ public sealed class SubgraphConfiguration
         string extensions,
         IClientConfiguration client,
         JsonElement? configurationExtensions)
-        : this(name, schema, new[] { extensions }, new[] { client }, configurationExtensions) { }
+        : this(name, schema, new[] { extensions, }, new[] { client, }, configurationExtensions) { }
 
     /// <summary>
     /// Gets the name of the subgraph.

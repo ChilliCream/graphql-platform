@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext : IMiddlewareContext
 {
     private readonly OperationResultBuilderFacade _operationResultBuilder = new();
-    private readonly List<Func<ValueTask>> _cleanupTasks = new();
+    private readonly List<Func<ValueTask>> _cleanupTasks = [];
     private OperationContext _operationContext = default!;
     private IServiceProvider _services = default!;
     private InputParser _parser = default!;

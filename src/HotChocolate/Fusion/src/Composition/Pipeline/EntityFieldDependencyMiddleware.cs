@@ -139,7 +139,7 @@ static file class MergeEntitiesMiddlewareExtensions
             arguments,
             null);
 
-        return new SelectionSetNode(new[] { field });
+        return new SelectionSetNode(new[] { field, });
     }
 
     private static Directive CreateResolverDirective(

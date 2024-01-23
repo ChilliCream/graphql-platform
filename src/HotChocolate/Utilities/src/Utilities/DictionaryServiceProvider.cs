@@ -20,7 +20,7 @@ public sealed class DictionaryServiceProvider : IServiceProvider
             throw new ArgumentNullException(nameof(instance));
         }
 
-        _services = new Dictionary<Type, object> { { service, instance } };
+        _services = new Dictionary<Type, object> { { service, instance }, };
     }
 
     public DictionaryServiceProvider(params KeyValuePair<Type, object>[] services)
