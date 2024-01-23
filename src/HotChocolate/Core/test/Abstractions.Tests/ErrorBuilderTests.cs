@@ -31,7 +31,7 @@ public class ErrorBuilderTests
             "123",
             extensions: new OrderedDictionary<string, object>
             {
-                {"foo", "bar"}
+                {"foo", "bar"},
             });
 
         // act
@@ -53,7 +53,7 @@ public class ErrorBuilderTests
             "123",
             extensions: new OrderedDictionary<string, object>
             {
-                {"foo", "bar"}
+                {"foo", "bar"},
             }
         );
 
@@ -75,7 +75,7 @@ public class ErrorBuilderTests
             extensions: new OrderedDictionary<string, object>
             {
                 {"foo", "bar"},
-                {"bar", "foo"}
+                {"bar", "foo"},
             }
         );
 
@@ -194,7 +194,7 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Equal("/foo", error.Path.Print());
+        Assert.Equal("/foo", error.Path?.Print());
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class ErrorBuilderTests
             .Build();
 
         // assert
-        Assert.Equal("/foo", error.Path.Print());
+        Assert.Equal("/foo", error.Path?.Print());
     }
 
     [Fact]

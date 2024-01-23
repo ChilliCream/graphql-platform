@@ -30,13 +30,6 @@ public interface IEnumValueDescriptor
     IEnumValueDescriptor Description(string value);
 
     /// <summary>
-    /// Specifies a deprecation reason for this enum value.
-    /// </summary>
-    /// <param name="reason">The reason why this enum value is deprecated.</param>
-    [Obsolete("Use `Deprecated`.")]
-    IEnumValueDescriptor DeprecationReason(string reason);
-
-    /// <summary>
     /// Deprecates the enum value.
     /// </summary>
     /// <param name="reason">The reason why this enum value is deprecated.</param>

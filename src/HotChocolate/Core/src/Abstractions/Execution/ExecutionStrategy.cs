@@ -13,5 +13,5 @@ public enum ExecutionStrategy
     /// <summary>
     /// Defines that a task or execution step can be executed in parallel.
     /// </summary>
-    Parallel
+    Parallel,
 }

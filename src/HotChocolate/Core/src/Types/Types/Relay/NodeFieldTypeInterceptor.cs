@@ -27,13 +27,13 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
+        ObjectTypeDefinition definition,
         OperationType operationType)
     {
-        if (operationType is OperationType.Query && definition is ObjectTypeDefinition typeDef)
+        if (operationType is OperationType.Query)
         {
             _queryContext = completionContext;
-            _queryTypeDefinition = typeDef;
+            _queryTypeDefinition = definition;
         }
     }
 
@@ -92,8 +92,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     _ => async context =>
                     {
                         await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                    })
-            }
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field
@@ -127,8 +127,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     {
                         await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
                             .ConfigureAwait(false);
-                    })
-            }
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field

@@ -1,0 +1,1 @@
+Unable to merge the field `Query.someData1` because the type `String!` does not match the type `[String]!`.

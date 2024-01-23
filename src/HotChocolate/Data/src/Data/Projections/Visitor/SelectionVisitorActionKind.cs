@@ -5,5 +5,5 @@ public enum SelectionVisitorActionKind
     Continue,
     Skip,
     Break,
-    SkipAndLeave
+    SkipAndLeave,
 }

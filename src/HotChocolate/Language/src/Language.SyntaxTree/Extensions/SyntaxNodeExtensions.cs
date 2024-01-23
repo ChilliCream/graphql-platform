@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
 
@@ -102,6 +103,9 @@ public static class SyntaxNodeExtensions
 
         throw new NotSupportedException();
     }
+    
+    public static string Name(this ITypeNode type)
+        => type.NamedType().Name.Value;
 
     public static bool Equals(
         this ISyntaxNode node,
@@ -110,4 +114,20 @@ public static class SyntaxNodeExtensions
         => comparison is SyntaxComparison.Syntax
             ? SyntaxComparer.BySyntax.Equals(node, other)
             : SyntaxComparer.ByReference.Equals(node, other);
+
+    public static string ToString(this ISyntaxNode node, SyntaxSerializerOptions options)
+    {
+        var serializer = new SyntaxSerializer(options);
+        var writer = StringSyntaxWriter.Rent();
+
+        try
+        {
+            serializer.Serialize(node, writer);
+            return writer.ToString();
+        }
+        finally
+        {
+            StringSyntaxWriter.Return(writer);
+        }
+    }
 }

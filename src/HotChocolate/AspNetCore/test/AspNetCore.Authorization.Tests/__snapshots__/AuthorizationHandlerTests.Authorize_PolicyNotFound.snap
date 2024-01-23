@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "The \u0060\u0060 authorization policy does not exist.",
+      "message": "The `` authorization policy does not exist.",
       "locations": [
         {
           "line": 1,
@@ -15,5 +15,6 @@
         "code": "AUTH_POLICY_NOT_FOUND"
       }
     }
-  ]
+  ],
+  "data": null
 }

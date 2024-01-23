@@ -1,17 +1,87 @@
-{
-  "Name": "Accounts",
-  "Schema": "schema {\n  query: Query\n  mutation: Mutation\n}\n\n\"The node interface is implemented by entities that have a global unique identifier.\"\ninterface Node {\n  id: ID!\n}\n\ntype Query {\n  \"Fetches an object given its ID.\"\n  node(\"ID of the object.\" id: ID!): Node\n  \"Lookup nodes by a list of IDs.\"\n  nodes(\"The list of node IDs.\" ids: [ID!]!): [Node]!\n  users: [User!]!\n  userById(id: ID!): User\n  usersById(ids: [ID!]!): [User!]!\n}\n\ntype Mutation {\n  addUser(input: AddUserInput!): AddUserPayload!\n}\n\ntype User implements Node {\n  id: ID!\n  name: String!\n  birthdate: Date!\n  username: String!\n}\n\n\"The `DateTime` scalar represents an ISO-8601 compliant date time type.\"\nscalar DateTime\n\n\"The `Date` scalar represents an ISO-8601 compliant date type.\"\nscalar Date\n\ninput AddUserInput {\n  name: String!\n  username: String!\n  birthdate: DateTime!\n}\n\ntype AddUserPayload {\n  user: User\n}",
-  "Extensions": [
-    "extend type Query {\n  userById(id: ID! @is(field: \"id\")): User!\n  usersById(ids: [ID!]! @is(field: \"id\")): [User!]!\n}"
-  ],
-  "Clients": [
-    {
-      "ClientName": null,
-      "BaseAddress": "http://localhost:5000/graphql"
-    },
-    {
-      "ClientName": null,
-      "BaseAddress": "ws://localhost:5000/graphql"
-    }
-  ]
+Name
+---------------
+Accounts
+---------------
+
+Schema
+---------------
+schema {
+  query: Query
+  mutation: Mutation
 }
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  users: [User!]!
+  userById(id: ID!): User
+  usersById(ids: [ID!]!): [User!]!
+  viewer: Viewer!
+}
+
+type Mutation {
+  addUser(input: AddUserInput!): AddUserPayload!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+type Viewer {
+  user: User
+  data: SomeData!
+}
+
+type User implements Node {
+  id: ID!
+  name: String!
+  birthdate: Date!
+  username: String!
+}
+
+type SomeData {
+  accountValue: String!
+}
+
+input AddUserInput {
+  name: String!
+  username: String!
+  birthdate: Date!
+}
+
+type AddUserPayload {
+  user: User
+}
+---------------
+
+Extensions
+---------------
+extend type Query {
+  userById(id: ID!
+    @is(field: "id")): User!
+  usersById(ids: [ID!]!
+    @is(field: "id")): [User!]!
+}
+---------------
+
+Clients
+---------------
+{
+  "ClientName": null,
+  "BaseAddress": "http://localhost:5000/graphql"
+}
+---------------
+
+Clients
+---------------
+{
+  "ClientName": null,
+  "BaseAddress": "ws://localhost:5000/graphql"
+}
+---------------

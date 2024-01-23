@@ -20,11 +20,11 @@ public class MiddlewareCompilerTests
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
-                            new ServiceParameterHandler(services)
+                            new ServiceParameterHandler(services),
                         });
-            
+
         // assert
-        var middleware = 
+        var middleware =
             factory.Invoke(new EmptyServiceProvider(), c => default);
         Assert.Equal("abc", middleware.Some);
     }
@@ -40,21 +40,21 @@ public class MiddlewareCompilerTests
                         new List<IParameterHandler>
                         {
                             new TypeParameterHandler(typeof(string), Expression.Constant("abc")),
-                            new ServiceParameterHandler(services)
+                            new ServiceParameterHandler(services),
                         });
 
-        var middleware = 
+        var middleware =
             factory.Invoke(new EmptyServiceProvider(), c => default);
 
         // act
-        var pipeline =  
+        var pipeline =
             MiddlewareCompiler<CustomClassMiddleware>.CompileDelegate<CustomContext>(
                 (context, middleware) =>
                     new List<IParameterHandler>
                     {
-                        new TypeParameterHandler(typeof(string), Expression.Constant("def"))
+                        new TypeParameterHandler(typeof(string), Expression.Constant("def")),
                     });
-            
+
         // assert
         var context = new CustomContext(new EmptyServiceProvider());
         pipeline.Invoke(context, middleware);

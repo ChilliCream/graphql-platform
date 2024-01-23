@@ -10,6 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration;
 
+// note: this type is considered internal and should not be used by users.
 /// <summary>
 /// A type initialization interceptors can hook into the various initialization events
 /// of type system members and change / rewrite them. This is useful in order to transform
@@ -17,13 +18,25 @@ namespace HotChocolate.Configuration;
 /// </summary>
 public abstract class TypeInterceptor
 {
-    private const uint _position = uint.MaxValue / 2;
+    private const uint _defaultPosition = uint.MaxValue / 2;
 
     /// <summary>
     /// A weight to order interceptors.
     /// </summary>
-    internal virtual uint Position => _position;
-
+    internal virtual uint Position => _defaultPosition;
+    
+    internal virtual bool IsEnabled(IDescriptorContext context) => true;
+    
+    internal virtual bool IsMutationAggregator(IDescriptorContext context) => false;
+    
+    internal virtual void SetSiblings(TypeInterceptor[] all) { }
+    
+    [Obsolete("This hook is deprecated and will be removed in the next release.")]
+    internal virtual void OnBeforeCreateSchema(
+        IDescriptorContext context,
+        ISchemaBuilder schemaBuilder) { }
+    
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
     /// with the schema builder.
@@ -34,9 +47,14 @@ public abstract class TypeInterceptor
     /// <param name="schemaBuilder">
     /// The schema builder.
     /// </param>
-    public virtual void OnBeforeCreateSchema(
+    internal virtual void OnBeforeCreateSchemaInternal(
         IDescriptorContext context,
-        ISchemaBuilder schemaBuilder) { }
+        ISchemaBuilder schemaBuilder)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        OnBeforeCreateSchema(context, schemaBuilder);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
 
     internal virtual void InitializeContext(
         IDescriptorContext context,
@@ -167,9 +185,10 @@ public abstract class TypeInterceptor
 
     internal virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition,
-        OperationType operationType) { }
-
+        ObjectTypeDefinition definition,
+        OperationType operationType)
+    { }
+    
     public virtual void OnTypesCompletedName() { }
 
     /// <summary>
@@ -181,6 +200,23 @@ public abstract class TypeInterceptor
     /// This method is called after the type extensions are merged.
     /// </summary>
     public virtual void OnAfterMergeTypeExtensions() { }
+    
+    internal virtual void OnBeforeCompleteMutation(
+        ITypeCompletionContext completionContext,
+        ObjectTypeDefinition definition)
+    {
+        foreach (var field in definition.Fields)
+        {
+            OnBeforeCompleteMutationField(completionContext, field);
+        }
+    }
+    
+    public virtual void OnBeforeCompleteMutationField(
+        ITypeCompletionContext completionContext,
+        ObjectFieldDefinition mutationField)
+    {
+    }
+
 
     /// <summary>
     /// This method is called before the types are completed.
@@ -234,7 +270,28 @@ public abstract class TypeInterceptor
         DefinitionBase definition) { }
 
     public virtual void OnTypesCompleted() { }
-
+    
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
+    /// <summary>
+    /// This hook is invoked after schema is fully created and gives access
+    /// to the created schema object.
+    /// </summary>
+    /// <param name="context">
+    /// The descriptor context.
+    /// </param>
+    /// <param name="schemaTypesDefinition">
+    /// The schema types definition.
+    /// </param>
+    internal virtual void OnBeforeRegisterSchemaTypes(
+        IDescriptorContext context, 
+        SchemaTypesDefinition schemaTypesDefinition)
+    {
+    }
+    
+    [Obsolete("This hook is deprecated and will be removed in the next release.")]
+    public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
+    
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked after schema is fully created and gives access
     /// to the created schema object.
@@ -245,7 +302,12 @@ public abstract class TypeInterceptor
     /// <param name="schema">
     /// The created schema.
     /// </param>
-    public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
+    internal virtual void OnAfterCreateSchemaInternal(IDescriptorContext context, ISchema schema)
+    {
+#pragma warning disable CS0618 // Type or member is obsolete
+        OnAfterCreateSchema(context, schema);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
 
     /// <summary>
     /// This hook is invoked if an error occured during schema creation.

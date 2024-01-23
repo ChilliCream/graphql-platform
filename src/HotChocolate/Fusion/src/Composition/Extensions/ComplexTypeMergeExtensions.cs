@@ -1,4 +1,5 @@
 using HotChocolate.Skimmed;
+using static HotChocolate.Fusion.Composition.MergeExtensions;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -12,35 +13,26 @@ internal static class ComplexTypeMergeExtensions
         Schema targetSchema)
     {
         var target = new OutputField(source.Name);
-        target.Description = source.Description;
+        target.MergeDescriptionWith(source);
+        target.MergeDeprecationWith(source);
 
         // Replace the type name of the field in the source with the corresponding type name
         // in the target schema.
         target.Type = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
-
-        if (source.IsDeprecated)
-        {
-            target.DeprecationReason = source.DeprecationReason;
-            target.IsDeprecated = source.IsDeprecated;
-        }
 
         // Copy each argument from the source to the target, replacing the type name of each argument
         // in the source with the corresponding type name in the target schema.
         foreach (var sourceArgument in source.Arguments)
         {
             var targetArgument = new InputField(sourceArgument.Name);
-            targetArgument.Description = sourceArgument.Description;
+            targetArgument.MergeDescriptionWith(sourceArgument);
             targetArgument.DefaultValue = sourceArgument.DefaultValue;
 
             // Replace the type name of the argument in the source with the corresponding type name
             // in the target schema.
             targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
-
-            if (sourceArgument.IsDeprecated)
-            {
-                targetArgument.DeprecationReason = sourceArgument.DeprecationReason;
-                targetArgument.IsDeprecated = sourceArgument.IsDeprecated;
-            }
+            
+            targetArgument.MergeDeprecationWith(sourceArgument);
 
             target.Arguments.Add(targetArgument);
         }
@@ -57,6 +49,24 @@ internal static class ComplexTypeMergeExtensions
         OutputField target,
         string typeName)
     {
+        var mergedType = MergeOutputType(source.Type, target.Type);
+
+        if (mergedType is null)
+        {
+            context.Log.Write(
+                LogEntryHelper.OutputFieldTypeMismatch(
+                    new SchemaCoordinate(typeName, source.Name),
+                    source,
+                    target.Type,
+                    source.Type));
+            return;
+        }
+
+        if (!mergedType.Equals(target.Type, TypeComparison.Structural))
+        {
+            target.Type = mergedType;
+        }
+
         // Log an error if the number of arguments in the source and target fields do not match.
         if (target.Arguments.Count != source.Arguments.Count)
         {
@@ -72,9 +82,27 @@ internal static class ComplexTypeMergeExtensions
         // in the source field.
         foreach (var targetArgument in target.Arguments)
         {
-            if (source.Arguments.ContainsName(targetArgument.Name))
+            if (source.Arguments.TryGetField(targetArgument.Name, out var sourceArgument))
             {
                 argMatchCount++;
+                
+                var mergedInputType = MergeInputType(sourceArgument.Type, targetArgument.Type);
+
+                if (mergedInputType is null)
+                {
+                    context.Log.Write(
+                        LogEntryHelper.InputFieldTypeMismatch(
+                            new SchemaCoordinate(typeName, source.Name, sourceArgument.Name),
+                            sourceArgument,
+                            sourceArgument.Type,
+                            targetArgument.Type));
+                    return;
+                }
+                
+                if(!targetArgument.Type.Equals(mergedInputType, TypeComparison.Structural))
+                {
+                    targetArgument.Type = mergedInputType;
+                }
             }
         }
 
@@ -85,23 +113,18 @@ internal static class ComplexTypeMergeExtensions
             context.Log.Write(
                 LogEntryHelper.OutputFieldArgumentSetMismatch(
                     new SchemaCoordinate(typeName, source.Name),
-                    source));
+                    source,
+                    target.Arguments.Select(t => t.Name).ToArray(),
+                    source.Arguments.Select(t => t.Name).ToArray()));
             return;
         }
 
         // If the target field does not have a description, copy over the description
         // from the source field.
-        if (string.IsNullOrEmpty(target.Description))
-        {
-            target.Description = source.Description;
-        }
+        target.MergeDescriptionWith(source);
 
         // If the target field is not deprecated and the source field is deprecated, copy over the
-        if (!target.IsDeprecated && source.IsDeprecated)
-        {
-            target.DeprecationReason = source.DeprecationReason;
-            target.IsDeprecated = source.IsDeprecated;
-        }
+        target.MergeDeprecationWith(source);
 
         foreach (var sourceArgument in source.Arguments)
         {
@@ -109,17 +132,10 @@ internal static class ComplexTypeMergeExtensions
 
             // If the target argument does not have a description, copy over the description
             // from the source argument.
-            if (string.IsNullOrEmpty(targetArgument.Description))
-            {
-                targetArgument.Description = sourceArgument.Description;
-            }
+            targetArgument.MergeDescriptionWith(sourceArgument);
 
             // If the target argument is not deprecated and the source argument is deprecated,
-            if (!targetArgument.IsDeprecated && sourceArgument.IsDeprecated)
-            {
-                targetArgument.DeprecationReason = sourceArgument.DeprecationReason;
-                targetArgument.IsDeprecated = sourceArgument.IsDeprecated;
-            }
+            targetArgument.MergeDeprecationWith(sourceArgument);
 
             // If the target argument does not have a default value and the source argument does,
             if (sourceArgument.DefaultValue is not null &&

@@ -823,31 +823,32 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void ReportsDeepConflictToNearestCommonAncestorInFragments()
     {
-        ExpectErrors(@"
-                {
-                    f1 {
-                        ...F
+        ExpectErrors(
+            """
+            {
+                f1 {
+                    ...F
+                }
+                f1 {
+                    ...F
+                }
+            }
+            fragment F on Query {
+                f2 {
+                    f3 {
+                        x: a
                     }
-                    f1 {
-                        ...F
+                    f3 {
+                        x: b
                     }
                 }
-                fragment F on Query {
-                    f2 {
-                        f3 {
-                            x: a
-                        }
-                        f3 {
-                            x: b
-                        }
-                    },
-                    f2 {
-                        f3 {
-                            y
-                        }
+                f2 {
+                    f3 {
+                        y
                     }
                 }
-            ");
+            }
+            """);
     }
 
     [Fact]

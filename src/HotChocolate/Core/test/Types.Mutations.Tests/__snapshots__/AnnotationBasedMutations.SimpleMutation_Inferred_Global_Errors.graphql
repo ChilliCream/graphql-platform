@@ -1,0 +1,26 @@
+schema {
+  mutation: SimpleMutation
+}
+
+interface Error {
+  message: String!
+}
+
+type DoSomethingPayload {
+  string: String
+  errors: [DoSomethingError!]
+}
+
+type SimpleMutation {
+  doSomething(input: DoSomethingInput!): DoSomethingPayload!
+}
+
+type SomeNewError implements Error {
+  message: String!
+}
+
+union DoSomethingError = SomeNewError
+
+input DoSomethingInput {
+  something: String!
+}

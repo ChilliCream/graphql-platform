@@ -9,16 +9,19 @@ public class DownloadCommandArguments
         CommandArgument uri,
         CommandOption fileName,
         AuthArguments authArguments,
-        CommandOption customHeaders)
+        CommandOption customHeaders,
+        CommandOption typeDepth)
     {
         Uri = uri;
         FileName = fileName;
         AuthArguments = authArguments;
         CustomHeaders = customHeaders;
+        TypeDepth = typeDepth;
     }
 
     public CommandArgument Uri { get; }
     public CommandOption FileName { get; }
     public AuthArguments AuthArguments { get; }
     public CommandOption CustomHeaders { get; }
+    public CommandOption TypeDepth { get; }
 }

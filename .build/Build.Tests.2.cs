@@ -1,15 +1,22 @@
-using System.Drawing;
 using System.Linq;
 using Colorful;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Common.Tools.Coverlet;
+using Nuke.Common.Tools.ReportGenerator;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.ProjectModel.ProjectModelTasks;
 
 partial class Build
 {
+    [Parameter] readonly bool EnableCoverage;
+
+    Target TestCookieCrumble => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "CookieCrumble" / "CookieCrumble.sln"));
+
     Target TestGreenDonut => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "GreenDonut" / "GreenDonut.sln"));
@@ -34,6 +41,10 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "CodeGeneration" / "HotChocolate.CodeGeneration.sln"));
 
+    Target TestHotChocolateCaching => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Caching" / "HotChocolate.Caching.sln"));
+
     Target TestHotChocolateCore => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Core" / "HotChocolate.Core.sln"));
@@ -46,10 +57,6 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Diagnostics" / "HotChocolate.Diagnostics.sln"));
 
-    Target TestHotChocolateFilters => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Filters" / "HotChocolate.Filters.sln"));
-
     Target TestHotChocolateFusion => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Fusion" / "HotChocolate.Fusion.sln"));
@@ -58,33 +65,37 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Language" / "HotChocolate.Language.sln"));
 
+    Target TestHotChocolateMarten => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Marten" / "HotChocolate.Marten.sln"));
+
     Target TestHotChocolateMongoDb => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "MongoDb" / "HotChocolate.MongoDb.sln"));
 
-    Target TestHotChocolateNeo4J => _ => _
+    Target TestHotChocolateOpenApi => _ => _
         .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Neo4J" / "HotChocolate.Neo4J.sln"));
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "OpenApi" / "HotChocolate.OpenApi.sln"));
 
     Target TestHotChocolatePersistedQueries => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedQueries" / "HotChocolate.PersistedQueries.sln"));
 
+    Target TestHotChocolateRaven => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Raven" / "HotChocolate.Raven.sln"));
+
+    Target TestHotChocolateSkimmed => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Skimmed" / "HotChocolate.Skimmed.sln"));
+
     Target TestHotChocolateSpatial => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Spatial" / "HotChocolate.Spatial.sln"));
 
-    Target TestHotChocolateStitching => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Stitching" / "HotChocolate.Stitching.sln"));
-
     Target TestHotChocolateUtilities => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Utilities" / "HotChocolate.Utilities.sln"));
-
-    Target TestHotChocolateCaching => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Caching" / "HotChocolate.Caching.sln"));
 
     Target TestStrawberryShakeClient => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -126,23 +137,43 @@ partial class Build
 
         foreach (var testProject in testProjects)
         {
-            Console.WriteLine($"║ - {RootDirectory.GetRelativePathTo( testProject.Path.Parent!)}:");
+            Console.WriteLine($"║ - {RootDirectory.GetRelativePathTo(testProject.Path.Parent!)}:");
         }
         Console.WriteLine("╬================================");
 
         try
         {
-            DotNetTest(
-                c => c
-                    .SetProjectFile(solutionFile)
+            if (EnableCoverage)
+            {
+                DotNetTest(c => c
                     .SetConfiguration(Debug)
                     .SetNoRestore(true)
                     .SetNoBuild(true)
                     .ResetVerbosity()
                     .SetResultsDirectory(TestResultDirectory)
+                    .EnableCollectCoverage()
+                    .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+                    .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
+                    .SetExcludeByFile("*.Generated.cs")
                     .CombineWith(testProjects, (_, v) => _
                         .SetProjectFile(v)
-                        .SetLoggers($"trx;LogFileName={v.Name}.trx")));
+                        .SetLoggers($"trx;LogFileName={v.Name}.trx")
+                        .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml")));
+            }
+            else
+            {
+                DotNetTest(
+                    c => c
+                        .SetProjectFile(solutionFile)
+                        .SetConfiguration(Debug)
+                        .SetNoRestore(true)
+                        .SetNoBuild(true)
+                        .ResetVerbosity()
+                        .SetResultsDirectory(TestResultDirectory)
+                        .CombineWith(testProjects, (_, v) => _
+                            .SetProjectFile(v)
+                            .SetLoggers($"trx;LogFileName={v.Name}.trx")));
+            }
         }
         finally
         {

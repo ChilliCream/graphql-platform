@@ -34,6 +34,9 @@ internal sealed class EntityResolver
         SubgraphName = subgraphName ?? throw new ArgumentNullException(nameof(subgraphName));
     }
 
+    /// <summary>
+    /// Gets the type of this resolver.
+    /// </summary>
     public EntityResolverKind Kind { get; }
 
     /// <summary>
@@ -70,7 +73,7 @@ internal sealed class EntityResolver
                 OperationType.Query,
                 Variables.Select(t => t.Value.Definition).ToList(),
                 new[] { new DirectiveNode("schema", new ArgumentNode("name", SubgraphName)) },
-                SelectionSet)
+                SelectionSet),
         };
 
         if (Variables.Count > 0)

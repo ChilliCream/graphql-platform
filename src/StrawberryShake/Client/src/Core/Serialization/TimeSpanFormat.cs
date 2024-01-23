@@ -11,5 +11,5 @@ public enum TimeSpanFormat
     /// TimeSpan .NET Constant ("c") Format
     /// https://docs.microsoft.com/en-us/dotnet/standard/base-types/standard-timespan-format-strings#the-constant-c-format-specifier
     /// </summary>
-    DotNet
+    DotNet,
 }

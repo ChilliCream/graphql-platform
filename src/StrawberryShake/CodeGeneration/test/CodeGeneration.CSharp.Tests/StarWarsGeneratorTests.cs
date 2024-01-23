@@ -92,6 +92,22 @@ public class StarWarsGeneratorTests
     }
 
     [Fact]
+    public void Generate_Client_With_Internal_Access_Modifier()
+    {
+        AssertStarWarsResult(
+            new AssertSettings {
+                StrictValidation = true,
+                AccessModifier = AccessModifier.Internal,
+            },
+            @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        appearsIn
+                    }
+                }");
+    }
+
+    [Fact]
     public void StarWarsTypeNameOnUnions() =>
         AssertStarWarsResult(
             @"query SearchHero {

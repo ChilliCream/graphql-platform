@@ -34,7 +34,15 @@ QueryPlan
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query GetUser_1 { a: users { name __fusion_exports__1: id } b: users { name __fusion_exports__2: id } }",
-        "selectionSetId": 0
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          },
+          {
+            "variable": "__fusion_exports__2"
+          }
+        ]
       },
       {
         "type": "Compose",
@@ -50,12 +58,6 @@ QueryPlan
             "subgraph": "Reviews",
             "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
             "selectionSetId": 4,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__1",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
             ],
@@ -70,12 +72,6 @@ QueryPlan
             "subgraph": "Reviews",
             "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on User { reviews { body author { name } } __fusion_exports__2: id } } }",
             "selectionSetId": 1,
-            "argumentTypes": [
-              {
-                "argument": "__fusion_exports__2",
-                "type": "[ID!]!"
-              }
-            ],
             "path": [
               "nodes"
             ],
@@ -90,11 +86,15 @@ QueryPlan
       {
         "type": "Compose",
         "selectionSetIds": [
-          4,
-          1
+          1,
+          4
         ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id",
+    "__fusion_exports__2": "User_id"
   }
 }
 ---------------

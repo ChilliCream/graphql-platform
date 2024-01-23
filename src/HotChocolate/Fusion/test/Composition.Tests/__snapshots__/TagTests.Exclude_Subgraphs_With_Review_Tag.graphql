@@ -1,0 +1,88 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Reviews", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Reviews", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  someTypeById(id: ID!): SomeType!
+    @variable(subgraph: "Accounts", name: "id", argument: "id")
+    @resolver(subgraph: "Accounts", select: "{ someTypeById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  userById(id: ID!): User
+    @variable(subgraph: "Accounts", name: "id", argument: "id")
+    @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  users: [User!]!
+    @resolver(subgraph: "Accounts", select: "{ users }")
+  usersById(ids: [ID!]!): [User!]!
+    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
+    @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  viewer: Viewer!
+    @resolver(subgraph: "Accounts", select: "{ viewer }")
+}
+
+type Mutation {
+  addUser(input: AddUserInput!): AddUserPayload!
+    @variable(subgraph: "Accounts", name: "input", argument: "input")
+    @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+}
+
+type AddUserPayload {
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+type SomeData {
+  accountValue: String!
+    @source(subgraph: "Accounts")
+}
+
+type SomeType
+  @variable(subgraph: "Accounts", name: "SomeType_id", select: "id")
+  @resolver(subgraph: "Accounts", select: "{ someTypeById(id: $SomeType_id) }", arguments: [ { name: "SomeType_id", type: "ID!" } ])
+  @tag(name: "internal") {
+  id: ID!
+    @source(subgraph: "Accounts")
+}
+
+type User implements Node
+  @variable(subgraph: "Accounts", name: "User_id", select: "id")
+  @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  birthdate: Date!
+    @source(subgraph: "Accounts")
+    @tag(name: "internal")
+  id: ID!
+    @source(subgraph: "Accounts")
+  name: String!
+    @source(subgraph: "Accounts")
+  username: String!
+    @source(subgraph: "Accounts")
+}
+
+type Viewer {
+  data: SomeData!
+    @source(subgraph: "Accounts")
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+input AddUserInput {
+  birthdate: Date!
+    @tag(name: "internal")
+  name: String!
+  username: String!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

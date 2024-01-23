@@ -13,19 +13,12 @@ internal sealed partial class ResolverTask
         ObjectResult parentResult,
         int responseIndex,
         object? parent,
-        Path path,
-        IImmutableDictionary<string, object?> scopedContextData)
+        IImmutableDictionary<string, object?> scopedContextData,
+        Path? path)
     {
         _operationContext = operationContext;
         _selection = selection;
-        _context.Initialize(
-            operationContext,
-            selection,
-            parentResult,
-            responseIndex,
-            parent,
-            path,
-            scopedContextData);
+        _context.Initialize(operationContext, selection, parentResult, responseIndex, parent, scopedContextData, path);
         ParentResult = parentResult;
         IsSerial = selection.Strategy is SelectionExecutionStrategy.Serial;
     }

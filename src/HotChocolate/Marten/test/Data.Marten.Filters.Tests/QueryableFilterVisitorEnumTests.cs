@@ -1,16 +1,18 @@
 using CookieCrumble;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Data.Filters;
+namespace HotChocolate.Data;
 
-public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
+[Collection(SchemaCacheCollectionFixture.DefinitionName)]
+public class QueryableFilterVisitorEnumTests
 {
     private static readonly Foo[] _fooEntities =
     {
         new() { BarEnum = FooEnum.BAR },
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
-        new() { BarEnum = FooEnum.QUX }
+        new() { BarEnum = FooEnum.QUX },
     };
 
     private static readonly FooNullable[] _fooNullableEntities =
@@ -19,7 +21,7 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
         new() { BarEnum = FooEnum.BAZ },
         new() { BarEnum = FooEnum.FOO },
         new() { BarEnum = null },
-        new() { BarEnum = FooEnum.QUX }
+        new() { BarEnum = FooEnum.QUX },
     };
 
     private readonly SchemaCache _cache;
@@ -52,15 +54,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BAR"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BAR").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -89,15 +88,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BAR"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BAR").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -126,15 +122,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BarAndFoo"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BarAndFoo").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "nullAndFoo")
             .MatchAsync();
@@ -163,15 +156,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BarAndFoo"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BarAndFoo").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "nullAndFoo")
             .MatchAsync();
@@ -201,15 +191,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BAR"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BAR").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -238,15 +225,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BAR"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BAR").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "null")
             .MatchAsync();
@@ -275,15 +259,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BarAndFoo"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BarAndFoo").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "nullAndFoo")
             .MatchAsync();
@@ -312,15 +293,12 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(),
-                        res1,
-                        "BarAndFoo"),
-                    res2,
-                    "FOO"),
+        await Snapshot
+            .Create().AddResult(
+                res1,
+                "BarAndFoo").AddResult(
+                res2,
+                "FOO").AddResult(
                 res3,
                 "nullAndFoo")
             .MatchAsync();
@@ -345,7 +323,7 @@ public class QueryableFilterVisitorEnumTests : IClassFixture<SchemaCache>
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 
     public class FooFilterInput : FilterInputType<Foo>

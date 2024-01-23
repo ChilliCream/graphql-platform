@@ -62,6 +62,7 @@ internal static class GeneratorHelpers
         {
             ClientName = configSettings.Name,
             Namespace = configSettings.Namespace ?? args.RootNamespace ?? rootNamespace,
+            AccessModifier = GetAccessModifier(configSettings.AccessModifier),
             StrictSchemaValidation =
                 configSettings.StrictSchemaValidation ?? args.StrictSchemaValidation,
             NoStore = configSettings.NoStore ?? args.NoStore,
@@ -75,6 +76,21 @@ internal static class GeneratorHelpers
         };
     }
 
+    private static AccessModifier GetAccessModifier(string? accessModifier)
+    {
+        if (string.IsNullOrWhiteSpace(accessModifier))
+        {
+            return AccessModifier.Public;
+        }
+
+        return accessModifier switch
+        {
+            "public" => AccessModifier.Public,
+            "internal" => AccessModifier.Internal,
+            _ => throw new NotSupportedException($"The access modifier `{accessModifier}` is not supported."),
+        };
+    }
+
     private static IDocumentHashProvider GetHashProvider(string hashAlgorithm)
         => hashAlgorithm.ToLowerInvariant() switch
         {
@@ -82,7 +98,7 @@ internal static class GeneratorHelpers
             "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
             "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
             _ => throw new NotSupportedException(
-                $"The hash algorithm `{hashAlgorithm}` is not supported.")
+                $"The hash algorithm `{hashAlgorithm}` is not supported."),
         };
 
     private static List<TransportProfile> MapTransportProfiles(

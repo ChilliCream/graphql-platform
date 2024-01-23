@@ -51,7 +51,7 @@ public class GeoJsonMultiPolygonSerializerTests
                             new Coordinate(30, 20),
                             new Coordinate(45, 40),
                             new Coordinate(10, 40),
-                            new Coordinate(30, 20)
+                            new Coordinate(30, 20),
                         })),
                 new Polygon(
                     new LinearRing(
@@ -61,8 +61,8 @@ public class GeoJsonMultiPolygonSerializerTests
                             new Coordinate(40, 10),
                             new Coordinate(10, 20),
                             new Coordinate(5, 15),
-                            new Coordinate(15, 5)
-                        }))
+                            new Coordinate(15, 5),
+                        })),
         });
 
     private readonly string _geometryType = "MultiPolygon";
@@ -76,8 +76,8 @@ public class GeoJsonMultiPolygonSerializerTests
                     new[] { 30.0, 20.0 },
                     new[] { 45.0, 40.0 },
                     new[] { 10.0, 40.0 },
-                    new[] { 30.0, 20.0 }
-                }
+                    new[] { 30.0, 20.0 },
+                },
             },
             new[]
             {
@@ -87,10 +87,10 @@ public class GeoJsonMultiPolygonSerializerTests
                     new[] { 40.0, 10.0 },
                     new[] { 10.0, 20.0 },
                     new[] { 5.0, 15.0 },
-                    new[] { 15.0, 5.0 }
-                }
-            }
-        };
+                    new[] { 15.0, 5.0 },
+                },
+            },
+    };
 
     [Theory]
     [InlineData(GeometryTypeName)]
@@ -515,7 +515,7 @@ public class GeoJsonMultiPolygonSerializerTests
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, 26912 }
+                { WellKnownFields.CrsFieldName, 26912 },
             };
 
         // act
@@ -536,7 +536,7 @@ public class GeoJsonMultiPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CoordinatesFieldName, _geometryParsed }
+                { WellKnownFields.CoordinatesFieldName, _geometryParsed },
             };
 
         // act
@@ -557,7 +557,7 @@ public class GeoJsonMultiPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
             };
 
         // act
@@ -576,7 +576,7 @@ public class GeoJsonMultiPolygonSerializerTests
         var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
-                { WellKnownFields.CrsFieldName, new IntValueNode(0) }
+                { WellKnownFields.CrsFieldName, new IntValueNode(0) },
             };
 
         // act

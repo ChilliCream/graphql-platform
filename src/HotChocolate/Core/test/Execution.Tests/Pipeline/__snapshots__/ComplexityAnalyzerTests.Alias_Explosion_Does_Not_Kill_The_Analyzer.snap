@@ -1,0 +1,10 @@
+{
+  "errors": [
+    {
+      "message": "The maximum allowed operation complexity was exceeded.",
+      "extensions": {
+        "code": "HC0047"
+      }
+    }
+  ]
+}

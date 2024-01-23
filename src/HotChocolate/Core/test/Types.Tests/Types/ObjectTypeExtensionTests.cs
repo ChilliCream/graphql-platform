@@ -172,25 +172,6 @@ public class ObjectTypeExtensionTests
             .MatchSnapshotAsync();
     }
 
-    [Obsolete]
-    [Fact]
-    public async Task ObjectTypeExtension_DeprecateField_Obsolete()
-    {
-        var schema = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<FooType>()
-            .AddTypeExtension(new ObjectTypeExtension(d => d
-                .Name("Foo")
-                .Field("description")
-                .Type<StringType>()
-                .DeprecationReason("Foo")))
-            .BuildSchemaAsync();
-
-        var type = schema.GetType<ObjectType>("Foo");
-        Assert.True(type.Fields["description"].IsDeprecated);
-        Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
-    }
-
     [Fact]
     public async Task ObjectTypeExtension_DeprecateField_With_Reason()
     {
@@ -754,6 +735,19 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(result);
     }
 
+    [Fact]
+    public async Task ExtendObjectTypeAttribute_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddTypeExtension<QueryExtensions>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -1138,4 +1132,18 @@ public class ObjectTypeExtensionTests
             => query.Abc;
     }
 
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query");
+            descriptor.Field("foo").Resolve("bar");
+        }
+    }
+
+    [ExtendObjectType<QueryType>]
+    public class QueryExtensions
+    {
+        public string Bar() => "baz";
+    }
 }

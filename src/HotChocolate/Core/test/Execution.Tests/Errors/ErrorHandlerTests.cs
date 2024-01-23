@@ -1,188 +1,251 @@
-using System;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Tests;
-using Snapshooter.Xunit;
+using static HotChocolate.Execution.SnapshotHelpers;
 
 namespace HotChocolate.Execution.Errors;
 
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class ErrorHandlerTests
 {
     [Fact]
     public async Task AddFuncErrorFilter()
     {
-        Snapshot.FullName();
-        await ExpectError(
-            "{ foo }",
-            b => b
-                .AddDocumentFromString("type Query { foo: String }")
-                .UseField(_ => _ => throw new Exception("Foo"))
-                .Services
-                .AddErrorFilter(error => error.WithCode("Foo123")));
+        // arrange
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // error filter configuration
+            .AddErrorFilter(error => error.WithCode("Foo123"))
+
+            // general graphql configuration
+            .AddGraphQL()
+            .AddDocumentFromString("type Query { foo: String }")
+            .UseField(_ => _ => throw new Exception("Foo"))
+
+            // build graphql executor
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task FilterOnlyNullRefExceptions()
     {
-        Snapshot.FullName();
-        await ExpectError(
-            "{ foo bar }",
-            b => b
-                .AddDocumentFromString("type Query { foo: String bar: String }")
-                .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-                .AddResolver("Query", "bar", _ => throw new NullReferenceException("Foo"))
-                .AddErrorFilter(
-                    error =>
+        // arrange
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // general graphql configuration
+            .AddGraphQL()
+            .AddDocumentFromString("type Query { foo: String bar: String }")
+            .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+            .AddResolver("Query", "bar", _ => throw new NullReferenceException("Foo"))
+            
+            // error filter configuration
+            .AddErrorFilter(
+                error =>
+                {
+                    if (error.Exception is NullReferenceException)
                     {
-                        if (error.Exception is NullReferenceException)
-                        {
-                            return error.WithCode("NullRef");
-                        }
-                        return error;
-                    }),
-            expectedErrorCount: 2);
+                        return error.WithCode("NullRef");
+                    }
+                    return error;
+                })
+
+            // build graphql executor
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo bar }");
+
+        // assert
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task AddClassErrorFilter()
     {
-        Snapshot.FullName();
-        await ExpectError(
-            "{ foo }",
-            b => b
-                .AddDocumentFromString("type Query { foo: String }")
-                .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-                .Services
-                .AddErrorFilter<DummyErrorFilter>());
+        // arrange
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // error filter configuration
+            .AddErrorFilter<DummyErrorFilter>()
+            
+            // general graphql configuration
+            .AddGraphQL()
+            .AddDocumentFromString("type Query { foo: String }")
+            .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+            
+            // build graphql executor
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task AddClassErrorFilter_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
     {
         // arrange
-        var serviceCollection = new ServiceCollection();
-        var schema = await serviceCollection
-            .AddGraphQLServer()
-            .AddErrorFilter<DummyErrorFilter>()
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // general graphql configuration
+            .AddGraphQL()
             .AddQueryType<Query>()
+            
+            // error filter configuration
+            .AddErrorFilter<DummyErrorFilter>()
+            
+            // build graphql executor
             .BuildRequestExecutorAsync();
 
         // act
-        var resp = await schema.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }");
 
         // assert
-        resp.MatchSnapshot();
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task AddClassErrorFilterUsingDI_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
     {
         // arrange
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton<SomeService>();
-        var schema = await serviceCollection
-            .AddGraphQLServer()
-            .AddErrorFilter<DummyErrorFilterWithDependency>()
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // service configuration
+            .AddSingleton<SomeService>()
+            
+            // general graphql configuration
+            .AddGraphQL()
             .AddQueryType<Query>()
+            
+            // error filter configuration
+            .AddErrorFilter<DummyErrorFilterWithDependency>()
+            
+            // build graphql executor
             .BuildRequestExecutorAsync();
 
         // act
-        var resp = await schema.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }");
 
         // assert
-        resp.MatchSnapshot();
+        snapshot.Add(result);
     }
 
     [Fact]
-    public async Task
-        AddClassErrorFilterUsingFactory_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
+    public async Task AddClassErrorFilterUsingFactory_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
     {
         // arrange
-        var serviceCollection = new ServiceCollection();
-        var schema = await serviceCollection
-            .AddGraphQLServer()
-            .AddErrorFilter(f => new DummyErrorFilter())
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // general graphql configuration
+            .AddGraphQL()
             .AddQueryType<Query>()
+            
+            // error filter configuration
+            .AddErrorFilter(_ => new DummyErrorFilter())
+            
+            // build graphql executor
             .BuildRequestExecutorAsync();
 
         // act
-        var resp = await schema.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }");
 
         // assert
-        resp.MatchSnapshot();
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task AddClassErrorFilterWithFactory()
     {
-        Snapshot.FullName();
-        await ExpectError(
-            "{ foo }",
-            b => b
-                .AddDocumentFromString("type Query { foo: String }")
-                .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-                .Services
-                .AddErrorFilter(_ => new DummyErrorFilter()));
+        // arrange
+        using var snapshot = StartResultSnapshot();
+
+        var executor = await new ServiceCollection()
+            // error filter configuration
+            .AddErrorFilter(_ => new DummyErrorFilter())
+            
+            // general graphql configuration
+            .AddGraphQL()
+            .AddDocumentFromString("type Query { foo: String }")
+            .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+            
+            // build graphql executor
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task UseAggregateError_In_ErrorFilter()
     {
-        Snapshot.FullName();
+        // arrange
+        using var snapshot = StartResultSnapshot();
 
-        await ExpectError(
-            "{ foo }",
-            b => b
-                .AddDocumentFromString("type Query { foo: String }")
-                .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
-                .Services
-                .AddErrorFilter(_ => new AggregateErrorFilter()));
+        var executor = await new ServiceCollection()
+            // error filter configuration
+            .AddErrorFilter(_ => new AggregateErrorFilter())
+            
+            // general graphql configuration
+            .AddGraphQL()
+            .AddDocumentFromString("type Query { foo: String }")
+            .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+            
+            // build graphql executor
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        snapshot.Add(result);
     }
 
     [Fact]
     public async Task ReportAggregateError_In_Resolver()
     {
-        Snapshot.FullName();
+        // arrange
+        using var snapshot = StartResultSnapshot();
 
-        await ExpectError(
-            "{ foo }",
-            b => b
-                .AddDocumentFromString("type Query { foo: String }")
-                .AddResolver(
-                    "Query",
-                    "foo",
-                    ctx =>
-                    {
-                        ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
-                        return "Hello";
-                    }),
-            expectedErrorCount: 2);
+        var executor = await new ServiceCollection()
+            // general graphql configuration
+            .AddGraphQL()
+            .AddDocumentFromString("type Query { foo: String }")
+            .AddResolver(
+                "Query",
+                "foo",
+                ctx =>
+                {
+                    ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
+                    return "Hello";
+                })
+            
+            // build graphql executor
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        snapshot.Add(result);
     }
-
-    private async Task ExpectError(
-        string query,
-        Action<IRequestExecutorBuilder> configure,
-        int expectedErrorCount = 1)
-    {
-        var errors = 0;
-
-        await TestHelper.ExpectError(
-            query,
-            b =>
-            {
-                configure(b);
-                b.AddErrorFilter(
-                    error =>
-                    {
-                        errors++;
-                        return error;
-                    });
-            });
-
-        Assert.Equal(expectedErrorCount, errors);
-    }
-
+    
     public class DummyErrorFilter : IErrorFilter
     {
         public IError OnError(IError error)
@@ -191,22 +254,17 @@ public class ErrorHandlerTests
         }
     }
 
-    public class DummyErrorFilterWithDependency : IErrorFilter
+#pragma warning disable CS9113 // Parameter is unread.
+    public class DummyErrorFilterWithDependency(SomeService service) : IErrorFilter
     {
-        private readonly SomeService _service;
-
-        public DummyErrorFilterWithDependency(SomeService service)
-        {
-            _service = service;
-        }
-
         public IError OnError(IError error)
         {
             return error.WithCode("Foo123");
         }
     }
+#pragma warning restore CS9113 // Parameter is unread.
 
-    public class SomeService { }
+    public class SomeService;
 
     public class AggregateErrorFilter : IErrorFilter
     {

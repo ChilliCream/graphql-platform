@@ -11,7 +11,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 #nullable  enable
 
@@ -333,7 +332,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g"
+            "g",
         });
 
         var pagingDetails = new CursorPagingArguments(2);
@@ -382,7 +381,7 @@ public class QueryableCursorPagingProviderTests
             "d",
             "e",
             "f",
-            "g"
+            "g",
         }.AsQueryable());
 
         var pagingDetails = new CursorPagingArguments(2);
@@ -575,7 +574,12 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
-        public T Service<T>()
+        public T Service<T>() where T : notnull
+        {
+            throw new NotImplementedException();
+        }
+
+        public T? Service<T>(object key) where T : notnull
         {
             throw new NotImplementedException();
         }

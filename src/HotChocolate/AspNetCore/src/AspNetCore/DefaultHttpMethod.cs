@@ -13,5 +13,5 @@ public enum DefaultHttpMethod
     /// <summary>
     /// Use a GraphQL HTTP Post request.
     /// </summary>
-    Post
+    Post,
 }

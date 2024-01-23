@@ -158,28 +158,6 @@ public class ObjectTypeTests : TypeTestBase
         Assert.Equal("BAZ", resolverContext.Object.Result);
     }
 
-    [Obsolete("DeprecationReason is obsolete.")]
-    [Fact]
-    public void DeprecationReason_Obsolete()
-    {
-        // arrange
-        var resolverContext = new Mock<IMiddlewareContext>();
-        resolverContext.SetupAllProperties();
-
-        // act
-        var fooType = CreateType(
-            new ObjectType(
-                c => c
-                    .Name("Foo")
-                    .Field("bar")
-                    .DeprecationReason("fooBar")
-                    .Resolve(() => "baz")));
-
-        // assert
-        Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
-        Assert.True(fooType.Fields["bar"].IsDeprecated);
-    }
-
     [Fact]
     public void Deprecated_Field_With_Reason()
     {
@@ -1524,11 +1502,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         schema.ToString().MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -1541,11 +1515,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         schema.ToString().MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -1571,11 +1541,7 @@ public class ObjectTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         schema.ToString().MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -1715,41 +1681,6 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         schema.ToString().MatchSnapshot();
-    }
-
-    [Obsolete]
-    [Fact]
-    public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
-    {
-        SchemaBuilder.New()
-            .AddDocumentFromString(
-                @"type Query {
-                        some: Some
-                    }
-
-                    type Some {
-                        foo: String
-                    }")
-            .AddType<SomeTypeExtensionWithInterface>()
-            .Use(_ => _ => default)
-            .EnableRelaySupport()
-            .Create()
-            .ToString()
-            .MatchSnapshot();
-    }
-
-    [Obsolete]
-    [Fact]
-    public void Interfaces_From_Type_Extensions_Are_Merged()
-    {
-        SchemaBuilder.New()
-            .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
-            .AddDocumentFromString("extend type Some implements Node { id: ID! }")
-            .Use(_ => _ => default)
-            .EnableRelaySupport()
-            .Create()
-            .ToString()
-            .MatchSnapshot();
     }
 
     [Fact]
@@ -2074,7 +2005,7 @@ public class ObjectTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var schema =
+        async Task Error() =>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<WithStaticField>()
@@ -2082,23 +2013,7 @@ public class ObjectTypeTests : TypeTestBase
                 .BuildSchemaAsync();
 
         // assert
-        SnapshotExtensions.MatchSnapshot(schema);
-    }
-
-    [Fact]
-    public async Task Static_Field_Inference_3_Execute()
-    {
-        // arrange
-        // act
-        var result =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<WithStaticField>()
-                .ModifyOptions(o => o.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .ExecuteRequestAsync("{ hello }");
-
-        // assert
-        SnapshotExtensions.MatchSnapshot(result);
+        await Assert.ThrowsAsync<SchemaException>(Error);
     }
 
     [Fact]
@@ -2206,6 +2121,18 @@ public class ObjectTypeTests : TypeTestBase
 
         Assert.IsType<SchemaException>(ex);
         Assert.Contains("non-abstract type is required", ex.Message);
+    }
+
+    [Fact]
+    public async Task Ignore_Generic_Methods()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithGenerics>()
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
     }
 
     public abstract class ResolverBase
@@ -2340,7 +2267,7 @@ public class ObjectTypeTests : TypeTestBase
     }
 
     public class MyList
-        : MyListBase { }
+        : MyListBase;
 
     public class MyListBase
         : IQueryable<Bar>
@@ -2529,5 +2456,12 @@ public class ObjectTypeTests : TypeTestBase
         public string Title { get; set; } = default!;
 
         public static bool IsComic => true;
+    }
+
+    public class QueryWithGenerics
+    {
+        public string Bar() => "bar";
+
+        public T Foo<T>() => default!;
     }
 }

@@ -205,6 +205,6 @@ public class EnumTypeSchemaFirstTests
     public enum Greetings
     {
         GoodMorning,
-        GoodEvening
+        GoodEvening,
     }
 }

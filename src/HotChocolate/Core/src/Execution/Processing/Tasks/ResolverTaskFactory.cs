@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Processing.PathHelper;
+using static HotChocolate.Execution.Processing.ValueCompletion;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -14,18 +16,20 @@ internal static class ResolverTaskFactory
 {
     private static List<ResolverTask>? _pooled = new();
 
+    static ResolverTaskFactory() { }
+
     public static ObjectResult EnqueueResolverTasks(
         OperationContext operationContext,
         ISelectionSet selectionSet,
         object? parent,
         Path path,
-        IImmutableDictionary<string, object?> scopedContext)
+        IImmutableDictionary<string, object?> scopedContext,
+        ObjectResult? parentResult = null)
     {
         var selectionsCount = selectionSet.Selections.Count;
         var responseIndex = selectionsCount;
-        var parentResult = operationContext.Result.RentObject(selectionsCount);
+        parentResult ??= operationContext.Result.RentObject(selectionsCount);
         var scheduler = operationContext.Scheduler;
-        var pathFactory = operationContext.PathFactory;
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
@@ -54,7 +58,6 @@ internal static class ResolverTaskFactory
                             parent,
                             parentResult,
                             --responseIndex,
-                            pathFactory.Append(path, selection.ResponseName),
                             scopedContext));
                 }
             }
@@ -113,8 +116,8 @@ internal static class ResolverTaskFactory
                 parent,
                 parentResult,
                 0,
-                path,
-                scopedContext);
+                scopedContext,
+                path.Append(index));
 
         try
         {
@@ -123,7 +126,6 @@ internal static class ResolverTaskFactory
                 resolverTask.Context,
                 selection,
                 selection.Type.ElementType(),
-                operationContext.PathFactory.Append(path, index),
                 0,
                 parentResult,
                 value.Current,
@@ -148,57 +150,61 @@ internal static class ResolverTaskFactory
         return resolverTask;
     }
 
-    public static ObjectResult EnqueueOrInlineResolverTasks(
-        OperationContext operationContext,
-        MiddlewareContext resolverContext,
-        Path path,
+    public static ObjectResult? EnqueueOrInlineResolverTasks(
+        ValueCompletionContext context,
         ObjectType parentType,
+        ResultData parentResult,
+        int parentIndex,
         object parent,
-        ISelectionSet selectionSet,
-        List<ResolverTask> bufferedTasks)
+        ISelectionSet selectionSet)
     {
         var responseIndex = 0;
         var selectionsCount = selectionSet.Selections.Count;
-        var parentResult = operationContext.Result.RentObject(selectionsCount);
-        var pathFactory = operationContext.PathFactory;
+        var operationContext = context.OperationContext;
+        var result = operationContext.Result.RentObject(selectionsCount);
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
+        
+        result.SetParent(parentResult, parentIndex);
+        
+        ref var selection = ref ((SelectionSet)selectionSet).GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionsCount);
 
-        ref var selectionSpace = ref ((SelectionSet)selectionSet).GetSelectionsReference();
-
-        for (var i = 0; i < selectionsCount; i++)
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
         {
-            ref var selection = ref Unsafe.Add(ref selectionSpace, i);
-
-            if (final || selection.IsIncluded(includeFlags))
+            if (result.IsInvalidated)
             {
-                var selectionPath = pathFactory.Append(path, selection.ResponseName);
-
-                if (selection.Strategy is SelectionExecutionStrategy.Pure)
-                {
-                    ResolveAndCompleteInline(
-                        operationContext,
-                        resolverContext,
-                        selection,
-                        selectionPath,
-                        responseIndex++,
-                        parentType,
-                        parent,
-                        parentResult,
-                        bufferedTasks);
-                }
-                else
-                {
-                    bufferedTasks.Add(
-                        operationContext.CreateResolverTask(
-                            selection,
-                            parent,
-                            parentResult,
-                            responseIndex++,
-                            selectionPath,
-                            resolverContext.ScopedContextData));
-                }
+                return null;
             }
+            
+            if (!final && !selection.IsIncluded(includeFlags))
+            {
+                goto NEXT;
+            }
+
+            if (selection.Strategy is SelectionExecutionStrategy.Pure)
+            {
+                ResolveAndCompleteInline(
+                    context,
+                    selection,
+                    responseIndex++,
+                    parentType,
+                    parent,
+                    result);
+            }
+            else
+            {
+                context.Tasks.Add(
+                    operationContext.CreateResolverTask(
+                        selection,
+                        parent,
+                        result,
+                        responseIndex++,
+                        context.ResolverContext.ScopedContextData));
+            }
+            
+            NEXT:
+            selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         if (selectionSet.Fragments.Count > 0)
@@ -206,28 +212,29 @@ internal static class ResolverTaskFactory
             TryHandleDeferredFragments(
                 operationContext,
                 selectionSet,
-                resolverContext.ScopedContextData,
-                path,
+                context.ResolverContext.ScopedContextData,
+                CreatePathFromContext(result),
                 parent,
-                parentResult);
+                result);
         }
 
-        return parentResult;
+        return result.IsInvalidated ? null : result;
     }
 
     private static void ResolveAndCompleteInline(
-        OperationContext operationContext,
-        MiddlewareContext resolverContext,
+        ValueCompletionContext context,
         ISelection selection,
-        Path path,
         int responseIndex,
         ObjectType parentType,
         object parent,
-        ObjectResult parentResult,
-        List<ResolverTask> bufferedTasks)
+        ObjectResult parentResult)
     {
+        var operationContext = context.OperationContext;
+        var resolverContext = context.ResolverContext;
         var executedSuccessfully = false;
         object? resolverResult = null;
+        
+        parentResult.InitValueUnsafe(responseIndex, selection);
 
         try
         {
@@ -235,7 +242,7 @@ internal static class ResolverTaskFactory
             // this should actually only fail if we are unable to coerce
             // the field arguments.
             if (resolverContext.TryCreatePureContext(
-                selection, path, parentType, parent,
+                selection, parentType, parentResult, parent,
                 out var childContext))
             {
                 // if we have a pure context we can execute out pure resolver.
@@ -251,6 +258,7 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
+            var path = CreatePathFromContext(selection, parentResult, responseIndex);
             operationContext.ReportError(ex, resolverContext, selection, path);
         }
 
@@ -263,11 +271,10 @@ internal static class ResolverTaskFactory
                 resolverContext,
                 selection,
                 selection.Type,
-                path,
                 responseIndex,
                 parentResult,
                 resolverResult,
-                bufferedTasks);
+                context.Tasks);
         }
         else
         {
@@ -276,7 +283,6 @@ internal static class ResolverTaskFactory
             CommitValue(
                 operationContext,
                 selection,
-                path,
                 responseIndex,
                 parentResult,
                 resolverResult);
@@ -287,10 +293,9 @@ internal static class ResolverTaskFactory
         OperationContext operationContext,
         MiddlewareContext resolverContext,
         ISelection selection,
-        IType selectionType,
-        Path path,
+        IType type,
         int responseIndex,
-        ObjectResult resultMap,
+        ObjectResult parentResult,
         object? value,
         List<ResolverTask> bufferedTasks)
     {
@@ -298,21 +303,8 @@ internal static class ResolverTaskFactory
 
         try
         {
-            completedValue = ValueCompletion.Complete(
-                operationContext,
-                resolverContext,
-                bufferedTasks,
-                selection,
-                path,
-                selectionType,
-                selection.ResponseName,
-                responseIndex,
-                value);
-
-            if (completedValue is ResultData result)
-            {
-                result.Parent = resultMap;
-            }
+            var completionContext = new ValueCompletionContext(operationContext, resolverContext, bufferedTasks);
+            completedValue = Complete(completionContext, selection, type, parentResult, responseIndex, value);
         }
         catch (OperationCanceledException)
         {
@@ -322,22 +314,16 @@ internal static class ResolverTaskFactory
         }
         catch (Exception ex)
         {
-            operationContext.ReportError(ex, resolverContext, selection, path);
+            var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
+            operationContext.ReportError(ex, resolverContext, selection, errorPath);
         }
 
-        CommitValue(
-            operationContext,
-            selection,
-            path,
-            responseIndex,
-            resultMap,
-            completedValue);
+        CommitValue(operationContext, selection, responseIndex, parentResult, completedValue);
     }
 
     private static void CommitValue(
         OperationContext operationContext,
         ISelection selection,
-        Path path,
         int responseIndex,
         ObjectResult parentResult,
         object? completedValue)
@@ -352,9 +338,9 @@ internal static class ResolverTaskFactory
 
         if (completedValue is null && isNonNullType)
         {
-            // if we detect a non-null violation we will stash it for later.
-            // the non-null propagation is delayed so that we can parallelize better.
-            operationContext.Result.AddNonNullViolation(selection, path, parentResult);
+            PropagateNullValues(parentResult);
+            var errorPath = CreatePathFromContext(selection, parentResult, responseIndex);
+            operationContext.Result.AddNonNullViolation(selection, errorPath);
         }
     }
 
@@ -378,7 +364,7 @@ internal static class ResolverTaskFactory
                     new DeferredFragment(
                         fragment,
                         fragment.GetLabel(operationContext.Variables),
-                        path.Clone(),
+                        path,
                         parent,
                         scopedContext),
                     parentResult);

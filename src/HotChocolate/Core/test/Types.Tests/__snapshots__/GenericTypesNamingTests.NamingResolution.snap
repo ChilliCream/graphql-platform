@@ -1,0 +1,120 @@
+﻿schema {
+  query: Query
+}
+
+type BarOfInt32 {
+  test: Int!
+}
+
+type BarOfMyType {
+  test: MyType!
+}
+
+type BarOfString {
+  test: String!
+}
+
+type EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
+  item8: Int!
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+  item5: Int!
+  item6: Int!
+  item7: Int!
+}
+
+type MyType {
+  test: Int!
+}
+
+type NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
+  item9: Int!
+  item8: Int!
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+  item5: Int!
+  item6: Int!
+  item7: Int!
+}
+
+type Query {
+  oneGenericType: TupleOfInt32!
+  twoGenericsType: TupleOfInt32AndInt32!
+  threeGenericsType: TupleOfInt32AndInt32AndInt32!
+  fourGenericsType: TupleOfInt32AndInt32AndInt32AndInt32!
+  fiveGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32!
+  sixGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  sevenGenericTypes: TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  eightGenericTypes: EightElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  nineGenericTypes: NineElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  tenGenericTypes: TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32!
+  intBar: BarOfInt32!
+  stringBar: BarOfString!
+  customNameBar: BarOfMyType!
+}
+
+type TenElementsTupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
+  item10: Int!
+  item9: Int!
+  item8: Int!
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+  item5: Int!
+  item6: Int!
+  item7: Int!
+}
+
+type TupleOfInt32 {
+  item1: Int!
+}
+
+type TupleOfInt32AndInt32 {
+  item1: Int!
+  item2: Int!
+}
+
+type TupleOfInt32AndInt32AndInt32 {
+  item1: Int!
+  item2: Int!
+  item3: Int!
+}
+
+type TupleOfInt32AndInt32AndInt32AndInt32 {
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+}
+
+type TupleOfInt32AndInt32AndInt32AndInt32AndInt32 {
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+  item5: Int!
+}
+
+type TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+  item5: Int!
+  item6: Int!
+}
+
+type TupleOfInt32AndInt32AndInt32AndInt32AndInt32AndInt32AndInt32 {
+  item1: Int!
+  item2: Int!
+  item3: Int!
+  item4: Int!
+  item5: Int!
+  item6: Int!
+  item7: Int!
+}

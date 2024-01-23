@@ -11,12 +11,14 @@ internal sealed partial class ResolverDefinition
             FragmentSpreadNode? placeholder,
             IReadOnlyDictionary<string, IValueNode> variables,
             SelectionSetNode? selectionSet,
-            string? responseName)
+            string? responseName,
+            IReadOnlyList<string>? unspecifiedArguments)
         {
             Placeholder = placeholder;
             Variables = variables;
             SelectionSet = selectionSet;
             ResponseName = responseName;
+            UnspecifiedArguments = unspecifiedArguments;
         }
 
         public string? ResponseName { get; }
@@ -28,6 +30,11 @@ internal sealed partial class ResolverDefinition
         public bool PlaceholderFound { get; set; }
 
         public IReadOnlyDictionary<string, IValueNode> Variables { get; }
+
+        /// <summary>
+        /// An optional list of arguments that weren't explicitly specified in the original query.
+        /// </summary>
+        public IReadOnlyList<string>? UnspecifiedArguments { get; }
 
         public SelectionSetNode? SelectionSet { get; }
 

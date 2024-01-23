@@ -242,7 +242,7 @@ public sealed class WebSocketClient : IWebSocketClient
             SocketCloseStatus.NormalClosure => WebSocketCloseStatus.NormalClosure,
             SocketCloseStatus.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
             SocketCloseStatus.ProtocolError => WebSocketCloseStatus.ProtocolError,
-            _ => WebSocketCloseStatus.Empty
+            _ => WebSocketCloseStatus.Empty,
         };
 
     /// <inheritdoc />

@@ -55,7 +55,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     public class BookCategory3Type : EnumType<BookCategory3>

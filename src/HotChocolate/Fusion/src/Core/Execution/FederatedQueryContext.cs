@@ -1,10 +1,11 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -17,13 +18,15 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly GraphQLClientFactory _clientFactory;
     private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
+    private readonly NodeIdParser _nodeIdParser;
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
-        IIdSerializer idSerializer)
+        IIdSerializer idSerializer,
+        NodeIdParser nodeIdParser)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
@@ -35,6 +38,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(clientFactory));
         _idSerializer = idSerializer ??
             throw new ArgumentNullException(nameof(idSerializer));
+        _nodeIdParser = nodeIdParser ?? 
+            throw new ArgumentNullException(nameof(nodeIdParser));
         _schemaName = Schema.Name;
     }
 
@@ -56,7 +61,7 @@ internal sealed class FusionExecutionContext : IDisposable
     /// <summary>
     /// Gets the execution state.
     /// </summary>
-    public ExecutionState State { get; } = new();
+    public RequestState State { get; } = new();
 
     /// <summary>
     /// Gets access to the underlying operation context.
@@ -72,6 +77,11 @@ internal sealed class FusionExecutionContext : IDisposable
     /// Gets the result builder that is used to build the final result.
     /// </summary>
     public ResultBuilder Result => OperationContext.Result;
+
+    /// <summary>
+    /// Defines if query plan components should emit debug infos.
+    /// </summary>
+    public bool ShowDebugInfo => true;
 
     /// <summary>
     /// Determines if all data has been fetched for the specified selection set.
@@ -91,40 +101,43 @@ internal sealed class FusionExecutionContext : IDisposable
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
-
-    public IdValue ParseId(string formattedId)
-        => _idSerializer.Deserialize(formattedId);
+    
+    public string ParseTypeNameFromId(string id)
+        => _nodeIdParser.ParseTypeName(id);
 
     public async Task<GraphQLResponse> ExecuteAsync(
         string subgraphName,
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         CancellationToken cancellationToken)
     {
         await using var client = _clientFactory.CreateClient(subgraphName);
         return await client.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<GraphQLResponse>> ExecuteAsync(
+    public async Task<GraphQLResponse[]> ExecuteAsync(
         string subgraphName,
-        IReadOnlyList<GraphQLRequest> requests,
+        IReadOnlyList<SubgraphGraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
+        if(requests.Count == 1)
+        {
+            return new[] { await ExecuteAsync(subgraphName, requests[0], cancellationToken) };
+        }
+
         await using var client = _clientFactory.CreateClient(subgraphName);
-        var responses = new GraphQLResponse[requests.Count];
+        var tasks = new Task<GraphQLResponse>[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
         {
-            responses[i] =
-                await client.ExecuteAsync(requests[i], cancellationToken)
-                    .ConfigureAwait(false);
+            tasks[i] = client.ExecuteAsync(requests[i], cancellationToken);
         }
 
-        return responses;
+        return await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     public async IAsyncEnumerable<GraphQLResponse> SubscribeAsync(
         string subgraphName,
-        GraphQLRequest request,
+        SubgraphGraphQLRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
@@ -147,5 +160,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context.QueryPlan,
             operationContextOwner,
             context._clientFactory,
-            context._idSerializer);
+            context._idSerializer,
+            context._nodeIdParser);
 }

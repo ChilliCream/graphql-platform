@@ -13,78 +13,181 @@ namespace HotChocolate;
 /// </summary>
 public interface IReadOnlySchemaOptions
 {
-    /// <inheritdoc cref="SchemaOptions.QueryTypeName"/>
+    /// <summary>
+    /// Gets or sets the name of the query type.
+    /// </summary>
     string? QueryTypeName { get; }
 
-    /// <inheritdoc cref="SchemaOptions.MutationTypeName"/>
+    /// <summary>
+    /// Gets or sets the name of the mutation type.
+    /// </summary>
     string? MutationTypeName { get; }
 
-    /// <inheritdoc cref="SchemaOptions.SubscriptionTypeName"/>
+    /// <summary>
+    /// Gets or sets the name of the subscription type.
+    /// </summary>
     string? SubscriptionTypeName { get; }
 
-    /// <inheritdoc cref="SchemaOptions.StrictValidation"/>
+    /// <summary>
+    /// Defines if the schema allows the query type to be omitted.
+    /// </summary>
     bool StrictValidation { get; }
 
-    /// <inheritdoc cref="SchemaOptions.UseXmlDocumentation"/>
+    /// <summary>
+    /// Defines if the CSharp XML documentation shall be integrated.
+    /// </summary>
     bool UseXmlDocumentation { get; }
 
-    /// <inheritdoc cref="SchemaOptions.ResolveXmlDocumentationFileName"/>
+    /// <summary>
+    /// A delegate which defines the name of the XML documentation file to be read.
+    /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+    /// </summary>
     Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
-    /// <inheritdoc cref="SchemaOptions.SortFieldsByName"/>
+    /// <summary>
+    /// Defines if fields shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
     bool SortFieldsByName { get; }
 
-    /// <inheritdoc cref="SchemaOptions.PreserveSyntaxNodes"/>
+    /// <summary>
+    /// Defines if syntax nodes shall be preserved on the type system objects
+    /// </summary>
     bool PreserveSyntaxNodes { get; }
 
-    /// <inheritdoc cref="SchemaOptions.RemoveUnreachableTypes"/>
+    /// <summary>
+    /// Defines if types shall be removed from the schema that are
+    /// unreachable from the root types.
+    /// </summary>
     bool RemoveUnreachableTypes { get; }
+    
+    /// <summary>
+    /// Defines if unused type system directives shall
+    /// be removed from the schema.
+    /// </summary>
+    bool RemoveUnusedTypeSystemDirectives { get; }
 
-    /// <inheritdoc cref="SchemaOptions.DefaultBindingBehavior"/>
+    /// <summary>
+    /// Defines the default binding behavior.
+    /// </summary>
     BindingBehavior DefaultBindingBehavior { get; }
 
-    /// <inheritdoc cref="SchemaOptions.DefaultFieldBindingFlags"/>
+    /// <summary>
+    /// Defines which members shall be by default inferred as GraphQL fields.
+    /// This default applies to <see cref="ObjectType"/> and <see cref="ObjectTypeExtension"/>.
+    /// </summary>
     FieldBindingFlags DefaultFieldBindingFlags { get; }
 
-    /// <inheritdoc cref="SchemaOptions.FieldMiddleware"/>
+    /// <summary>
+    /// Defines on which fields a middleware pipeline can be applied on.
+    /// </summary>
     FieldMiddlewareApplication FieldMiddleware { get; }
 
-    /// <inheritdoc cref="SchemaOptions.EnableDirectiveIntrospection"/>
+    /// <summary>
+    /// Defines if the experimental directive introspection feature shall be enabled.
+    /// </summary>
     bool EnableDirectiveIntrospection { get; }
 
-    /// <inheritdoc cref="SchemaOptions.DefaultDirectiveVisibility"/>
+    /// <summary>
+    /// The default directive visibility when directive introspection is enabled.
+    /// </summary>
     DirectiveVisibility DefaultDirectiveVisibility { get; }
 
-    /// <inheritdoc cref="SchemaOptions.DefaultResolverStrategy"/>
+    /// <summary>
+    /// Defines that the default resolver execution strategy.
+    /// </summary>
     ExecutionStrategy DefaultResolverStrategy { get; }
 
-    /// <inheritdoc cref="SchemaOptions.ValidatePipelineOrder"/>
+    /// <summary>
+    /// Defines if the order of important middleware components shall be validated.
+    /// </summary>
     bool ValidatePipelineOrder { get; }
-
-    /// <inheritdoc cref="SchemaOptions.StrictRuntimeTypeValidation"/>
+    
+    /// <summary>
+    /// Defines if the runtime types of types shall be validated.
+    /// </summary>
     bool StrictRuntimeTypeValidation { get; }
 
-    /// <inheritdoc cref="SchemaOptions.DefaultIsOfTypeCheck"/>
+    /// <summary>
+    /// Defines a delegate that determines if a runtime
+    /// is an instance of an <see cref="ObjectType{T}"/>.
+    /// </summary>
     IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 
-    /// <inheritdoc cref="SchemaOptions.EnableOneOf"/>
+    /// <summary>
+    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
+    /// </summary>
     bool EnableOneOf { get; }
 
-    /// <inheritdoc cref="SchemaOptions.EnsureAllNodesCanBeResolved"/>
+    /// <summary>
+    /// Defines if the schema building process shall validate that all nodes are resolvable through `node`.
+    /// </summary>
     bool EnsureAllNodesCanBeResolved { get; }
 
-    /// <inheritdoc cref="SchemaOptions.EnableFlagEnums"/>
+    /// <summary>
+    /// Defines if flag enums should be inferred as object value nodes
+    /// </summary>
+    /// <example>
+    /// Given the following enum
+    /// <br/>
+    /// <code>
+    /// [Flags]
+    /// public enum Example { First, Second, Third }
+    ///
+    /// public class Query { public Example Loopback(Example input) => input;
+    /// </code>
+    /// <br/>
+    /// The following schema is produced
+    /// <br/>
+    /// <code>
+    /// type Query {
+    ///    loopback(input: ExampleFlagsInput!): ExampleFlags
+    /// }
+    ///
+    /// type ExampleFlags {
+    ///    isFirst: Boolean!
+    ///    isSecond: Boolean!
+    ///    isThird: Boolean!
+    /// }
+    ///
+    /// input ExampleFlagsInput {
+    ///    isFirst: Boolean
+    ///    isSecond: Boolean
+    ///    isThird: Boolean
+    /// }
+    /// </code>
+    /// </example>
     bool EnableFlagEnums { get; }
 
-    /// <inheritdoc cref="SchemaOptions.EnableDefer"/>
+    /// <summary>
+    /// Enables the @defer directive.
+    /// Defer and stream both are at the moment preview features.
+    /// </summary>
     bool EnableDefer { get; }
 
-    /// <inheritdoc cref="SchemaOptions.EnableStream"/>
+    /// <summary>
+    /// Enables the @stream directive.
+    /// Defer and stream both are at the moment preview features.
+    /// </summary>
     bool EnableStream { get; }
 
-    /// <inheritdoc cref="SchemaOptions.MaxAllowedNodeBatchSize"/>
+    /// <summary>
+    /// Specifies the maximum allowed nodes that can be fetched at once through the nodes field.
+    /// </summary>
     int MaxAllowedNodeBatchSize { get; }
 
-    /// <inheritdoc cref="SchemaOptions.StripLeadingIFromInterface"/>
+    /// <summary>
+    /// Specified if the leading I shall be stripped from the interface name.
+    /// </summary>
     bool StripLeadingIFromInterface { get; }
+
+    /// <summary>
+    /// Specifies that the true nullability proto type shall be enabled.
+    /// </summary>
+    bool EnableTrueNullability { get; }
+
+    /// <summary>
+    /// Specifies that the @tag directive shall be registered with the type system.
+    /// </summary>
+    bool EnableTag { get; }
 }

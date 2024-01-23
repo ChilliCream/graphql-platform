@@ -35,7 +35,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             {
                 CacheControlScope.Private => _cacheControlPrivateScope,
                 CacheControlScope.Public => _cacheControlPublicScope,
-                _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope)
+                _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope),
             };
 
             var headerValue = string.Format(
@@ -100,7 +100,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
 
             foreach (var type in possibleTypes)
             {
-                var selectionSet = (SelectionSet)operation.GetSelectionSet(selection, type);
+                var selectionSet = Unsafe.As<SelectionSet>(operation.GetSelectionSet(selection, type));
                 var length = selectionSet.Selections.Count;
                 ref var start = ref selectionSet.GetSelectionsReference();
 

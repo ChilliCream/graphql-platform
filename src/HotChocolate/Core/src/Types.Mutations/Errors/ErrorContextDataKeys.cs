@@ -8,7 +8,7 @@ internal static class ErrorContextDataKeys
     public static readonly string ErrorDefinitions = "HotChocolate.Types.Errors.ErrorDefinitions";
 
     /// <summary>
-    /// Stores the errors on the scoped context for the middleware
+    /// Stores the errors on the Scoped context for the middleware
     /// </summary>
     public static readonly string Errors = "HotChocolate.Types.Errors.Errors";
 

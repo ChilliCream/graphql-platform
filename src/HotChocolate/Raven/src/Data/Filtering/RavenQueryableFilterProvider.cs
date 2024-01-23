@@ -46,6 +46,6 @@ internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
             RavenAsyncDocumentQueryExecutable<TEntityType> q =>
                 new RavenAsyncDocumentQueryExecutable<TEntityType>(
                     q.Query.ToQueryable().Where(where).ToAsyncDocumentQuery()),
-            _ => input
+            _ => input,
         };
 }

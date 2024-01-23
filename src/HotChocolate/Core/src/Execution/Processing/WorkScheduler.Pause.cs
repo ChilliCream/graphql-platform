@@ -59,7 +59,7 @@ internal sealed partial class WorkScheduler
 
             if (continuation is not null)
             {
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
                 ThreadPool.QueueUserWorkItem(c => c(), continuation, true);
 #else
                 ThreadPool.QueueUserWorkItem(_ => continuation());

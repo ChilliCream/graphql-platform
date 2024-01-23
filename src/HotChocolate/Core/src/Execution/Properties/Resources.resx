@@ -333,4 +333,7 @@
   <data name="ComplexityAnalyzerCompiler_Enter_OnlyOperations" xml:space="preserve">
     <value>We only compile operations.</value>
   </data>
+  <data name="ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed" xml:space="preserve">
+    <value>Only boolean values are allowed to switch null bubbling on or off.</value>
+  </data>
 </root>

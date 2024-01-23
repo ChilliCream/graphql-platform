@@ -90,38 +90,6 @@ public static class DataLoaderResolverContextExtensions
     }
 
     /// <summary>
-    /// Creates a new batch DataLoader with the specified <paramref name="fetch"/> logic.
-    /// </summary>
-    /// <param name="context">
-    /// The resolver context.
-    /// </param>
-    /// <param name="dataLoaderName">
-    /// The optional DataLoader name.
-    /// </param>
-    /// <param name="fetch">
-    /// The batch fetch logic.
-    /// </param>
-    /// <returns>
-    /// Returns the DataLoader.
-    /// </returns>
-    [Obsolete]
-    public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
-        this IResolverContext context,
-        string dataLoaderName,
-        FetchBatch<TKey, TValue> fetch)
-        where TKey : notnull
-    {
-        if (string.IsNullOrEmpty(dataLoaderName))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(dataLoaderName));
-        }
-
-        return BatchDataLoader(context, fetch, dataLoaderName);
-    }
-
-    /// <summary>
     /// This utility methods creates a new <see cref="GroupedDataLoader{TKey,TValue}" />
     /// with the provided <paramref name="fetch"/> logic and invoked the
     /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
@@ -196,38 +164,6 @@ public static class DataLoaderResolverContextExtensions
     }
 
     /// <summary>
-    /// Creates a new GroupDataLoader with the specified <paramref name="fetch"/> logic.
-    /// </summary>
-    /// <param name="context">
-    /// The resolver context.
-    /// </param>
-    /// <param name="dataLoaderName">
-    /// The optional DataLoader name.
-    /// </param>
-    /// <param name="fetch">
-    /// The batch fetch logic for the GroupDataLoader.
-    /// </param>
-    /// <returns>
-    /// Returns the DataLoader.
-    /// </returns>
-    [Obsolete]
-    public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
-        this IResolverContext context,
-        string dataLoaderName,
-        FetchGroup<TKey, TValue> fetch)
-        where TKey : notnull
-    {
-        if (string.IsNullOrEmpty(dataLoaderName))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(dataLoaderName));
-        }
-
-        return GroupDataLoader(context, fetch, dataLoaderName);
-    }
-
-    /// <summary>
     /// This utility methods creates a new <see cref="GreenDonut.CacheDataLoader{TKey,TValue}" />
     /// with the provided <paramref name="fetch"/> logic and invoked the
     /// <see cref="IDataLoader{TKey,TValue}.LoadAsync(TKey,CancellationToken)"/> with
@@ -285,23 +221,6 @@ public static class DataLoaderResolverContextExtensions
             : reg.GetOrRegister(key, Loader);
     }
 
-    [Obsolete]
-    public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
-        this IResolverContext context,
-        string key,
-        FetchCache<TKey, TValue> fetch)
-        where TKey : notnull
-    {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
-        }
-
-        return CacheDataLoader(context, fetch, key);
-    }
-
     public static Task<TValue> CacheAsync<TValue>(
         this IResolverContext context,
         Func<CancellationToken, Task<TValue>> fetch,
@@ -328,22 +247,6 @@ public static class DataLoaderResolverContextExtensions
             (_, ct) => fetch(ct),
             key)
             .LoadAsync("default", context.RequestAborted);
-    }
-
-    [Obsolete]
-    public static Task<TValue> FetchOnceAsync<TValue>(
-        this IResolverContext context,
-        string key,
-        Func<CancellationToken, Task<TValue>> fetch)
-    {
-        if (string.IsNullOrEmpty(key))
-        {
-            throw new ArgumentException(
-                DataLoaderRegistry_KeyNullOrEmpty,
-                nameof(key));
-        }
-
-        return FetchOnceAsync(context, fetch, key);
     }
 
     [GetDataLoader]
@@ -391,4 +294,4 @@ public static class DataLoaderResolverContextExtensions
     }
 }
 
-internal sealed class GetDataLoaderAttribute : Attribute { }
+internal sealed class GetDataLoaderAttribute : Attribute;

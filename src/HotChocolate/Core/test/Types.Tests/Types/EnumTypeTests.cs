@@ -291,14 +291,8 @@ public class EnumTypeTests : TypeTestBase
             .Create();
 
         // assert
-#if NETCOREAPP2_1
-            Assert.Throws<SchemaException>(Action)
-                .Errors.Single().Message.MatchSnapshot(
-                    new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
         Assert.Throws<SchemaException>(Action)
             .Errors.Single().Message.MatchSnapshot();
-#endif
     }
 
     [Fact]
@@ -668,24 +662,24 @@ public class EnumTypeTests : TypeTestBase
     public enum Foo
     {
         Bar1,
-        Bar2
+        Bar2,
     }
 
-    public class Bar { }
+    public class Bar;
 
     public enum FooObsolete
     {
         Bar1,
 
         [Obsolete]
-        Bar2
+        Bar2,
     }
 
     public enum FooIgnore
     {
         Bar1,
         [GraphQLIgnore]
-        Bar2
+        Bar2,
     }
 
     public class FooIgnoredType : EnumType<Foo>
@@ -708,7 +702,7 @@ public class EnumTypeTests : TypeTestBase
     {
         Bar1,
         [GraphQLDeprecated("Baz.")]
-        Bar2
+        Bar2,
     }
 
     [GraphQLName("Foo")]
@@ -716,12 +710,12 @@ public class EnumTypeTests : TypeTestBase
     {
         Bar1,
         [GraphQLName("BAR_2")]
-        Bar2
+        Bar2,
     }
 
     public enum FooUnderline
     {
-        Creating_Instance = 1
+        Creating_Instance = 1,
     }
 
     public class SomeQueryType : ObjectType
@@ -748,7 +742,7 @@ public class EnumTypeTests : TypeTestBase
     public enum DescriptionTestEnum
     {
         Foo,
-        Bar
+        Bar,
     }
 
     public class ValueComparer : IEqualityComparer<object>

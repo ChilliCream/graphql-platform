@@ -22,7 +22,7 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result = await GetAsync(server);
+        var result = await GetBcpConfigAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -32,10 +32,11 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
     {
         // arrange
-        var server = CreateServer(b => b.MapBananaCakePop());
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(builder => builder.MapBananaCakePop().WithOptions(options));
 
         // act
-        var result = await GetAsync(server, "/graphql/ui");
+        var result = await GetBcpConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -45,14 +46,15 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
     {
         // arrange
-        var server = CreateServer(b =>
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(builder =>
         {
-            b.MapGraphQLHttp();
-            b.MapBananaCakePop();
+            builder.MapGraphQLHttp();
+            builder.MapBananaCakePop().WithOptions(options);
         });
 
         // act
-        var result = await GetAsync(server, "/graphql/ui");
+        var result = await GetBcpConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
@@ -62,28 +64,32 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
     {
         // arrange
-        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar"));
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(b => b.MapBananaCakePop("/foo/bar").WithOptions(options));
 
         // act
-        var result = await GetAsync(server, "/foo/bar");
+        var result = await GetBcpConfigAsync(server, "/foo/bar");
 
         // assert
         result.MatchSnapshot();
     }
 
-    [Fact]
-    public async Task Fetch_Tool_When_Disabled()
+    [Theory]
+    [InlineData("embedded")]
+    [InlineData("latest")]
+    [InlineData("insider")]
+    [InlineData("1.0.0")]
+    public async Task Fetch_Tool_When_Disabled(string version)
     {
         // arrange
-        var server = CreateStarWarsServer(
-            configureConventions: e => e.WithOptions(
-                new GraphQLServerOptions
-                {
-                    Tool = { Enable = false }
-                }));
+        var options = new GraphQLServerOptions
+        {
+            Tool = { ServeMode = GraphQLToolServeMode.Version(version), Enable = false },
+        };
+        var server = CreateStarWarsServer(configureConventions: e => e.WithOptions(options));
 
         // act
-        var result = await GetAsync(server);
+        var result = await GetAsync(server, "/graphql/index.html");
 
         // assert
         result.MatchSnapshot();
@@ -95,27 +101,27 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
         // arrange
         var options = new GraphQLServerOptions
         {
-            Tool = {
+            Tool =
+            {
+                ServeMode = GraphQLToolServeMode.Embedded,
                 Document = "# foo",
                 IncludeCookies = true,
-                HttpHeaders = new HeaderDictionary
-                {
-                    { "Content-Type", "application/json" }
-                },
+                HttpHeaders =
+                    new HeaderDictionary { { "Content-Type", "application/json" } },
                 HttpMethod = DefaultHttpMethod.Get,
                 Enable = true,
                 Title = "Hello",
                 GaTrackingId = "GA-FOO",
                 GraphQLEndpoint = "/foo/bar",
                 UseBrowserUrlAsGraphQLEndpoint = true,
-                DisableTelemetry = true
-            }
+                DisableTelemetry = true,
+            },
         };
-        var server = CreateStarWarsServer("/graphql",
-            configureConventions: builder => builder.WithOptions(options));
+        
+        var server = CreateStarWarsServer("/graphql", configureConventions: builder => builder.WithOptions(options));
 
         // act
-        var result = await GetAsync(server);
+        var result = await GetBcpConfigAsync(server);
 
         // assert
         result.MatchSnapshot();
@@ -125,19 +131,42 @@ public class ToolConfigurationFileMiddlewareTests : ServerTestBase
     public async Task Fetch_MapBananaCakePop_Tool_Config()
     {
         // arrange
-        var server = CreateServer(endpoint => endpoint.MapBananaCakePop());
+        var options = new GraphQLToolOptions { ServeMode = GraphQLToolServeMode.Embedded };
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
 
         // act
-        var result = await GetAsync(server, "/graphql/ui");
+        var result = await GetBcpConfigAsync(server, "/graphql/ui");
 
         // assert
         result.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Fetch_MapBananaCakePop_Tool_FromCdn()
+    {
+        // arrange
+        var options = new GraphQLToolOptions
+        {
+            ServeMode = GraphQLToolServeMode.Version("5.0.8"),
+        };
+        var server = CreateServer(endpoint => endpoint.MapBananaCakePop().WithOptions(options));
+
+        // act
+        var result = await GetAsync(server, "/graphql/ui/index.html");
+
+        // assert
+        Assert.Contains("static/js/main.98391269.js", result.Content);
+    }
+
+    private Task<Result> GetBcpConfigAsync(TestServer server, string url = "/graphql")
+    {
+        return GetAsync(server, $"{url}/bcp-config.json");
+    }
+
     private async Task<Result> GetAsync(TestServer server, string url = "/graphql")
     {
-        var response = await server.CreateClient().GetAsync(
-            TestServerExtensions.CreateUrl($"{url}/bcp-config.json"));
+        var response = await server.CreateClient()
+            .GetAsync(TestServerExtensions.CreateUrl(url));
         var content = await response.Content.ReadAsStringAsync();
 
         return new Result

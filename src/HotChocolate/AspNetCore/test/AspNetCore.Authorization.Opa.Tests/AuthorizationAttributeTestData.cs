@@ -50,7 +50,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
     {
         yield return new object[]
         {
-            CreateSchema()
+            CreateSchema(),
         };
     }
 

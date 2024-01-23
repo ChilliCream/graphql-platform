@@ -1,0 +1,14 @@
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Multi-part requests must include a GraphQL preflight header.",
+      "extensions": {
+        "code": "HC0077"
+      }
+    }
+  ],
+  "Extensions": null
+}

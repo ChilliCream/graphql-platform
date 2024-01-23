@@ -1,7 +1,7 @@
-using HotChocolate.ApolloFederation.Constants;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
+using static HotChocolate.ApolloFederation.FederationTypeNames;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.ApolloFederation;
@@ -16,7 +16,7 @@ public class FieldSetTypeTests
         var type = new FieldSetType();
 
         // assert
-        Assert.Equal(WellKnownTypeNames.FieldSet, type.Name);
+        Assert.Equal(FieldSetType_Name, type.Name);
     }
 
     [Fact]
@@ -111,13 +111,14 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        const string selection = "a b c d e(d: $b)";
+        var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
 
         // act
         var serialized = type.Serialize(selectionSet);
 
         // assert
-        Assert.Equal("a b c d e(d: $b)", serialized);
+        Assert.Equal(selection, serialized);
     }
 
     [Fact]
@@ -138,14 +139,15 @@ public class FieldSetTypeTests
     {
         // arrange
         var type = new FieldSetType();
-        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        const string selection = "a b c d e(d: $b)";
+        var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
 
         // act
         var success = type.TrySerialize(selectionSet, out var serialized);
 
         // assert
         Assert.True(success);
-        Assert.Equal("a b c d e(d: $b)", serialized);
+        Assert.Equal(selection, serialized);
     }
 
     [Fact]
@@ -162,19 +164,22 @@ public class FieldSetTypeTests
         Assert.Null(serialized);
     }
 
+    private static string Braces(string s) => $"{{ {s} }}";
+
     [Fact]
     public void ParseValue()
     {
         // arrange
         var type = new FieldSetType();
-        var selectionSet = Syntax.ParseSelectionSet("{ a b c d e(d: $b) }");
+        const string selection = "a b c d e(d: $b)";
+        var selectionSet = Syntax.ParseSelectionSet(Braces(selection));
 
         // act
         var valueSyntax = type.ParseValue(selectionSet);
 
         // assert
         Assert.Equal(
-            "a b c d e(d: $b)",
+            selection,
             Assert.IsType<StringValueNode>(valueSyntax).Value);
     }
 

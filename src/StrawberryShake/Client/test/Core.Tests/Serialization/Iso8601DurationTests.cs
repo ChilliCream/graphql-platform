@@ -9,7 +9,7 @@ namespace StrawberryShake.Serialization
         {
             new object[] { "-P1D", TimeSpan.FromDays(-1) },
             new object[] { "PT0.0000001S", TimeSpan.FromMilliseconds(1) / 1000 / 10 },
-            new object[] { "-PT0.0000001S", TimeSpan.FromMilliseconds(-1) / 1000 / 10 }
+            new object[] { "-PT0.0000001S", TimeSpan.FromMilliseconds(-1) / 1000 / 10 },
         };
 
         [Theory]

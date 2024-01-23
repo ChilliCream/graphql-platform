@@ -8,7 +8,7 @@
   "SortFieldsByName": true,
   "PreserveSyntaxNodes": true,
   "RemoveUnreachableTypes": true,
-  "DefaultBindingBehavior": "Explicit",
+  "DefaultBindingBehavior": "Implicit",
   "DefaultFieldBindingFlags": "InstanceAndStatic",
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": true,
@@ -23,5 +23,7 @@
   "EnableDefer": true,
   "EnableStream": true,
   "MaxAllowedNodeBatchSize": 20,
-  "StripLeadingIFromInterface": false
+  "StripLeadingIFromInterface": false,
+  "EnableTrueNullability": false,
+  "EnableTag": true
 }

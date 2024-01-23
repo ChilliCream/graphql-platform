@@ -268,14 +268,16 @@ builder.Logging.AddOpenTelemetry(
         b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo"));
     });
 
-builder.Services.AddOpenTelemetryTracing(
-    b =>
-    {
-        b.AddHttpClientInstrumentation();
-        b.AddAspNetCoreInstrumentation();
-        b.AddHotChocolateInstrumentation();
-        b.AddJaegerExporter();
-    });
+builder.Services
+    .AddOpenTelemetryTracing()
+    .WithTracing(
+      b =>
+      {
+          b.AddHttpClientInstrumentation();
+          b.AddAspNetCoreInstrumentation();
+          b.AddHotChocolateInstrumentation();
+          b.AddJaegerExporter();
+      });
 ```
 
 `AddHotChocolateInstrumentation` will register the Hot Chocolate instrumentation events with OpenTelemetry.
@@ -296,14 +298,16 @@ builder.Services
 builder.Logging.AddOpenTelemetry(
     b => b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo")));
 
-builder.Services.AddOpenTelemetryTracing(
-    b =>
-    {
-        b.AddHttpClientInstrumentation();
-        b.AddAspNetCoreInstrumentation();
-        b.AddHotChocolateInstrumentation();
-        b.AddJaegerExporter();
-    });
+builder.Services
+    .AddOpenTelemetryTracing()
+    .WithTracing(
+      b =>
+      {
+          b.AddHttpClientInstrumentation();
+          b.AddAspNetCoreInstrumentation();
+          b.AddHotChocolateInstrumentation();
+          b.AddJaegerExporter();
+      });
 
 var app = builder.Build();
 app.MapGraphQL();

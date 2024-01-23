@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Metadata;
 /// </summary>
 internal sealed class FusionGraphConfiguration
 {
-    private readonly Dictionary<string, IType> _types;
+    private readonly Dictionary<string, INamedTypeMetadata> _types;
     private readonly Dictionary<(string Schema, string Type), string> _typeNameLookup = new();
     private readonly Dictionary<(string Schema, string Type), string> _typeNameRevLookup = new();
 
@@ -32,7 +32,7 @@ internal sealed class FusionGraphConfiguration
     /// The list of WebSocket clients.
     /// </param>
     public FusionGraphConfiguration(
-        IReadOnlyCollection<IType> types,
+        IReadOnlyCollection<INamedTypeMetadata> types,
         IReadOnlyCollection<SubgraphInfo> subgraphs,
         IReadOnlyList<HttpClientConfiguration> httpClients,
         IReadOnlyList<WebSocketClientConfiguration> webSocketClients)
@@ -91,7 +91,7 @@ internal sealed class FusionGraphConfiguration
     /// <param name="typeName">The name of the type.</param>
     /// <returns>The type of the specified name.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the type is not found.</exception>
-    public T GetType<T>(string typeName) where T : IType
+    public T GetType<T>(string typeName) where T : INamedTypeMetadata
     {
         if (_types.TryGetValue(typeName, out var type) && type is T casted)
         {
@@ -101,7 +101,7 @@ internal sealed class FusionGraphConfiguration
         throw new InvalidOperationException("Type not found.");
     }
 
-    public T GetType<T>(QualifiedTypeName qualifiedTypeName) where T : IType
+    public T GetType<T>(QualifiedTypeName qualifiedTypeName) where T : INamedTypeMetadata
     {
         var typeName = GetTypeName(qualifiedTypeName);
 
@@ -113,7 +113,7 @@ internal sealed class FusionGraphConfiguration
         throw new InvalidOperationException("Type not found.");
     }
 
-    public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type) where T : IType
+    public bool TryGetType<T>(string typeName, [NotNullWhen(true)] out T? type) where T : INamedTypeMetadata
     {
         if (_types.TryGetValue(typeName, out var value) && value is T casted)
         {
@@ -124,7 +124,7 @@ internal sealed class FusionGraphConfiguration
         type = default!;
         return false;
     }
-
+    
     public string GetTypeName(string subgraphName, string typeName)
     {
         if (!_typeNameLookup.TryGetValue((subgraphName, typeName), out var temp))
@@ -137,15 +137,25 @@ internal sealed class FusionGraphConfiguration
 
     public string GetTypeName(QualifiedTypeName qualifiedTypeName)
         => GetTypeName(qualifiedTypeName.SubgraphName, qualifiedTypeName.TypeName);
-
+    
+    /// <summary>
+    /// Gets the subgraph type name of a fusion graph type.
+    /// </summary>
+    /// <param name="subgraphName">
+    /// The name of the subgraph.
+    /// </param>
+    /// <param name="typeName">
+    /// The name of the fusion graph type.
+    /// </param>
+    /// <returns></returns>
     public string GetSubgraphTypeName(string subgraphName, string typeName)
     {
-        if (!_typeNameRevLookup.TryGetValue((subgraphName, typeName), out var temp))
+        if (!_typeNameRevLookup.TryGetValue((subgraphName, typeName), out var subgraphTypeName))
         {
-            temp = typeName;
+            subgraphTypeName = typeName;
         }
 
-        return temp;
+        return subgraphTypeName;
     }
 
     /// <summary>
@@ -189,17 +199,3 @@ internal sealed class FusionGraphConfiguration
     public static FusionGraphConfiguration Load(DocumentNode document)
         => new FusionGraphConfigurationReader().Read(document);
 }
-
-internal sealed class SubgraphInfo
-{
-    public SubgraphInfo(string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; }
-
-    public List<string> Entities { get; } = new();
-}
-
-public readonly record struct QualifiedTypeName(string SubgraphName, string TypeName);

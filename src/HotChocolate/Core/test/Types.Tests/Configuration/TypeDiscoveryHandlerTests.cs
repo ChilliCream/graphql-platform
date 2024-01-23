@@ -23,15 +23,15 @@ public class TypeDiscoveryHandlerTests
             schema {
               query: Query
             }
-
+            
             type Query {
               foo(foo: TestMeInput): TestMe
             }
-
+            
             type TestMe {
               bar: String
             }
-
+            
             input TestMeInput {
               bar: String
             }

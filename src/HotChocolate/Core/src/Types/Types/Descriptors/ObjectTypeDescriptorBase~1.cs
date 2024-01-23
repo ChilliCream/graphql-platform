@@ -102,20 +102,6 @@ public abstract class ObjectTypeDescriptorBase<T>
     public IObjectTypeDescriptor<T> BindFieldsImplicitly() =>
         BindFields(BindingBehavior.Implicit);
 
-    [Obsolete("Use Implements.")]
-    public new IObjectTypeDescriptor<T> Interface<TInterface>()
-        where TInterface : InterfaceType
-        => Implements<TInterface>();
-
-    [Obsolete("Use Implements.")]
-    public new IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
-        where TInterface : InterfaceType
-        => Implements(type);
-
-    [Obsolete("Use Implements.")]
-    public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
-        => Implements(type);
-
     public new IObjectTypeDescriptor<T> Implements<TInterface>()
         where TInterface : InterfaceType
     {

@@ -6,19 +6,26 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class LocalStateParameterExpressionBuilder
+internal class LocalStateParameterExpressionBuilder
     : ScopedStateParameterExpressionBuilder
 {
     public override ArgumentKind Kind => ArgumentKind.LocalState;
 
-    protected override PropertyInfo ContextDataProperty { get; } =
+    private static readonly PropertyInfo _localContextDataProperty =
         ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
 
-    protected override MethodInfo SetStateMethod { get; } =
-        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetLocalState))!;
+    protected override PropertyInfo ContextDataProperty => _localContextDataProperty;
 
-    protected override MethodInfo SetStateGenericMethod { get; } =
-        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetLocalStateGeneric))!;
+    private static readonly MethodInfo _setLocalState =
+        typeof(ExpressionHelper).GetMethod(
+            nameof(ExpressionHelper.SetLocalState))!;
+    private static readonly MethodInfo _setLocalStateGeneric =
+        typeof(ExpressionHelper).GetMethod(
+            nameof(ExpressionHelper.SetLocalStateGeneric))!;
+
+    protected override MethodInfo SetStateMethod => _setLocalState;
+
+    protected override MethodInfo SetStateGenericMethod => _setLocalStateGeneric;
 
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(LocalStateAttribute));

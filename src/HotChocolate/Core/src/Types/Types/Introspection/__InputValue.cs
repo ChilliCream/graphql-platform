@@ -44,7 +44,7 @@ internal sealed class __InputValue : ObjectType
                 new(Names.DeprecationReason,
                     type: stringType,
                     pureResolver: Resolvers.DeprecationReason),
-            }
+            },
         };
 
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)

@@ -10,7 +10,7 @@ public class ReviewRepository
         _authors = new[]
         {
             new Author(1, "@ada"),
-            new Author(2, "@alan")
+            new Author(2, "@alan"),
         }.ToDictionary(t => t.Id);
 
         _reviews = new[]
@@ -18,7 +18,7 @@ public class ReviewRepository
             new Review(1, _authors[1], new Product(1), "Love it!"),
             new Review(2, _authors[2], new Product(2), "Too expensive."),
             new Review(3, _authors[1], new Product(3), "Could be better."),
-            new Review(4, _authors[2], new Product(1), "Prefer something else.")
+            new Review(4, _authors[2], new Product(1), "Prefer something else."),
         }.ToDictionary(t => t.Id);
     }
 
@@ -26,7 +26,7 @@ public class ReviewRepository
         _reviews.Values.OrderBy(t => t.Id);
 
     public IEnumerable<Review> GetReviewsByProductId(int upc) =>
-        _reviews.Values.OrderBy(t => t.Id).Where(t => t.Product.Upc == upc);
+        _reviews.Values.OrderBy(t => t.Id).Where(t => t.Product.Id == upc);
 
     public IEnumerable<Review> GetReviewsByAuthorId(int authorId) =>
         _reviews.Values.OrderBy(t => t.Id).Where(t => t.Author.Id == authorId);

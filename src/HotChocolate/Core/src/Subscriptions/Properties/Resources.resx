@@ -110,9 +110,6 @@
   <data name="MessageEnvelope_DefaultMessage_NeedsBody" xml:space="preserve">
     <value>Default messages must have a body.</value>
   </data>
-  <data name="MessageEnvelope_UnsubscribeAndComplete_DoNotHaveBody" xml:space="preserve">
-    <value>Complete and Unsubscribe messages do not have a body.</value>
-  </data>
   <data name="InvalidMessageTypeException_Message" xml:space="preserve">
     <value>The topic already exists with a different message type. Topic message type: {0}. Requested message type: {1}.</value>
   </data>

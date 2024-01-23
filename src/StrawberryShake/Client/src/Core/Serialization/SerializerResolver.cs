@@ -19,7 +19,7 @@ public class SerializerResolver : ISerializerResolver
     /// A enumerable of <see cref="ISerializer"/> that shall be known to the resolver
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// In case <paramref name="serializers"></param> is null
+    /// In case <paramref name="serializers" /> is <c>null</c>
     /// </exception>
     public SerializerResolver(IEnumerable<ISerializer> serializers)
     {
@@ -30,10 +30,14 @@ public class SerializerResolver : ISerializerResolver
 
         foreach (var serializer in serializers)
         {
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            _serializers.TryAdd(serializer.TypeName, serializer);
+#else
             if (!_serializers.ContainsKey(serializer.TypeName))
             {
                 _serializers[serializer.TypeName] = serializer;
             }
+#endif
         }
 
         foreach (var serializer in

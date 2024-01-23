@@ -11,7 +11,7 @@
     ],
     "Extensions": {
       "fragment": "Unused1",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -122,7 +122,7 @@
     ],
     "Extensions": {
       "fragment": "Unused2",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragments-Must-Be-Used"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -5,6 +5,8 @@ namespace HotChocolate.Fusion.Shared.Accounts;
 [GraphQLName("Query")]
 public class AccountQuery
 {
+    public Viewer Viewer { get; } = new();
+    
     public IEnumerable<User> GetUsers([Service] UserRepository repository) =>
         repository.GetUsers();
 

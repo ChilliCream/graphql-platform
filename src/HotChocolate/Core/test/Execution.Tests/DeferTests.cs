@@ -137,18 +137,20 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            @"{
+            """    
+            {
                 ... Foo @defer
             }
             
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: "UGVyc29uCmkx") {
                     id
                     ... @defer {
                         name
                     }
                 }
-            }");
+            }
+            """);
 
         Assert.IsType<ResponseStream>(result).MatchSnapshot();
     }

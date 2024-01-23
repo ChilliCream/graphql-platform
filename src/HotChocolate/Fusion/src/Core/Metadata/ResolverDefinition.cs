@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using static HotChocolate.Fusion.FusionResources;
 
 namespace HotChocolate.Fusion.Metadata;
 
@@ -13,14 +14,14 @@ internal sealed partial class ResolverDefinition
         SelectionSetNode select,
         FragmentSpreadNode? placeholder,
         IReadOnlyList<string> requires,
-        IReadOnlyDictionary<string, ITypeNode> arguments)
+        IReadOnlyDictionary<string, ITypeNode> argumentTypes)
     {
         SubgraphName = subgraphName;
         Kind = kind;
         Select = select;
         Placeholder = placeholder;
         Requires = requires;
-        Arguments = arguments;
+        ArgumentTypes = argumentTypes;
 
         if (select.Selections is [FieldNode field])
         {
@@ -33,6 +34,9 @@ internal sealed partial class ResolverDefinition
     /// </summary>
     public string SubgraphName { get; }
 
+    /// <summary>
+    /// Gets the kind of the resolver.
+    /// </summary>
     public ResolverKind Kind { get; }
 
     public SelectionSetNode Select { get; }
@@ -41,14 +45,18 @@ internal sealed partial class ResolverDefinition
 
     public IReadOnlyList<string> Requires { get; }
 
-    public IReadOnlyDictionary<string, ITypeNode> Arguments { get;  }
+    /// <summary>
+    /// Gets the argument target types of this resolver.
+    /// </summary>
+    public IReadOnlyDictionary<string, ITypeNode> ArgumentTypes { get;  }
 
     public (ISelectionNode selectionNode, IReadOnlyList<string> Path) CreateSelection(
         IReadOnlyDictionary<string, IValueNode> variables,
         SelectionSetNode? selectionSet,
-        string? responseName)
+        string? responseName,
+        IReadOnlyList<string>? unspecifiedArguments)
     {
-        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName);
+        var context = new FetchRewriterContext(Placeholder, variables, selectionSet, responseName, unspecifiedArguments);
         var selection = _rewriter.Rewrite(_field ?? (ISyntaxNode)Select, context);
 
         if (Placeholder is null && selectionSet is not null)
@@ -56,7 +64,7 @@ internal sealed partial class ResolverDefinition
             if (selection is not FieldNode fieldNode)
             {
                 throw new InvalidOperationException(
-                    "Either provide a placeholder or the select expression must be a FieldNode.");
+                    CreateSelection_MustBePlaceholderOrSelectExpression);
             }
 
             return (fieldNode.WithSelectionSet(selectionSet), new[] { fieldNode.Name.Value });

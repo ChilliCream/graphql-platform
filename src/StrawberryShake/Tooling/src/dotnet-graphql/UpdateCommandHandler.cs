@@ -38,7 +38,10 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
             FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
             accessToken?.Token,
             accessToken?.Scheme,
-            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
+            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values),
+            arguments.TypeDepth.HasValue() && 
+            int.TryParse(arguments.TypeDepth.Value(), out var typeDepth) && 
+            typeDepth >= 3 ? typeDepth : 6);
 
         return context.Path is null
             ? await FindAndUpdateSchemasAsync(context, cancellationToken)
@@ -127,6 +130,20 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
             {
                 File.Delete(tempFile);
             }
+
+            // remove the temp directory.
+            var tempDirectory = GetDirectoryName(tempFile);
+            if (Directory.Exists(tempDirectory))
+            {
+                try
+                {
+                    Directory.Delete(tempDirectory);
+                }
+                catch (IOException)
+                {
+                    // ignore error when directory is not empty.
+                }
+            }
         }
 
         return !hasErrors;
@@ -171,7 +188,7 @@ public class UpdateCommandHandler : CommandHandler<UpdateCommandArguments>
             context.CustomHeaders);
 
         return await IntrospectionHelper.DownloadSchemaAsync(
-                client, FileSystem, activity, schemaFilePath,
+                client, FileSystem, activity, schemaFilePath, context.TypeDepth,
                 cancellationToken)
             .ConfigureAwait(false);
     }

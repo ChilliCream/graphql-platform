@@ -50,6 +50,11 @@ public abstract class TypeModule : ITypeModule
     /// </summary>
     public event EventHandler<EventArgs>? TypesChanged;
 
+    internal virtual ValueTask ConfigureAsync(
+        ConfigurationContext context,
+        CancellationToken cancellationToken)
+        => default;
+
     /// <summary>
     /// Will be called by the schema building process to add the dynamically created
     /// types and type extensions to the schema building process.

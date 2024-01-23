@@ -1,0 +1,245 @@
+User Request
+---------------
+subscription OnNewReview {
+  onNewReview {
+    body
+    author {
+      name
+    }
+  }
+}
+---------------
+
+QueryPlan
+---------------
+{
+  "document": "subscription OnNewReview { onNewReview { body author { name } } }",
+  "operation": "OnNewReview",
+  "rootNode": {
+    "type": "Subscribe",
+    "subgraph": "Reviews2",
+    "document": "subscription OnNewReview_1 { onNewReview { body author { name } } }",
+    "selectionSetId": 0,
+    "nodes": [
+      {
+        "type": "Sequence",
+        "nodes": [
+          {
+            "type": "Compose",
+            "selectionSetIds": [
+              0
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+---------------
+
+QueryPlan Hash
+---------------
+F823835BFACD5B49C03063C112F1293EAB40DE1E
+---------------
+
+Result 1
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Love it!",
+      "author": {
+        "name": "@ada"
+      }
+    }
+  }
+}
+---------------
+
+Result 2
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Too expensive.",
+      "author": {
+        "name": "@complete"
+      }
+    }
+  }
+}
+---------------
+
+Result 3
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Could be better.",
+      "author": {
+        "name": "@ada"
+      }
+    }
+  }
+}
+---------------
+
+Result 4
+---------------
+{
+  "data": {
+    "onNewReview": {
+      "body": "Prefer something else.",
+      "author": {
+        "name": "@complete"
+      }
+    }
+  }
+}
+---------------
+
+Fusion Graph
+---------------
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  productById(id: ID!): Product
+    @variable(subgraph: "Reviews2", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  reviewById(id: ID!): Review
+    @variable(subgraph: "Reviews2", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  reviewOrAuthor: ReviewOrAuthor!
+    @resolver(subgraph: "Reviews2", select: "{ reviewOrAuthor }")
+  reviews: [Review!]!
+    @resolver(subgraph: "Reviews2", select: "{ reviews }")
+  userById(id: ID!): User
+    @variable(subgraph: "Reviews2", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews2", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+    @variable(subgraph: "Accounts", name: "id", argument: "id")
+    @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  users: [User!]!
+    @resolver(subgraph: "Accounts", select: "{ users }")
+  usersById(ids: [ID!]!): [User!]!
+    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
+    @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  viewer: Viewer!
+    @resolver(subgraph: "Reviews2", select: "{ viewer }")
+    @resolver(subgraph: "Accounts", select: "{ viewer }")
+}
+
+type Mutation {
+  addReview(input: AddReviewInput!): AddReviewPayload!
+    @variable(subgraph: "Reviews2", name: "input", argument: "input")
+    @resolver(subgraph: "Reviews2", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+  addUser(input: AddUserInput!): AddUserPayload!
+    @variable(subgraph: "Accounts", name: "input", argument: "input")
+    @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+}
+
+type Subscription {
+  onNewReview: Review!
+    @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIBE")
+}
+
+type AddReviewPayload {
+  review: Review
+    @source(subgraph: "Reviews2")
+}
+
+type AddUserPayload {
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+type Product
+  @variable(subgraph: "Reviews2", name: "Product_id", select: "id")
+  @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ]) {
+  id: ID!
+    @source(subgraph: "Reviews2")
+  reviews: [Review!]!
+    @source(subgraph: "Reviews2")
+}
+
+type Review implements Node
+  @variable(subgraph: "Reviews2", name: "Review_id", select: "id")
+  @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
+  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
+  author: User!
+    @source(subgraph: "Reviews2")
+  body: String!
+    @source(subgraph: "Reviews2")
+  id: ID!
+    @source(subgraph: "Reviews2")
+  product: Product!
+    @source(subgraph: "Reviews2")
+}
+
+type SomeData {
+  accountValue: String!
+    @source(subgraph: "Accounts")
+  reviewsValue: String!
+    @source(subgraph: "Reviews2")
+}
+
+"The user who wrote the review."
+type User implements Node
+  @variable(subgraph: "Reviews2", name: "User_id", select: "id")
+  @variable(subgraph: "Accounts", name: "User_id", select: "id")
+  @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
+  @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
+  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  birthdate: Date!
+    @source(subgraph: "Accounts")
+  id: ID!
+    @source(subgraph: "Reviews2")
+    @source(subgraph: "Accounts")
+  name: String!
+    @source(subgraph: "Reviews2")
+    @source(subgraph: "Accounts")
+  reviews: [Review!]!
+    @source(subgraph: "Reviews2")
+  username: String!
+    @source(subgraph: "Accounts")
+}
+
+type Viewer {
+  data: SomeData!
+    @source(subgraph: "Reviews2")
+    @source(subgraph: "Accounts")
+  latestReview: Review
+    @source(subgraph: "Reviews2")
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+union ReviewOrAuthor = User | Review
+
+input AddReviewInput {
+  authorId: Int!
+  body: String!
+  upc: Int!
+}
+
+input AddUserInput {
+  birthdate: Date!
+  name: String!
+  username: String!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+---------------

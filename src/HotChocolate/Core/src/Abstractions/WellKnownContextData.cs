@@ -231,6 +231,11 @@ public static class WellKnownContextData
     public const string MutationQueryField = "HotChocolate.Relay.Mutations.QueryField";
 
     /// <summary>
+    /// The key to the name of the data field when using the mutation convention.
+    /// </summary>
+    public const string MutationConventionDataField = "HotChocolate.Types.Mutations.Conventions.DataField";
+
+    /// <summary>
     /// The key to get the Cache-Control header value from the context data.
     /// </summary>
     public const string CacheControlHeaderValue = "HotChocolate.Caching.CacheControlHeaderValue";
@@ -269,4 +274,19 @@ public static class WellKnownContextData
     /// The key to access the authorization allowed flag on the member context.
     /// </summary>
     public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
+    
+    /// <summary>
+    /// The key to access the true nullability flag on the execution context.
+    /// </summary>
+    public const string EnableTrueNullability = "HotChocolate.Types.EnableTrueNullability";
+    
+    /// <summary>
+    /// The key to access the tag options object.
+    /// </summary>
+    public const string TagOptions = "HotChocolate.Types.TagOptions";
+    
+    /// <summary>
+    /// Type key to access the internal schema options.
+    /// </summary>
+    public const string InternalSchemaOptions = "HotChocolate.Types.InternalSchemaOptions";
 }

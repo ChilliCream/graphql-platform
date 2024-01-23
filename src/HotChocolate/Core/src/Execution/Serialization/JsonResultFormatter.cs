@@ -189,6 +189,11 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
             throw new ArgumentNullException(nameof(writer));
         }
 
+        FormatInternal(result, writer);
+    }
+    
+    private void FormatInternal(IQueryResult result, IBufferWriter<byte> writer)
+    {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
@@ -218,11 +223,20 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        await using var writer = new Utf8JsonWriter(outputStream, _options);
+        using var buffer = new ArrayWriter();
+        FormatInternal(result, buffer);
 
-        WriteResult(writer, result);
+#if NETSTANDARD2_0
+        await outputStream
+            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
+            .ConfigureAwait(false);
+#else
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
+#endif
 
-        await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private void WriteResult(Utf8JsonWriter writer, IQueryResult result)
@@ -230,7 +244,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         writer.WriteStartObject();
 
         WriteErrors(writer, result.Errors);
-        WriteData(writer, result.Data);
+        WriteData(writer, result);
         WriteItems(writer, result.Items);
         WriteIncremental(writer, result.Incremental);
         WriteExtensions(writer, result.Extensions);
@@ -267,20 +281,28 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteData(
         Utf8JsonWriter writer,
-        IReadOnlyDictionary<string, object?>? data)
+        IQueryResult result)
     {
-        if (data is not null)
+        if (!result.IsDataSet)
         {
-            writer.WritePropertyName(Data);
+            return;
+        }
 
-            if (data is ObjectResult resultMap)
-            {
-                WriteObjectResult(writer, resultMap);
-            }
-            else
-            {
-                WriteDictionary(writer, data);
-            }
+        if (result.Data is null)
+        {
+            writer.WriteNull(Data);
+            return;
+        }
+        
+        writer.WritePropertyName(Data);
+
+        if (result.Data is ObjectResult resultMap)
+        {
+            WriteObjectResult(writer, resultMap);
+        }
+        else
+        {
+            WriteDictionary(writer, result.Data);
         }
     }
 

@@ -129,6 +129,12 @@ namespace HotChocolate.Language.Properties {
             }
         }
         
+        internal static string DisallowedNameCharacterAfterNumber {
+            get {
+                return ResourceManager.GetString("DisallowedNameCharacterAfterNumber", resourceCulture);
+            }
+        }
+        
         internal static string InvalidCharacterEscapeSequence {
             get {
                 return ResourceManager.GetString("InvalidCharacterEscapeSequence", resourceCulture);
@@ -210,6 +216,12 @@ namespace HotChocolate.Language.Properties {
         internal static string Utf8GraphQLParser_Start_MaxAllowedNodesReached {
             get {
                 return ResourceManager.GetString("Utf8GraphQLParser_Start_MaxAllowedNodesReached", resourceCulture);
+            }
+        }
+        
+        internal static string Utf8GraphQLParser_Start_MaxAllowedFieldsReached {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLParser_Start_MaxAllowedFieldsReached", resourceCulture);
             }
         }
     }

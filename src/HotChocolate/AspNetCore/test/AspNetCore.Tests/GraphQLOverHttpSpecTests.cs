@@ -61,7 +61,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -97,8 +97,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 new ClientQueryRequest { Query = "{ __typename }" }),
             Headers =
             {
-                { "Accept", acceptHeader }
-            }
+                { "Accept", acceptHeader },
+            },
         };
 
         using var response = await client.SendAsync(request);
@@ -144,8 +144,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = new ByteArrayContent(Array.Empty<byte>())
             {
-                Headers = { ContentType = new("application/json") { CharSet = "utf-8" } }
-            }
+                Headers = { ContentType = new("application/json") { CharSet = "utf-8" } },
+            },
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -186,7 +186,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typ$ename }" })
+                new ClientQueryRequest { Query = "{ __typ$ename }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -203,8 +203,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: {expectedStatusCode}
                 -------------------------->
                 " +
-                @"{""errors"":[{""message"":""Expected a \u0060Name\u0060-token, but found a " +
-                @"\u0060Dollar\u0060-token."",""locations"":[{""line"":1,""column"":8}]," +
+                @"{""errors"":[{""message"":""Expected a `Name`-token, but found a " +
+                @"`Dollar`-token."",""locations"":[{""line"":1,""column"":8}]," +
                 @"""extensions"":{""code"":""HC0011""}}]}");
     }
 
@@ -229,7 +229,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __type name }" })
+                new ClientQueryRequest { Query = "{ __type name }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -246,21 +246,21 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: {expectedStatusCode}
                 -------------------------->
                 " +
-                @"{""errors"":[{""message"":""\u0060__type\u0060 is an object, interface or " +
+                @"{""errors"":[{""message"":""`__type` is an object, interface or " +
                 @"union type field. Leaf selections on objects, interfaces, and unions without " +
                 @"subfields are disallowed."",""locations"":[{""line"":1,""column"":3}]," +
                 @"""extensions"":{""declaringType"":""Query"",""field"":""__type""," +
                 @"""type"":""__Type"",""responseName"":""__type""," +
-                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Field-Selections-" +
-                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field \u0060name" +
-                @"\u0060 does not exist on the type \u0060Query\u0060."",""locations"":[{" +
+                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Field-Selections-" +
+                @"on-Objects-Interfaces-and-Unions-Types""}},{""message"":""The field `name" +
+                @"` does not exist on the type `Query`."",""locations"":[{" +
                 @"""line"":1,""column"":10}],""extensions"":{""type"":""Query""," +
                 @"""field"":""name"",""responseName"":""name"",""specifiedBy"":" +
-                @"""http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
-                @"Interfaces-and-Unions-Types""}},{""message"":""The argument \u0060name\u0060 " +
+                @"""https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-" +
+                @"Interfaces-and-Unions-Types""}},{""message"":""The argument `name` " +
                 @"is required."",""locations"":[{""line"":1,""column"":3}],""extensions"":{" +
                 @"""type"":""Query"",""field"":""__type"",""argument"":""name""," +
-                @"""specifiedBy"":""http://spec.graphql.org/October2021/#sec-Required-Arguments""" +
+                @"""specifiedBy"":""https://spec.graphql.org/October2021/#sec-Required-Arguments""" +
                 "}}]}");
     }
 
@@ -275,7 +275,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }" }),
         };
 
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
@@ -293,7 +293,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: BadRequest
                 -------------------------->
                 {""errors"":[{""message"":""Unable to parse the accept header value " +
-                @"\u0060unsupported\u0060."",""extensions"":{""headerValue"":""unsupported""," +
+                @"`unsupported`."",""extensions"":{""headerValue"":""unsupported""," +
                 @"""code"":""HC0064""}}]}");
     }
 
@@ -308,7 +308,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }" }),
         };
 
         request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
@@ -325,7 +325,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {""errors"":[{""message"":""None of the \u0060Accept\u0060 header values is supported.""," +
+                {""errors"":[{""message"":""None of the `Accept` header values is supported.""," +
                 @"""extensions"":{""code"":""HC0063""}}]}");
     }
 
@@ -346,7 +346,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" })
+                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -391,7 +391,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", acceptHeader } }
+            Headers = { { "Accept", acceptHeader } },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -431,7 +431,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", ContentType.GraphQLResponse } }
+            Headers = { { "Accept", ContentType.GraphQLResponse } },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -464,7 +464,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = JsonContent.Create(
                 new ClientQueryRequest { Query = "subscription {delay(count: 2, delay:15000)}" }),
-            Headers = { { "Accept", "text/event-stream" } }
+            Headers = { { "Accept", "text/event-stream" } },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -502,7 +502,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
             configureServices: s => s.AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    HttpTransportVersion = serverTransportVersion
+                    HttpTransportVersion = serverTransportVersion,
                 }));
 
         return server.CreateClient();

@@ -6,10 +6,10 @@
       "Name": "arguments",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -22,7 +22,7 @@
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "req1",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -63,10 +63,10 @@
       "Name": "arguments",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -79,7 +79,7 @@
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "x",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -145,10 +145,10 @@
       "Name": "arguments",
       "Parent": {
         "Parent": null,
-        "Length": -1,
+        "Length": 0,
         "IsRoot": true
       },
-      "Length": 0,
+      "Length": 1,
       "IsRoot": false
     },
     "Locations": [
@@ -161,7 +161,7 @@
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "y",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
     "Exception": null,
     "SyntaxNode": {

@@ -39,6 +39,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName);
 
         var constructorBuilder = classBuilder
@@ -224,6 +225,20 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .AddCode(jsonElementNullCheck)
                 .AddEmptyLine();
 
+            // When deserializing arrays of nullable values (e.g. [User] => [ { ... }, null, { ... }]) the second
+            // element will be not null, but instead a JSON element of kind JsonValueKind.Null.
+            var jsonElementNullValueKindCheck = IfBuilder
+                .New()
+                .SetCondition($"{_obj}.Value.ValueKind == global::System.Text.Json.JsonValueKind.Null")
+                .AddCode(
+            typeReference.IsNonNull()
+                ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                : CodeLineBuilder.From("return null;"));
+
+            methodBuilder
+                .AddCode(jsonElementNullValueKindCheck)
+                .AddEmptyLine();
+
             AddDeserializeMethodBody(classBuilder, methodBuilder, typeReference, processed);
         }
     }
@@ -347,7 +362,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
             InterfaceTypeDescriptor
             {
                 ImplementedBy.Count: > 1,
-                ParentRuntimeType: { } parentRuntimeType
+                ParentRuntimeType: { } parentRuntimeType,
             } => parentRuntimeType.Name,
 
             INamedTypeDescriptor { Kind: TypeKind.Entity } d =>
@@ -366,7 +381,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                 : "NonNullable" + BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
         };
     }
 }

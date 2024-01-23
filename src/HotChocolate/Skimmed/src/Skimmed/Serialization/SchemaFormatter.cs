@@ -1,16 +1,30 @@
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed.Serialization;
 
 public static class SchemaFormatter
 {
     private static readonly SchemaFormatterVisitor _visitor = new();
+    private static readonly SyntaxSerializerOptions _options =
+        new()
+        {
+            Indented = true,
+            MaxDirectivesPerLine = 0,
+        };
 
     public static string FormatAsString(Schema schema, bool indented = true)
     {
         var context = new VisitorContext();
         _visitor.VisitSchema(schema, context);
-        return ((DocumentNode)context.Result!).ToString(indented);
+
+        if (!indented)
+        {
+            ((DocumentNode)context.Result!).ToString(false);
+        }
+
+        return ((DocumentNode)context.Result!).ToString(_options);
     }
 
     public static DocumentNode FormatAsDocument(Schema schema)
@@ -65,9 +79,7 @@ public static class SchemaFormatter
 
                 var schemaDefinition = new SchemaDefinitionNode(
                     null,
-                    string.IsNullOrEmpty(schema.Description)
-                        ? null
-                        : new(schema.Description),
+                    CreateDescription(schema.Description),
                     (IReadOnlyList<DirectiveNode>)context.Result!,
                     operationTypes);
                 definitions.Add(schemaDefinition);
@@ -106,7 +118,7 @@ public static class SchemaFormatter
 
             foreach (var type in types.OfType<ObjectType>().OrderBy(t => t.Name))
             {
-                if(context.Schema?.QueryType == type ||
+                if (context.Schema?.QueryType == type ||
                    context.Schema?.MutationType == type ||
                    context.Schema?.SubscriptionType == type)
                 {
@@ -143,7 +155,7 @@ public static class SchemaFormatter
 
             foreach (var type in types.OfType<ScalarType>().OrderBy(t => t.Name))
             {
-                if (type is { IsSpecScalar: true }  || SpecScalarTypes.IsSpecScalar(type.Name))
+                if (type is { IsSpecScalar: true } || SpecScalarTypes.IsSpecScalar(type.Name))
                 {
                     type.IsSpecScalar = true;
                     continue;
@@ -190,9 +202,7 @@ public static class SchemaFormatter
                     : new ObjectTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList(),
                         fields);
@@ -217,9 +227,7 @@ public static class SchemaFormatter
                     : new InterfaceTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList(),
                         fields);
@@ -243,9 +251,7 @@ public static class SchemaFormatter
                     : new InputObjectTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         fields);
         }
@@ -264,9 +270,7 @@ public static class SchemaFormatter
                     : new ScalarTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives);
         }
 
@@ -288,9 +292,7 @@ public static class SchemaFormatter
                     : new EnumTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         values);
         }
@@ -313,12 +315,12 @@ public static class SchemaFormatter
             VisitDirectives(value.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
 
+            directives = ApplyDeprecatedDirective(value, directives);
+
             context.Result = new EnumValueDefinitionNode(
                 null,
                 new NameNode(value.Name),
-                value.Description is not null
-                    ? new StringValueNode(value.Description)
-                    : null,
+                CreateDescription(value.Description),
                 directives);
         }
 
@@ -337,9 +339,7 @@ public static class SchemaFormatter
                     : new UnionTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         type.Types.Select(t => new NamedTypeNode(t.Name)).ToList());
         }
@@ -355,9 +355,7 @@ public static class SchemaFormatter
                 new DirectiveDefinitionNode(
                     null,
                     new NameNode(directive.Name),
-                    directive.Description is not null
-                        ? new StringValueNode(directive.Description)
-                        : null,
+                    CreateDescription(directive.Description),
                     directive.IsRepeatable,
                     arguments,
                     directive.Locations.ToNameNodes());
@@ -386,12 +384,12 @@ public static class SchemaFormatter
             VisitDirectives(field.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
 
+            directives = ApplyDeprecatedDirective(field, directives);
+
             context.Result = new FieldDefinitionNode(
                 null,
                 new NameNode(field.Name),
-                field.Description is not null
-                    ? new StringValueNode(field.Description)
-                    : null,
+                CreateDescription(field.Description),
                 arguments,
                 field.Type.ToTypeNode(),
                 directives);
@@ -415,16 +413,17 @@ public static class SchemaFormatter
         public override void VisitInputField(InputField field, VisitorContext context)
         {
             VisitDirectives(field.Directives, context);
+            var directives = (List<DirectiveNode>)context.Result!;
+
+            directives = ApplyDeprecatedDirective(field, directives);
 
             context.Result = new InputValueDefinitionNode(
                 null,
                 new NameNode(field.Name),
-                field.Description is not null
-                    ? new StringValueNode(field.Description)
-                    : null,
+                CreateDescription(field.Description),
                 field.Type.ToTypeNode(),
                 field.DefaultValue,
-                (List<DirectiveNode>)context.Result!);
+                directives);
         }
 
         public override void VisitDirectives(DirectiveCollection directives, VisitorContext context)
@@ -467,6 +466,61 @@ public static class SchemaFormatter
         public override void VisitArgument(Argument argument, VisitorContext context)
         {
             context.Result = new ArgumentNode(argument.Name, argument.Value);
+        }
+
+        private static List<DirectiveNode> ApplyDeprecatedDirective(
+            ICanBeDeprecated canBeDeprecated,
+            List<DirectiveNode> directives)
+        {
+            if (canBeDeprecated.IsDeprecated)
+            {
+                var deprecateDirective = CreateDeprecatedDirective(canBeDeprecated.DeprecationReason);
+
+                if (directives.Count == 0)
+                {
+                    directives = new List<DirectiveNode> { deprecateDirective };
+                }
+                else
+                {
+                    var temp = directives.ToList();
+                    temp.Add(deprecateDirective);
+                    directives = temp;
+                }
+            }
+
+            return directives;
+        }
+
+        private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
+        {
+            if (WellKnownDirectives.DeprecationDefaultReason.EqualsOrdinal(reason))
+            {
+                reason = null;
+            }
+
+            var arguments = reason is null
+                ? Array.Empty<ArgumentNode>()
+                : new[] { new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason) };
+
+            return new DirectiveNode(
+                null,
+                new NameNode(WellKnownDirectives.Deprecated),
+                arguments);
+        }
+
+        private StringValueNode? CreateDescription(string? description)
+        {
+            if (string.IsNullOrEmpty(description))
+            {
+                return null;
+            }
+
+            // Get rid of any unnecessary whitespace.
+            description = description.Trim();
+
+            var isBlock = description.Contains("\n");
+
+            return new StringValueNode(null, description, isBlock);
         }
     }
 

@@ -86,7 +86,7 @@ public class GraphQlWsProtocolTests
         var socketClient = new SocketClientStub
         {
             IsClosed = false,
-            ConnectionInterceptor = connectionInterceptorMock.Object
+            ConnectionInterceptor = connectionInterceptorMock.Object,
         };
 
         var protocol = new GraphQLWebSocketProtocol(socketClient);

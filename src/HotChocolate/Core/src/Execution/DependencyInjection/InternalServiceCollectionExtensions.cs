@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using GreenDonut;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
@@ -64,17 +63,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddSingleton<IFactory<ResolverTask>>(
             sp => new PooledServiceFactory<ResolverTask>(
                 sp.GetRequiredService<ObjectPool<ResolverTask>>()));
-        return services;
-    }
-
-    internal static IServiceCollection TryAddPathSegmentPool(
-        this IServiceCollection services,
-        int maximumRetained = 256)
-    {
-        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<IndexerPathSegment>>>(
-            _ => new IndexerPathSegmentPool(maximumRetained));
-        services.TryAddSingleton<ObjectPool<PathSegmentBuffer<NamePathSegment>>>(
-            _ => new NamePathSegmentPool(maximumRetained));
         return services;
     }
 
@@ -142,7 +130,7 @@ internal static class InternalServiceCollectionExtensions
                 {
                     0 => new DataLoaderDiagnosticEventListener(),
                     1 => listeners[0],
-                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners)
+                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners),
                 };
             });
 
@@ -152,7 +140,7 @@ internal static class InternalServiceCollectionExtensions
                 Caching = true,
                 Cache = sp.GetRequiredService<TaskCacheOwner>().Cache,
                 DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                MaxBatchSize = 1024
+                MaxBatchSize = 1024,
             });
         return services;
     }
@@ -241,7 +229,7 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
         where T : class, IParameterExpressionBuilder
     {
-        if (services.All(t => t.ImplementationType != typeof(T)))
+        if (!services.IsImplementationTypeRegistered<T>())
         {
             services.AddSingleton<IParameterExpressionBuilder, T>();
         }

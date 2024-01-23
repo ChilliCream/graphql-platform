@@ -166,7 +166,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
 
             // If a policy name was supplied we will try to resolve the policy
             // and authorize with it.
-            var policy = await _policyProvider.GetPolicyAsync(policyName).ConfigureAwait(false);
+            var policy = await _policyProvider.GetPolicyAsync(policyName!).ConfigureAwait(false);
 
             if (policy is null)
             {

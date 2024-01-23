@@ -1,12 +1,8 @@
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Xunit;
 using Path = HotChocolate.Path;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -92,7 +88,7 @@ public class FieldCollectorTests
                 .CollectFields(
                     secondLevel.SelectionSet!,
                     character,
-                    PathFactory.Instance.New("hero"));
+                    Path.Root.Append("hero"));
 
         // assert
         Assert.Collection(

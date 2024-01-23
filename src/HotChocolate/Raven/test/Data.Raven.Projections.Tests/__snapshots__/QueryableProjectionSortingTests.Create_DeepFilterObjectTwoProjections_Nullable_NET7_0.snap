@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "The argument \u0060order\u0060 does not exist.",
+      "message": "The argument `order` does not exist.",
       "locations": [
         {
           "line": 6,
@@ -16,7 +16,7 @@
         "type": "FooNullable",
         "field": "objectArray",
         "argument": "order",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
       }
     }
   ]

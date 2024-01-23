@@ -192,6 +192,11 @@ public static class ErrorCodes
         /// The request did not specify any supported accept media type.
         /// </summary>
         public const string InvalidAcceptHeaderValue = "HC0064";
+
+        /// <summary>
+        /// Multi-part requests must include a GraphQL preflight header.
+        /// </summary>
+        public const string MultiPartPreflightRequired = "HC0077";
     }
 
     public static class Schema
@@ -206,6 +211,7 @@ public static class ErrorCodes
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
+        public const string DupplicateFieldNames = "HCXXXX";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.

@@ -16,12 +16,15 @@ The status bar is a visual component located at the bottom of the application in
 4. **Selected Workspace:** This section shows the currently selected workspace within the chosen organization. By clicking here, you can easily switch to a different workspace, providing seamless navigation between different project environments.
 ![Status Bar](./images/status-5.png)
 
-5. **Workspace Synchronization Indicator:** The indicator in this section informs you whether the workspace is currently synchronizing. If synchronization is required or you want to manually trigger the process, you can click here to initiate synchronization.
+5. **Environment:** This section displays the name of the currently selected environment. Clicking on this section allows you to switch to a different environment or create a new one.
+![Status Bar](./images/status-6.png)
 
-6. **Schema Up-to-Date:** This section provides an indicator to show whether the schema, which defines the structure and organization of data within the application, is up to date.
+6. **Workspace Synchronization Indicator:** The indicator in this section informs you whether the workspace is currently synchronizing. If synchronization is required or you want to manually trigger the process, you can click here to initiate synchronization.
 
-7. **Keyboard Shortcuts Overlay:** By clicking on this section, you can display an overlay that shows a list of available keyboard shortcuts for efficient navigation and interaction with the application.
+7. **Schema Up-to-Date:** This section provides an indicator to show whether the schema, which defines the structure and organization of data within the application, is up to date.
+
+8. **Keyboard Shortcuts Overlay:** By clicking on this section, you can display an overlay that shows a list of available keyboard shortcuts for efficient navigation and interaction with the application.
 ![Status Bar](./images/status-3.png)
 
-8. **Version Information:** This section displays relevant information about the version of the application you are currently using. It helps you identify the installed version and keep track of updates or changes that may be available.
+9. **Version Information:** This section displays relevant information about the version of the application you are currently using. It helps you identify the installed version and keep track of updates or changes that may be available.
 ![Status Bar](./images/status-2.png)

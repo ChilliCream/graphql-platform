@@ -99,7 +99,8 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions
                             {
-                                EnableBatching = true
+                                EnableBatching = true,
+                                AllowedGetOperations = AllowedGetOperations.Query | AllowedGetOperations.Subscription,
                             });
 
                         configureConventions?.Invoke(builder);

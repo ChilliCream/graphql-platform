@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
 
             // assert
             Assert.Empty(result.Errors);
-            result.Data?.Json.RootElement.ToString().MatchSnapshot();
+            result.Data?.Json.ToString().MatchSnapshot();
         }
 
         [ExtendObjectType(OperationTypeNames.Query)]

@@ -9,52 +9,47 @@ using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
+internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector) : ITypeRegistrarHandler
 {
-    private readonly ITypeInspector _typeInspector;
-
-    public ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
-    {
-        _typeInspector = typeInspector;
-    }
-
     public TypeReferenceKind Kind => TypeReferenceKind.ExtendedType;
 
     public void Handle(ITypeRegistrar typeRegistrar, TypeReference typeReference)
     {
         var typeRef = (ExtendedTypeReference)typeReference;
 
-        if (_typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) &&
-            !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
+        if (!typeInspector.TryCreateTypeInfo(typeRef.Type, out var typeInfo) ||
+            ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
         {
-            if (typeInfo.NamedType == typeof(IExecutable))
-            {
-                throw ThrowHelper.NonGenericExecutableNotAllowed();
-            }
+            return;
+        }
 
-            var namedType = typeInfo.NamedType;
+        if (typeInfo.NamedType == typeof(IExecutable))
+        {
+            throw ThrowHelper.NonGenericExecutableNotAllowed();
+        }
 
-            if (IsTypeSystemObject(namedType))
-            {
-                var extendedType = _typeInspector.GetType(namedType);
-                var namedTypeReference = typeRef.With(extendedType);
+        var namedType = typeInfo.NamedType;
 
-                if (!typeRegistrar.IsResolved(namedTypeReference))
-                {
-                    typeRegistrar.Register(
-                        typeRegistrar.CreateInstance(namedType),
-                        typeReference.Scope,
-                        ExtendedType.Tools.IsGenericBaseType(namedType));
-                }
-            }
-            else
+        if (IsTypeSystemObject(namedType))
+        {
+            var extendedType = typeInspector.GetType(namedType);
+            var namedTypeReference = typeRef.With(extendedType);
+
+            if (!typeRegistrar.IsResolved(namedTypeReference))
             {
-                TryMapToExistingRegistration(
-                    typeRegistrar,
-                    typeInfo,
-                    typeReference.Context,
-                    typeReference.Scope);
+                typeRegistrar.Register(
+                    typeRegistrar.CreateInstance(namedType),
+                    typeReference.Scope,
+                    ExtendedType.Tools.IsGenericBaseType(namedType));
             }
+        }
+        else
+        {
+            TryMapToExistingRegistration(
+                typeRegistrar,
+                typeInfo,
+                typeReference.Context,
+                typeReference.Scope);
         }
     }
 

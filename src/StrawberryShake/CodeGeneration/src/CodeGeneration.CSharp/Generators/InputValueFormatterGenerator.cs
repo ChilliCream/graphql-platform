@@ -41,6 +41,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
 
         var classBuilder = ClassBuilder
             .New()
+            .SetAccessModifier(settings.AccessModifier)
             .SetName(fileName)
             .AddImplements(TypeNames.IInputObjectFormatter);
 
@@ -246,7 +247,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                                 assignment == @return
                                     ? $"return {variable}_list;"
                                     : $"{assignment}.Add({variable}_list);")),
-                _ => throw new InvalidOperationException()
+                _ => throw new InvalidOperationException(),
             };
 
             if (isNullable && currentType is not NonNullTypeDescriptor)

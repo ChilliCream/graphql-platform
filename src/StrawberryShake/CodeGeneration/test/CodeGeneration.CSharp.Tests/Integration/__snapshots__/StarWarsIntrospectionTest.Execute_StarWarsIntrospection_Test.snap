@@ -984,6 +984,33 @@
               "DeprecationReason": null
             },
             {
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Scalar",
+                      "Name": "JSON",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "Interface",
+                "Name": "Character",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -1183,6 +1210,37 @@
                 "OfType": {
                   "Kind": "Object",
                   "Name": "Review",
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "Kind": "NonNull",
+                    "Name": null,
+                    "OfType": {
+                      "Kind": "Enum",
+                      "Name": "Episode",
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "Kind": "NonNull",
+                "Name": null,
+                "OfType": {
+                  "Kind": "Scalar",
+                  "Name": "Boolean",
                   "OfType": null
                 }
               },
@@ -1389,6 +1447,18 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -1538,6 +1608,18 @@
               "Type": {
                 "Kind": "Scalar",
                 "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1716,6 +1798,18 @@
                   "Name": "Episode",
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "JSON",
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -1964,6 +2058,16 @@
               "DeprecationReason": null
             }
           ],
+          "PossibleTypes": null
+        },
+        {
+          "Kind": "Scalar",
+          "Name": "JSON",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
           "PossibleTypes": null
         },
         {
@@ -2261,25 +2365,6 @@
           "OnOperation": false,
           "OnFragment": true,
           "OnField": true
-        },
-        {
-          "Name": "deprecated",
-          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "Args": [
-            {
-              "Name": "reason",
-              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
-              },
-              "DefaultValue": "\"No longer supported.\""
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
         },
         {
           "Name": "export",
@@ -4029,6 +4114,56 @@
             },
             {
               "__typename": "__Field",
+              "Name": "heroByTraits",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "traits",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "JSON",
+                      "Kind": "Scalar",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "Character",
+                "Kind": "Interface",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "heroes",
               "Description": null,
               "Args": [
@@ -4423,6 +4558,67 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "complete",
+              "Description": null,
+              "Args": [
+                {
+                  "__typename": "__InputValue",
+                  "Name": "episode",
+                  "Description": null,
+                  "Type": {
+                    "__typename": "__Type",
+                    "Name": null,
+                    "Kind": "NonNull",
+                    "Description": null,
+                    "Fields": null,
+                    "InputFields": null,
+                    "Interfaces": null,
+                    "EnumValues": null,
+                    "PossibleTypes": null,
+                    "OfType": {
+                      "__typename": "__Type",
+                      "Name": "Episode",
+                      "Kind": "Enum",
+                      "Description": null,
+                      "Fields": null,
+                      "InputFields": null,
+                      "Interfaces": null,
+                      "EnumValues": null,
+                      "PossibleTypes": null,
+                      "OfType": null
+                    }
+                  },
+                  "DefaultValue": null
+                }
+              ],
+              "Type": {
+                "__typename": "__Type",
+                "Name": null,
+                "Kind": "NonNull",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": {
+                  "__typename": "__Type",
+                  "Name": "Boolean",
+                  "Kind": "Scalar",
+                  "Description": null,
+                  "Fields": null,
+                  "InputFields": null,
+                  "Interfaces": null,
+                  "EnumValues": null,
+                  "PossibleTypes": null,
+                  "OfType": null
+                }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -4775,6 +4971,26 @@
               },
               "IsDeprecated": false,
               "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
             }
           ],
           "InputFields": null,
@@ -5035,6 +5251,26 @@
               "Type": {
                 "__typename": "__Type",
                 "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
                 "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
@@ -5325,6 +5561,26 @@
                   "PossibleTypes": null,
                   "OfType": null
                 }
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
+              "Name": "traits",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "JSON",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -5738,6 +5994,18 @@
               "DeprecationReason": null
             }
           ],
+          "PossibleTypes": null,
+          "OfType": null
+        },
+        {
+          "__typename": "__Type",
+          "Name": "JSON",
+          "Kind": "Scalar",
+          "Description": null,
+          "Fields": null,
+          "InputFields": null,
+          "Interfaces": null,
+          "EnumValues": null,
           "PossibleTypes": null,
           "OfType": null
         },
@@ -6245,34 +6513,6 @@
           "OnOperation": false,
           "OnFragment": true,
           "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "deprecated",
-          "Description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "reason",
-              "Description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "Type": {
-                "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "DefaultValue": "\"No longer supported.\""
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": false
         },
         {
           "__typename": "__Directive",

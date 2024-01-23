@@ -77,7 +77,7 @@ public partial class TypeMapperGenerator
             {
                 ImplementedBy.Count: > 1,
                 Kind: TypeKind.Entity,
-                ParentRuntimeType: { } parentRuntimeType
+                ParentRuntimeType: { } parentRuntimeType,
             } => parentRuntimeType.Name,
 
             INamedTypeDescriptor namedTypeDescriptor =>
@@ -87,7 +87,7 @@ public partial class TypeMapperGenerator
                 ? BuildMapMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"
                 : "NonNullable" + BuildMapMethodName(nonNullTypeDescriptor.InnerType),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
         };
     }
 

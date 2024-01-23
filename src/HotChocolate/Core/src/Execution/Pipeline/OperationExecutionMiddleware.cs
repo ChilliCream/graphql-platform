@@ -203,7 +203,7 @@ internal sealed class OperationExecutionMiddleware
             OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
             OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
             OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
-            _ => true
+            _ => true,
         };
 
         if (allowed && operation.HasIncrementalParts)

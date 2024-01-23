@@ -42,7 +42,29 @@
           },
           {
             "path": "apis",
-            "title": "Apis"
+            "title": "Apis",
+            "items": [
+              { "path": "overview", "title": "Overview" },
+              { "path": "stages", "title": "Stages" },
+              { "path": "fusion", "title": "Fusion" },
+              {
+                "path": "schema-registry",
+                "title": "Schema Registry"
+              },
+              {
+                "path": "client-registry",
+                "title": "Client Registry"
+              },
+              {
+                "path": "operation-reporting",
+                "title": "Operation Reporting"
+              },
+              { "path": "open-telemetry", "title": "Open Telemetry" }
+            ]
+          },
+          {
+            "path": "environments",
+            "title": "Environments"
           },
           {
             "path": "workspaces",
@@ -53,16 +75,20 @@
             "title": "Organizations"
           },
           {
-            "path": "schema-client-registry",
-            "title": "Schema & Client Registry"
-          },
-          {
             "path": "bcp-services",
             "title": "Connect you API"
           },
           {
             "path": "subscriptions",
             "title": "Subscriptions & Billing"
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              { "path": "express", "title": "Express Server" },
+              { "path": "hot-chocolate", "title": "Hot Chocolate" }
+            ]
           },
           {
             "path": "settings",
@@ -1456,46 +1482,16 @@
             "path": "commands",
             "title": "Commands",
             "items": [
-              {
-                "path": "api-key",
-                "title": "api-key"
-              },
-              {
-                "path": "schema",
-                "title": "schema"
-              },
-              {
-                "path": "client",
-                "title": "client"
-              },
-              {
-                "path": "environment",
-                "title": "environment"
-              },
-              {
-                "path": "launch",
-                "title": "launch"
-              },
-              {
-                "path": "login",
-                "title": "login"
-              },
-              {
-                "path": "logout",
-                "title": "logout"
-              },
-              {
-                "path": "schema",
-                "title": "schema"
-              },
-              {
-                "path": "stage",
-                "title": "stage"
-              },
-              {
-                "path": "workspace",
-                "title": "workspace"
-              }
+              { "path": "api-key", "title": "api-key" },
+              { "path": "api", "title": "api" },
+              { "path": "client", "title": "client" },
+              { "path": "environment", "title": "environment" },
+              { "path": "launch", "title": "launch" },
+              { "path": "login", "title": "login" },
+              { "path": "logout", "title": "logout" },
+              { "path": "schema", "title": "schema" },
+              { "path": "stage", "title": "stage" },
+              { "path": "workspace", "title": "workspace" }
             ]
           }
         ]

@@ -1,1 +1,0 @@
-MATCH (m:Movie) RETURN m ORDER BY m ASC SKIP 1

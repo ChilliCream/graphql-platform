@@ -35,7 +35,8 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(CostTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor)
+        typeof(MiddlewareValidationTypeInterceptor),
+        typeof(EnableTrueNullabilityTypeInterceptor),
     };
 
     private SchemaOptions _options = new();
@@ -210,11 +211,6 @@ public partial class SchemaBuilder : ISchemaBuilder
     }
 
     /// <inheritdoc />
-    [Obsolete]
-    public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
-        => BindRuntimeType(clrType, schemaType);
-
-    /// <inheritdoc />
     public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
     {
         if (runtimeType is null)
@@ -264,6 +260,16 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
+    }
+    
+    internal void AddTypeReference(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _types.Add(_ => typeReference);
     }
 
     /// <inheritdoc />

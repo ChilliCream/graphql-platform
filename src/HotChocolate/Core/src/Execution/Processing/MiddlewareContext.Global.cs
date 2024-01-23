@@ -198,7 +198,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public T Resolver<T>() =>
         _operationContext.Activator.GetOrCreate<T>(_operationContext.Services);
 
-    public T Service<T>() => Services.GetRequiredService<T>();
+    public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
+
+#if NET8_0_OR_GREATER
+    public T? Service<T>(object key) where T : notnull => Services.GetKeyedService<T>(key);
+#endif
 
     public object Service(Type service)
     {
@@ -251,7 +255,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
                 _parent,
                 ParentResult,
                 ResponseIndex,
-                Path,
                 ScopedContextData);
 
         // We need to manually copy the local state.

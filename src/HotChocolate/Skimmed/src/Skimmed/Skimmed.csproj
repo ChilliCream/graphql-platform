@@ -3,8 +3,12 @@
   <PropertyGroup>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <RootNamespace>HotChocolate.Skimmed</RootNamespace>
+    <AssemblyName>HotChocolate.Skimmed</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnableTrimAnalyzer Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</EnableTrimAnalyzer>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +19,21 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Skimmed.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\SkimmedResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SkimmedResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\SkimmedResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SkimmedResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

@@ -24,7 +24,8 @@ public static class GeneratorTestHelper
             new CSharpGeneratorSettings
             {
                 Namespace = "Foo.Bar",
-                ClientName = "FooClient"
+                ClientName = "FooClient",
+                AccessModifier = AccessModifier.Public,
             })
             .Result;
 
@@ -86,13 +87,14 @@ public static class GeneratorTestHelper
             {
                 Namespace = settings.Namespace ?? "Foo.Bar",
                 ClientName = settings.ClientName ?? "FooClient",
+                AccessModifier = settings.AccessModifier,
                 StrictSchemaValidation = settings.StrictValidation,
                 RequestStrategy = settings.RequestStrategy,
                 TransportProfiles = settings.Profiles,
                 NoStore = settings.NoStore,
                 InputRecords = settings.InputRecords,
                 EntityRecords = settings.EntityRecords,
-                RazorComponents = settings.RazorComponents
+                RazorComponents = settings.RazorComponents,
             });
 
         Assert.False(
@@ -197,6 +199,7 @@ public static class GeneratorTestHelper
     public static AssertSettings CreateIntegrationTest(
         RequestStrategyGen requestStrategy = RequestStrategyGen.Default,
         TransportProfile[]? profiles = null,
+        AccessModifier accessModifier = AccessModifier.Public,
         bool noStore = false,
         [CallerMemberName] string? testName = null)
     {
@@ -219,6 +222,7 @@ public static class GeneratorTestHelper
         {
             ClientName = testName! + "Client",
             Namespace = ns,
+            AccessModifier = accessModifier,
             StrictValidation = true,
             SnapshotFile = System.IO.Path.Combine(
                 snapshotFullName.FolderPath,
@@ -227,8 +231,8 @@ public static class GeneratorTestHelper
             NoStore = noStore,
             Profiles = (profiles ?? new[]
             {
-                TransportProfile.Default
-            }).ToList()
+                TransportProfile.Default,
+            }).ToList(),
         };
     }
 
@@ -261,6 +265,9 @@ public static class GeneratorTestHelper
         public string? ClientName { get; set; }
 
         public string? Namespace { get; set; }
+
+        public AccessModifier AccessModifier { get; set; }
+            = AccessModifier.Public;
 
         public bool StrictValidation { get; set; }
 

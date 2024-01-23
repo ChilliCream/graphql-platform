@@ -256,8 +256,8 @@ internal sealed partial class SubscriptionExecutor
                     resultMap,
                     1,
                     rootValue,
-                    operationContext.PathFactory.New(rootSelection.ResponseName),
-                    _scopedContextData);
+                    _scopedContextData,
+                    null);
 
                 // it is important that we correctly coerce the arguments before
                 // invoking subscribe.
@@ -362,7 +362,7 @@ internal sealed partial class SubscriptionExecutor
 
     private sealed class SubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
     {
-        private readonly IAsyncEnumerator<object> _eventEnumerator;
+        private readonly IAsyncEnumerator<object?> _eventEnumerator;
         private readonly Func<object, Task<IQueryResult>> _onEvent;
         private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
@@ -370,7 +370,7 @@ internal sealed partial class SubscriptionExecutor
         private bool _disposed;
 
         public SubscriptionEnumerator(
-            IAsyncEnumerator<object> eventEnumerator,
+            IAsyncEnumerator<object?> eventEnumerator,
             Func<object, Task<IQueryResult>> onEvent,
             Subscription subscription,
             IExecutionDiagnosticEvents diagnosticEvents,
@@ -396,7 +396,7 @@ internal sealed partial class SubscriptionExecutor
             {
                 if (await _eventEnumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    Current = await _onEvent(_eventEnumerator.Current).ConfigureAwait(false);
+                    Current = await _onEvent(_eventEnumerator.Current!).ConfigureAwait(false);
                     return true;
                 }
             }

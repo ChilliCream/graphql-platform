@@ -30,7 +30,7 @@ public class DependencyInjectionTests
                 .ToJsonAsync(),
             result2 = await executor
                 .ExecuteAsync("{ hello }")
-                .ToJsonAsync()
+                .ToJsonAsync(),
         }.MatchSnapshot();
     }
 
@@ -97,7 +97,7 @@ public class DependencyInjectionTests
                 .ToJsonAsync(),
             result2 = await executor
                 .ExecuteAsync("{ hello }")
-                .ToJsonAsync()
+                .ToJsonAsync(),
         }.MatchSnapshot();
     }
 
@@ -143,6 +143,36 @@ public class DependencyInjectionTests
 
         result.MatchSnapshot();
     }
+
+#if NET8_0_OR_GREATER
+    [Fact]
+    public async Task Keyed_Services_Do_Not_Throw()
+    {
+        var services =
+            new ServiceCollection()
+                .AddKeyedScoped<Query1>("abc")
+                .AddScoped<SomeService>()
+                .AddScoped<Query2>()
+                .AddGraphQL()
+                .AddQueryType<Query2>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        using var scope = services.CreateScope();
+
+        await executor
+            .ExecuteAsync(
+                QueryRequestBuilder
+                    .New()
+                    .SetQuery("{ hello }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create())
+            .ToJsonAsync()
+            .MatchSnapshotAsync();
+    }
+#endif
 
     public class SomeService
     {

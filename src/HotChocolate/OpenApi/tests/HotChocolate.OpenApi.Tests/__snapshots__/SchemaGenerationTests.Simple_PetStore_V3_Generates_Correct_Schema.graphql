@@ -1,0 +1,42 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type AddPetPayload {
+  id: Long
+  name: String
+  tag: String
+}
+
+type DeletePetPayload {
+  success: Boolean
+}
+
+type Mutation {
+  addPet(input: AddPetInput): AddPetPayload
+  deletePet(input: DeletePetInput): DeletePetPayload
+}
+
+type Pet {
+  id: Long
+  name: String
+  tag: String
+}
+
+type Query {
+  findPetById(id: Long): Pet
+  findPets(limit: Int tags: String): [Pet]
+}
+
+input AddPetInput {
+  name: String!
+  tag: String
+}
+
+input DeletePetInput {
+  id: Long!
+}
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long

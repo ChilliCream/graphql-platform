@@ -42,9 +42,9 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
         {
             null => NullValueNode.Default,
             string s => new StringValueNode(s),
-            DateTimeOffset d => ParseValue(d),
+            DateTimeOffset o => ParseValue(o.DateTime),
             DateTime dt => ParseValue(dt),
-            _ => throw ThrowHelper.LocalDateType_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.LocalDateType_ParseValue_IsInvalid(this),
         };
     }
 

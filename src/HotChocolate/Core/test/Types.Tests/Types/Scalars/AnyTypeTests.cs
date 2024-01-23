@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Dynamic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types;
@@ -418,8 +419,8 @@ public class AnyTypeTests
                 {
                     new Dictionary<string, object>
                     {
-                        { "abc", "def" }
-                    }
+                        { "abc", "def" },
+                    },
                 })
                 .Create());
 
@@ -1035,7 +1036,7 @@ public class AnyTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo", new StringValueNode("Bar")}
+            {"Foo", new StringValueNode("Bar")},
         };
 
         // act
@@ -1062,7 +1063,7 @@ public class AnyTypeTests
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}}}
+            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}}},
         };
 
         // act
@@ -1096,8 +1097,8 @@ public class AnyTypeTests
         // assert
         Assert.Collection(
             Assert.IsType<object[]>(value)!,
-            x => Assert.Equal("Foo",x),
-            x => Assert.Equal("Bar",x));
+            x => Assert.Equal("Foo", x),
+            x => Assert.Equal("Bar", x));
     }
 
     [Fact]
@@ -1108,6 +1109,43 @@ public class AnyTypeTests
                 "{ someObject }",
                 configure: c => c.AddQueryType<QueryWithDictionary>())
             .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UseExpandoObjectWithAny()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+                "{ something }",
+                configure: c => c.AddQueryType<SomeQuery>())
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task UseImmutableDictWithAny()
+    {
+        Snapshot.FullName();
+        await ExpectValid(
+                "{ somethingImmutable }",
+                configure: c => c.AddQueryType<SomeQuery>())
+            .MatchSnapshotAsync();
+    }
+
+    public class SomeQuery
+    {
+        [GraphQLType<AnyType>]
+        public object GetSomething()
+        {
+            dynamic obj = new ExpandoObject();
+            obj.a = "Foo";
+            return obj;
+        }
+
+        [GraphQLType<AnyType>]
+        public ImmutableDictionary<string, object> GetSomethingImmutable()
+        {
+            return ImmutableDictionary<string, object>.Empty.Add("a", "Foo");
+        }
     }
 
     public class Foo

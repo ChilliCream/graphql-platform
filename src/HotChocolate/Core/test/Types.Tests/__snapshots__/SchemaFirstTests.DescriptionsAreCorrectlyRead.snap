@@ -10,7 +10,7 @@
         {
           "kind": "OBJECT",
           "name": "__Directive",
-          "description": "A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL\u0027s execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.",
+          "description": "A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.\n\nIn some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.",
           "fields": [
             {
               "name": "args",
@@ -129,7 +129,7 @@
                 }
               },
               "isDeprecated": true,
-              "deprecationReason": "Use \u0060locations\u0060."
+              "deprecationReason": "Use `locations`."
             },
             {
               "name": "onFragment",
@@ -145,7 +145,7 @@
                 }
               },
               "isDeprecated": true,
-              "deprecationReason": "Use \u0060locations\u0060."
+              "deprecationReason": "Use `locations`."
             },
             {
               "name": "onOperation",
@@ -161,7 +161,7 @@
                 }
               },
               "isDeprecated": true,
-              "deprecationReason": "Use \u0060locations\u0060."
+              "deprecationReason": "Use `locations`."
             }
           ],
           "inputFields": null,
@@ -687,7 +687,7 @@
         {
           "kind": "OBJECT",
           "name": "__Type",
-          "description": "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the \u0060__TypeKind\u0060 enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.",
+          "description": "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.",
           "fields": [
             {
               "name": "description",
@@ -882,7 +882,7 @@
             },
             {
               "name": "specifiedByURL",
-              "description": "\u0060specifiedByURL\u0060 may return a String (in the form of a URL) for custom scalars, otherwise it will return \u0060null\u0060.",
+              "description": "`specifiedByURL` may return a String (in the form of a URL) for custom scalars, otherwise it will return `null`.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -901,7 +901,7 @@
         {
           "kind": "ENUM",
           "name": "__TypeKind",
-          "description": "An enum describing what kind of type a given \u0060__Type\u0060 is.",
+          "description": "An enum describing what kind of type a given `__Type` is.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -914,43 +914,43 @@
             },
             {
               "name": "OBJECT",
-              "description": "Indicates this type is an object. \u0060fields\u0060 and \u0060interfaces\u0060 are valid fields.",
+              "description": "Indicates this type is an object. `fields` and `interfaces` are valid fields.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INTERFACE",
-              "description": "Indicates this type is an interface. \u0060fields\u0060 and \u0060possibleTypes\u0060 are valid fields.",
+              "description": "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "UNION",
-              "description": "Indicates this type is a union. \u0060possibleTypes\u0060 is a valid field.",
+              "description": "Indicates this type is a union. `possibleTypes` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "ENUM",
-              "description": "Indicates this type is an enum. \u0060enumValues\u0060 is a valid field.",
+              "description": "Indicates this type is an enum. `enumValues` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "INPUT_OBJECT",
-              "description": "Indicates this type is an input object. \u0060inputFields\u0060 is a valid field.",
+              "description": "Indicates this type is an input object. `inputFields` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "LIST",
-              "description": "Indicates this type is a list. \u0060ofType\u0060 is a valid field.",
+              "description": "Indicates this type is a list. `ofType` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "NON_NULL",
-              "description": "Indicates this type is a non-null. \u0060ofType\u0060 is a valid field.",
+              "description": "Indicates this type is a non-null. `ofType` is a valid field.",
               "isDeprecated": false,
               "deprecationReason": null
             }
@@ -1199,7 +1199,7 @@
         {
           "kind": "SCALAR",
           "name": "String",
-          "description": "The \u0060String\u0060 scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1209,7 +1209,7 @@
         {
           "kind": "SCALAR",
           "name": "Boolean",
-          "description": "The \u0060Boolean\u0060 scalar type represents \u0060true\u0060 or \u0060false\u0060.",
+          "description": "The `Boolean` scalar type represents `true` or `false`.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1220,7 +1220,7 @@
       "directives": [
         {
           "name": "skip",
-          "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
+          "description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
           "args": [
             {
               "name": "if",
@@ -1245,7 +1245,7 @@
         },
         {
           "name": "include",
-          "description": "Directs the executor to include this field or fragment only when the \u0060if\u0060 argument is true.",
+          "description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
           "args": [
             {
               "name": "if",
@@ -1267,27 +1267,6 @@
           "onOperation": false,
           "onFragment": true,
           "onField": true
-        },
-        {
-          "name": "deprecated",
-          "description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service\u2019s schema,such as deprecated fields on a type or deprecated enum values.",
-          "args": [
-            {
-              "name": "reason",
-              "description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "defaultValue": "\u0022No longer supported.\u0022",
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "onOperation": false,
-          "onFragment": false,
-          "onField": false
         }
       ]
     }

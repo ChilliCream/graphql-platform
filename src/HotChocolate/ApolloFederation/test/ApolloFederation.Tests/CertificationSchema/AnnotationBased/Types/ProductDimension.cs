@@ -1,14 +1,8 @@
 namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;
 
-public class ProductDimension
+public class ProductDimension(string size, double weight)
 {
-    public ProductDimension(string size, double weight)
-    {
-        Size = size;
-        Weight = weight;
-    }
+    public string? Size { get; } = size;
 
-    public string? Size { get; }
-
-    public double? Weight { get; }
+    public double? Weight { get; } = weight;
 }

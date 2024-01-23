@@ -13,7 +13,7 @@ internal static class SchemaValidator
         new InterfaceTypeValidationRule(),
         new InputObjectTypeValidationRule(),
         new DirectiveValidationRule(),
-        new InterfaceHasAtLeastOneImplementationRule()
+        new InterfaceHasAtLeastOneImplementationRule(),
     };
 
     public static IReadOnlyCollection<ISchemaError> Validate(

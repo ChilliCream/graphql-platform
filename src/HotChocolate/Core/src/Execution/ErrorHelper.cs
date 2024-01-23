@@ -130,7 +130,7 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest }
+                { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
             });
 
     public static IQueryResult StateInvalidForOperationResolver() =>
@@ -178,7 +178,7 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                    { WellKnownContextData.OperationNotAllowed, null }
+                    { WellKnownContextData.OperationNotAllowed, null },
             });
 
     public static IQueryResult RequestTimeout(TimeSpan timeout) =>
@@ -203,12 +203,17 @@ internal static class ErrorHelper
                 extensions: new Dictionary<string, object?>
                 {
                     { nameof(complexity), complexity },
-                    { nameof(allowedComplexity), allowedComplexity }
+                    { nameof(allowedComplexity), allowedComplexity },
                 }),
             contextData: new Dictionary<string, object?>
             {
-                { WellKnownContextData.ValidationErrors, true }
+                { WellKnownContextData.ValidationErrors, true },
             });
+
+    public static IError MaxComplexityReached() =>
+        new Error(
+            ErrorHelper_MaxComplexityReached,
+            ErrorCodes.Execution.ComplexityExceeded);
 
     public static IQueryResult StateInvalidForComplexityAnalyzer() =>
         QueryResultBuilder.CreateError(
@@ -244,4 +249,22 @@ internal static class ErrorHelper
             .SetMessage("PersistedQueryNotFound")
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
             .Build();
+
+    public static IError NoNullBubbling_ArgumentValue_NotAllowed(
+        ArgumentNode argument)
+    {
+        var errorBuilder = ErrorBuilder.New();
+
+        if (argument.Value.Location is not null)
+        {
+            errorBuilder.AddLocation(
+                argument.Value.Location.Line,
+                argument.Value.Location.Column);
+        }
+
+        errorBuilder.SetSyntaxNode(argument.Value);
+        errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
+
+        return errorBuilder.Build();
+    }
 }

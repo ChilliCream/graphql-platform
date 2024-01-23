@@ -19,5 +19,5 @@ public enum RequestStrategy
     /// The full GraphQL query is only send if the server has not yet stored the
     /// persisted query.
     /// </summary>
-    AutomaticPersistedQuery
+    AutomaticPersistedQuery,
 }
