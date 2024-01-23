@@ -9,10 +9,10 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionComplexTypeTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new() { Bar = new Bar { Baz = "testatest", } },
         new() { Bar = new Bar { Baz = "testbtest", } },
-    };
+    ];
 
     private readonly SchemaCache _cache = new SchemaCache();
 
