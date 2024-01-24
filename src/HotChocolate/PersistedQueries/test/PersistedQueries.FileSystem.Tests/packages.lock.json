@@ -1284,8 +1284,7 @@
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Execution": "[0.0.0, )",
-          "HotChocolate.Types": "[0.0.0, )"
+          "HotChocolate.Execution": "[0.0.0, )"
         }
       },
       "hotchocolate.types.offsetpagination": {
@@ -2577,8 +2576,7 @@
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Execution": "[0.0.0, )",
-          "HotChocolate.Types": "[0.0.0, )"
+          "HotChocolate.Execution": "[0.0.0, )"
         }
       },
       "hotchocolate.types.offsetpagination": {
@@ -3870,8 +3868,7 @@
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Execution": "[0.0.0, )",
-          "HotChocolate.Types": "[0.0.0, )"
+          "HotChocolate.Execution": "[0.0.0, )"
         }
       },
       "hotchocolate.types.offsetpagination": {
