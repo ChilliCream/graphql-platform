@@ -1983,12 +1983,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string MutationConvention_ShouldBeEnabled_WhenAddingErrorType {
-            get {
-                return ResourceManager.GetString("MutationConvention_ShouldBeEnabled_WhenAddingErrorType", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_DuplicateFieldName_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_DuplicateFieldName_Message", resourceCulture);

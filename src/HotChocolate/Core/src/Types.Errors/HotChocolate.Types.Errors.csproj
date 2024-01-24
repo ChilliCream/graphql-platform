@@ -26,6 +26,10 @@
     <Using Include="HotChocolate.Resolvers" />
     <Using Include="HotChocolate.Utilities" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
@@ -36,6 +40,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MutationResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Update="Properties\ErrorResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +51,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>MutationResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\ErrorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ErrorResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

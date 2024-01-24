@@ -1,5 +1,7 @@
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.ErrorContextData;
 using static HotChocolate.Types.ErrorContextDataKeys;
+using static HotChocolate.Types.Properties.ErrorResources;
 
 namespace HotChocolate.Types;
 
@@ -38,15 +40,10 @@ public static class ObjectFieldDefinitionExtensions
             throw new ArgumentNullException(nameof(errorType));
         }
 
-        if (!descriptorContext.ContextData.ContainsKey(MutationContextDataKeys.Options))
+        if (!descriptorContext.ContextData.ContainsKey(ErrorConventionEnabled))
         {
-            var richMessage = string.Format(
-                MutationConvention_ShouldBeEnabled_WhenAddingErrorType,
-                errorType.Name,
-                fieldDefinition.Name);
-
             var schemaError = SchemaErrorBuilder.New()
-                .SetMessage(richMessage)
+                .SetMessage(ErrorConventionDisabled_Message, errorType.Name, fieldDefinition.Name)
                 .Build();
 
             throw new SchemaException(schemaError);
