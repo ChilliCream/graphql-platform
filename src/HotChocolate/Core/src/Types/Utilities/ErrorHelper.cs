@@ -227,52 +227,52 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.InputObject, rfc: 805)
             .Build();
 
-    private static ISchemaErrorBuilder SetType(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetType(
+        this SchemaErrorBuilder errorBuilder,
         INamedType type)
         => errorBuilder
             .AddSyntaxNode(type.SyntaxNode)
             .SetTypeSystemObject((TypeSystemObjectBase)type);
 
-    private static ISchemaErrorBuilder SetDirective(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetDirective(
+        this SchemaErrorBuilder errorBuilder,
         DirectiveType type)
         => errorBuilder
             .AddSyntaxNode(type.SyntaxNode)
             .SetTypeSystemObject(type);
 
-    private static ISchemaErrorBuilder SetField(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetField(
+        this SchemaErrorBuilder errorBuilder,
         IField field,
         string name = "field")
         => errorBuilder
             .AddSyntaxNode(field.SyntaxNode)
             .SetExtension(name, field);
 
-    private static ISchemaErrorBuilder SetArgument(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetArgument(
+        this SchemaErrorBuilder errorBuilder,
         IInputField field)
         => errorBuilder.SetField(field, "argument");
 
-    private static ISchemaErrorBuilder SetImplementedType(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetImplementedType(
+        this SchemaErrorBuilder errorBuilder,
         IComplexOutputType type)
         => errorBuilder
             .AddSyntaxNode(type.SyntaxNode)
             .SetExtension("implementedType", type);
 
-    private static ISchemaErrorBuilder SetImplementedField(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetImplementedField(
+        this SchemaErrorBuilder errorBuilder,
         IOutputField field)
         => errorBuilder.SetField(field, "implementedField");
 
-    private static ISchemaErrorBuilder SetImplementedArgument(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetImplementedArgument(
+        this SchemaErrorBuilder errorBuilder,
         IInputField field)
         => errorBuilder.SetField(field, "implementedArgument");
 
-    private static ISchemaErrorBuilder SetSpecifiedBy(
-        this ISchemaErrorBuilder errorBuilder,
+    private static SchemaErrorBuilder SetSpecifiedBy(
+        this SchemaErrorBuilder errorBuilder,
         TypeKind kind,
         int? rfc = null)
     {

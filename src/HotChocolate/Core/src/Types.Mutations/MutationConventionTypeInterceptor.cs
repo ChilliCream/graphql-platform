@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -166,7 +165,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     else
                     {
                         context.SetScopedState(Errors, result.Value);
-                        context.Result = MarkerObjects.ErrorObject;
+                        context.Result = ErrorMarker.Instance;
                     }
                 }
 
@@ -182,7 +181,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private void TryApplyInputConvention(
         IResolverCompiler resolverCompiler,
-        ObjectFieldDefinition mutation, 
+        ObjectFieldDefinition mutation,
         Options options)
     {
         if (mutation.Arguments.Count is 0)
@@ -208,7 +207,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     mutation.SourceType,
                     mutation.ResolverType,
                     argumentNameMap);
-            
+
             TypeMemHelper.Return(argumentNameMap);
         }
 
@@ -250,7 +249,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                         argumentType,
                         Path.Root);
             }
-            
+
             resolverArguments.Add(
                 new ResolverArgument(
                     argument.Name,
@@ -499,7 +498,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(MarkerObjects.ErrorObject, parent) ||
+                if (ReferenceEquals(ErrorMarker.Instance, parent) ||
                     ReferenceEquals(MarkerObjects.Null, parent))
                 {
                     return null;

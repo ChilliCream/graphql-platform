@@ -272,6 +272,12 @@
           "System.Text.Json": "[6.0.7, )"
         }
       },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
@@ -504,6 +510,12 @@
           "System.Text.Json": "[6.0.7, )"
         }
       },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
@@ -706,6 +718,12 @@
           "System.Text.Json": "[7.0.0, )"
         }
       },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.shared": {
         "type": "Project",
         "dependencies": {
@@ -906,6 +924,12 @@
           "Microsoft.Extensions.ObjectPool": "[8.0.0, )",
           "System.ComponentModel.Annotations": "[5.0.0, )",
           "System.Text.Json": "[8.0.0, )"
+        }
+      },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
         }
       },
       "hotchocolate.types.shared": {

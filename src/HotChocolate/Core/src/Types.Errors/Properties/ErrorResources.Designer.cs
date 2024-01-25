@@ -50,5 +50,11 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("ErrorConventionDisabled_Message", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError", resourceCulture);
+            }
+        }
     }
 }

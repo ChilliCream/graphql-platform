@@ -3,7 +3,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Common extensions to configure the schema with a common error interface
 /// </summary>
-public static class ErrorSchemaBuilderExtensions
+internal static class ErrorSchemaBuilderExtensions
 {
     /// <summary>
     /// Defines the common interface that all errors implement.
@@ -11,7 +11,7 @@ public static class ErrorSchemaBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="schemaBuilder">
     /// The schema builder
@@ -31,7 +31,7 @@ public static class ErrorSchemaBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="schemaBuilder">
     /// The schema builder

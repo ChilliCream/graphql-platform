@@ -3,7 +3,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Provides extensions to the <see cref="IObjectFieldDescriptor"/> for the mutation convention.
 /// </summary>
-public static class MutationObjectFieldDescriptorExtensions
+public static class ErrorObjectFieldDescriptorExtensions
 {
     /// <summary>
     /// The <c>.Error&lt;TError>()</c> extension method registers a middleware that will catch

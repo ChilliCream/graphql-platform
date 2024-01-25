@@ -3,7 +3,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Defines a error factory that translates exceptions into GraphQL errors.
 /// This has to be used together with <see cref="ErrorAttribute"/>  or
-/// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
+/// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
 /// </summary>
 /// <typeparam name="TError">
 /// The type of the error that is exposed in the API

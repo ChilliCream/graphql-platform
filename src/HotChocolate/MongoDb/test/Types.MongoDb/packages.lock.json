@@ -1572,6 +1572,12 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.mongodb": {
         "type": "Project",
         "dependencies": {
@@ -1583,7 +1589,8 @@
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Execution": "[0.0.0, )"
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.Errors": "[0.0.0, )"
         }
       },
       "hotchocolate.types.offsetpagination": {
@@ -3247,6 +3254,12 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.mongodb": {
         "type": "Project",
         "dependencies": {
@@ -3258,7 +3271,8 @@
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Execution": "[0.0.0, )"
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.Errors": "[0.0.0, )"
         }
       },
       "hotchocolate.types.offsetpagination": {
@@ -4957,6 +4971,12 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.errors": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.mongodb": {
         "type": "Project",
         "dependencies": {
@@ -4968,7 +4988,8 @@
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
-          "HotChocolate.Execution": "[0.0.0, )"
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.Errors": "[0.0.0, )"
         }
       },
       "hotchocolate.types.offsetpagination": {

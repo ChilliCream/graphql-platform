@@ -21,4 +21,7 @@
     <data name="ErrorConventionDisabled_Message" xml:space="preserve">
         <value>Adding an error type `{0}` to field `{1}` failed as error conventions weren't enabled.</value>
     </data>
+    <data name="ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError" xml:space="preserve">
+        <value>Error while building type {0}. The runtime type {1} does not define a property named `Message`</value>
+    </data>
 </root>
