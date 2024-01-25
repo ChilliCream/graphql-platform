@@ -24,22 +24,6 @@
         "resolved": "1.7.1",
         "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
       },
-      "FsCheck.Xunit": {
-        "type": "Direct",
-        "requested": "[3.0.0-beta2, )",
-        "resolved": "3.0.0-beta2",
-        "contentHash": "tSiX6zDaaUix6euJdvx7+n5VQO2Nr+WC2gPJWi+Vj+ytkrAw+hcsyC6U14OGWhQhZUKu781Iq4AywDurL+s8Tg==",
-        "dependencies": {
-          "FsCheck": "[3.0.0-beta2]",
-          "xunit.extensibility.execution": "[2.4.1, 2.5.0)"
-        }
-      },
-      "FSharp.Core": {
-        "type": "Direct",
-        "requested": "[8.0.100, )",
-        "resolved": "8.0.100",
-        "contentHash": "ZOVZ/o+jI3ormTZOa28Wh0tSRoyle1f7lKFcUN61sPiXI7eDZu8eSveFybgTeyIEyW0ujjp31cp7GOglDgsNEg=="
-      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[17.1.0, )",
@@ -81,15 +65,6 @@
           "xunit.core": "2.4.1"
         }
       },
-      "Unquote": {
-        "type": "Direct",
-        "requested": "[6.1.0, )",
-        "resolved": "6.1.0",
-        "contentHash": "eWcVdoxGSRqmvRr6RUN4ko73nLxiY1yhZXdqlriEucAqylcPQc/RCZDobJSnE858MA8SHXwBOX79RQuYp8Z3Cw==",
-        "dependencies": {
-          "FSharp.Core": "4.7.2"
-        }
-      },
       "xunit": {
         "type": "Direct",
         "requested": "[2.4.1, )",
@@ -121,14 +96,6 @@
         "contentHash": "edc8jjyXqzzy8jFdhs36FZdwmlDDTgqPb2Zy1Q5F/f2uAc88bu/VS/0Tpvgupmpl9zJOvOo5ZizVANb0ltN1NQ==",
         "dependencies": {
           "System.Diagnostics.EventLog": "6.0.0"
-        }
-      },
-      "FsCheck": {
-        "type": "Transitive",
-        "resolved": "3.0.0-beta2",
-        "contentHash": "QIyrg3VHlnd0cKzIsH9s4nGpm33u2cEQRKtorhAL4r8I+lu4ukJzrZ6r0frpj/KT8wOeh0i6hbFyEOIDA4Sy+Q==",
-        "dependencies": {
-          "FSharp.Core": "4.5.0"
         }
       },
       "Microsoft.AspNetCore.WebUtilities": {
@@ -1435,15 +1402,6 @@
           "HotChocolate.Execution": "[0.0.0, )"
         }
       },
-      "hotchocolate.types.fsharp": {
-        "type": "Project",
-        "dependencies": {
-          "FSharp.Core": "[8.0.100, )",
-          "HotChocolate.Execution": "[0.0.0, )",
-          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
-          "HotChocolate.Types": "[0.0.0, )"
-        }
-      },
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
@@ -1511,22 +1469,6 @@
         "resolved": "1.7.1",
         "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
       },
-      "FsCheck.Xunit": {
-        "type": "Direct",
-        "requested": "[3.0.0-beta2, )",
-        "resolved": "3.0.0-beta2",
-        "contentHash": "tSiX6zDaaUix6euJdvx7+n5VQO2Nr+WC2gPJWi+Vj+ytkrAw+hcsyC6U14OGWhQhZUKu781Iq4AywDurL+s8Tg==",
-        "dependencies": {
-          "FsCheck": "[3.0.0-beta2]",
-          "xunit.extensibility.execution": "[2.4.1, 2.5.0)"
-        }
-      },
-      "FSharp.Core": {
-        "type": "Direct",
-        "requested": "[8.0.100, )",
-        "resolved": "8.0.100",
-        "contentHash": "ZOVZ/o+jI3ormTZOa28Wh0tSRoyle1f7lKFcUN61sPiXI7eDZu8eSveFybgTeyIEyW0ujjp31cp7GOglDgsNEg=="
-      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[17.1.0, )",
@@ -1568,15 +1510,6 @@
           "xunit.core": "2.4.1"
         }
       },
-      "Unquote": {
-        "type": "Direct",
-        "requested": "[6.1.0, )",
-        "resolved": "6.1.0",
-        "contentHash": "eWcVdoxGSRqmvRr6RUN4ko73nLxiY1yhZXdqlriEucAqylcPQc/RCZDobJSnE858MA8SHXwBOX79RQuYp8Z3Cw==",
-        "dependencies": {
-          "FSharp.Core": "4.7.2"
-        }
-      },
       "xunit": {
         "type": "Direct",
         "requested": "[2.4.1, )",
@@ -1608,14 +1541,6 @@
         "contentHash": "edc8jjyXqzzy8jFdhs36FZdwmlDDTgqPb2Zy1Q5F/f2uAc88bu/VS/0Tpvgupmpl9zJOvOo5ZizVANb0ltN1NQ==",
         "dependencies": {
           "System.Diagnostics.EventLog": "6.0.0"
-        }
-      },
-      "FsCheck": {
-        "type": "Transitive",
-        "resolved": "3.0.0-beta2",
-        "contentHash": "QIyrg3VHlnd0cKzIsH9s4nGpm33u2cEQRKtorhAL4r8I+lu4ukJzrZ6r0frpj/KT8wOeh0i6hbFyEOIDA4Sy+Q==",
-        "dependencies": {
-          "FSharp.Core": "4.5.0"
         }
       },
       "Microsoft.AspNetCore.WebUtilities": {
@@ -2975,15 +2900,6 @@
           "HotChocolate.Execution": "[0.0.0, )"
         }
       },
-      "hotchocolate.types.fsharp": {
-        "type": "Project",
-        "dependencies": {
-          "FSharp.Core": "[8.0.100, )",
-          "HotChocolate.Execution": "[0.0.0, )",
-          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
-          "HotChocolate.Types": "[0.0.0, )"
-        }
-      },
       "hotchocolate.types.mutations": {
         "type": "Project",
         "dependencies": {
@@ -3051,22 +2967,6 @@
         "resolved": "1.7.1",
         "contentHash": "a0fSO2p8ykrcfzgG0sjpZAMZPthXXz4l6UIVuM9uyIYIh5yga4sq3aydSGt6n+MkdSBKvMurjjaKnxIqZtfG1g=="
       },
-      "FsCheck.Xunit": {
-        "type": "Direct",
-        "requested": "[3.0.0-beta2, )",
-        "resolved": "3.0.0-beta2",
-        "contentHash": "tSiX6zDaaUix6euJdvx7+n5VQO2Nr+WC2gPJWi+Vj+ytkrAw+hcsyC6U14OGWhQhZUKu781Iq4AywDurL+s8Tg==",
-        "dependencies": {
-          "FsCheck": "[3.0.0-beta2]",
-          "xunit.extensibility.execution": "[2.4.1, 2.5.0)"
-        }
-      },
-      "FSharp.Core": {
-        "type": "Direct",
-        "requested": "[8.0.100, )",
-        "resolved": "8.0.100",
-        "contentHash": "ZOVZ/o+jI3ormTZOa28Wh0tSRoyle1f7lKFcUN61sPiXI7eDZu8eSveFybgTeyIEyW0ujjp31cp7GOglDgsNEg=="
-      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[17.1.0, )",
@@ -3108,15 +3008,6 @@
           "xunit.core": "2.4.1"
         }
       },
-      "Unquote": {
-        "type": "Direct",
-        "requested": "[6.1.0, )",
-        "resolved": "6.1.0",
-        "contentHash": "eWcVdoxGSRqmvRr6RUN4ko73nLxiY1yhZXdqlriEucAqylcPQc/RCZDobJSnE858MA8SHXwBOX79RQuYp8Z3Cw==",
-        "dependencies": {
-          "FSharp.Core": "4.7.2"
-        }
-      },
       "xunit": {
         "type": "Direct",
         "requested": "[2.4.1, )",
@@ -3148,14 +3039,6 @@
         "contentHash": "edc8jjyXqzzy8jFdhs36FZdwmlDDTgqPb2Zy1Q5F/f2uAc88bu/VS/0Tpvgupmpl9zJOvOo5ZizVANb0ltN1NQ==",
         "dependencies": {
           "System.Diagnostics.EventLog": "6.0.0"
-        }
-      },
-      "FsCheck": {
-        "type": "Transitive",
-        "resolved": "3.0.0-beta2",
-        "contentHash": "QIyrg3VHlnd0cKzIsH9s4nGpm33u2cEQRKtorhAL4r8I+lu4ukJzrZ6r0frpj/KT8wOeh0i6hbFyEOIDA4Sy+Q==",
-        "dependencies": {
-          "FSharp.Core": "4.5.0"
         }
       },
       "Microsoft.AspNetCore.WebUtilities": {
@@ -4580,15 +4463,6 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Execution": "[0.0.0, )"
-        }
-      },
-      "hotchocolate.types.fsharp": {
-        "type": "Project",
-        "dependencies": {
-          "FSharp.Core": "[8.0.100, )",
-          "HotChocolate.Execution": "[0.0.0, )",
-          "HotChocolate.Execution.Abstractions": "[0.0.0, )",
-          "HotChocolate.Types": "[0.0.0, )"
         }
       },
       "hotchocolate.types.mutations": {
