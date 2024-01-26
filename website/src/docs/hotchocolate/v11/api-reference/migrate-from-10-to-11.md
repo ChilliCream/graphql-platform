@@ -142,7 +142,7 @@ The serial execution for Entity Framework compatibility is gone. If you use Enti
 
 Another variant here is to use our scoped service feature that scopes services for the resolver pipeline. This is explained in our GraphQL Workshop project.
 
-https://github.com/ChilliCream/graphql-workshop
+<https://github.com/ChilliCream/graphql-workshop>
 
 # Schema / Resolvers
 

@@ -36,9 +36,11 @@ public void ConfigureServices(IServiceCollection services)
 > **Tip: Using Environment Variables**
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `AddBananaCakePopServices` without explicitly passing parameters.
+>
 >- `BCP_API_KEY` maps to `ApiKey`
 >- `BCP_API_ID` maps to `ApiId`
 >- `BCP_STAGE` maps to `Stage`
+>
 >```csharp
 >public void ConfigureServices(IServiceCollection services)
 >{
@@ -48,6 +50,7 @@ public void ConfigureServices(IServiceCollection services)
 >        .AddBananaCakePopServices() 
 >}
 >```
+>
 >In this setup, the API key, ID, and stage are set through environment variables.
 
 # Viewing Reported Operations
@@ -55,6 +58,7 @@ public void ConfigureServices(IServiceCollection services)
 Once Operation Reporting is enabled and configured, all GraphQL operations processed by your server will be reported to Banana Cake Pop. These operations can be viewed and analyzed in the `Operations` tab within the Banana Cake Pop interface.
 
 ![Image](images/operation-reporting-2.png)
+
 1. Click the `Operations` tab in Banana Cake Pop to view the list of reported operations.
 2. The name of the executed operation.
 3. Click on `V` to expand the operation and view the details.

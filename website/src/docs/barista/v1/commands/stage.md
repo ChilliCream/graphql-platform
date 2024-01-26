@@ -4,7 +4,7 @@ title: Stage Management
 
 The `barista stage` command provides a set of subcommands that allow you to manage stages.
 
-# Edit Stages of an API 
+# Edit Stages of an API
 
 The `barista stage edit` command  provides an interactive user interface for managing the stages of an API. The screen you see allows you to add new stages, save changes, edit existing stages, and delete stages.
 

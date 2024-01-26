@@ -273,7 +273,7 @@ You can drill down on each one if these queries, and see the actual query as wel
 
 Just like for the `ConsoleQueryLogger` class, we need to create a similar class for our MiniProfiler to work. I've done that in our example repository and named the class `MiniProfilerQueryLogger`.
 
-https://github.com/pkellner/hot-chocolate-query-logging/blob/main/MiniProfilerQueryLogger.cs
+<https://github.com/pkellner/hot-chocolate-query-logging/blob/main/MiniProfilerQueryLogger.cs>
 
 It also implements `DiagosticEventListener` just like `ConsoleQueryLogger` did. It gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
 
