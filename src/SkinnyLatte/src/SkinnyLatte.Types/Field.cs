@@ -44,32 +44,6 @@ public abstract class Field
     public object Directives { get; }
 }
 
-public abstract class InputField : Field
-{
-    public InputField(
-        string name, 
-        IInputType type, 
-        string? deprecationReason, 
-        IValueNode? defaultValue,
-        IReadOnlyDictionary<string, object?> contextData, 
-        object directives) 
-        :  base(name, deprecationReason, contextData, directives)
-    {
-        Type = type;
-        DefaultValue = defaultValue;
-    }
-
-    /// <summary>
-    /// Gets the type of this input field.
-    /// </summary>
-    public sealed override IInputType Type { get; }
-
-    /// <summary>
-    /// Gets the default value literal of this field.
-    /// </summary>
-    public IValueNode? DefaultValue { get; }
-}
-
 public abstract class OutputField
 {
     /// <summary>
@@ -101,14 +75,4 @@ public abstract class OutputField
     /// Gets the type that declares this field.
     /// </summary>
     new IComplexOutputType DeclaringType { get; }
-}
-
-public interface IType
-{
-
-}
-
-public interface IInputType : IType
-{
-
 }
