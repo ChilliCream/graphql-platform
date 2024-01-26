@@ -25,7 +25,7 @@ app.UseEndpoints(endpoints =>
 
 In this configuration, the GraphQL service remains at the `/graphql` endpoint, and Banana Cake Pop is served at the `/my-graphql-ui` endpoint.
 
-# Disable the Middleware 
+# Disable the Middleware
 
 In some scenarios, you may not want to serve Banana Cake Pop, e.g., in a production environment. You can disable Banana Cake Pop by setting the `Enable` property to `false`:
 
@@ -44,7 +44,7 @@ endpoints
 
 # Serve Modes
 
-The `ServeMode` property controls which version of Banana Cake Pop to serve. The default mode is `Latest`, serving the most recent version of Banana Cake Pop from a CDN. 
+The `ServeMode` property controls which version of Banana Cake Pop to serve. The default mode is `Latest`, serving the most recent version of Banana Cake Pop from a CDN.
 You can also serve the embedded version (`Embedded`) of Banana Cake Pop, which is included in the package.
 
 - `Latest`: Serves the latest version of Banana Cake Pop from a CDN.

@@ -75,6 +75,7 @@ bcpMiddleware({ mode: "self" }) // for `self` hosted version
 # Extended configuration
 
 ## Pin a specific version
+
 To pin a specific version instead of using "latest":
 
 ```javascript
@@ -85,6 +86,7 @@ bcpMiddleware({
 ```
 
 ## Use your own infrastructure
+
 To use your own infrastructure:
 
 ```javascript
@@ -95,6 +97,7 @@ bcpMiddleware({
 ```
 
 ## Custom options
+
 To pass options supported by Banana Cake Pop GraphQL IDE:
 
 ```javascript
@@ -119,9 +122,11 @@ bcpMiddleware({
 | subscriptionProtocol    | Specifies the protocol used for GraphQL subscriptions.        | `SubscriptionProtocol` (optional) |
 
 # Recipes
+
 Below are examples of how to use Banana Cake Pop Express Middleware with different GraphQL server setups.
 
 ## graphql-http
+
 ```javascript
 import express from "express";
 import { createHandler } from "graphql-http";
@@ -144,6 +149,7 @@ app.listen(3000, () => {
 ```
 
 ## graphql-yoga
+
 ```javascript
 import express from "express";
 import { createYoga, createSchema } from "graphql-yoga";
@@ -164,6 +170,7 @@ app.listen(3000, () => {
 ```
 
 ## express-graphql
+
 ```javascript
 import express from "express";
 import { graphqlHTTP } from "express-graphql";
@@ -189,6 +196,7 @@ app.listen(3000, () => {
 ```
 
 ## Apollo Server
+
 ```javascript
 import { ApolloServer } from "@apollo/server";
 //... rest of the imports

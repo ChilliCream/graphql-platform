@@ -455,7 +455,7 @@ We have explored tooling with which we can explore the schema before issuing the
 
 If we would print our schema it would now look like the following.
 
-> The schema SDL can be downloaded from http://localhost:5000/schema.
+> The schema SDL can be downloaded from <http://localhost:5000/schema>.
 
 ```graphql
 schema {

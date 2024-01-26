@@ -195,11 +195,11 @@ public record BookingInput(string Title, string Author);
 
 # Default Values
 
-In GraphQL, default values can be assigned to arguments and input types. These values are automatically utilized if no other value is provided when a query or mutation is executed. 
+In GraphQL, default values can be assigned to arguments and input types. These values are automatically utilized if no other value is provided when a query or mutation is executed.
 
 Default values are specified in the GraphQL schema by appending `= value` to the argument or input type definition. For example: `field(value: Int = 10)` would give `value` a default of 10.
 
-Default values can be set for any input types, including scalars, enums, and input object types. They can also be used with list types and non-null types. 
+Default values can be set for any input types, including scalars, enums, and input object types. They can also be used with list types and non-null types.
 
 Consider the following schema:
 
@@ -219,6 +219,7 @@ In the `user` query field, the `active` argument has a default value of `true`. 
 In resolvers, arguments with default values are treated as optional. If the client does not provide a value, the resolver will receive the default value. This makes handling optional fields in your resolvers much easier.
 
 This means you can write the following query against the schema described before:
+
 ```graphql
 query fetchUser {
   user { # active is not needed
@@ -240,10 +241,10 @@ type Query {
 Despite the addition of the `role` argument, the `fetchUser` query can still be executed without supplying this new argument, as the `role` will default to `"user"`.
 
 ## Specifying DefaultValues
-The `DefaultValueAttribute` or the `DefaultValue` method on the field descriptor, allow you to assign default values to your fields or arguments. 
 
-Consider the following scenario where we have a `UserInput` type with different fields like `name`, `active`. By default, we would like `active` to be `true`. 
+The `DefaultValueAttribute` or the `DefaultValue` method on the field descriptor, allow you to assign default values to your fields or arguments.
 
+Consider the following scenario where we have a `UserInput` type with different fields like `name`, `active`. By default, we would like `active` to be `true`.
 
 <ExampleTabs>
 <Annotation>
@@ -305,16 +306,17 @@ input UserInput {
   active: Boolean! = true
 }
 ```
+
 </Schema>
 </ExampleTabs>
 
 ## Using GraphQL Syntax
 
-It is also possible to specify default values using GraphQL value syntax. 
+It is also possible to specify default values using GraphQL value syntax.
 This comes in handy when you want to set default values that are more than just simple scalars.
 Like for example objects or lists.
 
-Consider a scenario where we have a `UserProfileInput` type with a field `preferences`. The `preferences` field itself is an object containing various user preference settings. 
+Consider a scenario where we have a `UserProfileInput` type with a field `preferences`. The `preferences` field itself is an object containing various user preference settings.
 
 <ExampleTabs>
 <Annotation>
@@ -406,10 +408,11 @@ input UserProfileInput {
   preferences: PreferencesInput = { notifications: true, theme: "light" }
 }
 ```
+
 </Schema>
 </ExampleTabs>
 
-In this example, if no value for `preferences` is provided when making a mutation, the system will automatically use the default value `{ notifications: true, theme: 'light' }`. 
+In this example, if no value for `preferences` is provided when making a mutation, the system will automatically use the default value `{ notifications: true, theme: 'light' }`.
 
 # Optional Properties
 
