@@ -147,7 +147,7 @@ conventionDescriptor.Provider<CustomProvider>();
 ## Custom Conventions
 
 Most of the time the descriptor API should satisfy your needs.
-It is recommended to build extensions based on the descriptor API rather than creating a custom convention. 
+It is recommended to build extensions based on the descriptor API rather than creating a custom convention.
 However, if you want to have full control over naming and type creation, you can also override the methods
 you need on the `FilterConvention`.
 

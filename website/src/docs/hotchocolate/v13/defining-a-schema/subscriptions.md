@@ -4,7 +4,7 @@ title: "Subscriptions"
 
 <Video videoId="wHC9gOk__y0" />
 
-GraphQL subscriptions provide real-time functionality to applications by allowing clients to subscribe to specific events. When these events trigger, the server immediately sends updates to the subscribed clients. 
+GraphQL subscriptions provide real-time functionality to applications by allowing clients to subscribe to specific events. When these events trigger, the server immediately sends updates to the subscribed clients.
 
 # Transport Mechanisms for GraphQL Subscriptions
 
@@ -20,6 +20,7 @@ Hot Chocolate, supports both protocols.
 In terms of specific protocols, the recommendation is to use graphql-ws or graphql-sse over the legacy subscription-transport-ws.
 
 **Key Features:**
+
 - Full-duplex: Both the client and server can initiate communication, allowing real-time bidirectional communication.
 - Persistent connection: The connection between client and server remains open, allowing for real-time data transfer.
 - Well-supported: There are several libraries available for managing WebSocket connections and GraphQL subscriptions.
@@ -35,14 +36,15 @@ Another advantage of SSE is its better compatibility with firewalls compared to 
 [graphql-sse](https://github.com/enisdenjo/graphql-sse) is a popular library for GraphQL over SSE.
 
 **Key Features:**
+
 - Efficient for one-way real-time data: The server can push updates to the client as soon as they occur.
 - Built on HTTP: SSE is built on HTTP, simplifying handling and compatibility. It benefits from HTTP features such as automatic reconnection, HTTP/2 multiplexing, and headers/cookies support.
 - Less Complex: SSE is less complex than WebSockets as it only allows for one-way communication.
 - Better Firewall Compatibility: SSE generally encounters fewer issues with firewalls.
 
-Choosing between GraphQL over WebSockets and GraphQL over SSE depends on the specific needs of your application. If you need full-duplex, real-time communication, WebSockets may be the best choice. If you only need server-to-client real-time communication and want to take advantage of existing HTTP infrastructure, SSE could be a better option. 
+Choosing between GraphQL over WebSockets and GraphQL over SSE depends on the specific needs of your application. If you need full-duplex, real-time communication, WebSockets may be the best choice. If you only need server-to-client real-time communication and want to take advantage of existing HTTP infrastructure, SSE could be a better option.
 
-Special thanks to Denis Badurina, @enisdenjo on [Twitter](https://twitter.com/enisdenjo) and [GitHub](https://github.com/enisdenjo). He is the creator of [graphql-http](https://github.com/enisdenjo/graphql-http), [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [graphql-sse](https://github.com/enisdenjo/graphql-sse). 
+Special thanks to Denis Badurina, @enisdenjo on [Twitter](https://twitter.com/enisdenjo) and [GitHub](https://github.com/enisdenjo). He is the creator of [graphql-http](https://github.com/enisdenjo/graphql-http), [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [graphql-sse](https://github.com/enisdenjo/graphql-sse).
 
 # Usage
 
@@ -62,6 +64,7 @@ subscription {
   }
 }
 ```
+
 A subscription type can be defined like the following.
 
 <ExampleTabs>
@@ -223,9 +226,11 @@ services
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
 
 ## Postgres Provider
+
 The PostgreSQL Subscription Provider enables your GraphQL server to provide real-time updates to your clients using PostgreSQL's native `LISTEN/NOTIFY` mechanism. This provider is ideal for applications that already use PostgreSQL and want to avoid the overhead of running a separate pub/sub service.
 
 In order to use the PostgreSQL provider we have to add the `HotChocolate.Subscriptions.Postgres` package.
+
 ```bash
 dotnet add package HotChocolate.Subscriptions.Postgres
 ```

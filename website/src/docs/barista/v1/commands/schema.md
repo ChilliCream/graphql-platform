@@ -4,7 +4,7 @@ title:  Schema Management
 
 The `barista schema` command provides a set of subcommands that allow you to upload, validate, and publish schemas.
 
-# Publish a Schema 
+# Publish a Schema
 
 The `barista schema publish` command is used to publish a schema version to a stage.
 
@@ -27,7 +27,7 @@ barista schema publish \
   
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `barista api-key create` returns. You can set it from the environment variable `BARISTA_API_KEY`.
 
-# Validate a Schema 
+# Validate a Schema
 
 The `barista schema validate` command is used to validate a new client version.
 
@@ -48,7 +48,7 @@ barista schema validate \
   
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `barista api-key create` returns. You can set it from the environment variable `BARISTA_API_KEY`.
 
-# Upload a Schema 
+# Upload a Schema
 
 The `barista schema upload` command is used to upload a new schema version.
 
