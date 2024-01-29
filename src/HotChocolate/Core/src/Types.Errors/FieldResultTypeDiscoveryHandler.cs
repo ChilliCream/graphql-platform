@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-internal sealed class MutationResultTypeDiscoveryHandler(ITypeInspector typeInspector) : TypeDiscoveryHandler
+internal sealed class FieldResultTypeDiscoveryHandler(ITypeInspector typeInspector) : TypeDiscoveryHandler
 {
     public override bool TryInferType(
         TypeReference typeReference,
@@ -12,7 +12,7 @@ internal sealed class MutationResultTypeDiscoveryHandler(ITypeInspector typeInsp
         var runtimeType = typeInfo.RuntimeType;
 
         if (runtimeType is { IsValueType: true, IsGenericType: true, } &&
-            typeof(IMutationResult).IsAssignableFrom(runtimeType) &&
+            typeof(IFieldResult).IsAssignableFrom(runtimeType) &&
             typeReference is ExtendedTypeReference typeRef)
         {
             var type = GetNamedType(typeInspector.GetType(runtimeType.GenericTypeArguments[0]));

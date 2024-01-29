@@ -1,0 +1,18 @@
+schema {
+  query: Query1
+}
+
+type Query1 {
+  userById(id: String!): User!
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+}
+
+type UserNotFound {
+  id: String!
+  message: String!
+}

@@ -114,7 +114,7 @@ public static class PagingHelper
             // if the member has already associated a schema type we will just take it.
             // Since we want the entity element we are going to take
             // the element type of the list or array as our entity type.
-            if (r.Type.IsSchemaType && r.Type.IsArrayOrList)
+            if (r.Type is { IsSchemaType: true, IsArrayOrList: true, })
             {
                 return r.Type.ElementType!;
             }

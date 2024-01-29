@@ -12,7 +12,7 @@ namespace HotChocolate;
 /// <typeparam name="TResult">
 /// The success result type.
 /// </typeparam>
-public readonly struct MutationResult<TResult> : IMutationResult
+public readonly struct FieldResult<TResult> : IFieldResult
 {
     /// <summary>
     /// Initializes a mutation success result.
@@ -23,7 +23,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult value)
+    public FieldResult(TResult value)
     {
         Value = value;
         Errors = null;
@@ -40,7 +40,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(object error)
+    public FieldResult(object error)
     {
         if (error is null)
         {
@@ -66,7 +66,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<object> errors)
+    public FieldResult(IEnumerable<object> errors)
     {
         if (errors == null)
         {
@@ -107,7 +107,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params object[] errors)
+    public FieldResult(params object[] errors)
     {
         Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
@@ -155,9 +155,9 @@ public readonly struct MutationResult<TResult> : IMutationResult
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Value : Errors;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -168,13 +168,13 @@ public readonly struct MutationResult<TResult> : IMutationResult
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult>(TResult result)
+    public static implicit operator FieldResult<TResult>(TResult result)
         => new(result);
 }
 
@@ -187,7 +187,7 @@ public readonly struct MutationResult<TResult> : IMutationResult
 /// <typeparam name="TError">
 /// The error type.
 /// </typeparam>
-public readonly struct MutationResult<TResult, TError> : IMutationResult
+public readonly struct FieldResult<TResult, TError> : IFieldResult
 {
     /// <summary>
     /// Initializes a mutation success result.
@@ -198,7 +198,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult value)
+    public FieldResult(TResult value)
     {
         Value = value;
         Errors = null;
@@ -215,7 +215,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError error)
+    public FieldResult([DisallowNull] TError error)
     {
         if (error is null)
         {
@@ -241,7 +241,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError> errors)
+    public FieldResult(IEnumerable<TError> errors)
     {
         if (errors is null)
         {
@@ -284,7 +284,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError[] errors)
+    public FieldResult(params TError[] errors)
     {
         if (errors is null)
         {
@@ -342,9 +342,9 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Value : Errors;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -355,13 +355,13 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError>(TResult result)
+    public static implicit operator FieldResult<TResult, TError>(TResult result)
         => new(result);
 
     /// <summary>
@@ -372,20 +372,20 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError>([DisallowNull] TError error)
+    public static implicit operator FieldResult<TResult, TError>([DisallowNull] TError error)
     {
         if (error is null)
         {
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError>(error);
+        return new FieldResult<TResult, TError>(error);
     }
 }
 
@@ -401,7 +401,7 @@ public readonly struct MutationResult<TResult, TError> : IMutationResult
 /// <typeparam name="TError2">
 /// The error type 2.
 /// </typeparam>
-public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResult
+public readonly struct FieldResult<TResult, TError1, TError2> : IFieldResult
 {
     /// <summary>
     /// Initializes a mutation success result.
@@ -412,7 +412,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// <exception cref="ArgumentNullException">
     /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult value)
+    public FieldResult(TResult value)
     {
         Value = value;
         Errors = null;
@@ -429,7 +429,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError1 error)
+    public FieldResult([DisallowNull] TError1 error)
     {
         if (error is null)
         {
@@ -455,7 +455,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError1> errors)
+    public FieldResult(IEnumerable<TError1> errors)
     {
         if (errors is null)
         {
@@ -498,7 +498,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError1[] errors)
+    public FieldResult(params TError1[] errors)
     {
         if (errors is null)
         {
@@ -539,7 +539,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError2 error)
+    public FieldResult([DisallowNull] TError2 error)
     {
         if (error is null)
         {
@@ -565,7 +565,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError2> errors)
+    public FieldResult(IEnumerable<TError2> errors)
     {
         if (errors is null)
         {
@@ -608,7 +608,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError2[] errors)
+    public FieldResult(params TError2[] errors)
     {
         if (errors is null)
         {
@@ -653,7 +653,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<object> errors)
+    public FieldResult(IEnumerable<object> errors)
     {
         if (errors == null)
         {
@@ -694,7 +694,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params object[] errors)
+    public FieldResult(params object[] errors)
     {
         Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
@@ -741,9 +741,9 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Value : Errors;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -754,13 +754,13 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2>(TResult result)
+    public static implicit operator FieldResult<TResult, TError1, TError2>(TResult result)
         => new(result);
 
     /// <summary>
@@ -771,13 +771,13 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2>(
+    public static implicit operator FieldResult<TResult, TError1, TError2>(
         [DisallowNull] TError1 error)
     {
         if (error is null)
@@ -785,7 +785,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2>(error);
+        return new FieldResult<TResult, TError1, TError2>(error);
     }
 
     /// <summary>
@@ -796,13 +796,13 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2>(
+    public static implicit operator FieldResult<TResult, TError1, TError2>(
         [DisallowNull] TError2 error)
     {
         if (error is null)
@@ -810,7 +810,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2>(error);
+        return new FieldResult<TResult, TError1, TError2>(error);
     }
 }
 
@@ -829,7 +829,7 @@ public readonly struct MutationResult<TResult, TError1, TError2> : IMutationResu
 /// <typeparam name="TError3">
 /// The error type 3.
 /// </typeparam>
-public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMutationResult
+public readonly struct FieldResult<TResult, TError1, TError2, TError3> : IFieldResult
 {
     /// <summary>
     /// Initializes a mutation success result.
@@ -840,7 +840,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult value)
+    public FieldResult(TResult value)
     {
         Value = value;
         Errors = null;
@@ -857,7 +857,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError1 error)
+    public FieldResult([DisallowNull] TError1 error)
     {
         if (error is null)
         {
@@ -883,7 +883,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError1> errors)
+    public FieldResult(IEnumerable<TError1> errors)
     {
         if (errors is null)
         {
@@ -926,7 +926,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError1[] errors)
+    public FieldResult(params TError1[] errors)
     {
         if (errors is null)
         {
@@ -967,7 +967,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError2 error)
+    public FieldResult([DisallowNull] TError2 error)
     {
         if (error is null)
         {
@@ -993,7 +993,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError2> errors)
+    public FieldResult(IEnumerable<TError2> errors)
     {
         if (errors is null)
         {
@@ -1036,7 +1036,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError2[] errors)
+    public FieldResult(params TError2[] errors)
     {
         if (errors is null)
         {
@@ -1077,7 +1077,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError3 error)
+    public FieldResult([DisallowNull] TError3 error)
     {
         if (error is null)
         {
@@ -1103,7 +1103,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError3> errors)
+    public FieldResult(IEnumerable<TError3> errors)
     {
         if (errors is null)
         {
@@ -1146,7 +1146,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError3[] errors)
+    public FieldResult(params TError3[] errors)
     {
         if (errors is null)
         {
@@ -1191,7 +1191,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<object> errors)
+    public FieldResult(IEnumerable<object> errors)
     {
         if (errors == null)
         {
@@ -1232,7 +1232,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params object[] errors)
+    public FieldResult(params object[] errors)
     {
         Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
@@ -1279,9 +1279,9 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Value : Errors;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -1292,13 +1292,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3>(TResult result)
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(TResult result)
         => new(result);
 
     /// <summary>
@@ -1309,13 +1309,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(
         [DisallowNull] TError1 error)
     {
         if (error is null)
@@ -1323,7 +1323,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3>(error);
     }
 
     /// <summary>
@@ -1334,13 +1334,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(
         [DisallowNull] TError2 error)
     {
         if (error is null)
@@ -1348,7 +1348,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3>(error);
     }
 
     /// <summary>
@@ -1359,13 +1359,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3>(
         [DisallowNull] TError3 error)
     {
         if (error is null)
@@ -1373,7 +1373,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3>(error);
     }
 }
 
@@ -1395,7 +1395,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3> : IMut
 /// <typeparam name="TError4">
 /// The error type 4.
 /// </typeparam>
-public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError4> : IMutationResult
+public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4> : IFieldResult
 {
     /// <summary>
     /// Initializes a mutation success result.
@@ -1406,7 +1406,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult value)
+    public FieldResult(TResult value)
     {
         Value = value;
         Errors = null;
@@ -1423,7 +1423,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError1 error)
+    public FieldResult([DisallowNull] TError1 error)
     {
         if (error is null)
         {
@@ -1449,7 +1449,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError1> errors)
+    public FieldResult(IEnumerable<TError1> errors)
     {
         if (errors is null)
         {
@@ -1492,7 +1492,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError1[] errors)
+    public FieldResult(params TError1[] errors)
     {
         if (errors is null)
         {
@@ -1533,7 +1533,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError2 error)
+    public FieldResult([DisallowNull] TError2 error)
     {
         if (error is null)
         {
@@ -1559,7 +1559,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError2> errors)
+    public FieldResult(IEnumerable<TError2> errors)
     {
         if (errors is null)
         {
@@ -1602,7 +1602,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError2[] errors)
+    public FieldResult(params TError2[] errors)
     {
         if (errors is null)
         {
@@ -1643,7 +1643,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError3 error)
+    public FieldResult([DisallowNull] TError3 error)
     {
         if (error is null)
         {
@@ -1669,7 +1669,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError3> errors)
+    public FieldResult(IEnumerable<TError3> errors)
     {
         if (errors is null)
         {
@@ -1712,7 +1712,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError3[] errors)
+    public FieldResult(params TError3[] errors)
     {
         if (errors is null)
         {
@@ -1753,7 +1753,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError4 error)
+    public FieldResult([DisallowNull] TError4 error)
     {
         if (error is null)
         {
@@ -1779,7 +1779,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError4> errors)
+    public FieldResult(IEnumerable<TError4> errors)
     {
         if (errors is null)
         {
@@ -1822,7 +1822,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError4[] errors)
+    public FieldResult(params TError4[] errors)
     {
         if (errors is null)
         {
@@ -1867,7 +1867,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<object> errors)
+    public FieldResult(IEnumerable<object> errors)
     {
         if (errors == null)
         {
@@ -1908,7 +1908,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params object[] errors)
+    public FieldResult(params object[] errors)
     {
         Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
@@ -1955,9 +1955,9 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Value : Errors;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -1968,13 +1968,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(TResult result)
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(TResult result)
         => new(result);
 
     /// <summary>
@@ -1985,13 +1985,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError1 error)
     {
         if (error is null)
@@ -1999,7 +1999,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
 
     /// <summary>
@@ -2010,13 +2010,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError2 error)
     {
         if (error is null)
@@ -2024,7 +2024,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
 
     /// <summary>
@@ -2035,13 +2035,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError3 error)
     {
         if (error is null)
@@ -2049,7 +2049,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
 
     /// <summary>
@@ -2060,13 +2060,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4>(
         [DisallowNull] TError4 error)
     {
         if (error is null)
@@ -2074,7 +2074,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4>(error);
     }
 }
 
@@ -2099,7 +2099,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
 /// <typeparam name="TError5">
 /// The error type 5.
 /// </typeparam>
-public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError4, TError5> : IMutationResult
+public readonly struct FieldResult<TResult, TError1, TError2, TError3, TError4, TError5> : IFieldResult
 {
     /// <summary>
     /// Initializes a mutation success result.
@@ -2110,7 +2110,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="value"/> is <c>null</c>.
     /// </exception>
-    public MutationResult(TResult value)
+    public FieldResult(TResult value)
     {
         Value = value;
         Errors = null;
@@ -2127,7 +2127,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError1 error)
+    public FieldResult([DisallowNull] TError1 error)
     {
         if (error is null)
         {
@@ -2153,7 +2153,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError1> errors)
+    public FieldResult(IEnumerable<TError1> errors)
     {
         if (errors is null)
         {
@@ -2196,7 +2196,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError1[] errors)
+    public FieldResult(params TError1[] errors)
     {
         if (errors is null)
         {
@@ -2237,7 +2237,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError2 error)
+    public FieldResult([DisallowNull] TError2 error)
     {
         if (error is null)
         {
@@ -2263,7 +2263,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError2> errors)
+    public FieldResult(IEnumerable<TError2> errors)
     {
         if (errors is null)
         {
@@ -2306,7 +2306,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError2[] errors)
+    public FieldResult(params TError2[] errors)
     {
         if (errors is null)
         {
@@ -2347,7 +2347,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError3 error)
+    public FieldResult([DisallowNull] TError3 error)
     {
         if (error is null)
         {
@@ -2373,7 +2373,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError3> errors)
+    public FieldResult(IEnumerable<TError3> errors)
     {
         if (errors is null)
         {
@@ -2416,7 +2416,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError3[] errors)
+    public FieldResult(params TError3[] errors)
     {
         if (errors is null)
         {
@@ -2457,7 +2457,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError4 error)
+    public FieldResult([DisallowNull] TError4 error)
     {
         if (error is null)
         {
@@ -2483,7 +2483,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError4> errors)
+    public FieldResult(IEnumerable<TError4> errors)
     {
         if (errors is null)
         {
@@ -2526,7 +2526,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError4[] errors)
+    public FieldResult(params TError4[] errors)
     {
         if (errors is null)
         {
@@ -2567,7 +2567,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public MutationResult([DisallowNull] TError5 error)
+    public FieldResult([DisallowNull] TError5 error)
     {
         if (error is null)
         {
@@ -2593,7 +2593,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<TError5> errors)
+    public FieldResult(IEnumerable<TError5> errors)
     {
         if (errors is null)
         {
@@ -2636,7 +2636,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params TError5[] errors)
+    public FieldResult(params TError5[] errors)
     {
         if (errors is null)
         {
@@ -2681,7 +2681,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(IEnumerable<object> errors)
+    public FieldResult(IEnumerable<object> errors)
     {
         if (errors == null)
         {
@@ -2722,7 +2722,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// - One of the error objects in the <paramref name="errors"/> collection is <c>null</c>.
     /// - <paramref name="errors"/> is empty.
     /// </exception>
-    public MutationResult(params object[] errors)
+    public FieldResult(params object[] errors)
     {
         Value = default;
         Errors = errors ?? throw new ArgumentNullException(nameof(errors));
@@ -2769,9 +2769,9 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     public bool IsError { get; }
 
 #if NET5_0_OR_GREATER
-    object? IMutationResult.Value => IsSuccess ? Value : Errors;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors;
 #else
-    object? IMutationResult.Value => IsSuccess ? Value : Errors!;
+    object? IFieldResult.Value => IsSuccess ? Value : Errors!;
 #endif
 
     /// <summary>
@@ -2782,13 +2782,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The success result value.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Value"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Value"/>
     /// set to <paramref name="result"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(TResult result)
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(TResult result)
         => new(result);
 
     /// <summary>
@@ -2799,13 +2799,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError1 error)
     {
         if (error is null)
@@ -2813,7 +2813,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
 
     /// <summary>
@@ -2824,13 +2824,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError2 error)
     {
         if (error is null)
@@ -2838,7 +2838,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
 
     /// <summary>
@@ -2849,13 +2849,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError3 error)
     {
         if (error is null)
@@ -2863,7 +2863,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
 
     /// <summary>
@@ -2874,13 +2874,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError4 error)
     {
         if (error is null)
@@ -2888,7 +2888,7 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
 
     /// <summary>
@@ -2899,13 +2899,13 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
     /// The error object.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="MutationResult{TResult}"/> with <see cref="Errors"/>
+    /// Returns a new instance of <see cref="FieldResult{TResult}"/> with <see cref="Errors"/>
     /// set to <paramref name="error"/>.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="error"/> is <c>null</c>.
     /// </exception>
-    public static implicit operator MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(
+    public static implicit operator FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(
         [DisallowNull] TError5 error)
     {
         if (error is null)
@@ -2913,6 +2913,6 @@ public readonly struct MutationResult<TResult, TError1, TError2, TError3, TError
             throw new ArgumentNullException(nameof(error));
         }
 
-        return new MutationResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
+        return new FieldResult<TResult, TError1, TError2, TError3, TError4, TError5>(error);
     }
 }

@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace HotChocolate;
 
-public class MutationErrorTests
+public class FieldErrorTests
 {
     [Fact]
     public void Constructor_SingleError_Null_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new MutationError(((object)null)!));
+        Assert.Throws<ArgumentNullException>(() => new FieldError(((object)null)!));
     }
 
     [Fact]
     public void Constructor_ErrorList_Null_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new MutationError(((IReadOnlyList<object>)null)!));
+        Assert.Throws<ArgumentNullException>(() => new FieldError(((IReadOnlyList<object>)null)!));
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class MutationErrorTests
         var error = new object();
 
         // Act & Assert
-        var mutationError = new MutationError(error);
+        var mutationError = new FieldError(error);
         Assert.Single(mutationError.Errors);
         Assert.Equal(error, mutationError.Errors[0]);
     }
@@ -38,7 +38,7 @@ public class MutationErrorTests
         var errors = new List<object> { new object(), new object(), };
 
         // Act
-        var mutationError = new MutationError(errors);
+        var mutationError = new FieldError(errors);
 
         // Assert
         Assert.Equal(2, mutationError.Errors.Count);
@@ -51,14 +51,14 @@ public class MutationErrorTests
         var errors = new List<object>();
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() => new MutationError(errors));
+        Assert.Throws<ArgumentException>(() => new FieldError(errors));
     }
 
     [Fact]
     public void IsSuccess_ReturnsFalse()
     {
         // Arrange
-        var mutationError = new MutationError(new object());
+        var mutationError = new FieldError(new object());
 
         // Act
         var isSuccess = mutationError.IsSuccess;
@@ -71,7 +71,7 @@ public class MutationErrorTests
     public void IsError_ReturnsTrue()
     {
         // Arrange
-        var mutationError = new MutationError(new object());
+        var mutationError = new FieldError(new object());
 
         // Act
         var isError = mutationError.IsError;

@@ -5,7 +5,7 @@ namespace HotChocolate;
 /// <summary>
 /// This interface allows middleware to access the mutation result value in an generic way.
 /// </summary>
-public interface IMutationResult
+public interface IFieldResult
 {
     /// <summary>
     /// Gets the mutation result value.

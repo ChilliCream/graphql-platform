@@ -154,7 +154,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 await next(context).ConfigureAwait(false);
 
-                if (context.Result is IMutationResult result)
+                if (context.Result is IFieldResult result)
                 {
                     // by checking if it is not an error we can accept the default
                     // value of the struct as null.
@@ -660,7 +660,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
 
         if (resultType is { IsValueType: true, IsGenericType: true, } &&
-            typeof(IMutationResult).IsAssignableFrom(resultType))
+            typeof(IFieldResult).IsAssignableFrom(resultType))
         {
             var types = resultType.GenericTypeArguments;
 
@@ -837,7 +837,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
         if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
-            typeof(IMutationResult).IsAssignableFrom(extendedTypeRef.Type.Type))
+            typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);
         }

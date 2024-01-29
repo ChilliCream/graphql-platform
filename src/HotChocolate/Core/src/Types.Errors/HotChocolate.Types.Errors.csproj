@@ -29,6 +29,7 @@
   
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
   </ItemGroup>
 
   <ItemGroup>

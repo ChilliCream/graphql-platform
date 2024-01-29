@@ -7,15 +7,15 @@ namespace HotChocolate;
 /// <summary>
 /// This class represents a mutation error and is mean to be used within mutation convention extensions.
 /// </summary>
-public sealed class MutationError : IMutationResult
+public sealed class FieldError : IFieldResult
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="MutationError"/>.
+    /// Initializes a new instance of <see cref="FieldError"/>.
     /// </summary>
     /// <param name="error">
     /// The error object.
     /// </param>
-    public MutationError(object error)
+    public FieldError(object error)
     {
         if (error is null)
         {
@@ -26,12 +26,12 @@ public sealed class MutationError : IMutationResult
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="MutationError"/>.
+    /// Initializes a new instance of <see cref="FieldError"/>.
     /// </summary>
     /// <param name="errors">
     /// The error objects.
     /// </param>
-    public MutationError(IReadOnlyList<object> errors)
+    public FieldError(IReadOnlyList<object> errors)
     {
         if (errors is null)
         {
@@ -54,7 +54,7 @@ public sealed class MutationError : IMutationResult
     /// <summary>
     /// Gets the mutation result value.
     /// </summary>
-    object IMutationResult.Value => Errors;
+    object IFieldResult.Value => Errors;
 
     /// <summary>
     /// Defines if the mutation was successful and if the result represents a success result.

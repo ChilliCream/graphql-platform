@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Types.Errors\HotChocolate.Types.Errors.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.Errors.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
