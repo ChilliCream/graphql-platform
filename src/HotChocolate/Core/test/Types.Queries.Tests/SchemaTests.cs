@@ -10,7 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Types.Queries.Tests;
 
-public class Class1
+// 1. error when used with scalars
+
+
+public class SchemaTests
 {
     [Fact]
     public async Task Foo()
@@ -26,12 +29,12 @@ public class Class1
     }
     
     [Fact]
-    public async Task Foo1()
+    public async Task Schema_Query_With_FieldResult()
     {
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<Query1>()
+                .AddQueryType<QueryWithFieldResult>()
                 .AddQueryConventions()
                 .BuildSchemaAsync();
         
@@ -59,20 +62,20 @@ public class Class1
         {
             if (id == "1")
             {
-                return new User("1", "Foo", "foo@bar.de");
+                return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
             }
 
             throw new UserNotFoundException();
         }
     }
     
-    public class Query1
+    public class QueryWithFieldResult
     {
         public FieldResult<User, UserNotFound> GetUserById(string id)
         {
             if (id == "1")
             {
-                return new User("1", "Foo", "foo@bar.de");
+                return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
             }
 
             return new UserNotFound(id, "Failed");
@@ -88,9 +91,13 @@ public class Class1
         }
     }
     
-    public record User(string Id, string Name, string Email);
+    public record User(string Id, string Name, string Email, FieldResult<Address, AddressNotFound> Address);
+
+    public record Address(string Id, string Street, string City);
     
     public sealed record UserNotFound(string Id, string Message);
+    
+    public sealed record AddressNotFound(string Id, string Message);
     
     public sealed class UserNotFoundException : Exception;
 

@@ -1,0 +1,34 @@
+schema {
+  query: QueryWithFieldResult
+}
+
+type Address {
+  id: String!
+  street: String!
+  city: String!
+}
+
+type AddressNotFound {
+  id: String!
+  message: String!
+}
+
+type QueryWithFieldResult {
+  userById(id: String!): UserByIdResult!
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  address: AddressResult!
+}
+
+type UserNotFound {
+  id: String!
+  message: String!
+}
+
+union AddressResult = Address | AddressNotFound
+
+union UserByIdResult = User | UserNotFound
