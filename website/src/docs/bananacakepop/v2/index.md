@@ -14,7 +14,7 @@ Are you hungry yet? [Let's get started!](/docs/bananacakepop/v2/getting-started)
 Whether you're building or consuming GraphQL APIs, Banana Cake Pop simplifies the process by allowing you to effortlessly build and execute GraphQL queries and mutations. Its intuitive UI enables you to visualize and explore your GraphQL schemas, making it easier to understand and work with complex structures. The powerful editor provides syntax highlighting, auto-completion, and error highlighting, helping you write GraphQL queries and mutations with ease.
 
 2. **Collaboration**
-Additionally, Banana Cake Pop places a strong emphasis on collaboration. It offers seamless team collaboration features, allowing developers to share documents, API configurations, environment settings and lets you collaborate on projects, and synchronize your work across multiple team members. By facilitating effective communication, Banana Cake Pop ensures that everyone on your team is on the same page, leading to more efficient and coordinated development efforts. 
+Additionally, Banana Cake Pop places a strong emphasis on collaboration. It offers seamless team collaboration features, allowing developers to share documents, API configurations, environment settings and lets you collaborate on projects, and synchronize your work across multiple team members. By facilitating effective communication, Banana Cake Pop ensures that everyone on your team is on the same page, leading to more efficient and coordinated development efforts.
 
 3. **DevOps**
 Banana Cake Pop support you during the entire lifecycle of an API. With its schema and client registry, Banana Cake Pop ensures that your APIs are well-maintained and evolve seamlessly over time. Integrated into your development workflow, Banana Cake Pop helps you manage your APIs effectively, making easy to build and maintain high-quality APIs.
@@ -27,6 +27,3 @@ The client registry feature of Banana Cake Pop complements the schema registry b
 
 6. **Intuitive Interface**
 Banana Cake Pop provides a user-friendly interface that is easy to navigate, even for those new to GraphQL. Its clean and intuitive design makes it a pleasure to work with, enabling developers to focus on their tasks without unnecessary distractions or complications.
-
-
-
