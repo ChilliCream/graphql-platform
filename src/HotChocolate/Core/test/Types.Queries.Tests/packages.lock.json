@@ -1416,6 +1416,13 @@
           "HotChocolate.Types": "[0.0.0, )"
         }
       },
+      "hotchocolate.types.queries": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.Errors": "[0.0.0, )"
+        }
+      },
       "hotchocolate.types.scalars.upload": {
         "type": "Project",
         "dependencies": {
@@ -2912,6 +2919,13 @@
         "dependencies": {
           "HotChocolate.Execution": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.types.queries": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.Errors": "[0.0.0, )"
         }
       },
       "hotchocolate.types.scalars.upload": {
@@ -4477,6 +4491,13 @@
         "dependencies": {
           "HotChocolate.Execution": "[0.0.0, )",
           "HotChocolate.Types": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.types.queries": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.Errors": "[0.0.0, )"
         }
       },
       "hotchocolate.types.scalars.upload": {

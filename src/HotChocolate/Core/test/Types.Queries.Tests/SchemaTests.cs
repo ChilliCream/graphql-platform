@@ -16,12 +16,12 @@ namespace Types.Queries.Tests;
 public class SchemaTests
 {
     [Fact]
-    public async Task Foo()
+    public async Task Schema_Query_With_FieldResult()
     {
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<Query>()
+                .AddQueryType<QueryWithFieldResult>()
                 .AddQueryConventions()
                 .BuildSchemaAsync();
         
@@ -29,12 +29,12 @@ public class SchemaTests
     }
     
     [Fact]
-    public async Task Schema_Query_With_FieldResult()
+    public async Task Schema_Query_With_Exceptions()
     {
         var schema =
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<QueryWithFieldResult>()
+                .AddQueryType<QueryWithException>()
                 .AddQueryConventions()
                 .BuildSchemaAsync();
         
@@ -55,7 +55,7 @@ public class SchemaTests
         schema.MatchSnapshot();
     }
 
-    public class Query
+    public class QueryWithException
     {
         [Error<UserNotFoundException>]
         public User GetUserById(string id)

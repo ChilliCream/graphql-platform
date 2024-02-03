@@ -1,0 +1,35 @@
+schema {
+  query: QueryWithException
+}
+
+interface Error {
+  message: String!
+}
+
+type Address {
+  id: String!
+  street: String!
+  city: String!
+}
+
+type AddressNotFound {
+  id: String!
+  message: String!
+}
+
+type QueryWithException {
+  userById(id: String!): User!
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  address: AddressResult!
+}
+
+type UserNotFoundError {
+  message: String!
+}
+
+union AddressResult = Address | AddressNotFound
