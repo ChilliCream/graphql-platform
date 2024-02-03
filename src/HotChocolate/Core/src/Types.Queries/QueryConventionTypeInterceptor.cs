@@ -52,7 +52,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteTypes()
     {
-        foreach (var typeDef in _typeDefs)
+        foreach (var typeDef in _typeDefs.ToArray())
         {
             if (_mutationDef == typeDef)
             {
@@ -66,21 +66,32 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     continue;
                 }
                 
-                List<TypeReference>? errors = null;
+                List<TypeReference>? typeSet = null;
+                var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
+                var errorInterfaceIsRegistered = false;
                 
-                if (typeof(IFieldResult).IsAssignableFrom(field.ResultType) &&
-                    _context.TryInferSchemaType(field.Type!, out var schemaTypeRefs))
+                if (field.ResultType != null && 
+                    typeof(IFieldResult).IsAssignableFrom(field.ResultType) &&
+                    _context.TryInferSchemaType(
+                        _context.TypeInspector.GetOutputTypeRef(field.ResultType), 
+                        out var schemaTypeRefs))
                 {
-                    (errors ??= []).AddRange(schemaTypeRefs);
+
+                    foreach (var errorTypeRef in schemaTypeRefs.Skip(1))
+                    {
+                        (typeSet ??= []).Add(errorTypeRef);
+                        
+                        if (_typeRegistry.TryGetType(errorTypeRef, out var errorType))
+                        {
+                            ((ObjectType)errorType.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                        }
+                    }
                 }
 
                 var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(field);
 
                 if (errorDefinitions.Count > 0)
                 {
-                    var errorInterfaceIsRegistered = false;
-                    var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
-
                     foreach (var errorDef in errorDefinitions)
                     {
                         var obj = TryRegisterType(errorDef.SchemaType);
@@ -93,36 +104,55 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                             RegisterErrorType(errorTypeRef, errorDef.RuntimeType);
                             ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
                         }
+
+                        var errorSchemaTypeRef = _context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType);
+
+                        if (obj is null && _typeRegistry.TryGetType(errorSchemaTypeRef, out obj))
+                        {
+                            ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
+                        }
                         
-                        (errors ??= []).Add(_context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType));
-
-                        if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(errorInterfaceTypeRef, out _))
-                        {
-                            continue;
-                        }
-
-                        var err = TryRegisterType(errorInterfaceTypeRef.Type.Type);
-
-                        if (err is not null)
-                        {
-                            err.References.Add(errorInterfaceTypeRef);
-                            _typeRegistry.Register(err);
-                            _typeRegistry.TryRegister(errorInterfaceTypeRef, TypeReference.Create(err.Type));
-                        }
-                        errorInterfaceIsRegistered = true;
+                        (typeSet ??= []).Add(errorSchemaTypeRef);
                     }
                 }
-
-                if (errors?.Count > 0)
+                
+                if (!errorInterfaceIsRegistered && 
+                    !_typeRegistry.TryGetTypeRef(errorInterfaceTypeRef, out _))
                 {
-                    field.Type = CreateFieldResultType(field.Name, errors);
+                    var err = TryRegisterType(errorInterfaceTypeRef.Type.Type);
+
+                    if (err is not null)
+                    {
+                        err.References.Add(errorInterfaceTypeRef);
+                        _typeRegistry.Register(err);
+                        _typeRegistry.TryRegister(errorInterfaceTypeRef, TypeReference.Create(err.Type));
+                    }
+                    
+                    errorInterfaceIsRegistered = true;
+                }
+
+                if (typeSet?.Count > 0)
+                {
+                    typeSet.Insert(0, GetFieldType(field.Type!));
+                    field.Type = CreateFieldResultType(field.Name, typeSet);
                     typeDef.Dependencies.Add(new TypeDependency(field.Type, Completed));
                 }
             }
         }
     }
 
-    private TypeReference CreateFieldResultType(string fieldName, IReadOnlyList<TypeReference> errors)
+    private static TypeReference GetFieldType(TypeReference typeRef)
+    {
+        if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
+            typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
+        {
+            return TypeReference.Create(extendedTypeRef.Type.TypeArguments[0], TypeContext.Output);
+        }
+
+        return typeRef;
+    }
+
+    private TypeReference CreateFieldResultType(string fieldName, IReadOnlyList<TypeReference> typeSet)
     {
         var resultType = new UnionType(
             d =>
@@ -131,7 +161,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                 
                 var typeDef = d.Extend().Definition;
                 
-                foreach (var schemaTypeRef in errors)
+                foreach (var schemaTypeRef in typeSet)
                 {
                     typeDef.Types.Add(schemaTypeRef);
                 }

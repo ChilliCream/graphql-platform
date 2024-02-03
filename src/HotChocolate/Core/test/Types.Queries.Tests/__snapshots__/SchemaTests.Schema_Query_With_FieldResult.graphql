@@ -2,13 +2,17 @@ schema {
   query: QueryWithFieldResult
 }
 
+interface Error {
+  message: String!
+}
+
 type Address {
   id: String!
   street: String!
   city: String!
 }
 
-type AddressNotFound {
+type AddressNotFound implements Error {
   id: String!
   message: String!
 }
@@ -24,7 +28,7 @@ type User {
   address: AddressResult!
 }
 
-type UserNotFound {
+type UserNotFound implements Error {
   id: String!
   message: String!
 }

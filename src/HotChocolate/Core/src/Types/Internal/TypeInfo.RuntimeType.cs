@@ -65,7 +65,9 @@ internal sealed partial class TypeInfo
                     var rewritten = current.IsNullable
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
-                            current, new bool?[] { true, }, cache);
+                            current,
+                            new bool?[] { true, },
+                            cache);
 
                     list.Add((TypeComponentKind.List, rewritten));
                     current = current.ElementType;
@@ -75,7 +77,9 @@ internal sealed partial class TypeInfo
                     var rewritten = current.IsNullable
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
-                            current, new bool?[] { true, }, cache);
+                            current,
+                            new bool?[] { true, },
+                            cache);
 
                     list.Add((TypeComponentKind.Named, rewritten));
                     namedType = current;
@@ -91,7 +95,11 @@ internal sealed partial class TypeInfo
             short i = 0;
             var current = type;
 
-            while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current) || IsOption(current))
+            while (IsWrapperType(current) ||
+                IsTaskType(current) ||
+                IsOptional(current) ||
+                IsOption(current) ||
+                IsFieldResult(current))
             {
                 current = type.TypeArguments[0];
 
@@ -112,13 +120,16 @@ internal sealed partial class TypeInfo
         private static bool IsTaskType(IExtendedType type) =>
             type.IsGeneric &&
             (typeof(Task<>) == type.Definition ||
-             typeof(ValueTask<>) == type.Definition);
+                typeof(ValueTask<>) == type.Definition);
 
         private static bool IsOptional(IExtendedType type) =>
             type.IsGeneric &&
             typeof(Optional<>) == type.Definition;
 
         private static bool IsOption(IExtendedType type) =>
-            type.IsGeneric && type.Definition?.Name == "FSharpOption`1";
+            type is { IsGeneric: true, Definition.Name: "FSharpOption`1", };
+
+        private static bool IsFieldResult(IExtendedType type) =>
+            type.IsGeneric && typeof(IFieldResult).IsAssignableFrom(type);
     }
 }
