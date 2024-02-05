@@ -25,6 +25,46 @@ public class AnnotationBasedSchemaTests
     }
     
     [Fact]
+    public async Task Execute_Query_With_FieldResult()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithFieldResult>()
+                .AddQueryConventions()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      userById(id: "1") {
+                        __typename
+                      }
+                    }
+                    """);
+        
+        result.MatchSnapshot();
+    }
+    
+    [Fact]
+    public async Task Execute_Query_With_FieldResult_Error()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithFieldResult>()
+                .AddQueryConventions()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      userById(id: "2") {
+                        __typename
+                      }
+                    }
+                    """);
+        
+        result.MatchSnapshot();
+    }
+    
+    [Fact]
     public async Task Schema_Query_With_Exceptions()
     {
         var schema =

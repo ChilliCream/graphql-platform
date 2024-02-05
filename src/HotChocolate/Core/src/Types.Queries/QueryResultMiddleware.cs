@@ -1,9 +1,10 @@
 namespace HotChocolate.Types;
 
-internal sealed class QueryErrorMiddleware(FieldDelegate next, IReadOnlyList<CreateError> errorHandlers)
+internal sealed class QueryResultMiddleware(FieldDelegate next, IReadOnlyList<CreateError> errorHandlers)
 {
     private readonly FieldDelegate _next = next ??
         throw new ArgumentNullException(nameof(next));
+
     private readonly IReadOnlyList<CreateError> _errorHandlers = errorHandlers ??
         throw new ArgumentNullException(nameof(errorHandlers));
 
@@ -16,7 +17,15 @@ internal sealed class QueryErrorMiddleware(FieldDelegate next, IReadOnlyList<Cre
             // we need to unwrap field results.
             if (context.Result is IFieldResult fieldResult)
             {
-                context.Result = fieldResult.Value;
+                if (fieldResult.IsSuccess)
+                {
+                    context.Result = fieldResult.Value;
+                }
+                else
+                {
+                    // TODO : this is not good ... it should be clear how errors have to be unwrapped 
+                    context.Result = ((object[])fieldResult.Value!)[0];
+                }
             }
         }
         catch (GraphQLException)

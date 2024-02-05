@@ -90,7 +90,13 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     }
                 }
 
+                // collect error definitions from query field.
                 var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(field);
+                
+                // collect error factories for middleware
+                var errorFactories = errorDefinitions.Count == 0 
+                    ? Array.Empty<CreateError>() 
+                    : errorDefinitions.Select(t => t.Factory).ToArray();
 
                 if (errorDefinitions.Count > 0)
                 {
@@ -138,6 +144,17 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     typeSet.Insert(0, GetFieldType(field.Type!));
                     field.Type = CreateFieldResultType(field.Name, typeSet);
                     typeDef.Dependencies.Add(new TypeDependency(field.Type, Completed));
+                    
+                    // create middleware
+                    var errorMiddleware =
+                        new FieldMiddlewareDefinition(
+                            FieldClassMiddlewareFactory.Create<QueryResultMiddleware>(
+                                (typeof(IReadOnlyList<CreateError>), errorFactories)),
+                            key: "Query Results",
+                            isRepeatable: false);
+
+                    // last but not least we insert the result middleware to the query field.
+                    field.MiddlewareDefinitions.Insert(0, errorMiddleware);
                 }
             }
         }
