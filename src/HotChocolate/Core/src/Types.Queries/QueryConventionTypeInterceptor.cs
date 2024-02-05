@@ -52,6 +52,10 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
 
     public override void OnBeforeCompleteTypes()
     {
+        var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
+        var errorInterfaceIsRegistered = false;
+        List<TypeReference>? typeSet = null;
+        
         foreach (var typeDef in _typeDefs.ToArray())
         {
             if (_mutationDef == typeDef)
@@ -66,9 +70,7 @@ internal sealed class QueryConventionTypeInterceptor : TypeInterceptor
                     continue;
                 }
                 
-                List<TypeReference>? typeSet = null;
-                var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
-                var errorInterfaceIsRegistered = false;
+                typeSet?.Clear();
                 
                 if (field.ResultType != null && 
                     typeof(IFieldResult).IsAssignableFrom(field.ResultType) &&

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -263,9 +264,28 @@ public class UnionType
     {
         foreach (var typeReference in definition.Types)
         {
-            if (context.TryGetType(typeReference, out ObjectType? ot))
+            if (context.TryGetType(typeReference, out IType? type))
             {
-                typeSet.Add(ot);
+                if (type is NonNullType nonNullType)
+                {
+                    type = nonNullType.Type;
+                }
+
+                if (type is not ObjectType objectType)
+                {
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            "The provided type `{0}` is not an object type and cannot be part of a union type.",
+                            type.ToTypeNode().Print())
+                        .SetCode(ErrorCodes.Schema.MissingType)
+                        .SetTypeSystemObject(this)
+                        .SetExtension(_typeReference, typeReference)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
+                    continue;
+                }
+                
+                typeSet.Add(objectType);
             }
             else
             {

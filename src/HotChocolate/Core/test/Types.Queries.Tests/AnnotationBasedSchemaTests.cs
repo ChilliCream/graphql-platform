@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Types.Queries.Tests;
 
-public class SchemaTests
+public class AnnotationBasedSchemaTests
 {
     [Fact]
     public async Task Schema_Query_With_FieldResult()
@@ -63,6 +63,21 @@ public class SchemaTests
         
         schema.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task Schema_Query_With_FieldResult_And_Scalar()
+    {
+        async Task Error() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<UnionOnScalarFails>()
+                .AddQueryConventions()
+                .BuildSchemaAsync();
+
+        var exception = await Assert.ThrowsAsync<SchemaException>(Error);
+        Assert.Equal(1, exception.Errors.Count);
+        exception.Errors[0].Message.MatchSnapshot();
+    }
 
     public class QueryWithException
     {
@@ -109,6 +124,14 @@ public class SchemaTests
     {
         [UsePaging]
         public FieldResult<IQueryable<User>, UserNotFound> GetUsers()
+        {
+            return new UserNotFound("id", "Failed");
+        }
+    }
+    
+    public class UnionOnScalarFails
+    {
+        public FieldResult<string, UserNotFound> GetUsers()
         {
             return new UserNotFound("id", "Failed");
         }
