@@ -19,6 +19,20 @@ namespace HotChocolate.ApolloFederation.Types;
 ///   description: String @override(from: "BarSubgraph")
 /// }
 /// </example>
+///
+/// The progressive @override feature enables the gradual, progressive deployment of a subgraph
+/// with an @override field. As a subgraph developer, you can customize the percentage of traffic
+/// that the overriding and overridden subgraphs each resolve for a field. You apply a label to
+/// an @override field to set the percentage of traffic for the field that should be resolved by
+/// the overriding subgraph, with the remaining percentage resolved by the overridden subgraph.
+/// See <see href = "https://www.apollographql.com/docs/federation/entities-advanced/#incremental-migration-with-progressive-override">Apollo documentation</see>
+/// for additional details.
+/// <example>
+/// type Foo @key(fields: "id") {
+///   id: ID!
+///   description: String @override(from: "BarSubgraph", label: "percent(1)")
+/// }
+/// </example>
 /// </summary>
 public sealed class OverrideAttribute : ObjectFieldDescriptorAttribute
 {
@@ -29,9 +43,13 @@ public sealed class OverrideAttribute : ObjectFieldDescriptorAttribute
     /// <param name="from">
     /// Name of the subgraph to be overridden
     /// </param>
-    public OverrideAttribute(string from)
+    /// <param name="label">
+    /// Optional label that will be evaulated at runtime to determine whether field should be overriden
+    /// </param>
+    public OverrideAttribute(string from, string? label = null)
     {
         From = from;
+        Label = label;
     }
 
     /// <summary>
@@ -39,11 +57,16 @@ public sealed class OverrideAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public string From { get; }
 
+    /// <summary>
+    /// Get optional label that will be evaulated at runtime to determine whether field should be overriden.
+    /// </summary>
+    public string? Label { get; }
+
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        descriptor.Override(From);
+        descriptor.Override(From, Label);
     }
 }

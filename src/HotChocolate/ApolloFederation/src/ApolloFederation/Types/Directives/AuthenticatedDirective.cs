@@ -25,9 +25,9 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[Package(Federation24)]
+[Package(Federation25)]
 [DirectiveType(
-    AuthenticatedDirective_Name, 
+    AuthenticatedDirective_Name,
     DirectiveLocation.Enum |
     DirectiveLocation.FieldDefinition |
     DirectiveLocation.Interface |

@@ -6,7 +6,11 @@ namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
 /// <code>
+/// # federation v2.0 definition
 /// directive @override(from: String!) on FIELD_DEFINITION
+///
+/// # federation v2.7 definition
+/// directive @override(from: String!, label: String) on FIELD_DEFINITION
 /// </code>
 ///
 /// The @override directive is used to indicate that the current subgraph is taking
@@ -19,11 +23,28 @@ namespace HotChocolate.ApolloFederation.Types;
 ///   description: String @override(from: "BarSubgraph")
 /// }
 /// </example>
+///
+/// The progressive @override feature enables the gradual, progressive deployment of a subgraph
+/// with an @override field. As a subgraph developer, you can customize the percentage of traffic
+/// that the overriding and overridden subgraphs each resolve for a field. You apply a label to
+/// an @override field to set the percentage of traffic for the field that should be resolved by
+/// the overriding subgraph, with the remaining percentage resolved by the overridden subgraph.
+/// See <see href = "https://www.apollographql.com/docs/federation/entities-advanced/#incremental-migration-with-progressive-override">Apollo documentation</see>
+/// for additional details.
+/// <example>
+/// type Foo @key(fields: "id") {
+///   id: ID!
+///   description: String @override(from: "BarSubgraph", label: "percent(1)")
+/// }
+/// </example>
 /// </summary>
 [Package(Federation20)]
 [DirectiveType(OverrideDirective_Name, DirectiveLocation.FieldDefinition)]
 [GraphQLDescription(OverrideDirective_Description)]
-public sealed class OverrideDirective(string from)
+[OverrideLegacySupport]
+public sealed class OverrideDirective(string from, string? label)
 {
     public string From { get; } = from;
+
+    public string? Label { get; } = label;
 }

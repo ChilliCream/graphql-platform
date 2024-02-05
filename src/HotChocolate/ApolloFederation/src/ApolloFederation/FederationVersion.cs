@@ -13,6 +13,8 @@ public enum FederationVersion
     Federation23 = 2_3,
     Federation24 = 2_4,
     Federation25 = 2_5,
-    // Federation26 = 2_6,
-    Latest = Federation25,
+    Federation26 = 2_6,
+    Federation27 = 2_7,
+    // default to latest-1
+    Default = Federation26,
 }

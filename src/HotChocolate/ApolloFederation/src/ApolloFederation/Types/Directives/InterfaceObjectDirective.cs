@@ -19,7 +19,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[Package(Federation22)]
+[Package(Federation23)]
 [DirectiveType(InterfaceObject_Name, DirectiveLocation.Object)]
 [GraphQLDescription(InterfaceObjectDirective_Description)]
 public sealed class InterfaceObjectDirective

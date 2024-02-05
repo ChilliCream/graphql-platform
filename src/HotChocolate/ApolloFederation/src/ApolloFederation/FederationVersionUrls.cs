@@ -8,4 +8,6 @@ internal static class FederationVersionUrls
     public const string Federation23 = "https://specs.apollo.dev/federation/v2.3";
     public const string Federation24 = "https://specs.apollo.dev/federation/v2.4";
     public const string Federation25 = "https://specs.apollo.dev/federation/v2.5";
+    public const string Federation26 = "https://specs.apollo.dev/federation/v2.6";
+    public const string Federation27 = "https://specs.apollo.dev/federation/v2.7";
 }
