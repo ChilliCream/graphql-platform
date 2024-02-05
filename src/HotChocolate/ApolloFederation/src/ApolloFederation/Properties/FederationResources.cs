@@ -56,4 +56,13 @@ internal partial class FederationResources
     public const string PolicyDirective_Description =
         "Indicates to composition that the target element is restricted based " +
         "on authorization policies.";
+
+    public const string LinkDirective_Description =
+        "Links definitions within the document to external schemas.";
+
+    public const string LinkDirective_Url_Description =
+        "Gets imported specification url.";
+
+    public const string LinkDirective_Import_Description =
+        "Gets optional list of imported element names.";
 }

@@ -22,6 +22,12 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
+/// <remarks>
+/// Initializes new instance of <see cref="PolicyAttribute"/>
+/// </remarks>
+/// <param name="policies">
+/// Array of required authentication policies.
+/// </param>
 [AttributeUsage(
     AttributeTargets.Class
     | AttributeTargets.Enum
@@ -31,23 +37,13 @@ namespace HotChocolate.ApolloFederation.Types;
     | AttributeTargets.Struct,
     AllowMultiple = true
 )]
-public sealed class PolicyAttribute : DescriptorAttribute
+public sealed class PolicyAttribute(string[] policies) : DescriptorAttribute
 {
-    /// <summary>
-    /// Initializes new instance of <see cref="PolicyAttribute"/>
-    /// </summary>
-    /// <param name="policies">
-    /// Array of required authentication policies.
-    /// </param>
-    public PolicyAttribute(string[] policies)
-    {
-        Policies = policies;
-    }
 
     /// <summary>
     /// Retrieves array of required authentication policies.
     /// </summary>
-    public string[] Policies { get; }
+    public string[] Policies { get; } = policies;
 
     protected internal override void TryConfigure(
         IDescriptorContext context,

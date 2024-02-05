@@ -34,33 +34,27 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-public sealed class OverrideAttribute : ObjectFieldDescriptorAttribute
+/// <remarks>
+/// Initializes new instance of <see cref="OverrideAttribute"/>
+/// </remarks>
+/// <param name="from">
+/// Name of the subgraph to be overridden
+/// </param>
+/// <param name="label">
+/// Optional label that will be evaulated at runtime to determine whether field should be overriden
+/// </param>
+public sealed class OverrideAttribute(string from, string? label = null) : ObjectFieldDescriptorAttribute
 {
-
-    /// <summary>
-    /// Initializes new instance of <see cref="OverrideAttribute"/>
-    /// </summary>
-    /// <param name="from">
-    /// Name of the subgraph to be overridden
-    /// </param>
-    /// <param name="label">
-    /// Optional label that will be evaulated at runtime to determine whether field should be overriden
-    /// </param>
-    public OverrideAttribute(string from, string? label = null)
-    {
-        From = from;
-        Label = label;
-    }
 
     /// <summary>
     /// Get name of the subgraph to be overridden.
     /// </summary>
-    public string From { get; }
+    public string From { get; } = from;
 
     /// <summary>
     /// Get optional label that will be evaulated at runtime to determine whether field should be overriden.
     /// </summary>
-    public string? Label { get; }
+    public string? Label { get; } = label;
 
     protected override void OnConfigure(
         IDescriptorContext context,

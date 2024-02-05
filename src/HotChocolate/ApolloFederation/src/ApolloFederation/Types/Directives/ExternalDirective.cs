@@ -33,7 +33,7 @@ namespace HotChocolate.ApolloFederation.Types;
 [Package(Federation20)]
 [DirectiveType(ExternalDirective_Name, DirectiveLocation.FieldDefinition | DirectiveLocation.Object)]
 [GraphQLDescription(ExternalDirective_Description)]
-[ExternalLegacySupportAttribute]
+[ExternalLegacySupport]
 public sealed class ExternalDirective
 {
     public static ExternalDirective Default { get; } = new();

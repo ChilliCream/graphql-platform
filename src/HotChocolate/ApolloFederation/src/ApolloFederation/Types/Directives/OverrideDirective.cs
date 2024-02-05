@@ -38,13 +38,31 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
+/// <param name="from">
+/// Name of the subgraph to be overridden
+/// </param>
 [Package(Federation20)]
 [DirectiveType(OverrideDirective_Name, DirectiveLocation.FieldDefinition)]
 [GraphQLDescription(OverrideDirective_Description)]
 [OverrideLegacySupport]
-public sealed class OverrideDirective(string from, string? label)
+public sealed class OverrideDirective(string from)
 {
+
+    /// <summary>
+    /// Creates new instance of @override directive.
+    /// </summary>
+    /// <param name="from">
+    /// Name of the subgraph to be overridden
+    /// </param>
+    /// <param name="label">
+    /// Optional label that will be evaulated at runtime to determine whether field should be overriden
+    /// </param>
+    public OverrideDirective(string from, string? label = null) : this(from)
+    {
+        Label = label;
+    }
+
     public string From { get; } = from;
 
-    public string? Label { get; } = label;
+    public string? Label { get; }
 }

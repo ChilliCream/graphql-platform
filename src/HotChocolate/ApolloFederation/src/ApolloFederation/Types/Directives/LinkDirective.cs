@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.ApolloFederation.Properties;
 using static HotChocolate.ApolloFederation.FederationTypeNames;
 
 namespace HotChocolate.ApolloFederation.Types;
@@ -7,6 +8,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// Object representation of @link directive.
 /// </summary>
 [DirectiveType(LinkDirective_Name, DirectiveLocation.Schema, IsRepeatable = true)]
+[GraphQLDescription(FederationResources.LinkDirective_Description)]
 public sealed class LinkDirective
 {
     /// <summary>
@@ -28,10 +30,12 @@ public sealed class LinkDirective
     /// Gets imported specification url.
     /// </summary>
     [GraphQLType<NonNullType<StringType>>]
+    [GraphQLDescription(FederationResources.LinkDirective_Url_Description)]
     public Uri Url { get; }
 
     /// <summary>
     /// Gets optional list of imported element names.
     /// </summary>
+    [GraphQLDescription(FederationResources.LinkDirective_Import_Description)]
     public IReadOnlySet<string>? Import { get; }
 }
