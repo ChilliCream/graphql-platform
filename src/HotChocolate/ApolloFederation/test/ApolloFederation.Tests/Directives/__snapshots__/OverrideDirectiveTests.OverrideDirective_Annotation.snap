@@ -1,34 +1,16 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@provides", "FieldSet", "@external" ]) {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.0", import: [ "@override", "@key", "FieldSet" ]) {
   query: Query
 }
 
-type Product @key(fields: "id") @key(fields: "sku package") @key(fields: "sku variation { id }") {
+type Foo @key(fields: "id") {
   id: ID!
-  sku: String
-  package: String
-  variation: ProductVariation
-  dimensions: ProductDimension
-  createdBy: User @provides(fields: "totalProductsCreated")
-}
-
-type ProductDimension {
-  size: String
-  weight: Float
-}
-
-type ProductVariation {
-  id: ID!
+  name: String! @override(from: "bar")
+  description: String! @override(from: "bar")
 }
 
 type Query {
-  product(id: ID!): Product
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
-}
-
-type User @key(fields: "email") {
-  email: ID! @external
-  totalProductsCreated: Int @external
 }
 
 "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
@@ -37,10 +19,7 @@ type _Service {
 }
 
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
-union _Entity = Product | User
-
-"Directive to indicate that a field is owned by another service, for example via Apollo federation."
-directive @external on OBJECT | FIELD_DEFINITION
+union _Entity = Foo
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
@@ -48,8 +27,8 @@ directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJEC
 "Links definitions within the document to external schemas."
 directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
-"Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
-directive @provides(fields: FieldSet!) on FIELD_DEFINITION
+"Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
+directive @override(from: String!) on FIELD_DEFINITION
 
 "Scalar representing a set of fields."
 scalar FieldSet

@@ -27,7 +27,7 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddApolloFederation(
         this IRequestExecutorBuilder builder,
-        FederationVersion version = FederationVersion.Latest)
+        FederationVersion version = FederationVersion.Default)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.SetContextData(FederationContextData.FederationVersion, version);

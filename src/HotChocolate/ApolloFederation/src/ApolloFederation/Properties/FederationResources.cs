@@ -16,17 +16,17 @@ internal partial class FederationResources
 
     public const string ExtendsDirective_Description =
         "Directive to indicate that marks target object as extending part of the federated schema.";
-    
+
     public const string ContactDirective_Description =
         "Provides contact information of the owner responsible for this subgraph schema.";
 
     public const string RequiresDirective_Description =
         "Used to annotate the required input fieldset from a base type for a resolver.";
-    
+
     public const string OverrideDirective_Description =
         "Overrides fields resolution logic from other subgraph. " +
         "Used for migrating fields from one subgraph to another.";
-    
+
     public const string ShareableDirective_Description =
         "Indicates that given object and/or field can be resolved by multiple subgraphs.";
 
@@ -38,7 +38,7 @@ internal partial class FederationResources
 
     public const string ComposeDirective_Description =
         "Marks underlying custom directive to be included in the Supergraph schema.";
-    
+
     public const string ServiceType_Description =
         "This type provides a field named sdl: String! which exposes the SDL of the " +
         "service's schema. This SDL (schema definition language) is a printed version " +
@@ -48,8 +48,21 @@ internal partial class FederationResources
     public const string AuthenticatedDirective_Description =
         "Indicates to composition that the target element is accessible " +
         "only to the authenticated supergraph users.";
-    
+
     public const string RequiresScopesDirective_Description =
         "Indicates to composition that the target element is accessible only " +
         "to the authenticated supergraph users with the appropriate JWT scopes.";
+
+    public const string PolicyDirective_Description =
+        "Indicates to composition that the target element is restricted based " +
+        "on authorization policies.";
+
+    public const string LinkDirective_Description =
+        "Links definitions within the document to external schemas.";
+
+    public const string LinkDirective_Url_Description =
+        "Gets imported specification url.";
+
+    public const string LinkDirective_Import_Description =
+        "Gets optional list of imported element names.";
 }

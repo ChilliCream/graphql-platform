@@ -2,19 +2,18 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.ApolloFederation.Types;
 
-internal sealed class KeyLegacySupportAttribute : DirectiveTypeDescriptorAttribute
+internal sealed class ExternalLegacySupportAttribute : DirectiveTypeDescriptorAttribute
 {
     protected override void OnConfigure(
         IDescriptorContext context,
         IDirectiveTypeDescriptor descriptor,
         Type type)
     {
-        // federation v1 @key only specified "fields" parameter
+        // federation v1 only supported @external on fields
         if (descriptor.GetFederationVersion() == FederationVersion.Federation10)
         {
-            var desc = (IDirectiveTypeDescriptor<KeyDirective>)descriptor;
-            desc.BindArgumentsExplicitly();
-            desc.Argument(t => t.Fields);
+            var desc = (IDirectiveTypeDescriptor<ExternalDirective>)descriptor;
+            desc.Location(DirectiveLocation.Field);
         }
     }
 }
