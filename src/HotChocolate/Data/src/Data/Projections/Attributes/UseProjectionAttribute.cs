@@ -29,7 +29,5 @@ public sealed class UseProjectionAttribute
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
-    {
-        descriptor.UseProjection(Scope);
-    }
+        => descriptor.UseProjection(Scope);
 }

@@ -1,7 +1,7 @@
 {
   "data": {
     "userById": {
-      "__typename": "UserNotFound"
+      "__typename": "UserNotFoundError"
     }
   }
 }

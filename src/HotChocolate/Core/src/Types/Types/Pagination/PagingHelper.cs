@@ -74,23 +74,36 @@ public static class PagingHelper
         ObjectFieldDefinition definition,
         Type entityType)
     {
-        // if an explicit result type is defined we will type it since it expresses the
-        // intend.
-        if (definition.ResultType is not null)
+        var type = ResolveType();
+
+        if (typeof(IFieldResult).IsAssignableFrom(type.Type))
         {
-            return typeInspector.GetType(definition.ResultType);
+            return type.TypeArguments[0];
         }
 
-        // Otherwise we will look at specified members and extract the return type.
-        var member = definition.ResolverMember ?? definition.Member;
-        if (member is not null)
+        return type;
+        
+        IExtendedType ResolveType()
         {
-            return typeInspector.GetReturnType(member, true);
-        }
+            // if an explicit result type is defined we will type it since it expresses the
+            // intend.
+            if (definition.ResultType is not null)
+            {
+                return typeInspector.GetType(definition.ResultType);
+            }
 
-        // if we were not able to resolve the source type we will assume that it is
-        // an enumerable of the entity type.
-        return typeInspector.GetType(typeof(IEnumerable<>).MakeGenericType(entityType));
+            // Otherwise we will look at specified members and extract the return type.
+            var member = definition.ResolverMember ?? definition.Member;
+
+            if (member is not null)
+            {
+                return typeInspector.GetReturnType(member, true);
+            }
+
+            // if we were not able to resolve the source type we will assume that it is
+            // an enumerable of the entity type.
+            return typeInspector.GetType(typeof(IEnumerable<>).MakeGenericType(entityType));
+        }
     }
 
     private static FieldMiddleware CreateMiddleware(

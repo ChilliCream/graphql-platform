@@ -148,9 +148,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                     if (selectionType is null)
                     {
                         if (definition.ResultType is null ||
-                            !context.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType,
-                                out var typeInfo))
+                            !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 UseProjection_CannotHandleType,
@@ -184,9 +182,26 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
+        var unwrap = new FieldMiddleware(
+            next =>
+            {
+                var project = middleware(next);
+                return async ctx =>
+                {
+                    await next(ctx);
+
+                    if (ctx.Result is IFieldResult { IsSuccess: true, } fieldResult)
+                    {
+                        ctx.Result = fieldResult.Value;
+                        await project(ctx);
+                    }
+                };
+            });
+        
+        
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =
-            new(middleware, key: WellKnownMiddleware.Projection);
+            new(unwrap, key: WellKnownMiddleware.Projection);
     }
 
     private static FieldMiddleware CreateMiddleware<TEntity>(IProjectionConvention convention)

@@ -25,6 +25,16 @@ public class PagingMiddleware
 
         await _next(context).ConfigureAwait(false);
 
+        if (context.Result is IFieldResult fieldResult)
+        {
+            if (fieldResult.IsError)
+            {
+                return;
+            }
+            
+            context.Result = fieldResult.Value;
+        }
+
         if (context.Result is not null and not IPage)
         {
             context.Result = await _pagingHandler

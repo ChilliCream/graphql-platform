@@ -5,7 +5,7 @@ internal sealed class ErrorDefinition(
     Type schemaType,
     CreateError? factory = null)
 {
-    private static readonly CreateError _empty = o => o;
+    private static readonly CreateError _empty = _ => null;
 
     public Type SchemaType { get; } = schemaType;
 

@@ -152,9 +152,7 @@ public static class SortObjectFieldDescriptorExtensions
                     {
                         if (definition.ResultType is null ||
                             definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType,
-                                out var typeInfo))
+                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
@@ -224,7 +222,7 @@ public static class SortObjectFieldDescriptorExtensions
         string? scope)
     {
         var resolvedType = context.GetType<IType>(argumentDefinition.Type!);
-        if (!(resolvedType.ElementType().NamedType() is ISortInputType type))
+        if (resolvedType.ElementType().NamedType() is not ISortInputType type)
         {
             throw Sorting_TypeOfInvalidFormat(resolvedType);
         }
@@ -236,9 +234,25 @@ public static class SortObjectFieldDescriptorExtensions
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
+        var unwrap = new FieldMiddleware(
+            next =>
+            {
+                var sort = middleware(next);
+                return async ctx =>
+                {
+                    await next(ctx);
+
+                    if (ctx.Result is IFieldResult { IsSuccess: true, } fieldResult)
+                    {
+                        ctx.Result = fieldResult.Value;
+                        await sort(ctx);
+                    }
+                };
+            });
+        
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =
-            new(middleware, key: WellKnownMiddleware.Sorting);
+            new(unwrap, key: WellKnownMiddleware.Sorting);
     }
 
     private static FieldMiddleware CreateMiddleware<TEntity>(

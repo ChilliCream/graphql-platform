@@ -150,9 +150,7 @@ public static class FilterObjectFieldDescriptorExtensions
                     {
                         if (definition.ResultType is null ||
                             definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType,
-                                out var typeInfo))
+                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
@@ -217,13 +215,26 @@ public static class FilterObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = (FieldMiddleware)factory.Invoke(null,
-        [
-            convention,
-        ])!;
+        var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
+        var unwrap = new FieldMiddleware(
+            next =>
+            {
+                var filter = middleware(next);
+                return async ctx =>
+                {
+                    await next(ctx);
+
+                    if (ctx.Result is IFieldResult { IsSuccess: true, } fieldResult)
+                    {
+                        ctx.Result = fieldResult.Value;
+                        await filter(ctx);
+                    }
+                };
+            });
+        
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] =
-            new(middleware, key: WellKnownMiddleware.Filtering);
+            new(unwrap, key: WellKnownMiddleware.Filtering);
     }
 
     private static FieldMiddleware CreateMiddleware<TEntity>(IFilterConvention convention) =>

@@ -1,6 +1,7 @@
 {
   "data": {
-    "userById": {
+    "users": {
+      "message": "Failed",
       "__typename": "UserNotFound"
     }
   }

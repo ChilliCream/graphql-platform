@@ -1261,6 +1261,13 @@
           "HotChocolate.Execution": "[0.0.0, )"
         }
       },
+      "hotchocolate.data": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.CursorPagination": "[0.0.0, )"
+        }
+      },
       "hotchocolate.execution": {
         "type": "Project",
         "dependencies": {
@@ -2724,6 +2731,13 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.data": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.CursorPagination": "[0.0.0, )"
         }
       },
       "hotchocolate.execution": {
@@ -4296,6 +4310,13 @@
         "type": "Project",
         "dependencies": {
           "HotChocolate.Execution": "[0.0.0, )"
+        }
+      },
+      "hotchocolate.data": {
+        "type": "Project",
+        "dependencies": {
+          "HotChocolate.Execution": "[0.0.0, )",
+          "HotChocolate.Types.CursorPagination": "[0.0.0, )"
         }
       },
       "hotchocolate.execution": {
