@@ -64,6 +64,46 @@ public class AnnotationBasedSchemaTests
 
         result.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task Execute_Query_With_FieldResult_2()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithFieldResult>()
+                .AddQueryConventions()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      userById2(id: "1") {
+                        __typename
+                      }
+                    }
+                    """);
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Execute_Query_With_FieldResult_2_Error()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithFieldResult>()
+                .AddQueryConventions()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                      userById2(id: "2") {
+                        __typename
+                      }
+                    }
+                    """);
+
+        result.MatchSnapshot();
+    }
 
     [Fact]
     public async Task Schema_Query_With_Exceptions()
@@ -383,6 +423,17 @@ public class AnnotationBasedSchemaTests
             }
 
             return new UserNotFound(id, "Failed");
+        }
+        
+        [Error<UserNotFound>]
+        public FieldResult<User> GetUserById2(string id)
+        {
+            if (id == "1")
+            {
+                return new User("1", "Foo", "foo@bar.de", new AddressNotFound("1", "Failed"));
+            }
+
+            return new FieldResult<User>(new UserNotFound(id, "Failed"));
         }
     }
 

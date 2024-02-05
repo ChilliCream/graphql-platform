@@ -1,5 +1,5 @@
 schema {
-  query: QueryWithFieldResult
+  query: QueryWithFieldResultType
 }
 
 interface Error {
@@ -17,9 +17,8 @@ type AddressNotFound implements Error {
   message: String!
 }
 
-type QueryWithFieldResult {
+type QueryWithFieldResultType {
   userById(id: String!): UserByIdResult!
-  userById2(id: String!): UserById2Result!
 }
 
 type User {
@@ -35,7 +34,5 @@ type UserNotFound implements Error {
 }
 
 union AddressResult = Address | AddressNotFound
-
-union UserById2Result = User | UserNotFound
 
 union UserByIdResult = User | UserNotFound
