@@ -1,7 +1,7 @@
 {
   "errors": [
     {
-      "message": "Could not resolve the actual object type from `System.Exception` for the abstract type `userById`.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
           "line": 2,

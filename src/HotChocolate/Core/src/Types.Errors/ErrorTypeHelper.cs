@@ -88,10 +88,7 @@ internal sealed class ErrorTypeHelper
                 else
                 {
                     var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-                    var definition = new ErrorDefinition(
-                        errorType,
-                        schemaType,
-                        obj => obj);
+                    var definition = new ErrorDefinition(errorType, schemaType, _ => null);
                     tempErrors.Add(definition);
                 }
             }
