@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate;
-using HotChocolate.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -350,7 +349,7 @@ public class CodeFirstSchemaTests
         async Task Error() =>
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<UnionOnScalarFails>()
+                .AddQueryType<UnionOnScalarFailsType>()
                 .AddQueryConventions()
                 .BuildSchemaAsync();
 
@@ -488,15 +487,20 @@ public class CodeFirstSchemaTests
                     });
         }
     }
-
-    public class UnionOnScalarFails
+    
+    
+    public class UnionOnScalarFailsType : ObjectType
     {
-        public FieldResult<string, UserNotFound> GetUsers()
+        protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            return new UserNotFound("id", "Failed");
+            descriptor
+                .Field("userById")
+                .Argument("id", a => a.Type<NonNullType<StringType>>())
+                .Error<UserNotFound>()
+                .Resolve("some string");
         }
     }
-
+    
     public record User(string Id, string Name, string Email, FieldResult<Address, AddressNotFound> Address);
 
     public record Address(string Id, string Street, string City);

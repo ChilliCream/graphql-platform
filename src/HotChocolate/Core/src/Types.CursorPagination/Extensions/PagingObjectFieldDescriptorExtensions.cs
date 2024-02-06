@@ -156,13 +156,6 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null && 
-                    d.Type is ExtendedTypeReference extendedTypeRef && 
-                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo))
-                {
-                    typeRef = c.TypeInspector.GetOutputTypeRef(typeInfo.NamedType);
-                }
-
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
                 d.CustomSettings.Add(typeof(Connection));

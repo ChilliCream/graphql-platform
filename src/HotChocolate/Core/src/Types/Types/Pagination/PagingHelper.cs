@@ -148,7 +148,7 @@ public static class PagingHelper
                 // nullability information.
                 var current = schemaTypeRef.Type.Type;
 
-                foreach (var component in typeInfo.Components.Reverse().Skip(1))
+                foreach (var component in typeInfo.Components.Reverse())
                 {
                     if (component.Kind == TypeComponentKind.NonNull)
                     {
