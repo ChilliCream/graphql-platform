@@ -138,7 +138,7 @@ public interface IFilterConvention : IConvention
     /// Returns a field middleware which represents the filter execution logic
     /// for the specified entity type.
     /// </returns>
-    FieldMiddleware CreateExecutor<TEntityType>();
+    IQueryBuilder CreateBuilder<TEntityType>();
 
     /// <summary>
     /// Configures the field where the filters are applied. This can be used to add context

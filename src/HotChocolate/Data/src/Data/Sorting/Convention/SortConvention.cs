@@ -225,8 +225,8 @@ public class SortConvention
         }
     }
 
-    public FieldMiddleware CreateExecutor<TEntityType>() =>
-        _provider.CreateExecutor<TEntityType>(_argumentName);
+    public IQueryBuilder CreateBuilder<TEntityType>() =>
+        _provider.CreateBuilder<TEntityType>(_argumentName);
 
     public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
         _provider.ConfigureField(_argumentName, descriptor);
@@ -330,16 +330,18 @@ public class SortConvention
         ISortProviderConvention provider,
         IReadOnlyList<ISortProviderExtension> extensions)
     {
-        if (provider is Convention providerConvention)
+        if (provider is not Convention providerConvention)
         {
-            for (var m = 0; m < extensions.Count; m++)
+            return;
+        }
+
+        for (var m = 0; m < extensions.Count; m++)
+        {
+            if (extensions[m] is ISortProviderConvention extensionConvention)
             {
-                if (extensions[m] is ISortProviderConvention extensionConvention)
-                {
-                    extensionConvention.Initialize(context);
-                    extensions[m].Merge(context, providerConvention);
-                    extensionConvention.Complete(context);
-                }
+                extensionConvention.Initialize(context);
+                extensions[m].Merge(context, providerConvention);
+                extensionConvention.Complete(context);
             }
         }
     }

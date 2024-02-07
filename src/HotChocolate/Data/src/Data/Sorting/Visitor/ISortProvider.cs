@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
@@ -11,7 +10,16 @@ public interface ISortProvider
 
     IReadOnlyCollection<ISortOperationHandler> OperationHandlers { get; }
 
-    FieldMiddleware CreateExecutor<TEntityType>(string argumentName);
+    /// <summary>
+    /// Creates a query builder that builds up the order clause.
+    /// </summary>
+    /// <typeparam name="TEntityType">
+    /// The entity type for which query builder shall be created.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a query builder that builds up the order clause.
+    /// </returns>
+    IQueryBuilder CreateBuilder<TEntityType>(string argumentName);
 
     /// <summary>
     /// Configures the field where the filters are applied. This can be used to add context

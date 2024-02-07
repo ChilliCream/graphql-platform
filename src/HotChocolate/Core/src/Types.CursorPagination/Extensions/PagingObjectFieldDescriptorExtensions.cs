@@ -156,12 +156,42 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
+                if (typeRef is null && 
+                    d.Type is ExtendedTypeReference extendedTypeRef && 
+                    c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
+                    GetElementType(typeInfo) is { } elementType)
+                {
+                    typeRef = TypeReference.Create(elementType, TypeContext.Output);
+                }
+
                 var resolverMember = d.ResolverMember ?? d.Member;
                 d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
                 d.CustomSettings.Add(typeof(Connection));
             });
 
         return descriptor;
+    }
+
+    private static IExtendedType? GetElementType(ITypeInfo typeInfo)
+    {
+        var elementType = false;
+        
+        for (var i = 0; i < typeInfo.Components.Count; i++)
+        {
+            var component = typeInfo.Components[i];
+
+            if (elementType)
+            {
+                return component.Type;
+            }
+            
+            if (component.Kind is TypeComponentKind.List)
+            {
+                elementType = true;
+            }
+        }
+
+        return null;
     }
 
     public static IInterfaceFieldDescriptor UsePaging<TNodeType>(

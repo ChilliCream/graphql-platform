@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
+using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 
 namespace HotChocolate.Types;
 
@@ -215,28 +216,12 @@ public static class FilterObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
-        var unwrap = new FieldMiddleware(
-            next =>
-            {
-                var filter = middleware(next);
-                return async ctx =>
-                {
-                    await next(ctx);
-
-                    if (ctx.Result is IFieldResult { IsSuccess: true, } fieldResult)
-                    {
-                        ctx.Result = fieldResult.Value;
-                        await filter(ctx);
-                    }
-                };
-            });
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
         
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
-            new(unwrap, key: WellKnownMiddleware.Filtering);
+        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Filtering);
     }
-
-    private static FieldMiddleware CreateMiddleware<TEntity>(IFilterConvention convention) =>
-        convention.CreateExecutor<TEntity>();
+    
+    private static IQueryBuilder CreateMiddleware<TEntity>(IFilterConvention convention) =>
+        convention.CreateBuilder<TEntity>();
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
@@ -251,41 +250,29 @@ public class FilterConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private sealed class MockProviderExtensions : FilterProviderExtensions<QueryableFilterContext>
-    {
-    }
+    private sealed class MockProviderExtensions : FilterProviderExtensions<QueryableFilterContext>;
 
     private sealed class MockProvider : IFilterProvider
     {
-        public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; } = null!;
+        public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => null!;
 
-        public FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-        {
-            throw new NotImplementedException();
-        }
+        public IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+            => throw new NotImplementedException();
 
         public void ConfigureField(string argumentName, IObjectFieldDescriptor descriptor)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public IFilterMetadata? CreateMetaData(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
-        {
-            return null;
-        }
+            => null;
     }
 
-    private sealed class MockFilterConvention : FilterConvention
+    private sealed class MockFilterConvention(
+        Action<IFilterConventionDescriptor> configure)
+        : FilterConvention(configure)
     {
-        public MockFilterConvention(
-            Action<IFilterConventionDescriptor> configure)
-            : base(configure)
-        {
-        }
-
         public FilterConventionDefinition? DefinitionAccessor => Definition;
     }
 }

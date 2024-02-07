@@ -9,6 +9,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
+using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -233,29 +234,13 @@ public static class SortObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
-        var unwrap = new FieldMiddleware(
-            next =>
-            {
-                var sort = middleware(next);
-                return async ctx =>
-                {
-                    await next(ctx);
-
-                    if (ctx.Result is IFieldResult { IsSuccess: true, } fieldResult)
-                    {
-                        ctx.Result = fieldResult.Value;
-                        await sort(ctx);
-                    }
-                };
-            });
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
         
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
-            new(unwrap, key: WellKnownMiddleware.Sorting);
+        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
-
-    private static FieldMiddleware CreateMiddleware<TEntity>(
+    
+    private static IQueryBuilder CreateMiddleware<TEntity>(
         ISortConvention convention) =>
-        convention.CreateExecutor<TEntity>();
+        convention.CreateBuilder<TEntity>();
 }

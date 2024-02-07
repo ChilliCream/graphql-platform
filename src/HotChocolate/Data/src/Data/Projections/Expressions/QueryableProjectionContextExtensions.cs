@@ -12,8 +12,7 @@ public static class QueryableProjectionContextExtensions
         Type runtimeType)
     {
         var parameterName = "p" + context.Scopes.Count;
-        var closure =
-            new QueryableProjectionScope(runtimeType, parameterName);
+        var closure = new QueryableProjectionScope(runtimeType, parameterName);
         context.Scopes.Push(closure);
         return closure;
     }

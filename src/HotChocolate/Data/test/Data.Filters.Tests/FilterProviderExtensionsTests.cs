@@ -1,13 +1,11 @@
 using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -53,18 +51,13 @@ public class FilterProviderExtensionsTests
         }
     }
 
-    private sealed class MockProvider : FilterProvider<QueryableFilterContext>
+    private sealed class MockProvider(
+        Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
+        : FilterProvider<QueryableFilterContext>(configure)
     {
-        public FilterProviderDefinition? DefinitionAccessor => base.Definition;
+        public FilterProviderDefinition? DefinitionAccessor => Definition;
 
-        public MockProvider(Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
-            : base(configure)
-        {
-        }
-
-        public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-        {
-            throw new NotImplementedException();
-        }
+        public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+            => throw new NotImplementedException();
     }
 }

@@ -477,9 +477,7 @@ public class Mutation
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> ModifySingleOrDefault()
-    {
-        return new Foo[] { new() { Bar = "A", }, }.AsQueryable();
-    }
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [Error<AnError>]
     [UseMutationConvention]

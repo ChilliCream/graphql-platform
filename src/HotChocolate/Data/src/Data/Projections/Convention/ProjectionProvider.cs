@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -94,7 +93,7 @@ public abstract class ProjectionProvider
             (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
             .Include(context.Services);
 
-        foreach ((var type, var instance) in Definition.Handlers)
+        foreach (var (type, instance) in Definition.Handlers)
         {
             switch (instance)
             {
@@ -114,7 +113,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach ((var type, var instance) in Definition.Interceptors)
+        foreach (var (type, instance) in Definition.Interceptors)
         {
             switch (instance)
             {
@@ -134,7 +133,7 @@ public abstract class ProjectionProvider
             }
         }
 
-        foreach ((var type, var instance) in Definition.Optimizers)
+        foreach (var (type, instance) in Definition.Optimizers)
         {
             switch (instance)
             {
@@ -191,19 +190,15 @@ public abstract class ProjectionProvider
     }
 
     void IProjectionProviderConvention.Initialize(IConventionContext context)
-    {
-        base.Initialize(context);
-    }
+        => Initialize(context);
 
     public new void Initialize(IConventionContext context)
-    {
-        base.Initialize(context);
-    }
+        => base.Initialize(context);
 
     /// <summary>
     /// Creates the executor that is attached to the middleware pipeline of the field
     /// </summary>
     /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
     /// <returns>A middleware</returns>
-    public abstract FieldMiddleware CreateExecutor<TEntityType>();
+    public abstract IQueryBuilder CreateBuilder<TEntityType>();
 }

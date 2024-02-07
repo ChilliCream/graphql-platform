@@ -150,7 +150,7 @@ public interface ISortConvention : IConvention
     /// Returns a field middleware which represents the sort execution logic
     /// for the specified entity type.
     /// </returns>
-    FieldMiddleware CreateExecutor<TEntityType>();
+    IQueryBuilder CreateBuilder<TEntityType>();
 
     /// <summary>
     /// Configures the field where the sortings are applied. This can be used to add context
