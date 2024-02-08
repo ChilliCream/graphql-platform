@@ -283,14 +283,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnTypesInitialized()
-    {
-        if (_entityTypes.Count == 0)
-        {
-            throw EntityType_NoEntities();
-        }
-    }
-
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)

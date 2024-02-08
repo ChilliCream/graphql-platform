@@ -2,29 +2,11 @@ using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.ApolloFederation;
 
 public class EntityTypeTests
 {
-    [Fact]
-    public async Task TestEntityTypeCodeFirstNoEntities_ShouldThrow()
-    {
-        async Task CreateSchema()
-        {
-            // arrange
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddApolloFederation()
-                .AddQueryType<Query<Address>>()
-                .BuildSchemaAsync();
-        }
-
-        var exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
-        Assert.Contains(ThrowHelper_EntityType_NoEntities, exception.Message);
-    }
-
     [Fact]
     public async Task TestEntityTypeCodeFirstClassKeyAttributeSingleKey()
     {
@@ -98,7 +80,7 @@ public class EntityTypeTests
         Assert.Collection(entityType.Types.Values,
             t => Assert.Equal("UserWithNestedKeyClassAttribute", t.Name));
     }
-    
+
     public sealed class Query<T>
     {
         public T GetEntity(int id) => default!;
