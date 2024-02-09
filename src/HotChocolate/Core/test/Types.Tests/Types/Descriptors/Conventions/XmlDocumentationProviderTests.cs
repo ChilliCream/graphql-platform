@@ -63,6 +63,25 @@ public class XmlDocumentationProviderTests
     }
 
     [Fact]
+    public void When_description_has_paramref_tag_then_it_is_converted()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(
+            typeof(WithParamrefTagInXmlDoc)
+                .GetMethod(nameof(WithParamrefTagInXmlDoc.Foo))!);
+
+        // assert
+        Assert.Equal(
+            "This is a parameter reference to id.",
+            description);
+    }
+
+    [Fact]
     public void When_description_has_generic_tags_then_it_is_converted()
     {
         // arrange

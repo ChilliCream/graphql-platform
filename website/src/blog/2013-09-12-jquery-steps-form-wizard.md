@@ -8,7 +8,7 @@ authorUrl: https://github.com/rstaib
 authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
 ---
 
-This blog article was previously published on http://www.rafaelstaib.com/post/How-to-create-a-Form-Wizard-using-jQuery-Steps.
+This blog article was previously published on <http://www.rafaelstaib.com/post/How-to-create-a-Form-Wizard-using-jQuery-Steps>.
 
 ## Motivation
 

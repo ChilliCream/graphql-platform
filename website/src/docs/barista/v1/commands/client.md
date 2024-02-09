@@ -4,7 +4,7 @@ title: Client Management
 
 The `barista client` command provides a set of subcommands that allow you to upload, validate, publish, and unpublish client versions, as well as create a new client, list all clients of an API, and show details of a specific client.
 
-# Publish a Client 
+# Publish a Client
 
 The `barista client publish` command is used to publish a client version to a stage.
 
@@ -25,7 +25,7 @@ barista client publish  \
 
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `barista api-key create` returns. You can set it from the environment variable `BARISTA_API_KEY`.
 
-# Unpublish a Client 
+# Unpublish a Client
 
 The `barista client unpublish` command is used to unpublish a client version from a stage.
 
@@ -40,7 +40,7 @@ barista client unpublish \
 
 The options for the `unpublish` command are the same as for the `publish` command.
 
-# Validate a Client 
+# Validate a Client
 
 The `barista client validate` command is used to validate a client version.
 
@@ -79,7 +79,7 @@ barista client upload --tag v1.0.1 --operations-file ./operations.json --client-
 
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `barista api-key create` returns. You can set it from the environment variable `BARISTA_API_KEY`.
 
-# Create Client 
+# Create Client
 
 The `barista client create` command is used to create a new client.
 

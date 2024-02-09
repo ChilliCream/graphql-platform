@@ -4,7 +4,7 @@ title: Workspace Management
 
 The `barista workspace` command provides a set of subcommands that allow you to manage workspaces.
 
-# Create a Workspace 
+# Create a Workspace
 
 The `barista workspace create` command is used to create a new workspace.
 
@@ -12,8 +12,7 @@ The `barista workspace create` command is used to create a new workspace.
 barista workspace create
 ```
 
-
-# Set Default Workspace 
+# Set Default Workspace
 
 The `barista workspace set-default` command is used to select a workspace and set it as your default workspace.
 
@@ -21,15 +20,13 @@ The `barista workspace set-default` command is used to select a workspace and se
 barista workspace set-default
 ```
 
-
-# List all Workspaces 
+# List all Workspaces
 
 The `barista workspace list` command is used to list all workspaces.
 
 ```shell
 barista workspace list
 ```
-
 
 # Show Workspace Details
 
@@ -43,8 +40,7 @@ barista workspace show abc123
 
 - `<id>`: Specifies the ID of the workspace whose details you want to see.
 
-
-# Show Current Workspace 
+# Show Current Workspace
 
 The `barista workspace current` command is used to show the name of the currently selected workspace.
 

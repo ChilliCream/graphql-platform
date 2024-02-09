@@ -190,7 +190,7 @@ The `Serialize()` method takes the schema name as a first argument, followed by 
 
 # Complex Ids
 
-In certain situations, you may need to use complex identifiers for your data models, rather than simple integers or strings. HotChocolate provides support for complex IDs by allowing you to define custom ID types, which can be used in your GraphQL schema. 
+In certain situations, you may need to use complex identifiers for your data models, rather than simple integers or strings. HotChocolate provides support for complex IDs by allowing you to define custom ID types, which can be used in your GraphQL schema.
 
 ## Defining Complex ID
 
@@ -208,7 +208,7 @@ public class Product
 
 If your `Product` model does not have an ID field, but you still want to use a complex ID for GraphQL queries, you can use a type extension.
 
-A type extension allows you to add fields to a type that are only available within the GraphQL schema, without modifying the actual data model. 
+A type extension allows you to add fields to a type that are only available within the GraphQL schema, without modifying the actual data model.
 Here's how you can define the type extension:
 
 ```csharp

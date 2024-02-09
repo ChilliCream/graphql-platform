@@ -72,5 +72,4 @@ services
 </Schema>
 </ExampleTabs>
 
-
 > Warning: You can not deprecate non-null arguments or input fields without a default value.
