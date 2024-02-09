@@ -55,7 +55,7 @@ public interface IReadOnlySchemaOptions
     /// unreachable from the root types.
     /// </summary>
     bool RemoveUnreachableTypes { get; }
-    
+
     /// <summary>
     /// Defines if unused type system directives shall
     /// be removed from the schema.
@@ -97,7 +97,7 @@ public interface IReadOnlySchemaOptions
     /// Defines if the order of important middleware components shall be validated.
     /// </summary>
     bool ValidatePipelineOrder { get; }
-    
+
     /// <summary>
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
@@ -180,6 +180,11 @@ public interface IReadOnlySchemaOptions
     /// Specifies that the true nullability proto type shall be enabled.
     /// </summary>
     bool EnableTrueNullability { get; }
+
+    /// <summary>
+    /// Specifies whether null-bubbling shall be disabled.
+    /// </summary>
+    bool DisableNullBubbling { get; }
 
     /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.

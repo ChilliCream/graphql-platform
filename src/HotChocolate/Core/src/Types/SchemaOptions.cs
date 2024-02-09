@@ -212,6 +212,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableTrueNullability { get; set; }
 
     /// <summary>
+    /// Specifies whether null-bubbling shall be disabled.
+    /// </summary>
+    public bool DisableNullBubbling { get; set; }
+
+    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     public bool EnableTag { get; set; } = true;
@@ -263,6 +268,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTrueNullability = options.EnableTrueNullability,
+            DisableNullBubbling = options.DisableNullBubbling,
             EnableTag = options.EnableTag,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
