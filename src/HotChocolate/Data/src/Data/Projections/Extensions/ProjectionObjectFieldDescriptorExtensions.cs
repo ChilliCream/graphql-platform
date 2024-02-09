@@ -212,6 +212,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     private sealed class ProjectionQueryBuilder(IQueryBuilder innerBuilder) : IQueryBuilder
     {
+        private const string _mockContext = "HotChocolate.Data.Projections.ProxyContext";
+        
         public void Prepare(IMiddlewareContext context)
         {
             // in case we are being called from the node/nodes field we need to enrich
@@ -237,11 +239,15 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
             
+            context.SetLocalState(_mockContext, context);
             innerBuilder.Prepare(context);
         }
 
         public void Apply(IMiddlewareContext context)
-            => innerBuilder.Apply(context);
+        {
+            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(_mockContext) ?? context;
+            innerBuilder.Apply(context);
+        }
     }
 
     private sealed class MiddlewareContextProxy : IMiddlewareContext

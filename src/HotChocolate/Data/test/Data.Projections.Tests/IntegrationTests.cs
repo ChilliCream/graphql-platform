@@ -145,7 +145,18 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(@"{ node(id: ""Rm9vCmRB"") { id __typename } }");
+        var result = await executor.ExecuteAsync(
+            """
+            { 
+              node(id: "Rm9vCmRB") { 
+                id
+                __typename
+                ... on Baz { fieldOfBaz }
+                ... on Foo { fieldOfFoo }
+                ... on Bar { fieldOfBar }
+              } 
+            }
+            """);
 
         result.MatchSnapshot();
     }
@@ -191,18 +202,18 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor
-            .ExecuteAsync("""
-                {
-                    node(id: "QmFyCmRB") {
-                        id
-                        __typename
-                        ... on Baz { fieldOfBaz }
-                        ... on Foo { fieldOfFoo }
-                        ... on Bar { fieldOfBar }
-                    }
-                }
-                """);
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "QmFyCmRB") {
+                id
+                __typename
+                ... on Baz { fieldOfBaz }
+                ... on Foo { fieldOfFoo }
+                ... on Bar { fieldOfBar }
+              }
+            }
+            """);
 
         result.MatchSnapshot();
     }

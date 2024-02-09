@@ -35,29 +35,38 @@ internal sealed class ProjectionTypeInterceptor : TypeInterceptor
 
             foreach (var field in fields)
             {
-                if (field.Name is "node" or "nodes")
+                if (field.Name is not ("node" or "nodes"))
                 {
-                    if (field.Name is "node") { foundNode = true; }
+                    continue;
+                }
 
-                    if (field.Name is "nodes") { foundNodes = true; }
-
-                    var selectionOptimizer = completionContext.DescriptorContext
-                        .GetProjectionConvention()
-                        .CreateOptimizer();
-
-                    if (field.ContextData is not ExtensionData extensionData)
-                    {
-                        throw ThrowHelper.ProjectionConvention_NodeFieldWasInInvalidState();
-                    }
-
-                    RegisterOptimizer(
-                        extensionData,
-                        new NodeSelectionSetOptimizer(selectionOptimizer));
-
-                    if (foundNode && foundNodes)
-                    {
+                switch (field.Name)
+                {
+                    case "node":
+                        foundNode = true;
                         break;
-                    }
+
+                    case "nodes":
+                        foundNodes = true;
+                        break;
+                }
+
+                var selectionOptimizer = completionContext.DescriptorContext
+                    .GetProjectionConvention()
+                    .CreateOptimizer();
+
+                if (field.ContextData is not ExtensionData extensionData)
+                {
+                    throw ThrowHelper.ProjectionConvention_NodeFieldWasInInvalidState();
+                }
+
+                RegisterOptimizer(
+                    extensionData,
+                    new NodeSelectionSetOptimizer(selectionOptimizer));
+
+                if (foundNode && foundNodes)
+                {
+                    break;
                 }
             }
         }
