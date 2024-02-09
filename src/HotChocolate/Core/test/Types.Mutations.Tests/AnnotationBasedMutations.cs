@@ -1454,95 +1454,95 @@ public class AnnotationBasedMutations
     {
         [Error(typeof(CustomException))]
         [Error(typeof(Custom2Exception))]
-        public MutationResult<string> DoSomething(string something)
+        public FieldResult<string> DoSomething(string something)
             => new(new Custom2Exception());
     }
 
     public class MutationWithUnionResult2
     {
-        public MutationResult<string, Custom2Exception> DoSomething(string something)
+        public FieldResult<string, Custom2Exception> DoSomething(string something)
             => new Custom2Exception();
     }
 
     [ExtendObjectType(OperationTypeNames.Mutation)]
     public class MutationWithUnionResult2_Task
     {
-        public async Task<MutationResult<string, Custom2Exception>> DoSomething(string something)
+        public async Task<FieldResult<string, Custom2Exception>> DoSomething(string something)
             => await Task.FromResult(new Custom2Exception());
     }
 
     public class MutationWithUnionResult2_Success
     {
-        public MutationResult<string, Custom2Exception> DoSomething(string something)
+        public FieldResult<string, Custom2Exception> DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult3
     {
-        public MutationResult<string, CustomException, Custom2Exception> DoSomething(
+        public FieldResult<string, CustomException, Custom2Exception> DoSomething(
             string something)
             => new Custom2Exception();
     }
 
     public class MutationWithUnionResult3_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception> DoSomething(
+        public FieldResult<string, CustomException, Custom2Exception> DoSomething(
             string something)
             => something;
     }
 
     public class MutationWithUnionResult4
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom3Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom3Exception>
             DoSomething(string something)
             => new Custom2Exception();
     }
 
     public class MutationWithUnionResult4_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom3Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom3Exception>
             DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult5
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception>
             DoSomething(string something)
             => new Custom4Exception();
     }
 
     public class MutationWithUnionResult5_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception>
             DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult6
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
             DoSomething(string something)
             => new Custom5();
     }
 
     public class MutationWithUnionResult6_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
             DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult7
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
             Custom6> DoSomething(string something)
             => new Custom5();
     }
 
     public class MutationWithUnionResult7_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
             Custom6> DoSomething(string something)
             => something;
     }
@@ -1610,7 +1610,7 @@ public class AnnotationBasedMutations
 
     public class MutationWithErrorCollision
     {
-        public MutationResult<string, FooError> Foo()
+        public FieldResult<string, FooError> Foo()
             => new FooError("some error");
     }
 
@@ -1657,7 +1657,7 @@ public class AnnotationBasedMutations
 
     public class ListReturnMutation
     {
-        public MutationResult<List<ResultItem>> AddItem(AddItemInput input)
+        public FieldResult<List<ResultItem>> AddItem(AddItemInput input)
             => new List<ResultItem>
             {
                 new(),
@@ -1689,7 +1689,7 @@ public class AnnotationBasedMutations
                 new(next => async ctx =>
                 {
                     await next(ctx);
-                    ctx.Result = new MutationError(new SomeNewError("This is my error."));
+                    ctx.Result = new FieldError(new SomeNewError("This is my error."));
                 }));
         }
     }

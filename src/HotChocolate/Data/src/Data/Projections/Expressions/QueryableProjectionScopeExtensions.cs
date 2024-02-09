@@ -58,9 +58,7 @@ public static class QueryableProjectionScopeExtensions
     }
 
     public static Expression CreateMemberInitLambda(this QueryableProjectionScope scope)
-    {
-        return Expression.Lambda(scope.CreateMemberInit(), scope.Parameter);
-    }
+        => Expression.Lambda(scope.CreateMemberInit(), scope.Parameter);
 
     private static Expression CreateMemberInitLambda<T>(this QueryableProjectionScope scope)
     {

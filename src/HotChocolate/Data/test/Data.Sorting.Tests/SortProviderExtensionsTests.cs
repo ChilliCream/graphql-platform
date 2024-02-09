@@ -1,10 +1,8 @@
 using System;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -66,33 +64,18 @@ public class SortProviderExtensionsTests
             x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
     }
 
-    private sealed class MockFieldHandler : QueryableDefaultSortFieldHandler
+    private sealed class MockFieldHandler : QueryableDefaultSortFieldHandler;
+
+    private sealed class MockProviderExtensions(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+        : SortProviderExtensions<QueryableSortContext>(configure);
+
+    private sealed class MockProvider(
+        Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+        : SortProvider<QueryableSortContext>(configure)
     {
+        public SortProviderDefinition? DefinitionAccessor => Definition;
 
-    }
-
-    private sealed class MockProviderExtensions
-        : SortProviderExtensions<QueryableSortContext>
-    {
-        public MockProviderExtensions(
-            Action<ISortProviderDescriptor<QueryableSortContext>> configure)
-            : base(configure)
-        {
-        }
-    }
-
-    private sealed class MockProvider : SortProvider<QueryableSortContext>
-    {
-        public SortProviderDefinition? DefinitionAccessor => base.Definition;
-
-        public MockProvider(Action<ISortProviderDescriptor<QueryableSortContext>> configure)
-            : base(configure)
-        {
-        }
-
-        public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-        {
-            throw new NotImplementedException();
-        }
+        public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+            => throw new NotImplementedException();
     }
 }

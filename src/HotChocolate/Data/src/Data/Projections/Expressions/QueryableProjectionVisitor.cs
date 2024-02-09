@@ -15,27 +15,29 @@ public class QueryableProjectionVisitor : ProjectionVisitor<QueryableProjectionC
         QueryableProjectionContext context)
     {
         var isAbstractType = field.Type.NamedType().IsAbstractType();
-        if (isAbstractType && context.TryGetQueryableScope(out var scope))
+
+        if (!isAbstractType || !context.TryGetQueryableScope(out var scope))
         {
-            var selections = context.ResolverContext.GetSelections(objectType, selection, true);
+            return base.VisitObjectType(field, objectType, selection, context);
+        }
+        
+        var selections = context.ResolverContext.GetSelections(objectType, selection, true);
 
-            if (selections.Count == 0)
-            {
-                return Continue;
-            }
-
-            context.PushInstance(Expression.Convert(context.GetInstance(), objectType.RuntimeType));
-            scope.Level.Push(new Queue<MemberAssignment>());
-
-            var res = base.VisitObjectType(field, objectType, selection, context);
-
-            context.PopInstance();
-            scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
-
-            return res;
+        if (selections.Count == 0)
+        {
+            return Continue;
         }
 
-        return base.VisitObjectType(field, objectType, selection, context);
+        context.PushInstance(Expression.Convert(context.GetInstance(), objectType.RuntimeType));
+        scope.Level.Push(new Queue<MemberAssignment>());
+
+        var res = base.VisitObjectType(field, objectType, selection, context);
+
+        context.PopInstance();
+        scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
+
+        return res;
+
     }
 
     public static readonly QueryableProjectionVisitor Default = new();

@@ -20,7 +20,7 @@ public interface IProjectionConvention : IConvention
     /// Returns a field middleware which represents the projection execution logic
     /// for the specified entity type.
     /// </returns>
-    FieldMiddleware CreateExecutor<TEntityType>();
+    IQueryBuilder CreateBuilder<TEntityType>();
 
     /// <summary>
     /// Creates a new selection optimizer for this projection convention.

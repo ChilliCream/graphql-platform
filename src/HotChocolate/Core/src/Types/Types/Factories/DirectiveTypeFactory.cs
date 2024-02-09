@@ -91,6 +91,7 @@ internal sealed class DirectiveTypeFactory
 
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
     {
+        
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
         var typeDefinition = new DirectiveTypeDefinition(

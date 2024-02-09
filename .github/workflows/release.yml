@@ -24,13 +24,6 @@ jobs:
       id: get_version
       run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-    - uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
-
     - name: Build Packages
       run: |
         ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release

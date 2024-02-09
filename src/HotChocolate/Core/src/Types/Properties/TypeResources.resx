@@ -997,9 +997,6 @@ Type: `{0}`</value>
   <data name="TagDirective_Descriptor_NotSupported" xml:space="preserve">
     <value>Tag is not supported on the specified descriptor.</value>
   </data>
-  <data name="MutationConvention_ShouldBeEnabled_WhenAddingErrorType" xml:space="preserve">
-    <value>Adding an error type `{0}` to field `{1}` failed as mutation conventions weren't enabled.</value>
-  </data>
   <data name="ErrorHelper_DuplicateFieldName_Message" xml:space="preserve">
     <value>The following {0}{1} `{2}` {3} declared multiple times on `{4}`.</value>
   </data>

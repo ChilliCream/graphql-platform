@@ -82,8 +82,8 @@ public class ProjectionConvention
         }
     }
 
-    public FieldMiddleware CreateExecutor<TEntityType>() =>
-        _provider.CreateExecutor<TEntityType>();
+    public IQueryBuilder CreateBuilder<TEntityType>() =>
+        _provider.CreateBuilder<TEntityType>();
 
     public ISelectionSetOptimizer CreateOptimizer() =>
         new ProjectionOptimizer(_provider);

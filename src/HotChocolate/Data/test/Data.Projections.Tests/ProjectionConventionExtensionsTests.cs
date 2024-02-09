@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -109,34 +108,25 @@ public class ProjectionConventionExtensionsTests
             x => Assert.Equal(provider2, x));
     }
 
-    private sealed class MockProviderExtensions : ProjectionProviderExtension
-    {
-    }
+    private sealed class MockProviderExtensions : ProjectionProviderExtension;
 
     private sealed class MockProvider : IProjectionProvider
     {
-        public string? Scope { get; }
+        public string? Scope => default;
 
-        public FieldMiddleware CreateExecutor<TEntityType>()
-        {
-            throw new NotImplementedException();
-        }
+        public IQueryBuilder CreateBuilder<TEntityType>()
+            => throw new NotImplementedException();
 
         public Selection RewriteSelection(
             SelectionSetOptimizerContext context,
             Selection selection)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 
-    private sealed class MockProjectionConvention : ProjectionConvention
+    private sealed class MockProjectionConvention(
+        Action<IProjectionConventionDescriptor> configure)
+        : ProjectionConvention(configure)
     {
-        public MockProjectionConvention(Action<IProjectionConventionDescriptor> configure)
-            : base(configure)
-        {
-        }
-
-        public ProjectionConventionDefinition? DefinitionAccessor => base.Definition;
+        public ProjectionConventionDefinition? DefinitionAccessor => Definition;
     }
 }

@@ -106,13 +106,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
 
         // act
         var result = await executor.ExecuteAsync(
-            @"
-                {
-                    executable {
-                        name
-                    }
+            """
+            {
+                executable {
+                    name
                 }
-                ");
+            }
+            """);
 
         // assert
         result.MatchSnapshot();

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
@@ -17,17 +16,15 @@ public interface IFilterProvider
     IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; }
 
     /// <summary>
-    /// Creates a middleware that represents the filter execution logic
-    /// for the specified entity type.
+    /// Creates a query builder that builds up the filter clause.
     /// </summary>
     /// <typeparam name="TEntityType">
-    /// The entity type for which an filter executor shall be created.
+    /// The entity type for which query builder shall be created.
     /// </typeparam>
     /// <returns>
-    /// Returns a field middleware which represents the filter execution logic
-    /// for the specified entity type.
+    /// Returns a query builder that builds up the filter clause.
     /// </returns>
-    FieldMiddleware CreateExecutor<TEntityType>(string argumentName);
+    IQueryBuilder CreateBuilder<TEntityType>(string argumentName);
 
     /// <summary>
     /// Configures the field where the filters are applied. This can be used to add context

@@ -16,6 +16,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
+using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types;
@@ -148,9 +149,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                     if (selectionType is null)
                     {
                         if (definition.ResultType is null ||
-                            !context.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType,
-                                out var typeInfo))
+                            !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 UseProjection_CannotHandleType,
@@ -183,16 +182,39 @@ public static class ProjectionObjectFieldDescriptorExtensions
         definition.ContextData[ProjectionContextIdentifier] = true;
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
-        var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+        
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
-            new(middleware, key: WellKnownMiddleware.Projection);
+        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Projection);
     }
 
-    private static FieldMiddleware CreateMiddleware<TEntity>(IProjectionConvention convention)
+    private static IQueryBuilder CreateMiddleware<TEntity>(IProjectionConvention convention)
+        => new ProjectionQueryBuilder(convention.CreateBuilder<TEntity>());
+
+    private static Selection UnwrapMutationPayloadSelection(ISelectionSet selectionSet, ObjectField field)
     {
-        var executor = convention.CreateExecutor<TEntity>();
-        return next => context =>
+        ref var selection = ref Unsafe.As<SelectionSet>(selectionSet).GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
+
+        while (Unsafe.IsAddressLessThan(ref selection, ref end))
+        {
+            if (ReferenceEquals(selection.Field, field))
+            {
+                return selection;
+            }
+            
+            selection = ref Unsafe.Add(ref selection, 1)!;
+        }
+
+        throw new InvalidOperationException(
+            ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed);
+    }
+
+    private sealed class ProjectionQueryBuilder(IQueryBuilder innerBuilder) : IQueryBuilder
+    {
+        private const string _mockContext = "HotChocolate.Data.Projections.ProxyContext";
+        
+        public void Prepare(IMiddlewareContext context)
         {
             // in case we are being called from the node/nodes field we need to enrich
             // the projections context with the type that shall be resolved.
@@ -217,27 +239,15 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
             
-            return executor.Invoke(next).Invoke(context);
-        };
-    }
-
-    private static Selection UnwrapMutationPayloadSelection(ISelectionSet selectionSet, ObjectField field)
-    {
-        ref var selection = ref Unsafe.As<SelectionSet>(selectionSet).GetSelectionsReference();
-        ref var end = ref Unsafe.Add(ref selection, selectionSet.Selections.Count);
-
-        while (Unsafe.IsAddressLessThan(ref selection, ref end))
-        {
-            if (ReferenceEquals(selection.Field, field))
-            {
-                return selection;
-            }
-            
-            selection = ref Unsafe.Add(ref selection, 1)!;
+            context.SetLocalState(_mockContext, context);
+            innerBuilder.Prepare(context);
         }
 
-        throw new InvalidOperationException(
-            ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed);
+        public void Apply(IMiddlewareContext context)
+        {
+            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(_mockContext) ?? context;
+            innerBuilder.Apply(context);
+        }
     }
 
     private sealed class MiddlewareContextProxy : IMiddlewareContext
