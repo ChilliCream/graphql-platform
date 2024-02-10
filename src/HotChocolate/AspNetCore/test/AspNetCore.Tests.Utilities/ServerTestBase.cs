@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;

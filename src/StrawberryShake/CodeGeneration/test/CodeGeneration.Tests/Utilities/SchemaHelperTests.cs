@@ -1,8 +1,6 @@
 using ChilliCream.Testing;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 

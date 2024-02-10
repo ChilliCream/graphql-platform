@@ -1,9 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate;
 

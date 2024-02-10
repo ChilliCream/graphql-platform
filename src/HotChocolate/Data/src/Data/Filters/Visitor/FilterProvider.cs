@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;

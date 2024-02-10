@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore
 {
@@ -39,7 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
                 services.GetRequiredService<IStarWarsGetFriendsNoStoreClient>();
 
             // act
-            IOperationResult<IGetHeroResult> result = await client.GetHero.ExecuteAsync(ct);
+            var result = await client.GetHero.ExecuteAsync(ct);
 
             // assert
             Assert.Equal("R2-D2", result.Data?.Hero?.Name);

@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration.Validation;
 

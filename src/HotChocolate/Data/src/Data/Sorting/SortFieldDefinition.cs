@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting;

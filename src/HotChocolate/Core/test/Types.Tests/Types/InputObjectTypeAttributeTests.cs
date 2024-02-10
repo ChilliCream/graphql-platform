@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
-using Xunit;
 using QueryRequestBuilder = HotChocolate.Execution.QueryRequestBuilder;
 
 namespace HotChocolate.Types;

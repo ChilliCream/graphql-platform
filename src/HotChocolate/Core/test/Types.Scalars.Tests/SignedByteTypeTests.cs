@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -124,8 +123,8 @@ public class SignedByteTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 1)]
+    [InlineData(0, (sbyte)0)]
+    [InlineData(1, (sbyte)1)]
     [InlineData(sbyte.MaxValue, sbyte.MaxValue)]
     [InlineData(sbyte.MinValue, sbyte.MinValue)]
     [InlineData(null, null)]

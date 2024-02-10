@@ -6,7 +6,6 @@ using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace StrawberryShake.Transport.InMemory;
 

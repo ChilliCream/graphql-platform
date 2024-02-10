@@ -1,5 +1,3 @@
-using System.Linq;
-
 #nullable enable
 
 namespace HotChocolate.Types;

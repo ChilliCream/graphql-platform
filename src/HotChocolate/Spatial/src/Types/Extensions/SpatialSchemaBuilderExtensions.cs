@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Spatial;
 using HotChocolate.Types.Spatial.Configuration;
 using HotChocolate.Types.Spatial.Transformation;

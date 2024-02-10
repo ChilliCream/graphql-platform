@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 

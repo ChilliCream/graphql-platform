@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 

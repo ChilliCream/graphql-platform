@@ -4,7 +4,6 @@ using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
-using HotChocolate.Subscriptions;
 
 namespace HotChocolate.StarWars;
 

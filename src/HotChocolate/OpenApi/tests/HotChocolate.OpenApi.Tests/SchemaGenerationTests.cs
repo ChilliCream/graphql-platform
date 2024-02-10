@@ -2,7 +2,6 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.OpenApi.Readers;
-using Xunit;
 using Xunit.Abstractions;
 using static System.IO.Path;
 

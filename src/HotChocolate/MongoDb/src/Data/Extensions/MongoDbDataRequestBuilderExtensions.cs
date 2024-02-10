@@ -1,9 +1,7 @@
-using System;
 using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Paging;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
-using HotChocolate.Types.Pagination;
 using MongoDB.Bson;
 
 namespace Microsoft.Extensions.DependencyInjection;

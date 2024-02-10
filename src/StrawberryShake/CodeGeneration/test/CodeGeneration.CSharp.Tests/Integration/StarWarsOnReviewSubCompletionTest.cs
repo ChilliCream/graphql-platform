@@ -4,7 +4,6 @@ using System.Reflection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Protocols;

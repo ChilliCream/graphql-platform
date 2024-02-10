@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Tests;
-using Xunit;
 
 #nullable enable
 

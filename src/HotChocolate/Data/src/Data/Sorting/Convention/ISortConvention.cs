@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;

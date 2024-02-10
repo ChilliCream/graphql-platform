@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
-using SyntaxVisitor = HotChocolate.Language.Visitors.SyntaxVisitor;
-using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 using static StrawberryShake.CodeGeneration.CodeGenerationErrorCodes;
 
 namespace StrawberryShake.CodeGeneration;

@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 

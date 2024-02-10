@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination
 {

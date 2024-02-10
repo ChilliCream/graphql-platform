@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Validation;
 

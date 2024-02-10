@@ -5,7 +5,6 @@ using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;

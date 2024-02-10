@@ -1,4 +1,3 @@
-using Xunit;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 

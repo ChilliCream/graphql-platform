@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using static System.IO.Path;
 
 namespace HotChocolate.Fusion.CommandLine.Commands;
 

@@ -4,8 +4,6 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport.Http;
-using HotChocolate.Utilities;
-using StrawberryShake.Json;
 using static StrawberryShake.Properties.Resources;
 using static StrawberryShake.Transport.Http.ResponseEnumerable;
 

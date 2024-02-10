@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 

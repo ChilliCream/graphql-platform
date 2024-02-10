@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Spatial.Configuration;

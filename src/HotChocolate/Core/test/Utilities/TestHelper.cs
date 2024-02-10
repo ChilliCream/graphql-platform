@@ -7,7 +7,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Tests;
@@ -209,52 +208,5 @@ public static class TestHelper
             .AddInMemorySubscriptions()
             .Services
             .AddStarWarsRepositories();
-    }
-
-    public static async Task TryTest(
-        Func<CancellationToken, Task> action,
-        int allowedRetries = 3,
-        int timeout = 30_000)
-    {
-        // we will try four times ....
-        var attempt = 0;
-        var wait = 250;
-
-        while (true)
-        {
-            attempt++;
-
-            var success = await ExecuteAsync(attempt).ConfigureAwait(false);
-
-            if (success)
-            {
-                break;
-            }
-
-            await Task.Delay(wait).ConfigureAwait(false);
-            wait *= 2;
-        }
-
-        // ReSharper disable once VariableHidesOuterVariable
-        async Task<bool> ExecuteAsync(int attempt)
-        {
-            using var cts = new CancellationTokenSource(timeout);
-
-            if (attempt < allowedRetries)
-            {
-                try
-                {
-                    await action(cts.Token).ConfigureAwait(false);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            await action(cts.Token).ConfigureAwait(false);
-            return true;
-        }
     }
 }

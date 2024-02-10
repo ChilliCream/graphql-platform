@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 

@@ -2,7 +2,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Descriptors;
 

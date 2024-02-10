@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate;
 
 public class OptionalTests

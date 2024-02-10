@@ -5,7 +5,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 

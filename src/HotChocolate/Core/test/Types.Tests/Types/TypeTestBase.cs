@@ -6,9 +6,7 @@ public class TypeTestBase
 {
     protected T CreateDirective<T>(T directiveType)
         where T : DirectiveType
-    {
-        return CreateDirective(directiveType, b => { });
-    }
+        => CreateDirective(directiveType, b => { });
 
     protected T CreateDirective<T>(T directiveType,
         Action<ISchemaBuilder> configure)
@@ -31,9 +29,7 @@ public class TypeTestBase
 
     protected static T CreateType<T>(T type)
         where T : INamedType
-    {
-        return CreateType(type, b => { });
-    }
+        => CreateType(type, b => { });
 
     protected static T CreateType<T>(T type,
         Action<ISchemaBuilder> configure)

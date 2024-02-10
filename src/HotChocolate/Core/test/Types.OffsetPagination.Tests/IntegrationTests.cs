@@ -7,7 +7,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

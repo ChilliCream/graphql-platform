@@ -1,8 +1,6 @@
-using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Execution.DependencyInjection;
 

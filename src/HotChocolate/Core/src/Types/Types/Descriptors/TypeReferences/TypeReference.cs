@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;

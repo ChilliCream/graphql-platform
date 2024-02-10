@@ -6,16 +6,15 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CookieCrumble;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets.Protocols;
-using static HotChocolate.Tests.TestHelper;
 
 namespace StrawberryShake.Transport.WebSockets;
 
@@ -26,280 +25,238 @@ public class IntegrationTests : ServerTestBase
 
     [Fact]
     public async Task Simple_Request()
-    {
-        var snapshot = Snapshot.Create();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                using var host = TestServerHelper.CreateServer(
-                    x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out var port);
-                var serviceCollection = new ServiceCollection();
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>()
-                    .AddWebSocketClient(
-                        "Foo",
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-                IServiceProvider services =
-                    serviceCollection.BuildServiceProvider();
-
-                var sessionPool =
-                    services.GetRequiredService<ISessionPool>();
-
-                List<JsonDocument> results = [];
-                MockDocument document = new("subscription Test { onTest(id:1) }");
-                OperationRequest request = new("Test", document);
-
-                // act
-                var connection =
-                    new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-
-                await foreach (var response in
-                    connection.ExecuteAsync(request).WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    if (response.Body is not null)
-                    {
-                        results.Add(response.Body);
-                    }
-                }
-
-
-                // assert
-                await snapshot
-                    .Add(results.Select(x => x.RootElement.ToString()).ToList())
-                    .MatchAsync(ct);
-            });
-    }
-
-    [Fact]
-    public async Task Execution_Error()
-    {
-        var snapshot = Snapshot.Create();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                using var host = TestServerHelper.CreateServer(
-                    x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out var port);
-
-                var serviceCollection = new ServiceCollection();
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>()
-                    .AddWebSocketClient(
-                        "Foo",
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-
-                IServiceProvider services = serviceCollection.BuildServiceProvider();
-                var sessionPool = services.GetRequiredService<ISessionPool>();
-
-                List<JsonDocument> results = [];
-                MockDocument document = new("subscription Test { onTest }");
-                OperationRequest request = new("Test", document);
-
-                // act
-                var connection =
-                    new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-
-                await foreach (var response in
-                    connection.ExecuteAsync(request).WithCancellation(ct))
-                {
-                    if (response.Body is not null)
-                    {
-                        results.Add(response.Body);
-                    }
-                }
-
-                // assert
-                await snapshot
-                    .Add(results.Select(x => x.RootElement.ToString()).ToList())
-                    .MatchAsync(ct);
-            });
-    }
-
-    [Fact]
-    public async Task Validation_Error()
-    {
-        var snapshot = Snapshot.Create();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                using var host = TestServerHelper.CreateServer(
-                    x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out var port);
-                var serviceCollection = new ServiceCollection();
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>()
-                    .AddWebSocketClient(
-                        "Foo",
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-                IServiceProvider services =
-                    serviceCollection.BuildServiceProvider();
-
-                var sessionPool =
-                    services.GetRequiredService<ISessionPool>();
-
-                List<string> results = [];
-                MockDocument document = new(@"subscription Test { onTest(id:""Foo"") }");
-                OperationRequest request = new("Test", document);
-
-                // act
-                var connection =
-                    new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-
-                await foreach (var response in
-                    connection.ExecuteAsync(request).WithCancellation(ct))
-                {
-                    if (response.Exception is not null)
-                    {
-                        results.Add(response.Exception.Message);
-                    }
-                }
-
-                // assert
-                await snapshot.Add(results).MatchAsync(ct);
-            });
-    }
-
-    [Fact]
-    public async Task Request_With_ConnectionPayload()
-    {
-        var snapshot = Snapshot.Create();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var payload = new Dictionary<string, object> { ["Key"] = "Value", };
-                var sessionInterceptor = new StubSessionInterceptor();
-                using var host = TestServerHelper.CreateServer(
-                    builder => builder
-                        .AddTypeExtension<StringSubscriptionExtensions>()
-                        .AddSocketSessionInterceptor<ISocketSessionInterceptor>(
-                            _ => sessionInterceptor),
-                    out var port);
-
-                var serviceCollection = new ServiceCollection();
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>()
-                    .AddWebSocketClient(
-                        "Foo",
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
-                    .ConfigureConnectionInterceptor(new StubConnectionInterceptor(payload));
-
-                IServiceProvider services = serviceCollection.BuildServiceProvider();
-                var sessionPool = services.GetRequiredService<ISessionPool>();
-
-                List<string> results = [];
-                MockDocument document = new("subscription Test { onTest(id:1) }");
-                OperationRequest request = new("Test", document);
-
-                // act
-                var connection =
-                    new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
-
-                await foreach (var response in
-                    connection.ExecuteAsync(request).WithCancellation(ct))
-                {
-                    if (response.Body is not null)
-                    {
-                        results.Add(response.Body.RootElement.ToString());
-                    }
-                }
-
-                // assert
-                var message =
-                    Assert.IsType<Dictionary<string, string>>(
-                        sessionInterceptor.InitializeConnectionMessage);
-                Assert.Equal(payload["Key"], message["Key"]);
-                await snapshot.Add(results).MatchAsync(ct);
-            });
-    }
-
-    [Fact]
-    public async Task Parallel_Request_SameSocket()
-    {
-        var snapshot = Snapshot.Create();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                using var host = TestServerHelper
-                    .CreateServer(
+                    using var host = TestServerHelper.CreateServer(
                         x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                         out var port);
 
-                ServiceCollection serviceCollection = [];
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>()
-                    .AddWebSocketClient(
-                        "Foo",
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-                IServiceProvider services = serviceCollection.BuildServiceProvider();
+                    IServiceProvider services =
+                        new ServiceCollection()
+                            .AddProtocol<GraphQLWebSocketProtocolFactory>()
+                            .AddWebSocketClient(
+                                "Foo",
+                                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                            .Services
+                            .BuildServiceProvider();
 
-                var sessionPool = services.GetRequiredService<ISessionPool>();
-                ConcurrentDictionary<int, List<JsonDocument>> results = new();
+                    var sessionPool = services.GetRequiredService<ISessionPool>();
 
-                async Task CreateSubscription(int id)
-                {
-                    var connection = new WebSocketConnection(
-                        async cancellationToken =>
-                            await sessionPool.CreateAsync("Foo", cancellationToken));
-                    var document = new MockDocument(
-                        $"subscription Test {{ onTest(id:{id.ToString()}) }}");
-                    var request = new OperationRequest("Test", document);
+                    MockDocument document = new("subscription Test { onTest(id:1) }");
+                    OperationRequest request = new("Test", document);
 
-                    await foreach (var response in
-                        connection.ExecuteAsync(request).WithCancellation(ct))
+                    var connection = new WebSocketConnection(async t => await sessionPool.CreateAsync("Foo", t));
+
+                    await foreach (var response in connection.ExecuteAsync(request).WithCancellation(ct))
                     {
                         if (response.Body is not null)
                         {
-                            results.AddOrUpdate(
-                                id,
-                                _ => [response.Body,],
-                                (_, l) =>
-                                {
-                                    l.Add(response.Body);
-                                    return l;
-                                });
+                            snapshot.Add(response.Body.RootElement);
                         }
                     }
-                }
+                })
+            .MatchAsync();
 
-                // act
-                var list = new List<Task>();
-
-                for (var i = 0; i < 15; i++)
+    [Fact]
+    public async Task Execution_Error()
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    list.Add(CreateSubscription(i));
-                }
+                    using var host = TestServerHelper.CreateServer(
+                        x => x.AddTypeExtension<StringSubscriptionExtensions>(),
+                        out var port);
 
-                await Task.WhenAll(list);
+                    IServiceProvider services =
+                        new ServiceCollection()
+                            .AddProtocol<GraphQLWebSocketProtocolFactory>()
+                            .AddWebSocketClient(
+                                "Foo",
+                                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                            .Services
+                            .BuildServiceProvider();
 
-                // assert
-                var str = "";
+                    var sessionPool = services.GetRequiredService<ISessionPool>();
 
-                foreach (var sub in results.OrderBy(x => x.Key))
-                {
-                    var jsonDocuments = sub.Value.ToArray();
+                    var document = new MockDocument("subscription Test { onTest }");
+                    OperationRequest request = new("Test", document);
 
-                    str += "Operation " + sub.Key + "\n";
+                    var connection = new WebSocketConnection(async t => await sessionPool.CreateAsync("Foo", t));
 
-                    for (var index = 0; index < jsonDocuments.Length; index++)
+                    await foreach (var response in connection.ExecuteAsync(request).WithCancellation(ct))
                     {
-                        str += "Operation " + jsonDocuments[index].RootElement + "\n";
+                        if (response.Body is not null)
+                        {
+                            snapshot.Add(response.Body.RootElement);
+                        }
                     }
-                }
+                })
+            .MatchAsync();
 
-                await snapshot.Add(str).MatchAsync(ct);
-            });
-    }
+    [Fact]
+    public async Task Validation_Error()
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
+                {
+                    using var host = TestServerHelper.CreateServer(
+                        x => x.AddTypeExtension<StringSubscriptionExtensions>(),
+                        out var port);
+
+                    IServiceProvider services =
+                        new ServiceCollection()
+                            .AddProtocol<GraphQLWebSocketProtocolFactory>()
+                            .AddWebSocketClient(
+                                "Foo",
+                                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                            .Services
+                            .BuildServiceProvider();
+
+                    var sessionPool = services.GetRequiredService<ISessionPool>();
+
+                    MockDocument document = new("""subscription Test { onTest(id:"Foo") }""");
+                    OperationRequest request = new("Test", document);
+
+                    var connection = new WebSocketConnection(async t => await sessionPool.CreateAsync("Foo", t));
+
+                    await foreach (var response in connection.ExecuteAsync(request).WithCancellation(ct))
+                    {
+                        if (response.Body is not null)
+                        {
+                            snapshot.Add(response.Body.RootElement);
+                        }
+                    }
+                })
+            .MatchAsync();
+
+    [Fact]
+    public async Task Request_With_ConnectionPayload()
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
+                {
+                    var payload = new Dictionary<string, object> { ["Key"] = "Value", };
+                    var sessionInterceptor = new StubSessionInterceptor();
+                    using var host = TestServerHelper.CreateServer(
+                        builder => builder
+                            .AddTypeExtension<StringSubscriptionExtensions>()
+                            .AddSocketSessionInterceptor<ISocketSessionInterceptor>(
+                                _ => sessionInterceptor),
+                        out var port);
+
+                    IServiceProvider services =
+                        new ServiceCollection()
+                            .AddProtocol<GraphQLWebSocketProtocolFactory>()
+                            .AddWebSocketClient(
+                                "Foo",
+                                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                            .ConfigureConnectionInterceptor(new StubConnectionInterceptor(payload))
+                            .Services
+                            .BuildServiceProvider();
+
+                    var sessionPool = services.GetRequiredService<ISessionPool>();
+
+                    MockDocument document = new("subscription Test { onTest(id:1) }");
+                    OperationRequest request = new("Test", document);
+
+                    var connection = new WebSocketConnection(async t => await sessionPool.CreateAsync("Foo", t));
+
+                    await foreach (var response in connection.ExecuteAsync(request).WithCancellation(ct))
+                    {
+                        if (response.Body is not null)
+                        {
+                            snapshot.Add(response.Body.RootElement);
+                        }
+                    }
+
+                    var message =
+                        Assert.IsType<Dictionary<string, string>>(
+                            sessionInterceptor.InitializeConnectionMessage);
+                    Assert.Equal(payload["Key"], message["Key"]);
+                })
+            .MatchAsync();
+
+    [Fact]
+    public async Task Parallel_Request_SameSocket()
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
+                {
+                    // arrange
+                    using var host = TestServerHelper
+                        .CreateServer(
+                            x => x.AddTypeExtension<StringSubscriptionExtensions>(),
+                            out var port);
+
+                    var services =
+                        new ServiceCollection()
+                            .AddProtocol<GraphQLWebSocketProtocolFactory>()
+                            .AddWebSocketClient(
+                                "Foo",
+                                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
+                            .Services
+                            .BuildServiceProvider();
+
+                    var sessionPool = services.GetRequiredService<ISessionPool>();
+                    var results = new ConcurrentDictionary<int, List<JsonDocument>>();
+
+                    // act
+                    var list = new List<Task>();
+
+                    for (var i = 0; i < 15; i++)
+                    {
+                        list.Add(CreateSubscription(i));
+                    }
+
+                    await Task.WhenAll(list);
+
+                    // assert
+                    var str = "";
+
+                    foreach (var sub in results.OrderBy(x => x.Key))
+                    {
+                        var jsonDocuments = sub.Value.ToArray();
+
+                        str += "Operation " + sub.Key + "\n";
+
+                        for (var index = 0; index < jsonDocuments.Length; index++)
+                        {
+                            str += "Operation " + jsonDocuments[index].RootElement + "\n";
+                        }
+                    }
+
+                    snapshot.Add(str);
+                    return;
+
+                    async Task CreateSubscription(int id)
+                    {
+                        var connection = new WebSocketConnection(
+                            async cancellationToken =>
+                                await sessionPool.CreateAsync("Foo", cancellationToken));
+                        var document = new MockDocument(
+                            $"subscription Test {{ onTest(id:{id.ToString()}) }}");
+                        var request = new OperationRequest("Test", document);
+
+                        await foreach (var response in
+                            connection.ExecuteAsync(request).WithCancellation(ct))
+                        {
+                            if (response.Body is not null)
+                            {
+                                results.AddOrUpdate(
+                                    id,
+                                    _ => [response.Body,],
+                                    (_, l) =>
+                                    {
+                                        l.Add(response.Body);
+                                        return l;
+                                    });
+                            }
+                        }
+                    }
+                })
+            .MatchAsync();
 
     [ExtendObjectType("Subscription")]
     public class StringSubscriptionExtensions
@@ -338,14 +295,9 @@ public class IntegrationTests : ServerTestBase
         }
     }
 
-    private sealed class MockDocument : IDocument
+    private sealed class MockDocument(string query) : IDocument
     {
-        private readonly byte[] _query;
-
-        public MockDocument(string query)
-        {
-            _query = Encoding.UTF8.GetBytes(query);
-        }
+        private readonly byte[] _query = Encoding.UTF8.GetBytes(query);
 
         public OperationKind Kind => OperationKind.Query;
 
@@ -368,20 +320,11 @@ public class IntegrationTests : ServerTestBase
         public Dictionary<string, string>? InitializeConnectionMessage { get; private set; }
     }
 
-    private sealed class StubConnectionInterceptor : ISocketConnectionInterceptor
+    private sealed class StubConnectionInterceptor(object? payload) : ISocketConnectionInterceptor
     {
-        private readonly object? _payload;
-
-        public StubConnectionInterceptor(object? payload)
-        {
-            _payload = payload;
-        }
-
         public ValueTask<object?> CreateConnectionInitPayload(
             ISocketProtocol protocol,
             CancellationToken cancellationToken)
-        {
-            return new(_payload);
-        }
+            => new(payload);
     }
 }
