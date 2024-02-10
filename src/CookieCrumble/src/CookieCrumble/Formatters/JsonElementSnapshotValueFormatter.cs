@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace CookieCrumble.Formatters;
@@ -9,6 +10,7 @@ internal sealed class JsonElementSnapshotValueFormatter : SnapshotValueFormatter
         new(JsonSerializerDefaults.Web)
         {
             WriteIndented = true, 
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
     protected override void Format(IBufferWriter<byte> snapshot, JsonElement value)
