@@ -171,7 +171,7 @@ public class ScalarTypeTestBase
         var result = scalar.Deserialize(resultValue);
 
         // assert
-        Assert.Equal(resultValue, runtimeValue);
+        Assert.Equal(result, runtimeValue);
     }
 
     protected void ExpectSerializeToThrowSerializationException<TType>(object runtimeValue)

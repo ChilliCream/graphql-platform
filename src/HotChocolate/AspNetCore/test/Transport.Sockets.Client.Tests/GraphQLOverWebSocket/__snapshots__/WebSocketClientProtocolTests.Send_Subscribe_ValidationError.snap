@@ -1,23 +1,91 @@
 ---------------
-{
-  "ValueKind": "Array"
-}
+[
+  {
+    "message": "The field \u0060____\u0060 does not exist on the type \u0060Review\u0060.",
+    "locations": [
+      {
+        "line": 1,
+        "column": 46
+      }
+    ],
+    "path": [
+      "onReview"
+    ],
+    "extensions": {
+      "type": "Review",
+      "field": "____",
+      "responseName": "____",
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]
 ---------------
 
 ---------------
-{
-  "ValueKind": "Array"
-}
+[
+  {
+    ":{\u0022quer": "\u0022subscription { onReview(episode: NEW_HOPE) { ____ } }\u0022}}\u000360Review\u0060.",
+    "locations": [
+      {
+        "line": 1,
+        "column": 46
+      }
+    ],
+    "path": [
+      "onReview"
+    ],
+    "extensions": {
+      "type": "Review",
+      "field": "____",
+      "responseName": "____",
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]
 ---------------
 
 ---------------
-{
-  "ValueKind": "Array"
-}
+[
+  {
+    ":{\u0022quer": "\u0022subscription { onReview(episode: NEW_HOPE) { ____ } }\u0022}}\u000360Review\u0060.",
+    "locations": [
+      {
+        "line": 1,
+        "column": 46
+      }
+    ],
+    "path": [
+      "onReview"
+    ],
+    "extensions": {
+      "type": "Review",
+      "field": "____",
+      "responseName": "____",
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]
 ---------------
 
 ---------------
-{
-  "ValueKind": "Array"
-}
+[
+  {
+    "message": "The field \u0060____\u0060 does not exist on the type \u0060Review\u0060.",
+    "locations": [
+      {
+        "line": 1,
+        "column": 46
+      }
+    ],
+    "path": [
+      "onReview"
+    ],
+    "extensions": {
+      "type": "Review",
+      "field": "____",
+      "responseName": "____",
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]
 ---------------

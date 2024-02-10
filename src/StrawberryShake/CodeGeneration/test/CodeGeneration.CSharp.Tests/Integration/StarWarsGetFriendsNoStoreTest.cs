@@ -39,7 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
                 services.GetRequiredService<IStarWarsGetFriendsNoStoreClient>();
 
             // act
-            IOperationResult<IGetHeroResult> result = await client.GetHero.ExecuteAsync(ct);
+            var result = await client.GetHero.ExecuteAsync(ct);
 
             // assert
             Assert.Equal("R2-D2", result.Data?.Hero?.Name);
