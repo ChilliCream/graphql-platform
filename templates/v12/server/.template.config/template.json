@@ -33,7 +33,7 @@
         }
       ],
       "replaces": "net6.0",
-      "defaultValue": "net6.0"
+      "defaultValue": "net8.0"
     }
   },
   "postActions": [
