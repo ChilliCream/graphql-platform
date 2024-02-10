@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
-using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 

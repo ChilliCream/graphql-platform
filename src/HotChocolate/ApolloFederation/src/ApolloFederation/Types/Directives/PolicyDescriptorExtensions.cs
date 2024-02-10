@@ -46,7 +46,8 @@ public static class PolicyDescriptorExtensions
     }
 
     /// <summary>
-    /// Applies @policy directive to indicate that the target element is restricted based on authorization policies that are evaluated in a Rhai script or coprocessor.
+    /// Applies @policy directive to indicate that the target element is restricted based on
+    /// authorization policies that are evaluated in a Rhai script or coprocessor.
     /// <example>
     /// type Foo @key(fields: "id") {
     ///   id: ID
@@ -57,7 +58,7 @@ public static class PolicyDescriptorExtensions
     /// <param name="descriptor">
     /// The type descriptor on which this directive shall be annotated.
     /// </param>
-    /// <param name="policies">Required authrorization policies</param>
+    /// <param name="policies">Required authorization policies</param>
     /// <returns>
     /// Returns the type descriptor.
     /// </returns>
@@ -79,7 +80,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
     public static IInterfaceFieldDescriptor Policy(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -95,7 +96,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceFieldDescriptor Policy(
         this IInterfaceFieldDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -111,7 +112,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
     public static IInterfaceTypeDescriptor Policy(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -127,7 +128,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IInterfaceTypeDescriptor Policy(
         this IInterfaceTypeDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -143,7 +144,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
     public static IObjectFieldDescriptor Policy(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -159,7 +160,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectFieldDescriptor Policy(
         this IObjectFieldDescriptor descriptor,
         IReadOnlyList<string> policies)
@@ -175,7 +176,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{Policy})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{HotChocolate.ApolloFederation.Types.Policy})"/>
     public static IObjectTypeDescriptor Policy(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<Policy> policies)
@@ -191,7 +192,7 @@ public static class PolicyDescriptorExtensions
         return descriptor;
     }
 
-    /// <inheritdoc cref="Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
+    /// <inheritdoc cref="PolicyDescriptorExtensions.Policy(IEnumTypeDescriptor, IReadOnlyList{string})"/>
     public static IObjectTypeDescriptor Policy(
         this IObjectTypeDescriptor descriptor,
         IReadOnlyList<string> policies)

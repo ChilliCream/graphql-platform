@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.Serialization.GeoJsonSerializers;

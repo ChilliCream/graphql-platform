@@ -1,7 +1,6 @@
 using System.Text;
 using CookieCrumble;
 using HotChocolate.Skimmed.Serialization;
-using static HotChocolate.Skimmed.WellKnownContextData;
 
 namespace HotChocolate.Skimmed;
 

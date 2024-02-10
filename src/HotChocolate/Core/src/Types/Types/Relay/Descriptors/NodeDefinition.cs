@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable

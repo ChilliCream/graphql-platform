@@ -2,7 +2,6 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
-using static System.IO.Path;
 
 namespace HotChocolate.OpenApi.Tests;
 

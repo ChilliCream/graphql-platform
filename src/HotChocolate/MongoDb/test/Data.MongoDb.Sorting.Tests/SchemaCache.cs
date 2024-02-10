@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;

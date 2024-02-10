@@ -1,10 +1,8 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 

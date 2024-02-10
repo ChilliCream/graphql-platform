@@ -7,4 +7,14 @@ internal sealed class SchemaSnapshotValueFormatter : SnapshotValueFormatter<ISch
 {
     protected override void Format(IBufferWriter<byte> snapshot, ISchema value)
         => snapshot.Append(value.ToString());
+
+    protected override void FormatMarkdown(IBufferWriter<byte> snapshot, ISchema value)
+    {
+        snapshot.Append("```graphql");
+        snapshot.AppendLine();
+        Format(snapshot, value);
+        snapshot.AppendLine();
+        snapshot.Append("```");
+        snapshot.AppendLine();
+    }
 }

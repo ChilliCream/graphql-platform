@@ -167,7 +167,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 // we will replace null with our null marker object so
                 // that
-                context.Result ??= MarkerObjects.Null;
+                context.Result ??= NullMarker.Instance;
             },
             isRepeatable: false,
             key: MutationResult);
@@ -497,7 +497,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 var parent = ctx.Parent<object?>();
 
                 if (ReferenceEquals(ErrorMarker.Instance, parent) ||
-                    ReferenceEquals(MarkerObjects.Null, parent))
+                    ReferenceEquals(NullMarker.Instance, parent))
                 {
                     return null;
                 }

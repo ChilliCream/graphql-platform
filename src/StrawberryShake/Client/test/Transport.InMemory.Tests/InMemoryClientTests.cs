@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 

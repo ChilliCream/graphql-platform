@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
@@ -10,10 +9,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Tests;
-using HotChocolate.Utilities;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate;

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems.Transformations;
 

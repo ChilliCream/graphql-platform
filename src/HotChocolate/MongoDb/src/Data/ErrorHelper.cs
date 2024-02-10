@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;

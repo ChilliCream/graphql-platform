@@ -7,10 +7,11 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using CookieCrumble.Formatters;
 using DiffPlex.DiffBuilder;
-using DiffPlex.DiffBuilder.Model;
+using HotChocolate.Utilities;
 using Xunit;
 using static System.Collections.Immutable.ImmutableStack;
 using static System.IO.Path;
+using ChangeType = DiffPlex.DiffBuilder.Model.ChangeType;
 
 namespace CookieCrumble;
 
@@ -29,6 +30,7 @@ public class Snapshot
             new SchemaErrorSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
             new OperationResultSnapshotValueFormatter(),
+            new JsonElementSnapshotValueFormatter(),
 #if NET7_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
 #endif
@@ -36,13 +38,16 @@ public class Snapshot
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
 
     private readonly List<SnapshotSegment> _segments = [];
+    private readonly string _title;
     private readonly string _fileName;
     private string _extension;
     private string? _postFix;
 
     public Snapshot(string? postFix = null, string? extension = null)
     {
-        _fileName = CreateFileName();
+        var frames = new StackTrace(true).GetFrames();
+        _title = CreateMarkdownTitle(frames);
+        _fileName = CreateFileName(frames);
         _postFix = postFix;
         _extension = extension ?? ".snap";
     }
@@ -135,6 +140,12 @@ public class Snapshot
 
             _formatters = _formatters.Push(formatter);
         }
+    }
+
+    public Snapshot Clear()
+    {
+        _segments.Clear();
+        return this;
     }
 
     public Snapshot Add(
@@ -246,6 +257,43 @@ public class Snapshot
             }
         }
     }
+    
+    public void MatchMarkdown()
+    {
+        var writer = new ArrayBufferWriter<byte>();
+        
+        writer.Append($"# {_title}");
+        writer.AppendLine();
+        writer.AppendLine();
+        
+        WriteMarkdownSegments(writer);
+
+        var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateMarkdownSnapshotFileName());
+
+        if (!File.Exists(snapshotFile))
+        {
+            EnsureDirectoryExists(snapshotFile);
+            using var stream = File.Create(snapshotFile);
+            stream.Write(writer.WrittenSpan);
+        }
+        else
+        {
+            var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateMarkdownSnapshotFileName());
+            EnsureFileDoesNotExist(mismatchFile);
+            var before = File.ReadAllText(snapshotFile);
+            var after = _encoding.GetString(writer.WrittenSpan);
+
+            if (MatchSnapshot(before, after, false, out var diff))
+            {
+                return;
+            }
+            
+            EnsureDirectoryExists(mismatchFile);
+            using var stream = File.Create(mismatchFile);
+            stream.Write(writer.WrittenSpan);
+            throw new Xunit.Sdk.XunitException(diff);
+        }
+    }
 
     public void MatchInline(string expected)
     {
@@ -294,6 +342,56 @@ public class Snapshot
             writer.AppendLine();
 
             next = true;
+        }
+    }
+    
+    private void WriteMarkdownSegments(IBufferWriter<byte> writer)
+    {
+        if (_segments.Count == 1)
+        {
+            var segment = _segments[0];
+
+            if (segment.Formatter is IMarkdownSnapshotValueFormatter markdownFormatter)
+            {
+                markdownFormatter.FormatMarkdown(writer, segment.Value);
+            }
+            else
+            {
+                writer.Append("```text");
+                writer.AppendLine();
+                segment.Formatter.Format(writer, segment.Value);
+                writer.AppendLine();
+                writer.Append("```");
+                writer.AppendLine();
+            }
+            return;
+        }
+
+        var i = 0;
+        foreach (var segment in _segments)
+        {
+            i++;
+            writer.Append(
+                string.IsNullOrEmpty(segment.Name)
+                    ? $"## Result {i}"
+                    : $"## {segment.Name}");
+            writer.AppendLine();
+            writer.AppendLine();
+
+            if (segment.Formatter is IMarkdownSnapshotValueFormatter markdownFormatter)
+            {
+                markdownFormatter.FormatMarkdown(writer, segment.Value);
+            }
+            else
+            {
+                writer.Append("```text");
+                writer.AppendLine();
+                segment.Formatter.Format(writer, segment.Value);
+                writer.AppendLine();
+                writer.Append("```");
+                writer.AppendLine();
+            }
+            writer.AppendLine();
         }
     }
 
@@ -390,13 +488,24 @@ public class Snapshot
             ? string.Concat(fileName, _extension)
             : string.Concat(fileName, "_", _postFix, _extension);
     }
-
-    private static string CreateFileName()
+    
+    private string CreateMarkdownSnapshotFileName()
     {
-        foreach (var stackFrame in new StackTrace(true).GetFrames())
+        var extension =  _extension.EqualsOrdinal(".snap") ? ".md" : _extension;
+        
+        var fileName = GetFileNameWithoutExtension(_fileName);
+
+        return string.IsNullOrEmpty(_postFix)
+            ? string.Concat(fileName, extension)
+            : string.Concat(fileName, "_", _postFix, extension);
+    }
+
+    private static string CreateFileName(StackFrame[] frames)
+    {
+        foreach (var stackFrame in frames)
         {
-            var method = stackFrame?.GetMethod();
-            var fileName = stackFrame?.GetFileName();
+            var method = stackFrame.GetMethod();
+            var fileName = stackFrame.GetFileName();
 
             if (method is not null &&
                 !string.IsNullOrEmpty(fileName) &&
@@ -412,6 +521,39 @@ public class Snapshot
                 IsXunitTestMethod(asyncMethod))
             {
                 return Combine(GetDirectoryName(fileName)!, asyncMethod.ToName());
+            }
+        }
+
+        throw new Exception(
+            "The snapshot full name could not be evaluated. " +
+            "This error can occur, if you use the snapshot match " +
+            "within a async test helper child method. To solve this issue, " +
+            "use the Snapshot.FullName directly in the unit test to " +
+            "get the snapshot name, then reach this name to your " +
+            "Snapshot.Match method.");
+    }
+    
+    private static string CreateMarkdownTitle(StackFrame[] frames)
+    {
+        foreach (var stackFrame in frames)
+        {
+            var method = stackFrame.GetMethod();
+            var fileName = stackFrame.GetFileName();
+
+            if (method is not null &&
+                !string.IsNullOrEmpty(fileName) &&
+                IsXunitTestMethod(method))
+            {
+                return method.Name;
+            }
+
+            var asyncMethod = EvaluateAsynchronousMethodBase(method);
+
+            if (asyncMethod is not null &&
+                !string.IsNullOrEmpty(fileName) &&
+                IsXunitTestMethod(asyncMethod))
+            {
+                return asyncMethod.Name;
             }
         }
 
@@ -461,20 +603,13 @@ public class Snapshot
     private static bool IsTheoryTestMethod(MemberInfo? method)
         => method?.GetCustomAttributes(typeof(TheoryAttribute)).Any() ?? false;
 
-    private struct SnapshotSegment
+    private readonly struct SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
     {
-        public SnapshotSegment(string? name, object? value, ISnapshotValueFormatter formatter)
-        {
-            Name = name;
-            Value = value;
-            Formatter = formatter;
-        }
+        public string? Name { get; } = name;
 
-        public string? Name { get; }
+        public object? Value { get; } = value;
 
-        public object? Value { get; }
-
-        public ISnapshotValueFormatter Formatter { get; }
+        public ISnapshotValueFormatter Formatter { get; } = formatter;
     }
 }
 

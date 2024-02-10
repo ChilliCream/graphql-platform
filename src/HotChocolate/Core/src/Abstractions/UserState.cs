@@ -1,6 +1,5 @@
 using System;
 using System.Security.Claims;
-using System.Security.Cryptography;
 
 namespace HotChocolate;
 

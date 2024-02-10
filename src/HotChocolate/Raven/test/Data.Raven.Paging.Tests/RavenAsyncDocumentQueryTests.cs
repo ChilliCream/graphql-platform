@@ -1,6 +1,5 @@
 using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;

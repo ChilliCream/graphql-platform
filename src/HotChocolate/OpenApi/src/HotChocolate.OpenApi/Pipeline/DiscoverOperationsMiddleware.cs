@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using HotChocolate.OpenApi.Helpers;
-using Microsoft.OpenApi.Models;
 
 namespace HotChocolate.OpenApi.Pipeline;
 

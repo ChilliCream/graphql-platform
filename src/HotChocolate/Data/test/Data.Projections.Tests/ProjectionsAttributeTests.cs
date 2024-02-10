@@ -4,8 +4,6 @@ using System.Linq;
 using CookieCrumble;
 using HotChocolate.Types;
 
-using Xunit;
-
 namespace HotChocolate.Data;
 
 public class ProjectionAttributeTests

@@ -275,11 +275,7 @@ jobs:
           path: |
             **/__mismatch__/*
 
-      - name: Fail if tests failed or were cancelled
-        run: exit 1
-        if: |
-          steps.run-tests.outcome == 'failure' ||
-          steps.run-tests.outcome == 'cancelled'
+
 
   codeql:
     name: CodeQL

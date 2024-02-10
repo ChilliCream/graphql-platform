@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Data.Marten.Filtering;
 using HotChocolate.Language;
 using HotChocolate.Types;
 

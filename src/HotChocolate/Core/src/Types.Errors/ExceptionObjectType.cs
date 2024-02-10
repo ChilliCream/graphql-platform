@@ -22,11 +22,8 @@ internal sealed class ExceptionObjectType<T> : ObjectType<T> where T : Exception
         var name = typeof(T).Name;
         const string exceptionSuffix = nameof(Exception);
 
-        if (name.EndsWith(exceptionSuffix))
-        {
-            return $"{name.Substring(0, name.Length - exceptionSuffix.Length)}Error";
-        }
-
-        return name;
+        return name.EndsWith(exceptionSuffix)
+            ? $"{name.Substring(0, name.Length - exceptionSuffix.Length)}Error"
+            : name;
     }
 }

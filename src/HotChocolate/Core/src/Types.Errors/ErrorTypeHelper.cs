@@ -1,6 +1,5 @@
 using static HotChocolate.Types.ErrorContextDataKeys;
 
-
 namespace HotChocolate.Types;
 
 internal sealed class ErrorTypeHelper

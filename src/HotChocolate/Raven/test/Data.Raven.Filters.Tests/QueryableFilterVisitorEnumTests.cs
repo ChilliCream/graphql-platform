@@ -1,6 +1,5 @@
 using CookieCrumble;
 using HotChocolate.Execution;
-using Raven.Client.Documents.Session;
 
 namespace HotChocolate.Data.Filters;
 
