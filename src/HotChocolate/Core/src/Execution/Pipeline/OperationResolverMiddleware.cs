@@ -109,7 +109,8 @@ internal sealed class OperationResolverMiddleware
 
     private bool IsNullBubblingEnabled(IRequestContext context, OperationDefinitionNode operationDefinition)
     {
-        if (context.Schema.ContextData.ContainsKey(DisableNullBubbling))
+        if (context.ContextData.TryGetValue(DisableNullBubbling, out var disableNullBubbling)
+            && disableNullBubbling is true)
         {
             return false;
         }

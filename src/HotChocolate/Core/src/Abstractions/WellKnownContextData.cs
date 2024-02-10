@@ -170,11 +170,6 @@ public static class WellKnownContextData
     public const string NodeResolver = "HotChocolate.Relay.Node.Resolver";
 
     /// <summary>
-    /// The key to check if relay support is enabled.
-    /// </summary>
-    public const string IsRelaySupportEnabled = "HotChocolate.Relay.IsEnabled";
-
-    /// <summary>
     /// The key to check if the global identification spec is enabled.
     /// </summary>
     public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
@@ -281,9 +276,9 @@ public static class WellKnownContextData
     public const string EnableTrueNullability = "HotChocolate.Types.EnableTrueNullability";
 
     /// <summary>
-    /// The key to access the disable null-bubbling flag on the execution context.
+    /// Disables null-bubbling for the current request.
     /// </summary>
-    public const string DisableNullBubbling = "HotChocolate.Types.DisableNullBubbling";
+    public const string DisableNullBubbling = "HotChocolate.Execution.DisableNullBubbling";
 
     /// <summary>
     /// The key to access the tag options object.

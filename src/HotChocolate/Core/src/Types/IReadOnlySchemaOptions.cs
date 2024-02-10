@@ -182,11 +182,6 @@ public interface IReadOnlySchemaOptions
     bool EnableTrueNullability { get; }
 
     /// <summary>
-    /// Specifies whether null-bubbling shall be disabled.
-    /// </summary>
-    bool DisableNullBubbling { get; }
-
-    /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }

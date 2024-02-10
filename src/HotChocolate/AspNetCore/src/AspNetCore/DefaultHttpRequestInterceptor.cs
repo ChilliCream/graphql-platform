@@ -34,6 +34,11 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
             requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
         }
 
+        if (context.IsNullBubblingDisabled())
+        {
+            requestBuilder.TryAddGlobalState(WellKnownContextData.DisableNullBubbling, true);
+        }
+
         return default;
     }
 }

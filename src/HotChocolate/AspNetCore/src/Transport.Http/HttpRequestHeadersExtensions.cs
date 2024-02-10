@@ -29,5 +29,28 @@ public static class HttpRequestHeadersExtensions
 
         headers.Add("GraphQL-Preflight", "1");
         return headers;
-    }  
+    }
+
+    /// <summary>
+    /// Adds the <c>GraphQL-Disable-NullBubbling</c> header to the request.
+    /// </summary>
+    /// <param name="headers">
+    /// The <see cref="HttpRequestHeaders"/> to add the header to.
+    /// </param>
+    /// <returns>
+    /// Returns the <paramref name="headers"/> for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="headers"/> is <see langword="null"/>.
+    /// </exception>
+    public static HttpRequestHeaders AddGraphQLDisableNullBubbling(this HttpRequestHeaders headers)
+    {
+        if (headers == null)
+        {
+            throw new ArgumentNullException(nameof(headers));
+        }
+
+        headers.Add("GraphQL-Disable-NullBubbling", "1");
+        return headers;
+    }
 }
