@@ -30,6 +30,7 @@ public class Snapshot
             new SchemaErrorSnapshotValueFormatter(),
             new HttpResponseSnapshotValueFormatter(),
             new OperationResultSnapshotValueFormatter(),
+            new JsonElementSnapshotValueFormatter(),
 #if NET7_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
 #endif

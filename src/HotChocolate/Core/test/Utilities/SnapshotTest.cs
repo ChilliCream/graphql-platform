@@ -39,6 +39,9 @@ public sealed class SnapshotTest
         return this;
     }
     
+    public async Task RunAsync()
+        => await TryRunAsync(_snapshot, _action, _allowedRetries, _timeout, match: false).ConfigureAwait(false);
+    
     public async Task MatchAsync()
         => await TryRunAsync(_snapshot, _action, _allowedRetries, _timeout).ConfigureAwait(false);
     
@@ -46,7 +49,8 @@ public sealed class SnapshotTest
         Snapshot snapshot,
         Func<Snapshot, CancellationToken, Task> action,
         int allowedRetries = 3,
-        int timeout = 30_000)
+        int timeout = 30_000,
+        bool match = true)
     {
         // we will try four times ....
         var attempt = 0;
@@ -80,7 +84,12 @@ public sealed class SnapshotTest
                 {
                     snapshot.Clear();
                     await action(snapshot, ct).ConfigureAwait(false);
-                    snapshot.MatchMarkdown();
+
+                    if (match)
+                    {
+                        snapshot.MatchMarkdown();
+                    }
+                    
                     return true;
                 }
                 catch
@@ -91,7 +100,12 @@ public sealed class SnapshotTest
 
             snapshot.Clear();
             await action(snapshot, ct).ConfigureAwait(false);
-            snapshot.MatchMarkdown();
+            
+            if (match)
+            {
+                snapshot.MatchMarkdown();
+            }
+            
             return true;
         }
     }
