@@ -5,7 +5,7 @@ namespace CookieCrumble.Formatters;
 /// <summary>
 /// Formats a snapshot segment value for the snapshot file.
 /// </summary>
-public interface ISnapshotValueFormatter
+public interface IMarkdownSnapshotValueFormatter
 {
     /// <summary>
     /// Specifies if the formatter can handle the snapshot segment value.
@@ -28,5 +28,5 @@ public interface ISnapshotValueFormatter
     /// <param name="value">
     ///  The snapshot segment vale.
     /// </param>
-    void Format(IBufferWriter<byte> snapshot, object? value);
+    void FormatMarkdown(IBufferWriter<byte> snapshot, object? value);
 }

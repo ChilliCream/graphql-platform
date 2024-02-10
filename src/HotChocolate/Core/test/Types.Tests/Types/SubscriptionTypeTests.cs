@@ -1,20 +1,21 @@
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable MemberCanBePrivate.Global
+
+#pragma warning disable CS0618 // Type or member is obsolete
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
+using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter;
-using Snapshooter.Xunit;
-using static HotChocolate.Tests.TestHelper;
-using Snapshot = Snapshooter.Xunit.Snapshot;
-
-#nullable enable
-#pragma warning disable CS0618
 
 namespace HotChocolate.Types;
 
@@ -22,242 +23,219 @@ public class SubscriptionTypeTests : TypeTestBase
 {
     [Fact]
     public async Task Subscribe_With_Enumerable()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType(
-                        t => t
-                            .Field("test")
-                            .Type<StringType>()
-                            .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(_ => new List<string> { "a", "b", "c", }))
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { test }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(queryResult.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType(
+                                t => t
+                                    .Field("test")
+                                    .Type<StringType>()
+                                    .Resolve(ctx => ctx.GetEventMessage<string>())
+                                    .Subscribe(_ => new List<string> { "a", "b", "c", }))
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        """
+                        subscription {
+                          test
+                        }
+                        """,
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_With_Enumerable_Async()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType(
-                        t => t
-                            .Field("test")
-                            .Type<StringType>()
-                            .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(
-                                _ => Task.FromResult<IEnumerable<string>>(
-                                    new List<string> { "a", "b", "c", })))
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { test }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType(
+                                t => t
+                                    .Field("test")
+                                    .Type<StringType>()
+                                    .Resolve(ctx => ctx.GetEventMessage<string>())
+                                    .Subscribe(
+                                        _ => Task.FromResult<IEnumerable<string>>(
+                                            new List<string> { "a", "b", "c", })))
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        """
+                        subscription {
+                          test
+                        }
+                        """,
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_With_Observable()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var observable = new TestObservable();
-
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType(
-                        t => t
-                            .Field("test")
-                            .Type<StringType>()
-                            .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(_ => observable))
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { test }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    var result = queryResult;
-                    results.AppendLine(result.ToJson());
-                }
+                    var observable = new TestObservable();
 
-                Assert.True(observable.DisposeRaised);
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType(
+                                t => t
+                                    .Field("test")
+                                    .Type<StringType>()
+                                    .Resolve(ctx => ctx.GetEventMessage<string>())
+                                    .Subscribe(_ => observable))
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
+
+                    var result = await executor.ExecuteAsync(
+                        """
+                        subscription {
+                          test
+                        }
+                        """,
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+
+                    Assert.True(observable.DisposeRaised);
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_With_Observable_Async()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var observable = new TestObservable();
-
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType(
-                        t => t
-                            .Field("test")
-                            .Type<StringType>()
-                            .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(_ => Task.FromResult<IObservable<string>>(observable)))
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { test }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var observable = new TestObservable();
 
-                Assert.True(observable.DisposeRaised);
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType(
+                                t => t
+                                    .Field("test")
+                                    .Type<StringType>()
+                                    .Resolve(ctx => ctx.GetEventMessage<string>())
+                                    .Subscribe(_ => Task.FromResult<IObservable<string>>(observable)))
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
+
+                    var result = await executor.ExecuteAsync(
+                        """
+                        subscription {
+                          test
+                        }
+                        """,
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+
+                    Assert.True(observable.DisposeRaised);
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_With_AsyncEnumerable()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType(
-                        t => t
-                            .Field("test")
-                            .Type<StringType>()
-                            .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(_ => new TestAsyncEnumerable()))
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { test }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType(
+                                t => t
+                                    .Field("test")
+                                    .Type<StringType>()
+                                    .Resolve(ctx => ctx.GetEventMessage<string>())
+                                    .Subscribe(_ => new TestAsyncEnumerable()))
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        """
+                        subscription {
+                          test
+                        }
+                        """,
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_With_AsyncEnumerable_Async()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType(
-                        t => t
-                            .Field("test")
-                            .Type<StringType>()
-                            .Resolve(ctx => ctx.GetEventMessage<string>())
-                            .Subscribe(
-                                _ => Task.FromResult<IAsyncEnumerable<string>>(
-                                    new TestAsyncEnumerable())))
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { test }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType(
+                                t => t
+                                    .Field("test")
+                                    .Type<StringType>()
+                                    .Resolve(ctx => ctx.GetEventMessage<string>())
+                                    .Subscribe(
+                                        _ => Task.FromResult<IAsyncEnumerable<string>>(
+                                            new TestAsyncEnumerable())))
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        """
+                        subscription {
+                          test
+                        }
+                        """,
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                })
+            .MatchAsync();
 
     [InlineData("onSomething")]
     [InlineData("onSomethingTask")]
@@ -267,78 +245,62 @@ public class SubscriptionTypeTests : TypeTestBase
     [InlineData("onSomethingObjValueTask")]
     [Theory]
     public async Task SubscribeAndResolve_Attribute_AsyncEnumerable(string field)
-    {
-        var snapshotFullName = Snapshot.FullName(new SnapshotNameExtension(field));
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { " + field + " }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType<PureCodeFirstAsyncEnumerable>()
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                results.ToString().MatchSnapshot(snapshotFullName);
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        $"subscription {{ {field} }}",
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                },
+                postFix: field)
+            .MatchAsync();
 
     [InlineData("onSomething")]
     [Theory]
     public async Task SubscribeAndResolve_Attribute_ISourceStream(string field)
-    {
-        var snapshotFullName = Snapshot.FullName(new SnapshotNameExtension(field));
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var executor = await CreateExecutorAsync(
-                    r => r
-                        .AddInMemorySubscriptions()
-                        .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                        .AddMutationType<MyMutation>()
-                        .AddSubscriptionType<PureCodeFirstSourceStream>());
-
-                // act
-                var subscriptionResult = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { " + field + " (userId: \"1\") }",
-                    ct);
-
-                var mutationResult = await executor.ExecuteAsync(
-                    "mutation { writeBoolean(userId: \"1\" message: true) }",
-                    ct);
-                Assert.Null(mutationResult.ExpectQueryResult().Errors);
-
-                // assert
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    subscriptionResult.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                    break;
-                }
+                    var executor = await TestHelper.CreateExecutorAsync(
+                        r => r
+                            .AddInMemorySubscriptions()
+                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                            .AddMutationType<MyMutation>()
+                            .AddSubscriptionType<PureCodeFirstSourceStream>());
 
-                results.ToString().MatchSnapshot(snapshotFullName);
-            });
-    }
+                    var subscriptionResult = await executor.ExecuteAsync(
+                        "subscription { " + field + " (userId: \"1\") }",
+                        ct);
+
+                    var mutationResult = await executor.ExecuteAsync(
+                        "mutation { writeBoolean(userId: \"1\" message: true) }",
+                        ct);
+                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+
+                    await foreach (var queryResult in subscriptionResult.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                        break;
+                    }
+                },
+                postFix: field)
+            .MatchAsync();
 
     [InlineData("onSomething")]
     [InlineData("onSomethingTask")]
@@ -348,36 +310,29 @@ public class SubscriptionTypeTests : TypeTestBase
     [InlineData("onSomethingObjValueTask")]
     [Theory]
     public async Task SubscribeAndResolve_Attribute_Enumerable(string field)
-    {
-        var snapshotFullName = Snapshot.FullName(new SnapshotNameExtension(field));
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType<PureCodeFirstEnumerable>()
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { " + field + " }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType<PureCodeFirstEnumerable>()
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                results.ToString().MatchSnapshot(snapshotFullName);
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        $"subscription {{ {field} }}",
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                },
+                postFix: field)
+            .MatchAsync();
 
     [InlineData("onSomething")]
     [InlineData("onSomethingTask")]
@@ -387,36 +342,29 @@ public class SubscriptionTypeTests : TypeTestBase
     [InlineData("onSomethingObjValueTask")]
     [Theory]
     public async Task SubscribeAndResolve_Attribute_Queryable(string field)
-    {
-        var snapshotFullName = Snapshot.FullName(new SnapshotNameExtension(field));
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType<PureCodeFirstQueryable>()
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { " + field + " }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var result in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType<PureCodeFirstQueryable>()
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                results.ToString().MatchSnapshot(snapshotFullName);
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        $"subscription {{ {field} }}",
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                },
+                postFix: field)
+            .MatchAsync();
 
     [InlineData("onSomething")]
     [InlineData("onSomethingTask")]
@@ -426,260 +374,208 @@ public class SubscriptionTypeTests : TypeTestBase
     [InlineData("onSomethingObjValueTask")]
     [Theory]
     public async Task SubscribeAndResolve_Attribute_Observable(string field)
-    {
-        var snapshotFullName = Snapshot.FullName(new SnapshotNameExtension(field));
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                // act
-                var schema = SchemaBuilder.New()
-                    .AddSubscriptionType<PureCodeFirstObservable>()
-                    .ModifyOptions(t => t.StrictValidation = false)
-                    .Create();
-
-                // assert
-                var executor = schema.MakeExecutable();
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { " + field + " }",
-                    ct);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    var result = queryResult;
-                    results.AppendLine(result.ToJson());
-                }
+                    var executor =
+                        await new ServiceCollection()
+                            .AddGraphQL()
+                            .AddSubscriptionType<PureCodeFirstObservable>()
+                            .ModifyOptions(t => t.StrictValidation = false)
+                            .BuildRequestExecutorAsync(cancellationToken: ct);
 
-                results.ToString().MatchSnapshot(snapshotFullName);
-            });
-    }
+                    var result = await executor.ExecuteAsync(
+                        $"subscription {{ {field} }}",
+                        ct);
+
+                    await foreach (var queryResult in result.ExpectResponseStream()
+                        .ReadResultsAsync().WithCancellation(ct))
+                    {
+                        snapshot.Add(queryResult);
+                    }
+                },
+                postFix: field)
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_Attribute_With_Argument_Topic()
-    {
-        var snapshot = new CookieCrumble.Snapshot();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var executor = await CreateExecutorAsync(
-                    r => r
-                        .AddInMemorySubscriptions()
-                        .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                        .AddMutationType<MyMutation>()
-                        .AddSubscriptionType<MySubscription>());
-
-                // act
-                await using var subscriptionResult = await executor.ExecuteAsync(
-                    "subscription { onMessage(userId: \"abc\") }",
-                    ct);
-                var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
-
-                // assert
-                var mutationResult = await executor.ExecuteAsync(
-                    "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
-                    ct);
-                Assert.Null(mutationResult.ExpectQueryResult().Errors);
-
-                await foreach (var queryResult in
-                    results.WithCancellation(ct).ConfigureAwait(false))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    snapshot.Add(queryResult);
-                    break;
-                }
-            }).ConfigureAwait(false);
+                    var executor = await TestHelper.CreateExecutorAsync(
+                        r => r
+                            .AddInMemorySubscriptions()
+                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                            .AddMutationType<MyMutation>()
+                            .AddSubscriptionType<MySubscription>());
 
-        snapshot.MatchInline(
-            @"{
-              ""data"": {
-                ""onMessage"": ""def""
-              }
-            }");
-    }
+                    // act
+                    await using var subscriptionResult = await executor.ExecuteAsync(
+                        "subscription { onMessage(userId: \"abc\") }",
+                        ct);
+                    var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
+
+                    // assert
+                    var mutationResult = await executor.ExecuteAsync(
+                        "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
+                        ct);
+                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+
+                    await foreach (var queryResult in
+                        results.WithCancellation(ct).ConfigureAwait(false))
+                    {
+                        snapshot.Add(queryResult);
+                        break;
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_Attribute_With_Static_Topic_Defined_On_Attribute()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var executor = await CreateExecutorAsync(
-                    r => r
-                        .AddInMemorySubscriptions()
-                        .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                        .AddMutationType<MyMutation>()
-                        .AddSubscriptionType<MySubscription>());
-
-                // act
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { onFixedMessage }",
-                    ct);
-
-                // assert
-                var mutationResult = await executor.ExecuteAsync(
-                    "mutation { writeFixedMessage(message: \"def\") }",
-                    ct);
-                Assert.Null(mutationResult.ExpectQueryResult().Errors);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    var result = queryResult;
-                    results.AppendLine(result.ToJson());
-                    break;
-                }
+                    var executor = await TestHelper.CreateExecutorAsync(
+                        r => r
+                            .AddInMemorySubscriptions()
+                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                            .AddMutationType<MyMutation>()
+                            .AddSubscriptionType<MySubscription>());
 
-                await stream.DisposeAsync();
+                    // act
+                    await using var subscriptionResult = await executor.ExecuteAsync(
+                        "subscription { onFixedMessage }",
+                        ct);
+                    var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    // assert
+                    var mutationResult = await executor.ExecuteAsync(
+                        "mutation { writeFixedMessage(message: \"def\") }",
+                        ct);
+                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+
+                    await foreach (var queryResult in
+                        results.WithCancellation(ct).ConfigureAwait(false))
+                    {
+                        snapshot.Add(queryResult);
+                        break;
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_Attribute_With_Static_Topic()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var executor = await CreateExecutorAsync(
-                    r => r
-                        .AddInMemorySubscriptions()
-                        .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                        .AddMutationType<MyMutation>()
-                        .AddSubscriptionType<MySubscription>());
-
-                // act
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { onSysMessage }",
-                    ct);
-
-                // assert
-                var mutationResult = await executor.ExecuteAsync(
-                    "mutation { writeSysMessage(message: \"def\") }",
-                    ct);
-                Assert.Null(mutationResult.ExpectQueryResult().Errors);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    var result = queryResult;
-                    results.AppendLine(result.ToJson());
-                    break;
-                }
+                    var executor = await TestHelper.CreateExecutorAsync(
+                        r => r
+                            .AddInMemorySubscriptions()
+                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                            .AddMutationType<MyMutation>()
+                            .AddSubscriptionType<MySubscription>());
 
-                await stream.DisposeAsync();
+                    // act
+                    await using var subscriptionResult = await executor.ExecuteAsync(
+                        "subscription { onSysMessage }",
+                        ct);
+                    var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    // assert
+                    var mutationResult = await executor.ExecuteAsync(
+                        "mutation { writeSysMessage(message: \"def\") }",
+                        ct);
+                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+
+                    await foreach (var queryResult in
+                        results.WithCancellation(ct).ConfigureAwait(false))
+                    {
+                        snapshot.Add(queryResult);
+                        break;
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_Attribute_With_Static_Topic_Infer_Topic()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var executor = await CreateExecutorAsync(
-                    r => r
-                        .AddInMemorySubscriptions()
-                        .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                        .AddMutationType<MyMutation>()
-                        .AddSubscriptionType<MySubscription>());
-
-                // act
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { onInferTopic }",
-                    ct);
-
-                // assert
-                var mutationResult = await executor.ExecuteAsync(
-                    "mutation { writeOnInferTopic(message: \"def\") }",
-                    ct);
-                Assert.Null(mutationResult.ExpectQueryResult().Errors);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    var result = queryResult;
-                    results.AppendLine(result.ToJson());
-                    break;
-                }
+                    var executor = await TestHelper.CreateExecutorAsync(
+                        r => r
+                            .AddInMemorySubscriptions()
+                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                            .AddMutationType<MyMutation>()
+                            .AddSubscriptionType<MySubscription>());
 
-                await stream.DisposeAsync();
+                    // act
+                    await using var subscriptionResult = await executor.ExecuteAsync(
+                        "subscription { onInferTopic }",
+                        ct);
+                    var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    // assert
+                    var mutationResult = await executor.ExecuteAsync(
+                        "mutation { writeOnInferTopic(message: \"def\") }",
+                        ct);
+                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+
+                    await foreach (var queryResult in
+                        results.WithCancellation(ct).ConfigureAwait(false))
+                    {
+                        snapshot.Add(queryResult);
+                        break;
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_Attribute_With_Explicitly_Defined_Subscribe()
-    {
-        Snapshot.FullName();
-
-        await TryTest(
-            async ct =>
-            {
-                // arrange
-                var executor = await CreateExecutorAsync(
-                    r => r
-                        .AddInMemorySubscriptions()
-                        .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                        .AddMutationType<MyMutation>()
-                        .AddSubscriptionType<MySubscription>());
-
-                // act
-                var stream = (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { onExplicit }",
-                    ct);
-
-                // assert
-                var mutationResult = await executor.ExecuteAsync(
-                    "mutation { writeOnExplicit(message: \"def\") }",
-                    ct);
-                Assert.Null(mutationResult.ExpectQueryResult().Errors);
-
-                var results = new StringBuilder();
-
-                await foreach (var queryResult in
-                    stream.ReadResultsAsync().WithCancellation(ct))
+        => await SnapshotTest
+            .Create(
+                async (snapshot, ct) =>
                 {
-                    var result = queryResult;
-                    results.AppendLine(result.ToJson());
-                    break;
-                }
+                    var executor = await TestHelper.CreateExecutorAsync(
+                        r => r
+                            .AddInMemorySubscriptions()
+                            .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
+                            .AddMutationType<MyMutation>()
+                            .AddSubscriptionType<MySubscription>());
 
-                await stream.DisposeAsync();
+                    // act
+                    await using var subscriptionResult = await executor.ExecuteAsync(
+                        "subscription { onExplicit }",
+                        ct);
+                    var results = subscriptionResult.ExpectResponseStream().ReadResultsAsync();
 
-                SnapshotExtension.MatchSnapshot(results.ToString());
-            });
-    }
+                    // assert
+                    var mutationResult = await executor.ExecuteAsync(
+                        "mutation { writeOnExplicit(message: \"def\") }",
+                        ct);
+                    Assert.Null(mutationResult.ExpectQueryResult().Errors);
+
+                    await foreach (var queryResult in
+                        results.WithCancellation(ct).ConfigureAwait(false))
+                    {
+                        snapshot.Add(queryResult);
+                        break;
+                    }
+                })
+            .MatchAsync();
 
     [Fact]
     public async Task Subscribe_Attribute_Schema_Is_Generated_Correctly()
     {
         // arrange
+        var snapshot = new Snapshot();
+        
         // act
-        var executor = await CreateExecutorAsync(
+        var executor = await TestHelper.CreateExecutorAsync(
             r => r
                 .AddInMemorySubscriptions()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
@@ -687,15 +583,19 @@ public class SubscriptionTypeTests : TypeTestBase
                 .AddSubscriptionType<MySubscription>());
 
         // assert
-        SnapshotExtension.MatchSnapshot(executor.Schema.ToString());
+        snapshot
+            .Add(executor.Schema)
+            .MatchMarkdown();
     }
 
     [Fact]
     public async Task Subscribe_Attribute_Schema_Is_Generated_Correctly_2()
     {
         // arrange
+        var snapshot = new Snapshot();
+        
         // act
-        var executor = await CreateExecutorAsync(
+        var executor = await TestHelper.CreateExecutorAsync(
             r => r
                 .AddInMemorySubscriptions()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
@@ -703,22 +603,28 @@ public class SubscriptionTypeTests : TypeTestBase
                 .AddTypeExtension<MySubscriptionExtension>());
 
         // assert
-        SnapshotExtension.MatchSnapshot(executor.Schema.ToString());
+        snapshot
+            .Add(executor.Schema)
+            .MatchMarkdown();
     }
 
     [Fact]
     public async Task Arguments_Can_Be_Declared_On_The_Stream_Schema()
     {
         // arrange
+        var snapshot = new Snapshot();
+        
         // act
-        var executor = await CreateExecutorAsync(
+        var executor = await TestHelper.CreateExecutorAsync(
             r => r
                 .AddInMemorySubscriptions()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 .AddSubscriptionType<MySubscription>());
 
         // assert
-        SnapshotExtension.MatchSnapshot(executor.Schema.ToString());
+        snapshot
+            .Add(executor.Schema)
+            .MatchMarkdown();
     }
 
     [Fact]
@@ -726,7 +632,7 @@ public class SubscriptionTypeTests : TypeTestBase
     {
         // arrange
         // act
-        var executor = await CreateExecutorAsync(
+        var executor = await TestHelper.CreateExecutorAsync(
             r => r
                 .AddInMemorySubscriptions()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
@@ -841,9 +747,7 @@ public class SubscriptionTypeTests : TypeTestBase
         public ValueTask<ISourceStream<bool>> OnSomething(
             string userId,
             [Service] ITopicEventReceiver receiver)
-        {
-            return receiver.SubscribeAsync<bool>(userId);
-        }
+            => receiver.SubscribeAsync<bool>(userId);
     }
 
     public class PureCodeFirstEnumerable

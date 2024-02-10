@@ -32,12 +32,10 @@ public static class QueryRequestExecutorBuilderExtensions
             .ConfigureSchema(
                 c =>
                 {
-                    // c.ContextData[MutationContextDataKeys.Options] = options;
                     c.ContextData[ErrorContextDataKeys.ErrorConventionEnabled] = true;
                 })
             .AddFieldResultTypeDiscovery()
             .TryAddTypeInterceptor<QueryConventionTypeInterceptor>();
-            // .ConfigureSchema(c => c.TryAddSchemaDirective(new MutationDirective()));
 
         return builder;
     }

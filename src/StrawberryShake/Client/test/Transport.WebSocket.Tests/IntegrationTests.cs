@@ -82,6 +82,8 @@ public class IntegrationTests : ServerTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
+                
                 using var host = TestServerHelper.CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                     out var port);
@@ -93,19 +95,17 @@ public class IntegrationTests : ServerTestBase
                         "Foo",
                         c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
-                IServiceProvider services = serviceCollection.BuildServiceProvider();
+                var services = serviceCollection.BuildServiceProvider();
                 var sessionPool = services.GetRequiredService<ISessionPool>();
 
-                List<JsonDocument> results = [];
-                MockDocument document = new("subscription Test { onTest }");
-                OperationRequest request = new("Test", document);
+                var results = new List<JsonDocument>();
+                var document = new MockDocument("subscription Test { onTest }");
+                var request = new OperationRequest("Test", document);
 
                 // act
-                var connection =
-                    new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
+                var connection = new WebSocketConnection(async _ => await sessionPool.CreateAsync("Foo", _));
 
-                await foreach (var response in
-                    connection.ExecuteAsync(request).WithCancellation(ct))
+                await foreach (var response in connection.ExecuteAsync(request).WithCancellation(ct))
                 {
                     if (response.Body is not null)
                     {
@@ -129,6 +129,8 @@ public class IntegrationTests : ServerTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
+                
                 using var host = TestServerHelper.CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                     out var port);
