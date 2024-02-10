@@ -1,5 +1,4 @@
 using HotChocolate.ApolloFederation;
-using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution.Configuration;
 using FederationVersion = HotChocolate.ApolloFederation.FederationVersion;
 

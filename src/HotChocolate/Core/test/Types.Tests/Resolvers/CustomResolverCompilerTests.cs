@@ -5,9 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
-using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

@@ -1,14 +1,9 @@
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Composition.Features;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;

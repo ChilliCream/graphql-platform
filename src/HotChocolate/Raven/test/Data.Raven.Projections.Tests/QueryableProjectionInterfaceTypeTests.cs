@@ -3,8 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Raven.Client.Documents;
-using Raven.Client.Documents.Linq.Indexing;
 using static HotChocolate.Data.Raven.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Raven;

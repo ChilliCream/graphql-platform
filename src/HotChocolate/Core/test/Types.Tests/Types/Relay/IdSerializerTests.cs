@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Xunit;
 
 namespace HotChocolate.Types.Relay;
 

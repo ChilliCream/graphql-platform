@@ -1,7 +1,5 @@
 using System.Globalization;
-using System.Reflection;
 using HotChocolate.Data.Filters;
-using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;

@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Protocols;
 

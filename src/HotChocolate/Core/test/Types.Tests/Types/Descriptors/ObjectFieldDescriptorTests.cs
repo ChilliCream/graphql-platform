@@ -4,7 +4,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Types;
 

@@ -9,7 +9,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

@@ -1,5 +1,4 @@
 using System;
-using Xunit;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types.Descriptors;

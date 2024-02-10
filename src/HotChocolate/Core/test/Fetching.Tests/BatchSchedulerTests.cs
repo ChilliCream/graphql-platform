@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Fetching;
 

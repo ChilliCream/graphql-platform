@@ -3,7 +3,6 @@ using System;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {

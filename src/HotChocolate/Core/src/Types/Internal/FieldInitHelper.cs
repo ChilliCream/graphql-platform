@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -9,7 +8,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
-using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 

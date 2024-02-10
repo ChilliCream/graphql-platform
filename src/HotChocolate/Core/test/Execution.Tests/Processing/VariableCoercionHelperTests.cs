@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
@@ -8,7 +5,6 @@ using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 

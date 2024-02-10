@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 

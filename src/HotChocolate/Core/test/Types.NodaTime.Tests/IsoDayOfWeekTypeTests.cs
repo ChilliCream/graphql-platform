@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Execution;
 using NodaTime;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {

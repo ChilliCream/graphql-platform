@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
-using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
 namespace HotChocolate.Data.Filters.Spatial;
 

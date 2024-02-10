@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 

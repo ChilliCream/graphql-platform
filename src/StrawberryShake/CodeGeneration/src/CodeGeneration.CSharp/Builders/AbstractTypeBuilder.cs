@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate;
 using StrawberryShake.Properties;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders;

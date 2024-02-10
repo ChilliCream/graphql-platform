@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 

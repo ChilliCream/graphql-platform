@@ -1,9 +1,5 @@
-using System.Collections.Immutable;
 using CookieCrumble;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using Raven.Client.Documents;
-using Raven.Client.Documents.Queries;
 
 namespace HotChocolate.Data.Filters;
 

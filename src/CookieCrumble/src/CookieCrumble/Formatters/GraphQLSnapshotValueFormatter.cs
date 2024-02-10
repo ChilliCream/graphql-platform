@@ -1,5 +1,4 @@
 using System.Buffers;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 
@@ -26,5 +25,15 @@ internal sealed class GraphQLSnapshotValueFormatter : SnapshotValueFormatter<ISy
         snapshot.Append(span);
 
         ArrayPool<char>.Shared.Return(buffer);
+    }
+    
+    protected override void FormatMarkdown(IBufferWriter<byte> snapshot, ISyntaxNode value)
+    {
+        snapshot.Append("```graphql");
+        snapshot.AppendLine();
+        Format(snapshot, value);
+        snapshot.AppendLine();
+        snapshot.Append("```");
+        snapshot.AppendLine();
     }
 }

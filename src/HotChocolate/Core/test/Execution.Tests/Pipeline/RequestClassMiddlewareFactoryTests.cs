@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using Moq;
-using Xunit;
 using static HotChocolate.Execution.Pipeline.RequestClassMiddlewareFactory;
 
 namespace HotChocolate.Execution.Pipeline;

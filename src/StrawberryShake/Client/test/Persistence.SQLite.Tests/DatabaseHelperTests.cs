@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
-using Xunit;
 
 namespace StrawberryShake.Persistence.SQLite;
 

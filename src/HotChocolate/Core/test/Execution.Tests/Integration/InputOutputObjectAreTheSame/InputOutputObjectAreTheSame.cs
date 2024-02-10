@@ -1,7 +1,5 @@
-﻿using System.Threading.Tasks;
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame;
 

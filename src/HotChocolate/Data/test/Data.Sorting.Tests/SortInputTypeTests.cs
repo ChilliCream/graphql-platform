@@ -6,8 +6,6 @@ using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-using Xunit;
-
 namespace HotChocolate.Data.Tests;
 
 public class SortInputTypeTest : SortTestBase

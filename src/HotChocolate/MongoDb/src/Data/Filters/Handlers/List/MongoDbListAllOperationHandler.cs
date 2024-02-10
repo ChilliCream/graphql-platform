@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using MongoDB.Bson;
 using MongoDB.Driver;

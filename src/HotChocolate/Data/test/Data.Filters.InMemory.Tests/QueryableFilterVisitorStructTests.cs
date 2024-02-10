@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions;
 

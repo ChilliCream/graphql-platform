@@ -10,7 +10,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
