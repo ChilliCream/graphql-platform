@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Extensions;

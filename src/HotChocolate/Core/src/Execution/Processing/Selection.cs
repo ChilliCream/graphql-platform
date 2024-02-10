@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

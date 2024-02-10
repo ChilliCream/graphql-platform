@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language;
 
 public readonly ref struct GraphQLSocketMessage

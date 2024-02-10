@@ -1,5 +1,3 @@
-using HotChocolate.Data.Raven.Pagination;
-using HotChocolate.Data.Raven;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate;
-using HotChocolate.Execution.Options;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.Tools.Configuration;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 using static ChilliCream.Testing.FileResource;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;

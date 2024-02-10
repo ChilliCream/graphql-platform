@@ -1,9 +1,6 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Instrumentation;

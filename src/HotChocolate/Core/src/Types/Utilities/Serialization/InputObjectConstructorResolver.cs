@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
-using HotChocolate.Types.Helpers;
 using static System.Reflection.BindingFlags;
 
 #nullable enable

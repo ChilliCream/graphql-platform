@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Data.Sorting;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Tests;

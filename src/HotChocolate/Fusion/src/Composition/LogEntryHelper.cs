@@ -1,4 +1,3 @@
-using System.Security;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;

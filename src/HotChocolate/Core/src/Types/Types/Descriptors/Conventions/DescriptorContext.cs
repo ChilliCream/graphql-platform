@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.WellKnownContextData;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 

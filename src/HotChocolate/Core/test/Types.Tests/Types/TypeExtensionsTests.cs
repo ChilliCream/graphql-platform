@@ -1,7 +1,6 @@
 ﻿using System;
 using HotChocolate.Language;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Types;
 

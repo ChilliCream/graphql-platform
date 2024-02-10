@@ -1,7 +1,5 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using System.Threading;
 using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;

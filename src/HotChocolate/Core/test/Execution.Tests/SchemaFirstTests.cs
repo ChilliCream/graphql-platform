@@ -1,11 +1,7 @@
 #nullable enable
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Xunit;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Execution;
 

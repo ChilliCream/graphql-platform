@@ -1,10 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Options;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 

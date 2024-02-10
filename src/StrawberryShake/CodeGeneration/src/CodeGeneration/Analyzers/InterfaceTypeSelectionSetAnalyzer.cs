@@ -1,5 +1,4 @@
 using HotChocolate;
-using HotChocolate.Execution;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;

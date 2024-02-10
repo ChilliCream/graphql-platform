@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using GreenDonut;
 using static HotChocolate.Fetching.Properties.FetchingResources;
 

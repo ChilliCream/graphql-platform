@@ -1,6 +1,5 @@
 using System.Linq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 

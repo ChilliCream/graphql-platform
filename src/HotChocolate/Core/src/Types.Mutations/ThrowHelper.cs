@@ -1,4 +1,3 @@
-using System.Linq;
 using static HotChocolate.Types.Properties.MutationResources;
 
 namespace HotChocolate.Types;

@@ -1,7 +1,4 @@
 using System;
-using Microsoft.Extensions.ObjectPool;
-using HotChocolate;
-using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;

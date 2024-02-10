@@ -1,7 +1,5 @@
-using System.Text.Json;
 using HotChocolate.OpenApi.Helpers;
 using HotChocolate.OpenApi.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using InputField = HotChocolate.Skimmed.InputField;
 using ObjectType = HotChocolate.Skimmed.ObjectType;

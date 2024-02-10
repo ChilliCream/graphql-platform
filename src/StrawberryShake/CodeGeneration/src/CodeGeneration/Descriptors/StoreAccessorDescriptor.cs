@@ -1,5 +1,3 @@
-using HotChocolate;
-
 namespace StrawberryShake.CodeGeneration.Descriptors;
 
 /// <summary>

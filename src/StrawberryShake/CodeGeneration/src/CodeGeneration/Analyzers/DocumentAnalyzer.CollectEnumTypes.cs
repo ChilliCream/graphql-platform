@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Analyzers.Types;

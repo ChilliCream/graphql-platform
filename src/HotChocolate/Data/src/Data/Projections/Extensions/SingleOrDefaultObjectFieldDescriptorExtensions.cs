@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Data.Projections;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 

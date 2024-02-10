@@ -1,8 +1,5 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.MongoDb.Resources;
 using HotChocolate.Utilities;

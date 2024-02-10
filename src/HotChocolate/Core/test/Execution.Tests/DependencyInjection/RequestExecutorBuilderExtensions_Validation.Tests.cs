@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;

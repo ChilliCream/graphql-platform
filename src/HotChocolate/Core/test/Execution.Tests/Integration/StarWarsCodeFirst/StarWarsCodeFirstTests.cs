@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Language;
@@ -10,7 +7,6 @@ using Snapshooter.Xunit;
 using Xunit.Abstractions;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst;
 

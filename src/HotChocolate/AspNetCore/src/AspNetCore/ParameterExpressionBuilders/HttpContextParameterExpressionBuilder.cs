@@ -1,10 +1,7 @@
-using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
-using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.ParameterExpressionBuilders;

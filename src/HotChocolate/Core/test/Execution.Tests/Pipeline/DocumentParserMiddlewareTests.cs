@@ -1,11 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Language;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Projections;
-using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Raven.Projections;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
