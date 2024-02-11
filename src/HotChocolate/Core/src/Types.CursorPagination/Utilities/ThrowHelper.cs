@@ -42,4 +42,15 @@ internal static class ThrowHelper
                 .SetMessage(PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid)
                 .SetCode(ErrorCodes.Paging.SchemaTypeInvalid)
                 .Build());
+
+    public static GraphQLException InvalidIndexCursor(string argument, string cursor)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_InvalidIndexCursor_Message,
+                    argument)
+                .SetExtension("argument", argument)
+                .SetExtension("cursor", cursor)
+                .SetCode(ErrorCodes.Paging.InvalidCursor)
+                .Build());
 }
