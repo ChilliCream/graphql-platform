@@ -944,6 +944,60 @@ public class IntegrationTests
         // assert
         result.ToJson().MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task Invalid_After_Index_Cursor()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+        
+        await result.MatchSnapshotAsync();
+    }
+    
+    [Fact]
+    public async Task Invalid_Before_Index_Cursor()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+        
+        await result.MatchSnapshotAsync();
+    }
 
     public class QueryType : ObjectType<Query>
     {

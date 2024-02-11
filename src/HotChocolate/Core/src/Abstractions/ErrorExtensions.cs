@@ -18,14 +18,13 @@ public static class ErrorExtensions
     /// but without any syntax node details.
     /// </returns>
     public static IError RemoveSyntaxNode(this IError error)
-    {
-        return new Error(error.Message,
+        => new Error(
+            error.Message,
             error.Code,
             error.Path,
             error.Locations,
             error.Extensions,
             error.Exception);
-    }
 
     /// <summary>
     /// Creates a new error that contains all properties of this error
@@ -40,13 +39,12 @@ public static class ErrorExtensions
     /// but with the specified <paramref name="syntaxNode" />.
     /// </returns>
     public static IError WithSyntaxNode(this IError error, ISyntaxNode? syntaxNode)
-    {
-        return new Error(error.Message,
+        => new Error(
+            error.Message,
             error.Code,
             error.Path,
             error.Locations,
             error.Extensions,
             error.Exception,
             syntaxNode);
-    }
 }
