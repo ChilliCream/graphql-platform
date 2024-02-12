@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
-internal sealed class InferDbContextParameterExpressionBuilder() 
+internal sealed class InferDbContextParameterExpressionBuilder()
     : IParameterExpressionBuilder
-        , IParameterFieldConfiguration
+    , IParameterFieldConfiguration
 {
     public ArgumentKind Kind => ArgumentKind.Service;
 
