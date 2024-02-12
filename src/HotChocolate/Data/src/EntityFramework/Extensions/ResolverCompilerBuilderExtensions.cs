@@ -37,5 +37,22 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
             new DbContextParameterExpressionBuilder<TDbContext>(kind));
         return builder;
     }
+    
+    /// <summary>
+    /// Automatically registers all DBContexts as resolver scoped services.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+    /// and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder AutoRegisterDbContext(
+        this IRequestExecutorBuilder builder)
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder, InferDbContextParameterExpressionBuilder>();
+        return builder;
+    }
 }
 

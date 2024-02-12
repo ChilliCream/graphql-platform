@@ -77,6 +77,28 @@ public class EntityFrameworkResolverCompilerIntegrationTests
 
         result.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task Resolver_Pipeline_With_Field_AutoRegistered_DbContext_Is_Created()
+    {
+        using AuthorFixture authorFixture = new();
+
+        await using var service = new ServiceCollection()
+            .AddScoped(_ => authorFixture.Context)
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AutoRegisterDbContext()
+            .Services
+            .BuildServiceProvider();
+
+        var result = await service.ExecuteRequestAsync(
+            QueryRequestBuilder.New()
+                .SetQuery("{ books { title } }")
+                .SetServices(service)
+                .Create());
+
+        result.MatchSnapshot();
+    }
 
     public class Query
     {
