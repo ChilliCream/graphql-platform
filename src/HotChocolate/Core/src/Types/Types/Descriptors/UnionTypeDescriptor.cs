@@ -48,14 +48,7 @@ public class UnionTypeDescriptor
 
         base.OnCreateDefinition(definition);
     }
-
-    public IUnionTypeDescriptor SyntaxNode(
-        UnionTypeDefinitionNode unionTypeDefinition)
-    {
-        Definition.SyntaxNode = unionTypeDefinition;
-        return this;
-    }
-
+    
     public IUnionTypeDescriptor Name(string value)
     {
         Definition.Name = value;

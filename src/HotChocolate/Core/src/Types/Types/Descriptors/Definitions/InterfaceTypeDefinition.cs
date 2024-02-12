@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class InterfaceTypeDefinition
-    : TypeDefinitionBase<InterfaceTypeDefinitionNode>
-    , IComplexOutputTypeDefinition
+public class InterfaceTypeDefinition : TypeDefinitionBase, IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
     private List<TypeReference>? _interfaces;

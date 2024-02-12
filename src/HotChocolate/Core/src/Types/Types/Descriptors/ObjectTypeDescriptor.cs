@@ -222,14 +222,7 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-
-    public IObjectTypeDescriptor SyntaxNode(
-        ObjectTypeDefinitionNode? objectTypeDefinition)
-    {
-        Definition.SyntaxNode = objectTypeDefinition;
-        return this;
-    }
-
+    
     public IObjectTypeDescriptor Name(string value)
     {
         Definition.Name = value;

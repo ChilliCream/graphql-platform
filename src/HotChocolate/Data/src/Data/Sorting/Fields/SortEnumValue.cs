@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
@@ -30,8 +29,7 @@ public sealed class SortEnumValue : ISortEnumValue
                 DataResources.SortEnumValue_ValueIsNull,
                 nameof(enumValueDefinition));
         }
-
-        SyntaxNode = enumValueDefinition.SyntaxNode;
+        
         Name = !string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.Name
             : enumValueDefinition.Value.ToString()!;
@@ -48,8 +46,6 @@ public sealed class SortEnumValue : ISortEnumValue
             this,
             enumValueDefinition.GetDirectives());
     }
-
-    public EnumValueDefinitionNode? SyntaxNode { get; }
 
     public string Name { get; }
 

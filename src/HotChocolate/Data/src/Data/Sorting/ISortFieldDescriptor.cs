@@ -8,8 +8,6 @@ public interface ISortFieldDescriptor
     : IDescriptor<SortFieldDefinition>
     , IFluent
 {
-    ISortFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     ISortFieldDescriptor Name(string value);
 
     ISortFieldDescriptor Description(string value);

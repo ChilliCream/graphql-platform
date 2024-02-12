@@ -84,13 +84,6 @@ public class SortFieldDescriptor
         base.OnCreateDefinition(definition);
     }
 
-    public new ISortFieldDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
-    }
-
     public ISortFieldDescriptor Name(string value)
     {
         Definition.Name = value;

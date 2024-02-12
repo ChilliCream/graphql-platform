@@ -9,12 +9,6 @@ public interface IInputFieldDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the argument with a syntax node of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="inputValueDefinition">The syntax node</param>
-    IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
-    /// <summary>
     /// Sets the name of the argument
     /// <example>
     /// <code lang="csharp">

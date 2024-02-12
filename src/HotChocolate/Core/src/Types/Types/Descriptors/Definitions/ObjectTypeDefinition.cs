@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -13,7 +12,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// Defines the properties of a GraphQL object type.
 /// </summary>
 public class ObjectTypeDefinition
-    : TypeDefinitionBase<ObjectTypeDefinitionNode>
+    : TypeDefinitionBase
     , IComplexOutputTypeDefinition
 {
     private List<Type>? _knownClrTypes;
@@ -103,12 +102,9 @@ public class ObjectTypeDefinition
     /// </summary>
     public FieldBindingFlags FieldBindingFlags
     {
-        get
-        {
-            return Fields.BindingBehavior is BindingBehavior.Explicit
-                ? FieldBindingFlags.Default
-                : _fieldBindingFlags;
-        }
+        get => Fields.BindingBehavior is BindingBehavior.Explicit
+            ? FieldBindingFlags.Default
+            : _fieldBindingFlags;
         set
         {
             Fields.BindingBehavior =

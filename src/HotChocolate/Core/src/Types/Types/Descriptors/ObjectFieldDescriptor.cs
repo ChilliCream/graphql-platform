@@ -216,13 +216,6 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public new IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode? fieldDefinition)
-    {
-        base.SyntaxNode(fieldDefinition);
-        return this;
-    }
-
-    /// <inheritdoc />
     public new IObjectFieldDescriptor Name(string value)
     {
         base.Name(value);
@@ -302,16 +295,6 @@ public class ObjectFieldDescriptor
         base.Ignore(ignore);
         return this;
     }
-
-    /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver)
-        => Resolve(fieldResolver);
-
-    /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(
-        FieldResolverDelegate fieldResolver,
-        Type? resultType) =>
-        Resolve(fieldResolver, resultType);
 
     /// <inheritdoc />
     public IObjectFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)

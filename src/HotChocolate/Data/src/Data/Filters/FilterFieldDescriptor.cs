@@ -84,13 +84,6 @@ public class FilterFieldDescriptor
         base.OnCreateDefinition(definition);
     }
 
-    public new IFilterFieldDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
-    }
-
     public IFilterFieldDescriptor Name(string value)
     {
         Definition.Name = value;
