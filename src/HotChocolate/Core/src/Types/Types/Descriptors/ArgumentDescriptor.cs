@@ -1,3 +1,5 @@
+// ReSharper disable VirtualMemberCallInConstructor
+
 using System;
 using System.Reflection;
 using HotChocolate.Language;
@@ -78,7 +80,7 @@ public class ArgumentDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ArgumentDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Parameter is not null)
+        if (Definition is { AttributesAreApplied: false, Parameter: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,

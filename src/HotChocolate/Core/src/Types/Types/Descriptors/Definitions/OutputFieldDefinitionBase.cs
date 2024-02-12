@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class OutputFieldDefinitionBase
-    : FieldDefinitionBase<FieldDefinitionNode>
-    , ICanBeDeprecated
+public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
 {
     private List<ArgumentDefinition>? _arguments;
 
