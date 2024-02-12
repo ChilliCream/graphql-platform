@@ -75,14 +75,6 @@ public class DirectiveArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public new IDirectiveArgumentDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
-    }
-
-    /// <inheritdoc />
     public IDirectiveArgumentDescriptor Name(string value)
     {
         Definition.Name = value;

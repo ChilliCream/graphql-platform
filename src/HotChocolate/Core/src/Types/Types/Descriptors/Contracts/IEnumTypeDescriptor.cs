@@ -12,16 +12,6 @@ public interface IEnumTypeDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the enum type with a syntax node
-    /// of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="enumTypeDefinition">
-    /// The the type definition node.
-    /// </param>
-    IEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition);
-
-    /// <summary>
     /// Defines the name the enum type shall have.
     /// </summary>
     /// <param name="value">

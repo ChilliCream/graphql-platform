@@ -27,12 +27,6 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDef
     protected internal override T Definition { get; protected set; }
 
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
-    protected void SyntaxNode(InputValueDefinitionNode inputValueDefinition)
-    {
-        Definition.SyntaxNode = inputValueDefinition;
-    }
-
-    /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
     protected void Deprecated(string? reason)
     {
         if (string.IsNullOrEmpty(reason))

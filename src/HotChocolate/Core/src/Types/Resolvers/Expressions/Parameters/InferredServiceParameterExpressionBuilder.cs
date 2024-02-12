@@ -1,18 +1,16 @@
-using System;
+#nullable enable
+
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
-
-#nullable enable
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 /// <summary>
-/// Builds parameter expressions for resolver level dependency injection.
-/// Parameters need to be annotated with the <see cref="ServiceAttribute"/> or the
-/// <c>FromServicesAttribute</c>.
+/// Builds parameter expressions for resolver level dependency injection for inferred services.
 /// </summary>
-internal sealed class ServiceParameterExpressionBuilder
+internal sealed class InferredServiceParameterExpressionBuilder(IServiceProviderIsService serviceInspector)
     : IParameterExpressionBuilder
 {
     public ArgumentKind Kind => ArgumentKind.Service;
@@ -20,10 +18,9 @@ internal sealed class ServiceParameterExpressionBuilder
     public bool IsPure => true;
 
     public bool IsDefaultHandler => false;
-    
+
     public bool CanHandle(ParameterInfo parameter)
-        => ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind) &&
-           kind is ServiceKind.Default;
+        => serviceInspector.IsService(parameter.ParameterType);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {

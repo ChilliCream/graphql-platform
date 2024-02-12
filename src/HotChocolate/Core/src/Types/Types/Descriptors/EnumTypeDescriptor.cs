@@ -84,13 +84,6 @@ public class EnumTypeDescriptor
         }
     }
 
-    public IEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition)
-    {
-        Definition.SyntaxNode = enumTypeDefinition;
-        return this;
-    }
-
     public IEnumTypeDescriptor Name(string value)
     {
         Definition.Name = value;

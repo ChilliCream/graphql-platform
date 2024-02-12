@@ -146,6 +146,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TypeResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Types\InterfaceType.Initialization.cs">
+      <DependentUpon>InterfaceType.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

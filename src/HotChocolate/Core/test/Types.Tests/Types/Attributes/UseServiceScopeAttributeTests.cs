@@ -59,6 +59,25 @@ public class UseServiceScopeAttributeTests
         cts.Cancel();
     }
 
+    [Fact]
+    public async Task InferServices()
+    {
+        var result = await new ServiceCollection()
+            .AddScoped<Service1>()
+            .AddGraphQL()
+            .AddQueryType<QueryInferredServices>()
+            .ExecuteRequestAsync("{ service }");
+        
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "service": "abc_def"
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         [UseServiceScope]
@@ -76,8 +95,19 @@ public class UseServiceScopeAttributeTests
         }
     }
 
+    public class QueryInferredServices
+    {
+        public string GetService(Service1 service)
+            => service.Id;
+    }
+
     public class Service
     {
         public string Id { get; } = Guid.NewGuid().ToString("N");
+    }
+    
+    public class Service1
+    {
+        public string Id => "abc_def";
     }
 }

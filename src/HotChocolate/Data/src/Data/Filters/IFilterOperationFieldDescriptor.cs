@@ -8,9 +8,6 @@ public interface IFilterOperationFieldDescriptor
     : IDescriptor<FilterOperationFieldDefinition>
     , IFluent
 {
-    IFilterOperationFieldDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinitionNode);
-
     IFilterOperationFieldDescriptor Name(string value);
 
     IFilterOperationFieldDescriptor Description(string value);

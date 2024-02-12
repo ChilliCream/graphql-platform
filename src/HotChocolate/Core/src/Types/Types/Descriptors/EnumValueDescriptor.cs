@@ -55,13 +55,6 @@ public class EnumValueDescriptor
         base.OnCreateDefinition(definition);
     }
 
-    public IEnumValueDescriptor SyntaxNode(
-        EnumValueDefinitionNode enumValueDefinition)
-    {
-        Definition.SyntaxNode = enumValueDefinition;
-        return this;
-    }
-
     public IEnumValueDescriptor Name(string value)
     {
         Definition.Name = value;

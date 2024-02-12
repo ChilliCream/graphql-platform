@@ -51,13 +51,6 @@ public class DirectiveTypeDescriptor<T>
         base.OnCompleteArguments(arguments, handledProperties);
     }
 
-    public new IDirectiveTypeDescriptor<T> SyntaxNode(
-        DirectiveDefinitionNode directiveDefinitionNode)
-    {
-        base.SyntaxNode(directiveDefinitionNode);
-        return this;
-    }
-
     public new IDirectiveTypeDescriptor<T> Name(string value)
     {
         base.Name(value);

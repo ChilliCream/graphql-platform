@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -11,7 +10,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL input object type.
 /// </summary>
-public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefinitionNode>
+public class InputObjectTypeDefinition : TypeDefinitionBase
 {
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.

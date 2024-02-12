@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -64,12 +63,7 @@ public partial class ObjectType
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
-
-    /// <inheritdoc />
-    public ObjectTypeDefinitionNode? SyntaxNode { get; private set; }
-
-    ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
+    
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>

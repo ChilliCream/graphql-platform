@@ -159,12 +159,11 @@ internal static class ErrorHelper
             .SetType(field.DeclaringType)
             .SetField(field)
             .SetImplementedField(implementedField)
-            .AddSyntaxNode(missingArgument.SyntaxNode)
             .SetExtension("missingArgument", missingArgument)
             .SetSpecifiedBy(field.DeclaringType.Kind)
             .Build();
 
-    public static ISchemaError OneofInputObjectMustHaveNullableFieldsWithoutDefaults(
+    public static ISchemaError OneOfInputObjectMustHaveNullableFieldsWithoutDefaults(
         InputObjectType type,
         string[] fieldNames)
         => SchemaErrorBuilder.New()
@@ -227,27 +226,32 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.InputObject, rfc: 805)
             .Build();
 
+    public static ISchemaError DirectiveType_NoLocations(string name, DirectiveType type)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.DirectiveType_NoLocations,
+                    name))
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(type)
+            .Build();
+
     private static SchemaErrorBuilder SetType(
         this SchemaErrorBuilder errorBuilder,
         INamedType type)
-        => errorBuilder
-            .AddSyntaxNode(type.SyntaxNode)
-            .SetTypeSystemObject((TypeSystemObjectBase)type);
+        => errorBuilder.SetTypeSystemObject((TypeSystemObjectBase)type);
 
     private static SchemaErrorBuilder SetDirective(
         this SchemaErrorBuilder errorBuilder,
         DirectiveType type)
-        => errorBuilder
-            .AddSyntaxNode(type.SyntaxNode)
-            .SetTypeSystemObject(type);
+        => errorBuilder.SetTypeSystemObject(type);
 
     private static SchemaErrorBuilder SetField(
         this SchemaErrorBuilder errorBuilder,
         IField field,
         string name = "field")
-        => errorBuilder
-            .AddSyntaxNode(field.SyntaxNode)
-            .SetExtension(name, field);
+        => errorBuilder.SetExtension(name, field);
 
     private static SchemaErrorBuilder SetArgument(
         this SchemaErrorBuilder errorBuilder,
@@ -257,9 +261,7 @@ internal static class ErrorHelper
     private static SchemaErrorBuilder SetImplementedType(
         this SchemaErrorBuilder errorBuilder,
         IComplexOutputType type)
-        => errorBuilder
-            .AddSyntaxNode(type.SyntaxNode)
-            .SetExtension("implementedType", type);
+        => errorBuilder.SetExtension("implementedType", type);
 
     private static SchemaErrorBuilder SetImplementedField(
         this SchemaErrorBuilder errorBuilder,
@@ -302,17 +304,14 @@ internal static class ErrorHelper
                     interfaceType.Name))
             .SetCode(ErrorCodes.Schema.InterfaceNotImplemented)
             .SetTypeSystemObject(interfaceType)
-            .AddSyntaxNode(interfaceType.SyntaxNode)
             .Build();
 
     public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
-        ITypeSystemObject interfaceOrObject,
-        ISyntaxNode? node)
+        ITypeSystemObject interfaceOrObject)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface)
             .SetCode(ErrorCodes.Schema.MissingType)
             .SetTypeSystemObject(interfaceOrObject)
-            .AddSyntaxNode(node)
             .Build();
 
     public static ISchemaError DirectiveCollection_DirectiveIsUnique(
@@ -392,8 +391,7 @@ internal static class ErrorHelper
     public static ISchemaError ObjectField_HasNoResolver(
         string typeName,
         string fieldName,
-        ITypeSystemObject type,
-        ISyntaxNode? syntaxNode)
+        ITypeSystemObject type)
         => SchemaErrorBuilder.New()
             .SetMessage(
                 ErrorHelper_ObjectField_HasNoResolver,
@@ -401,26 +399,22 @@ internal static class ErrorHelper
                 fieldName)
             .SetCode(ErrorCodes.Schema.NoResolver)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
             .Build();
 
     public static ISchemaError MiddlewareOrderInvalid(
         FieldCoordinate field,
         ITypeSystemObject type,
-        ISyntaxNode? syntaxNode,
         string currentOrder)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
             .SetExtension(nameof(field), field)
             .Build();
 
     public static ISchemaError DuplicateDataMiddlewareDetected(
         FieldCoordinate field,
         ITypeSystemObject type,
-        ISyntaxNode? syntaxNode,
         IEnumerable<string> duplicateMiddleware)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -429,7 +423,6 @@ internal static class ErrorHelper
                 string.Join(", ", duplicateMiddleware))
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
             .SetExtension(nameof(field), field)
             .Build();
 
@@ -511,7 +504,6 @@ internal static class ErrorHelper
                 typeSystemObj.Name)
             .SetCode(ErrorCodes.Schema.MissingType)
             .SetTypeSystemObject(typeSystemObj)
-            .AddSyntaxNode((type as IHasSyntaxNode)?.SyntaxNode)
             .Build();
 
     public static ISchemaError DuplicateFieldName(
@@ -546,7 +538,6 @@ internal static class ErrorHelper
                 coordinate.ToString())
             .SetCode(ErrorCodes.Schema.DupplicateFieldNames)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode((declaringMember as IHasSyntaxNode)?.SyntaxNode)
             .Build();
     }
 }
