@@ -52,6 +52,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         ContextData = contextData;
         TypeInterceptor = typeInterceptor;
         ResolverCompiler = new DefaultResolverCompiler(
+            schemaServices,
             _serviceHelper.GetParameterExpressionBuilders());
 
         TypeConverter = _serviceHelper.GetTypeConverter();

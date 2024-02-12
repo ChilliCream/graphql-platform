@@ -152,6 +152,6 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         }
 
         temp.Clear();
-        errors.Add(OneofInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
+        errors.Add(OneOfInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
     }
 }

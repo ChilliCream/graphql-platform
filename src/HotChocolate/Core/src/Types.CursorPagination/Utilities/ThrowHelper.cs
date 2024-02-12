@@ -16,7 +16,6 @@ internal static class ThrowHelper
                 .SetMessage(ThrowHelper_PagingHandler_MaxPageSize)
                 .SetCode(ErrorCodes.Paging.MaxPaginationItems)
                 .SetPath(path)
-                .SetSyntaxNode(field.SyntaxNode)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
                 .SetExtension(nameof(requestedItems), requestedItems)
                 .SetExtension(nameof(maxAllowedItems), maxAllowedItems)
@@ -32,7 +31,6 @@ internal static class ThrowHelper
                     field.Type.TypeName())
                 .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                 .SetPath(path)
-                .SetSyntaxNode(field.SyntaxNode)
                 .SetExtension(nameof(field), field.Coordinate.ToString())
                 .Build());
 

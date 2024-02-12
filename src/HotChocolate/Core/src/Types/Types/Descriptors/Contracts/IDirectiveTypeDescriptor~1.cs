@@ -11,16 +11,6 @@ public interface IDirectiveTypeDescriptor<T>
     , IFluent
 {
     /// <summary>
-    /// Associates the specified <paramref name="directiveDefinitionNode"/>
-    /// with the <see cref="DirectiveType"/>.
-    /// </summary>
-    /// <param name="directiveDefinitionNode">
-    /// The <see cref="DirectiveDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IDirectiveTypeDescriptor<T> SyntaxNode(
-        DirectiveDefinitionNode directiveDefinitionNode);
-
-    /// <summary>
     /// Defines the name of the <see cref="DirectiveType"/>.
     /// </summary>
     /// <param name="value">The directive type name.</param>

@@ -60,7 +60,6 @@ public partial class ObjectType
         if (ValidateFields(context, definition))
         {
             _isOfType = definition.IsOfType;
-            SyntaxNode = definition.SyntaxNode;
             Fields = OnCompleteFields(context, definition);
             _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
             CompleteTypeResolver(context);

@@ -440,8 +440,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public IDirectiveCollection Directives => _nodeField.Directives;
 
-        public ISyntaxNode? SyntaxNode => _nodeField.SyntaxNode;
-
         public IReadOnlyDictionary<string, object?> ContextData => _nodeField.ContextData;
 
         public IOutputType Type => _type;

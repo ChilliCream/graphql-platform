@@ -65,13 +65,6 @@ public class SortEnumTypeDescriptor
         base.OnCreateDefinition(definition);
     }
 
-    public ISortEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition)
-    {
-        Definition.SyntaxNode = enumTypeDefinition;
-        return this;
-    }
-
     public ISortEnumTypeDescriptor Name(string value)
     {
         Definition.Name = value;

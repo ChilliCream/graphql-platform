@@ -93,13 +93,6 @@ public class ArgumentDescriptor
     }
 
     /// <inheritdoc />
-    public new IArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
-    }
-
-    /// <inheritdoc />
     public new IArgumentDescriptor Deprecated(string reason)
     {
         base.Deprecated(reason);

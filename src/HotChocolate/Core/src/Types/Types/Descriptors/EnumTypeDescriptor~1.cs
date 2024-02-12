@@ -19,13 +19,6 @@ public class EnumTypeDescriptor<T>
     {
     }
 
-    public new IEnumTypeDescriptor<T> SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition)
-    {
-        base.SyntaxNode(enumTypeDefinition);
-        return this;
-    }
-
     public new IEnumTypeDescriptor<T> Name(string value)
     {
         base.Name(value);

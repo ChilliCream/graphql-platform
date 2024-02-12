@@ -31,8 +31,7 @@ internal static class CompleteInterfacesHelper
             {
                 context.ReportError(
                     CompleteInterfacesHelper_UnableToResolveInterface(
-                        interfaceOrObject,
-                        interfaceOrObject.SyntaxNode));
+                        interfaceOrObject));
             }
 
             if (index == 0 || Array.IndexOf(implements, type, 0, index) == -1)

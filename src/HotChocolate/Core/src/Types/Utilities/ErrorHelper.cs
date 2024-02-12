@@ -163,7 +163,7 @@ internal static class ErrorHelper
             .SetSpecifiedBy(field.DeclaringType.Kind)
             .Build();
 
-    public static ISchemaError OneofInputObjectMustHaveNullableFieldsWithoutDefaults(
+    public static ISchemaError OneOfInputObjectMustHaveNullableFieldsWithoutDefaults(
         InputObjectType type,
         string[] fieldNames)
         => SchemaErrorBuilder.New()
@@ -226,6 +226,17 @@ internal static class ErrorHelper
             .SetSpecifiedBy(TypeKind.InputObject, rfc: 805)
             .Build();
 
+    public static ISchemaError DirectiveType_NoLocations(string name, DirectiveType type)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.DirectiveType_NoLocations,
+                    name))
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(type)
+            .Build();
+
     private static SchemaErrorBuilder SetType(
         this SchemaErrorBuilder errorBuilder,
         INamedType type)
@@ -234,9 +245,7 @@ internal static class ErrorHelper
     private static SchemaErrorBuilder SetDirective(
         this SchemaErrorBuilder errorBuilder,
         DirectiveType type)
-        => errorBuilder
-            .AddSyntaxNode(type.SyntaxNode)
-            .SetTypeSystemObject(type);
+        => errorBuilder.SetTypeSystemObject(type);
 
     private static SchemaErrorBuilder SetField(
         this SchemaErrorBuilder errorBuilder,
@@ -395,20 +404,17 @@ internal static class ErrorHelper
     public static ISchemaError MiddlewareOrderInvalid(
         FieldCoordinate field,
         ITypeSystemObject type,
-        ISyntaxNode? syntaxNode,
         string currentOrder)
         => SchemaErrorBuilder.New()
             .SetMessage(ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
             .SetExtension(nameof(field), field)
             .Build();
 
     public static ISchemaError DuplicateDataMiddlewareDetected(
         FieldCoordinate field,
         ITypeSystemObject type,
-        ISyntaxNode? syntaxNode,
         IEnumerable<string> duplicateMiddleware)
         => SchemaErrorBuilder.New()
             .SetMessage(
@@ -417,7 +423,6 @@ internal static class ErrorHelper
                 string.Join(", ", duplicateMiddleware))
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(syntaxNode)
             .SetExtension(nameof(field), field)
             .Build();
 

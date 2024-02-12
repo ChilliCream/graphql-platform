@@ -13,11 +13,6 @@ public interface IEnumValue
     , ITypeSystemMember
 {
     /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    EnumValueDefinitionNode? SyntaxNode { get; }
-
-    /// <summary>
     /// The GraphQL name of this enum value.
     /// </summary>
     string Name { get; }

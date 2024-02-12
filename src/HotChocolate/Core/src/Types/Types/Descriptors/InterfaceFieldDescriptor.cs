@@ -11,7 +11,7 @@ public class InterfaceFieldDescriptor
     : OutputFieldDescriptorBase<InterfaceFieldDefinition>
     , IInterfaceFieldDescriptor
 {
-    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
     private bool _argumentsInitialized;
 
     protected internal InterfaceFieldDescriptor(
@@ -81,12 +81,6 @@ public class InterfaceFieldDescriptor
                 definition.GetParameterExpressionBuilders());
             _argumentsInitialized = true;
         }
-    }
-
-    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinition)
-    {
-        base.SyntaxNode(fieldDefinition);
-        return this;
     }
 
     public new IInterfaceFieldDescriptor Name(string name)
