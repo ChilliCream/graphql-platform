@@ -16,9 +16,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public sealed class ObjectField
-    : OutputFieldBase<ObjectFieldDefinition>
-    , IObjectField
+public sealed class ObjectField : OutputFieldBase, IObjectField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 
@@ -45,10 +43,7 @@ public sealed class ObjectField
     /// </summary>
     public bool IsParallelExecutable
     {
-        get
-        {
-            return (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
-        }
+        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
         private set
         {
             if (value)
@@ -122,13 +117,12 @@ public sealed class ObjectField
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ObjectFieldDefinition definition)
+        OutputFieldDefinitionBase definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
-
-        CompleteResolver(context, definition);
+        CompleteResolver(context, (ObjectFieldDefinition)definition);
     }
-
+    
     private void CompleteResolver(
         ITypeCompletionContext context,
         ObjectFieldDefinition definition)
@@ -194,8 +188,7 @@ public sealed class ObjectField
                 ObjectField_HasNoResolver(
                     context.Type.Name,
                     Name,
-                    context.Type,
-                    SyntaxNode));
+                    context.Type));
         }
         else
         {

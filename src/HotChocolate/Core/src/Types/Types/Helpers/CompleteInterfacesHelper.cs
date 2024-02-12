@@ -14,7 +14,7 @@ internal static class CompleteInterfacesHelper
         ITypeCompletionContext context,
         IReadOnlyList<TypeReference> interfaceReferences,
         TInterfaceOrObject interfaceOrObject)
-        where TInterfaceOrObject : ITypeSystemObject, IHasSyntaxNode
+        where TInterfaceOrObject : ITypeSystemObject
 
     {
         if (interfaceReferences.Count == 0)
