@@ -10,21 +10,6 @@ open Microsoft.FSharp.Reflection
 [<AutoOpen>]
 module private Helpers =
 
-    let private getOrAddWithDoubleLock key getValue (dict: ConcurrentDictionary<'a, 'b>) =
-        match dict.TryGetValue key with
-        | true, x -> x
-        | false, _ ->
-            lock
-                dict
-                (fun () ->
-                    match dict.TryGetValue key with
-                    | true, x -> x
-                    | false, _ ->
-                        let v = getValue key
-                        dict[key] <- v
-                        v
-                )
-
     let private memoizeRefEq (f: 'a -> 'b) =
         let equalityComparer =
             { new IEqualityComparer<'a> with
@@ -33,7 +18,7 @@ module private Helpers =
             }
 
         let cache = new ConcurrentDictionary<'a, 'b>(equalityComparer)
-        fun a -> getOrAddWithDoubleLock a f cache
+        fun a -> cache.GetOrAdd(a, f)
 
     let private getCachedSomeReader =
         memoizeRefEq (fun ty ->
