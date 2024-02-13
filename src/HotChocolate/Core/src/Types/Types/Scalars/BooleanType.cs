@@ -16,6 +16,7 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="BooleanType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public BooleanType()
         : this(
             ScalarNames.Boolean,

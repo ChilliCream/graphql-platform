@@ -11,6 +11,7 @@ public class NonPositiveFloatType : FloatType
     /// <summary>
     /// Initializes a new instance of <see cref="NonPositiveFloatType"/>
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public NonPositiveFloatType()
         : this(
             WellKnownScalarTypes.NonPositiveFloat,

@@ -11,6 +11,7 @@ public class NonPositiveIntType : IntType
     /// <summary>
     /// Initializes a new instance of <see cref="NonPositiveIntType"/>
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public NonPositiveIntType()
         : this(
             WellKnownScalarTypes.NonPositiveInt,

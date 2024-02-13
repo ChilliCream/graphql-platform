@@ -15,6 +15,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     /// <summary>
     /// Initializes a new instance of <see cref="LatitudeType"/>
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public LatitudeType()
         : this(
             WellKnownScalarTypes.Latitude,

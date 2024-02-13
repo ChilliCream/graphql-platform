@@ -4,7 +4,6 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Serialization;
-using HotChocolate.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -29,7 +28,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<IHttpRequestInterceptor>()
             .AddSingleton<IHttpRequestInterceptor, T>(
-                 sp => sp.GetCombinedServices().GetOrCreateService<T>(typeof(T))!));
+                sp => ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
 
     /// <summary>
     /// Adds an interceptor for GraphQL requests to the GraphQL configuration.

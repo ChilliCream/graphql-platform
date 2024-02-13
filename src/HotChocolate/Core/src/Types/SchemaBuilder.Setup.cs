@@ -13,7 +13,6 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate;
 
@@ -85,7 +84,7 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             LazySchema lazySchema)
         {
-            var services = builder._services ?? new EmptyServiceProvider();
+            var services = builder._services ?? EmptyServiceProvider.Instance;
 
             var typeInterceptor = new AggregateTypeInterceptor();
 

@@ -33,6 +33,7 @@ public class PhoneNumberType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public PhoneNumberType()
         : this(
             WellKnownScalarTypes.PhoneNumber,

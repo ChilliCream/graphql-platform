@@ -385,7 +385,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(services));
         }
 
-        _services = _services is null ? services : _services.Include(services);
+        _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
         return this;
     }

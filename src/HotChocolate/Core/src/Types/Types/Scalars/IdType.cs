@@ -21,6 +21,7 @@ public class IdType : ScalarType<string>
     /// <summary>
     /// Initializes a new instance of the <see cref="IdType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public IdType() : this(ScalarNames.ID, TypeResources.IdType_Description)
     {
 

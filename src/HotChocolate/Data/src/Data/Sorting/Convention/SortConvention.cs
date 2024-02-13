@@ -8,9 +8,9 @@ using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -84,7 +84,7 @@ public class SortConvention
         if (Definition.ProviderInstance is null)
         {
             _provider =
-                context.Services.GetOrCreateService<ISortProvider>(Definition.Provider) ??
+                (ISortProvider)GetServiceOrCreateInstance(context.Services,Definition. Provider) ??
                 throw SortConvention_NoProviderFound(GetType(), Definition.Scope);
         }
         else
@@ -312,12 +312,7 @@ public class SortConvention
         extensions.AddRange(definition.ProviderExtensions);
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
-            if (serviceProvider.TryGetOrCreateService<ISortProviderExtension>(
-                extensionType,
-                out var createdExtension))
-            {
-                extensions.Add(createdExtension);
-            }
+            extensions.Add((ISortProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }
 
         return extensions;

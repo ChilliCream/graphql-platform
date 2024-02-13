@@ -13,7 +13,7 @@ public class ServiceFactoryTests
         var factory = new ServiceFactory();
 
         // act
-        Action a = () => factory.CreateInstance(null);
+        Action a = () => factory.CreateInstance(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(a);
@@ -26,8 +26,7 @@ public class ServiceFactoryTests
         var factory = new ServiceFactory();
 
         // act
-        var instance =
-            factory.CreateInstance(typeof(ClassWithNoDependencies));
+        var instance = factory.CreateInstance(typeof(ClassWithNoDependencies));
 
         // assert
         Assert.NotNull(instance);
@@ -42,12 +41,13 @@ public class ServiceFactoryTests
             typeof(ClassWithNoDependencies),
             new ClassWithNoDependencies());
 
-        var factory = new ServiceFactory();
-        factory.Services = serviceProvider;
+        var factory = new ServiceFactory
+        {
+            Services = serviceProvider,
+        };
 
         // act
-        var instance =
-            factory.CreateInstance(typeof(ClassWithDependencies));
+        var instance = factory.CreateInstance(typeof(ClassWithDependencies));
 
         // assert
         Assert.NotNull(instance);
@@ -66,10 +66,10 @@ public class ServiceFactoryTests
         var type = typeof(ClassWithException);
 
         // act
-        Action action = () => factory.CreateInstance(type);
+        void Error() => factory.CreateInstance(type);
 
         // assert
-        Assert.Throws<ServiceException>(action)
+        Assert.Throws<ServiceException>(Error)
             .Message.MatchSnapshot();
     }
 
@@ -81,10 +81,10 @@ public class ServiceFactoryTests
         var type = typeof(ClassWithDependencies);
 
         // act
-        Action action = () => factory.CreateInstance(type);
+        void Error() => factory.CreateInstance(type);
 
         // assert
-        Assert.Throws<ServiceException>(action)
+        Assert.Throws<ServiceException>(Error)
             .Message.MatchSnapshot();
     }
 
@@ -96,25 +96,19 @@ public class ServiceFactoryTests
         var type = typeof(ClassWithDependencies);
 
         // act
-        Action action = () => factory.CreateInstance(type);
+        void Error() => factory.CreateInstance(type);
 
         // assert
-        Assert.Throws<ServiceException>(action)
+        Assert.Throws<ServiceException>(Error)
             .Message.MatchSnapshot();
     }
 
-    private sealed class ClassWithNoDependencies
-    {
-    }
+    private sealed class ClassWithNoDependencies;
 
-    private sealed class ClassWithDependencies
+    private sealed class ClassWithDependencies(ClassWithNoDependencies dependency)
     {
-        public ClassWithDependencies(ClassWithNoDependencies dependency)
-        {
-            Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
-        }
-
-        public ClassWithNoDependencies Dependency { get; }
+        public ClassWithNoDependencies Dependency { get; } = 
+            dependency ?? throw new ArgumentNullException(nameof(dependency));
     }
 
     private sealed class ClassWithException

@@ -9,7 +9,6 @@ using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static System.Linq.Expressions.Expression;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Resolvers.ResolveResultHelper;

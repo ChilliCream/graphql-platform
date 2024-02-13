@@ -11,6 +11,7 @@ public class PositiveIntType : IntType
     /// <summary>
     /// Initializes a new instance of the <see cref="PositiveIntType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public PositiveIntType()
         : this(
             WellKnownScalarTypes.PositiveInt,

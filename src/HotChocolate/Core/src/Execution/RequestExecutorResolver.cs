@@ -281,8 +281,6 @@ internal sealed partial class RequestExecutorResolver
             serviceCollection.AddSingleton(diagnosticEventListener);
         }
 
-        serviceCollection.AddSingleton<IActivator, DefaultActivator>();
-
         serviceCollection.AddSingleton(
             sp => CreatePipeline(
                 context.SchemaName,
@@ -306,7 +304,6 @@ internal sealed partial class RequestExecutorResolver
                 var policy = new RequestContextPooledObjectPolicy(
                     sp.GetRequiredService<ISchema>(),
                     sp.GetRequiredService<IErrorHandler>(),
-                    sp.GetRequiredService<IActivator>(),
                     sp.GetRequiredService<IExecutionDiagnosticEvents>(),
                     version);
                 return provider.Create(policy);
@@ -332,7 +329,7 @@ internal sealed partial class RequestExecutorResolver
                     context,
                     setup,
                     executorOptions,
-                    schemaServices.Include(_applicationServices),
+                    new CombinedServiceProvider(schemaServices, _applicationServices),
                     typeModuleChangeMonitor,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -594,13 +591,11 @@ internal sealed partial class RequestExecutorResolver
         private readonly ISchema _schema;
         private readonly ulong _executorVersion;
         private readonly IErrorHandler _errorHandler;
-        private readonly IActivator _activator;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public RequestContextPooledObjectPolicy(
             ISchema schema,
             IErrorHandler errorHandler,
-            IActivator activator,
             IExecutionDiagnosticEvents diagnosticEvents,
             ulong executorVersion)
         {
@@ -608,8 +603,6 @@ internal sealed partial class RequestExecutorResolver
                 throw new ArgumentNullException(nameof(schema));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
-            _activator = activator ??
-                throw new ArgumentNullException(nameof(activator));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
             _executorVersion = executorVersion;
@@ -617,7 +610,7 @@ internal sealed partial class RequestExecutorResolver
 
 
         public override RequestContext Create()
-            => new(_schema, _executorVersion, _errorHandler, _activator, _diagnosticEvents);
+            => new(_schema, _executorVersion, _errorHandler, _diagnosticEvents);
 
         public override bool Return(RequestContext obj)
         {

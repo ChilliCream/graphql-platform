@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
