@@ -17,6 +17,7 @@ public class PeriodType : StringToClassBaseType<Period>
     /// <summary>
     /// Initializes a new instance of <see cref="PeriodType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public PeriodType() : this(PeriodPattern.Roundtrip)
     {
     }

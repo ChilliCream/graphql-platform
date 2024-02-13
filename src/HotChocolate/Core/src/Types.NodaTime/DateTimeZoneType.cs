@@ -14,6 +14,7 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
     /// <summary>
     /// Initializes a new instance of <see cref="DateTimeZoneType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public DateTimeZoneType() : base("DateTimeZone")
     {
         Description = NodaTimeResources.DateTimeZoneType_Description;
