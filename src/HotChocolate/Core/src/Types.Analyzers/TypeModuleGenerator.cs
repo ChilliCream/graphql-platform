@@ -1,9 +1,11 @@
-﻿using System.Buffers;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Generators;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static HotChocolate.Types.Analyzers.WellKnownFileNames;
+using TypeInfo = HotChocolate.Types.Analyzers.Inspectors.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers;
 
@@ -17,12 +19,6 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new ModuleInspector(),
         new DataLoaderInspector(),
         new DataLoaderDefaultsInspector(),
-    ];
-
-    private static readonly ISyntaxGenerator[] _generators =
-    [
-        new ModuleGenerator(),
-        new DataLoaderGenerator(),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -46,10 +42,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
     private static void PostInitialization(IncrementalGeneratorPostInitializationContext context)
     {
-        foreach (var syntaxGenerator in _generators)
-        {
-            syntaxGenerator.Initialize(context);
-        }
+        
     }
 
     private static bool IsRelevant(SyntaxNode node)
@@ -94,38 +87,87 @@ public class TypeModuleGenerator : IIncrementalGenerator
         {
             return;
         }
+       
+        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
 
-        var buffer = ArrayPool<ISyntaxInfo>.Shared.Rent(syntaxInfos.Length * 2);
-
-        // prepare context
-        for (var i = syntaxInfos.Length - 1; i >= 0; i--)
+        // if there is only the module info we do not need to generate a module.
+        if (!defaultModule && syntaxInfos.Length == 1)
         {
-            buffer[i] = syntaxInfos[i];
+            return;
         }
 
-        var nodes = buffer.AsSpan().Slice(0, syntaxInfos.Length);
-        var batch = buffer.AsSpan().Slice(syntaxInfos.Length, syntaxInfos.Length);
+        WriteConfiguration(context, syntaxInfos, module);
+    }
+    
+    private static void WriteConfiguration(
+        SourceProductionContext context,
+        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ModuleInfo module)
+    {
+        using var generator = new ModuleSyntaxGenerator(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
+        
+        generator.WriterHeader();
+        generator.WriteBeginNamespace();
+        generator.WriteBeginClass();
+        generator.WriteBeginRegistrationMethod();
+        
+        var operations = OperationType.No;
 
-        foreach (var generator in _generators)
+        foreach (var syntaxInfo in syntaxInfos)
         {
-            var next = 0;
-
-            // gather infos for current generator
-            foreach (var node in nodes)
+            switch (syntaxInfo)
             {
-                if (generator.Consume(node))
-                {
-                    batch[next++] = node;
-                }
-            }
+                case TypeInfo type:
+                    if ((module.Options & ModuleOptions.RegisterTypes) ==
+                        ModuleOptions.RegisterTypes)
+                    {
+                        generator.WriteRegisterType(type.Name);
+                    }
+                    break;
 
-            // generate
-            if (next > 0)
-            {
-                generator.Generate(context, compilation, batch.Slice(0, next));
+                case TypeExtensionInfo extension:
+                    if ((module.Options & ModuleOptions.RegisterTypes) ==
+                        ModuleOptions.RegisterTypes)
+                    {
+                        generator.WriteRegisterTypeExtension(extension.Name, extension.IsStatic);
+
+                        if (extension.Type is not OperationType.No &&
+                            (operations & extension.Type) != extension.Type)
+                        {
+                            operations |= extension.Type;
+                        }
+                    }
+                    break;
+
+                case RegisterDataLoaderInfo dataLoader:
+                    if ((module.Options & ModuleOptions.RegisterDataLoader) ==
+                        ModuleOptions.RegisterDataLoader)
+                    {
+                        generator.WriteRegisterDataLoader(dataLoader.Name);
+                    }
+                    break;
             }
         }
+        
+        if ((operations & OperationType.Query) == OperationType.Query)
+        {
+            generator.WriteTryAddOperationType(OperationType.Query);
+        }
 
-        ArrayPool<ISyntaxInfo>.Shared.Return(buffer);
+        if ((operations & OperationType.Mutation) == OperationType.Mutation)
+        {
+            generator.WriteTryAddOperationType(OperationType.Mutation);
+        }
+
+        if ((operations & OperationType.Subscription) == OperationType.Subscription)
+        {
+            generator.WriteTryAddOperationType(OperationType.Subscription);
+        }
+        
+        generator.WriteEndRegistrationMethod();
+        generator.WriteEndClass();
+        generator.WriteEndNamespace();
+        
+        context.AddSource(TypeModuleFile, generator.ToSourceText());
     }
 }

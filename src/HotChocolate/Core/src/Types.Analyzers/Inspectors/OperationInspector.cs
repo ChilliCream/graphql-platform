@@ -2,11 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static System.StringComparison;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public sealed class DataLoaderInspector : ISyntaxInspector
+public sealed class OperationInspector : ISyntaxInspector
 {
     public bool TryHandle(
         GeneratorSyntaxContext context,
@@ -28,16 +27,18 @@ public sealed class DataLoaderInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                    if (fullName.Equals(WellKnownAttributes.DataLoaderAttribute, Ordinal) &&
-                        context.SemanticModel.GetDeclaredSymbol(methodSyntax) is { } methodSymbol)
+                    if (!fullName.Equals(WellKnownAttributes.QueryAttribute, StringComparison.Ordinal) ||
+                        context.SemanticModel.GetDeclaredSymbol(methodSyntax) is not { } methodSymbol)
                     {
-                        syntaxInfo = new DataLoaderInfo(
-                            attributeSyntax,
-                            attributeSymbol,
-                            methodSymbol,
-                            methodSyntax);
-                        return true;
+                        continue;
                     }
+                    
+                    syntaxInfo = new DataLoaderInfo(
+                        attributeSyntax,
+                        attributeSymbol,
+                        methodSymbol,
+                        methodSyntax);
+                    return true;
                 }
             }
         }
