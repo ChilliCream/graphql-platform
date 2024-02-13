@@ -1,6 +1,7 @@
 namespace HotChocolate.Types.FSharp
 
 open System
+open System.Collections.Concurrent
 open System.Collections.Generic
 open HotChocolate.Utilities
 open Microsoft.FSharp.Reflection
@@ -9,7 +10,7 @@ open Microsoft.FSharp.Reflection
 [<AutoOpen>]
 module private Helpers =
 
-    let private getOrAddWithDoubleLock key getValue (dict: IDictionary<'a, 'b>) =
+    let private getOrAddWithDoubleLock key getValue (dict: ConcurrentDictionary<'a, 'b>) =
         match dict.TryGetValue key with
         | true, x -> x
         | false, _ ->
@@ -31,7 +32,7 @@ module private Helpers =
                 member _.GetHashCode(a) = LanguagePrimitives.PhysicalHash a
             }
 
-        let cache = new Dictionary<'a, 'b>(equalityComparer)
+        let cache = new ConcurrentDictionary<'a, 'b>(equalityComparer)
         fun a -> getOrAddWithDoubleLock a f cache
 
     let private getCachedSomeReader =
