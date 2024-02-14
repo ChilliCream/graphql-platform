@@ -1,7 +1,9 @@
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public sealed class OperationRegistrationInfo(string typeName) : ISyntaxInfo
+public sealed class OperationRegistrationInfo(OperationType type, string typeName) : ISyntaxInfo
 {
+    public OperationType Type { get; } = type;
+    
     public string TypeName { get; } = typeName;
 
     public bool Equals(OperationRegistrationInfo? other)

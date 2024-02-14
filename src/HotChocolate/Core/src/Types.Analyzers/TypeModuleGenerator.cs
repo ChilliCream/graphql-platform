@@ -163,6 +163,12 @@ public class TypeModuleGenerator : IIncrementalGenerator
                         ModuleOptions.RegisterTypes)
                     {
                         generator.WriteRegisterTypeExtension(operation.TypeName, false);
+                        
+                        if (operation.Type is not OperationType.No &&
+                            (operations & operation.Type) != operation.Type)
+                        {
+                            operations |= operation.Type;
+                        }
                     }
                     break;
             }
@@ -322,7 +328,9 @@ public class TypeModuleGenerator : IIncrementalGenerator
             generator.WriteConfigureMethod(group.Key, group);
             generator.WriteEndClass();
 
-            syntaxInfos.Add(new OperationRegistrationInfo($"Microsoft.Extensions.DependencyInjection.{typeName}"));
+            syntaxInfos.Add(new OperationRegistrationInfo(
+                group.Key,
+                $"Microsoft.Extensions.DependencyInjection.{typeName}"));
         }
         
         generator.WriteEndNamespace();
