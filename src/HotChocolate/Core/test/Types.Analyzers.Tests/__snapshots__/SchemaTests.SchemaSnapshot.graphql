@@ -9,6 +9,7 @@ interface Entity {
 }
 
 type Mutation {
+  bar: String!
   doSomething: String!
 }
 
@@ -19,6 +20,7 @@ type Person implements Entity {
 }
 
 type Query {
+  foo: String!
   person: Entity
   enum: CustomEnum
   book: SomeBook!
