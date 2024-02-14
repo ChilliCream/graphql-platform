@@ -12,19 +12,23 @@ using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
 namespace HotChocolate.Utilities;
 
-public sealed class ServiceFactory
+public static class ServiceFactory
 {
-    private static readonly IServiceProvider _empty = EmptyServiceProvider.Instance;
-    private readonly ConcurrentDictionary<Type, ObjectFactory> _factories = new();
-         
-    public IServiceProvider? Services { get; set; }
+    private static readonly ConcurrentDictionary<Type, ObjectFactory> _factories = new();
 
 #if NET6_0_OR_GREATER
-    public object CreateInstance([DynamicallyAccessedMembers(PublicConstructors)] Type type)
+    public static object CreateInstance(
+        IServiceProvider services,
+        [DynamicallyAccessedMembers(PublicConstructors)] Type type)
 #else
-    public object CreateInstance(Type type)
+    public static object CreateInstance(IServiceProvider services, Type type)
 #endif
     {
+        if (services is null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+        
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
@@ -33,7 +37,7 @@ public sealed class ServiceFactory
         try
         {
             var factory = _factories.GetOrAdd(type, CreateFactory);
-            return factory(Services ?? _empty, null);
+            return factory(services, null);
         }
         catch (Exception ex)
         {

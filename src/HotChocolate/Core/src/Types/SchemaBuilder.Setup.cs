@@ -252,13 +252,11 @@ public partial class SchemaBuilder
 
             if (registered.Count > 0)
             {
-                var serviceFactory = new ServiceFactory { Services = services, };
-
                 foreach (var interceptorOrType in registered)
                 {
                     if (interceptorOrType is Type type)
                     {
-                        var obj = serviceFactory.CreateInstance(type);
+                        var obj = ServiceFactory.CreateInstance(services, type);
                         if (obj is T casted)
                         {
                             interceptors.Add(casted);
