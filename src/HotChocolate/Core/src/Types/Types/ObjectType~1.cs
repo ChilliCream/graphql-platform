@@ -32,6 +32,7 @@ public class ObjectType<T> : ObjectType
     /// <summary>
     /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public ObjectType()
         => _configure = Configure;
 

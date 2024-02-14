@@ -11,6 +11,7 @@ public class UnionType<T> : UnionType
 {
     private Action<IUnionTypeDescriptor>? _configure;
 
+    [ActivatorUtilitiesConstructor]
     public UnionType()
     {
         _configure = Configure;

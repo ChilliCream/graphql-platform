@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
@@ -10,6 +11,7 @@ public sealed class GeometryType
     , IGeoJsonObjectType
     , IGeoJsonInputType
 {
+    [ActivatorUtilitiesConstructor]
     public GeometryType() : base(GeometryTypeName)
     {
     }

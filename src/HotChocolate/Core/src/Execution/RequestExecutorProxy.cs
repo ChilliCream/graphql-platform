@@ -147,33 +147,35 @@ public sealed class RequestExecutorProxy : IDisposable
     {
         var executor = _executor;
 
-        if (executor is null)
+        if (executor is not null)
         {
-            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            return executor;
+        }
 
-            try
+        await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (_executor is null)
             {
-                if (_executor is null)
-                {
-                    executor = await _executorResolver
-                        .GetRequestExecutorAsync(_schemaName, cancellationToken)
-                        .ConfigureAwait(false);
+                executor = await _executorResolver
+                    .GetRequestExecutorAsync(_schemaName, cancellationToken)
+                    .ConfigureAwait(false);
 
-                    _executor = executor;
+                _executor = executor;
 
-                    ExecutorUpdated?.Invoke(
-                        this,
-                        new RequestExecutorUpdatedEventArgs(executor));
-                }
-                else
-                {
-                    executor = _executor;
-                }
+                ExecutorUpdated?.Invoke(
+                    this,
+                    new RequestExecutorUpdatedEventArgs(executor));
             }
-            finally
+            else
             {
-                _semaphore.Release();
+                executor = _executor;
             }
+        }
+        finally
+        {
+            _semaphore.Release();
         }
 
         return executor;

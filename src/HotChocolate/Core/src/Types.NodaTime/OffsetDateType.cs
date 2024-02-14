@@ -18,6 +18,7 @@ public class OffsetDateType : StringToStructBaseType<OffsetDate>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetDateType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public OffsetDateType() : this(OffsetDatePattern.GeneralIso)
     {
     }

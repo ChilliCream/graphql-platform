@@ -16,7 +16,7 @@ internal sealed partial class OperationContext
     /// <summary>
     /// Gets the activator helper class.
     /// </summary>
-    public IActivator Activator => _activator;
+    public ResolverProvider Resolvers => _resolvers;
 
     /// <summary>
     /// Gets access to the input parser.

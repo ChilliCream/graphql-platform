@@ -7,6 +7,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -55,7 +56,8 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultDataLoaderRegistry()
             .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
-            .TryAddDataLoaderOptions();
+            .TryAddDataLoaderOptions()
+            .AddSingleton<ResolverProvider>();
 
         // pools
         services

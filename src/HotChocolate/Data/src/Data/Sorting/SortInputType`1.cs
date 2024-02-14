@@ -1,14 +1,15 @@
 using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortInputType<T>
-    : SortInputType
+public class SortInputType<T> : SortInputType
 {
     private Action<ISortInputTypeDescriptor<T>>? _configure;
 
+    [ActivatorUtilitiesConstructor]
     public SortInputType()
     {
         _configure = Configure;

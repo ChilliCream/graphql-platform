@@ -3,6 +3,7 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Types.MongoDb.Resources;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 
 namespace HotChocolate.Types.MongoDb;
@@ -17,6 +18,7 @@ public class BsonType : ScalarType
     /// <summary>
     /// Initializes a new instance of the <see cref="BsonType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public BsonType()
         : this(
             MongoDbScalarNames.Bson,

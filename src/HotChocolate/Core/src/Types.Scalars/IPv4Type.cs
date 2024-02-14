@@ -34,6 +34,7 @@ public class IPv4Type : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="IPv4Type"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public IPv4Type()
         : this(
             WellKnownScalarTypes.IPv4,

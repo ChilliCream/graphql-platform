@@ -31,6 +31,7 @@ public class RgbaType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="RgbaType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public RgbaType()
         : this(
             WellKnownScalarTypes.Rgba,

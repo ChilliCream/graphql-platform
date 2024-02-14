@@ -1,6 +1,6 @@
 using System;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing;
@@ -33,7 +33,7 @@ internal static class RootValueResolver
         // that from the request services.
         if (rootType.RuntimeType != typeof(object))
         {
-            services.TryGetService(rootType.RuntimeType, out var rootValue);
+            var rootValue = services.GetService(rootType.RuntimeType);
 
             // if the request services did not provide a rootValue and the runtime
             // representation is a instantiatable class we will create a singleton ourselfs
@@ -44,9 +44,7 @@ internal static class RootValueResolver
             {
                 try
                 {
-                    rootValue = context.Activator.CreateInstance(
-                        rootType.RuntimeType,
-                        context.Services);
+                    rootValue = ActivatorUtilities.CreateInstance(services, rootType.RuntimeType);
                     cachedValue = rootValue;
                 }
                 catch (Exception ex)

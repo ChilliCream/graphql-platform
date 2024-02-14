@@ -18,6 +18,7 @@ public class IntType : IntegerTypeBase<int>
     /// <summary>
     /// Initializes a new instance of the <see cref="IntType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public IntType()
         : this(int.MinValue, int.MaxValue)
     {

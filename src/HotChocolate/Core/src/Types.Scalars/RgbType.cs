@@ -33,6 +33,7 @@ public class RgbType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="IPv6Type"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public RgbType()
         : this(
             WellKnownScalarTypes.Rgb,

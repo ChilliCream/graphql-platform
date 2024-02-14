@@ -10,6 +10,7 @@ public class DecimalType : FloatTypeBase<decimal>
     /// <summary>
     /// Initializes a new instance of the <see cref="DecimalType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public DecimalType()
         : this(decimal.MinValue, decimal.MaxValue)
     {

@@ -11,6 +11,7 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public UnsignedLongType()
         : this(
             WellKnownScalarTypes.UnsignedLong,

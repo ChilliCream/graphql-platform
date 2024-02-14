@@ -22,6 +22,7 @@ public class ZonedDateTimeType : StringToStructBaseType<ZonedDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="ZonedDateTimeType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public ZonedDateTimeType() : this(_default)
     {
     }

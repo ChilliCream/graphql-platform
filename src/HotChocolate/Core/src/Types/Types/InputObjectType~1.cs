@@ -11,6 +11,7 @@ public class InputObjectType<T> : InputObjectType
 {
     private Action<IInputObjectTypeDescriptor<T>>? _configure;
 
+    [ActivatorUtilitiesConstructor]
     public InputObjectType()
     {
         _configure = Configure;

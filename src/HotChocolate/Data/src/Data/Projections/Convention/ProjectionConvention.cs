@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Projections;
 
@@ -63,7 +63,7 @@ public class ProjectionConvention
         if (Definition.ProviderInstance is null)
         {
             _provider =
-                context.Services.GetOrCreateService<IProjectionProvider>(Definition.Provider) ??
+                (IProjectionProvider)GetServiceOrCreateInstance(context.Services, Definition.Provider) ??
                 throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
         }
         else
@@ -93,14 +93,10 @@ public class ProjectionConvention
     {
         List<IProjectionProviderExtension> extensions = [];
         extensions.AddRange(definition.ProviderExtensions);
+        
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
-            if (serviceProvider.TryGetOrCreateService<IProjectionProviderExtension>(
-                extensionType,
-                out var createdExtension))
-            {
-                extensions.Add(createdExtension);
-            }
+            extensions.Add((IProjectionProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }
 
         return extensions;

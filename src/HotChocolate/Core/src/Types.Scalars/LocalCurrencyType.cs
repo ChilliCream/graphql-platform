@@ -15,6 +15,7 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public LocalCurrencyType()
         : this(
             WellKnownScalarTypes.LocalCurrency,

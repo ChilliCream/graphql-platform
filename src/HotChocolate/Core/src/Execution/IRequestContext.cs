@@ -41,11 +41,6 @@ public interface IRequestContext : IHasContextData
     IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
-    /// Gets the activator helper class.
-    /// </summary>
-    IActivator Activator { get; }
-
-    /// <summary>
     /// Gets or sets the initial query request.
     /// </summary>
     IQueryRequest Request { get; }

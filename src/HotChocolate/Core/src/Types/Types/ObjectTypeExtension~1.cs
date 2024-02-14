@@ -24,6 +24,7 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     /// <summary>
     /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public ObjectTypeExtension()
     {
         _configure = Configure;

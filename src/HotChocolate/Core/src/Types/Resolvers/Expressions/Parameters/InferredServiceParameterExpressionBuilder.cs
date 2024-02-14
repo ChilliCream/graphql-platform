@@ -3,7 +3,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 

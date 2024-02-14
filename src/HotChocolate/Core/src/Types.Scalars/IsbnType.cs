@@ -36,6 +36,7 @@ public class IsbnType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="IsbnType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public IsbnType()
         : this(
             WellKnownScalarTypes.Isbn,

@@ -195,8 +195,8 @@ internal partial class MiddlewareContext : IMiddlewareContext
             : (T)_resolverResult;
     }
 
-    public T Resolver<T>() =>
-        _operationContext.Activator.GetOrCreate<T>(_operationContext.Services);
+    public T Resolver<T>() 
+        => _operationContext.Resolvers.GetResolver<T>(_operationContext.Services);
 
     public T Service<T>() where T : notnull => Services.GetRequiredService<T>();
 

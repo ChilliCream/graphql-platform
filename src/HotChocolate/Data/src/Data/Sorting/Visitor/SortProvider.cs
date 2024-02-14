@@ -6,6 +6,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -87,49 +88,50 @@ public abstract class SortProvider<TContext>
             throw SortProvider_NoOperationHandlersConfigured(this);
         }
 
-        var services = new DictionaryServiceProvider(
-            (typeof(ISortProvider), this),
-            (typeof(IConventionContext), context),
-            (typeof(IDescriptorContext), context.DescriptorContext),
-            (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
-            .Include(context.Services);
+        var services = new CombinedServiceProvider(
+            new DictionaryServiceProvider(
+                (typeof(ISortProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+            context.Services);
 
         foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
         {
-            switch (handler.Instance)
+            if (handler.Instance is ISortFieldHandler<TContext> field)
             {
-                case null when services.TryGetOrCreateService(
-                    handler.Type,
-                    out ISortFieldHandler<TContext>? service):
-                    _fieldHandlers.Add(service);
-                    break;
+                _fieldHandlers.Add(field);
+                continue;
+            }
 
-                case null:
-                    throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
-
-                case ISortFieldHandler<TContext> casted:
-                    _fieldHandlers.Add(casted);
-                    break;
+            try
+            {
+                field = (ISortFieldHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
+                _fieldHandlers.Add(field);
+            }
+            catch
+            {
+                throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
             }
         }
 
         foreach ((Type Type, ISortOperationHandler? Instance) handler
             in Definition.OperationHandlers)
         {
-            switch (handler.Instance)
+            if (handler.Instance is ISortOperationHandler<TContext> op)
             {
-                case null when services.TryGetOrCreateService(
-                    handler.Type,
-                    out ISortOperationHandler<TContext>? service):
-                    _operationHandlers.Add(service);
-                    break;
+                _operationHandlers.Add(op);
+                continue;
+            }
 
-                case null:
-                    throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
-
-                case ISortOperationHandler<TContext> casted:
-                    _operationHandlers.Add(casted);
-                    break;
+            try
+            {
+                op = (ISortOperationHandler<TContext>)GetServiceOrCreateInstance(services, handler.Type);
+                _operationHandlers.Add(op);
+            }
+            catch
+            {
+                throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
             }
         }
     }
