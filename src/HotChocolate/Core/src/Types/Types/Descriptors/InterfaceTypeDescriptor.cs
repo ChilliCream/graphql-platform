@@ -90,13 +90,6 @@ public class InterfaceTypeDescriptor
     {
     }
 
-    public IInterfaceTypeDescriptor SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition)
-    {
-        Definition.SyntaxNode = interfaceTypeDefinition;
-        return this;
-    }
-
     public IInterfaceTypeDescriptor Name(string value)
     {
         Definition.Name = value;

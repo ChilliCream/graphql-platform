@@ -18,13 +18,11 @@ internal sealed class RequestContext : IRequestContext
         ISchema schema,
         ulong executorVersion,
         IErrorHandler errorHandler,
-        IActivator activator,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         Schema = schema;
         ExecutorVersion = executorVersion;
         ErrorHandler = errorHandler;
-        Activator = activator;
         DiagnosticEvents = diagnosticEvents;
     }
 
@@ -35,8 +33,6 @@ internal sealed class RequestContext : IRequestContext
     public IServiceProvider Services { get; private set; } = default!;
 
     public IErrorHandler ErrorHandler { get; }
-
-    public IActivator Activator { get; }
 
     public IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
@@ -84,7 +80,6 @@ internal sealed class RequestContext : IRequestContext
             Schema,
             ExecutorVersion,
             ErrorHandler,
-            Activator,
             DiagnosticEvents)
         {
             Request = Request,

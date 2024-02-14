@@ -19,6 +19,7 @@ public class FloatType : FloatTypeBase<double>
     /// <summary>
     /// Initializes a new instance of the <see cref="FloatType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public FloatType()
         : this(double.MinValue, double.MaxValue)
     {

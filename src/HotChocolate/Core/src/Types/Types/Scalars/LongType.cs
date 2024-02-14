@@ -11,6 +11,7 @@ public class LongType
     /// <summary>
     /// Initializes a new instance of the <see cref="LongType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public LongType()
         : this(long.MinValue, long.MaxValue)
     {

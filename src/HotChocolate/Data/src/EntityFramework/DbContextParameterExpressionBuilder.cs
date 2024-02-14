@@ -7,27 +7,23 @@ using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.EntityFrameworkObjectFieldDescriptorExtensions;
 using static HotChocolate.WellKnownMiddleware;
 
 namespace HotChocolate.Data;
 
-internal sealed class DbContextParameterExpressionBuilder<TDbContext>
+internal sealed class DbContextParameterExpressionBuilder<TDbContext>(DbContextKind kind) 
     : IParameterExpressionBuilder
     , IParameterFieldConfiguration
     where TDbContext : DbContext
 {
-    private readonly ServiceKind _kind;
-
-    public DbContextParameterExpressionBuilder(DbContextKind kind)
+    private readonly ServiceKind _kind = kind switch
     {
-        _kind = kind switch
-        {
-            DbContextKind.Pooled => ServiceKind.Pooled,
-            DbContextKind.Resolver => ServiceKind.Resolver,
-            _ => ServiceKind.Synchronized,
-        };
-    }
+        DbContextKind.Pooled => ServiceKind.Pooled,
+        DbContextKind.Resolver => ServiceKind.Resolver,
+        _ => ServiceKind.Synchronized,
+    };
 
     public ArgumentKind Kind => ArgumentKind.Service;
 

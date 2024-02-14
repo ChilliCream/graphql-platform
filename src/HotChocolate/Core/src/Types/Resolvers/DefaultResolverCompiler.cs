@@ -48,8 +48,12 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         new Dictionary<ParameterInfo, string>();
 
     public DefaultResolverCompiler(
+        IServiceProvider schemaServiceProvider,
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
+        var appServiceProvider = schemaServiceProvider.GetService<IApplicationServiceProvider>();
+        var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
+        
         var custom = customParameterExpressionBuilders is not null
             ? [..customParameterExpressionBuilders,]
             : new List<IParameterExpressionBuilder>();
@@ -97,6 +101,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new PathParameterExpressionBuilder());
         expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventReceiver>());
         expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventSender>());
+
+        if (serviceInspector is not null)
+        {
+            expressionBuilders.Add(new InferredServiceParameterExpressionBuilder(serviceInspector));
+        }
 
         if (customParameterExpressionBuilders is not null)
         {

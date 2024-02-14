@@ -8,6 +8,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class SignedByteType : IntegerTypeBase<sbyte>
 {
+    [ActivatorUtilitiesConstructor]
     public SignedByteType()
         : this(
             WellKnownScalarTypes.SignedByte,

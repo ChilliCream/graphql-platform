@@ -7,8 +7,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Filters;
 
@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public class FilterConvention
     : Convention<FilterConventionDefinition>
-    , IFilterConvention
+        , IFilterConvention
 {
     private const string _inputPostFix = "FilterInput";
     private const string _inputTypePostFix = "FilterInputType";
@@ -75,9 +75,7 @@ public class FilterConvention
     /// <param name="descriptor">
     /// The descriptor that can be used to configure the convention
     /// </param>
-    protected virtual void Configure(IFilterConventionDescriptor descriptor)
-    {
-    }
+    protected virtual void Configure(IFilterConventionDescriptor descriptor) { }
 
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
@@ -90,7 +88,7 @@ public class FilterConvention
         if (Definition.ProviderInstance is null)
         {
             _provider =
-                context.Services.GetOrCreateService<IFilterProvider>(Definition.Provider) ??
+                (IFilterProvider)GetServiceOrCreateInstance(context.Services, Definition.Provider) ??
                 throw FilterConvention_NoProviderFound(GetType(), Definition.Scope);
         }
         else
@@ -154,16 +152,10 @@ public class FilterConvention
             runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
-            string genericName;
 
-            if (typeof(FilterInputType).IsAssignableFrom(genericType))
-            {
-                genericName = GetTypeName(genericType);
-            }
-            else
-            {
-                genericName = _namingConventions.GetTypeName(genericType);
-            }
+            var genericName = typeof(FilterInputType).IsAssignableFrom(genericType)
+                ? GetTypeName(genericType)
+                : _namingConventions.GetTypeName(genericType);
 
             return "List" + genericName;
         }
@@ -251,8 +243,8 @@ public class FilterConvention
         IFilterInputTypeDescriptor descriptor)
     {
         if (_configs.TryGetValue(
-                typeReference,
-                out var configurations))
+            typeReference,
+            out var configurations))
         {
             foreach (var configure in configurations)
             {
@@ -356,14 +348,10 @@ public class FilterConvention
     {
         var extensions = new List<IFilterProviderExtension>();
         extensions.AddRange(definition.ProviderExtensions);
+
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
-            if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
-                    extensionType,
-                    out var createdExtension))
-            {
-                extensions.Add(createdExtension);
-            }
+            extensions.Add((IFilterProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }
 
         return extensions;

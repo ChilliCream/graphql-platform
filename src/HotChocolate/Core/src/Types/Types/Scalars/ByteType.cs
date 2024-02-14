@@ -10,6 +10,7 @@ public class ByteType : IntegerTypeBase<byte>
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public ByteType()
         : this(byte.MinValue, byte.MaxValue)
     {

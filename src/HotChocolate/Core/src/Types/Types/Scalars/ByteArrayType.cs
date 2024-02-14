@@ -11,6 +11,7 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public ByteArrayType()
         : this(ScalarNames.ByteArray, bind: BindingBehavior.Implicit)
     {

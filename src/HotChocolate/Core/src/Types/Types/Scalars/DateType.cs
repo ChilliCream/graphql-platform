@@ -15,6 +15,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public DateType() : this(ScalarNames.Date, TypeResources.DateType_Description)
     {
     }

@@ -73,14 +73,7 @@ public class InputFieldDescriptor
 
         base.OnCreateDefinition(definition);
     }
-
-    /// <inheritdoc />
-    public new IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
-    }
-
+    
     /// <inheritdoc />
     public IInputFieldDescriptor Name(string value)
     {

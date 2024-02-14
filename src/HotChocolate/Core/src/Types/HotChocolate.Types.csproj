@@ -10,7 +10,11 @@
     <RootNamespace>HotChocolate</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL type system.</Description>
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
@@ -145,6 +149,9 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>TypeResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Types\InterfaceType.Initialization.cs">
+      <DependentUpon>InterfaceType.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

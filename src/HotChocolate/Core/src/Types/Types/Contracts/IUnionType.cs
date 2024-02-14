@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -11,11 +10,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IUnionType : INamedOutputType
 {
-    /// <summary>
-    /// Gets the syntax node representation of this union type.
-    /// </summary>
-    new UnionTypeDefinitionNode? SyntaxNode { get; }
-
     /// <summary>
     /// Gets the <see cref="IObjectType" /> set of this union type.
     /// </summary>

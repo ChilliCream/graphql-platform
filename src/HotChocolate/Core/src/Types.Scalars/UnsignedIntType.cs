@@ -8,6 +8,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class UnsignedIntType : IntegerTypeBase<uint>
 {
+    [ActivatorUtilitiesConstructor]
     public UnsignedIntType()
         : this(
             WellKnownScalarTypes.UnsignedInt,

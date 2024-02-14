@@ -33,6 +33,7 @@ public class EnumType<T> : EnumType, IEnumType<T>
     /// <summary>
     /// Initializes a new instance of <see cref="EnumType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public EnumType()
     {
         _configure = Configure;

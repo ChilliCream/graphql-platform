@@ -152,6 +152,7 @@ public class PostalCodeType : StringType
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public PostalCodeType()
         : this(
             WellKnownScalarTypes.PostalCode,

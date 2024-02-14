@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL argument type.
 /// </summary>
-public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
+public class ArgumentDefinition : FieldDefinitionBase
 {
     /// <summary>
     /// Initializes a new instance of <see cref="ArgumentDefinition"/>.

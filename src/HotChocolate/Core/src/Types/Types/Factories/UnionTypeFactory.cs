@@ -10,18 +10,15 @@ internal sealed class UnionTypeFactory
 {
     public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new UnionTypeDefinition(node.Name.Value, node.Description?.Value);
-
-        typeDefinition.BindTo = node.GetBindingValue();
-
-        if (preserveSyntaxNodes)
+        var typeDefinition = new UnionTypeDefinition(
+            node.Name.Value, 
+            node.Description?.Value)
         {
-            typeDefinition.SyntaxNode = node;
-        }
+            BindTo = node.GetBindingValue(),
+        };
 
         foreach (var namedType in node.Types)
         {

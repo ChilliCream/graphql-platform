@@ -51,11 +51,6 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
-    bool PreserveSyntaxNodes { get; }
-
-    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>

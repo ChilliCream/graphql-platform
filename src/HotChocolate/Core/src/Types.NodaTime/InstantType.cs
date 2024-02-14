@@ -16,6 +16,7 @@ public class InstantType : StringToStructBaseType<Instant>
     /// <summary>
     /// Initializes a new instance of <see cref="InstantType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public InstantType() : this(InstantPattern.ExtendedIso)
     {
     }

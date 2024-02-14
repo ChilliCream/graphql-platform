@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -11,9 +10,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL directive.
 /// </summary>
-public class DirectiveTypeDefinition
-    : DefinitionBase<DirectiveDefinitionNode>
-    , IHasRuntimeType
+public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
 {
     private Type _clrType = typeof(object);
     private List<DirectiveMiddleware>? _middlewareComponents;

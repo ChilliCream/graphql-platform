@@ -14,6 +14,7 @@ public class UrlType : ScalarType<Uri, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UrlType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public UrlType()
         : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
     {

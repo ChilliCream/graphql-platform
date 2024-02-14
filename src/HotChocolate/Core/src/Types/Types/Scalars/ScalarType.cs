@@ -55,10 +55,6 @@ public abstract partial class ScalarType
 
     public IDirectiveCollection Directives { get; private set; }
 
-    public ScalarTypeDefinitionNode? SyntaxNode { get; private set; }
-
-    ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
-
     protected ITypeConverter Converter => _converter;
 
     public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);

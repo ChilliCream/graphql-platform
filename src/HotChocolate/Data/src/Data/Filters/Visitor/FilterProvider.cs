@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
@@ -83,33 +84,34 @@ public abstract class FilterProvider<TContext>
                 context.Scope);
         }
 
-        var services = new DictionaryServiceProvider(
-            (typeof(IFilterProvider), this),
-            (typeof(IConventionContext), context),
-            (typeof(IDescriptorContext), context.DescriptorContext),
-            (typeof(IFilterConvention), _filterConvention),
-            (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
-            (typeof(InputParser), context.DescriptorContext.InputParser),
-            (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
-            (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
-            .Include(context.Services);
+        var services = new CombinedServiceProvider(
+            new DictionaryServiceProvider(
+                (typeof(IFilterProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(IFilterConvention), _filterConvention),
+                (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
+                (typeof(InputParser), context.DescriptorContext.InputParser),
+                (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+            context.Services);
 
-        foreach ((Type Type, IFilterFieldHandler? Instance) handler in Definition.Handlers)
+        foreach (var (type, instance) in Definition.Handlers)
         {
-            switch (handler.Instance)
+            if (instance is IFilterFieldHandler<TContext> casted)
             {
-                case null when services.TryGetOrCreateService(
-                    handler.Type,
-                    out IFilterFieldHandler<TContext>? service):
-                    _fieldHandlers.Add(service);
-                    break;
+                _fieldHandlers.Add(casted);
+                continue;
+            }
 
-                case null:
-                    throw FilterProvider_UnableToCreateFieldHandler(this, handler.Type);
-
-                case IFilterFieldHandler<TContext> casted:
-                    _fieldHandlers.Add(casted);
-                    break;
+            try
+            {
+                var optimizers = (IFilterFieldHandler<TContext>)ActivatorUtilities.GetServiceOrCreateInstance(services, type);
+                _fieldHandlers.Add(optimizers);
+            }
+            catch
+            {
+                throw FilterProvider_UnableToCreateFieldHandler(this, type);
             }
         }
     }

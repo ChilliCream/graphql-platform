@@ -17,6 +17,7 @@ public class LocalDateType : StringToStructBaseType<LocalDate>
     /// <summary>
     /// Initializes a new instance of <see cref="LocalDateType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public LocalDateType() : this(LocalDatePattern.Iso)
     {
     }

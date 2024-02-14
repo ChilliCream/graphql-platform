@@ -15,6 +15,7 @@ public class MultiplierPathType
     /// <summary>
     /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public MultiplierPathType()
         : this(
             ScalarNames.MultiplierPath,

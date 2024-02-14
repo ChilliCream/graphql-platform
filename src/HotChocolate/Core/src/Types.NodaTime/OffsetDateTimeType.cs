@@ -16,6 +16,7 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetDateTimeType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public OffsetDateTimeType() : this(OffsetDateTimePattern.ExtendedIso)
     {
         // Backwards compatibility with the original code's behavior

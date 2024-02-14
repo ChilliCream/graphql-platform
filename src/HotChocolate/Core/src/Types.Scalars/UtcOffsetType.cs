@@ -14,6 +14,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public UtcOffsetType()
         : this(
             WellKnownScalarTypes.UtcOffset,

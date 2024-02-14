@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Data.Raven.Filtering.Handlers;
+using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
 using Raven.Client.Documents.Session;
@@ -15,7 +16,8 @@ internal sealed class RavenQueryableFilterProvider : QueryableFilterProvider
         : base(configure)
     {
     }
-
+    
+    [ActivatorUtilitiesConstructor]
     public RavenQueryableFilterProvider() { }
 
     protected override void Configure(IFilterProviderDescriptor<QueryableFilterContext> descriptor)

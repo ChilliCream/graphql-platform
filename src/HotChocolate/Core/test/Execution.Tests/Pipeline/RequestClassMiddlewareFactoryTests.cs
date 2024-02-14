@@ -29,7 +29,6 @@ public class RequestClassMiddlewareFactoryTests
             new Mock<ISchema>().Object,
             1,
             new Mock<IErrorHandler>().Object,
-            new Mock<IActivator>().Object,
             new Mock<IExecutionDiagnosticEvents>().Object);
 
         context.Initialize(
