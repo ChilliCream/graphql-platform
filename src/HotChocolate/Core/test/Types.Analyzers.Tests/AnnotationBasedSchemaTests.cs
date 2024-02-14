@@ -18,4 +18,16 @@ public class SchemaTests
 
         schema.MatchSnapshot();
     }
+    
+    [Fact]
+    public async Task ExecuteRootField()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddCustomModule()
+                .ExecuteRequestAsync("{ foo }");
+
+        result.MatchSnapshot();
+    }
 }
