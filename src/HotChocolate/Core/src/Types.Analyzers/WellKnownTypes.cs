@@ -23,6 +23,8 @@ public static class WellKnownTypes
     public const string ReadOnlyDictionary = "System.Collections.Generic.IReadOnlyDictionary";
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
+    public const string RequestCoreMiddleware = $"HotChocolate.Execution.{nameof(RequestCoreMiddleware)}"; 
+    public const string Schema = $"HotChocolate.{nameof(Schema)}"; 
 
     public static HashSet<string> TypeClass { get; } =
     [
