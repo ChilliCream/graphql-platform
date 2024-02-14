@@ -26,18 +26,27 @@ public sealed class OperationInspector : ISyntaxInspector
 
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
+                    var operationType = ParseOperationType(fullName);
+                    
+                    if(operationType == OperationType.No)
+                    {
+                        continue;
+                    }
 
-                    if (!fullName.Equals(WellKnownAttributes.QueryAttribute, StringComparison.Ordinal) ||
-                        context.SemanticModel.GetDeclaredSymbol(methodSyntax) is not { } methodSymbol)
+                    if (context.SemanticModel.GetDeclaredSymbol(methodSyntax) is not { } methodSymbol)
+                    {
+                        continue;
+                    }
+
+                    if (!methodSymbol.IsStatic)
                     {
                         continue;
                     }
                     
-                    syntaxInfo = new DataLoaderInfo(
-                        attributeSyntax,
-                        attributeSymbol,
-                        methodSymbol,
-                        methodSyntax);
+                    syntaxInfo = new OperationInfo(
+                        operationType,
+                        methodSymbol.ContainingType.ToDisplayString(),
+                        methodSymbol.Name);
                     return true;
                 }
             }
@@ -45,5 +54,25 @@ public sealed class OperationInspector : ISyntaxInspector
 
         syntaxInfo = null;
         return false;
+    }
+
+    private OperationType ParseOperationType(string attributeName)
+    {
+        if (attributeName.Equals(WellKnownAttributes.QueryAttribute, StringComparison.Ordinal))
+        {
+            return OperationType.Query;
+        }
+        
+        if (attributeName.Equals(WellKnownAttributes.MutationAttribute, StringComparison.Ordinal))
+        {
+            return OperationType.Mutation;
+        }
+        
+        if (attributeName.Equals(WellKnownAttributes.SubscriptionAttribute, StringComparison.Ordinal))
+        {
+            return OperationType.Subscription;    
+        }
+
+        return OperationType.No;
     }
 }

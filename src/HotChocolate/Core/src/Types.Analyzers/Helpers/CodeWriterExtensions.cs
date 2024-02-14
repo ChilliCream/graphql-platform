@@ -19,8 +19,6 @@ public static class CodeWriterExtensions
             "[global::System.CodeDom.Compiler.GeneratedCode(" +
             $"\"HotChocolate\", \"{version}\")]");
 #endif
-        
-        
     }
 
     public static void WriteFileHeader(this CodeWriter writer)

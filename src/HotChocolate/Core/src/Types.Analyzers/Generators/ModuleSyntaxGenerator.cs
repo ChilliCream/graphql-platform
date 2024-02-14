@@ -1,7 +1,8 @@
 using System.Text;
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HotChocolate.Types.Analyzers.Helpers;
+namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class ModuleSyntaxGenerator : IDisposable
 {
@@ -76,6 +77,9 @@ public sealed class ModuleSyntaxGenerator : IDisposable
     
     public void WriteRegisterDataLoader(string typeName)
         => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}>();", typeName);
+    
+    public void WriteRegisterDataLoader(string typeName, string interfaceTypeName)
+        => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}, global::{1}>();", interfaceTypeName, typeName);
 
     public void WriteTryAddOperationType(OperationType type)
     {
