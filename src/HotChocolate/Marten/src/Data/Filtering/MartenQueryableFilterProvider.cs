@@ -1,6 +1,7 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using Marten.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Marten.Filtering;
 
@@ -12,6 +13,7 @@ public class MartenQueryableFilterProvider : QueryableFilterProvider
     /// <summary>
     /// Initializes a new instance of <see cref="MartenQueryableFilterProvider"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public MartenQueryableFilterProvider()
     {
     }
