@@ -9,6 +9,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
 {
     private StringBuilder _sb;
     private CodeWriter _writer;
+    private bool _first = true;
     private bool _disposed;
 
     public OperationFieldSyntaxGenerator()
@@ -39,6 +40,12 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
 
     public void WriteBeginClass(string typeName)
     {
+        if (!_first)
+        {
+            _writer.WriteLine();
+        }
+        _first = false;
+        
         _writer.WriteIndentedLine("public sealed class {0}", typeName);
 
         using (_writer.IncreaseIndent())
@@ -55,7 +62,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteConfigureMethod(IEnumerable<OperationInfo> operations)
+    public void WriteConfigureMethod(OperationType type, IEnumerable<OperationInfo> operations)
     {
         _writer.WriteIndentedLine("protected override void Configure(");
         using (_writer.IncreaseIndent())
@@ -65,28 +72,46 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
 
-        var typeIndex = 0;
+        _writer.WriteIndentedLine("var bindingFlags = System.Reflection.BindingFlags.Public |");
+
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
+            _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
+        }
         
+        _writer.WriteIndentedLine("descriptor.Name({0});", GetOperationConstant(type));
+
+        var typeIndex = 0;
         foreach (var group in operations.GroupBy(t => t.TypeName))
         {
+            _writer.WriteLine();
+            
             var typeName = $"type{++typeIndex}";
-            _writer.WriteIndentedLine("Type {0} = typeof({1});", typeName, group.Key);
+            _writer.WriteIndentedLine("var {0} = typeof({1});", typeName, group.Key);
 
             foreach (var operation in group)
             {
                 _writer.WriteIndentedLine(
-                    "descriptor.Field({0}.GetMember(\"{1}\", System.Reflection.BindingFlags.Public)[0]);",
+                    "descriptor.Field({0}.GetMember(\"{1}\", bindingFlags)[0]);",
                     typeName,
                     operation.MethodName);
             }
-            
-            _writer.WriteLine();
         }
         
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("}");
     }
-    
+
+    private static string GetOperationConstant(OperationType type)
+        => type switch
+        {
+            OperationType.Query => "global::HotChocolate.Types.OperationTypeNames.Query",
+            OperationType.Mutation => "global::HotChocolate.Types.OperationTypeNames.Mutation",
+            OperationType.Subscription => "global::HotChocolate.Types.OperationTypeNames.Subscription",
+            _ => throw new InvalidOperationException()
+        };
+
     public override string ToString()
         => _sb.ToString();
 

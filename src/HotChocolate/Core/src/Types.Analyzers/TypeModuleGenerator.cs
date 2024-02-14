@@ -309,7 +309,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         {
             return;
         }
-        
+
         var generator = new OperationFieldSyntaxGenerator();
         generator.WriterHeader();
         generator.WriteBeginNamespace("Microsoft.Extensions.DependencyInjection");
@@ -319,7 +319,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
             var typeName = $"{module.ModuleName}{group.Key}Type";
             
             generator.WriteBeginClass(typeName);
-            generator.WriteConfigureMethod(group);
+            generator.WriteConfigureMethod(group.Key, group);
             generator.WriteEndClass();
 
             syntaxInfos.Add(new OperationRegistrationInfo($"Microsoft.Extensions.DependencyInjection.{typeName}"));
