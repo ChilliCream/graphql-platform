@@ -22,6 +22,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new DataLoaderInspector(),
         new DataLoaderDefaultsInspector(),
         new OperationInspector(),
+        new RequestMiddlewareInspector(),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -45,7 +46,8 @@ public class TypeModuleGenerator : IIncrementalGenerator
         => IsTypeWithAttribute(node) ||
             IsClassWithBaseClass(node) ||
             IsAssemblyAttributeList(node) ||
-            IsMethodWithAttribute(node);
+            IsMethodWithAttribute(node) ||
+            IsMiddlewareMethod(node);
 
     private static bool IsClassWithBaseClass(SyntaxNode node)
         => node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, };
@@ -58,6 +60,16 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
     private static bool IsAssemblyAttributeList(SyntaxNode node)
         => node is AttributeListSyntax;
+
+    private static bool IsMiddlewareMethod(SyntaxNode node)
+        => node is InvocationExpressionSyntax
+            {
+                Expression: MemberAccessExpressionSyntax
+                {
+                    Name.Identifier.ValueText: var method,
+                },
+            } &&
+            (method.Equals("UseRequest") || method.Equals("UseField") || method.Equals("Use")); 
 
     private static ISyntaxInfo? TryGetModuleOrType(
         GeneratorSyntaxContext context,
@@ -190,6 +202,17 @@ public class TypeModuleGenerator : IIncrementalGenerator
         }
 
         generator.WriteEndRegistrationMethod();
+
+        var middleware = 0;
+        foreach (var syntaxInfo in syntaxInfos)
+        {
+            if (syntaxInfo is RequestMiddlewareInfo requestMiddleware)
+            {
+                middleware++;
+                generator.WriteMiddlewareExtensionMethod($"Middleware_{middleware}", requestMiddleware.Location);
+            }
+        }
+        
         generator.WriteEndClass();
         generator.WriteEndNamespace();
 
@@ -236,7 +259,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
             dataLoaders.Add(dataLoader);
         }
         
-        var generator = new DataLoaderSyntaxGenerator();
+        using var generator = new DataLoaderSyntaxGenerator();
         generator.WriterHeader();
 
         foreach (var group in dataLoaders.GroupBy(t => t.Namespace))
@@ -316,7 +339,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
             return;
         }
 
-        var generator = new OperationFieldSyntaxGenerator();
+        using var generator = new OperationFieldSyntaxGenerator();
         generator.WriterHeader();
         generator.WriteBeginNamespace("Microsoft.Extensions.DependencyInjection");
 

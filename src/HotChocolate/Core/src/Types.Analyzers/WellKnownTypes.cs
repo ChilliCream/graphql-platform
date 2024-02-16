@@ -24,7 +24,8 @@ public static class WellKnownTypes
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
     public const string RequestCoreMiddleware = $"HotChocolate.Execution.{nameof(RequestCoreMiddleware)}"; 
-    public const string Schema = $"HotChocolate.{nameof(Schema)}"; 
+    public const string Schema = $"HotChocolate.{nameof(Schema)}";
+    public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
 
     public static HashSet<string> TypeClass { get; } =
     [

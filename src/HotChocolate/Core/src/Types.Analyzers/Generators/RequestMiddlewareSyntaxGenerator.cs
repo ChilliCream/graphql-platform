@@ -119,10 +119,6 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
                         parameter.TypeName);
                     break;
 
-                case RequestMiddlewareParameterKind.SchemaName:
-                    _writer.WriteIndentedLine("var p{0} = core.SchemaName;", i);
-                    break;
-
                 case RequestMiddlewareParameterKind.Schema:
                     _writer.WriteIndentedLine(
                         "var cp{0} = core.SchemaServices.GetRequiredService<global::{1}>();",
