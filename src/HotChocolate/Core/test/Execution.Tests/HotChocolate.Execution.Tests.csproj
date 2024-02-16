@@ -26,4 +26,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Batching\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,14 @@
+﻿[{
+  "data": {
+    "hero": {
+      "id": "1000"
+    }
+  }
+},{
+  "data": {
+    "human": {
+      "name": "Luke Skywalker"
+    }
+  }
+}
+]
