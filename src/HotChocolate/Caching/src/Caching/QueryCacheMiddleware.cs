@@ -5,15 +5,22 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
-internal sealed class QueryCacheMiddleware(
-    RequestDelegate next,
-    [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
+internal sealed class QueryCacheMiddleware
 {
-    private readonly ICacheControlOptions _options = optionsAccessor.CacheControl;
+    private readonly ICacheControlOptions _options;
+    private readonly RequestDelegate _next;
+    
+    private QueryCacheMiddleware(
+        RequestDelegate next,
+        [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
+    {
+        _next = next;
+        _options = optionsAccessor.CacheControl;
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        await next(context).ConfigureAwait(false);
+        await _next(context).ConfigureAwait(false);
 
         if (!_options.Enable || context.ContextData.ContainsKey(SkipQueryCaching))
         {

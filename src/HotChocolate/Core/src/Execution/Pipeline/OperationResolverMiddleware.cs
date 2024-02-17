@@ -162,14 +162,19 @@ internal sealed class OperationResolverMiddleware
         var variables = CoerceVariables(context, _coercionHelper, operationDefinition.VariableDefinitions);
         return variables.GetVariable<bool>(variable.Name.Value);
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
             var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
-            var optimizers = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var optimizers1 = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var optimizers2 = core.SchemaServices.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
             var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
-            var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers, coercionHelper);
+            var middleware = new OperationResolverMiddleware(
+                next,
+                operationCompilerPool,
+                optimizers1.Concat(optimizers2),
+                coercionHelper);
             return context => middleware.InvokeAsync(context);
         };
 }
