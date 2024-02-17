@@ -61,7 +61,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteFactory(RequestMiddlewareInfo middleware, int middlewareIndex)
+    public void WriteFactory(int middlewareIndex, RequestMiddlewareInfo middleware)
     {
         _writer.WriteIndentedLine("// {0}", middleware.TypeName);
         _writer.WriteIndentedLine(

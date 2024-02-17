@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -80,7 +79,6 @@ public class MiddlewareModuleGenerator : IIncrementalGenerator
         }
 
         var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
-        var dataLoaderDefaults = syntaxInfos.GetDataLoaderDefaults();
 
         // if there is only the module info we do not need to generate a module.
         if (!defaultModule && syntaxInfos.Length == 1)
@@ -88,31 +86,24 @@ public class MiddlewareModuleGenerator : IIncrementalGenerator
             return;
         }
 
-        var middlewareInfos = new List<RequestMiddlewareInfo>();
-
-        foreach (var syntaxInfo in syntaxInfos)
-        {
-            if (syntaxInfo is RequestMiddlewareInfo casted)
-            {
-                middlewareInfos.Add(casted);
-            }
-        }
-
-        using var generator = new RequestMiddlewareSyntaxGenerator(
-            module.ModuleName,
-            "HotChocolate.Execution.Generated");
+        using var generator = new RequestMiddlewareSyntaxGenerator(module.ModuleName, _namespace);
         
         generator.WriterHeader();
         generator.WriteBeginNamespace();
         
         generator.WriteBeginClass();
-        
-        for (var i = 0; i < middlewareInfos.Count; i++)
+
+        var i = 0;
+        foreach (var syntaxInfo in syntaxInfos)
         {
-            generator.WriteFactory(middlewareInfos[i], i);
-            generator.WriteInterceptMethod(
-                i,
-                middlewareInfos[i].Location);
+            if (syntaxInfo is not RequestMiddlewareInfo middleware)
+            {
+                continue;
+            }
+            
+            generator.WriteFactory(i, middleware);
+            generator.WriteInterceptMethod(i, middleware.Location);
+            i++;
         }
         
         generator.WriteEndClass();
