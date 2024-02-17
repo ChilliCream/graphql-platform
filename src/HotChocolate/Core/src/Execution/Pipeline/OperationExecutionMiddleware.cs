@@ -10,30 +10,33 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class OperationExecutionMiddleware(
-    RequestDelegate next,
-    IFactory<OperationContextOwner> contextFactory,
-    [SchemaService] QueryExecutor queryExecutor,
-    [SchemaService] SubscriptionExecutor subscriptionExecutor,
-    [SchemaService] ITransactionScopeHandler transactionScopeHandler)
+internal sealed class OperationExecutionMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-
-    private readonly IFactory<OperationContextOwner> _contextFactory = contextFactory ??
-        throw new ArgumentNullException(nameof(contextFactory));
-
-    private readonly QueryExecutor _queryExecutor = queryExecutor ??
-        throw new ArgumentNullException(nameof(queryExecutor));
-
-    private readonly SubscriptionExecutor _subscriptionExecutor = subscriptionExecutor ??
-        throw new ArgumentNullException(nameof(subscriptionExecutor));
-
-    private readonly ITransactionScopeHandler _transactionScopeHandler = transactionScopeHandler ??
-        throw new ArgumentNullException(nameof(transactionScopeHandler));
-
+    private readonly RequestDelegate _next;
+    private readonly IFactory<OperationContextOwner> _contextFactory;
+    private readonly QueryExecutor _queryExecutor;
+    private readonly SubscriptionExecutor _subscriptionExecutor;
+    private readonly ITransactionScopeHandler _transactionScopeHandler;
     private object? _cachedQuery;
     private object? _cachedMutation;
+    
+    private OperationExecutionMiddleware(RequestDelegate next,
+        IFactory<OperationContextOwner> contextFactory,
+        [SchemaService] QueryExecutor queryExecutor,
+        [SchemaService] SubscriptionExecutor subscriptionExecutor,
+        [SchemaService] ITransactionScopeHandler transactionScopeHandler)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _contextFactory = contextFactory ??
+            throw new ArgumentNullException(nameof(contextFactory));
+        _queryExecutor = queryExecutor ??
+            throw new ArgumentNullException(nameof(queryExecutor));
+        _subscriptionExecutor = subscriptionExecutor ??
+            throw new ArgumentNullException(nameof(subscriptionExecutor));
+        _transactionScopeHandler = transactionScopeHandler ??
+            throw new ArgumentNullException(nameof(transactionScopeHandler));
+    }
 
     public async ValueTask InvokeAsync(
         IRequestContext context,

@@ -6,17 +6,23 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class OperationCacheMiddleware(
-    RequestDelegate next,
-    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-    IPreparedOperationCache operationCache)
+internal sealed class OperationCacheMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
-        throw new ArgumentNullException(nameof(diagnosticEvents));
-    private readonly IPreparedOperationCache _operationCache = operationCache ??
-        throw new ArgumentNullException(nameof(operationCache));
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IPreparedOperationCache _operationCache;
+
+    private OperationCacheMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        IPreparedOperationCache operationCache)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _operationCache = operationCache ??
+            throw new ArgumentNullException(nameof(operationCache));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {

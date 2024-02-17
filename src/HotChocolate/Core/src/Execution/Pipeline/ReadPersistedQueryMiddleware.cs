@@ -6,17 +6,23 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class ReadPersistedQueryMiddleware(
-    RequestDelegate next,
-    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-    [SchemaService] IReadStoredQueries persistedQueryStore)
+internal sealed class ReadPersistedQueryMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
-        throw new ArgumentNullException(nameof(diagnosticEvents));
-    private readonly IReadStoredQueries _persistedQueryStore = persistedQueryStore ??
-        throw new ArgumentNullException(nameof(persistedQueryStore));
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IReadStoredQueries _persistedQueryStore;
+
+    private ReadPersistedQueryMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        [SchemaService] IReadStoredQueries persistedQueryStore)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _persistedQueryStore = persistedQueryStore ??
+            throw new ArgumentNullException(nameof(persistedQueryStore));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {

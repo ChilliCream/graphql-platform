@@ -7,22 +7,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class WritePersistedQueryMiddleware(
-    RequestDelegate next,
-    IDocumentHashProvider documentHashProvider,
-    [SchemaService] IWriteStoredQueries persistedQueryStore)
+internal sealed class WritePersistedQueryMiddleware
 {
     private const string _persistedQuery = "persistedQuery";
     private const string _persisted = "persisted";
     private const string _expectedValue = "expectedHashValue";
     private const string _expectedType = "expectedHashType";
     private const string _expectedFormat = "expectedHashFormat";
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-    private readonly IDocumentHashProvider _hashProvider = documentHashProvider ??
-        throw new ArgumentNullException(nameof(documentHashProvider));
-    private readonly IWriteStoredQueries _persistedQueryStore = persistedQueryStore ??
-        throw new ArgumentNullException(nameof(persistedQueryStore));
+    private readonly RequestDelegate _next;
+    private readonly IDocumentHashProvider _hashProvider;
+    private readonly IWriteStoredQueries _persistedQueryStore;
+
+    private WritePersistedQueryMiddleware(RequestDelegate next,
+        IDocumentHashProvider documentHashProvider,
+        [SchemaService] IWriteStoredQueries persistedQueryStore)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _hashProvider = documentHashProvider ??
+            throw new ArgumentNullException(nameof(documentHashProvider));
+        _persistedQueryStore = persistedQueryStore ??
+            throw new ArgumentNullException(nameof(persistedQueryStore));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {

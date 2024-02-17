@@ -5,14 +5,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class InstrumentationMiddleware(
-    RequestDelegate next,
-    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
+internal sealed class InstrumentationMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
-        throw new ArgumentNullException(nameof(diagnosticEvents));
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+
+    private InstrumentationMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {

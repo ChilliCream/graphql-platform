@@ -16,7 +16,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
     private readonly GraphQLException _exception;
     private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 }, };
 
-    public OnlyPersistedQueriesAllowedMiddleware(
+    private OnlyPersistedQueriesAllowedMiddleware(
         RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         [SchemaService] IPersistedQueryOptionsAccessor options)

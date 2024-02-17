@@ -6,23 +6,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class DocumentParserMiddleware(
-    RequestDelegate next,
-    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-    IDocumentHashProvider documentHashProvider,
-    ParserOptions parserOptions)
+internal sealed class DocumentParserMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IDocumentHashProvider _documentHashProvider;
+    private readonly ParserOptions _parserOptions;
 
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
-        throw new ArgumentNullException(nameof(diagnosticEvents));
-
-    private readonly IDocumentHashProvider _documentHashProvider = documentHashProvider ??
-        throw new ArgumentNullException(nameof(documentHashProvider));
-
-    private readonly ParserOptions _parserOptions = parserOptions ??
-        throw new ArgumentNullException(nameof(parserOptions));
+    private DocumentParserMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentHashProvider documentHashProvider,
+        ParserOptions parserOptions)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _documentHashProvider = documentHashProvider ??
+            throw new ArgumentNullException(nameof(documentHashProvider));
+        _parserOptions = parserOptions ??
+            throw new ArgumentNullException(nameof(parserOptions));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
@@ -99,7 +103,14 @@ internal sealed class DocumentParserMiddleware(
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
             var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
             var parserOptions = core.Services.GetRequiredService<ParserOptions>();
-            var middleware = new DocumentParserMiddleware(next, diagnosticEvents, documentHashProvider, parserOptions);
+            var middleware = Create(next, diagnosticEvents, documentHashProvider, parserOptions);
             return context => middleware.InvokeAsync(context);
         };
+
+    internal static DocumentParserMiddleware Create(
+        RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentHashProvider documentHashProvider,
+        ParserOptions parserOptions)
+        => new(next, diagnosticEvents, documentHashProvider, parserOptions);
 }

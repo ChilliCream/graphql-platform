@@ -7,20 +7,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class DocumentCacheMiddleware(
-    RequestDelegate next,
-    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-    IDocumentCache documentCache,
-    IDocumentHashProvider documentHashProvider)
+internal sealed class DocumentCacheMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
-        throw new ArgumentNullException(nameof(diagnosticEvents));
-    private readonly IDocumentCache _documentCache = documentCache ??
-        throw new ArgumentNullException(nameof(documentCache));
-    private readonly IDocumentHashProvider _documentHashProvider = documentHashProvider ??
-        throw new ArgumentNullException(nameof(documentHashProvider));
+    private readonly RequestDelegate _next;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly IDocumentCache _documentCache;
+    private readonly IDocumentHashProvider _documentHashProvider;
+
+    private DocumentCacheMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentCache documentCache,
+        IDocumentHashProvider documentHashProvider)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        _documentCache = documentCache ??
+            throw new ArgumentNullException(nameof(documentCache));
+        _documentHashProvider = documentHashProvider ??
+            throw new ArgumentNullException(nameof(documentHashProvider));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
@@ -84,7 +91,14 @@ internal sealed class DocumentCacheMiddleware(
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
             var documentCache = core.Services.GetRequiredService<IDocumentCache>();
             var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var middleware = new DocumentCacheMiddleware(next, diagnosticEvents, documentCache, documentHashProvider);
+            var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
             return context => middleware.InvokeAsync(context);
         };
+
+    internal static DocumentCacheMiddleware Create(
+        RequestDelegate next,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentCache documentCache,
+        IDocumentHashProvider documentHashProvider)
+        => new(next, diagnosticEvents, documentCache, documentHashProvider);
 }

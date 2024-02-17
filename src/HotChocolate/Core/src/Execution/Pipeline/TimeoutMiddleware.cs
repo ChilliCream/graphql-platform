@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;
@@ -14,7 +13,7 @@ internal sealed class TimeoutMiddleware
     private readonly RequestDelegate _next;
     private readonly TimeSpan _timeout;
 
-    public TimeoutMiddleware(
+    private TimeoutMiddleware(
         RequestDelegate next,
         [SchemaService] IRequestExecutorOptionsAccessor options)
     {

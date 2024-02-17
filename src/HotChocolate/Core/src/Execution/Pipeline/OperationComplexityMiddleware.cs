@@ -22,7 +22,7 @@ internal sealed class OperationComplexityMiddleware
     private readonly ComplexityAnalyzerCompiler _compiler;
     private readonly VariableCoercionHelper _coercionHelper;
 
-    public OperationComplexityMiddleware(
+    private OperationComplexityMiddleware(
         RequestDelegate next,
         DocumentValidatorContextPool contextPool,
         [SchemaService] IComplexityAnalyzerOptionsAccessor options,

@@ -22,7 +22,7 @@ internal sealed class OperationResolverMiddleware
     private readonly VariableCoercionHelper _coercionHelper;
     private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
 
-    public OperationResolverMiddleware(
+    private OperationResolverMiddleware(
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
         IEnumerable<IOperationCompilerOptimizer> optimizers,

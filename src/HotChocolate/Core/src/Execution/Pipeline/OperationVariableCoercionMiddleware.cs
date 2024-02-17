@@ -6,14 +6,19 @@ using static HotChocolate.Execution.Pipeline.PipelineTools;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class OperationVariableCoercionMiddleware(
-    RequestDelegate next,
-    VariableCoercionHelper coercionHelper)
+internal sealed class OperationVariableCoercionMiddleware
 {
-    private readonly RequestDelegate _next = next ??
-        throw new ArgumentNullException(nameof(next));
-    private readonly VariableCoercionHelper _coercionHelper = coercionHelper ??
-        throw new ArgumentNullException(nameof(coercionHelper));
+    private readonly RequestDelegate _next;
+    private readonly VariableCoercionHelper _coercionHelper;
+
+    private OperationVariableCoercionMiddleware(RequestDelegate next,
+        VariableCoercionHelper coercionHelper)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _coercionHelper = coercionHelper ??
+            throw new ArgumentNullException(nameof(coercionHelper));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {

@@ -4,12 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class ExceptionMiddleware(RequestDelegate next, [SchemaService] IErrorHandler errorHandler)
+internal sealed class ExceptionMiddleware
 {
-    private readonly RequestDelegate _next = next ?? 
-        throw new ArgumentNullException(nameof(next));
-    private readonly IErrorHandler _errorHandler = errorHandler ?? 
-        throw new ArgumentNullException(nameof(errorHandler));
+    private readonly RequestDelegate _next;
+    private readonly IErrorHandler _errorHandler;
+
+    private ExceptionMiddleware(RequestDelegate next, [SchemaService] IErrorHandler errorHandler)
+    {
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _errorHandler = errorHandler ??
+            throw new ArgumentNullException(nameof(errorHandler));
+    }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
@@ -34,12 +40,17 @@ internal sealed class ExceptionMiddleware(RequestDelegate next, [SchemaService] 
             context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(error));
         }
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
             var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
-            var middleware = new ExceptionMiddleware(next, errorHandler);
+            var middleware = Create(next, errorHandler);
             return context => middleware.InvokeAsync(context);
         };
+
+    internal static ExceptionMiddleware Create(
+        RequestDelegate next,
+        IErrorHandler errorHandler)
+        => new(next, errorHandler);
 }
