@@ -4,39 +4,36 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class OperationExecutionMiddleware
+internal sealed class OperationExecutionMiddleware(
+    RequestDelegate next,
+    IFactory<OperationContextOwner> contextFactory,
+    [SchemaService] QueryExecutor queryExecutor,
+    [SchemaService] SubscriptionExecutor subscriptionExecutor,
+    [SchemaService] ITransactionScopeHandler transactionScopeHandler)
 {
-    private readonly RequestDelegate _next;
-    private readonly IFactory<OperationContextOwner> _contextFactory;
-    private readonly QueryExecutor _queryExecutor;
-    private readonly SubscriptionExecutor _subscriptionExecutor;
-    private readonly ITransactionScopeHandler _transactionScopeHandler;
+    private readonly RequestDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+
+    private readonly IFactory<OperationContextOwner> _contextFactory = contextFactory ??
+        throw new ArgumentNullException(nameof(contextFactory));
+
+    private readonly QueryExecutor _queryExecutor = queryExecutor ??
+        throw new ArgumentNullException(nameof(queryExecutor));
+
+    private readonly SubscriptionExecutor _subscriptionExecutor = subscriptionExecutor ??
+        throw new ArgumentNullException(nameof(subscriptionExecutor));
+
+    private readonly ITransactionScopeHandler _transactionScopeHandler = transactionScopeHandler ??
+        throw new ArgumentNullException(nameof(transactionScopeHandler));
+
     private object? _cachedQuery;
     private object? _cachedMutation;
-
-    public OperationExecutionMiddleware(
-        RequestDelegate next,
-        IFactory<OperationContextOwner> contextFactory,
-        QueryExecutor queryExecutor,
-        SubscriptionExecutor subscriptionExecutor,
-        [SchemaService] ITransactionScopeHandler transactionScopeHandler)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _contextFactory = contextFactory ??
-            throw new ArgumentNullException(nameof(contextFactory));
-        _queryExecutor = queryExecutor ??
-            throw new ArgumentNullException(nameof(queryExecutor));
-        _subscriptionExecutor = subscriptionExecutor ??
-            throw new ArgumentNullException(nameof(subscriptionExecutor));
-        _transactionScopeHandler = transactionScopeHandler ??
-            throw new ArgumentNullException(nameof(transactionScopeHandler));
-    }
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -213,4 +210,25 @@ internal sealed class OperationExecutionMiddleware
 
         return allowed;
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
+            var queryExecutor = core.SchemaServices.GetRequiredService<QueryExecutor>();
+            var subscriptionExecutor = core.SchemaServices.GetRequiredService<SubscriptionExecutor>();
+            var transactionScopeHandler = core.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
+            var middleware = new OperationExecutionMiddleware(
+                next,
+                contextFactory,
+                queryExecutor,
+                subscriptionExecutor,
+                transactionScopeHandler);
+            
+            return async context =>
+            {
+                var batchDispatcher = context.Services.GetService<IBatchDispatcher>();
+                await middleware.InvokeAsync(context, batchDispatcher).ConfigureAwait(false);
+            };
+        };
 }

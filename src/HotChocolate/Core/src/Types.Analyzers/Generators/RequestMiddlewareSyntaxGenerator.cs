@@ -6,15 +6,14 @@ using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
-public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
+public sealed class RequestMiddlewareSyntaxGenerator
 {
-    private StringBuilder _sb;
-    private CodeWriter _writer;
-    private bool _disposed;
+    private readonly StringBuilder _sb;
+    private readonly CodeWriter _writer;
 
-    public RequestMiddlewareSyntaxGenerator()
+    public RequestMiddlewareSyntaxGenerator(StringBuilder sb)
     {
-        _sb = StringBuilderPool.Get();
+        _sb = sb;
         _writer = new CodeWriter(_sb);
     }
 
@@ -227,17 +226,4 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
 
     public SourceText ToSourceText()
         => SourceText.From(ToString(), Encoding.UTF8);
-
-    public void Dispose()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        StringBuilderPool.Return(_sb);
-        _sb = default!;
-        _writer = default!;
-        _disposed = true;
-    }
 }

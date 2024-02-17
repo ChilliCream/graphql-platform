@@ -6,6 +6,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.WellKnownDirectives;
@@ -161,4 +162,14 @@ internal sealed class OperationResolverMiddleware
         var variables = CoerceVariables(context, _coercionHelper, operationDefinition.VariableDefinitions);
         return variables.GetVariable<bool>(variable.Name.Value);
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
+            var optimizers = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
+            var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers, coercionHelper);
+            return context => middleware.InvokeAsync(context);
+        };
 }

@@ -1,23 +1,18 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class InstrumentationMiddleware
+internal sealed class InstrumentationMiddleware(
+    RequestDelegate next,
+    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
-    private readonly RequestDelegate _next;
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-
-    public InstrumentationMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
-    }
+    private readonly RequestDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
+        throw new ArgumentNullException(nameof(diagnosticEvents));
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
@@ -31,4 +26,12 @@ internal sealed class InstrumentationMiddleware
             }
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var middleware = new InstrumentationMiddleware(next, diagnosticEvents);
+            return context => middleware.InvokeAsync(context);
+        };
 }

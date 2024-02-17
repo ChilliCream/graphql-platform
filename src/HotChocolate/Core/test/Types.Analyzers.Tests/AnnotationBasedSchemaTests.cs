@@ -25,16 +25,16 @@ public class SchemaTests
     {
         var services = new ServiceCollection()
             .AddGraphQL()
-            .AddCustomModule()
-            .UseRequest<SomeRequestMiddleware>();
+            .AddCustomModule();
+            // .UseRequest<SomeRequestMiddleware>();
         
         var result = await services.ExecuteRequestAsync("{ foo }");
 
         IRequestExecutorBuilder s = default!;
-        
+
         s.AddGraphQL()
-            .AddCustomModule()
-            .UseRequest<SomeRequestMiddleware>();
+            .AddCustomModule();
+            // .UseRequest<SomeRequestMiddleware>();
 
         result.MatchSnapshot();
     }

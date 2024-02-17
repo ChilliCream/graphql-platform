@@ -6,6 +6,7 @@ using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
 using static HotChocolate.WellKnownContextData;
@@ -24,7 +25,7 @@ internal sealed class OperationComplexityMiddleware
     public OperationComplexityMiddleware(
         RequestDelegate next,
         DocumentValidatorContextPool contextPool,
-        IComplexityAnalyzerOptionsAccessor options,
+        [SchemaService] IComplexityAnalyzerOptionsAccessor options,
         IComplexityAnalyzerCache cache,
         VariableCoercionHelper coercionHelper)
     {
@@ -127,7 +128,7 @@ internal sealed class OperationComplexityMiddleware
         }
     }
 
-    private void PrepareContext(
+    private static void PrepareContext(
         IRequestContext requestContext,
         DocumentNode document,
         DocumentValidatorContext validatorContext)
@@ -155,4 +156,15 @@ internal sealed class OperationComplexityMiddleware
 
         return _settings.MaximumAllowed;
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var contextPool = core.Services.GetRequiredService<DocumentValidatorContextPool>();
+            var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
+            var cache = core.Services.GetRequiredService<IComplexityAnalyzerCache>();
+            var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
+            var middleware = new OperationComplexityMiddleware(next, contextPool, options, cache, coercionHelper);
+            return context => middleware.InvokeAsync(context);
+        };
 }

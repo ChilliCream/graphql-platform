@@ -2,30 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class DocumentValidationMiddleware
+internal sealed class DocumentValidationMiddleware(
+    RequestDelegate next,
+    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+    IDocumentValidator documentValidator)
 {
-    private readonly RequestDelegate _next;
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly IDocumentValidator _documentValidator;
-
-    public DocumentValidationMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
-        IDocumentValidator documentValidator)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents ??
-            throw new ArgumentNullException(nameof(diagnosticEvents));
-        _documentValidator = documentValidator ??
-            throw new ArgumentNullException(nameof(documentValidator));
-    }
+    private readonly RequestDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents ??
+        throw new ArgumentNullException(nameof(diagnosticEvents));
+    private readonly IDocumentValidator _documentValidator = documentValidator ??
+        throw new ArgumentNullException(nameof(documentValidator));
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
@@ -85,4 +80,14 @@ internal sealed class DocumentValidationMiddleware
             await _next(context).ConfigureAwait(false);
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var documentValidatorFactory = core.Services.GetRequiredService<IDocumentValidatorFactory>();
+            var documentValidator = documentValidatorFactory.CreateValidator(core.SchemaName); 
+            var middleware = new DocumentValidationMiddleware(next, diagnosticEvents, documentValidator);
+            return context => middleware.InvokeAsync(context);
+        };
 }

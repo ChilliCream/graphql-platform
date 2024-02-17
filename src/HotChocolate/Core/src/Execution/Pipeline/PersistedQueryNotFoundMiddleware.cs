@@ -2,29 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class PersistedQueryNotFoundMiddleware
+internal sealed class PersistedQueryNotFoundMiddleware(
+    RequestDelegate next,
+    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
-    private readonly RequestDelegate _next;
-    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly Dictionary<string, object?> _statusCode;
-
-    public PersistedQueryNotFoundMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents)
-    {
-        _next = next
-            ?? throw new ArgumentNullException(nameof(next));
-        _diagnosticEvents = diagnosticEvents
-            ?? throw new ArgumentNullException(nameof(diagnosticEvents));
-        _statusCode = new Dictionary<string, object?>
-        {
-            { HttpStatusCode, 400 },
-        };
-    }
+    private readonly RequestDelegate _next = next
+        ?? throw new ArgumentNullException(nameof(next));
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents = diagnosticEvents
+        ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+    private readonly Dictionary<string, object?> _statusCode = new() { { HttpStatusCode, 400 }, };
 
     public ValueTask InvokeAsync(IRequestContext context)
     {
@@ -47,4 +39,12 @@ internal sealed class PersistedQueryNotFoundMiddleware
 
         return default;
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var middleware = new PersistedQueryNotFoundMiddleware(next, diagnosticEvents);
+            return context => middleware.InvokeAsync(context);
+        };
 }

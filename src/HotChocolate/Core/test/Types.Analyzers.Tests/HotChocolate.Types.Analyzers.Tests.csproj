@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
-    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.Extensions.DependencyInjection</InterceptorsPreviewNamespaces>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
 
     <!--EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath-->
