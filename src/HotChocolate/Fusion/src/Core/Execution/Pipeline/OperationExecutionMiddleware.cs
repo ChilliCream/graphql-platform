@@ -1,5 +1,7 @@
 using HotChocolate.Execution;
+using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.DependencyInjection;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
@@ -8,6 +10,7 @@ using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using ErrorHelper = HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
@@ -91,5 +94,27 @@ internal sealed class DistributedOperationExecutionMiddleware(
             OperationType.Mutation => _mutationRoot,
             OperationType.Subscription => _subscriptionRoot,
             _ => throw new NotSupportedException(),
+        };
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
+            var idSerializer = core.Services.GetRequiredService<IIdSerializer>();
+            var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
+            var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
+            var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
+            var middleware = new DistributedOperationExecutionMiddleware(
+                next,
+                contextFactory,
+                idSerializer,
+                serviceConfig,
+                clientFactory,
+                nodeIdParser);
+            return async context =>
+            {
+                var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();
+                await middleware.InvokeAsync(context, batchDispatcher);
+            };
         };
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -13,9 +14,8 @@ internal sealed class DocumentCacheMiddleware
     private readonly IDocumentCache _documentCache;
     private readonly IDocumentHashProvider _documentHashProvider;
 
-    public DocumentCacheMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
+    private DocumentCacheMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         IDocumentCache documentCache,
         IDocumentHashProvider documentHashProvider)
     {
@@ -84,4 +84,21 @@ internal sealed class DocumentCacheMiddleware
             _diagnosticEvents.AddedDocumentToCache(context);
         }
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var documentCache = core.Services.GetRequiredService<IDocumentCache>();
+            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+            var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
+            return context => middleware.InvokeAsync(context);
+        };
+
+    internal static DocumentCacheMiddleware Create(
+        RequestDelegate next,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentCache documentCache,
+        IDocumentHashProvider documentHashProvider)
+        => new(next, diagnosticEvents, documentCache, documentHashProvider);
 }
