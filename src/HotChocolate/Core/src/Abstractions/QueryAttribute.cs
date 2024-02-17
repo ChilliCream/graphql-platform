@@ -3,4 +3,4 @@ using System;
 namespace HotChocolate;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
-public sealed class MutationFieldAttribute : Attribute;
+public sealed class QueryAttribute : Attribute;

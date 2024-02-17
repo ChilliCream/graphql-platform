@@ -2,9 +2,9 @@ namespace HotChocolate.Types;
 
 public static class RootTypeTests
 {
-    [QueryField]
+    [Query]
     public static string Foo() => "foo";
     
-    [MutationField]
+    [Mutation]
     public static string Bar() => "bar";
 }
