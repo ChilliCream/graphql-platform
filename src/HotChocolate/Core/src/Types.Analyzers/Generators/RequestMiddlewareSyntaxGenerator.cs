@@ -6,26 +6,35 @@ using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
-public sealed class RequestMiddlewareSyntaxGenerator
+public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
 {
-    private readonly StringBuilder _sb;
-    private readonly CodeWriter _writer;
+    private readonly string _moduleName;
+    private readonly string _ns;
+    private readonly string _id;
+    private StringBuilder _sb;
+    private CodeWriter _writer;
+    private bool _disposed;
 
-    public RequestMiddlewareSyntaxGenerator(StringBuilder sb)
+    public RequestMiddlewareSyntaxGenerator(string moduleName, string ns)
     {
-        _sb = sb;
-        _writer = new CodeWriter(_sb);
+        _moduleName = moduleName;
+        _ns = ns;
+
+        _id = Guid.NewGuid().ToString("N");
+        _sb = StringBuilderPool.Get();
+        _writer = new(_sb);
     }
 
     public void WriterHeader()
     {
         _writer.WriteFileHeader();
+        _writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");
         _writer.WriteLine();
     }
 
-    public void WriteBeginNamespace(string ns)
+    public void WriteBeginNamespace()
     {
-        _writer.WriteIndentedLine("namespace {0}", ns);
+        _writer.WriteIndentedLine("namespace {0}", _ns);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
     }
@@ -37,11 +46,13 @@ public sealed class RequestMiddlewareSyntaxGenerator
         _writer.WriteLine();
     }
 
-    public void WriteBeginClass(string typeName)
+    public string WriteBeginClass()
     {
+        var typeName = $"{_moduleName}MiddlewareFactories{_id}";
         _writer.WriteIndentedLine("public static class {0}", typeName);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
+        return typeName;
     }
 
     public void WriteEndClass()
@@ -50,9 +61,13 @@ public sealed class RequestMiddlewareSyntaxGenerator
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteFactory(RequestMiddlewareInfo middleware)
+    public void WriteFactory(RequestMiddlewareInfo middleware, int middlewareIndex)
     {
-        _writer.WriteIndentedLine("public static global::{0} {1}()", RequestCoreMiddleware, middleware.Name);
+        _writer.WriteIndentedLine("// {0}", middleware.TypeName);
+        _writer.WriteIndentedLine(
+            "private static global::{0} CreateMiddleware{1}()",
+            RequestCoreMiddleware,
+            middlewareIndex);
 
         using (_writer.IncreaseIndent())
         {
@@ -65,7 +80,6 @@ public sealed class RequestMiddlewareSyntaxGenerator
                 using (_writer.IncreaseIndent())
                 {
                     WriteCtorServiceResolution(middleware.CtorParameters);
-                    _writer.WriteLine();
                     WriteFactory(middleware.TypeName, middleware.CtorParameters);
                     _writer.WriteIndentedLine("return async context =>");
                     _writer.WriteIndentedLine("{");
@@ -77,7 +91,7 @@ public sealed class RequestMiddlewareSyntaxGenerator
                     }
                     _writer.WriteIndentedLine("};");
                 }
-                _writer.WriteIndentedLine("}");
+                _writer.WriteIndentedLine("};");
             }
         }
     }
@@ -136,7 +150,7 @@ public sealed class RequestMiddlewareSyntaxGenerator
 
     private void WriteFactory(string typeName, List<RequestMiddlewareParameterInfo> parameters)
     {
-        _writer.WriteIndented("var middleware = new global::{0}(", typeName);
+        _writer.WriteIndented("var middleware = new {0}(", typeName);
 
         for (var i = 0; i < parameters.Count; i++)
         {
@@ -198,7 +212,7 @@ public sealed class RequestMiddlewareSyntaxGenerator
 
     private void WriteInvoke(string methodName, List<RequestMiddlewareParameterInfo> parameters)
     {
-        _writer.WriteIndented("await middleware.InvokeAsync(");
+        _writer.WriteIndented("await middleware.{0}(", methodName);
 
         for (var i = 0; i < parameters.Count; i++)
         {
@@ -221,9 +235,53 @@ public sealed class RequestMiddlewareSyntaxGenerator
         _writer.WriteLine(").ConfigureAwait(false);");
     }
 
+    public void WriteInterceptMethod(
+        int middlewareIndex,
+        (string FilePath, int LineNumber, int CharacterNumber) location)
+    {
+        _writer.WriteLine();
+
+        _writer.WriteIndentedLine(
+            "[InterceptsLocation(\"{0}\", {1}, {2})]",
+            location.FilePath,
+            location.LineNumber,
+            location.CharacterNumber);
+        _writer.WriteIndentedLine(
+            "public static global::{0} UseRequestGen{1}<TMiddleware>(",
+            RequestExecutorBuilder,
+            middlewareIndex);
+
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine("this {0} builder) where TMiddleware : class", RequestExecutorBuilder);
+        }
+
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine(
+                "=> builder.UseRequest(CreateMiddleware{2}());",
+                _moduleName,
+                "MiddlewareFactories",
+                middlewareIndex);
+        }
+    }
+
     public override string ToString()
         => _sb.ToString();
 
     public SourceText ToSourceText()
         => SourceText.From(ToString(), Encoding.UTF8);
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        StringBuilderPool.Return(_sb);
+        _sb = default!;
+        _writer = default!;
+        _disposed = true;
+    }
 }

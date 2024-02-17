@@ -11,6 +11,8 @@ namespace HotChocolate.Types.Analyzers;
 [Generator]
 public class MiddlewareModuleGenerator : IIncrementalGenerator
 {
+    private const string _namespace = "HotChocolate.Execution.Generated";
+    
     private static readonly ISyntaxInspector[] _inspectors =
     [
         new TypeAttributeInspector(),
@@ -96,49 +98,27 @@ public class MiddlewareModuleGenerator : IIncrementalGenerator
             }
         }
 
-        var sb = StringBuilderPool.Get();
-        
-        WriteRegistration(sb, module, middlewareInfos);
-        WriteFactories(sb, module, middlewareInfos);
-      
-       
-        
-        context.AddSource(WellKnownFileNames.MiddlewareFile, sb.ToString());
-    }
-
-    private static void WriteRegistration(StringBuilder sb, ModuleInfo module, List<RequestMiddlewareInfo> middlewares)
-    {
-        var generator1 = new RegisterMiddlewareSyntaxGenerator(
-            sb,
+        using var generator = new RequestMiddlewareSyntaxGenerator(
             module.ModuleName,
             "HotChocolate.Execution.Generated");
         
-        generator1.WriterHeader();
-        generator1.WriteBeginNamespace();
-        generator1.WriteBeginClass();
-
-        for (var i = 0; i < middlewares.Count; i++)
+        generator.WriterHeader();
+        generator.WriteBeginNamespace();
+        
+        generator.WriteBeginClass();
+        
+        for (var i = 0; i < middlewareInfos.Count; i++)
         {
-            generator1.WriteMiddlewareExtensionMethod($"Middleware_{i}", middlewares[i].Location);
+            generator.WriteFactory(middlewareInfos[i], i);
+            generator.WriteInterceptMethod(
+                i,
+                middlewareInfos[i].Location);
         }
         
-        generator1.WriteEndNamespace();
-        generator1.WriteEndClass();
-    }
-
-    private static void WriteFactories(StringBuilder sb, ModuleInfo module, List<RequestMiddlewareInfo> middlewares)
-    {
-        var generator2 = new RequestMiddlewareSyntaxGenerator(sb);
+        generator.WriteEndClass();
+      
+        generator.WriteEndNamespace();
         
-        generator2.WriteBeginNamespace("HotChocolate.Execution.Generated");
-        generator2.WriteBeginClass("Foo_Bar_Baz");
-
-        for (var i = 0; i < middlewares.Count; i++)
-        {
-            generator2.WriteFactory(middlewares[i]);
-        }
-        
-        generator2.WriteEndNamespace();
-        generator2.WriteEndClass();
+        context.AddSource(WellKnownFileNames.MiddlewareFile, generator.ToSourceText());
     }
 }
