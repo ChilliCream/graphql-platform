@@ -1,23 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
-#nullable enable
-
 namespace HotChocolate.Fetching;
 
-internal sealed class FetchGroupedDataLoader<TKey, TValue>
-    : GroupedDataLoader<TKey, TValue>
-    where TKey : notnull
+internal sealed class AdHocBatchDataLoader<TKey, TValue> : BatchDataLoader<TKey, TValue> where TKey : notnull
 {
-    private readonly FetchGroup<TKey, TValue> _fetch;
+    private readonly FetchBatch<TKey, TValue> _fetch;
 
-    public FetchGroupedDataLoader(
+    public AdHocBatchDataLoader(
         string key,
-        FetchGroup<TKey, TValue> fetch,
+        FetchBatch<TKey, TValue> fetch,
         IBatchScheduler batchScheduler,
         DataLoaderOptions options)
         : base(batchScheduler, options)
@@ -28,8 +23,8 @@ internal sealed class FetchGroupedDataLoader<TKey, TValue>
 
     protected override string CacheKeyType { get; }
 
-    protected override Task<ILookup<TKey, TValue>> LoadGroupedBatchAsync(
+    protected override Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(
         IReadOnlyList<TKey> keys,
-        CancellationToken cancellationToken) =>
-        _fetch(keys, cancellationToken);
+        CancellationToken cancellationToken) 
+        => _fetch(keys, cancellationToken);
 }
