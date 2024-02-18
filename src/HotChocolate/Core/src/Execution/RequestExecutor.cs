@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
+using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
@@ -16,7 +17,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
-    private readonly DefaultRequestContextAccessor _contextAccessor;
+    private readonly DefaultRequestContextAccessor _contextAccessor;    
     private readonly IRequestContextEnricher[] _enricher;
 
     public RequestExecutor(
@@ -67,8 +68,14 @@ internal sealed class RequestExecutor : IRequestExecutor
 
     public ulong Version { get; }
 
-    public async Task<IExecutionResult> ExecuteAsync(
+    public Task<IExecutionResult> ExecuteAsync(
         IQueryRequest request,
+        CancellationToken cancellationToken = default)
+        => ExecuteAsync(request, true, cancellationToken);
+    
+    internal async Task<IExecutionResult> ExecuteAsync(
+        IQueryRequest request,
+        bool scopeDataLoader,
         CancellationToken cancellationToken = default)
     {
         if (request is null)
@@ -76,18 +83,32 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(request));
         }
 
-        var scope = request.Services is null
-            ? _applicationServices.CreateScope()
-            : null;
+        IServiceScope? scope = null;
 
-        var services = scope is null
-            ? request.Services!
-            : scope.ServiceProvider;
+        if (request.Services is null)
+        {
+            if (request.ContextData?.TryGetValue(nameof(IServiceScopeFactory), out var value) ?? false)
+            {
+                scope = ((IServiceScopeFactory)value!).CreateScope();
+            }
+            else
+            {
+                scope = _applicationServices.CreateScope();
+            }
+        }
+        
+        var services = scope is null ? request.Services! : scope.ServiceProvider;
 
         var context = _contextPool.Get();
 
         try
         {
+            if (scopeDataLoader)
+            {
+                // we ensure that at the begin of each execution there is a fresh batching scope.
+                services.InitializeDataLoaderScope();
+            }
+
             context.RequestAborted = cancellationToken;
             context.Initialize(request, services);
             EnrichContext(context);

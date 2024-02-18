@@ -14,9 +14,9 @@ public class DataLoaderOptions
 
     /// <summary>
     /// Gets or sets a cache instance to either share a cache instance
-    /// across several dataloader or to provide a custom cache
+    /// across several DataLoader or to provide a custom cache
     /// implementation. In case no cache instance is provided, the
-    /// dataloader will use the default cache implementation.
+    /// DataLoader will use the default cache implementation.
     /// The default value is set to <c>null</c>.
     /// </summary>
     public ITaskCache? Cache { get; set; }

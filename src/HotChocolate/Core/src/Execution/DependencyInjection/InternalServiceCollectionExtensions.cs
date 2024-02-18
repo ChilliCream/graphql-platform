@@ -210,7 +210,9 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDefaultDataLoaderRegistry(
         this IServiceCollection services)
     {
-        services.TryAddScoped<IDataLoaderRegistry, DefaultDataLoaderRegistry>();
+        services.TryAddSingleton<DataLoaderScopeHolder>();
+        services.TryAddScoped<IDataLoaderScope>(
+            sp => sp.GetRequiredService<DataLoaderScopeHolder>().CurrentScope);
         return services;
     }
 

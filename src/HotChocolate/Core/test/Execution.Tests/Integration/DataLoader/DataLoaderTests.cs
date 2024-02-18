@@ -160,8 +160,8 @@ public class DataLoaderTests
 
                 var dataLoader =
                     context.Services
-                        .GetRequiredService<IDataLoaderRegistry>()
-                        .GetOrRegister<TestDataLoader>(() => throw new Exception());
+                        .GetRequiredService<IDataLoaderScope>()
+                        .GetDataLoader<TestDataLoader>(() => throw new Exception());
 
                 context.Result = QueryResultBuilder
                     .FromResult(((IQueryResult)context.Result!))

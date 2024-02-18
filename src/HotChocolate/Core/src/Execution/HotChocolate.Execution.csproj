@@ -205,6 +205,9 @@
     <Compile Update="Processing\ValueCompletionContext.cs">
       <DependentUpon>ValueCompletion.cs</DependentUpon>
     </Compile>
+    <Compile Update="Batching\BatchExecutor.Enumerable.cs">
+      <DependentUpon>BatchExecutor.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

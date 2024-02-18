@@ -143,6 +143,8 @@ internal sealed partial class SubscriptionExecutor
         {
             using var es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
             using var serviceScope = _requestContext.Services.CreateScope();
+            
+            serviceScope.ServiceProvider.InitializeDataLoaderScope();
 
             var operationContext = _operationContextPool.Get();
 
@@ -153,8 +155,7 @@ internal sealed partial class SubscriptionExecutor
 
                 // we store the event payload on the scoped context so that it is accessible
                 // in the resolvers.
-                var scopedContextData =
-                    _scopedContextData.SetItem(WellKnownContextData.EventMessage, payload);
+                var scopedContextData = _scopedContextData.SetItem(WellKnownContextData.EventMessage, payload);
 
                 // next we resolve the subscription instance.
                 var rootValue = RootValueResolver.Resolve(
