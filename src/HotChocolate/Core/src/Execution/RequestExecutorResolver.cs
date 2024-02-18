@@ -261,6 +261,8 @@ internal sealed partial class RequestExecutorResolver
             s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedQueryOptionsAccessor>(
             s => s.GetRequiredService<RequestExecutorOptions>());
+        serviceCollection.AddSingleton<IStreamOptionsAccessor>(
+            s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using static HotChocolate.WellKnownContextData;
@@ -24,7 +25,7 @@ internal abstract class DeferredExecutionTask
     public IImmutableDictionary<string, object?> ScopedContextData { get; }
 
     /// <summary>
-    /// Starts executing the deferred execution task.
+    /// Creates a dispatcher for the deferred execution task.
     /// </summary>
     /// <param name="operationContextOwner">
     /// The operation context owner.
@@ -35,7 +36,7 @@ internal abstract class DeferredExecutionTask
     /// <param name="patchId">
     /// The internal identifier of the object that the result will be patched into.
     /// </param>
-    public void Begin(OperationContextOwner operationContextOwner, uint resultId, uint patchId)
+    public TaskDispatcher CreateDispatcher(OperationContextOwner operationContextOwner, uint resultId, uint patchId)
     {
         // retrieve the task on which this task depends upon. We do this to ensure that the result
         // of this task is not delivered before the parent result is delivered.
@@ -46,11 +47,7 @@ internal abstract class DeferredExecutionTask
             parentResultId = id;
         }
 
-        Task.Factory.StartNew(
-            () => ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
-            default,
-            TaskCreationOptions.None,
-            TaskScheduler.Default);
+        return new(this, operationContextOwner, resultId, parentResultId, patchId);
     }
 
     /// <summary>
@@ -73,4 +70,49 @@ internal abstract class DeferredExecutionTask
         uint resultId,
         uint parentResultId,
         uint patchId);
+
+    /// <summary>
+    /// Wrapper which is used to dispatch the deferred execution task.
+    /// </summary>
+    /// <param name="task">
+    /// Deferred execution task.
+    /// </param>
+    /// <param name="operationContextOwner">
+    /// The operation context owner.
+    /// </param>
+    /// <param name="resultId">
+    /// The internal result identifier.
+    /// </param>
+    /// <param name="parentResultId">
+    /// The parent result identifier.
+    /// </param>
+    /// <param name="patchId">
+    /// The internal identifier of the object that the result will be patched into.
+    /// </param>
+    public class TaskDispatcher(
+        DeferredExecutionTask task,
+        OperationContextOwner operationContextOwner,
+        uint resultId,
+        uint parentResultId,
+        uint patchId)
+    {
+        private bool _isDispatched = false;
+
+        /// <summary>
+        /// Dispatches the deferred execution task.
+        /// </summary>
+        public void Dispatch()
+        {
+            if (_isDispatched)
+                throw new InvalidOperationException("Task was already dispatched with current dispatcher.");
+
+            _isDispatched = true;
+
+            _ = Task.Factory.StartNew(
+                () => task.ExecuteAsync(operationContextOwner, resultId, parentResultId, patchId),
+                default,
+                TaskCreationOptions.None,
+                TaskScheduler.Default);
+        }
+    }
 }

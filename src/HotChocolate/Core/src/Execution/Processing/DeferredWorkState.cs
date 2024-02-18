@@ -9,6 +9,8 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed class DeferredWorkState
 {
+    private readonly int _deliverableQueueSize;
+
     private readonly object _completeSync = new();
     private readonly object _deliverSync = new();
     private readonly object _patchSync = new();
@@ -17,10 +19,17 @@ internal sealed class DeferredWorkState
     private readonly Queue<IQueryResult> _deliverable = new();
     private readonly HashSet<uint> _completed = [];
     private readonly HashSet<uint> _notPatchable = [];
-    private SemaphoreSlim _semaphore = new(0);
+    private SemaphoreSlim _dequeueSemaphore = new(0);
+    private SemaphoreSlim _enqueueSemaphore;
     private uint _taskId;
     private uint _work;
     private uint _patchId;
+
+    public DeferredWorkState(int bufferSize)
+    {
+        _deliverableQueueSize = bufferSize;
+        _enqueueSemaphore = new(_deliverableQueueSize);
+    }
 
     public bool HasResults => _taskId > 0;
 
@@ -53,7 +62,7 @@ internal sealed class DeferredWorkState
         return resultData.PatchId;
     }
 
-    public void Complete(DeferredExecutionTaskResult result)
+    public void Complete(DeferredExecutionTaskResult result, CancellationToken cancellationToken)
     {
         var update = true;
 
@@ -64,7 +73,7 @@ internal sealed class DeferredWorkState
                 if (result.ParentTaskId is 0 || _completed.Contains(result.ParentTaskId))
                 {
                     _completed.Add(result.TaskId);
-                    EnqueueResult(result.Result);
+                    EnqueueResult(result.Result, cancellationToken);
 
                     var evaluateDeferredResults = _ready.Count > 0;
 
@@ -81,7 +90,7 @@ internal sealed class DeferredWorkState
                             {
                                 _completed.Add(current.TaskId);
                                 _ready.RemoveAt(i);
-                                EnqueueResult(current.Result);
+                                EnqueueResult(current.Result, cancellationToken);
                                 evaluateDeferredResults = true;
                             }
                             else
@@ -102,14 +111,16 @@ internal sealed class DeferredWorkState
         {
             if (update)
             {
-                _semaphore.Release();
+                _dequeueSemaphore.Release();
             }
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void EnqueueResult(IQueryResult? queryResult)
+    private void EnqueueResult(IQueryResult? queryResult, CancellationToken cancellationToken)
     {
+        _enqueueSemaphore.Wait(cancellationToken);
+
         lock (_deliverSync)
         {
             if (queryResult is not null)
@@ -126,7 +137,7 @@ internal sealed class DeferredWorkState
     public async ValueTask<IQueryResult?> TryDequeueResultsAsync(
         CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync(cancellationToken);
+        await _dequeueSemaphore.WaitAsync(cancellationToken);
 
         lock (_deliverSync)
         {
@@ -139,10 +150,11 @@ internal sealed class DeferredWorkState
                 for (var i = 0; i < result.Length; i++)
                 {
                     var deliverable = _deliverable.Dequeue();
+                    _enqueueSemaphore.Release();
 
                     if (--_work is 0)
                     {
-                        _semaphore.Release();
+                        _dequeueSemaphore.Release();
                         hasNext = false;
                     }
 
@@ -206,11 +218,13 @@ internal sealed class DeferredWorkState
 
     public void Reset()
     {
-        _semaphore.Dispose();
-        _semaphore = new SemaphoreSlim(0);
+        _dequeueSemaphore.Dispose();
+        _dequeueSemaphore = new SemaphoreSlim(0);
         _ready.Clear();
         _completed.Clear();
         _deliverable.Clear();
+        _enqueueSemaphore.Dispose();
+        _enqueueSemaphore = new SemaphoreSlim(_deliverableQueueSize);
         _notPatchable.Clear();
         _taskId = 0;
         _work = 0;

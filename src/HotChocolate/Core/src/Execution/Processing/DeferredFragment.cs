@@ -89,7 +89,8 @@ internal sealed class DeferredFragment : DeferredExecutionTask
                     .BuildResult();
 
             // complete the task and provide the result
-            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
+            var cancellationToken = operationContext.RequestAborted;
+            operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result), cancellationToken);
         }
         finally
         {

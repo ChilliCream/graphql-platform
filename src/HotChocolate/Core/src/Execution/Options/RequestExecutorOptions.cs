@@ -12,6 +12,7 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);
     private TimeSpan _executionTimeout;
     private IError _onlyPersistedQueriesAreAllowedError = ErrorHelper.OnlyPersistedQueriesAreAllowed();
+    private int _streamBufferSize;
 
     /// <summary>
     /// <para>Initializes a new instance of <see cref="RequestExecutorOptions"/>.</para>
@@ -26,6 +27,7 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
         _executionTimeout = Debugger.IsAttached
             ? TimeSpan.FromMinutes(30)
             : TimeSpan.FromSeconds(30);
+        _streamBufferSize = 100;
     }
 
     /// <summary>
@@ -75,6 +77,20 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
             _onlyPersistedQueriesAreAllowedError = value
                 ?? throw new ArgumentNullException(
                     nameof(OnlyPersistedQueriesAreAllowedError));
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets maximum allowed number of items that can be
+    /// prefetched from the data source and buffered while streaming.
+    /// The minimum allowed value is <c>1</c> item.
+    /// </summary>
+    public int StreamBufferSize
+    {
+        get => _streamBufferSize;
+        set
+        {
+            _streamBufferSize = value >= 1 ? value : 1; 
         }
     }
 }
