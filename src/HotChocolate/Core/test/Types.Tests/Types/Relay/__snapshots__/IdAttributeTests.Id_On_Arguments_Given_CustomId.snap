@@ -1,0 +1,9 @@
+﻿{
+  "data": {
+    "customId": "1",
+    "nullableCustomId": "1",
+    "nullableCustomIdGivenNull": "null",
+    "customIdList": "1, 1",
+    "nullableCustomIdList": "1, null, 1"
+  }
+}

@@ -148,12 +148,25 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
         if (resultType.IsArrayOrList)
         {
-            var listType = typeof(List<>).MakeGenericType(resultType.ElementType!.Source);
+            Type listType = IsWellKnownIdType(resultType.ElementType!.Source)
+                ? typeof(List<>).MakeGenericType(resultType.ElementType!.Source)
+                : typeof(List<string>);
             var constructor = listType.GetConstructors().Single(t => t.GetParameters().Length == 0);
             Expression create = Expression.New(constructor);
             return Expression.Lambda<Func<IList>>(create).Compile();
         }
 
         return () => throw new NotSupportedException("Lists are not supported!");
+    }
+
+    private static bool IsWellKnownIdType(Type type)
+    {
+        var underlyingType = System.Nullable.GetUnderlyingType(type) ?? type;
+        return
+            underlyingType == typeof(string) ||
+            underlyingType == typeof(Guid) ||
+            underlyingType == typeof(short) ||
+            underlyingType == typeof(int) ||
+            underlyingType == typeof(long);
     }
 }
