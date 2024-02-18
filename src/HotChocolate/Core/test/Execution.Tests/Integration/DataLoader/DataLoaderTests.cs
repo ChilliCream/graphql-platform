@@ -1,16 +1,15 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Metrics;
 using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using static HotChocolate.Tests.TestHelper;
-using Snapshot = Snapshooter.Xunit.Snapshot;
+using Snapshot = CookieCrumble.Snapshot;
 
 #nullable enable
 
@@ -21,77 +20,93 @@ public class DataLoaderTests
     [Fact]
     public async Task FetchOnceDataLoader()
     {
-        Snapshot.FullName();
-        await ExpectValid(
+        var snapshot = new Snapshot();
+
+        snapshot.Add(
+            await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
-                        "Query", "fetchItem",
+                        "Query",
+                        "fetchItem",
                         async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
-            )
-            .MatchSnapshotAsync();
+            ));
+
+        snapshot.MatchMarkdown();
     }
 
     [Fact]
     public async Task FetchSingleDataLoader()
     {
-        Snapshot.FullName();
-        await ExpectValid(
+        var snapshot = new Snapshot();
+
+        snapshot.Add(
+            await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
-                        "Query", "fetchItem",
+                        "Query",
+                        "fetchItem",
                         async ctx => await ctx.CacheDataLoader<string, string>(
                                 (key, _) => Task.FromResult(key))
                             .LoadAsync("fooBar"))
-            )
-            .MatchSnapshotAsync();
+            ));
+
+        snapshot.MatchMarkdown();
     }
 
     [LocalFact]
     public async Task FetchDataLoader()
     {
-        Snapshot.FullName();
-        await ExpectValid(
+        var snapshot = new Snapshot();
+
+        snapshot.Add(
+            await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
-                        "Query", "fetchItem",
+                        "Query",
+                        "fetchItem",
                         async ctx => await ctx.BatchDataLoader<string, string>(
                                 (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
                                     keys.ToDictionary(t => t)))
                             .LoadAsync("fooBar"))
-            )
-            .MatchSnapshotAsync();
+            ));
+
+        snapshot.MatchMarkdown();
     }
 
     [Fact]
     public async Task FetchGroupDataLoader()
     {
-        Snapshot.FullName();
-        await ExpectValid(
+        var snapshot = new Snapshot();
+
+        snapshot.Add(
+            await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
-                        "Query", "fetchItem",
+                        "Query",
+                        "fetchItem",
                         async ctx => await ctx.GroupDataLoader<string, string>(
                                 (keys, _) => Task.FromResult(
                                     keys.ToLookup(t => t)))
                             .LoadAsync("fooBar"))
-            )
-            .MatchSnapshotAsync();
+            ));
+
+        snapshot.MatchMarkdown();
     }
 
     [Fact]
@@ -107,7 +122,8 @@ public class DataLoaderTests
                 .AddDocumentFromString("type Query { fetchItem: String }")
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddResolver(
-                    "Query", "fetchItem",
+                    "Query",
+                    "fetchItem",
                     async ctx => await ctx.GroupDataLoader<string, string>(
                             (keys, _) => Task.FromResult(
                                 keys.ToLookup(t => t)))
@@ -133,7 +149,8 @@ public class DataLoaderTests
                 .AddDocumentFromString("type Query { fetchItem: String }")
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddResolver(
-                    "Query", "fetchItem",
+                    "Query",
+                    "fetchItem",
                     async ctx => await ctx.GroupDataLoader<string, string>(
                             (keys, _) => Task.FromResult(
                                 keys.ToLookup(t => t)))
@@ -149,30 +166,34 @@ public class DataLoaderTests
     [Fact]
     public async Task ClassDataLoader()
     {
+        var snapshot = new Snapshot();
+
         // arrange
-        var executor = await CreateExecutorAsync(c => c
-            .AddQueryType<Query>()
-            .AddDataLoader<ITestDataLoader, TestDataLoader>()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .UseRequest(next => async context =>
-            {
-                await next(context);
+        var executor = await CreateExecutorAsync(
+            c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .UseRequest(
+                    next => async context =>
+                    {
+                        await next(context);
 
-                var dataLoader =
-                    context.Services
-                        .GetRequiredService<IDataLoaderScope>()
-                        .GetDataLoader<TestDataLoader>(() => throw new Exception());
+                        var dataLoader =
+                            context.Services
+                                .GetRequiredService<IDataLoaderScope>()
+                                .GetDataLoader<TestDataLoader>(() => throw new Exception());
 
-                context.Result = QueryResultBuilder
-                    .FromResult(((IQueryResult)context.Result!))
-                    .AddExtension("loads", dataLoader.Loads)
-                    .Create();
-            })
-            .UseDefaultPipeline());
+                        context.Result = QueryResultBuilder
+                            .FromResult(((IQueryResult)context.Result!))
+                            .AddExtension("loads", dataLoader.Loads)
+                            .Create();
+                    })
+                .UseDefaultPipeline());
 
         // act
-        var results = new List<IExecutionResult>
-        {
+
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -183,40 +204,42 @@ public class DataLoaderTests
                                 c: withDataLoader(key: ""c"")
                             }
                         }")
-                    .Create()),
+                    .Create()));
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
                             a: withDataLoader(key: ""a"")
                         }")
-                    .Create()),
+                    .Create()));
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
                             c: withDataLoader(key: ""c"")
                         }")
-                    .Create()),
-        };
+                    .Create()));
 
         // assert
-        SnapshotExtension.MatchSnapshot(results);
+        snapshot.MatchMarkdown();
     }
 
     [LocalFact]
     public async Task StackedDataLoader()
     {
+        var snapshot = new Snapshot();
+
         // arrange
-        var executor = await CreateExecutorAsync(c => c
-            .AddQueryType<Query>()
-            .AddDataLoader<ITestDataLoader, TestDataLoader>()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
+        var executor = await CreateExecutorAsync(
+            c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
 
         // act
-        var results = new List<IExecutionResult>();
-
-        results.Add(
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -226,7 +249,7 @@ public class DataLoaderTests
                         }")
                     .Create()));
 
-        results.Add(
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -235,7 +258,7 @@ public class DataLoaderTests
                         }")
                     .Create()));
 
-        results.Add(
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -245,34 +268,37 @@ public class DataLoaderTests
                     .Create()));
 
         // assert
-        SnapshotExtension.MatchSnapshot(results);
+        snapshot.MatchMarkdown();
     }
 
     [Fact]
     public async Task ClassDataLoader_Resolve_From_DependencyInjection()
     {
+        var snapshot = new Snapshot();
+
         // arrange
-        var executor = await CreateExecutorAsync(c => c
-            .AddQueryType<Query>()
-            .AddDataLoader<ITestDataLoader, TestDataLoader>()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .UseRequest(next => async context =>
-            {
-                await next(context);
+        var executor = await CreateExecutorAsync(
+            c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .UseRequest(
+                    next => async context =>
+                    {
+                        await next(context);
 
-                var dataLoader =
-                    (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+                        var dataLoader =
+                            (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
-                context.Result = QueryResultBuilder
-                    .FromResult(((IQueryResult)context.Result!))
-                    .AddExtension("loads", dataLoader.Loads)
-                    .Create();
-            })
-            .UseDefaultPipeline());
+                        context.Result = QueryResultBuilder
+                            .FromResult(((IQueryResult)context.Result!))
+                            .AddExtension("loads", dataLoader.Loads)
+                            .Create();
+                    })
+                .UseDefaultPipeline());
 
         // act
-        var results = new List<IExecutionResult>
-        {
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -280,48 +306,52 @@ public class DataLoaderTests
                             a: dataLoaderWithInterface(key: ""a"")
                             b: dataLoaderWithInterface(key: ""b"")
                         }")
-                    .Create()),
+                    .Create()));
+
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
                         }")
-                    .Create()),
+                    .Create()));
+
+        snapshot.Add(
             await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
                             c: dataLoaderWithInterface(key: ""c"")
                         }")
-                    .Create()),
-        };
+                    .Create()));
 
         // assert
-        SnapshotExtension.MatchSnapshot(results);
+        snapshot.MatchMarkdown();
     }
 
     [LocalFact]
     public async Task NestedDataLoader()
     {
+        var snapshot = new Snapshot();
         using var cts = new CancellationTokenSource(2000);
 
-        Snapshot.FullName();
+        snapshot.Add(
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddType<FooQueries>()
+                .AddDataLoader<FooDataLoader>()
+                .AddDataLoader<FooNestedDataLoader>()
+                .ExecuteRequestAsync("query Foo { foo { id field } }", cancellationToken: cts.Token));
 
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType()
-            .AddType<FooQueries>()
-            .AddDataLoader<FooDataLoader>()
-            .AddDataLoader<FooNestedDataLoader>()
-            .ExecuteRequestAsync("query Foo { foo { id field } }", cancellationToken: cts.Token)
-            .MatchSnapshotAsync();
+        snapshot.MatchMarkdown();
     }
 
     [Fact]
     public async Task Ensure_That_DataLoader_Dispatch_Correctly_When_Used_Serially()
     {
-        Snapshot.FullName();
+        var snapshot = new Snapshot();
 
         var executor =
             await new ServiceCollection()
@@ -332,13 +362,43 @@ public class DataLoaderTests
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(
-            @"mutation {
-                a: doSomething(key: ""a"")
-                b: doSomething(key: ""b"")
-            }");
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                @"mutation {
+                    a: doSomething(key: ""a"")
+                    b: doSomething(key: ""b"")
+                }"));
 
-        result.MatchSnapshot();
+        snapshot.MatchMarkdown();
+    }
+
+    [Fact]
+    public async Task DataLoader_Request_Ensures_That_There_Is_A_Single_Instance()
+    {
+        var snapshot = new Snapshot();
+
+        var executor =
+            await new ServiceCollection()
+                .AddScoped<CounterService>()
+                .AddGraphQLServer()
+                .AddQueryType<CounterQuery>()
+                .RegisterService<CounterService>(ServiceKind.Resolver)
+                .AddDataLoader<CounterDataLoader>()
+                .BuildRequestExecutorAsync();
+
+        snapshot.Add(
+            await executor.ExecuteAsync(
+                """
+                {
+                    a: do
+                    b: do
+                    c: do
+                    d: do
+                    e: do
+                }
+                """));
+
+        snapshot.MatchMarkdown();
     }
 
     public class DataLoaderListener : DataLoaderDiagnosticEventListener
@@ -360,7 +420,8 @@ public class DataLoaderTests
             return base.ExecuteBatch(dataLoader, keys);
         }
 
-        public override void BatchResults<TKey, TValue>(IReadOnlyList<TKey> keys,
+        public override void BatchResults<TKey, TValue>(
+            IReadOnlyList<TKey> keys,
             ReadOnlySpan<Result<TValue>> values)
         {
             BatchResultsTouched = true;
@@ -434,9 +495,7 @@ public class DataLoaderTests
         public FooNestedDataLoader(
             IBatchScheduler batchScheduler,
             DataLoaderOptions? options = null)
-            : base(batchScheduler, options)
-        {
-        }
+            : base(batchScheduler, options) { }
 
         protected override async Task<IReadOnlyDictionary<string, FooRecord>> LoadBatchAsync(
             IReadOnlyList<string> keys,
@@ -475,9 +534,7 @@ public class DataLoaderTests
         public CustomDataLoader(
             IBatchScheduler batchScheduler,
             DataLoaderOptions? options = null)
-            : base(batchScheduler, options)
-        {
-        }
+            : base(batchScheduler, options) { }
 
         protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
             IReadOnlyList<string> keys,
@@ -492,5 +549,36 @@ public class DataLoaderTests
 
             return Task.FromResult<IReadOnlyDictionary<string, string>>(dict);
         }
+    }
+
+    public class CounterQuery
+    {
+        public Task<string> Do(CounterService service)
+            => service.Do();
+    }
+
+    public class CounterService
+    {
+        private readonly CounterDataLoader _dataLoader;
+
+        public CounterService(CounterDataLoader dataLoader)
+        {
+            _dataLoader = dataLoader;
+        }
+
+        public async Task<string> Do() => await _dataLoader.LoadAsync("abc");
+    }
+
+    public class CounterDataLoader : CacheDataLoader<string, string>
+    {
+        public static int Counter;
+
+        public CounterDataLoader(DataLoaderOptions? options = null) : base(options)
+        {
+            Interlocked.Increment(ref Counter);
+        }
+        
+        protected override Task<string> LoadSingleAsync(string key, CancellationToken cancellationToken)
+            => Task.FromResult(key + Counter);
     }
 }
