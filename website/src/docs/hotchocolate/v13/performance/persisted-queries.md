@@ -60,7 +60,7 @@ that these queries are validated against the current schema on publish, preventi
 due to schema-query mismatches. Additionally, it supports versioning of your clients, allowing
 seamless updates and maintenance without disrupting existing operations 
 
-Check out the [client registry documentation](/docs/bananacakepop/v2/apis/client-registry.md) for
+Check out the [client registry documentation](/docs/bananacakepop/v2/apis/client-registry) for
 more information.
 
 # Other Storage mechanisms
