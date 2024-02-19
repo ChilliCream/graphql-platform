@@ -1,5 +1,5 @@
 --- 
-title: Apis
+title: APIs
 ---
 
 ![Image](images/apis-6.png)
