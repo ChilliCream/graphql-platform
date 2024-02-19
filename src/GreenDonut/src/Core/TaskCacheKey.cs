@@ -1,3 +1,11 @@
+#if NET7_0_OR_GREATER
+namespace GreenDonut;
+
+/// <summary>
+/// The key of a cached task.
+/// </summary>
+public readonly record struct TaskCacheKey(string Type, object Key);
+#else
 using System;
 
 namespace GreenDonut;
@@ -53,3 +61,4 @@ public readonly struct TaskCacheKey : IEquatable<TaskCacheKey>
         }
     }
 }
+#endif

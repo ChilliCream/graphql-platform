@@ -135,13 +135,13 @@ public class BatchScheduler
     }
 
 #pragma warning disable 4014
-    private void BeginProcessTask(
+    private static void BeginProcessTask(
         Func<ValueTask> task,
         CancellationToken cancellationToken = default)
         => ProcessTaskAsync(task, cancellationToken);
 #pragma warning restore 4014
 
-    private async Task ProcessTaskAsync(
+    private static async Task ProcessTaskAsync(
         Func<ValueTask> task,
         CancellationToken cancellationToken = default)
     {

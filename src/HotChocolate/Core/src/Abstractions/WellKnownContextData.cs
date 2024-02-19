@@ -289,4 +289,9 @@ public static class WellKnownContextData
     /// Type key to access the internal schema options.
     /// </summary>
     public const string InternalSchemaOptions = "HotChocolate.Types.InternalSchemaOptions";
+    
+    /// <summary>
+    /// Type key to access the paging arguments in the local resolver state.
+    /// </summary>
+    public const string PagingArguments = "HotChocolate.Types.PagingArguments";
 }
