@@ -135,12 +135,17 @@ internal static class InternalServiceCollectionExtensions
             });
 
         services.TryAddScoped(
-            sp => new DataLoaderOptions
+            sp =>
             {
-                Caching = true,
-                Cache = sp.GetRequiredService<TaskCacheOwner>().Cache,
-                DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                MaxBatchSize = 1024,
+                var cacheOwner = sp.GetRequiredService<TaskCacheOwner>();
+
+                return new DataLoaderOptions
+                {
+                    Cache = cacheOwner.Cache,
+                    CancellationToken = cacheOwner.CancellationToken,
+                    DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
+                    MaxBatchSize = 1024,
+                };
             });
         return services;
     }
