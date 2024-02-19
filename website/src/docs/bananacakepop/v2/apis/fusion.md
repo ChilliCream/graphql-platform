@@ -292,3 +292,65 @@ Now your gateway will send the telemetry data to Banana Cake Pop. To connect you
   }
 }
 ```
+
+# Cache
+The `BananaCakePop.Services` package provides caching for persisted queries and fusion
+configurations, improving your system's resilience and performance. By first accessing a local cache
+for configurations before querying the server, your infrastructure becomes more robust, minimizing
+dependency on real-time server communications. This approach not only speeds up access to necessary
+configurations but also ensures your system remains stable and responsive, even during network
+fluctuations.
+
+We offer two types of caches: `FileSystemCache` for storing data on your local file system, and
+`BlobStorageCache` for storing data in Azure Blob Storage.
+
+Here’s how you add caching to your service:
+
+For GraphQL services:
+```csharp
+services
+  .AddGraphQLServer()
+  .AddAssetCache<TCache>()
+```
+
+For fusion services:
+```csharp
+services
+  .AddFusionGatewayServer()
+  .ConfigureFromCloud()
+  .AddAssetCache<TCache>()
+```
+
+## `FileSystemCache`
+
+This default cache stores data in the `assets` folder of your project. You can change the folder like this:
+
+```csharp
+services
+  .AddGraphQLServer()
+  .AddFileSystemAssetCache(x =>
+  {
+      x.CacheDirectory = "cache"; // Your cache folder
+  })
+```
+
+## `BlobStorageCache`
+
+This cache stores your data in Azure Blob Storage. Set it up with:
+
+```csharp
+services
+  .AddGraphQLServer()
+  .AddBlobStorageAssetCache(x =>
+  {
+      x.ContainerName = "your-container-name";
+      x.Client = new BlobServiceClient(
+          new Uri("https://yourblobstorage.blob.core.windows.net/"),
+          new DefaultAzureCredential());
+  })
+```
+
+## Custom `IAssetCache`
+
+If you need a specific cache setup, you can make your own by implementing the `IAssetCache`
+interface. This lets you decide how queries and configurations are cached according to your needs.
