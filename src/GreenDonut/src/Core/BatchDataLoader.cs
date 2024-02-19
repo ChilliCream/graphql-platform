@@ -32,9 +32,14 @@ public abstract class BatchDataLoader<TKey, TValue>
     /// </exception>
     protected BatchDataLoader(
         IBatchScheduler batchScheduler,
-        DataLoaderOptions? options = null)
+        DataLoaderOptions options)
         : base(batchScheduler, options)
-    { }
+    {
+        if (options is null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+    }
 
     /// <inheritdoc />
     protected sealed override async ValueTask FetchAsync(

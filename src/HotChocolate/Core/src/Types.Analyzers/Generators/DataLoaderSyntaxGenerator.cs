@@ -135,7 +135,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.IBatchScheduler batchScheduler,");
-                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions? options = null)");
+                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
                 _writer.WriteIndentedLine(": base(batchScheduler, options)");
             }
         }
@@ -146,7 +146,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
             using (_writer.IncreaseIndent())
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
-                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions? options = null)");
+                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
                 _writer.WriteIndentedLine(": base(options)");
             }
         }
