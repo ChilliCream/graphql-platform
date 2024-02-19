@@ -107,10 +107,12 @@ public static class PagingHelper
     }
 
     private static FieldMiddleware CreateMiddleware(
-        IPagingHandler handler) =>
-        FieldClassMiddlewareFactory.Create(
-            typeof(PagingMiddleware),
-            (typeof(IPagingHandler), handler));
+        IPagingHandler handler)
+        => next =>
+        {
+            var middleware = new PagingMiddleware(next, handler);
+            return context => middleware.InvokeAsync(context);
+        };
 
     public static IExtendedType GetSchemaType(
         IDescriptorContext context,
