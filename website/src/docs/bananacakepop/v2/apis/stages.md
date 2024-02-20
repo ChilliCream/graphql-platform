@@ -1,4 +1,4 @@
---- 
+---
 title: Stages
 ---
 
@@ -35,21 +35,21 @@ prod:
 You can easily create more complex stage configurations. For example, if you have two different QA stages, you can define them like this:
 
 ```yaml
-dev: 
-  displayName: Development 
+dev:
+  displayName: Development
 qa1:
   displayName: QA 1
   conditions:
-    - after: dev 
+    - after: dev
 qa2:
   displayName: QA 2
   conditions:
-    - after: dev 
+    - after: dev
 prod:
   displayName: Production
   conditions:
-    - after: qa1 
-    - after: qa2 
+    - after: qa1
+    - after: qa2
 ```
 
 This configuration defines two QA stages, `QA 1` and `QA 2`. Both of them come after the `Development` stage. The `Production` stage comes after both QA stages. It will result in the following stage order:

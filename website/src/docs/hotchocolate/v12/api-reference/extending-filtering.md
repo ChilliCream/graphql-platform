@@ -93,7 +93,7 @@ conventionDescriptor
     .Name("equals")
     .Description("Compares the value of the input to the value of the field");
 ```
-  
+
 With this configuration, all equals operations are now no longer names `eq` but `equals` and have a description.
 
 If you want to create your own operations, you have to choose an identifier.
@@ -346,7 +346,7 @@ The following example creates a `StringOperationHandler` that supports case inse
 ```csharp
 // The QueryableStringOperationHandler already has an implementation of CanHandle
 // It checks if the field is declared in a string operation type and also checks if
-// the operation of this field uses the `Operation` specified in the override property 
+// the operation of this field uses the `Operation` specified in the override property
 // further below
 public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHandler
 {
