@@ -26,17 +26,14 @@ namespace GreenDonut;
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract partial class DataLoaderBase<TKey, TValue>
     : IDataLoader<TKey, TValue>
-    , IDisposable
     where TKey : notnull
 {
     private readonly object _sync = new();
-    private readonly CancellationTokenSource _disposeTokenSource = new();
     private readonly IBatchScheduler _batchScheduler;
     private readonly int _maxBatchSize;
-    private readonly TaskCacheOwner? _cacheOwner;
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
+    private readonly CancellationToken _ct;
     private Batch<TKey>? _currentBatch;
-    private bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataLoaderBase{TKey, TValue}"/> class.
@@ -55,19 +52,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     {
         options ??= new DataLoaderOptions();
         _diagnosticEvents = options.DiagnosticEvents ?? Default;
-
-        if (options.Caching && options.Cache is null)
-        {
-            _cacheOwner = new TaskCacheOwner();
-            Cache = _cacheOwner.Cache;
-        }
-        else
-        {
-            Cache = options.Caching
-                ? options.Cache
-                : null;
-        }
-
+        Cache = options.Cache;
+        _ct = options.CancellationToken;
         _batchScheduler = batchScheduler;
         _maxBatchSize = options.MaxBatchSize;
         CacheKeyType = GetCacheKeyType(GetType());
@@ -96,25 +82,25 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         lock (_sync)
         {
-            if (Cache is not null)
+            if (Cache is null)
             {
-                var cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
-
-                if (cached)
-                {
-                    _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
-                }
-
-                return cachedTask;
+                return CreatePromise().Task;
             }
 
-            return CreatePromise();
+            var cachedTask = Cache.GetOrAddTask(cacheKey, _ => CreatePromise());
+
+            if (cached)
+            {
+                _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
+            }
+
+            return cachedTask;
         }
 
-        Task<TValue> CreatePromise()
+        Promise<TValue> CreatePromise()
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(key).Task;
+            return GetOrCreatePromiseUnsafe(key);
         }
     }
 
@@ -131,7 +117,6 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         var index = 0;
         var tasks = new Task<TValue>[keys.Count];
         bool cached;
-        TKey currentKey;
 
         lock (_sync)
         {
@@ -154,9 +139,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
                 cancellationToken.ThrowIfCancellationRequested();
 
                 cached = true;
-                currentKey = key;
                 TaskCacheKey cacheKey = new(CacheKeyType, key);
-                var cachedTask = Cache.GetOrAddTask(cacheKey, CreatePromise);
+                var cachedTask = Cache.GetOrAddTask(cacheKey, k => CreatePromise((TKey)k.Key));
 
                 if (cached)
                 {
@@ -172,19 +156,17 @@ public abstract partial class DataLoaderBase<TKey, TValue>
             foreach (var key in keys)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                currentKey = key;
-                tasks[index++] = CreatePromise();
+                tasks[index++] = CreatePromise(key).Task;
             }
         }
 
         async Task<IReadOnlyList<TValue>> WhenAll()
             => await Task.WhenAll(tasks).ConfigureAwait(false);
 
-        Task<TValue> CreatePromise()
+        Promise<TValue> CreatePromise(TKey key)
         {
             cached = false;
-            return GetOrCreatePromiseUnsafe(currentKey).Task;
+            return GetOrCreatePromiseUnsafe(key);
         }
     }
 
@@ -219,7 +201,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         if (Cache is not null)
         {
             TaskCacheKey cacheKey = new(CacheKeyType, key);
-            Cache.TryAdd(cacheKey, value);
+            Cache.TryAdd(cacheKey, new Promise<TValue>(value));
         }
     }
 
@@ -282,7 +264,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         async ValueTask StartDispatchingAsync()
         {
             var errors = false;
-            
+
             using (_diagnosticEvents.ExecuteBatch(this, batch.Keys))
             {
                 var buffer = new Result<TValue>[batch.Keys.Count];
@@ -309,7 +291,8 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         }
     }
 
-    private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(TKey key)
+    // ReSharper disable InconsistentlySynchronizedField
+    private Promise<TValue> GetOrCreatePromiseUnsafe(TKey key)
     {
         if (_currentBatch is not null && _currentBatch.Size < _maxBatchSize)
         {
@@ -321,10 +304,11 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
 
         return newPromise;
     }
+    // ReSharper restore InconsistentlySynchronizedField
 
     private void SetSingleResult(
         TaskCompletionSource<TValue> promise,
@@ -363,13 +347,15 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         Func<TItem, TV> value)
         where TK : notnull
     {
-        if (Cache is not null)
+        if (Cache is null)
         {
-            foreach (var item in items)
-            {
-                TaskCacheKey cacheKey = new(cacheKeyType, key(item));
-                Cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
-            }
+            return;
+        }
+
+        foreach (var item in items)
+        {
+            TaskCacheKey cacheKey = new(cacheKeyType, key(item));
+            Cache.TryAdd(cacheKey, () => new Promise<TV>(value(item)));
         }
     }
 
@@ -389,11 +375,13 @@ public abstract partial class DataLoaderBase<TKey, TValue>
         TV value)
         where TK : notnull
     {
-        if (Cache is not null)
+        if (Cache is null)
         {
-            TaskCacheKey cacheKey = new(cacheKeyType, key);
-            Cache.TryAdd(cacheKey, () => Task.FromResult(value));
+            return;
         }
+
+        TaskCacheKey cacheKey = new(cacheKeyType, key);
+        Cache.TryAdd(cacheKey, () => new Promise<TV>(value));
     }
 
     /// <summary>
@@ -418,34 +406,4 @@ public abstract partial class DataLoaderBase<TKey, TValue>
     /// </returns>
     protected static string GetCacheKeyType(Type type)
         => type.FullName ?? type.Name;
-
-    /// <summary>
-    /// Performs application-defined tasks associated with freeing, releasing,
-    /// or resetting unmanaged resources.
-    /// </summary>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Performs application-defined tasks associated with freeing, releasing,
-    /// or resetting unmanaged resources.
-    /// </summary>
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                Clear();
-                _disposeTokenSource.Cancel();
-                _disposeTokenSource.Dispose();
-                _cacheOwner?.Dispose();
-            }
-
-            _disposed = true;
-        }
-    }
 }

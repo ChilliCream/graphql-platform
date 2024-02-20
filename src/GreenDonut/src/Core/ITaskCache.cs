@@ -35,7 +35,7 @@ public interface ITaskCache
     /// <exception cref="ArgumentNullException">
     /// Throws if <paramref name="createTask"/> is <c>null</c>.
     /// </exception>
-    T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
+    Task<T> GetOrAddTask<T>(TaskCacheKey key, Func<TaskCacheKey, Promise<T>> createTask);
 
     /// <summary>
     /// Tries to add a single task to the cache. It does nothing if the
@@ -53,7 +53,7 @@ public interface ITaskCache
     /// <returns>
     /// A value indicating whether the add was successful.
     /// </returns>
-    bool TryAdd<T>(TaskCacheKey key, T value) where T : Task;
+    bool TryAdd<T>(TaskCacheKey key, Promise<T> value);
 
     /// <summary>
     /// Tries to add a single task to the cache. It does nothing if the
@@ -71,7 +71,7 @@ public interface ITaskCache
     /// <returns>
     /// A value indicating whether the add was successful.
     /// </returns>
-    bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
+    bool TryAdd<T>(TaskCacheKey key, Func<Promise<T>> createTask);
 
     /// <summary>
     /// Removes a specific task from the cache.

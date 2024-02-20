@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,9 +10,21 @@ namespace GreenDonut;
 /// <typeparam name="TValue">A value type.</typeparam>
 public abstract class FetchOnceDataLoader<TValue> : CacheDataLoader<string, TValue>
 {
-    protected FetchOnceDataLoader(DataLoaderOptions? options = null)
+    protected FetchOnceDataLoader(DataLoaderOptions options)
         : base(options)
-    { }
+    {
+        if (options is null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+
+        if (options.Cache is null)
+        {
+            throw new ArgumentException(
+                "A cache must be provided when using the FetchOnceDataLoader.", 
+                nameof(options));
+        }
+    }
 
     /// <summary>
     /// Loads a single value. This call may return a cached value

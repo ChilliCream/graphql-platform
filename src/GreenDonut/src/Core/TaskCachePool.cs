@@ -11,7 +11,7 @@ public static class TaskCachePool
     /// <summary>
     /// The shared cache pool that is used when no cache was provided through the options.
     /// </summary>
-    public static ObjectPool<TaskCache> Shared { get; } = Create(256);
+    public static ObjectPool<TaskCache> Shared { get; } = Create(2560);
 
     /// <summary>
     /// Creates an instance of <see cref="DefaultObjectPool{TaskCache}"/>.
@@ -25,7 +25,7 @@ public static class TaskCachePool
     /// <returns>
     /// Returns the newly created instance of <see cref="DefaultObjectPool{TaskCache}"/>.
     /// </returns>
-    public static ObjectPool<TaskCache> Create(int cacheSize = 256, int? maximumRetained = null)
+    public static ObjectPool<TaskCache> Create(int cacheSize = 2560, int? maximumRetained = null)
         => new DefaultObjectPool<TaskCache>(
             new TaskCachePooledObjectPolicy(cacheSize),
             maximumRetained ?? Environment.ProcessorCount * 2);
@@ -42,6 +42,6 @@ public static class TaskCachePool
     /// <returns>
     /// Returns the newly created instance of <see cref="DefaultObjectPool{TaskCache}"/>.
     /// </returns>
-    public static ObjectPool<TaskCache> Create(ObjectPoolProvider provider, int cacheSize = 256)
+    public static ObjectPool<TaskCache> Create(ObjectPoolProvider provider, int cacheSize = 2560)
         => provider.Create(new TaskCachePooledObjectPolicy(cacheSize));
 }

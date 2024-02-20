@@ -1,9 +1,11 @@
+using System.Threading;
+
 namespace GreenDonut;
 
 /// <summary>
 /// An options object to configure the behavior for <c>DataLoader</c>.
 /// </summary>
-public class DataLoaderOptions
+public sealed class DataLoaderOptions
 {
     /// <summary>
     /// Gets or sets the maximum batch size per request. If set to
@@ -20,12 +22,11 @@ public class DataLoaderOptions
     /// The default value is set to <c>null</c>.
     /// </summary>
     public ITaskCache? Cache { get; set; }
-
+    
     /// <summary>
-    /// Gets or sets a value indicating whether caching is enabled. The
-    /// default value is <c>true</c>.
+    /// Gets the cancellation token that shall be used for dispatch tasks.
     /// </summary>
-    public bool Caching { get; set; } = true;
+    public CancellationToken CancellationToken { get; set; }
 
     /// <summary>
     /// Gets the <see cref="IDataLoaderDiagnosticEvents"/> to intercept DataLoader events.
@@ -43,7 +44,7 @@ public class DataLoaderOptions
         {
             MaxBatchSize = MaxBatchSize,
             Cache = Cache,
-            Caching = Caching,
             DiagnosticEvents = DiagnosticEvents,
+            CancellationToken = CancellationToken,
         };
 }

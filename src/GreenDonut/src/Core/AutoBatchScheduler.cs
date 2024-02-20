@@ -17,7 +17,7 @@ public class AutoBatchScheduler : IBatchScheduler
     public void Schedule(Func<ValueTask> dispatch)
         => BeginDispatch(dispatch);
 
-    private void BeginDispatch(Func<ValueTask> dispatch)
+    private static void BeginDispatch(Func<ValueTask> dispatch)
         => Task.Factory.StartNew(
             async () => await dispatch().ConfigureAwait(false),
             default,

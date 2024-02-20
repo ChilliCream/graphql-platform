@@ -158,8 +158,13 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-# Integrating with Continuous Integration
+# Setup the cache
+You can setup a second level cache for persisted queries for improving your system's resilience and
+performance.
 
+Find out more about the cache here [Caching](/docs/bananacakepop/v2/apis/fusion).
+
+# Integrating with Continuous Integration
 Integrating the client registry into your Continuous Integration/Continuous Deployment (CI/CD) pipeline maximizes their benefits. It ensures that the clients in your API are always up-to-date and tested against potential breaking changes.
 
 The schema and client registries work hand-in-hand to ensure the smooth functioning of your API. As you make changes to your schema, the schema registry helps manage these changes, preventing inadvertent breaking changes and preserving a history of your schemas. As you validate, upload, and publish new schemas, the client registry ensures that your clients remain compatible with these changes.

@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 using static GreenDonut.TestHelpers;
+// ReSharper disable CollectionNeverUpdated.Local
+// ReSharper disable InconsistentNaming
 
 namespace GreenDonut;
 
@@ -44,21 +46,6 @@ public class DataLoaderTests
 
         // assert
         Assert.Equal(0, cache.Usage);
-    }
-
-    [Fact(DisplayName = "Dispose: Should dispose and not throw any exception")]
-    public void DisposeNoExceptionNoBatchingAndCaching()
-    {
-        // arrange
-        var fetch = CreateFetch<string, string>();
-        var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
-
-        // act
-        void Verify() => loader.Dispose();
-
-        // assert
-        Assert.Null(Record.Exception(Verify));
     }
 
     [Fact(DisplayName = "LoadAsync: Should throw an argument null exception for key")]
@@ -121,11 +108,7 @@ public class DataLoaderTests
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
             fetch,
-            batchScheduler,
-            new DataLoaderOptions
-            {
-                Caching = false,
-            });
+            batchScheduler);
         var key = "Foo";
 
         // act
@@ -290,11 +273,7 @@ public class DataLoaderTests
         var batchScheduler = new ManualBatchScheduler();
         var loader = new DataLoader<string, string>(
             fetch,
-            batchScheduler,
-            new DataLoaderOptions
-            {
-                Caching = false,
-            });
+            batchScheduler);
         var keys = new List<string> { "Foo", };
 
         // act
@@ -466,9 +445,14 @@ public class DataLoaderTests
                 => await Task.Delay(random.Next(maxDelay), cancellationToken);
         }
 
+        using var cacheOwner = caching 
+            ? new TaskCacheOwner()
+            : null;
+
         var options = new DataLoaderOptions
         {
-            Caching = caching,
+            Cache = cacheOwner?.Cache,
+            CancellationToken = cacheOwner?.CancellationToken ?? default,
             MaxBatchSize = batching ? 1 : maxBatchSize,
         };
 
@@ -798,15 +782,14 @@ public class DataLoaderTests
         var fetch = CreateFetch<string, string>();
         var batchScheduler = new ManualBatchScheduler();
         IDataLoader loader = new DataLoader<string, string>(fetch, batchScheduler);
-        object key = null;
 
         loader.Set("Foo", Task.FromResult((object)"Bar"));
 
         // act
-        var verify = () => loader.Remove(key);
+        void Verify() => loader.Remove(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>("key", verify);
+        Assert.Throws<ArgumentNullException>("key", Verify);
     }
 
     [Fact(DisplayName = "IDataLoader.Remove: Should not throw any exception")]
@@ -819,10 +802,10 @@ public class DataLoaderTests
         object key = "Foo";
 
         // act
-        var verify = () => loader.Remove(key);
+        void Verify() => loader.Remove(key);
 
         // assert
-        Assert.Null(Record.Exception(verify));
+        Assert.Null(Record.Exception(Verify));
     }
 
     [Fact(DisplayName = "IDataLoader.Remove: Should remove an existing entry")]
@@ -888,10 +871,10 @@ public class DataLoaderTests
         var value = Task.FromResult<object>("Bar");
 
         // act
-        var verify = () => loader.Set(key, value);
+        void Verify() => loader.Set(key, value);
 
         // assert
-        Assert.Null(Record.Exception(verify));
+        Assert.Null(Record.Exception(Verify));
     }
 
     [Fact(DisplayName = "IDataLoader.Set: Should result in a new cache entry")]

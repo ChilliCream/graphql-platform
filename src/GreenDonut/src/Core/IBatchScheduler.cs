@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace GreenDonut;
 
 /// <summary>
-/// The batch scheduler is used by the dataloader to defer the data fetching
+/// The batch scheduler is used by the DataLoader to defer the data fetching
 /// work to a batch dispatcher that will execute the batches.
 /// </summary>
 public interface IBatchScheduler

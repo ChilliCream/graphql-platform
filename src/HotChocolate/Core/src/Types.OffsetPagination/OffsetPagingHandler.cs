@@ -76,14 +76,19 @@ public abstract class OffsetPagingHandler : IPagingHandler
         }
     }
 
-    async ValueTask<IPage> IPagingHandler.SliceAsync(
-        IResolverContext context,
-        object source)
+    public void PublishPagingArguments(IResolverContext context)
     {
         var skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
         var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
         var arguments = new OffsetPagingArguments(skip, take ?? DefaultPageSize);
+        context.SetLocalState(WellKnownContextData.PagingArguments, arguments);
+    }
 
+    async ValueTask<IPage> IPagingHandler.SliceAsync(
+        IResolverContext context,
+        object source)
+    {
+        var arguments =context.GetLocalState<OffsetPagingArguments>(WellKnownContextData.PagingArguments);
         return await SliceAsync(context, source, arguments).ConfigureAwait(false);
     }
 

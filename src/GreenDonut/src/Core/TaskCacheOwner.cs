@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace GreenDonut;
@@ -9,6 +10,7 @@ namespace GreenDonut;
 /// </summary>
 public sealed class TaskCacheOwner : IDisposable
 {
+    private readonly CancellationTokenSource _cts = new();
     private readonly ObjectPool<TaskCache> _pool;
     private readonly TaskCache _cache;
     private bool _disposed;
@@ -20,6 +22,7 @@ public sealed class TaskCacheOwner : IDisposable
     {
         _pool = TaskCachePool.Shared;
         _cache = TaskCachePool.Shared.Get();
+        CancellationToken = _cts.Token;
     }
 
     /// <summary>
@@ -29,7 +32,14 @@ public sealed class TaskCacheOwner : IDisposable
     {
         _pool = pool ?? throw new ArgumentNullException(nameof(pool));
         _cache = pool.Get();
+        CancellationToken = _cts.Token;
     }
+    
+    /// <summary>
+    /// The task cancellation token that shall be used for a DataLoader session with this cache.
+    /// The cancellation will be signaled when the cache is returned to its pool.
+    /// </summary>
+    public CancellationToken CancellationToken { get; }
 
     /// <summary>
     /// Gets the rented cache.
@@ -43,6 +53,8 @@ public sealed class TaskCacheOwner : IDisposable
     {
         if (!_disposed)
         {
+            _cts.Cancel();
+            _cts.Dispose();
             _pool.Return(_cache);
             _disposed = true;
         }

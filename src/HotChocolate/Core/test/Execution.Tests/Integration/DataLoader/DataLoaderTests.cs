@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Metrics;
 using CookieCrumble;
 using GreenDonut;
 using HotChocolate.Fetching;
@@ -375,6 +374,8 @@ public class DataLoaderTests
     [Fact]
     public async Task DataLoader_Request_Ensures_That_There_Is_A_Single_Instance()
     {
+        //using var cts = new CancellationTokenSource(5000);
+        //var ct = cts.Token;
         var snapshot = new Snapshot();
 
         var executor =
@@ -385,6 +386,7 @@ public class DataLoaderTests
                 .RegisterService<CounterService>(ServiceKind.Resolver)
                 .AddDataLoader<CounterDataLoader>()
                 .BuildRequestExecutorAsync();
+                //.BuildRequestExecutorAsync(cancellationToken: ct);
 
         snapshot.Add(
             await executor.ExecuteAsync(
@@ -397,6 +399,8 @@ public class DataLoaderTests
                     e: do
                 }
                 """));
+                //,
+                //cancellationToken: ct));
 
         snapshot.MatchMarkdown();
     }
@@ -475,7 +479,7 @@ public class DataLoaderTests
         public FooDataLoader(
             IBatchScheduler batchScheduler,
             FooNestedDataLoader nestedDataLoader,
-            DataLoaderOptions? options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options)
         {
             _nestedDataLoader = nestedDataLoader;
@@ -494,7 +498,7 @@ public class DataLoaderTests
     {
         public FooNestedDataLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null)
+            DataLoaderOptions options)
             : base(batchScheduler, options) { }
 
         protected override async Task<IReadOnlyDictionary<string, FooRecord>> LoadBatchAsync(
@@ -529,13 +533,11 @@ public class DataLoaderTests
         }
     }
 
-    public class CustomDataLoader : BatchDataLoader<string, string>
+    public class CustomDataLoader(
+        IBatchScheduler batchScheduler,
+        DataLoaderOptions options)
+        : BatchDataLoader<string, string>(batchScheduler, options)
     {
-        public CustomDataLoader(
-            IBatchScheduler batchScheduler,
-            DataLoaderOptions? options = null)
-            : base(batchScheduler, options) { }
-
         protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
@@ -573,11 +575,9 @@ public class DataLoaderTests
     {
         public static int Counter;
 
-        public CounterDataLoader(DataLoaderOptions? options = null) : base(options)
-        {
-            Interlocked.Increment(ref Counter);
-        }
-        
+        public CounterDataLoader(DataLoaderOptions options) : base(options)
+            => Interlocked.Increment(ref Counter);
+
         protected override Task<string> LoadSingleAsync(string key, CancellationToken cancellationToken)
             => Task.FromResult(key + Counter);
     }
