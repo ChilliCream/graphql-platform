@@ -3,6 +3,7 @@ title: "Client Registry"
 ---
 
 ![Image](images/client-registry-1.png)
+
 The client registries is an important tool for managing your GraphQL Clients. It provides a centralized location for clients and queries.
 
 You can use the client registry to manage your clients and their queries. It allows you to validate your queries against the schema, ensuring that all the operations defined by a client are compatible with the current schema. This validation step is critical to prevent the execution of invalid queries that might result in runtime errors.
@@ -18,6 +19,7 @@ A persisted query is a GraphQL operation that has been sent to the server, store
 Persisted queries also add an extra layer of security as the server can be configured to only execute operations that have been previously stored, which prevents malicious queries. This is the cheapest and most effective way to secure your GraphQL API from potential attacks.
 
 ![Image](images/client-registry-2.png)
+
 Persisted queries can be inspected in the `Operations` tab.
 
 ## The Role of the Client Registry
@@ -179,7 +181,6 @@ The general flow for the client registry involves three main steps: validating t
 
 1. **Validate the Client**: The first step takes place during your Pull Request (PR) build. Here, you validate the client against the API using `barista client validate` command. This ensures that the client is compatible with the API and will not break existing functionality.
 
-2. **Upload the Client**: The second step takes place during your release build. Here, you upload the client to the registry using the `barista client upload` command. This command requires the `--tag` and `--api-id` options. The `--tag` option specifies the tag for the client, and the `--api-id` option specifies the ID of the API to which you are uploading. This command create a new version of the client with the specified tag.
-   The tag is a string that can be used to identify the client. It can be any string, but it is recommended to use a version number, such as `v1` or `v2`; or a commit hash, such as `a1b2c3d4e5f6g7h8i9j0k1l2m3n`. The tag is used to identify the client when publishing it.
+2. **Upload the Client**: The second step takes place during your release build. Here, you upload the client to the registry using the `barista client upload` command. This command requires the `--tag` and `--api-id` options. The `--tag` option specifies the tag for the client, and the `--api-id` option specifies the ID of the API to which you are uploading. This command create a new version of the client with the specified tag. The tag is a string that can be used to identify the client. It can be any string, but it is recommended to use a version number, such as `v1` or `v2`; or a commit hash, such as `a1b2c3d4e5f6g7h8i9j0k1l2m3n`. The tag is used to identify the client when publishing it.
 
 3. **Publish the Client **: The third step takes place just before the release. Here, you publish the client using the `barista client publish` commands. This command requires the `--tag` and `--api-id` options. The `--tag` option specifies the tag for the client, and the `--api-id` option specifies the ID of the API to which you are uploading. This command publishes the client with the specified tag, making it the active version for the specified API.
