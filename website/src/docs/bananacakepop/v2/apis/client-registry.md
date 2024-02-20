@@ -95,7 +95,7 @@ public void ConfigureServices(IServiceCollection services)
             x.ApiKey = "<<your-api-key>>";
             x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
             x.Stage = "dev";
-        })                
+        })
         .UsePersistedQueryPipeline(); // Enable the persisted query pipeline
 }
 ```
@@ -104,22 +104,22 @@ public void ConfigureServices(IServiceCollection services)
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `AddBananaCakePopServices` without explicitly passing parameters.
 >
->- `BCP_API_KEY` maps to `ApiKey`
->- `BCP_API_ID` maps to `ApiId`
->- `BCP_STAGE` maps to `Stage`
+> - `BCP_API_KEY` maps to `ApiKey`
+> - `BCP_API_ID` maps to `ApiId`
+> - `BCP_STAGE` maps to `Stage`
 >
->```csharp
->public void ConfigureServices(IServiceCollection services)
->{
+> ```csharp
+> public void ConfigureServices(IServiceCollection services)
+> {
 >    services
 >        .AddGraphQLServer()
 >        .AddQueryType<Query>()
 >        .AddBananaCakePopServices() // Connect to the client registry
 >        .UsePersistedQueryPipeline(); // Enable the persisted query pipeline
->}
->```
+> }
+> ```
 >
->In this setup, the API key, ID, and stage are set through environment variables.
+> In this setup, the API key, ID, and stage are set through environment variables.
 
 ## Block Ad-Hoc Queries
 
@@ -159,12 +159,14 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 # Setup the cache
+
 You can setup a second level cache for persisted queries for improving your system's resilience and
 performance.
 
 Find out more about the cache here [Caching](/docs/bananacakepop/v2/apis/fusion).
 
 # Integrating with Continuous Integration
+
 Integrating the client registry into your Continuous Integration/Continuous Deployment (CI/CD) pipeline maximizes their benefits. It ensures that the clients in your API are always up-to-date and tested against potential breaking changes.
 
 The schema and client registries work hand-in-hand to ensure the smooth functioning of your API. As you make changes to your schema, the schema registry helps manage these changes, preventing inadvertent breaking changes and preserving a history of your schemas. As you validate, upload, and publish new schemas, the client registry ensures that your clients remain compatible with these changes.
@@ -178,6 +180,6 @@ The general flow for the client registry involves three main steps: validating t
 1. **Validate the Client**: The first step takes place during your Pull Request (PR) build. Here, you validate the client against the API using `barista client validate` command. This ensures that the client is compatible with the API and will not break existing functionality.
 
 2. **Upload the Client**: The second step takes place during your release build. Here, you upload the client to the registry using the `barista client upload` command. This command requires the `--tag` and `--api-id` options. The `--tag` option specifies the tag for the client, and the `--api-id` option specifies the ID of the API to which you are uploading. This command create a new version of the client with the specified tag.
-The tag is a string that can be used to identify the client. It can be any string, but it is recommended to use a version number, such as `v1` or `v2`; or a commit hash, such as `a1b2c3d4e5f6g7h8i9j0k1l2m3n`.  The tag is used to identify the client when publishing it.
+   The tag is a string that can be used to identify the client. It can be any string, but it is recommended to use a version number, such as `v1` or `v2`; or a commit hash, such as `a1b2c3d4e5f6g7h8i9j0k1l2m3n`. The tag is used to identify the client when publishing it.
 
 3. **Publish the Client **: The third step takes place just before the release. Here, you publish the client using the `barista client publish` commands. This command requires the `--tag` and `--api-id` options. The `--tag` option specifies the tag for the client, and the `--api-id` option specifies the ID of the API to which you are uploading. This command publishes the client with the specified tag, making it the active version for the specified API.

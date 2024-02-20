@@ -1,6 +1,7 @@
 ---
 title: "Fusion"
 ---
+
 ![Image](images/fusion-0.png)
 
 BananaCakePop can be used as your orchestrator for your Fusion Gateway. It deeply integrates with your development workflow and allows you to publish, validate, consume and monitor your Fusion Gateway.
@@ -49,29 +50,29 @@ After installing the package, you need to configure the services in your startup
 ```csharp
 builder.Services
   .AddFusionGatewayServer()
-  .ConfigureFromCloud(x => 
+  .ConfigureFromCloud(x =>
   {
       x.ApiKey = "<<your-api-key>>";
       x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
       x.Stage = "dev";
-  })                
+  })
 ```
 
 > **Tip: Using Environment Variables**
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `ConfigureFromCloud` without explicitly passing parameters.
 >
->- `BCP_API_KEY` maps to `ApiKey`
->- `BCP_API_ID` maps to `ApiId`
->- `BCP_STAGE` maps to `Stage`
+> - `BCP_API_KEY` maps to `ApiKey`
+> - `BCP_API_ID` maps to `ApiId`
+> - `BCP_STAGE` maps to `Stage`
 >
->```csharp
+> ```csharp
 > builder.Services
 >   .AddFusionGatewayServer()
->   .ConfigureFromCloud();                
->```
+>   .ConfigureFromCloud();
+> ```
 >
->In this setup, the API key, ID, and stage are set through environment variables.
+> In this setup, the API key, ID, and stage are set through environment variables.
 
 Now your gateway will be notified whenever there is a new configuration available and will automatically pull it.
 
@@ -95,12 +96,12 @@ After installing the package, configure the BananaCakePop Services on your schem
 services
     .AddGraphQLServer()
     .AddQueryType<Query>()
-    .AddBananaCakePopServices(x => 
+    .AddBananaCakePopServices(x =>
     {
         x.ApiKey = "<<your-api-key>>";
         x.ApiId = "<<your-subgraph-api-id>>";
         x.Stage = "dev";
-    })                
+    })
     .AddInstrumentation(); // Enable GraphQL telemetry
 
 services
@@ -132,7 +133,7 @@ Here’s an example of what the `subgraph-config.json` file should look like:
   "http": { "baseAddress": "http://localhost:59093/graphql" }, // Default HTTP settings
   "extensions": {
     "bcp": {
-      "apiId": "<<your-subgraph-api-id>>" 
+      "apiId": "<<your-subgraph-api-id>>"
     }
   }
 }
@@ -178,8 +179,8 @@ This step is usually done in a separate build step in your CI/CD pipeline where 
 Once your changes are ready to be deployed, you need to wait for a deployment slot. There can only ever be one deployment at the time. If there is already a deployment in progress, you need to wait until it is finished.
 
 Banana Cake Pop helps you coordinate your subgraph deployments. You register for a deployment by calling:
-  
-```bash  
+
+```bash
 dotnet barista fusion-configuration publish begin \
   --tag <<tag>> \
   --api-id <<api-id>> \
@@ -194,7 +195,7 @@ This command will complete once your turn has come and you can start deploying y
 Once you have a deployment slot, you need to notify Banana Cake Pop that you are still interested in the slot. You do this by calling:
 
 ```bash
-dotnet barista fusion-configuration publish start --api-key <<api-key>> 
+dotnet barista fusion-configuration publish start --api-key <<api-key>>
 ```
 
 ### 4. Configure the subgraph
@@ -203,7 +204,7 @@ As most likely, your connection information is different from environment to env
 
 ```bash
 dotnet fusion subgraph config set http \
-  --url <<url>> 
+  --url <<url>>
   -c path/to/your/subgraph/config.fsp
 ```
 
@@ -216,7 +217,7 @@ dotnet barista fusion-configuration download \
   --api-id <<api-key>> \
   --stage <<name-of-the-stage>> \
   --output-file ./gateway.fgp \
-  --api-key <<api-key>> 
+  --api-key <<api-key>>
 ```
 
 This will download the latest configuration from Banana Cake Pop and save it to the specified file (`gateway.fgp`).
@@ -294,6 +295,7 @@ Now your gateway will send the telemetry data to Banana Cake Pop. To connect you
 ```
 
 # Cache
+
 The `BananaCakePop.Services` package provides caching for persisted queries and fusion
 configurations, improving your system's resilience and performance. By first accessing a local cache
 for configurations before querying the server, your infrastructure becomes more robust, minimizing
@@ -307,6 +309,7 @@ We offer two types of caches: `FileSystemCache` for storing data on your local f
 Here’s how you add caching to your service:
 
 For GraphQL services:
+
 ```csharp
 services
   .AddGraphQLServer()
@@ -314,6 +317,7 @@ services
 ```
 
 For fusion services:
+
 ```csharp
 services
   .AddFusionGatewayServer()
