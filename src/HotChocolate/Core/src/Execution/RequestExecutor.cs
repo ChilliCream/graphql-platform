@@ -50,6 +50,7 @@ internal sealed class RequestExecutor : IRequestExecutor
         CollectEnricher(applicationServices, list);
         CollectEnricher(executorServices, list);
         _enricher = list.ToArray();
+        return;
 
         static void CollectEnricher(IServiceProvider services, List<IRequestContextEnricher> list)
         {
