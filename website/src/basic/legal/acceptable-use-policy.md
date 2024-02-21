@@ -30,8 +30,8 @@ If a customer - or their end-user or anyone using our Services as a result of th
 
 Our Services must not be used to transmit, distribute or store any material in violation of any applicable law. This includes but isn't limited to:
 
-1.  any material protected by copyright, trademark, trade secret, or other intellectual property right used without proper authorization, and
-1.  any material that is obscene, defamatory, constitutes an illegal threat or violates export control laws.
+1. any material protected by copyright, trademark, trade secret, or other intellectual property right used without proper authorization, and
+1. any material that is obscene, defamatory, constitutes an illegal threat or violates export control laws.
 
 The customer is solely responsible for all material they input, upload, disseminate, transmit, create or publish through or on our Services, and for obtaining legal permission to use any works included in such material.
 
