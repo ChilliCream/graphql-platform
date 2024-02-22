@@ -3,7 +3,6 @@ using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
@@ -139,12 +138,14 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 convention,
                 s =>
                 {
-                    if (s.TryGetOrCreateService(concreteConvention, out IConvention c))
+                    try
                     {
-                        return c;
+                        return (IConvention)ActivatorUtilities.CreateInstance(s, concreteConvention);
                     }
-
-                    throw Convention_UnableToCreateConvention(concreteConvention);
+                    catch
+                    {
+                        throw Convention_UnableToCreateConvention(concreteConvention);
+                    }
                 },
                 scope));
     }
@@ -260,12 +261,14 @@ public static partial class SchemaRequestExecutorBuilderExtensions
                 convention,
                 s =>
                 {
-                    if (s.TryGetOrCreateService(concreteConvention, out IConvention? c))
+                    try
                     {
-                        return c;
+                        return (IConvention)ActivatorUtilities.CreateInstance(s, concreteConvention);
                     }
-
-                    throw Convention_UnableToCreateConvention(concreteConvention);
+                    catch
+                    {
+                        throw Convention_UnableToCreateConvention(concreteConvention);
+                    }
                 },
                 scope));
     }

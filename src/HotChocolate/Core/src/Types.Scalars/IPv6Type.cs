@@ -52,6 +52,7 @@ public class IPv6Type : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="IPv6Type"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public IPv6Type()
         : this(
             WellKnownScalarTypes.IPv6,

@@ -16,6 +16,7 @@ public class DurationType : StringToStructBaseType<Duration>
     /// <summary>
     /// Initializes a new instance of <see cref="DurationType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public DurationType() : this(DurationPattern.Roundtrip)
     {
     }

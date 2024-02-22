@@ -277,9 +277,8 @@ public static class DataLoaderResolverContextExtensions
                         DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType,
                         typeof(T).FullName ?? typeof(T).Name));
             }
-
-            var factory = new ServiceFactory { Services = services, };
-            if (factory.CreateInstance(typeof(T)) is T dataLoader)
+            
+            if (ServiceFactory.CreateInstance(services, typeof(T)) is T dataLoader)
             {
                 return dataLoader;
             }

@@ -21,6 +21,7 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public JsonType()
         : base(ScalarNames.JSON, BindingBehavior.Implicit) { }
 

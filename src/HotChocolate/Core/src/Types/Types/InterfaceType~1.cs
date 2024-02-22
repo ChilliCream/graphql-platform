@@ -11,6 +11,7 @@ public class InterfaceType<T> : InterfaceType
 {
     private Action<IInterfaceTypeDescriptor<T>>? _configure;
 
+    [ActivatorUtilitiesConstructor]
     public InterfaceType() =>
         _configure = Configure;
 

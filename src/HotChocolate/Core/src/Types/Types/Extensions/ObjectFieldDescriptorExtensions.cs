@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 

@@ -18,6 +18,7 @@ public class OffsetType : StringToStructBaseType<Offset>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public OffsetType() : this(OffsetPattern.GeneralInvariantWithZ)
     {
     }

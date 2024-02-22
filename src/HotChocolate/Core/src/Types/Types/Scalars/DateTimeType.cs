@@ -23,6 +23,7 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public DateTimeType()
         : this(
             ScalarNames.DateTime,

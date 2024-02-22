@@ -16,6 +16,7 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="LocalDateTimeType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public LocalDateTimeType() : this(LocalDateTimePattern.ExtendedIso)
     {
     }

@@ -6,18 +6,12 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination;
 
-public class PagingMiddleware
+public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
 {
-    private readonly FieldDelegate _next;
-    private readonly IPagingHandler _pagingHandler;
-
-    public PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _pagingHandler = pagingHandler ??
-            throw new ArgumentNullException(nameof(pagingHandler));
-    }
+    private readonly FieldDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+    private readonly IPagingHandler _pagingHandler = pagingHandler ??
+        throw new ArgumentNullException(nameof(pagingHandler));
 
     public async Task InvokeAsync(IMiddlewareContext context)
     {
@@ -37,9 +31,28 @@ public class PagingMiddleware
 
         if (context.Result is not null and not IPage)
         {
-            context.Result = await _pagingHandler
-                .SliceAsync(context, context.Result)
-                .ConfigureAwait(false);
+            try
+            {
+                context.Result = await _pagingHandler
+                    .SliceAsync(context, context.Result)
+                    .ConfigureAwait(false);
+            }
+            catch (GraphQLException ex)
+            {
+                var errors = new IError[ex.Errors.Count];
+
+                for (var i = 0; i < ex.Errors.Count; i++)
+                {
+                    errors[i] = ErrorBuilder
+                        .FromError(ex.Errors[i])
+                        .AddLocation(context.Selection.SyntaxNode)
+                        .SetSyntaxNode(context.Selection.SyntaxNode)
+                        .SetPath(context.Path)
+                        .Build();
+                }
+
+                throw new GraphQLException(errors);
+            }
         }
     }
 }

@@ -52,6 +52,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         ContextData = contextData;
         TypeInterceptor = typeInterceptor;
         ResolverCompiler = new DefaultResolverCompiler(
+            schemaServices,
             _serviceHelper.GetParameterExpressionBuilders());
 
         TypeConverter = _serviceHelper.GetTypeConverter();
@@ -285,7 +286,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => new DescriptorContext(
             () => (options ??= new SchemaOptions()),
             conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
-            services ?? new EmptyServiceProvider(),
+            services ?? EmptyServiceProvider.Instance,
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
@@ -300,7 +301,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => new DescriptorContext(
             options,
             conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
-            services ?? new EmptyServiceProvider(),
+            services ?? EmptyServiceProvider.Instance,
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());

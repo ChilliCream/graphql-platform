@@ -138,13 +138,6 @@ public class InputObjectTypeDescriptor
         ISet<MemberInfo> handledMembers)
     { }
 
-    public IInputObjectTypeDescriptor SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
-    {
-        Definition.SyntaxNode = inputObjectTypeDefinition;
-        return this;
-    }
-
     public IInputObjectTypeDescriptor Name(string value)
     {
         Definition.Name = value;

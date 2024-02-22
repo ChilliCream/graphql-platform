@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
@@ -101,7 +100,6 @@ public partial class EnumType
         _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
 
         _naming = context.DescriptorContext.Naming;
-        SyntaxNode = definition.SyntaxNode;
 
         foreach (var enumValueDefinition in definition.Values)
         {
@@ -117,14 +115,13 @@ public partial class EnumType
             }
         }
 
-        if (!Values.Any())
+        if (Values.Count == 0)
         {
             context.ReportError(
                 SchemaErrorBuilder.New()
                     .SetMessage(TypeResources.EnumType_NoValues, Name)
                     .SetCode(ErrorCodes.Schema.NoEnumValues)
                     .SetTypeSystemObject(this)
-                    .AddSyntaxNode(SyntaxNode)
                     .Build());
         }
     }

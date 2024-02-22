@@ -18,6 +18,7 @@ public class StringType : ScalarType<string, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="StringType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public StringType()
         : this(
             ScalarNames.String,

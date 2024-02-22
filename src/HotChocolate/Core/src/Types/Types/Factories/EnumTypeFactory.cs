@@ -11,39 +11,36 @@ internal sealed class EnumTypeFactory
 {
     public EnumType Create(IDescriptorContext context, EnumTypeDefinitionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new EnumTypeDefinition(
             node.Name.Value,
-            node.Description?.Value);
-        typeDefinition.BindTo = node.GetBindingValue();
-
-        if (preserveSyntaxNodes)
+            node.Description?.Value)
         {
-            typeDefinition.SyntaxNode = node;
-        }
+            BindTo = node.GetBindingValue(),
+        };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareValues(context, typeDefinition, node.Values, path, preserveSyntaxNodes);
+        DeclareValues(context, typeDefinition, node.Values, path);
 
         return EnumType.CreateUnsafe(typeDefinition);
     }
 
     public EnumTypeExtension Create(IDescriptorContext context, EnumTypeExtensionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new EnumTypeDefinition(node.Name.Value);
-        typeDefinition.BindTo = node.GetBindingValue();
+        var typeDefinition = new EnumTypeDefinition(node.Name.Value)
+        {
+            BindTo = node.GetBindingValue(),
+        };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareValues(context, typeDefinition, node.Values, path, preserveSyntaxNodes);
+        DeclareValues(context, typeDefinition, node.Values, path);
 
         return EnumTypeExtension.CreateUnsafe(typeDefinition);
     }
@@ -52,8 +49,7 @@ internal sealed class EnumTypeFactory
         IDescriptorContext context,
         EnumTypeDefinition parent,
         IReadOnlyCollection<EnumValueDefinitionNode> values,
-        Stack<IDefinition> path,
-        bool preserveSyntaxNodes)
+        Stack<IDefinition> path)
     {
         path.Push(parent);
 
@@ -62,13 +58,10 @@ internal sealed class EnumTypeFactory
             var valueDefinition = new EnumValueDefinition(
                 value.Name.Value,
                 value.Description?.Value,
-                value.Name.Value);
-            valueDefinition.BindTo = value.GetBindingValue();
-
-            if (preserveSyntaxNodes)
+                value.Name.Value)
             {
-                valueDefinition.SyntaxNode = value;
-            }
+                BindTo = value.GetBindingValue(),
+            };
 
             SdlToTypeSystemHelper.AddDirectives(context, valueDefinition, value, path);
 

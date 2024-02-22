@@ -12,6 +12,9 @@ public static class WellKnownAttributes
     public const string MutationTypeAttribute = "HotChocolate.Types.MutationTypeAttribute";
     public const string SubscriptionTypeAttribute = "HotChocolate.Types.SubscriptionTypeAttribute";
     public const string DataLoaderAttribute = "HotChocolate.DataLoaderAttribute";
+    public const string QueryAttribute = "HotChocolate.QueryFieldAttribute";
+    public const string MutationAttribute = "HotChocolate.MutationFieldAttribute";
+    public const string SubscriptionAttribute = "HotChocolate.SubscriptionFieldAttribute";
 
     public static HashSet<string> TypeAttributes { get; } =
     [

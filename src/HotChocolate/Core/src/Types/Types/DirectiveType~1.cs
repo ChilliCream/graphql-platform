@@ -12,6 +12,7 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
 {
     private Action<IDirectiveTypeDescriptor<TDirective>>? _configure;
 
+    [ActivatorUtilitiesConstructor]
     public DirectiveType()
     {
         _configure = Configure;

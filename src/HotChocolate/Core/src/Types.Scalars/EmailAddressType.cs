@@ -35,6 +35,7 @@ public class EmailAddressType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public EmailAddressType()
         : this(
             WellKnownScalarTypes.EmailAddress,

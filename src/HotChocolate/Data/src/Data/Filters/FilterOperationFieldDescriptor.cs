@@ -37,13 +37,6 @@ public class FilterOperationFieldDescriptor
         base.OnCreateDefinition(definition);
     }
 
-    public new IFilterOperationFieldDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
-    }
-
     public IFilterOperationFieldDescriptor Name(string value)
     {
         Definition.Name = value;

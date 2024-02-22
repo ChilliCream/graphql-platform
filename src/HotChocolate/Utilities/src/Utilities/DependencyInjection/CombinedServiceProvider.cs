@@ -2,8 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-
-#nullable enable
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Utilities;
 
@@ -13,11 +12,20 @@ internal sealed class CombinedServiceProvider : IServiceProvider
     private static readonly Type _enumerable = typeof(IEnumerable<>);
     private readonly IServiceProvider _first;
     private readonly IServiceProvider _second;
+    private readonly IServiceProviderIsService? _serviceInspector;
 
     public CombinedServiceProvider(IServiceProvider first, IServiceProvider second)
     {
         _first = first ?? throw new ArgumentNullException(nameof(first));
         _second = second ?? throw new ArgumentNullException(nameof(second));
+
+        var firstInspector = _first.GetService<IServiceProviderIsService>();
+        var secondInspector = _second.GetService<IServiceProviderIsService>();
+
+        if (firstInspector is not null && secondInspector is not null)
+        {
+            _serviceInspector = new CombinedServiceProviderIsService(firstInspector, secondInspector);
+        }
     }
 
     public object? GetService(Type serviceType)
@@ -25,6 +33,11 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         if (serviceType is null)
         {
             throw new ArgumentNullException(nameof(serviceType));
+        }
+
+        if (serviceType == typeof(IServiceProviderIsService))
+        {
+            return _serviceInspector;
         }
 
         if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == _enumerable)
@@ -38,7 +51,7 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         return _first.GetService(serviceType) ?? _second.GetService(serviceType);
     }
 
-    private object? Concat(
+    private static object? Concat(
         Type elementType,
         IEnumerable? servicesFromA,
         IEnumerable? servicesFromB)
@@ -54,7 +67,9 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         }
 
         var enumeratorA = servicesFromA.GetEnumerator();
+        var disposableA = enumeratorA as IDisposable;
         var enumeratorB = servicesFromB.GetEnumerator();
+        var disposableB = enumeratorB as IDisposable;
 
         try
         {
@@ -90,15 +105,19 @@ internal sealed class CombinedServiceProvider : IServiceProvider
         }
         finally
         {
-            if (enumeratorA is IDisposable disposableA)
-            {
-                disposableA.Dispose();
-            }
-
-            if (enumeratorB is IDisposable disposableB)
-            {
-                disposableB.Dispose();
-            }
+            disposableA?.Dispose();
+            disposableB?.Dispose();
         }
     }
+
+    private sealed class CombinedServiceProviderIsService(
+        IServiceProviderIsService first,
+        IServiceProviderIsService second)
+        : IServiceProviderIsService
+    {
+        public bool IsService(Type serviceType)
+            => first.IsService(serviceType) || 
+                second.IsService(serviceType);
+    }
 }
+

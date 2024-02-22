@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class SchemaTypeDefinition
-    : DefinitionBase<SchemaDefinitionNode>
+public class SchemaTypeDefinition : DefinitionBase
 {
     private List<DirectiveDefinition>? _directives;
 

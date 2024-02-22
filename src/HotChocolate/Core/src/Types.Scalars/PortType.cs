@@ -14,6 +14,7 @@ public class PortType : IntType
     /// <summary>
     /// Initializes a new instance of the <see cref="PortType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public PortType()
         : this(
             WellKnownScalarTypes.Port,

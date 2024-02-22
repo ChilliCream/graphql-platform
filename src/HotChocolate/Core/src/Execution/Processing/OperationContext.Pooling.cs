@@ -22,7 +22,7 @@ internal sealed partial class OperationContext
     private IRequestContext _requestContext = default!;
     private ISchema _schema = default!;
     private IErrorHandler _errorHandler = default!;
-    private IActivator _activator = default!;
+    private ResolverProvider _resolvers = default!;
     private IExecutionDiagnosticEvents _diagnosticEvents = default!;
     private IDictionary<string, object?> _contextData = default!;
     private CancellationToken _requestAborted;
@@ -61,7 +61,7 @@ internal sealed partial class OperationContext
         _requestContext = requestContext;
         _schema = requestContext.Schema;
         _errorHandler = requestContext.ErrorHandler;
-        _activator = requestContext.Activator;
+        _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
         _diagnosticEvents = requestContext.DiagnosticEvents;
         _contextData = requestContext.ContextData;
         _requestAborted = requestContext.RequestAborted;
@@ -85,7 +85,7 @@ internal sealed partial class OperationContext
         _requestContext = context._requestContext;
         _schema = context._schema;
         _errorHandler = context._errorHandler;
-        _activator = context._activator;
+        _resolvers = context._resolvers;
         _diagnosticEvents = context._diagnosticEvents;
         _contextData = context.ContextData;
         _requestAborted = context._requestAborted;
@@ -114,7 +114,7 @@ internal sealed partial class OperationContext
             _requestContext = default!;
             _schema = default!;
             _errorHandler = default!;
-            _activator = default!;
+            _resolvers = default!;
             _diagnosticEvents = default!;
             _contextData = default!;
             _operation = default!;

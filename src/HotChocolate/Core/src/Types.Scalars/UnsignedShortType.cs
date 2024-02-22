@@ -8,6 +8,7 @@ namespace HotChocolate.Types;
 /// </summary>
 public class UnsignedShortType : IntegerTypeBase<ushort>
 {
+    [ActivatorUtilitiesConstructor]
     public UnsignedShortType()
         : this(
             WellKnownScalarTypes.UnsignedShort,

@@ -31,6 +31,7 @@ public class HslType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="HslType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public HslType()
         : this(
             WellKnownScalarTypes.Hsl,

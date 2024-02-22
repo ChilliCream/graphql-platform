@@ -10,6 +10,7 @@ public class ShortType : IntegerTypeBase<short>
     /// <summary>
     /// Initializes a new instance of the <see cref="ShortType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public ShortType() : this(short.MinValue, short.MaxValue)
     {
     }

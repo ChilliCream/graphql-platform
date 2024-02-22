@@ -31,6 +31,7 @@ public class HexColorType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="HexColorType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public HexColorType()
         : this(
             WellKnownScalarTypes.HexColor,

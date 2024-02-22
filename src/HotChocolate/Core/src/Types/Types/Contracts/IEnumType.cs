@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Language;
 
 #nullable enable
 
@@ -11,11 +10,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface IEnumType : ILeafType
 {
-    /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    new EnumTypeDefinitionNode? SyntaxNode { get; }
-
     /// <summary>
     /// Gets the possible enum values.
     /// </summary>

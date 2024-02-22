@@ -11,6 +11,7 @@ public class NonEmptyStringType : StringType
     /// <summary>
     /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public NonEmptyStringType()
         : this(
             WellKnownScalarTypes.NonEmptyString,

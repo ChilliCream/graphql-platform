@@ -16,6 +16,7 @@ public class TimeSpanType
 {
     private readonly TimeSpanFormat _format;
 
+    [ActivatorUtilitiesConstructor]
     public TimeSpanType()
         : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description)
     {

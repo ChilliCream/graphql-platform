@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
@@ -76,7 +75,6 @@ public partial class DirectiveType
         _inputParser = context.DescriptorContext.InputParser;
         _inputFormatter = context.DescriptorContext.InputFormatter;
 
-        SyntaxNode = definition.SyntaxNode;
         Locations =  definition.Locations;
         Arguments = OnCompleteFields(context, definition);
         IsPublic = definition.IsPublic;
@@ -87,16 +85,7 @@ public partial class DirectiveType
 
         if (definition.Locations == 0)
         {
-            // TODO : move to error helper
-            context.ReportError(SchemaErrorBuilder.New()
-                .SetMessage(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.DirectiveType_NoLocations,
-                    Name))
-                .SetCode(ErrorCodes.Schema.MissingType)
-                .SetTypeSystemObject(context.Type)
-                .AddSyntaxNode(definition.SyntaxNode)
-                .Build());
+            context.ReportError(ErrorHelper.DirectiveType_NoLocations(Name, this));
         }
 
         IsExecutableDirective = (Locations & DirectiveLocation.Executable) != 0;

@@ -7,17 +7,12 @@ namespace HotChocolate;
 /// types source generator to generate necessary code around this method.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method)]
-public sealed class DataLoaderAttribute : Attribute
+public sealed class DataLoaderAttribute(string? name = null) : Attribute
 {
-    public DataLoaderAttribute(string? name = null)
-    {
-        Name = name;
-    }
-
     /// <summary>
     /// Gets the name override for the DataLoader or <c>null</c>.
     /// </summary>
-    public string? Name { get; }
+    public string? Name { get; } = name;
 
     /// <summary>
     /// Specifies how services by default are handled.

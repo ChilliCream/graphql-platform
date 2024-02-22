@@ -17,6 +17,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public LocalDateType()
         : this(
             WellKnownScalarTypes.LocalDate,

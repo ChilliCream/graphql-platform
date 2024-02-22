@@ -20,6 +20,7 @@ public class AnyType : ScalarType
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public AnyType() : this(ScalarNames.Any)
     {
     }

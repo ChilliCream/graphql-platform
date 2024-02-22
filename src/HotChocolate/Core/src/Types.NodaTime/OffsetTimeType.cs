@@ -17,6 +17,7 @@ public class OffsetTimeType : StringToStructBaseType<OffsetTime>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetTimeType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public OffsetTimeType() : this(OffsetTimePattern.GeneralIso)
     {
     }

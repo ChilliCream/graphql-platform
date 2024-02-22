@@ -54,8 +54,7 @@ public partial class InterfaceType
         InterfaceTypeDefinition definition)
     {
         base.OnCompleteType(context, definition);
-
-        SyntaxNode = definition.SyntaxNode;
+        
         Fields = OnCompleteFields(context, definition);
         context.DescriptorContext.SchemaCompleted += (_, args) => _schema = args.Schema;
 

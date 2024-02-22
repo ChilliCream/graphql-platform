@@ -98,5 +98,11 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("Edge_Cursor_CursorAndResolverNull", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_InvalidIndexCursor_Message {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidIndexCursor_Message", resourceCulture);
+            }
+        }
     }
 }

@@ -1,4 +1,7 @@
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -30,7 +33,7 @@ public partial class Schema
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 
         _configure(descriptor);
-        
+
         context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
         return descriptor.CreateDefinition();
@@ -105,7 +108,11 @@ public partial class Schema
 
         DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
         _types = new SchemaTypes(schemaTypesDefinition);
-        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name);
+#if NET8_0_OR_GREATER
+        _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+#else
+        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name, StringComparer.Ordinal);
+#endif
         _sealed = true;
     }
 }
@@ -138,7 +145,7 @@ internal static class SchemaTools
         options = (List<Action<ISchemaTypeDescriptor>>)value!;
         options.Add(configure);
     }
-    
+
     public static void AddSchemaConfiguration(
         this IDescriptorContext context,
         Action<ISchemaTypeDescriptor> configure)
@@ -165,7 +172,7 @@ internal static class SchemaTools
         options = (List<Action<ISchemaTypeDescriptor>>)value!;
         options.Add(configure);
     }
-    
+
     public static void ApplySchemaConfigurations(
         this IDescriptorContext context,
         ISchemaTypeDescriptor descriptor)

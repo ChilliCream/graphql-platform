@@ -4,7 +4,6 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -29,7 +28,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         builder.ConfigureSchemaServices(s => s
             .RemoveAll<ISocketSessionInterceptor>()
             .AddSingleton<ISocketSessionInterceptor, T>(
-                sp => sp.GetCombinedServices().GetOrCreateService<T>(typeof(T))!));
+                sp => ActivatorUtilities.GetServiceOrCreateInstance<T>(sp.GetCombinedServices())));
 
     /// <summary>
     /// Adds an interceptor for GraphQL socket sessions to the GraphQL configuration.

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper; 
 
 namespace HotChocolate.Types.Pagination;
 
@@ -170,15 +171,29 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
         // afterEdge.
         //
         // The cursor is increased by one so that the index points to the element after
-        var startIndex = arguments.After is { } a
-            ? IndexEdge<TEntity>.DeserializeCursor(a) + 1
-            : 0;
+        var startIndex = 0;
+        if (arguments.After is not null)
+        {
+            if (!IndexCursor.TryParse(arguments.After, out var index))
+            {
+                throw ThrowHelper.InvalidIndexCursor("after", arguments.After);
+            }
+
+            startIndex = index + 1;
+        }
 
         // [SPEC] if before is set then remove all elements of edges before and including
         // beforeEdge.
-        var before = arguments.Before is { } b
-            ? IndexEdge<TEntity>.DeserializeCursor(b)
-            : maxElementCount;
+        var before = maxElementCount;
+        if (arguments.Before is not null)
+        {
+            if (!IndexCursor.TryParse(arguments.Before, out var index))
+            {
+                throw ThrowHelper.InvalidIndexCursor("before", arguments.Before);
+            }
+
+            before = index;
+        }
 
         // if after is negative we have know how much of the offset was in the negative range.
         // The amount of positions that are in the negative range, have to be subtracted from

@@ -17,6 +17,7 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UuidType"/> class.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public UuidType() : this('\0')
     {
     }
