@@ -1,3 +1,6 @@
+# SchemaSnapshot
+
+```graphql
 schema {
   query: Query
   mutation: Mutation
@@ -40,3 +43,4 @@ enum CustomEnum {
   ABC
   DEF
 }
+```
