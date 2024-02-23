@@ -43,7 +43,9 @@
     "meros",
     "Structs",
     "reencode",
-    "WunderGraph"
+    "WunderGraph",
+    "CCPA",
+    "decompile"
   ],
   "ignoreWords": [
     "Badurina",
