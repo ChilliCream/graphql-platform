@@ -340,7 +340,7 @@ services
 
 ## `BlobStorageCache`
 
-This cache stores your data in Azure Blob Storage. 
+This cache stores your data in Azure Blob Storage.
 
 You need to install the `BananaCakePop.Services.Azure` package:
 
