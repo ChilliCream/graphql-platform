@@ -36,6 +36,8 @@ public class SchemaTests
     public async Task ExecuteWithMiddleware()
     {
         var services = new ServiceCollection()
+            .AddSingleton<Service1>()
+            .AddSingleton<Service2>()
             .AddGraphQL()
             .AddCustomModule()
             .UseRequest<SomeRequestMiddleware>()
