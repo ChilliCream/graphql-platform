@@ -17,7 +17,7 @@ public class SchemaTests
                 .AddCustomModule()
                 .BuildSchemaAsync();
 
-        schema.MatchSnapshot();
+        schema.MatchMarkdownSnapshot();
     }
     
     [Fact]
@@ -29,7 +29,7 @@ public class SchemaTests
         
         var result = await services.ExecuteRequestAsync("{ foo }");
 
-        result.MatchSnapshot();
+        result.MatchMarkdownSnapshot();
     }
     
     [Fact]
@@ -38,6 +38,7 @@ public class SchemaTests
         var services = new ServiceCollection()
             .AddSingleton<Service1>()
             .AddSingleton<Service2>()
+            .AddSingleton<Service3>()
             .AddGraphQL()
             .AddCustomModule()
             .UseRequest<SomeRequestMiddleware>()
@@ -45,6 +46,6 @@ public class SchemaTests
         
         var result = await services.ExecuteRequestAsync("{ foo }");
 
-        result.MatchSnapshot();
+        result.MatchMarkdownSnapshot();
     }
 }
