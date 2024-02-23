@@ -340,7 +340,15 @@ services
 
 ## `BlobStorageCache`
 
-This cache stores your data in Azure Blob Storage. Set it up with:
+This cache stores your data in Azure Blob Storage.
+
+You need to install the `BananaCakePop.Services.Azure` package:
+
+```bash
+dotnet add package BananaCakePop.Services.Azure
+```
+
+Set it up with:
 
 ```csharp
 services
