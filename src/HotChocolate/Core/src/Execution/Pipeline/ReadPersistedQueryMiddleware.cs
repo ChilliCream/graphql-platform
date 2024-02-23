@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -11,10 +12,9 @@ internal sealed class ReadPersistedQueryMiddleware
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IReadStoredQueries _persistedQueryStore;
 
-    public ReadPersistedQueryMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
-        IReadStoredQueries persistedQueryStore)
+    private ReadPersistedQueryMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        [SchemaService] IReadStoredQueries persistedQueryStore)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -61,4 +61,13 @@ internal sealed class ReadPersistedQueryMiddleware
             }
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var persistedQueryStore = core.SchemaServices.GetRequiredService<IReadStoredQueries>();
+            var middleware = new ReadPersistedQueryMiddleware(next, diagnosticEvents, persistedQueryStore);
+            return context => middleware.InvokeAsync(context);
+        };
 }

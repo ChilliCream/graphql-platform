@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -10,8 +11,7 @@ internal sealed class OperationVariableCoercionMiddleware
     private readonly RequestDelegate _next;
     private readonly VariableCoercionHelper _coercionHelper;
 
-    public OperationVariableCoercionMiddleware(
-        RequestDelegate next,
+    private OperationVariableCoercionMiddleware(RequestDelegate next,
         VariableCoercionHelper coercionHelper)
     {
         _next = next ??
@@ -36,4 +36,12 @@ internal sealed class OperationVariableCoercionMiddleware
             context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
+            var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper);
+            return context => middleware.InvokeAsync(context);
+        };
 }

@@ -2,16 +2,9 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace GreenDonut;
 
-internal class TaskCachePooledObjectPolicy : PooledObjectPolicy<TaskCache>
+internal class TaskCachePooledObjectPolicy(int size) : PooledObjectPolicy<TaskCache>
 {
-    private readonly int _size;
-
-    public TaskCachePooledObjectPolicy(int size)
-    {
-        _size = size;
-    }
-
-    public override TaskCache Create() => new(_size);
+    public override TaskCache Create() => new(size);
 
     public override bool Return(TaskCache obj)
     {

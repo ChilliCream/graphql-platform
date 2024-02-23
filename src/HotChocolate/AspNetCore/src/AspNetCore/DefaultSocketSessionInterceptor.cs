@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Protocols;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.AspNetCore;
@@ -22,8 +23,9 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
     {
         var context = session.Connection.HttpContext;
         var userState = new UserState(context.User);
-
-        requestBuilder.TrySetServices(session.Connection.RequestServices);
+        var serviceScopeFactory = session.Connection.RequestServices.GetService<IServiceScopeFactory>();
+        
+        requestBuilder.TryAddGlobalState(nameof(IServiceScopeFactory), serviceScopeFactory);
         requestBuilder.TryAddGlobalState(nameof(CancellationToken), session.Connection.RequestAborted);
         requestBuilder.TryAddGlobalState(nameof(HttpContext), context);
         requestBuilder.TryAddGlobalState(nameof(ISocketSession), session);

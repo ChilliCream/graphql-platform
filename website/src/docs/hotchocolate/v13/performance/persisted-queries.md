@@ -48,7 +48,23 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-## Storage mechanisms
+# Production Ready Persisted Queries
+
+In transitioning your persisted query setup to production, simply setting up a persisted query file
+isn't sufficient for a robust production environment. A key aspect of managing persisted queries at
+scale involves version management and ensuring compatibility with your GraphQL schema. The client
+registry is your go-to resource for this purpose.
+
+The client registry simplifies the management of your GraphQL clients and their queries.
+It allows for the storage and retrieval of persisted queries through their hashes but also ensures
+that these queries are validated against the current schema on publish, preventing runtime errors
+due to schema-query mismatches. Additionally, it supports versioning of your clients, allowing
+seamless updates and maintenance without disrupting existing operations
+
+Check out the [client registry documentation](/docs/bananacakepop/v2/apis/client-registry) for
+more information.
+
+# Other Storage mechanisms
 
 Hot Chocolate supports two query storages for regular persisted queries.
 

@@ -135,12 +135,17 @@ internal static class InternalServiceCollectionExtensions
             });
 
         services.TryAddScoped(
-            sp => new DataLoaderOptions
+            sp =>
             {
-                Caching = true,
-                Cache = sp.GetRequiredService<TaskCacheOwner>().Cache,
-                DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                MaxBatchSize = 1024,
+                var cacheOwner = sp.GetRequiredService<TaskCacheOwner>();
+
+                return new DataLoaderOptions
+                {
+                    Cache = cacheOwner.Cache,
+                    CancellationToken = cacheOwner.CancellationToken,
+                    DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
+                    MaxBatchSize = 1024,
+                };
             });
         return services;
     }
@@ -210,7 +215,9 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDefaultDataLoaderRegistry(
         this IServiceCollection services)
     {
-        services.TryAddScoped<IDataLoaderRegistry, DefaultDataLoaderRegistry>();
+        services.TryAddSingleton<DataLoaderScopeHolder>();
+        services.TryAddScoped<IDataLoaderScope>(
+            sp => sp.GetRequiredService<DataLoaderScopeHolder>().CurrentScope);
         return services;
     }
 

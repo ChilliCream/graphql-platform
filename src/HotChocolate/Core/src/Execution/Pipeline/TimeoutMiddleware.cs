@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Options;
+using Microsoft.Extensions.DependencyInjection;
 using static System.Threading.CancellationTokenSource;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -12,9 +13,9 @@ internal sealed class TimeoutMiddleware
     private readonly RequestDelegate _next;
     private readonly TimeSpan _timeout;
 
-    public TimeoutMiddleware(
+    private TimeoutMiddleware(
         RequestDelegate next,
-        IRequestExecutorOptionsAccessor options)
+        [SchemaService] IRequestExecutorOptionsAccessor options)
     {
         if (options is null)
         {
@@ -85,5 +86,13 @@ internal sealed class TimeoutMiddleware
             }
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var optionsAccessor = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
+            var middleware = new TimeoutMiddleware(next, optionsAccessor);
+            return context => middleware.InvokeAsync(context);
+        };
 }
 

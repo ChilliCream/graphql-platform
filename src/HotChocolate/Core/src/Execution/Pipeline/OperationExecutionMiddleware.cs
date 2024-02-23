@@ -4,6 +4,7 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.GraphQLRequestFlags;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -18,12 +19,11 @@ internal sealed class OperationExecutionMiddleware
     private readonly ITransactionScopeHandler _transactionScopeHandler;
     private object? _cachedQuery;
     private object? _cachedMutation;
-
-    public OperationExecutionMiddleware(
-        RequestDelegate next,
+    
+    private OperationExecutionMiddleware(RequestDelegate next,
         IFactory<OperationContextOwner> contextFactory,
-        QueryExecutor queryExecutor,
-        SubscriptionExecutor subscriptionExecutor,
+        [SchemaService] QueryExecutor queryExecutor,
+        [SchemaService] SubscriptionExecutor subscriptionExecutor,
         [SchemaService] ITransactionScopeHandler transactionScopeHandler)
     {
         _next = next ??
@@ -213,4 +213,25 @@ internal sealed class OperationExecutionMiddleware
 
         return allowed;
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
+            var queryExecutor = core.SchemaServices.GetRequiredService<QueryExecutor>();
+            var subscriptionExecutor = core.SchemaServices.GetRequiredService<SubscriptionExecutor>();
+            var transactionScopeHandler = core.SchemaServices.GetRequiredService<ITransactionScopeHandler>();
+            var middleware = new OperationExecutionMiddleware(
+                next,
+                contextFactory,
+                queryExecutor,
+                subscriptionExecutor,
+                transactionScopeHandler);
+            
+            return async context =>
+            {
+                var batchDispatcher = context.Services.GetService<IBatchDispatcher>();
+                await middleware.InvokeAsync(context, batchDispatcher).ConfigureAwait(false);
+            };
+        };
 }

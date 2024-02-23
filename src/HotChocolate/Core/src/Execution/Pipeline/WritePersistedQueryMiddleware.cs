@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -17,10 +18,9 @@ internal sealed class WritePersistedQueryMiddleware
     private readonly IDocumentHashProvider _hashProvider;
     private readonly IWriteStoredQueries _persistedQueryStore;
 
-    public WritePersistedQueryMiddleware(
-        RequestDelegate next,
+    private WritePersistedQueryMiddleware(RequestDelegate next,
         IDocumentHashProvider documentHashProvider,
-        IWriteStoredQueries persistedQueryStore)
+        [SchemaService] IWriteStoredQueries persistedQueryStore)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
@@ -97,4 +97,13 @@ internal sealed class WritePersistedQueryMiddleware
         userHash = null;
         return false;
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+            var persistedQueryStore = core.SchemaServices.GetRequiredService<IWriteStoredQueries>();
+            var middleware = new WritePersistedQueryMiddleware(next, documentHashProvider, persistedQueryStore);
+            return context => middleware.InvokeAsync(context);
+        };
 }

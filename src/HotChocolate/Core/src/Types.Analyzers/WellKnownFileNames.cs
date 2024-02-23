@@ -6,4 +6,5 @@ public static class WellKnownFileNames
     public const string DataLoaderFile = "HotChocolateDataLoader.g.cs";
     public const string AttributesFile = "HotChocolateAttributes.g.cs";
     public const string RootTypesFile = "HotChocolateRootTypes.g.cs";
+    public const string MiddlewareFile = "HotChocolateMiddleware.g.cs";
 }

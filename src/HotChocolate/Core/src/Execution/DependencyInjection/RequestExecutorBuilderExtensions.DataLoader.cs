@@ -1,6 +1,7 @@
 using System;
 using GreenDonut;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,8 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         where T : class, IDataLoader
     {
-        builder.Services.TryAddScoped<T>();
+        builder.Services.AddSingleton(new DataLoaderRegistration(typeof(T)));
+        builder.Services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
         return builder;
     }
 
@@ -20,8 +22,9 @@ public static partial class RequestExecutorBuilderExtensions
         where TService : class, IDataLoader
         where TImplementation : class, TService
     {
-        builder.Services.TryAddScoped<TImplementation>();
-        builder.Services.TryAddScoped<TService>(sp => sp.GetRequiredService<TImplementation>());
+        builder.Services.AddSingleton(new DataLoaderRegistration(typeof(TService), typeof(TImplementation)));
+        builder.Services.TryAddScoped<TImplementation>(sp => sp.GetDataLoader<TImplementation>());
+        builder.Services.TryAddScoped<TService>(sp => sp.GetDataLoader<TService>());
         return builder;
     }
 
@@ -30,7 +33,14 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IDataLoader
     {
-        builder.Services.TryAddScoped(factory);
+        builder.Services.AddSingleton(new DataLoaderRegistration(typeof(T), factory));
+        builder.Services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
         return builder;
     }
 }
+
+file static class DataLoaderServiceProviderExtensions
+{
+    public static T GetDataLoader<T>(this IServiceProvider services) where T : IDataLoader
+        => services.GetRequiredService<IDataLoaderScope>().GetDataLoader<T>();
+}  

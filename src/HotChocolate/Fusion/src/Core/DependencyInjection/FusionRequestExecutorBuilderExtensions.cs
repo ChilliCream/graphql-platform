@@ -364,17 +364,17 @@ public static class FusionRequestExecutorBuilderExtensions
 
     internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
     {
-        pipeline.Add(RequestClassMiddlewareFactory.Create<InstrumentationMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<TimeoutMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationComplexityMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DistributedOperationExecutionMiddleware>());
+        pipeline.Add(InstrumentationMiddleware.Create());
+        pipeline.Add(ExceptionMiddleware.Create());
+        pipeline.Add(TimeoutMiddleware.Create());
+        pipeline.Add(DocumentCacheMiddleware.Create());
+        pipeline.Add(DocumentParserMiddleware.Create());
+        pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(OperationCacheMiddleware.Create());
+        pipeline.Add(OperationComplexityMiddleware.Create());
+        pipeline.Add(OperationResolverMiddleware.Create());
+        pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(DistributedOperationExecutionMiddleware.Create());
     }
 
     private static GraphQLClientFactory CreateGraphQLClientFactory(

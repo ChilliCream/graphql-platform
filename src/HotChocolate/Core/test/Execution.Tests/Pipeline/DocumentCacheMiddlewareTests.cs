@@ -13,7 +13,7 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentCacheMiddleware(
+        var middleware = DocumentCacheMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
@@ -51,8 +51,8 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentCacheMiddleware(
-            context => default,
+        var middleware = DocumentCacheMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);
@@ -89,8 +89,8 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentCacheMiddleware(
-            context => default,
+        var middleware = DocumentCacheMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);
@@ -135,7 +135,7 @@ public class DocumentCacheMiddlewareTests
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
-        var middleware = new DocumentCacheMiddleware(
+        var middleware = DocumentCacheMiddleware.Create(
             context =>
             {
                 context.Document = document;
@@ -173,19 +173,14 @@ public class DocumentCacheMiddlewareTests
             .SetQuery("{ a }")
             .Create();
 
-        var document = Utf8GraphQLParser.Parse("{ a }");
-
-        var parserMiddleware = new DocumentParserMiddleware(
-            context => default,
+        var parserMiddleware = DocumentParserMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             hashProvider,
             new ParserOptions());
 
-        var middleware = new DocumentCacheMiddleware(
-            context =>
-            {
-                return parserMiddleware.InvokeAsync(context);
-            },
+        var middleware = DocumentCacheMiddleware.Create(
+            context => parserMiddleware.InvokeAsync(context),
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);

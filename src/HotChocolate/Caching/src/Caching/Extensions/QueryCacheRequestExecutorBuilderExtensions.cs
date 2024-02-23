@@ -16,7 +16,7 @@ public static class QueryCacheRequestExecutorBuilderExtensions
     /// </param>
     public static IRequestExecutorBuilder UseQueryCache(
         this IRequestExecutorBuilder builder)
-        => builder.UseRequest<QueryCacheMiddleware>();
+        => builder.UseRequest(QueryCacheMiddleware.Create());
 
     /// <summary>
     /// Uses the default request pipeline including the
