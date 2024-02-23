@@ -172,7 +172,7 @@ Where the disclosure of your personal information is solely subject to Australia
 
 ## Data Controller / Data Processor
 
-The GDPR distinguishes between organisations that process personal information for their own purposes (known as &ldquo;data controllers&rdquo;) and organizations that process personal information on behalf of other organizations (known as &ldquo;data processors&rdquo;). We, ChilliCream Inc., located at the address provided in our Contact Us section, are a Data Controller with respect to the personal information you provide to us.
+The GDPR distinguishes between organizations that process personal information for their own purposes (known as &ldquo;data controllers&rdquo;) and organizations that process personal information on behalf of other organizations (known as &ldquo;data processors&rdquo;). We, ChilliCream Inc., located at the address provided in our Contact Us section, are a Data Controller with respect to the personal information you provide to us.
 
 ## Legal Bases for Processing Your Personal Information
 
@@ -214,7 +214,7 @@ We will ensure that any transfer of personal information from countries in the E
 
 Under California Civil Code Section 1798.83, if you live in California and your business relationship with us is mainly for personal, family, or household purposes, you may ask us about the information we release to other organizations for their marketing purposes.
 
-To make such a request, please contact us using the details provided in this privacy policy with &ldquo;Request for California privacy information&rdquo; in the subject line. You may make this type of request once every calendar year. We will email you a list of categories of personal information we revealed to other organisations for their marketing purposes in the last calendar year, along with their names and addresses. Not all personal information shared in this way is covered by Section 1798.83 of the California Civil Code.
+To make such a request, please contact us using the details provided in this privacy policy with &ldquo;Request for California privacy information&rdquo; in the subject line. You may make this type of request once every calendar year. We will email you a list of categories of personal information we revealed to other organizations for their marketing purposes in the last calendar year, along with their names and addresses. Not all personal information shared in this way is covered by Section 1798.83 of the California Civil Code.
 
 ## Do Not Track
 
