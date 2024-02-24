@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\EntityFramework.Helpers\HotChocolate.Data.EntityFramework.Helpers.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">

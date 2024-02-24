@@ -106,14 +106,14 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
             {
                 case RequestMiddlewareParameterKind.Service when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.Services.GetRequiredService<global::{1}>();",
+                        "var cp{0} = core.Services.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.Service when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var cp{0} = core.Services.GetService<global::{1}>();",
+                        "var cp{0} = core.Services.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
@@ -155,6 +155,11 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         for (var i = 0; i < parameters.Count; i++)
         {
             var parameter = parameters[i];
+            
+            if(i > 0)
+            {
+                _writer.Write(", ");
+            }
 
             if (parameter.Kind is RequestMiddlewareParameterKind.Next)
             {
@@ -179,14 +184,14 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
             {
                 case RequestMiddlewareParameterKind.Service when !parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var ip{0} = context.Services.GetRequiredService<global::{1}>();",
+                        "var ip{0} = context.Services.GetRequiredService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
 
                 case RequestMiddlewareParameterKind.Service when parameter.IsNullable:
                     _writer.WriteIndentedLine(
-                        "var ip{0} = context.Services.GetService<global::{1}>();",
+                        "var ip{0} = context.Services.GetService<{1}>();",
                         i,
                         parameter.TypeName);
                     break;
@@ -217,6 +222,11 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         for (var i = 0; i < parameters.Count; i++)
         {
             var parameter = parameters[i];
+            
+            if(i > 0)
+            {
+                _writer.Write(", ");
+            }
 
             if (parameter.Kind is RequestMiddlewareParameterKind.Next)
             {
@@ -243,7 +253,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
 
         _writer.WriteIndentedLine(
             "[InterceptsLocation(\"{0}\", {1}, {2})]",
-            location.FilePath,
+            location.FilePath.Replace("\\", "\\\\"),
             location.LineNumber,
             location.CharacterNumber);
         _writer.WriteIndentedLine(

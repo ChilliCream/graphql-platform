@@ -8,12 +8,13 @@ public class TaskCacheOwnerTests
     public void EnsureTaskCacheIsReused()
     {
         // arrange
-        var cacheOwner1 = new TaskCacheOwner();
+        var pool = TaskCachePool.Create();
+        var cacheOwner1 = new TaskCacheOwner(pool);
         var cache = cacheOwner1.Cache;
         cacheOwner1.Dispose();
 
         // act
-        using var cacheOwner2 = new TaskCacheOwner();
+        using var cacheOwner2 = new TaskCacheOwner(pool);
 
         // assert
         Assert.Same(cache, cacheOwner2.Cache);
@@ -23,9 +24,11 @@ public class TaskCacheOwnerTests
     public void EnsureNewCachesAreIssued()
     {
         // arrange
+        var pool = TaskCachePool.Create();
+        
         // act
-        using var cacheOwner1 = new TaskCacheOwner();
-        using var cacheOwner2 = new TaskCacheOwner();
+        using var cacheOwner1 = new TaskCacheOwner(pool);
+        using var cacheOwner2 = new TaskCacheOwner(pool);
 
         // assert
         Assert.NotSame(cacheOwner1.Cache, cacheOwner2.Cache);

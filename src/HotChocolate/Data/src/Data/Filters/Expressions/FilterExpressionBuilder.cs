@@ -188,13 +188,11 @@ public static class FilterExpressionBuilder
     private static Expression CreateAndConvertParameter<T>(object value)
     {
         Expression<Func<T>> lambda = () => (T)value;
-
         return lambda.Body;
     }
 
     private static Expression CreateParameter(object? value, Type type)
         => (Expression)_createAndConvert
             .MakeGenericMethod(type)
-            .Invoke(null,
-                [value,])!;
+            .Invoke(null, [value,])!;
 }

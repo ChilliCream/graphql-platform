@@ -4,10 +4,10 @@ import styled from "styled-components";
 
 import { IconContainer } from "@/components/misc/icon-container";
 import { Link } from "@/components/misc/link";
+import { SrOnly } from "@/components/misc/sr-only";
 import { Brand, Logo } from "@/components/sprites";
 import { GetFooterDataQuery } from "@/graphql-types";
 import { FONT_FAMILY_HEADING, THEME_COLORS } from "@/shared-style";
-import { SrOnly } from "@/components/misc/sr-only";
 
 // Brands
 import GithubIconSvg from "@/images/brands/github.svg";
@@ -139,18 +139,10 @@ export const Footer: FC = () => {
             <NavLink prefetch={false} to="mailto:contact@chillicream.com">
               Contact
             </NavLink>
-            <NavLink prefetch={false} to="/legal/acceptable-use-policy.html">
-              Acceptable Use
-            </NavLink>
-            <NavLink prefetch={false} to="/legal/cookie-policy.html">
-              Cookie Policy
-            </NavLink>
-            <NavLink prefetch={false} to="/legal/privacy-policy.html">
-              Privacy Policy
-            </NavLink>
-            <NavLink prefetch={false} to="/legal/terms-of-service.html">
-              Terms of Service
-            </NavLink>
+            <NavLink to="/legal/acceptable-use-policy">Acceptable Use</NavLink>
+            <NavLink to="/legal/cookie-policy">Cookie Policy</NavLink>
+            <NavLink to="/legal/privacy-policy">Privacy Policy</NavLink>
+            <NavLink to="/legal/terms-of-service">Terms of Service</NavLink>
           </Navigation>
         </Links>
       </Section>

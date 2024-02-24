@@ -1,5 +1,5 @@
 ---
-title: Subscription 
+title: Subscription
 ---
 
 You can manage your subscriptions directly from the web portal, accessible through [here](https://identity.chillicream.com/Organization) or through manage organization on the client.
@@ -23,10 +23,10 @@ To change your subscription plan, follow these steps:
 1. **Access the Management Portal:** Open the management portal by clicking ['Manage Organizations' -> 'Manage'](/docs/bananacakepop/v2/organizations#managing-organizations) option in the context menu of the bcp or by navigating to [here](https://identity.chillicream.com/Organizations).
 
 2. **Navigate to Subscriptions:** Within the management portal, click on 'Manage' in the subscription section.
-![Screenshot showing the subscription](images/subscription-3.png)
+   ![Screenshot showing the subscription](images/subscription-3.png)
 
 3. **Adjust Seats:** Here, you can adjust the number of seats that are available in your subscription. Changing this value will affect the number of users who can join your organization.
-![Screenshot showing the subscription](images/subscription-4.png)
+   ![Screenshot showing the subscription](images/subscription-4.png)
 
 # Expiry and Seats
 

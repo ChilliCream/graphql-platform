@@ -53,6 +53,10 @@ function deconstructLink(targetLink, documentSlug) {
 
 function getBrokenLinks(document, otherDocuments) {
   return document.links.filter((link) => {
+    if (link.url.startsWith("mailto:")) {
+      return false;
+    }
+
     // extract potential heading from link
     const { link: key, hash: headingAnchor } = deconstructLink(
       link.url,

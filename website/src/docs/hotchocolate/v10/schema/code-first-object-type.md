@@ -61,7 +61,7 @@ The following table shows the object type descriptor options:
 | `Description(string description)`                                   | Defines the description of the object type that will be accessible through the introspection.  |
 | `Interface\<T\>()`                                                  | Specifies an interface type that is implemented by this object type.                           |
 | `IsOfType(IsOfType isOfType)`                                       | Defines a function that specifies if a specific resolver type is of the specified object type. |
-| `BindFields(BindingBehavior bindingBehavior)`                       | Specifies the field binding behavior.                                                         |
+| `BindFields(BindingBehavior bindingBehavior)`                       | Specifies the field binding behavior.                                                          |
 | `Field\<TValue\>(Expression\<Func\<T, TValue\>\> propertyOrMethod)` | Specifies field configuration of a method or property declared in T.                           |
 | `Field(string name)`                                                | Specifies a field that does not exist in T.                                                    |
 

@@ -251,13 +251,13 @@ To integrate the `ProductId` struct into HotChocolate's type system, you need to
 
 ```csharp
 builder.Services.AddGraphQLServer()
-    .AddQueryType<Query>() 
+    .AddQueryType<Query>()
     // Add a type converter from string to your complex ID type
-    .AddTypeConverter<string, ProductId>(ProductId.Parse) 
+    .AddTypeConverter<string, ProductId>(ProductId.Parse)
     // Add a type converter back to string
-    .AddTypeConverter<ProductId, string>(x => x.ToString()) 
+    .AddTypeConverter<ProductId, string>(x => x.ToString())
     // Enable global object identification
-    .AddGlobalObjectIdentification(); 
+    .AddGlobalObjectIdentification();
 ```
 
 With these converters, you can now use `ProductId` as an ID in your GraphQL schema. When you receive a `ProductId` ID in a request, HotChocolate will automatically use the `ProductId.Parse` method to convert it into a `ProductId` object. Likewise, when returning a `ProductId` object in a response, HotChocolate will use the `ToString` method to convert it back into a string.
