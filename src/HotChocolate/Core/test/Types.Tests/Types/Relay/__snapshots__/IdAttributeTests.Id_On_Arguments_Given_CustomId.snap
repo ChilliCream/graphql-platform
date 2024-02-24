@@ -1,9 +1,15 @@
 ﻿{
   "data": {
-    "customId": "1",
-    "nullableCustomId": "1",
+    "customIdGivenDefault": "1",
+    "nullableCustomIdGivenDefault": "1",
+    "customIdGivenInt": "2",
+    "nullableCustomIdGivenInt": "2",
+    "customIdGivenGuid": "3",
+    "nullableCustomIdGivenGuid": "3",
+    "customIdGivenString": "4",
+    "nullableCustomIdGivenString": "4",
     "nullableCustomIdGivenNull": "null",
-    "customIdList": "1, 1",
-    "nullableCustomIdList": "1, null, 1"
+    "customIdList": "1, 2, 3, 4",
+    "nullableCustomIdList": "null, 1, 2, 3, 4"
   }
 }

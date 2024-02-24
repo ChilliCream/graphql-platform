@@ -150,7 +150,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         {
             Type listType = IsWellKnownIdType(resultType.ElementType!.Source)
                 ? typeof(List<>).MakeGenericType(resultType.ElementType!.Source)
-                : typeof(List<string>);
+                : typeof(List<object>);
             var constructor = listType.GetConstructors().Single(t => t.GetParameters().Length == 0);
             Expression create = Expression.New(constructor);
             return Expression.Lambda<Func<IList>>(create).Compile();

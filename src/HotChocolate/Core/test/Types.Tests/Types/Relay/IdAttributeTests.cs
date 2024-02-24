@@ -77,7 +77,10 @@ public class IdAttributeTests
     {
         // arrange
         var idSerializer = new IdSerializer();
-        var customId = idSerializer.Serialize("Query", new CustomId(1));
+        var defaultCustomId = idSerializer.Serialize("Query", new CustomId(1));
+        var intCustomId = idSerializer.Serialize("Query", 2);
+        var guidCustomId = idSerializer.Serialize("Query", Guid.Parse("00000000-0000-0000-0000-000000000003"));
+        var stringCustomId = idSerializer.Serialize("Query", "4");
 
         // act
         var result =
@@ -85,23 +88,35 @@ public class IdAttributeTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
-                .BindRuntimeType<CustomId, IdType>()
+                .AddTypeConverter<int, CustomId>(s => new CustomId(s))
+                .AddTypeConverter<Guid, CustomId>(s => new CustomId(3))
                 .AddTypeConverter<string, CustomId>(s => new CustomId(int.Parse(s)))
-                .AddTypeConverter<string?, CustomId?>(s => s is not null ? new CustomId(int.Parse(s)) : null)
                 .AddGlobalObjectIdentification(false)
                 .ExecuteRequestAsync(
                     QueryRequestBuilder.New()
                         .SetQuery(@"query foo (
-                                $customId: ID!
+                                $defaultCustomId: ID!
+                                $intCustomId: ID!
+                                $guidCustomId: ID!
+                                $stringCustomId: ID!
                                 $nullCustomId: ID = null)
                             {
-                                customId(id: $customId)
-                                nullableCustomId(id: $customId)
+                                customIdGivenDefault: customId(id: $defaultCustomId)
+                                nullableCustomIdGivenDefault: nullableCustomId(id: $defaultCustomId)
+                                customIdGivenInt: customId(id: $intCustomId)
+                                nullableCustomIdGivenInt: nullableCustomId(id: $intCustomId)
+                                customIdGivenGuid: customId(id: $guidCustomId)
+                                nullableCustomIdGivenGuid: nullableCustomId(id: $guidCustomId)
+                                customIdGivenString: customId(id: $stringCustomId)
+                                nullableCustomIdGivenString: nullableCustomId(id: $stringCustomId)
                                 nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
-                                customIdList(id: [$customId $customId])
-                                nullableCustomIdList(id: [$customId $nullCustomId $customId])
+                                customIdList(id: [$defaultCustomId $intCustomId $guidCustomId $stringCustomId])
+                                nullableCustomIdList(id: [$nullCustomId $defaultCustomId $intCustomId $guidCustomId $stringCustomId])
                             }")
-                        .SetVariableValue("customId", customId)
+                        .SetVariableValue("defaultCustomId", defaultCustomId)
+                        .SetVariableValue("intCustomId", intCustomId)
+                        .SetVariableValue("guidCustomId", guidCustomId)
+                        .SetVariableValue("stringCustomId", stringCustomId)
                         .Create());
 
         // assert
