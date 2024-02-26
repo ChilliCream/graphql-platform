@@ -1,4 +1,3 @@
-using System;
 using GreenDonut;
 
 namespace HotChocolate.Fetching;
@@ -23,7 +22,7 @@ public interface IDataLoaderScope
     /// <returns>
     /// Returns a <see cref="IDataLoader"/> instance from the current execution scope.
     /// </returns>
-    T GetDataLoader<T>(Func<T> createDataLoader, string? name = null) where T : IDataLoader;
+    T GetDataLoader<T>(DataLoaderFactory<T> createDataLoader, string? name = null) where T : IDataLoader;
 
     /// <summary>
     /// Gets a <see cref="IDataLoader"/> from the current execution scope; or, creates a new instance for this scope.

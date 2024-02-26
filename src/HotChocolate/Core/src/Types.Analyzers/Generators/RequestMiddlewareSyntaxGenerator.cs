@@ -44,6 +44,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("}");
         _writer.WriteLine();
+        _writer.Write(Properties.SourceGenResources.InterceptsAttribute);
     }
 
     public string WriteBeginClass()

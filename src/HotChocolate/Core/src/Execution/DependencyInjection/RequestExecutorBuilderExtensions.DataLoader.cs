@@ -33,7 +33,7 @@ public static partial class RequestExecutorBuilderExtensions
         Func<IServiceProvider, T> factory)
         where T : class, IDataLoader
     {
-        builder.Services.AddSingleton(new DataLoaderRegistration(typeof(T), factory));
+        builder.Services.AddSingleton(new DataLoaderRegistration(typeof(T), sp => factory(sp)));
         builder.Services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
         return builder;
     }

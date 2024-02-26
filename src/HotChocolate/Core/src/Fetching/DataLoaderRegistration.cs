@@ -9,9 +9,10 @@ namespace HotChocolate.Fetching;
 /// </summary>
 public sealed class DataLoaderRegistration
 {
-    private readonly Func<IServiceProvider, object> _factory;
+    private readonly DataLoaderFactory _factory;
     
-    public DataLoaderRegistration(Type instanceType) : this(instanceType, instanceType) { }
+    public DataLoaderRegistration(Type instanceType) 
+        : this(instanceType, instanceType) { }
 
     public DataLoaderRegistration(Type serviceType, Type instanceType)
     {
@@ -19,13 +20,13 @@ public sealed class DataLoaderRegistration
         InstanceType = instanceType;
 
         var factory = ActivatorUtilities.CreateFactory(instanceType, []);
-        _factory = sp => factory.Invoke(sp, null);
+        _factory = sp => (IDataLoader)factory.Invoke(sp, null);
     }
 
-    public DataLoaderRegistration(Type serviceType, Func<IServiceProvider, object> factory)
+    public DataLoaderRegistration(Type serviceType, DataLoaderFactory factory)
         : this(serviceType, serviceType, factory) { }
 
-    public DataLoaderRegistration(Type serviceType, Type instanceType, Func<IServiceProvider, object> factory)
+    public DataLoaderRegistration(Type serviceType, Type instanceType, DataLoaderFactory factory)
     {
         ServiceType = serviceType;
         InstanceType = instanceType;
@@ -52,5 +53,5 @@ public sealed class DataLoaderRegistration
     /// Returns the new DataLoader instance.
     /// </returns>
     public IDataLoader CreateDataLoader(IServiceProvider services)
-        => (IDataLoader)_factory(services);
+        => _factory(services);
 }

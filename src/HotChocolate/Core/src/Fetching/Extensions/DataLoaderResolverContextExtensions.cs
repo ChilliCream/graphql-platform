@@ -4,9 +4,7 @@ using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Fetching.Properties.FetchingResources;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -77,12 +75,12 @@ public static class DataLoaderResolverContextExtensions
         var scope = services.GetRequiredService<IDataLoaderScope>();
         return scope.GetDataLoader(Create, name);
         
-        IDataLoader<TKey, TValue> Create()
+        IDataLoader<TKey, TValue> Create(IServiceProvider sp)
             => new AdHocBatchDataLoader<TKey, TValue>(
                 name ?? "default",
                 fetch,
-                services.GetRequiredService<IBatchScheduler>(),
-                services.GetRequiredService<DataLoaderOptions>());
+                sp.GetRequiredService<IBatchScheduler>(),
+                sp.GetRequiredService<DataLoaderOptions>());
     }
 
     /// <summary>
@@ -149,12 +147,12 @@ public static class DataLoaderResolverContextExtensions
         var scope = services.GetRequiredService<IDataLoaderScope>();
         return scope.GetDataLoader(Create, name);
 
-        IDataLoader<TKey, TValue[]> Create()
+        IDataLoader<TKey, TValue[]> Create(IServiceProvider sp)
             => new AdHocGroupedDataLoader<TKey, TValue>(
                 name ?? "default",
                 fetch,
-                services.GetRequiredService<IBatchScheduler>(),
-                services.GetRequiredService<DataLoaderOptions>());
+                sp.GetRequiredService<IBatchScheduler>(),
+                sp.GetRequiredService<DataLoaderOptions>());
     }
 
     /// <summary>
@@ -206,7 +204,7 @@ public static class DataLoaderResolverContextExtensions
         var scope = services.GetRequiredService<IDataLoaderScope>();
         return scope.GetDataLoader(Create, name);
 
-        IDataLoader<TKey, TValue> Create()
+        IDataLoader<TKey, TValue> Create(IServiceProvider sp)
             => new AdHocCacheDataLoader<TKey, TValue>(
                 name ?? "default",
                 fetch,
@@ -249,35 +247,6 @@ public static class DataLoaderResolverContextExtensions
 
         var services = context.RequestServices;
         var reg = services.GetRequiredService<IDataLoaderScope>();
-        return reg.GetDataLoader(() => CreateDataLoader<T>(services));
-    }
-
-    private static T CreateDataLoader<T>(IServiceProvider services)
-        where T : IDataLoader
-    {
-        var registeredDataLoader = services.GetService<T>();
-
-        if (registeredDataLoader is not null)
-        {
-            return registeredDataLoader;
-        }
-
-        if (typeof(T).IsInterface || typeof(T).IsAbstract)
-        {
-            throw new RegisterDataLoaderException(
-                string.Format(
-                    DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType,
-                    typeof(T).FullName ?? typeof(T).Name));
-        }
-
-        if (ServiceFactory.CreateInstance(services, typeof(T)) is T dataLoader)
-        {
-            return dataLoader;
-        }
-
-        throw new RegisterDataLoaderException(
-            string.Format(
-                DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate,
-                typeof(T).FullName ?? typeof(T).Name));
+        return reg.GetDataLoader<T>();
     }
 }

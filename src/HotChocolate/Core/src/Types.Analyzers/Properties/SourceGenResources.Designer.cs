@@ -56,5 +56,11 @@ namespace HotChocolate.Types.Analyzers.Properties {
                 return ResourceManager.GetString("DataLoader_InvalidAccessModifier", resourceCulture);
             }
         }
+        
+        internal static string InterceptsAttribute {
+            get {
+                return ResourceManager.GetString("InterceptsAttribute", resourceCulture);
+            }
+        }
     }
 }

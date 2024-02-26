@@ -5,6 +5,8 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using GreenDonut;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
@@ -17,7 +19,7 @@ public sealed class DataLoaderScopeHolder
 #if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
 #else
-    private readonly Dictionary<Type, DataLoaderRegistration> _registrations;    
+    private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
 #endif
 
     public DataLoaderScopeHolder(IEnumerable<DataLoaderRegistration> registrations)
@@ -48,9 +50,11 @@ public sealed class DataLoaderScopeHolder
     /// <summary>
     /// Creates and pins a new <see cref="IDataLoaderScope"/>.
     /// </summary>
-    /// <returns></returns>
-    public IDataLoaderScope PinNewScope(IServiceProvider scopedServiceProvider)
-        => CurrentScope = new DefaultDataLoaderScope(scopedServiceProvider, _registrations);
+    public IDataLoaderScope PinNewScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    {
+        scheduler ??= scopedServiceProvider.GetRequiredService<IBatchScheduler>();
+        return CurrentScope = new DefaultDataLoaderScope(scopedServiceProvider, scheduler, _registrations);
+    }
 
     /// <summary>
     /// Gets access to the current <see cref="IDataLoaderScope"/> instance.
@@ -61,8 +65,7 @@ public sealed class DataLoaderScopeHolder
     public IDataLoaderScope CurrentScope
     {
         get => _currentScope.Value?.Scope ??
-            throw new InvalidCastException(
-                "Can only be accessed in an async context.");
+            throw new InvalidOperationException("No DataLoader scope exists.");
         set
         {
             var holder = _currentScope.Value;
