@@ -176,7 +176,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 static () => throw DefaultHttpRequestParser_MaxRequestSizeExceeded(),
                 cancellationToken);
         }
-        catch (GraphQLException)
+        catch (GraphQLRequestException)
         {
             throw;
         }
@@ -238,10 +238,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         {
             if (!IsLetterOrDigitOrUnderscoreOrHyphen((byte)start))
             {
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage("Invalid query id format.")
-                        .Build());
+                throw ErrorHelper.InvalidQueryIdFormat();
             }
             start = ref Unsafe.Add(ref start, 1)!;
         }

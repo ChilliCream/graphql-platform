@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Text;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.AspNetCore.Serialization;
 
 public sealed class DefaultHttpRequestParserTests
 {
@@ -63,7 +62,7 @@ public sealed class DefaultHttpRequestParserTests
         }
 
         // assert
-        var ex = await Assert.ThrowsAsync<GraphQLException>(Parse);
+        var ex = await Assert.ThrowsAsync<GraphQLRequestException>(Parse);
         Assert.Equal("Invalid query id format.", ex.Message);
     }
     
@@ -116,7 +115,7 @@ public sealed class DefaultHttpRequestParserTests
         }
 
         // assert
-        var ex = Assert.Throws<GraphQLException>(Parse);
+        var ex = Assert.Throws<GraphQLRequestException>(Parse);
         Assert.Equal("Invalid query id format.", ex.Message);
     }
     
@@ -161,7 +160,7 @@ public sealed class DefaultHttpRequestParserTests
         }
 
         // assert
-        var ex = Assert.Throws<GraphQLException>(Parse);
+        var ex = Assert.Throws<GraphQLRequestException>(Parse);
         Assert.Equal("Invalid query id format.", ex.Message);
     }
 
