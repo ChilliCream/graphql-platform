@@ -20,20 +20,9 @@ public interface IHttpRequestParser
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
+    ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
         Stream requestBody,
         CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
-    /// </summary>
-    /// <param name="parameters">
-    /// The HTTP query parameter collection.
-    /// </param>
-    /// <returns>
-    /// Returns the parsed GraphQL request.
-    /// </returns>
-    GraphQLRequest ReadParamsRequest(IQueryCollection parameters);
 
     /// <summary>
     /// Parses the operations string from an GraphQL HTTP MultiPart request.
@@ -44,5 +33,16 @@ public interface IHttpRequestParser
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    IReadOnlyList<GraphQLRequest> ReadOperationsRequest(string operations);
+    IReadOnlyList<GraphQLRequest> ParseRequest(string operations);
+    
+    /// <summary>
+    /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
+    /// </summary>
+    /// <param name="parameters">
+    /// The HTTP query parameter collection.
+    /// </param>
+    /// <returns>
+    /// Returns the parsed GraphQL request.
+    /// </returns>
+    GraphQLRequest ParseRequestFromParams(IQueryCollection parameters);
 }

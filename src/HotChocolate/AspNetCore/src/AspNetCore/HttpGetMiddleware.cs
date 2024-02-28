@@ -127,7 +127,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         {
             try
             {
-                request = _requestParser.ReadParamsRequest(context.Request.Query);
+                request = _requestParser.ParseRequestFromParams(context.Request.Query);
             }
             catch (GraphQLRequestException ex)
             {
