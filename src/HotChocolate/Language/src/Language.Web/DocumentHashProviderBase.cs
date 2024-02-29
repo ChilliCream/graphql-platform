@@ -107,7 +107,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
     {
         byte[]? rented = null;
         var initialSize = hash.Length * 3;
-        var buffer = initialSize <= 256
+        var buffer = initialSize <= GraphQLConstants.StackallocThreshold
             ? stackalloc byte[initialSize]
             : rented = ArrayPool<byte>.Shared.Rent(initialSize);
         int written;
