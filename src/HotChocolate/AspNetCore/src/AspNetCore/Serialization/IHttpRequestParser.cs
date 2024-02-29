@@ -24,6 +24,10 @@ public interface IHttpRequestParser
         Stream requestBody,
         CancellationToken cancellationToken);
 
+    GraphQLRequest ParseParamsVariablesAndExtensions(
+        string operationId, 
+        IQueryCollection parameters);
+
     /// <summary>
     /// Parses the operations string from an GraphQL HTTP MultiPart request.
     /// </summary>
@@ -34,7 +38,7 @@ public interface IHttpRequestParser
     /// Returns the parsed GraphQL request.
     /// </returns>
     IReadOnlyList<GraphQLRequest> ParseRequest(string operations);
-    
+
     /// <summary>
     /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
     /// </summary>

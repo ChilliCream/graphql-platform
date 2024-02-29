@@ -103,7 +103,7 @@ public class MiddlewareBase : IDisposable
     protected GraphQLRequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
         => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 
-    protected static async Task<IExecutionResult> ExecuteSingleAsync(
+    internal static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,

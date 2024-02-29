@@ -125,6 +125,44 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             throw DefaultHttpRequestParser_UnexpectedError(ex);
         }
     }
+    
+    public GraphQLRequest ParseParamsVariablesAndExtensions(string queryId, IQueryCollection parameters)
+    {
+        string? operationName = parameters[_operationNameKey];
+        EnsureValidQueryId(queryId);
+        
+        try
+        {
+            IReadOnlyDictionary<string, object?>? variables = null;
+            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
+            {
+                variables = ParseVariables(sv);
+            }
+            
+            IReadOnlyDictionary<string, object?>? extensions = null;
+            if (extensions is null &&
+                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
+            {
+                extensions = ParseJsonObject(se);
+            }
+
+            return new GraphQLRequest(
+                null,
+                queryId,
+                null,
+                operationName,
+                variables,
+                extensions);
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
+        }
+        catch (Exception ex)
+        {
+            throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
 
     private (string QueryHash, DocumentNode Document) ParseQueryString(string sourceText)
     {
