@@ -12,7 +12,7 @@ public class PersistedQueryCache
     public PersistedQueryCache()
     {
         _cache.Add(
-            "60ddx/GGk4FDObSa6eK0sg==",
+            "60ddx_GGk4FDObSa6eK0sg",
             Utf8GraphQLParser.Parse(@"{ hero { name } }"));
     }
 

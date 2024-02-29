@@ -4,10 +4,7 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The GraphQL request is empty.",
-      "extensions": {
-        "code": "HC0009"
-      }
+      "message": "Invalid query id format."
     }
   ],
   "Extensions": null

@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
 
@@ -31,15 +30,10 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
 
         if (written < 32)
         {
-            hashSpan = hashSpan.Slice(0, written);
+            hashSpan = hashSpan[..written];
         }
 
-        return format switch
-        {
-            HashFormat.Base64 => Convert.ToBase64String(hashSpan),
-            HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported),
-        };
+        return FormatHash(hashSpan, format);
     }
 #else
     protected override byte[] ComputeHash(byte[] document, int length)

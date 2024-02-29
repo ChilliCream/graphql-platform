@@ -111,7 +111,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             try
             {
-                requests = await GetRequestsFromBody(context.Request, context.RequestAborted);
+                requests = await ParseRequestsFromBody(context.Request, context.RequestAborted);
             }
             catch (GraphQLRequestException ex)
             {
@@ -283,10 +283,10 @@ HANDLE_RESULT:
         }
     }
 
-    protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+    protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBody(
         HttpRequest request,
         CancellationToken cancellationToken)
-        => RequestParser.ReadJsonRequestAsync(request.Body, cancellationToken);
+        => RequestParser.ParseRequestAsync(request.Body, cancellationToken);
 
     private static bool TryParseOperations(
         string operationNameString,
