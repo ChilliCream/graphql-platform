@@ -30,12 +30,7 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
             hashSpan = hashSpan.Slice(0, written);
         }
 
-        return format switch
-        {
-            HashFormat.Base64 => Convert.ToBase64String(hashSpan),
-            HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported),
-        };
+        return FormatHash(hashSpan, format);
     }
 #else
     protected override byte[] ComputeHash(byte[] document, int length)
