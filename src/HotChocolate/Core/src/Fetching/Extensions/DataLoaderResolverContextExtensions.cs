@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
+using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;

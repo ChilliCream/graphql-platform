@@ -1,6 +1,4 @@
-using GreenDonut;
-
-namespace HotChocolate.Fetching;
+namespace GreenDonut.DependencyInjection;
 
 /// <summary>
 /// The DataLoader scope provides access to the DataLoader bound to the current execution. 

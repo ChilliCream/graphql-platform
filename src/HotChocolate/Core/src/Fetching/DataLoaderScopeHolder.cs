@@ -1,11 +1,13 @@
 using System;
 #if NET8_0_OR_GREATER
 using System.Collections.Frozen;
+#else
+using System.Linq;
 #endif
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using GreenDonut;
+using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
@@ -53,7 +55,16 @@ public sealed class DataLoaderScopeHolder
     public IDataLoaderScope PinNewScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
         scheduler ??= scopedServiceProvider.GetRequiredService<IBatchScheduler>();
-        return CurrentScope = new DefaultDataLoaderScope(scopedServiceProvider, scheduler, _registrations);
+        return CurrentScope = new ExecutionDataLoaderScope(scopedServiceProvider, scheduler, _registrations);
+    }
+    
+    public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    {
+        if(_currentScope.Value?.Scope is null)
+        {
+            CurrentScope = PinNewScope(scopedServiceProvider, scheduler);
+        }
+        return CurrentScope;
     }
 
     /// <summary>

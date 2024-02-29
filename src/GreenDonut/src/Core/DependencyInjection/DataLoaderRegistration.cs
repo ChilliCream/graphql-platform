@@ -1,8 +1,7 @@
 using System;
-using GreenDonut;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Fetching;
+namespace GreenDonut.DependencyInjection;
 
 /// <summary>
 /// Represents a registration for a DataLoader.

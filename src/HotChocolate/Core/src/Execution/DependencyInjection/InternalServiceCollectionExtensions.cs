@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using GreenDonut;
+using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
@@ -107,49 +108,7 @@ internal static class InternalServiceCollectionExtensions
 
         return services;
     }
-
-    internal static IServiceCollection TryAddDataLoaderTaskCachePool(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton(
-            sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
-        services.TryAddScoped(
-            sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
-        return services;
-    }
-
-    internal static IServiceCollection TryAddDataLoaderOptions(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
-            sp =>
-            {
-                var listeners = sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
-
-                return listeners.Length switch
-                {
-                    0 => new DataLoaderDiagnosticEventListener(),
-                    1 => listeners[0],
-                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners),
-                };
-            });
-
-        services.TryAddScoped(
-            sp =>
-            {
-                var cacheOwner = sp.GetRequiredService<TaskCacheOwner>();
-
-                return new DataLoaderOptions
-                {
-                    Cache = cacheOwner.Cache,
-                    CancellationToken = cacheOwner.CancellationToken,
-                    DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                    MaxBatchSize = 1024,
-                };
-            });
-        return services;
-    }
-
+    
     internal static IServiceCollection TryAddTypeConverter(
         this IServiceCollection services)
     {
@@ -215,10 +174,11 @@ internal static class InternalServiceCollectionExtensions
     internal static IServiceCollection TryAddDefaultDataLoaderRegistry(
         this IServiceCollection services)
     {
+        services.RemoveAll<IDataLoaderScope>();
         services.TryAddSingleton<DataLoaderScopeHolder>();
-        services.TryAddScoped<IDataLoaderScopeFactory, DefaultDataLoaderScopeFactory>();
+        services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(
-            sp => sp.GetRequiredService<DataLoaderScopeHolder>().CurrentScope);
+            sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
         return services;
     }
 

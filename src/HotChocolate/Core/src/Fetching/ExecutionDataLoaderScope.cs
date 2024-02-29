@@ -4,14 +4,16 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 #else
 using System.Collections.Generic;
+using GreenDonut.DependencyInjection;
 #endif
 using GreenDonut;
+using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching.Properties;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
-internal sealed class DefaultDataLoaderScope(
+internal sealed class ExecutionDataLoaderScope(
     IServiceProvider serviceProvider,
     IBatchScheduler batchScheduler,
 #if NET8_0_OR_GREATER

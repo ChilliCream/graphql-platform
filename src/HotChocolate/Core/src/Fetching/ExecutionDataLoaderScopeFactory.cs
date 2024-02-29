@@ -1,10 +1,11 @@
 using System;
 using GreenDonut;
+using GreenDonut.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
-public sealed class DefaultDataLoaderScopeFactory(IServiceProvider services) : IDataLoaderScopeFactory
+public sealed class ExecutionDataLoaderScopeFactory(IServiceProvider services) : IDataLoaderScopeFactory
 {
     public void BeginScope(IBatchScheduler? scheduler = default)
     {

@@ -56,7 +56,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultDataLoaderRegistry()
             .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
-            .TryAddDataLoaderOptions()
             .AddSingleton<ResolverProvider>();
 
         // pools
@@ -65,7 +64,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
-            .TryAddDataLoaderTaskCachePool()
             .TryAddOperationCompilerPool();
 
         // global executor services

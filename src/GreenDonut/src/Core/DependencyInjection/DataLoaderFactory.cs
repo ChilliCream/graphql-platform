@@ -1,7 +1,6 @@
 using System;
-using GreenDonut;
 
-namespace HotChocolate.Fetching;
+namespace GreenDonut.DependencyInjection;
 
 /// <summary>
 /// Represents a factory that creates a DataLoader instance.
