@@ -206,7 +206,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         return EnsureValidQueryId(requestParser.Parse());
     }
 
-    private static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)
+    internal static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)
     {
         if (requests.Count == 1)
         {
