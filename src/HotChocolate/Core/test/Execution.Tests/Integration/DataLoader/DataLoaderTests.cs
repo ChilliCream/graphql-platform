@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using CookieCrumble;
 using GreenDonut;
+using GreenDonut.DependencyInjection;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -293,6 +294,41 @@ public class DataLoaderTests
         var dataLoaderScopeFactory = serviceScope.ServiceProvider.GetRequiredService<IDataLoaderScopeFactory>();
         dataLoaderScopeFactory.BeginScope();
 
+        var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
+        var result = await dataLoader.LoadAsync("a");
+        Assert.Equal("a", result);
+    }
+    
+    [Fact]
+    public async Task ClassDataLoader_Out_Off_GraphQL_Context_Just_Works()
+    {
+        // arrange
+        var services = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddDataLoader<ITestDataLoader, TestDataLoader>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+
+                    var dataLoader =
+                        context.Services
+                            .GetRequiredService<IDataLoaderScope>()
+                            .GetDataLoader<TestDataLoader>(_ => throw new Exception());
+
+                    context.Result = QueryResultBuilder
+                        .FromResult((IQueryResult)context.Result!)
+                        .AddExtension("loads", dataLoader.Loads)
+                        .Create();
+                })
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider();
+
+        // act
+        using var serviceScope = services.CreateScope();
         var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
         var result = await dataLoader.LoadAsync("a");
         Assert.Equal("a", result);
