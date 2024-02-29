@@ -119,7 +119,7 @@ public class DocumentCacheMiddlewareTests
         // assert
         Assert.Null(requestContext.Object.Document);
         Assert.Null(requestContext.Object.DocumentId);
-        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        Assert.Equal("1_4JnW9GhGu3YdhGeMefaA", requestContext.Object.DocumentHash);
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class DocumentCacheMiddlewareTests
         // assert
         Assert.Equal(document, requestContext.Object.Document);
         Assert.Equal("a", requestContext.Object.DocumentId);
-        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        Assert.Equal("1_4JnW9GhGu3YdhGeMefaA", requestContext.Object.DocumentHash);
     }
 
     [Fact]
@@ -198,6 +198,6 @@ public class DocumentCacheMiddlewareTests
         // assert
         Assert.NotNull(requestContext.Object.Document);
         Assert.Equal(requestContext.Object.DocumentHash, requestContext.Object.DocumentId);
-        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        Assert.Equal("1_4JnW9GhGu3YdhGeMefaA", requestContext.Object.DocumentHash);
     }
 }

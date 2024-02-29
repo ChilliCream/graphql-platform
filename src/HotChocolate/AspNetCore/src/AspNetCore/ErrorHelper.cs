@@ -66,4 +66,10 @@ internal static class ErrorHelper
             new Error(
                 ErrorHelper_MultiPartRequestPreflightRequired,
                 code: ErrorCodes.Server.MultiPartPreflightRequired));
+    
+    public static GraphQLRequestException InvalidQueryIdFormat()
+        => new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage("Invalid query id format.")
+                .Build());
 }
