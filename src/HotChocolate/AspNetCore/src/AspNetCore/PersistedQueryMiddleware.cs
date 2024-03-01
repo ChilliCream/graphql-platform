@@ -13,13 +13,25 @@ internal static class PersistedQueryMiddleware
     internal static void MapPersistedQueryMiddleware(this RouteGroupBuilder groupBuilder, string schemaName)
     {
         var state = new State(schemaName);
-
+        
+        groupBuilder
+            .MapGet(
+                "/{OperationId}",
+                ([AsParameters] Services services, string operationId)
+                    => ExecuteGetRequestAsync(state, services, operationId, null));
+        
         groupBuilder
             .MapGet(
                 "/{OperationId}/{DisplayName}",
                 ([AsParameters] Services services, string operationId, string displayName)
                     => ExecuteGetRequestAsync(state, services, operationId, displayName));
 
+        groupBuilder
+            .MapPost(
+                "/{OperationId}",
+                ([AsParameters] Services services, string operationId)
+                    => ExecutePostRequestAsync(state, services, operationId, null));
+        
         groupBuilder
             .MapPost(
                 "/{OperationId}/{DisplayName}",
@@ -32,7 +44,7 @@ internal static class PersistedQueryMiddleware
         Services services,
         string operationId,
         // ReSharper disable once UnusedParameter.Local
-        string displayName)
+        string? displayName)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
@@ -108,7 +120,7 @@ internal static class PersistedQueryMiddleware
         Services services,
         string operationId,
         // ReSharper disable once UnusedParameter.Local
-        string displayName)
+        string? displayName)
     {
         HttpStatusCode? statusCode;
         IExecutionResult? result;
