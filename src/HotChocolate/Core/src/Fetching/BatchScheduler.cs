@@ -10,9 +10,7 @@ namespace HotChocolate.Fetching;
 /// <summary>
 /// The execution engine batch dispatcher.
 /// </summary>
-public class BatchScheduler
-    : IBatchScheduler
-    , IBatchDispatcher
+public sealed class BatchScheduler : IBatchHandler
 {
     private static List<Func<ValueTask>>? _localTasks;
     private static List<Task<Exception?>>? _localProcessing;
