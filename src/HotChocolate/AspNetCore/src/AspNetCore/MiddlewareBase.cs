@@ -54,6 +54,11 @@ public class MiddlewareBase : IDisposable
     /// Gets the request executor proxy.
     /// </summary>
     protected RequestExecutorProxy ExecutorProxy => _executorProxy;
+    
+    /// <summary>
+    /// Gets the response formatter.
+    /// </summary>
+    protected IHttpResponseFormatter ResponseFormatter => _responseFormatter;
 
     /// <summary>
     /// Invokes the next middleware in line.
@@ -103,7 +108,7 @@ public class MiddlewareBase : IDisposable
     protected GraphQLRequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
         => _responseFormatter.CreateRequestFlags(acceptMediaTypes);
 
-    internal static async Task<IExecutionResult> ExecuteSingleAsync(
+    protected static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,

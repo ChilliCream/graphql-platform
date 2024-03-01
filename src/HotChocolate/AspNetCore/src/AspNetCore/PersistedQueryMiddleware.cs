@@ -1,13 +1,10 @@
 #if NET8_0_OR_GREATER
-using System.Diagnostics;
 using System.Net;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Language;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using static HotChocolate.Execution.GraphQLRequestFlags;
 
 namespace HotChocolate.AspNetCore;
 
@@ -19,198 +16,159 @@ internal static class PersistedQueryMiddleware
 
         groupBuilder
             .MapGet(
-                "/q/{OperationId}/{DisplayName}",
+                "/{OperationId}/{DisplayName}",
                 ([AsParameters] Services services, string operationId, string displayName)
                     => ExecuteGetRequestAsync(state, services, operationId, displayName));
+
+        groupBuilder
+            .MapPost(
+                "/{OperationId}/{DisplayName}",
+                ([AsParameters] Services services, string operationId, string displayName)
+                    => ExecutePostRequestAsync(state, services, operationId, displayName));
     }
 
     private static async Task ExecuteGetRequestAsync(
         State state,
         Services services,
         string operationId,
+        // ReSharper disable once UnusedParameter.Local
         string displayName)
     {
-        HttpStatusCode? statusCode = null;
+        HttpStatusCode? statusCode;
         IExecutionResult? result;
-        
-        // first  we will inspect the accept headers and determine if we can execute this request.
-        var headerResult = HeaderUtilities.GetAcceptHeader(services.Context.Request);
-        var acceptMediaTypes = headerResult.AcceptMediaTypes;
 
-        // if we cannot parse all media types that we provided we will fail the request
-        // with a 400 Bad Request.
-        if (headerResult.HasError)
+        // first we validate the accept headers.
+        var validationResult =
+            MiddlewareHelper.ValidateAcceptContentType(
+                services.Context,
+                services.ResponseFormatter,
+                services.DiagnosticEvents);
+
+        var acceptMediaTypes = validationResult.AcceptMediaTypes;
+
+        if (!validationResult.IsValid)
         {
-            // in this case accept headers were specified and we will
-            // respond with proper error codes
-            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
-            statusCode = HttpStatusCode.BadRequest;
-
-            var errors = headerResult.ErrorResult.Errors!;
-            result = headerResult.ErrorResult;
-            services.DiagnosticEvents.HttpRequestError(services.Context, errors[0]);
-            goto HANDLE_RESULT;
-        }
-        
-        var requestFlags = services.ResponseFormatter.CreateRequestFlags(headerResult.AcceptMediaTypes);
-        
-        // if the request defines accept header values of which we cannot handle any provided
-        // media type then we will fail the request with 406 Not Acceptable.
-        if (requestFlags is None)
-        {
-            // in this case accept headers were specified and we will
-            // respond with proper error codes
-            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
-            statusCode = HttpStatusCode.NotAcceptable;
-
-            var error = ErrorHelper.NoSupportedAcceptMediaType();
-            result = QueryResultBuilder.CreateError(error);
-            services.DiagnosticEvents.HttpRequestError(services.Context, error);
+            statusCode = validationResult.StatusCode.Value;
+            result = validationResult.Error;
             goto HANDLE_RESULT;
         }
 
-        var executor = state.CurrentExecutor;
-        executor ??= await state.GetExecutorAsync(services.ExecutorResolver, services.CancellationToken);
-        var errorHandler = executor.GetErrorHandler();
-        services.Context.Items[WellKnownContextData.RequestExecutor] = executor;
-        
         // next we parse the GraphQL request.
-        GraphQLRequest request;
-        using (services.DiagnosticEvents.ParseHttpRequest(services.Context))
+        var executor = state.CurrentExecutor ??
+            await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
+        var errorHandler = executor.GetErrorHandler();
+
+        var parserResult =
+            MiddlewareHelper.ParseVariablesAndExtensionsFromParams(
+                operationId,
+                services.Context,
+                services.RequestParser,
+                errorHandler,
+                services.DiagnosticEvents);
+
+        if (!parserResult.IsValid)
         {
-            try
-            {
-                request = services.RequestParser.ParseParamsVariablesAndExtensions(
-                    operationId,
-                    services.Context.Request.Query);
-            }
-            catch (GraphQLRequestException ex)
-            {
-                // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case we will return HTTP status code 400 and return a
-                // GraphQL error result.
-                statusCode = HttpStatusCode.BadRequest;
-                var errors = errorHandler.Handle(ex.Errors);
-                result = QueryResultBuilder.CreateError(errors);
-                services.DiagnosticEvents.ParserErrors(services.Context, errors);
-                goto HANDLE_RESULT;
-            }
-            catch (Exception ex)
-            {
-                statusCode = HttpStatusCode.InternalServerError;
-                var error = errorHandler.CreateUnexpectedError(ex).Build();
-                result = QueryResultBuilder.CreateError(error);
-                services.DiagnosticEvents.HttpRequestError(services.Context, error);
-                goto HANDLE_RESULT;
-            }
+            statusCode = parserResult.StatusCode.Value;
+            result = parserResult.Error;
+            goto HANDLE_RESULT;
+        }
+
+        // before we can execute the request we need to determine the request flags.
+        var request = parserResult.Request!;
+        var options = state.GetOptions(services.Context);
+        var requestFlags =
+            MiddlewareHelper.DetermineHttpGetRequestFlags(
+                validationResult.RequestFlags,
+                options);
+
+        // next we will execute the request.
+        var executionResult =
+            await MiddlewareHelper.ExecuteRequestAsync(
+                request,
+                requestFlags,
+                services.Context,
+                executor,
+                errorHandler,
+                services.DiagnosticEvents);
+        statusCode = executionResult.StatusCode;
+        result = executionResult.Result;
+
+        HANDLE_RESULT:
+        await MiddlewareHelper.WriteResultAsync(
+            result!,
+            acceptMediaTypes,
+            statusCode,
+            services.Context,
+            services.ResponseFormatter,
+            services.DiagnosticEvents);
+    }
+
+    private static async Task ExecutePostRequestAsync(
+        State state,
+        Services services,
+        string operationId,
+        // ReSharper disable once UnusedParameter.Local
+        string displayName)
+    {
+        HttpStatusCode? statusCode;
+        IExecutionResult? result;
+
+        // first we validate the accept headers.
+        var validationResult =
+            MiddlewareHelper.ValidateAcceptContentType(
+                services.Context,
+                services.ResponseFormatter,
+                services.DiagnosticEvents);
+
+        var acceptMediaTypes = validationResult.AcceptMediaTypes;
+
+        if (!validationResult.IsValid)
+        {
+            statusCode = validationResult.StatusCode.Value;
+            result = validationResult.Error;
+            goto HANDLE_RESULT;
+        }
+
+        // next we parse the GraphQL request.
+        var executor = state.CurrentExecutor ??
+            await state.GetExecutorAsync(services.ExecutorResolver, services.RequestAborted);
+        var errorHandler = executor.GetErrorHandler();
+
+        var parserResult =
+            await MiddlewareHelper.ParseSingleRequestFromBodyAsync(
+                operationId,
+                services.Context,
+                services.RequestParser,
+                errorHandler,
+                services.DiagnosticEvents);
+
+        if (!parserResult.IsValid)
+        {
+            statusCode = parserResult.StatusCode.Value;
+            result = parserResult.Error;
+            goto HANDLE_RESULT;
         }
 
         // after successfully parsing the request we now will attempt to execute the request.
-        try
-        {
-            var options = state.GetOptions(services.Context);
-
-            if (options is null or { AllowedGetOperations: AllowedGetOperations.Query, })
-            {
-                requestFlags = (requestFlags & AllowStreams) == AllowStreams
-                    ? AllowQuery | AllowStreams
-                    : AllowQuery;
-            }
-            else
-            {
-                var flags = options.AllowedGetOperations;
-                var newRequestFlags = None;
-
-                if ((flags & AllowedGetOperations.Query) == AllowedGetOperations.Query)
-                {
-                    newRequestFlags |= AllowQuery;
-                }
-
-                if ((flags & AllowedGetOperations.Mutation) == AllowedGetOperations.Mutation)
-                {
-                    newRequestFlags |= AllowMutation;
-                }
-
-                if ((flags & AllowedGetOperations.Subscription) == AllowedGetOperations.Subscription &&
-                    (requestFlags & AllowSubscription) == AllowSubscription)
-                {
-                    newRequestFlags |= AllowSubscription;
-                }
-
-                if ((requestFlags & AllowStreams) == AllowStreams)
-                {
-                    newRequestFlags |= AllowStreams;
-                }
-
-                requestFlags = newRequestFlags;
-            }
-
-            result = await MiddlewareBase.ExecuteSingleAsync(
+        var executionResult =
+            await MiddlewareHelper.ExecuteRequestAsync(
+                parserResult.Request!,
+                validationResult.RequestFlags,
                 services.Context,
                 executor,
-                executor.GetRequestInterceptor(),
-                services.DiagnosticEvents,
-                request,
-                requestFlags);
-        }
-        catch (GraphQLException ex)
-        {
-            // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
-            statusCode = null; // we let the serializer determine the status code.
-            result = QueryResultBuilder.CreateError(ex.Errors);
-        }
-        catch (Exception ex)
-        {
-            statusCode = HttpStatusCode.InternalServerError;
-            var error = errorHandler.CreateUnexpectedError(ex).Build();
-            result = QueryResultBuilder.CreateError(error);
-        }
+                errorHandler,
+                services.DiagnosticEvents);
+        statusCode = executionResult.StatusCode;
+        result = executionResult.Result;
 
         HANDLE_RESULT:
-        IDisposable? formatScope = null;
-
-        try
-        {
-            // if cancellation is requested we will not try to attempt to write the result to the
-            // response stream.
-            if (services.Context.RequestAborted.IsCancellationRequested)
-            {
-                return;
-            }
-
-            // in any case we will have a valid GraphQL result at this point that can be written
-            // to the HTTP response stream.
-            Debug.Assert(result is not null, "No GraphQL result was created.");
-
-            if (result is IQueryResult queryResult)
-            {
-                formatScope = services.DiagnosticEvents.FormatHttpResponse(services.Context, queryResult);
-            }
-            
-            await services.ResponseFormatter.FormatAsync(
-                services.Context.Response,
-                result,
-                acceptMediaTypes,
-                statusCode,
-                services.CancellationToken);
-        }
-        finally
-        {
-            // we must dispose the diagnostic scope first.
-            formatScope?.Dispose();
-
-            // query results use pooled memory an need to be disposed after we have
-            // used them.
-            if (result is IAsyncDisposable asyncDisposable)
-            {
-                await asyncDisposable.DisposeAsync();
-            }
-
-            if (result is not null)
-            {
-                await result.DisposeAsync();
-            }
-        }
+        await MiddlewareHelper.WriteResultAsync(
+            result!,
+            acceptMediaTypes,
+            statusCode,
+            services.Context,
+            services.ResponseFormatter,
+            services.DiagnosticEvents);
     }
 
     private sealed class Services(
@@ -218,8 +176,7 @@ internal static class PersistedQueryMiddleware
         IRequestExecutorResolver executorResolver,
         IHttpResponseFormatter responseFormatter,
         IHttpRequestParser requestParser,
-        IServerDiagnosticEvents diagnosticEvents,
-        CancellationToken cancellationToken)
+        IServerDiagnosticEvents diagnosticEvents)
     {
         public HttpContext Context { get; } = context;
 
@@ -231,7 +188,7 @@ internal static class PersistedQueryMiddleware
 
         public IServerDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-        public CancellationToken CancellationToken { get; } = cancellationToken;
+        public CancellationToken RequestAborted => Context.RequestAborted;
     }
 
     private class State(string schemaName)
@@ -248,7 +205,7 @@ internal static class PersistedQueryMiddleware
             _proxy ??= new RequestExecutorProxy(resolver, schemaName);
             return _proxy.GetRequestExecutorAsync(cancellationToken);
         }
-        
+
         public GraphQLServerOptions GetOptions(HttpContext context)
         {
             if (_options is not null)

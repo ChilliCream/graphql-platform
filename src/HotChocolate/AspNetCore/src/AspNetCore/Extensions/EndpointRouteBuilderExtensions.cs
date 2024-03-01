@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
@@ -21,6 +22,7 @@ public static class EndpointRouteBuilderExtensions
     private const string _graphQLWebSocketPath = "/graphql/ws";
     private const string _graphQLSchemaPath = "/graphql/sdl";
     private const string _graphQLToolPath = "/graphql/ui";
+    private const string _graphQLPersistedOperationPath = "/graphql/q";
     private const string _graphQLToolRelativeRequestPath = "..";
 
     /// <summary>
@@ -76,13 +78,6 @@ public static class EndpointRouteBuilderExtensions
 
         path = path.ToString().TrimEnd('/');
         var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
-#if NET8_0_OR_GREATER
-
-        endpointRouteBuilder
-            .MapGroup(Parse(path.ToString()))
-            .MapPersistedQueryMiddleware(schemaNameOrDefault);
-        
-#endif
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         requestPipeline.MapGraphQL(path, schemaNameOrDefault);
@@ -451,6 +446,56 @@ public static class EndpointRouteBuilderExtensions
         return new BananaCakePopEndpointConventionBuilder(builder);
     }
 
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the persisted query endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// </returns>
+    public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        [StringSyntax("Route")] string path = _graphQLPersistedOperationPath,
+        string? schemaName = default)
+        => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName);
+    
+    /// <summary>
+    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the persisted query endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// </returns>
+    public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        RoutePattern path,
+        string? schemaName = default)
+    {
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+
+        var group = endpointRouteBuilder.MapGroup(path);
+        group.MapPersistedQueryMiddleware(schemaNameOrDefault);
+        return group;
+    }
+#endif
+    
     /// <summary>
     /// Specifies the GraphQL server options.
     /// </summary>

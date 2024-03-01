@@ -14,6 +14,10 @@ public class PersistedQueryCache
         _cache.Add(
             "60ddx_GGk4FDObSa6eK0sg",
             Utf8GraphQLParser.Parse(@"{ hero { name } }"));
+        
+        _cache.Add(
+            "abc",
+            Utf8GraphQLParser.Parse(@"query($if: Boolean) { hero { name @skip(if: $if) } }"));
     }
 
     public async Task<QueryDocument?> TryReadQueryAsync(
