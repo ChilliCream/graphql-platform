@@ -52,6 +52,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         Stream requestBody,
         CancellationToken cancellationToken)
     {
+        EnsureValidQueryId(operationId);
+        
         try
         {
             GraphQLRequest Parse(byte[] buffer, int length)
@@ -168,10 +170,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         }
     }
     
-    public GraphQLRequest ParsePersistedOperationRequestFromParams(string queryId, IQueryCollection parameters)
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(string operationId, IQueryCollection parameters)
     {
         string? operationName = parameters[_operationNameKey];
-        EnsureValidQueryId(queryId);
+        EnsureValidQueryId(operationId);
         
         try
         {
@@ -190,7 +192,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
             return new GraphQLRequest(
                 null,
-                queryId,
+                operationId,
                 null,
                 operationName,
                 variables,

@@ -4,10 +4,7 @@
 {
   "errors": [
     {
-      "message": "PersistedQueryNotFound",
-      "extensions": {
-        "code": "HC0020"
-      }
+      "message": "Invalid query id format."
     }
   ]
 }
