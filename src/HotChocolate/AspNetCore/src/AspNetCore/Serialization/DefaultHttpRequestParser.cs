@@ -1,3 +1,5 @@
+// ReSharper disable RedundantSuppressNullableWarningExpression
+
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -41,9 +43,51 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
     }
 
     public ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
-        Stream stream,
-        CancellationToken cancellationToken) =>
-        ReadAsync(stream, cancellationToken);
+        Stream requestBody,
+        CancellationToken cancellationToken) 
+        => ReadAsync(requestBody, cancellationToken);
+
+    public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
+        string operationId,
+        Stream requestBody,
+        CancellationToken cancellationToken)
+    {
+        EnsureValidQueryId(operationId);
+        
+        try
+        {
+            GraphQLRequest Parse(byte[] buffer, int length)
+                => ParsePersistedOperationRequest(buffer, length, operationId);
+
+            return await BufferHelper.ReadAsync(
+                requestBody,
+                Parse,
+                _maxRequestSize,
+                static (buffer, bytesBuffered, p) =>
+                {
+                    if (bytesBuffered == 0)
+                    {
+                        throw DefaultHttpRequestParser_RequestIsEmpty();
+                    }
+
+                    return p(buffer, bytesBuffered);
+                },
+                static () => throw DefaultHttpRequestParser_MaxRequestSizeExceeded(),
+                cancellationToken);
+        }
+        catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
+        }
+        catch (Exception ex)
+        {
+            throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
 
     public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
@@ -112,6 +156,44 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 document,
                 queryId,
                 queryHash,
+                operationName,
+                variables,
+                extensions);
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
+        }
+        catch (Exception ex)
+        {
+            throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
+    
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(string operationId, IQueryCollection parameters)
+    {
+        string? operationName = parameters[_operationNameKey];
+        EnsureValidQueryId(operationId);
+        
+        try
+        {
+            IReadOnlyDictionary<string, object?>? variables = null;
+            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
+            {
+                variables = ParseVariables(sv);
+            }
+            
+            IReadOnlyDictionary<string, object?>? extensions = null;
+            if (extensions is null &&
+                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
+            {
+                extensions = ParseJsonObject(se);
+            }
+
+            return new GraphQLRequest(
+                null,
+                operationId,
+                null,
                 operationName,
                 variables,
                 extensions);
@@ -204,6 +286,23 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _documentHashProvider);
         
         return EnsureValidQueryId(requestParser.Parse());
+    }
+    
+    private GraphQLRequest ParsePersistedOperationRequest(
+        byte[] buffer,
+        int bytesBuffered,
+        string operationId)
+    {
+        var graphQLData = new ReadOnlySpan<byte>(buffer);
+        graphQLData = graphQLData[..bytesBuffered];
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            graphQLData,
+            _parserOptions,
+            _documentCache,
+            _documentHashProvider);
+
+        return requestParser.ParsePersistedOperation(operationId);
     }
 
     internal static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)

@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
 using BananaCakePop.Middleware;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Serialization;
 using static HotChocolate.AspNetCore.MiddlewareRoutingType;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
@@ -19,6 +22,7 @@ public static class EndpointRouteBuilderExtensions
     private const string _graphQLWebSocketPath = "/graphql/ws";
     private const string _graphQLSchemaPath = "/graphql/sdl";
     private const string _graphQLToolPath = "/graphql/ui";
+    private const string _graphQLPersistedOperationPath = "/graphql/q";
     private const string _graphQLToolRelativeRequestPath = "..";
 
     /// <summary>
@@ -73,11 +77,9 @@ public static class EndpointRouteBuilderExtensions
         }
 
         path = path.ToString().TrimEnd('/');
-
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
-        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
-
         requestPipeline.MapGraphQL(path, schemaNameOrDefault);
 
         return new GraphQLEndpointConventionBuilder(
@@ -125,11 +127,12 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<HttpGetMiddleware>(schemaName)
             .UseMiddleware<HttpGetSchemaMiddleware>(schemaName, Integrated)
             .UseBananaCakePop(path)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         return applicationBuilder;
     }
@@ -201,11 +204,12 @@ public static class EndpointRouteBuilderExtensions
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         return new GraphQLHttpEndpointConventionBuilder(
             endpointRouteBuilder
@@ -278,11 +282,12 @@ public static class EndpointRouteBuilderExtensions
         requestPipeline
             .UseCancellation()
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         var builder = new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
@@ -357,11 +362,12 @@ public static class EndpointRouteBuilderExtensions
         requestPipeline
             .UseCancellation()
             .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault, Explicit)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         return new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
@@ -425,11 +431,12 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .UseBananaCakePop(toolPath)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(
+                _ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
         var builder = endpointRouteBuilder
             .Map(pattern, requestPipeline.Build())
@@ -439,6 +446,56 @@ public static class EndpointRouteBuilderExtensions
         return new BananaCakePopEndpointConventionBuilder(builder);
     }
 
+#if NET8_0_OR_GREATER
+    /// <summary>
+    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the persisted query endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// </returns>
+    public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        [StringSyntax("Route")] string path = _graphQLPersistedOperationPath,
+        string? schemaName = default)
+        => MapGraphQLPersistedOperations(endpointRouteBuilder, Parse(path), schemaName);
+    
+    /// <summary>
+    /// Adds a persisted query endpoint to the endpoint configurations.
+    /// </summary>
+    /// <param name="endpointRouteBuilder">
+    /// The <see cref="IEndpointRouteBuilder"/>.
+    /// </param>
+    /// <param name="path">
+    /// The path to which the persisted query endpoint shall be mapped.
+    /// </param>
+    /// <param name="schemaName">
+    /// The name of the schema that shall be used by this endpoint.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+    /// </returns>
+    public static IEndpointConventionBuilder MapGraphQLPersistedOperations(
+        this IEndpointRouteBuilder endpointRouteBuilder,
+        RoutePattern path,
+        string? schemaName = default)
+    {
+        var schemaNameOrDefault = schemaName ?? Schema.DefaultName;
+
+        var group = endpointRouteBuilder.MapGroup(path);
+        group.MapPersistedQueryMiddleware(schemaNameOrDefault);
+        return group;
+    }
+#endif
+    
     /// <summary>
     /// Specifies the GraphQL server options.
     /// </summary>
@@ -454,7 +511,7 @@ public static class EndpointRouteBuilderExtensions
     /// </returns>
     public static GraphQLEndpointConventionBuilder WithOptions(
         this GraphQLEndpointConventionBuilder builder,
-        GraphQLServerOptions serverOptions) 
+        GraphQLServerOptions serverOptions)
         => builder
             .WithMetadata(serverOptions)
             .WithMetadata(serverOptions.Tool.ToBcpOptions());
@@ -475,12 +532,13 @@ public static class EndpointRouteBuilderExtensions
     public static GraphQLHttpEndpointConventionBuilder WithOptions(
         this GraphQLHttpEndpointConventionBuilder builder,
         GraphQLHttpOptions httpOptions) =>
-        builder.WithMetadata(new GraphQLServerOptions
-        {
-            AllowedGetOperations = httpOptions.AllowedGetOperations,
-            EnableGetRequests = httpOptions.EnableGetRequests,
-            EnableMultipartRequests = httpOptions.EnableMultipartRequests,
-        });
+        builder.WithMetadata(
+            new GraphQLServerOptions
+            {
+                AllowedGetOperations = httpOptions.AllowedGetOperations,
+                EnableGetRequests = httpOptions.EnableGetRequests,
+                EnableMultipartRequests = httpOptions.EnableMultipartRequests,
+            });
 
     /// <summary>
     /// Specifies the Banana Cake Pop tooling options.
@@ -522,17 +580,18 @@ public static class EndpointRouteBuilderExtensions
         builder.WithMetadata(new GraphQLServerOptions { Sockets = socketOptions, });
 
     private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
-        => builder.Use(next => async context =>
-        {
-            try
+        => builder.Use(
+            next => async context =>
             {
-                await next(context);
-            }
-            catch (OperationCanceledException)
-            {
-                // we just catch cancellations here and do nothing.
-            }
-        });
+                try
+                {
+                    await next(context);
+                }
+                catch (OperationCanceledException)
+                {
+                    // we just catch cancellations here and do nothing.
+                }
+            });
 
     internal static BananaCakePopOptions ToBcpOptions(this GraphQLToolOptions options)
         => new()

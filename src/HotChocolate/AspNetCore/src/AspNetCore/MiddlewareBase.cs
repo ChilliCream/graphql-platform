@@ -54,6 +54,11 @@ public class MiddlewareBase : IDisposable
     /// Gets the request executor proxy.
     /// </summary>
     protected RequestExecutorProxy ExecutorProxy => _executorProxy;
+    
+    /// <summary>
+    /// Gets the response formatter.
+    /// </summary>
+    protected IHttpResponseFormatter ResponseFormatter => _responseFormatter;
 
     /// <summary>
     /// Invokes the next middleware in line.
