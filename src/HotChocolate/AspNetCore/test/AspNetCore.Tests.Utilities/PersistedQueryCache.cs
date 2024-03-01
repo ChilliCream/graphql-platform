@@ -16,7 +16,7 @@ public class PersistedQueryCache
             Utf8GraphQLParser.Parse(@"{ hero { name } }"));
         
         _cache.Add(
-            "abc",
+            "abc123",
             Utf8GraphQLParser.Parse(@"query($if: Boolean) { hero { name @skip(if: $if) } }"));
     }
 

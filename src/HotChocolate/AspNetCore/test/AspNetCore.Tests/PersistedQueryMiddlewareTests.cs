@@ -163,7 +163,7 @@ public class PersistedQueryMiddlewareTests(TestServerFactory serverFactory) : Se
             "application/json");
         
         var result = await client.PostAsync(
-            "/graphql/q/abc/Test",
+            "/graphql/q/abc123/Test",
             body);
 
         // assert
