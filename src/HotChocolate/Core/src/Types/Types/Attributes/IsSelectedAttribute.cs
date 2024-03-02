@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Types.Descriptors;
+using System;
+using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.Types;
 
@@ -17,8 +16,14 @@ namespace HotChocolate.Types;
 /// ]]>
 /// </code>
 /// </summary>
-public class UseIsSelectedAttribute : ObjectFieldDescriptorAttribute
+[AttributeUsage(
+    AttributeTargets.Parameter,
+    Inherited = true,
+    AllowMultiple = true)]
+public class IsSelectedAttribute : Attribute
 {
+    private static readonly IsSelectedParameterExpressionBuilder _builder = new();
+    
     /// <summary>
     /// Adds a middleware that checks if the specified fields are selected.
     /// This middleware adds a local state called `isSelected`.
@@ -35,7 +40,7 @@ public class UseIsSelectedAttribute : ObjectFieldDescriptorAttribute
     /// <param name="fieldName">
     /// The field name that we check for.
     /// </param>
-    public UseIsSelectedAttribute(string fieldName)
+    public IsSelectedAttribute(string fieldName)
     {
         FieldNames = [fieldName,];
     }
@@ -59,7 +64,7 @@ public class UseIsSelectedAttribute : ObjectFieldDescriptorAttribute
     /// <param name="fieldName2">
     /// The second field name we check for.
     /// </param>
-    public UseIsSelectedAttribute(string fieldName1, string fieldName2)
+    public IsSelectedAttribute(string fieldName1, string fieldName2)
     {
         FieldNames = [fieldName1, fieldName2,];
     }
@@ -86,7 +91,7 @@ public class UseIsSelectedAttribute : ObjectFieldDescriptorAttribute
     /// <param name="fieldName3">
     /// The third field name we check for.
     /// </param>
-    public UseIsSelectedAttribute(string fieldName1, string fieldName2, string fieldName3)
+    public IsSelectedAttribute(string fieldName1, string fieldName2, string fieldName3)
     {
         FieldNames = [fieldName1, fieldName2, fieldName3,];
     }
@@ -107,7 +112,7 @@ public class UseIsSelectedAttribute : ObjectFieldDescriptorAttribute
     /// <param name="fieldNames">
     /// The field names we check for.
     /// </param>
-    public UseIsSelectedAttribute(params string[] fieldNames)
+    public IsSelectedAttribute(params string[] fieldNames)
     {
         FieldNames = fieldNames;
     }
@@ -116,72 +121,4 @@ public class UseIsSelectedAttribute : ObjectFieldDescriptorAttribute
     /// Gets the field names we check for.
     /// </summary>
     public string[] FieldNames { get; }
-
-    protected override void OnConfigure(
-        IDescriptorContext context,
-        IObjectFieldDescriptor descriptor,
-        MemberInfo member)
-    {
-        switch (FieldNames.Length)
-        {
-            case 1:
-            {
-                var fieldName = FieldNames[0];
-            
-                descriptor.Use(
-                    next => async ctx =>
-                    {
-                        var isSelected = ctx.IsSelected(fieldName);
-                        ctx.SetLocalState(nameof(isSelected), isSelected);
-                        await next(ctx);
-                    });
-                break;
-            }
-
-            case 2:
-            {
-                var fieldName1 = FieldNames[0];
-                var fieldName2 = FieldNames[1];
-            
-                descriptor.Use(
-                    next => async ctx =>
-                    {
-                        var isSelected = ctx.IsSelected(fieldName1, fieldName2);
-                        ctx.SetLocalState(nameof(isSelected), isSelected);
-                        await next(ctx);
-                    });
-                break;
-            }
-
-            case 3:
-            {
-                var fieldName1 = FieldNames[0];
-                var fieldName2 = FieldNames[1];
-                var fieldName3 = FieldNames[2];
-            
-                descriptor.Use(
-                    next => async ctx =>
-                    {
-                        var isSelected = ctx.IsSelected(fieldName1, fieldName2, fieldName3);
-                        ctx.SetLocalState(nameof(isSelected), isSelected);
-                        await next(ctx);
-                    });
-                break;
-            }
-
-            case > 3:
-            {
-                var fieldNames = new HashSet<string>(FieldNames);
-            
-                descriptor.Use(
-                    next => async ctx =>
-                    {
-                        var isSelected = ctx.IsSelected(fieldNames);
-                        ctx.SetLocalState(nameof(isSelected), isSelected);
-                        await next(ctx);
-                    });
-                break;
-            }
-        }
-    }
 }

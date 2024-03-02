@@ -63,7 +63,9 @@ public class SortInputTypeDescriptor
     protected override void OnCreateDefinition(
         SortInputTypeDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, EntityType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
             Definition.AttributesAreApplied = true;
@@ -81,6 +83,8 @@ public class SortInputTypeDescriptor
         OnCompleteFields(fields, handledProperties);
 
         Definition.Fields.AddRange(fields.Values);
+
+        Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteFields(

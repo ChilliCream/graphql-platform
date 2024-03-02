@@ -75,13 +75,17 @@ public class FilterFieldDescriptor
     protected override void OnCreateDefinition(
         FilterFieldDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Member is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
             Definition.AttributesAreApplied = true;
         }
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     public IFilterFieldDescriptor Name(string value)
