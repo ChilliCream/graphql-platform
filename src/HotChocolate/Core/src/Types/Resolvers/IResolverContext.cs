@@ -128,6 +128,18 @@ public interface IResolverContext : IPureResolverContext
         ISelection? selection = null,
         bool allowInternals = false);
 
+    /// <summary>
+    /// Selects all child fields that match the given field name and
+    /// returns a <see cref="ISelectionCollection"/> containing
+    /// these selections.
+    /// </summary>
+    /// <param name="fieldName">
+    /// The field name to select.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="ISelectionCollection"/> containing
+    /// the selections that match the given field name. 
+    /// </returns>
     ISelectionCollection Select(string fieldName);
 
     /// <summary>
