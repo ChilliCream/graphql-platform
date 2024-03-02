@@ -129,6 +129,9 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public InputFormatter InputFormatter { get; }
 
     /// <inheritdoc />
+    public IList<IDescriptor> Descriptors { get; } = new List<IDescriptor>();
+
+    /// <inheritdoc />
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />

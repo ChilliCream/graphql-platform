@@ -136,6 +136,8 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)
@@ -154,6 +156,8 @@ public class ObjectFieldDescriptor
         {
             definition.HasStreamResult = true;
         }
+
+        Context.Descriptors.Pop();
     }
 
     private void CompleteArguments(ObjectFieldDefinition definition)

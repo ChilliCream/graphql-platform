@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -62,6 +63,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     /// Gets the input formatter.
     /// </summary>
     InputFormatter InputFormatter { get; }
+    
+    /// <summary>
+    /// Gets the descriptor currently in path.
+    /// </summary>
+    IList<IDescriptor> Descriptors { get; }
 
     /// <summary>
     /// Gets the registered type discovery handlers.
@@ -88,3 +94,4 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     T GetConventionOrDefault<T>(Func<T> defaultConvention, string? scope = null)
         where T : class, IConvention;
 }
+

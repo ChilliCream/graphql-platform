@@ -492,6 +492,11 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
+        public ISelectionCollection Select(string fieldName)
+        {
+            throw new NotImplementedException();
+        }
+
         public T GetQueryRoot<T>()
         {
             throw new NotImplementedException();

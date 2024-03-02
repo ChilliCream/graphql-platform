@@ -128,6 +128,8 @@ public interface IResolverContext : IPureResolverContext
         ISelection? selection = null,
         bool allowInternals = false);
 
+    ISelectionCollection Select(string fieldName);
+
     /// <summary>
     /// Get the query root instance.
     /// </summary>

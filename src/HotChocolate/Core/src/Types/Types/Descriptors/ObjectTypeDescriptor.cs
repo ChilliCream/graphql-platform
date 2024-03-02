@@ -58,7 +58,9 @@ public class ObjectTypeDescriptor
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.FieldBindingType is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, FieldBindingType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
@@ -113,6 +115,8 @@ public class ObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     internal void InferFieldsFromFieldBindingType()
