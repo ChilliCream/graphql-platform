@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -55,6 +56,8 @@ public class DirectiveTypeDescriptor
     protected override void OnCreateDefinition(
         DirectiveTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -78,6 +81,8 @@ public class DirectiveTypeDescriptor
         definition.Arguments.AddRange(arguments.Values);
 
         base.OnCreateDefinition(definition);
+        
+        Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteArguments(

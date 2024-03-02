@@ -42,6 +42,8 @@ public class SortEnumTypeDescriptor
     protected override void OnCreateDefinition(
         SortEnumTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -63,6 +65,8 @@ public class SortEnumTypeDescriptor
         }
 
         base.OnCreateDefinition(definition);
+        
+        Context.Descriptors.Pop();
     }
 
     public ISortEnumTypeDescriptor Name(string value)

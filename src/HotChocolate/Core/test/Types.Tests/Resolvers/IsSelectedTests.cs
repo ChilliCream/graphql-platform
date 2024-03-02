@@ -284,7 +284,7 @@ public class IsSelectedTests
 
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task IsSelected_Context_1_Selected()
     {
@@ -561,31 +561,118 @@ public class IsSelectedTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Select_Category_Level_1()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    c =>
+                    {
+                        c.Name("Query");
+                        c.Field("user")
+                            .Resolve(
+                                ctx =>
+                                {
+                                    ((IMiddlewareContext)ctx).OperationResult.SetExtension(
+                                        "isSelected",
+                                        ctx.Select("category").IsSelected("next"));
+                                    return Query.DummyUser;
+                                });
+                    })
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user {
+                            name
+                            category {
+                                next {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Select_Category_Level_2()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    c =>
+                    {
+                        c.Name("Query");
+                        c.Field("user")
+                            .Resolve(
+                                ctx =>
+                                {
+                                    ((IMiddlewareContext)ctx).OperationResult.SetExtension(
+                                        "isSelected",
+                                        ctx.Select("category").Select("next").IsSelected("name"));
+                                    return Query.DummyUser;
+                                });
+                    })
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user {
+                            name
+                            category {
+                                next {
+                                    next {
+                                        name
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
     public class Query
     {
-        [UseIsSelected("email")]
-        public User GetUser_Attribute_1([LocalState] bool isSelected, IResolverContext context)
+        public static User DummyUser { get; } =
+            new()
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
+
+        public User GetUser_Attribute_1([IsSelected("email")] bool isSelected, IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
 
-        [UseIsSelected("email", "password")]
-        public User GetUser_Attribute_2([LocalState] bool isSelected, IResolverContext context)
+        public User GetUser_Attribute_2([IsSelected("email", "password")] bool isSelected, IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
 
-        [UseIsSelected("email", "password", "phoneNumber")]
-        public User GetUser_Attribute_3([LocalState] bool isSelected, IResolverContext context)
+        public User GetUser_Attribute_3(
+            [IsSelected("email", "password", "phoneNumber")] bool isSelected,
+            IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
 
-        [UseIsSelected("email", "password", "phoneNumber", "address")]
-        public User GetUser_Attribute_4([LocalState] bool isSelected, IResolverContext context)
+        public User GetUser_Attribute_4(
+            [IsSelected("email", "password", "phoneNumber", "address")] bool isSelected,
+            IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
@@ -596,7 +683,7 @@ public class IsSelectedTests
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", context.IsSelected("email"));
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
-        
+
         public User GetUser_Context_2(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension(
@@ -604,7 +691,7 @@ public class IsSelectedTests
                 context.IsSelected("email", "password"));
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
-        
+
         public User GetUser_Context_3(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension(
@@ -612,7 +699,7 @@ public class IsSelectedTests
                 context.IsSelected("email", "password", "phoneNumber"));
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
-        
+
         public User GetUser_Context_4(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension(
@@ -635,5 +722,14 @@ public class IsSelectedTests
         public string Address { get; set; }
 
         public string City { get; set; }
+
+        public Category Category { get; set; }
+    }
+
+    public class Category
+    {
+        public string Name { get; set; }
+
+        public Category Next { get; set; }
     }
 }

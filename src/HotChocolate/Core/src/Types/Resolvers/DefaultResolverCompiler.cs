@@ -67,6 +67,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             new GlobalStateParameterExpressionBuilder(),
             new ScopedStateParameterExpressionBuilder(),
             new LocalStateParameterExpressionBuilder(),
+            new IsSelectedParameterExpressionBuilder(),
             new EventMessageParameterExpressionBuilder(),
             new ScopedServiceParameterExpressionBuilder(),
             new LegacyScopedServiceParameterExpressionBuilder(),
