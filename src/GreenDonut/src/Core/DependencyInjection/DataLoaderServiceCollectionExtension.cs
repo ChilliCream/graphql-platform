@@ -46,44 +46,45 @@ public static class DataLoaderServiceCollectionExtension
         services.TryAddScoped<T>(sp => sp.GetDataLoader<T>());
         return services;
     }
-    
+
     public static IServiceCollection TryAddDataLoaderCore(
         this IServiceCollection services)
     {
-         services.TryAddScoped<IDataLoaderScope, DefaultDataLoaderScope>();
-         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
-         
-         services.TryAddSingleton(sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
-         services.TryAddScoped(sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
-         
-         services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
-             sp =>
-             {
-                 var listeners = sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
+        services.AddSingleton<DataLoaderScopeFactory>();
+        services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
+        services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
 
-                 return listeners.Length switch
-                 {
-                     0 => new DataLoaderDiagnosticEventListener(),
-                     1 => listeners[0],
-                     _ => new AggregateDataLoaderDiagnosticEventListener(listeners),
-                 };
-             });
+        services.TryAddSingleton(sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
+        services.TryAddScoped(sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
 
-         services.TryAddScoped(
-             sp =>
-             {
-                 var cacheOwner = sp.GetRequiredService<TaskCacheOwner>();
+        services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
+            sp =>
+            {
+                var listeners = sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
 
-                 return new DataLoaderOptions
-                 {
-                     Cache = cacheOwner.Cache,
-                     CancellationToken = cacheOwner.CancellationToken,
-                     DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
-                     MaxBatchSize = 1024,
-                 };
-             });
-         
-         return services;
+                return listeners.Length switch
+                {
+                    0 => new DataLoaderDiagnosticEventListener(),
+                    1 => listeners[0],
+                    _ => new AggregateDataLoaderDiagnosticEventListener(listeners),
+                };
+            });
+
+        services.TryAddScoped(
+            sp =>
+            {
+                var cacheOwner = sp.GetRequiredService<TaskCacheOwner>();
+
+                return new DataLoaderOptions
+                {
+                    Cache = cacheOwner.Cache,
+                    CancellationToken = cacheOwner.CancellationToken,
+                    DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
+                    MaxBatchSize = 1024,
+                };
+            });
+
+        return services;
     }
 }
 
@@ -91,6 +92,25 @@ file static class DataLoaderServiceProviderExtensions
 {
     public static T GetDataLoader<T>(this IServiceProvider services) where T : IDataLoader
         => services.GetRequiredService<IDataLoaderScope>().GetDataLoader<T>();
+}
+
+internal sealed class DataLoaderScopeFactory
+{
+#if NET8_0_OR_GREATER
+    private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
+#else 
+    private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
+#endif
+
+    public DataLoaderScopeFactory(IEnumerable<DataLoaderRegistration> dataLoaderRegistrations)
+#if NET8_0_OR_GREATER
+        => _registrations = dataLoaderRegistrations.ToFrozenDictionary(t => t.ServiceType);
+#else
+        => _registrations = dataLoaderRegistrations.ToDictionary(t => t.ServiceType);
+#endif
+
+    public IDataLoaderScope CreateScope(IServiceProvider scopedServiceProvider)
+        => new DefaultDataLoaderScope(scopedServiceProvider, _registrations);
 }
 
 file sealed class DefaultDataLoaderScope(
