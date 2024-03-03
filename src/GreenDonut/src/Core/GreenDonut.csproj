@@ -28,4 +28,13 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="DataLoaderBase.Fetch.cs">
+      <DependentUpon>DataLoaderBase.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DataLoaderBase.IDataLoader.cs">
+      <DependentUpon>DataLoaderBase.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
