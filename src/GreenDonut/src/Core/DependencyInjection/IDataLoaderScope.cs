@@ -33,3 +33,4 @@ public interface IDataLoaderScope
     /// </returns>
     T GetDataLoader<T>() where T : IDataLoader;
 }
+
