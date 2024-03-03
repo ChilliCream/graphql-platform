@@ -3,26 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using Xunit.Abstractions;
 using static GreenDonut.TestHelpers;
 // ReSharper disable CollectionNeverUpdated.Local
 // ReSharper disable InconsistentNaming
 
 namespace GreenDonut;
 
-public class DataLoaderTests
+public class DataLoaderTests(ITestOutputHelper output)
 {
     [Fact(DisplayName = "Clear: Should not throw any exception")]
     public void ClearNoException()
     {
         // arrange
         var fetch = CreateFetch<string, string>();
-        var batchScheduler = new ManualBatchScheduler();
-        var loader = new DataLoader<string, string>(fetch, batchScheduler);
+        var services = new ServiceCollection()
+            .AddScoped<IBatchScheduler, ManualBatchScheduler>()
+            .AddDataLoader(sp => new DataLoader<string, string>(fetch, sp.GetRequiredService<IBatchScheduler>()));
+        var scope = services.BuildServiceProvider().CreateScope();
+        var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoader<string, string>>();
 
         // act
-        void Verify() => loader.Clear();
+        void Verify() => dataLoader.Clear();
 
         // assert
         Assert.Null(Record.Exception(Verify));
@@ -411,11 +416,11 @@ public class DataLoaderTests
     [InlineData(5, 25, 25, 0, true, false)]
     [InlineData(5, 25, 25, 0, false, true)]
     [InlineData(5, 25, 25, 0, false, false)]
-    // [InlineData(100, 1000, 25, 25, true, true)]
-    // [InlineData(100, 1000, 25, 0, true, true)]
-    // [InlineData(100, 1000, 25, 0, true, false)]
-    // [InlineData(100, 1000, 25, 25, false, true)]
-    // [InlineData(100, 1000, 25, 0, false, false)]
+    [InlineData(100, 1000, 25, 25, true, true)]
+    [InlineData(100, 1000, 25, 0, true, true)]
+    [InlineData(100, 1000, 25, 0, true, false)]
+    [InlineData(100, 1000, 25, 25, false, true)]
+    [InlineData(100, 1000, 25, 0, false, false)]
     [Theory(DisplayName = "LoadAsync: Runs integration tests with different settings")]
     public async Task LoadTest(
         int uniqueKeys,
@@ -445,14 +450,16 @@ public class DataLoaderTests
                 => await Task.Delay(random.Next(maxDelay), cancellationToken);
         }
 
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var ct = cts.Token;
         using var cacheOwner = caching 
             ? new TaskCacheOwner()
             : null;
-
+        
         var options = new DataLoaderOptions
         {
             Cache = cacheOwner?.Cache,
-            CancellationToken = cacheOwner?.CancellationToken ?? default,
+            CancellationToken = ct,
             MaxBatchSize = batching ? 1 : maxBatchSize,
         };
 
@@ -468,6 +475,7 @@ public class DataLoaderTests
         var requests = new Task<int>[maxRequests];
 
         // act
+        output.WriteLine("LoadAsync");
         for (var i = 0; i < maxRequests; i++)
         {
             requests[i] = Task.Factory.StartNew(async () =>
@@ -475,19 +483,23 @@ public class DataLoaderTests
                 var index = random.Next(uniqueKeys);
                 var delay = random.Next(maxDelay);
 
-                await Task.Delay(delay);
+                await Task.Delay(delay, ct);
 
-                return await loader.LoadAsync(keyArray[index]);
+                return await loader.LoadAsync(keyArray[index], ct);
             }, TaskCreationOptions.RunContinuationsAsynchronously).Unwrap();
         }
 
+        output.WriteLine("Start Dispatch");
         while (requests.Any(task => !task.IsCompleted))
         {
-            await Task.Delay(25);
+            output.WriteLine("Wait");
+            await Task.Delay(25, ct);
+            output.WriteLine("Dispatch");
             batchScheduler.Dispatch();
         }
 
         // assert
+        output.WriteLine("Wait for results.");
         var responses = await Task.WhenAll(requests);
 
         foreach (var response in responses)
