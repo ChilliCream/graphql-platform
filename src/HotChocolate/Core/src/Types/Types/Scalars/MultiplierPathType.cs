@@ -15,18 +15,6 @@ public class MultiplierPathType
     /// <summary>
     /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public MultiplierPathType()
-        : this(
-            ScalarNames.MultiplierPath,
-            TypeResources.MultiplierPathType_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
-    /// </summary>
     public MultiplierPathType(
         string name,
         string? description = null,
@@ -34,6 +22,18 @@ public class MultiplierPathType
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public MultiplierPathType()
+        : this(
+            ScalarNames.MultiplierPath,
+            TypeResources.MultiplierPathType_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)

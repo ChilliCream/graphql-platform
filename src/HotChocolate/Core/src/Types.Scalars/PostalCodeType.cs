@@ -152,22 +152,22 @@ public class PostalCodeType : StringType
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public PostalCodeType()
-        : this(
-            WellKnownScalarTypes.PostalCode,
-            ScalarResources.PostalCodeType_Description)
+    public PostalCodeType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, description, bind)
     {
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
     /// </summary>
-    public PostalCodeType(
-        string name,
-        string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, description, bind)
+    [ActivatorUtilitiesConstructor]
+    public PostalCodeType()
+        : this(
+            WellKnownScalarTypes.PostalCode,
+            ScalarResources.PostalCodeType_Description)
     {
     }
 

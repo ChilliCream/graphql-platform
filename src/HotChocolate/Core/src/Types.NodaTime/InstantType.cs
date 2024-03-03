@@ -16,14 +16,6 @@ public class InstantType : StringToStructBaseType<Instant>
     /// <summary>
     /// Initializes a new instance of <see cref="InstantType"/>.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public InstantType() : this(InstantPattern.ExtendedIso)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="InstantType"/>.
-    /// </summary>
     public InstantType(params IPattern<Instant>[] allowedPatterns) : base("Instant")
     {
         if (allowedPatterns.Length == 0)
@@ -34,6 +26,14 @@ public class InstantType : StringToStructBaseType<Instant>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.InstantType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="InstantType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public InstantType() : this(InstantPattern.ExtendedIso)
+    {
     }
 
     /// <inheritdoc />

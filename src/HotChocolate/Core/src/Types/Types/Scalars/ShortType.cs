@@ -10,14 +10,6 @@ public class ShortType : IntegerTypeBase<short>
     /// <summary>
     /// Initializes a new instance of the <see cref="ShortType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public ShortType() : this(short.MinValue, short.MaxValue)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ShortType"/> class.
-    /// </summary>
     public ShortType(short min, short max)
         : this(
             ScalarNames.Short,
@@ -40,6 +32,14 @@ public class ShortType : IntegerTypeBase<short>
         : base(name, min, max, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ShortType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public ShortType() : this(short.MinValue, short.MaxValue)
+    {
     }
 
     protected override short ParseLiteral(IntValueNode valueSyntax)
