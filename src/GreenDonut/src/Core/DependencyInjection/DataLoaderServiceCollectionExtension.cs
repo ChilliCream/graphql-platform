@@ -50,6 +50,8 @@ public static class DataLoaderServiceCollectionExtension
     public static IServiceCollection TryAddDataLoaderCore(
         this IServiceCollection services)
     {
+        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+        
         services.AddSingleton<DataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
         services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
