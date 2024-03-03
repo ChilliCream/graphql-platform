@@ -35,17 +35,6 @@ public class MacAddressType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="MacAddressType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public MacAddressType()
-        : this(
-            WellKnownScalarTypes.MacAddress,
-            ScalarResources.MacAddressType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MacAddressType"/> class.
-    /// </summary>
     public MacAddressType(
         string name,
         string? description = null,
@@ -55,6 +44,17 @@ public class MacAddressType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MacAddressType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public MacAddressType()
+        : this(
+            WellKnownScalarTypes.MacAddress,
+            ScalarResources.MacAddressType_Description)
     {
     }
 

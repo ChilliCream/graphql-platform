@@ -16,17 +16,6 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public LocalTimeType()
-        : this(
-            WellKnownScalarTypes.LocalTime,
-            ScalarResources.LocalTimeType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
-    /// </summary>
     public LocalTimeType(
         string name,
         string? description = null,
@@ -34,6 +23,17 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LocalTimeType()
+        : this(
+            WellKnownScalarTypes.LocalTime,
+            ScalarResources.LocalTimeType_Description)
+    {
     }
 
     public override IValueNode ParseResult(object? resultValue)

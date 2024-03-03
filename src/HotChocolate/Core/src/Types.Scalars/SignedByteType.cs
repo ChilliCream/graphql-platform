@@ -8,14 +8,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public class SignedByteType : IntegerTypeBase<sbyte>
 {
-    [ActivatorUtilitiesConstructor]
-    public SignedByteType()
-        : this(
-            WellKnownScalarTypes.SignedByte,
-            ScalarResources.SignedByteType_Description)
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SignedByteType"/> class.
     /// </summary>
@@ -26,6 +18,17 @@ public class SignedByteType : IntegerTypeBase<sbyte>
         : base(name, sbyte.MinValue, sbyte.MaxValue, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SignedByteType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public SignedByteType()
+        : this(
+            WellKnownScalarTypes.SignedByte,
+            ScalarResources.SignedByteType_Description)
+    {
     }
 
     /// <inheritdoc />

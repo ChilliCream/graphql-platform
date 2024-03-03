@@ -11,22 +11,22 @@ public class NonNegativeFloatType : FloatType
     /// <summary>
     /// Initializes a new instance of <see cref="NonNegativeFloatType"/>
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public NonNegativeFloatType()
-        : this(
-            WellKnownScalarTypes.NonNegativeFloat,
-            ScalarResources.NonNegativeFloatType_Description)
+    public NonNegativeFloatType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, description, 0, double.MaxValue, bind)
     {
     }
 
     /// <summary>
     /// Initializes a new instance of <see cref="NonNegativeFloatType"/>
     /// </summary>
-    public NonNegativeFloatType(
-        string name,
-        string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, description, 0, double.MaxValue, bind)
+    [ActivatorUtilitiesConstructor]
+    public NonNegativeFloatType()
+        : this(
+            WellKnownScalarTypes.NonNegativeFloat,
+            ScalarResources.NonNegativeFloatType_Description)
     {
     }
 

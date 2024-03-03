@@ -16,14 +16,6 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="LocalDateTimeType"/>.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public LocalDateTimeType() : this(LocalDateTimePattern.ExtendedIso)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="LocalDateTimeType"/>.
-    /// </summary>
     public LocalDateTimeType(params IPattern<LocalDateTime>[] allowedPatterns) : base("LocalDateTime")
     {
         if (allowedPatterns.Length == 0)
@@ -34,6 +26,14 @@ public class LocalDateTimeType : StringToStructBaseType<LocalDateTime>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.LocalDateTimeType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="LocalDateTimeType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LocalDateTimeType() : this(LocalDateTimePattern.ExtendedIso)
+    {
     }
 
     /// <inheritdoc />

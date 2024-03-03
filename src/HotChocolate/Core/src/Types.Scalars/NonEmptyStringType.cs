@@ -11,22 +11,22 @@ public class NonEmptyStringType : StringType
     /// <summary>
     /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public NonEmptyStringType()
-        : this(
-            WellKnownScalarTypes.NonEmptyString,
-            ScalarResources.NonEmptyStringType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
-    /// </summary>
     public NonEmptyStringType(
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, bind)
+    {
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NonEmptyStringType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public NonEmptyStringType()
+        : this(
+            WellKnownScalarTypes.NonEmptyString,
+            ScalarResources.NonEmptyStringType_Description)
     {
     }
 
