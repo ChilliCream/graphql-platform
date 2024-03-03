@@ -21,7 +21,7 @@ internal static class Utf8JsonWriterHelper
         {
             writer.WriteString(Utf8GraphQLRequestProperties.IdProp, request.Id);
         }
-
+ 
         if (request.Query is not null)
         {
             writer.WriteString(Utf8GraphQLRequestProperties.QueryProp, request.Query);
