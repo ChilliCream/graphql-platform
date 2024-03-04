@@ -143,19 +143,19 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
+            if (first)
+            {
+                ExtractErrors(
+                    context.Result,
+                    response.Errors,
+                    batchState.SelectionSetResult,
+                    pathLength + 1,
+                    context.ShowDebugInfo);
+                first = false;
+            }
+            
             if (result.TryGetValue(batchState.Key, out var data))
             {
-                if (first)
-                {
-                    ExtractErrors(
-                        context.Result,
-                        response.Errors,
-                        batchState.SelectionSetResult,
-                        pathLength,
-                        context.ShowDebugInfo);
-                    first = false;
-                }
-
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
                 ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
             }

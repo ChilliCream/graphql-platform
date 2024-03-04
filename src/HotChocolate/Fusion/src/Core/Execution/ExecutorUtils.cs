@@ -492,9 +492,10 @@ internal static class ExecutorUtils
             return;
         }
 
+        var path = PathHelper.CreatePathFromContext(selectionSetResult);
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(resultBuilder, error, selectionSetResult, pathDepth, addDebugInfo);
+            ExtractError(resultBuilder, error, selectionSetResult, path, pathDepth, addDebugInfo);
         }
     }
 
@@ -502,6 +503,7 @@ internal static class ExecutorUtils
         ResultBuilder resultBuilder,
         JsonElement error,
         ObjectResult selectionSetResult,
+        Path parentPath,
         int pathDepth,
         bool addDebugInfo)
     {
@@ -534,7 +536,7 @@ internal static class ExecutorUtils
             if (error.TryGetProperty("path", out var remotePath) &&
                 remotePath.ValueKind is JsonValueKind.Array)
             {
-                var path = PathHelper.CombinePath(selectionSetResult, remotePath, pathDepth);
+                var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
                 errorBuilder.SetPath(path);
                 
                 if (addDebugInfo)
