@@ -14,7 +14,7 @@ The method of how these updates are delivered is determined by the transport mec
 
 WebSockets provide a full-duplex communication channel over a single TCP connection. This means data can be sent and received simultaneously. With GraphQL, this means both queries/mutations and subscription operations can be sent over the same connection.
 
-WebSockets are widely supported in browsers and have been the de facto standard for real-time data transport in GraphQL.  There are two popular protocols for GraphQL over WebSockets: [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [subscription-transport-ws](https://github.com/apollographql/subscriptions-transport-ws).
+WebSockets are widely supported in browsers and have been the de facto standard for real-time data transport in GraphQL. There are two popular protocols for GraphQL over WebSockets: [graphql-ws](https://github.com/enisdenjo/graphql-ws) and [subscription-transport-ws](https://github.com/apollographql/subscriptions-transport-ws).
 Hot Chocolate, supports both protocols.
 
 In terms of specific protocols, the recommendation is to use graphql-ws or graphql-sse over the legacy subscription-transport-ws.
@@ -239,7 +239,7 @@ To enable Postgres subscriptions with your HotChocolate server, add `AddPostgres
 
 ```csharp
 services
-  .AddGraphQLServer() 
+  .AddGraphQLServer()
   .AddQueryType<Query>() // every GraphQL server needs a query
   .AddSubscriptionType<Subscriptions>()
   .AddPostgresSubscriptions((sp, options) => options.ConnectionFactory = ct => /*create you connection*/);
@@ -251,9 +251,10 @@ services
 
 1. `ConnectionFactory`: A function used to create a new, long-lived connection. The connection should have the following configuration to work optimally:
 
-    - `KeepAlive=30`: Sets a keep alive interval to keep the connection alive
-    - `Pooling=false`: Disables pooling as it is not needed
-    - `Enlist=false`: Ensures subscriptions run in the background and are not enlisted into any transaction
+   - `KeepAlive=30`: Sets a keep alive interval to keep the connection alive
+   - `Pooling=false`: Disables pooling as it is not needed
+   - `Enlist=false`: Ensures subscriptions run in the background and are not enlisted into any transaction
+
 2. `ChannelName`: Specifies the name of the Postgres channel used to send/receive messages. The default value is "hotchocolate_subscriptions".
 3. `MaxSendBatchSize`: Sets the maximum number of messages sent in one batch. The default value is 256.
 4. `MaxSendQueueSize`: Determines the maximum number of messages that can be queued for sending. If the queue is full, the subscription will wait until there is available space. The default value is 2048.

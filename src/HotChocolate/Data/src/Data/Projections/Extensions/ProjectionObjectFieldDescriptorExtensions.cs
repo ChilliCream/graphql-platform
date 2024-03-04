@@ -349,6 +349,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
             bool allowInternals = false)
             => _context.GetSelections(typeContext, selection, allowInternals);
 
+        public ISelectionCollection Select(string fieldName)
+            => _context.Select(fieldName);
+
         public T GetQueryRoot<T>() => _context.GetQueryRoot<T>();
 
         public IMiddlewareContext Clone() => _context.Clone();

@@ -86,6 +86,11 @@ public sealed class GraphQLHttpRequest
     /// Specifies if files shall be uploaded using the multipart request spec.
     /// </summary>
     public bool EnableFileUploads { get; set; }
+    
+    /// <summary>
+    /// Specifies that the request URI represents a persisted document URI. 
+    /// </summary>
+    public bool PersistedDocumentUri { get; set; }
 
     public static implicit operator GraphQLHttpRequest(OperationRequest method) => new(method);
 }

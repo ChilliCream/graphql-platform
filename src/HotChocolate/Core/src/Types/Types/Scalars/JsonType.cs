@@ -21,15 +21,15 @@ public sealed class JsonType : ScalarType<JsonElement>
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public JsonType()
-        : base(ScalarNames.JSON, BindingBehavior.Implicit) { }
-
+    public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, bind) { }
+    
     /// <summary>
     /// Initializes a new instance of <see cref="JsonType"/>.
     /// </summary>
-    public JsonType(string name, BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, bind) { }
+    [ActivatorUtilitiesConstructor]
+    public JsonType()
+        : base(ScalarNames.JSON, BindingBehavior.Implicit) { }
 
     /// <summary>
     /// Defines if the specified <paramref name="valueSyntax"/> can be handled by the JSON scalar.

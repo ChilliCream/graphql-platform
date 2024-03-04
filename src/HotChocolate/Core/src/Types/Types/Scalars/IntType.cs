@@ -18,15 +18,6 @@ public class IntType : IntegerTypeBase<int>
     /// <summary>
     /// Initializes a new instance of the <see cref="IntType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public IntType()
-        : this(int.MinValue, int.MaxValue)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IntType"/> class.
-    /// </summary>
     public IntType(int min, int max)
         : this(
             ScalarNames.Int,
@@ -49,6 +40,15 @@ public class IntType : IntegerTypeBase<int>
         : base(name, min, max, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IntType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public IntType()
+        : this(int.MinValue, int.MaxValue)
+    {
     }
 
     protected override int ParseLiteral(IntValueNode valueSyntax)

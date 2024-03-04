@@ -7,5 +7,5 @@ Barista is a powerful .NET command-line tool used for managing your GraphQL API'
 To install Barista, use the .NET Core CLI command:
 
 ```
-dotnet tool install --global barista 
+dotnet tool install --global barista
 ```

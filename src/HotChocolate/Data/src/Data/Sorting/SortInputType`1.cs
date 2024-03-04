@@ -9,16 +9,16 @@ public class SortInputType<T> : SortInputType
 {
     private Action<ISortInputTypeDescriptor<T>>? _configure;
 
-    [ActivatorUtilitiesConstructor]
-    public SortInputType()
-    {
-        _configure = Configure;
-    }
-
     public SortInputType(Action<ISortInputTypeDescriptor<T>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public SortInputType()
+    {
+        _configure = Configure;
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(

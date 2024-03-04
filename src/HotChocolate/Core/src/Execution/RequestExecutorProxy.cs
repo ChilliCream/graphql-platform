@@ -15,7 +15,7 @@ public sealed class RequestExecutorProxy : IDisposable
     private readonly IRequestExecutorResolver _executorResolver;
     private readonly string _schemaName;
     private IRequestExecutor? _executor;
-    private IDisposable? _eventSubscription;
+    private readonly IDisposable? _eventSubscription;
     private bool _disposed;
 
     public event EventHandler<RequestExecutorUpdatedEventArgs>? ExecutorUpdated;
@@ -34,8 +34,10 @@ public sealed class RequestExecutorProxy : IDisposable
         _schemaName = schemaName;
         _eventSubscription =
             _executorResolver.Events.Subscribe(
-                new ExecutorObserver(name => EvictRequestExecutor(name)));
+                new ExecutorObserver(EvictRequestExecutor));
     }
+
+    public IRequestExecutor? CurrentExecutor => _executor;
 
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
@@ -210,20 +212,13 @@ public sealed class RequestExecutorProxy : IDisposable
         }
     }
 
-    private sealed class ExecutorObserver : IObserver<RequestExecutorEvent>
+    private sealed class ExecutorObserver(Action<string> evicted) : IObserver<RequestExecutorEvent>
     {
-        public ExecutorObserver(Action<string> evicted)
-        {
-            Evicted = evicted;
-        }
-
-        public Action<string> Evicted { get; }
-
         public void OnNext(RequestExecutorEvent value)
         {
             if (value.Type is RequestExecutorEventType.Evicted)
             {
-                Evicted(value.Name);
+                evicted(value.Name);
             }
         }
 

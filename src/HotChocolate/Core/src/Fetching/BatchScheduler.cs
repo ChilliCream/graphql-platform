@@ -10,9 +10,7 @@ namespace HotChocolate.Fetching;
 /// <summary>
 /// The execution engine batch dispatcher.
 /// </summary>
-public class BatchScheduler
-    : IBatchScheduler
-    , IBatchDispatcher
+public sealed class BatchScheduler : IBatchHandler
 {
     private static List<Func<ValueTask>>? _localTasks;
     private static List<Task<Exception?>>? _localProcessing;
@@ -135,13 +133,13 @@ public class BatchScheduler
     }
 
 #pragma warning disable 4014
-    private void BeginProcessTask(
+    private static void BeginProcessTask(
         Func<ValueTask> task,
         CancellationToken cancellationToken = default)
         => ProcessTaskAsync(task, cancellationToken);
 #pragma warning restore 4014
 
-    private async Task ProcessTaskAsync(
+    private static async Task ProcessTaskAsync(
         Func<ValueTask> task,
         CancellationToken cancellationToken = default)
     {

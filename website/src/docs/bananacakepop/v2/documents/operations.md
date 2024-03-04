@@ -1,6 +1,6 @@
---- 
+---
 title: Operations Pane
---- 
+---
 
 The Operations Pane provides a comprehensive interface for writing GraphQL queries, mutations, and subscriptions. It offers several features to enhance your development experience.
 

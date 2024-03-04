@@ -1012,4 +1012,7 @@ Type: `{0}`</value>
   <data name="ThrowHelper_PooledServicesNotAllowed" xml:space="preserve">
     <value>The keyed service `{0}` cannot be used as a pooled service.</value>
   </data>
+  <data name="ResolverContextExtensions_IsSelected_FieldNameEmpty" xml:space="preserve">
+    <value>The field name mustn't be null, empty or consist only of white spaces.</value>
+  </data>
 </root>

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
@@ -45,49 +44,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;
-
-    public IReadOnlyList<ISelection> GetSelections(
-        IObjectType typeContext,
-        ISelection? selection = null,
-        bool allowInternals = false)
-    {
-        if (typeContext is null)
-        {
-            throw new ArgumentNullException(nameof(typeContext));
-        }
-
-        selection ??= _selection;
-
-        if (selection.SelectionSet is null)
-        {
-            return Array.Empty<ISelection>();
-        }
-
-        var selectionSet = _operationContext.CollectFields(selection, typeContext);
-
-        if (selectionSet.IsConditional)
-        {
-            var operationIncludeFlags = _operationContext.IncludeFlags;
-            var selectionCount = selectionSet.Selections.Count;
-            ref var selectionRef = ref ((SelectionSet)selectionSet).GetSelectionsReference();
-            var finalFields = new List<ISelection>();
-
-            for (var i = 0; i < selectionCount; i++)
-            {
-                var childSelection = Unsafe.Add(ref selectionRef, i);
-
-                if (childSelection.IsIncluded(operationIncludeFlags, allowInternals))
-                {
-                    finalFields.Add(childSelection);
-                }
-            }
-
-            return finalFields;
-        }
-
-        return selectionSet.Selections;
-    }
-
+    
     public void ReportError(string errorMessage)
     {
         if (string.IsNullOrEmpty(errorMessage))

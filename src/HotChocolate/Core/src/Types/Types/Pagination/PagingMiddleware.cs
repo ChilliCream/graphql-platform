@@ -13,12 +13,14 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
     private readonly IPagingHandler _pagingHandler = pagingHandler ??
         throw new ArgumentNullException(nameof(pagingHandler));
 
-    public async Task InvokeAsync(IMiddlewareContext context)
+    public async ValueTask InvokeAsync(IMiddlewareContext context)
     {
         _pagingHandler.ValidateContext(context);
+        _pagingHandler.PublishPagingArguments(context);
 
         await _next(context).ConfigureAwait(false);
 
+        // if the result is a field result we gonna unwrap it.
         if (context.Result is IFieldResult fieldResult)
         {
             if (fieldResult.IsError)

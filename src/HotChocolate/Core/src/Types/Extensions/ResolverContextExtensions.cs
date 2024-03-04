@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Properties.TypeResources;
 
@@ -540,4 +543,325 @@ public static class ResolverContextExtensions
     /// </returns>
     public static ClaimsPrincipal? GetUser(this IResolverContext context)
         => context.GetGlobalStateOrDefault<ClaimsPrincipal?>(nameof(ClaimsPrincipal));
+    
+    /// <summary>
+    /// Checks if a field is selected in the current selection set.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fieldName">
+    /// The name of the field that shall be checked.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the field is selected; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="fieldName" /> is <c>null</c> or whitespace.
+    /// </exception>
+    public static bool IsSelected(this IResolverContext context, string fieldName)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException(
+                ResolverContextExtensions_IsSelected_FieldNameEmpty,
+                nameof(fieldName));
+        }
+        
+        if (!context.Selection.Type.IsCompositeType())
+        {
+            return false;
+        }
+
+        var namedType = context.Selection.Type.NamedType();
+
+        if (namedType.IsAbstractType())
+        {
+            foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
+            {
+                var selections = context.GetSelections(possibleType, context.Selection);
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    if (selections[i].Field.Name.Equals(fieldName))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            var selections = context.GetSelections((ObjectType)namedType, context.Selection);
+
+            for (var i = 0; i < selections.Count; i++)
+            {
+                if (selections[i].Field.Name.Equals(fieldName))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a field is selected in the current selection set.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fieldName1">
+    /// The name of the first field that shall be checked.
+    /// </param>
+    /// <param name="fieldName2">
+    /// The name of the second field that shall be checked.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="fieldName1" /> is <c>null</c> or whitespace or
+    /// <paramref name="fieldName2" /> is <c>null</c> or whitespace.
+    /// </exception>
+    public static bool IsSelected(this IResolverContext context, string fieldName1, string fieldName2)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrWhiteSpace(fieldName1))
+        {
+            throw new ArgumentException(
+                ResolverContextExtensions_IsSelected_FieldNameEmpty,
+                nameof(fieldName1));
+        }
+        
+        if (string.IsNullOrWhiteSpace(fieldName2))
+        {
+            throw new ArgumentException(
+                ResolverContextExtensions_IsSelected_FieldNameEmpty,
+                nameof(fieldName2));
+        }
+        
+        if (!context.Selection.Type.IsCompositeType())
+        {
+            return false;
+        }
+
+        var namedType = context.Selection.Type.NamedType();
+
+        if (namedType.IsAbstractType())
+        {
+            foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
+            {
+                var selections = context.GetSelections(possibleType, context.Selection);
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    var selection = selections[i];
+
+                    if (selection.Field.Name.Equals(fieldName1) || selection.Field.Name.Equals(fieldName2))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            var selections = context.GetSelections((ObjectType)namedType, context.Selection);
+
+            for (var i = 0; i < selections.Count; i++)
+            {
+                var selection = selections[i];
+
+                if (selection.Field.Name.Equals(fieldName1) || selection.Field.Name.Equals(fieldName2))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a field is selected in the current selection set.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fieldName1">
+    /// The name of the first field that shall be checked.
+    /// </param>
+    /// <param name="fieldName2">
+    /// The name of the second field that shall be checked.
+    /// </param>
+    /// <param name="fieldName3">
+    /// The name of the third field that shall be checked.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context" /> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="fieldName1" /> is <c>null</c> or whitespace or
+    /// <paramref name="fieldName2" /> is <c>null</c> or whitespace or
+    /// <paramref name="fieldName3" /> is <c>null</c> or whitespace.
+    /// </exception>
+    public static bool IsSelected(
+        this IResolverContext context,
+        string fieldName1,
+        string fieldName2,
+        string fieldName3)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrWhiteSpace(fieldName1))
+        {
+            throw new ArgumentException(
+                ResolverContextExtensions_IsSelected_FieldNameEmpty,
+                nameof(fieldName1));
+        }
+        
+        if (string.IsNullOrWhiteSpace(fieldName2))
+        {
+            throw new ArgumentException(
+                ResolverContextExtensions_IsSelected_FieldNameEmpty,
+                nameof(fieldName2));
+        }
+        
+        if(string.IsNullOrWhiteSpace(fieldName3))
+        {
+            throw new ArgumentException(
+                ResolverContextExtensions_IsSelected_FieldNameEmpty,
+                nameof(fieldName3));
+        }
+        
+        if (!context.Selection.Type.IsCompositeType())
+        {
+            return false;
+        }
+
+        var namedType = context.Selection.Type.NamedType();
+
+        if (namedType.IsAbstractType())
+        {
+            foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
+            {
+                var selections = context.GetSelections(possibleType, context.Selection);
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    var selection = selections[i];
+
+                    if (selection.Field.Name.Equals(fieldName1) ||
+                        selection.Field.Name.Equals(fieldName2) ||
+                        selection.Field.Name.Equals(fieldName3))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            var selections = context.GetSelections((ObjectType)namedType, context.Selection);
+
+            for (var i = 0; i < selections.Count; i++)
+            {
+                var selection = selections[i];
+
+                if (selection.Field.Name.Equals(fieldName1) ||
+                    selection.Field.Name.Equals(fieldName2) ||
+                    selection.Field.Name.Equals(fieldName3))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
+    /// <summary>
+    /// Checks if a field is selected in the current selection set.
+    /// </summary>
+    /// <param name="context">
+    /// The resolver context.
+    /// </param>
+    /// <param name="fieldNames">
+    /// The names of the fields that shall be checked.
+    /// </param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context" /> is <c>null</c> or
+    /// <paramref name="fieldNames" /> is <c>null</c>.
+    /// </exception>
+    public static bool IsSelected(
+        this IResolverContext context, 
+        ISet<string> fieldNames)
+    {
+        if(context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+        
+        if(fieldNames is null)
+        {
+            throw new ArgumentNullException(nameof(fieldNames));
+        }
+        
+        if (!context.Selection.Type.IsCompositeType())
+        {
+            return false;
+        }
+
+        var namedType = context.Selection.Type.NamedType();
+
+        if (namedType.IsAbstractType())
+        {
+            foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
+            {
+                var selections = context.GetSelections(possibleType, context.Selection);
+
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    if (fieldNames.Contains(selections[i].Field.Name))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            var selections = context.GetSelections((ObjectType)namedType, context.Selection);
+
+            for (var i = 0; i < selections.Count; i++)
+            {
+                if (fieldNames.Contains(selections[i].Field.Name))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

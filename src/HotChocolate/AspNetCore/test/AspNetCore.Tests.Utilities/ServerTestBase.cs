@@ -95,6 +95,10 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .UseEndpoints(
                     endpoints =>
                     {
+#if NET8_0_OR_GREATER
+                        endpoints.MapGraphQLPersistedOperations();
+#endif
+                        
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions
                             {

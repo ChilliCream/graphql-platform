@@ -34,6 +34,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -75,6 +76,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -110,6 +112,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -148,12 +151,14 @@ public class QueryableCursorPagingProviderTests
 
         var pagingDetails = new CursorPagingArguments();
         var context = new MockContext(pagingDetails);
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(after: connection.Info.StartCursor, first: 2);
         context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -192,12 +197,14 @@ public class QueryableCursorPagingProviderTests
 
         var pagingDetails = new CursorPagingArguments(first: 5);
         var context = new MockContext(pagingDetails);
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(before: connection.Info.EndCursor, last: 2);
         context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -238,6 +245,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -260,6 +268,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -280,12 +289,15 @@ public class QueryableCursorPagingProviderTests
 
         var pagingDetails = new CursorPagingArguments(first: 1);
         var context = new MockContext(pagingDetails);
+        
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(after: connection.Info.EndCursor, first: 2);
         context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -308,6 +320,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -339,6 +352,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -388,6 +402,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -444,11 +459,8 @@ public class QueryableCursorPagingProviderTests
             set => throw new NotImplementedException();
         }
 
-        public IImmutableDictionary<string, object?> LocalContextData
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
+        public IImmutableDictionary<string, object?> LocalContextData { get; set; } = 
+            ImmutableDictionary<string, object?>.Empty;
 
         public CancellationToken RequestAborted => default;
 
@@ -476,6 +488,11 @@ public class QueryableCursorPagingProviderTests
             IObjectType typeContext,
             ISelection? selection = null,
             bool allowInternals = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISelectionCollection Select(string fieldName)
         {
             throw new NotImplementedException();
         }

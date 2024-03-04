@@ -17,14 +17,6 @@ public class UuidType : ScalarType<Guid, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UuidType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public UuidType() : this('\0')
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UuidType"/> class.
-    /// </summary>
     /// <param name="defaultFormat">
     /// The expected format of GUID strings by this scalar.
     /// <c>'N'</c>: nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
@@ -85,6 +77,14 @@ public class UuidType : ScalarType<Guid, StringValueNode>
         Description = description;
         _format = CreateFormatString(defaultFormat);
         _enforceFormat = enforceFormat;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UuidType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UuidType() : this('\0')
+    {
     }
 
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)

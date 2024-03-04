@@ -58,6 +58,8 @@ public class InputObjectTypeDescriptor
     protected override void OnCreateDefinition(
         InputObjectTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -94,6 +96,8 @@ public class InputObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected void InferFieldsFromFieldBindingType(

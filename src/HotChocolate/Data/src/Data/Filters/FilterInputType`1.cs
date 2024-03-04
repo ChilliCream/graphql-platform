@@ -9,16 +9,16 @@ public class FilterInputType<T> : FilterInputType
 {
     private Action<IFilterInputTypeDescriptor<T>>? _configure;
 
-    [ActivatorUtilitiesConstructor]
-    public FilterInputType()
-    {
-        _configure = Configure;
-    }
-
     public FilterInputType(Action<IFilterInputTypeDescriptor<T>> configure)
     {
         _configure = configure ??
             throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public FilterInputType()
+    {
+        _configure = Configure;
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(
