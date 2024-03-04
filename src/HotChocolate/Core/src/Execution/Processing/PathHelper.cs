@@ -1,14 +1,15 @@
 using System;
 using System.Buffers;
+using System.Text.Json;
 
 namespace HotChocolate.Execution.Processing;
 
 internal static class PathHelper
 {
-    private const int _initialPathLength = 64; 
-    
+    private const int _initialPathLength = 64;
+
     public static Path CreatePathFromContext(ObjectResult parent)
-        => CreatePath(parent);
+        => parent.Parent is null ? Path.Root : CreatePath(parent);
 
     public static Path CreatePathFromContext(ISelection selection, ResultData parent, int index)
         => parent switch
@@ -17,6 +18,21 @@ internal static class PathHelper
             ListResult => CreatePath(parent, index),
             _ => throw new NotSupportedException($"{parent.GetType().FullName} is not a supported parent type."),
         };
+
+    public static Path CombinePath(Path path, JsonElement errorSubPath, int skipSubElements)
+    {
+        for (var i = skipSubElements; i < errorSubPath.GetArrayLength(); i++)
+        {
+            path = errorSubPath[i] switch
+            {
+                { ValueKind: JsonValueKind.String, } nameElement => path.Append(nameElement.GetString()!),
+                { ValueKind: JsonValueKind.Number, } indexElement => path.Append(indexElement.GetInt32()),
+                _ => throw new InvalidOperationException("The error path contains an unsupported element.")
+            };
+        }
+
+        return path;
+    }
 
     private static Path CreatePath(ResultData parent, object segmentValue)
     {

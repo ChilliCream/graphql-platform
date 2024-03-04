@@ -103,6 +103,8 @@ schema
 }
 
 type Query {
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
     @variable(subgraph: "Reviews", name: "id", argument: "id")
@@ -200,6 +202,8 @@ type User implements Node
   @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
   @resolver(subgraph: "Reviews", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
+    @source(subgraph: "Accounts")
+  errorField: String
     @source(subgraph: "Accounts")
   id: ID!
     @source(subgraph: "Reviews")

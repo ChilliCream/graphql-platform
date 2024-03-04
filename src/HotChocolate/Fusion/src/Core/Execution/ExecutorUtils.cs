@@ -483,6 +483,8 @@ internal static class ExecutorUtils
     public static void ExtractErrors(
         ResultBuilder resultBuilder,
         JsonElement errors,
+        ObjectResult selectionSetResult,
+        int pathDepth,
         bool addDebugInfo)
     {
         if (errors.ValueKind is not JsonValueKind.Array)
@@ -490,15 +492,19 @@ internal static class ExecutorUtils
             return;
         }
 
+        var path = PathHelper.CreatePathFromContext(selectionSetResult);
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(resultBuilder, error, addDebugInfo);
+            ExtractError(resultBuilder, error, selectionSetResult, path, pathDepth, addDebugInfo);
         }
     }
 
     private static void ExtractError(
         ResultBuilder resultBuilder,
         JsonElement error,
+        ObjectResult selectionSetResult,
+        Path parentPath,
+        int pathDepth,
         bool addDebugInfo)
     {
         if (error.ValueKind is not JsonValueKind.Object)
@@ -530,7 +536,9 @@ internal static class ExecutorUtils
             if (error.TryGetProperty("path", out var remotePath) &&
                 remotePath.ValueKind is JsonValueKind.Array)
             {
-                // TODO : rewrite remote path if possible!
+                var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
+                errorBuilder.SetPath(path);
+                
                 if (addDebugInfo)
                 {
                     errorBuilder.SetExtension("remotePath", remotePath);
