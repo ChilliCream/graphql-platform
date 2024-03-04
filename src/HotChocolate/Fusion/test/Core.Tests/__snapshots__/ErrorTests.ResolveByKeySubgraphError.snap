@@ -80,6 +80,12 @@ Result
           "column": 94
         }
       ],
+      "path": [
+        "reviews",
+        0,
+        "author",
+        "errorField"
+      ],
       "extensions": {
         "remotePath": [
           "usersById",1,
@@ -94,6 +100,12 @@ Result
           "line": 1,
           "column": 94
         }
+      ],
+      "path": [
+        "reviews",
+        0,
+        "author",
+        "errorField"
       ],
       "extensions": {
         "remotePath": [

@@ -51,6 +51,9 @@ Result
           "column": 68
         }
       ],
+      "path": [
+        "errorField"
+      ],
       "extensions": {
         "remotePath": [
           "errorField"

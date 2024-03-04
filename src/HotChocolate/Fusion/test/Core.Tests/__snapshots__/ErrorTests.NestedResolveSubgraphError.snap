@@ -80,6 +80,11 @@ Result
           "column": 101
         }
       ],
+      "path": [
+        "reviewById",
+        "author",
+        "errorField"
+      ],
       "extensions": {
         "remotePath": [
           "userById",

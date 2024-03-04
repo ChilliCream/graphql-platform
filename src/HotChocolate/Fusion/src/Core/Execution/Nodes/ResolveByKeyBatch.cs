@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Language;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
@@ -87,7 +88,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                 ProcessResult(context, response, batchExecutionState);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
             context.Result.AddError(error.Build());
@@ -134,17 +135,28 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         GraphQLResponse response,
         BatchExecutionState[] batchExecutionState)
     {
-        ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
         var result = UnwrapResult(response, Requires);
-
         ref var batchState = ref MemoryMarshal.GetArrayDataReference(batchExecutionState);
         ref var end = ref Unsafe.Add(ref batchState, batchExecutionState.Length);
+        var pathLength = Path.Length;
+        var first = true;
 
         while (Unsafe.IsAddressLessThan(ref batchState, ref end))
         {
             if (result.TryGetValue(batchState.Key, out var data))
             {
-                ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionResults);
+                if (first)
+                {
+                    ExtractErrors(
+                        context.Result,
+                        response.Errors,
+                        batchState.SelectionSetResult,
+                        pathLength,
+                        context.ShowDebugInfo);
+                    first = false;
+                }
+
+                ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
                 ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
             }
 
@@ -237,6 +249,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         if (exportKeys.Count == 1)
         {
             var key = exportKeys[0];
+
             foreach (var element in data.EnumerateArray())
             {
                 if (element.TryGetProperty(key, out var keyValue))
@@ -391,8 +404,17 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         public IReadOnlyList<string> Requires { get; } = executionState.Requires;
 
         /// <summary>
-        /// Gets the selection set data.
+        /// Gets the completed selection set result.
+        /// The selection set result represents the data for the
+        /// <see cref="ExecutionState.SelectionSet"/> that we deliver to the user.
         /// </summary>
-        public SelectionData[] SelectionResults { get; } = executionState.SelectionSetData;
+        public ObjectResult SelectionSetResult { get; } = executionState.SelectionSetResult;
+
+        /// <summary>
+        /// Gets the selection set data that was collected during execution.
+        /// The selection set data represents the data that we have collected
+        /// from the subgraphs for the <see cref="ExecutionState.SelectionSet"/>.
+        /// </summary>
+        public SelectionData[] SelectionSetData { get; } = executionState.SelectionSetData;
     }
 }
