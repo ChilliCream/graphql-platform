@@ -19,6 +19,104 @@ public class ErrorTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
+    public async Task Resolve_Parallel_Accounts_Offline_FieldNullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              viewer {
+                user {
+                  name
+                }
+                latestReview {
+                  body
+                }
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_Accounts_Offline_FieldNonNull()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              viewer? {
+                user! {
+                  name
+                }
+                latestReview {
+                  body
+                }
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task TopLevelResolveSubgraphError()
     {
         // arrange
