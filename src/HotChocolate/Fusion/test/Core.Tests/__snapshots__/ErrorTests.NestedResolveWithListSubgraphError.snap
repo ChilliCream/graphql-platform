@@ -2,6 +2,8 @@ User Request
 ---------------
 {
   userById(id: "VXNlcgppMQ==") {
+    account1: birthdate
+    account2: birthdate
     username
     reviews {
       body
@@ -14,14 +16,14 @@ User Request
 QueryPlan
 ---------------
 {
-  "document": "{ userById(id: \u0022VXNlcgppMQ==\u0022) { username reviews { body errorField } } }",
+  "document": "{ userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username reviews { body errorField } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
-        "subgraph": "Reviews2",
-        "document": "query fetch_userById_1 { userById: authorById(id: \u0022VXNlcgppMQ==\u0022) { reviews { body errorField } __fusion_exports__1: id } }",
+        "subgraph": "Accounts",
+        "document": "query fetch_userById_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -37,11 +39,11 @@ QueryPlan
       },
       {
         "type": "Resolve",
-        "subgraph": "Accounts",
-        "document": "query fetch_userById_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { username } }",
+        "subgraph": "Reviews2",
+        "document": "query fetch_userById_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body errorField } } }",
         "selectionSetId": 1,
         "path": [
-          "userById"
+          "authorById"
         ],
         "requires": [
           {
@@ -65,7 +67,7 @@ QueryPlan
 
 QueryPlan Hash
 ---------------
-B7DAD838F65F8359E427F2A01DD52D5863E2AAF7
+7D3257F87D5E3FD2EA9D743001D2F7487EF312F7
 ---------------
 
 Result
@@ -77,7 +79,7 @@ Result
       "locations": [
         {
           "line": 1,
-          "column": 84
+          "column": 107
         }
       ],
       "path": [
@@ -88,30 +90,8 @@ Result
       ],
       "extensions": {
         "remotePath": [
-          "userById",
+          "authorById",
           "reviews",1,
-          "errorField"
-        ]
-      }
-    },
-    {
-      "message": "SOME REVIEW ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 84
-        }
-      ],
-      "path": [
-        "userById",
-        "reviews",
-        0,
-        "errorField"
-      ],
-      "extensions": {
-        "remotePath": [
-          "userById",
-          "reviews",0,
           "errorField"
         ]
       }
@@ -119,6 +99,8 @@ Result
   ],
   "data": {
     "userById": {
+      "account1": "1815-12-10",
+      "account2": "1815-12-10",
       "username": "@ada",
       "reviews": [
         {

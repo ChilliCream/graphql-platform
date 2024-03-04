@@ -8,7 +8,10 @@ public sealed record Review(int Id, User Author, Product Product, string Body) :
 {
     public string? GetErrorField(IResolverContext context)
     {
-        context.ReportError("SOME REVIEW ERROR");
+        if (Id == 3)
+        {
+            context.ReportError("SOME REVIEW ERROR");
+        }
         return null;
     }
 }

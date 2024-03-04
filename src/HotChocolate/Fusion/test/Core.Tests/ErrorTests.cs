@@ -144,6 +144,8 @@ public class ErrorTests(ITestOutputHelper output)
             """
             {
               userById(id: "VXNlcgppMQ==") {
+                account1: birthdate
+                account2: birthdate
                 username
                 reviews {
                   body
