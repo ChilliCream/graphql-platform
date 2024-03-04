@@ -65,7 +65,7 @@ public class InterfaceTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -118,7 +118,7 @@ public class InterfaceTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -173,7 +173,7 @@ public class InterfaceTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }

@@ -63,7 +63,7 @@ public class EventStreamTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

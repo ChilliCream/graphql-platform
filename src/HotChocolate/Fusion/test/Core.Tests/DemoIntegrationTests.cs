@@ -32,9 +32,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             });
 
         // assert
-        SchemaFormatter
-            .FormatAsString(fusionGraph)
-            .MatchSnapshot(extension: ".graphql");
+        fusionGraph.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -53,9 +51,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             });
 
         // assert
-        SchemaFormatter
-            .FormatAsString(fusionGraph)
-            .MatchSnapshot(extension: ".graphql");
+        fusionGraph.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -104,7 +100,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -149,7 +145,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -194,7 +190,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.NotNull(result.ExpectQueryResult().Errors);
         Assert.NotEmpty(result.ExpectQueryResult().Errors!);
@@ -247,7 +243,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact(Skip = "Fix stream order")]
@@ -298,7 +294,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -359,7 +355,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -409,7 +405,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -459,7 +455,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -510,7 +506,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -562,7 +558,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -615,7 +611,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -662,7 +658,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -718,7 +714,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -771,7 +767,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -821,7 +817,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -872,7 +868,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -925,7 +921,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -979,7 +975,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1054,7 +1050,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         snapshot.Add(result, "2. Version");
 
         // assert
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1096,7 +1092,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1149,7 +1145,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1202,7 +1198,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1259,7 +1255,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1314,7 +1310,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1371,7 +1367,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1432,7 +1428,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1492,7 +1488,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1558,7 +1554,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1605,7 +1601,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }
@@ -1662,7 +1658,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }

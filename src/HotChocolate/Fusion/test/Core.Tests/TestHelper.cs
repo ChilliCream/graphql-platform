@@ -15,6 +15,7 @@ internal static class TestHelper
         Skimmed.Schema fusionGraph)
     {
         snapshot.Add(request, "User Request");
+        snapshot.Add(result, "Result");
 
         if (result.ContextData is not null &&
             result.ContextData.TryGetValue("queryPlan", out var value) &&
@@ -24,8 +25,7 @@ internal static class TestHelper
             snapshot.Add(queryPlan.Hash, "QueryPlan Hash");
         }
 
-        snapshot.Add(result, "Result");
-        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
+        snapshot.Add(fusionGraph, "Fusion Graph");
     }
 
     public static async Task CollectStreamSnapshotData(
@@ -53,6 +53,6 @@ internal static class TestHelper
             snapshot.Add(item, $"Result {++i}");
         }
 
-        snapshot.Add(SchemaFormatter.FormatAsString(fusionGraph), "Fusion Graph");
+        snapshot.Add(fusionGraph, "Fusion Graph");
     }
 }
