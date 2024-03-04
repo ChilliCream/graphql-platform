@@ -52,7 +52,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -242,7 +242,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -324,7 +324,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -369,7 +369,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -415,7 +415,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -461,7 +461,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -495,7 +495,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -530,7 +530,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -564,7 +564,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -601,7 +601,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -640,7 +640,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -679,7 +679,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -722,7 +722,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -767,7 +767,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -812,7 +812,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -856,7 +856,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -891,7 +891,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -930,7 +930,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -976,7 +976,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
 
@@ -1014,7 +1014,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1055,7 +1055,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1095,7 +1095,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1153,7 +1153,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1211,7 +1211,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1271,7 +1271,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1314,7 +1314,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1357,7 +1357,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1400,7 +1400,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1443,7 +1443,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1492,7 +1492,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(

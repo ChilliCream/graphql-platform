@@ -13,6 +13,38 @@ query ReformatIds {
 }
 ```
 
+## Result
+
+```json
+{
+  "errors": [
+    {
+      "message": "Internal Execution Error"
+    }
+  ],
+  "data": {
+    "reviews": [
+      {
+        "body": "Love it!",
+        "author": null
+      },
+      {
+        "body": "Too expensive.",
+        "author": null
+      },
+      {
+        "body": "Could be better.",
+        "author": null
+      },
+      {
+        "body": "Prefer something else.",
+        "author": null
+      }
+    ]
+  }
+}
+```
+
 ## QueryPlan
 
 ```json
@@ -71,38 +103,6 @@ query ReformatIds {
 
 ```text
 44090BD107B85A967BEBFFCA8844F840215A117F
-```
-
-## Result
-
-```json
-{
-  "errors": [
-    {
-      "message": "Internal Execution Error"
-    }
-  ],
-  "data": {
-    "reviews": [
-      {
-        "body": "Love it!",
-        "author": null
-      },
-      {
-        "body": "Too expensive.",
-        "author": null
-      },
-      {
-        "body": "Could be better.",
-        "author": null
-      },
-      {
-        "body": "Prefer something else.",
-        "author": null
-      }
-    ]
-  }
-}
 ```
 
 ## Fusion Graph

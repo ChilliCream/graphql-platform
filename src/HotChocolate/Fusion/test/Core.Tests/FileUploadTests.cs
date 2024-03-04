@@ -39,9 +39,7 @@ public class FileUploadTests
             });
 
         // assert
-        SchemaFormatter
-            .FormatAsString(fusionGraph)
-            .MatchSnapshot(extension: ".graphql");
+        fusionGraph.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -93,7 +91,7 @@ public class FileUploadTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -149,7 +147,7 @@ public class FileUploadTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

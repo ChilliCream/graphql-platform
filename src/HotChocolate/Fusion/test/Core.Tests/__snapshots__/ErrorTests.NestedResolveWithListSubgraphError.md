@@ -16,6 +16,54 @@
 }
 ```
 
+## Result
+
+```json
+{
+  "errors": [
+    {
+      "message": "SOME REVIEW ERROR",
+      "locations": [
+        {
+          "line": 1,
+          "column": 107
+        }
+      ],
+      "path": [
+        "userById",
+        "reviews",
+        1,
+        "errorField"
+      ],
+      "extensions": {
+        "remotePath": [
+          "authorById",
+          "reviews",1,
+          "errorField"
+        ]
+      }
+    }
+  ],
+  "data": {
+    "userById": {
+      "account1": "1815-12-10",
+      "account2": "1815-12-10",
+      "username": "@ada",
+      "reviews": [
+        {
+          "body": "Love it!",
+          "errorField": null
+        },
+        {
+          "body": "Could be better.",
+          "errorField": null
+        }
+      ]
+    }
+  }
+}
+```
+
 ## QueryPlan
 
 ```json
@@ -73,54 +121,6 @@
 
 ```text
 7D3257F87D5E3FD2EA9D743001D2F7487EF312F7
-```
-
-## Result
-
-```json
-{
-  "errors": [
-    {
-      "message": "SOME REVIEW ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 107
-        }
-      ],
-      "path": [
-        "userById",
-        "reviews",
-        1,
-        "errorField"
-      ],
-      "extensions": {
-        "remotePath": [
-          "authorById",
-          "reviews",1,
-          "errorField"
-        ]
-      }
-    }
-  ],
-  "data": {
-    "userById": {
-      "account1": "1815-12-10",
-      "account2": "1815-12-10",
-      "username": "@ada",
-      "reviews": [
-        {
-          "body": "Love it!",
-          "errorField": null
-        },
-        {
-          "body": "Could be better.",
-          "errorField": null
-        }
-      ]
-    }
-  }
-}
 ```
 
 ## Fusion Graph

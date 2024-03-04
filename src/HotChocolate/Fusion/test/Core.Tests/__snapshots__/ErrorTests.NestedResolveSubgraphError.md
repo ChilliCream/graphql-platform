@@ -14,6 +14,44 @@
 }
 ```
 
+## Result
+
+```json
+{
+  "errors": [
+    {
+      "message": "SOME USER ERROR",
+      "locations": [
+        {
+          "line": 1,
+          "column": 101
+        }
+      ],
+      "path": [
+        "reviewById",
+        "author",
+        "errorField"
+      ],
+      "extensions": {
+        "remotePath": [
+          "userById",
+          "errorField"
+        ]
+      }
+    }
+  ],
+  "data": {
+    "reviewById": {
+      "body": "Love it!",
+      "author": {
+        "username": "@ada",
+        "errorField": null
+      }
+    }
+  }
+}
+```
+
 ## QueryPlan
 
 ```json
@@ -71,44 +109,6 @@
 
 ```text
 B73888B06A83C483A7570669A3B4E13081014CD5
-```
-
-## Result
-
-```json
-{
-  "errors": [
-    {
-      "message": "SOME USER ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 101
-        }
-      ],
-      "path": [
-        "reviewById",
-        "author",
-        "errorField"
-      ],
-      "extensions": {
-        "remotePath": [
-          "userById",
-          "errorField"
-        ]
-      }
-    }
-  ],
-  "data": {
-    "reviewById": {
-      "body": "Love it!",
-      "author": {
-        "username": "@ada",
-        "errorField": null
-      }
-    }
-  }
-}
 ```
 
 ## Fusion Graph

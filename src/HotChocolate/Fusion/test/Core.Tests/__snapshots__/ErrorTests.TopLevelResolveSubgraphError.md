@@ -13,37 +13,6 @@
 }
 ```
 
-## QueryPlan
-
-```json
-{
-  "document": "{ viewer { data { accountValue } } errorField }",
-  "rootNode": {
-    "type": "Sequence",
-    "nodes": [
-      {
-        "type": "Resolve",
-        "subgraph": "Accounts",
-        "document": "query fetch_viewer_errorField_1 { viewer { data { accountValue } } errorField }",
-        "selectionSetId": 0
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          0
-        ]
-      }
-    ]
-  }
-}
-```
-
-## QueryPlan Hash
-
-```text
-9578FF2608B68C6D9AE96CD13B57F603C4554FFF
-```
-
 ## Result
 
 ```json
@@ -76,6 +45,37 @@
     "errorField": null
   }
 }
+```
+
+## QueryPlan
+
+```json
+{
+  "document": "{ viewer { data { accountValue } } errorField }",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Accounts",
+        "document": "query fetch_viewer_errorField_1 { viewer { data { accountValue } } errorField }",
+        "selectionSetId": 0
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+```
+
+## QueryPlan Hash
+
+```text
+9578FF2608B68C6D9AE96CD13B57F603C4554FFF
 ```
 
 ## Fusion Graph

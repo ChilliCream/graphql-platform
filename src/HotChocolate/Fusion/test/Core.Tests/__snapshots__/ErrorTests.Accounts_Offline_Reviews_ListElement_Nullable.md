@@ -13,6 +13,26 @@ query ReformatIds {
 }
 ```
 
+## Result
+
+```json
+{
+  "errors": [
+    {
+      "message": "Internal Execution Error"
+    }
+  ],
+  "data": {
+    "reviews": [
+      null,
+      null,
+      null,
+      null
+    ]
+  }
+}
+```
+
 ## QueryPlan
 
 ```json
@@ -71,26 +91,6 @@ query ReformatIds {
 
 ```text
 33778A501536384C3FDCA645FA673B8DD1640192
-```
-
-## Result
-
-```json
-{
-  "errors": [
-    {
-      "message": "Internal Execution Error"
-    }
-  ],
-  "data": {
-    "reviews": [
-      null,
-      null,
-      null,
-      null
-    ]
-  }
-}
 ```
 
 ## Fusion Graph

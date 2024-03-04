@@ -10,6 +10,8 @@ schema
 }
 
 type Query {
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
   productById(id: ID!): Product
     @variable(subgraph: "Reviews", name: "id", argument: "id")
     @resolver(subgraph: "Reviews", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -108,6 +110,8 @@ type User implements Node
   birthdate: Date!
     @source(subgraph: "Accounts")
     @tag(name: "internal")
+  errorField: String
+    @source(subgraph: "Accounts")
   id: ID!
     @source(subgraph: "Accounts")
     @source(subgraph: "Reviews")

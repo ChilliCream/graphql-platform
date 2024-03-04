@@ -259,6 +259,43 @@ public class Snapshot
         }
     }
 
+    public async ValueTask MatchMarkdownAsync(CancellationToken cancellationToken = default)
+    {
+        var writer = new ArrayBufferWriter<byte>();
+
+        writer.Append($"# {_title}");
+        writer.AppendLine();
+        writer.AppendLine();
+
+        WriteMarkdownSegments(writer);
+
+        var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateMarkdownSnapshotFileName());
+
+        if (!File.Exists(snapshotFile))
+        {
+            EnsureDirectoryExists(snapshotFile);
+            await using var stream = File.Create(snapshotFile);
+            await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
+        }
+        else
+        {
+            var mismatchFile = Combine(CreateMismatchDirectoryName(), CreateMarkdownSnapshotFileName());
+            EnsureFileDoesNotExist(mismatchFile);
+            var before = await File.ReadAllTextAsync(snapshotFile, cancellationToken);
+            var after = _encoding.GetString(writer.WrittenSpan);
+
+            if (MatchSnapshot(before, after, false, out var diff))
+            {
+                return;
+            }
+
+            EnsureDirectoryExists(mismatchFile);
+            await using var stream = File.Create(mismatchFile);
+            await stream.WriteAsync(writer.WrittenMemory, cancellationToken);
+            throw new Xunit.Sdk.XunitException(diff);
+        }
+    }
+
     public void MatchMarkdown()
     {
         var writer = new ArrayBufferWriter<byte>();

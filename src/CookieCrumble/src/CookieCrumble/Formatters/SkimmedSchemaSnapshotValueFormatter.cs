@@ -8,8 +8,6 @@ namespace CookieCrumble.Formatters;
 internal sealed class SkimmedSchemaSnapshotValueFormatter() : SnapshotValueFormatter<Schema>("graphql")
 {
     protected override void Format(IBufferWriter<byte> snapshot, Schema value)
-    {
-        snapshot.Append(SchemaFormatter.FormatAsString(value));
-    }
+        => snapshot.Append(SchemaFormatter.FormatAsString(value));
 }
 #endif
