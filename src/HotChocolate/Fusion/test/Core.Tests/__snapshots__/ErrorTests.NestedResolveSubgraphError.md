@@ -1,5 +1,8 @@
-User Request
----------------
+# NestedResolveSubgraphError
+
+## User Request
+
+```graphql
 {
   reviewById(id: "UmV2aWV3Cmkx") {
     body
@@ -9,10 +12,11 @@ User Request
     }
   }
 }
----------------
+```
 
-QueryPlan
----------------
+## QueryPlan
+
+```json
 {
   "document": "{ reviewById(id: \u0022UmV2aWV3Cmkx\u0022) { body author { username errorField } } }",
   "rootNode": {
@@ -61,15 +65,17 @@ QueryPlan
     "__fusion_exports__1": "User_id"
   }
 }
----------------
+```
 
-QueryPlan Hash
----------------
+## QueryPlan Hash
+
+```text
 B73888B06A83C483A7570669A3B4E13081014CD5
----------------
+```
 
-Result
----------------
+## Result
+
+```json
 {
   "errors": [
     {
@@ -103,10 +109,11 @@ Result
     }
   }
 }
----------------
+```
 
-Fusion Graph
----------------
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
   @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
@@ -271,4 +278,5 @@ input AddUserInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
----------------
+```
+

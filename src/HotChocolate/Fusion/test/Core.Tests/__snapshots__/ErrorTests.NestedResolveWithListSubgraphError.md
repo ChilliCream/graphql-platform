@@ -1,27 +1,33 @@
-User Request
----------------
+# NestedResolveWithListSubgraphError
+
+## User Request
+
+```graphql
 {
-  reviews {
-    body
-    author {
-      id
+  userById(id: "VXNlcgppMQ==") {
+    account1: birthdate
+    account2: birthdate
+    username
+    reviews {
+      body
       errorField
     }
   }
 }
----------------
+```
 
-QueryPlan
----------------
+## QueryPlan
+
+```json
 {
-  "document": "{ reviews { body author { id errorField } } }",
+  "document": "{ userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username reviews { body errorField } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
-        "subgraph": "Reviews2",
-        "document": "query fetch_reviews_1 { reviews { body author { id __fusion_exports__1: id } } }",
+        "subgraph": "Accounts",
+        "document": "query fetch_userById_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -36,12 +42,12 @@ QueryPlan
         ]
       },
       {
-        "type": "ResolveByKeyBatch",
-        "subgraph": "Accounts",
-        "document": "query fetch_reviews_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { errorField __fusion_exports__1: id } }",
-        "selectionSetId": 2,
+        "type": "Resolve",
+        "subgraph": "Reviews2",
+        "document": "query fetch_userById_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body errorField } } }",
+        "selectionSetId": 1,
         "path": [
-          "usersById"
+          "authorById"
         ],
         "requires": [
           {
@@ -52,7 +58,7 @@ QueryPlan
       {
         "type": "Compose",
         "selectionSetIds": [
-          2
+          1
         ]
       }
     ]
@@ -61,97 +67,65 @@ QueryPlan
     "__fusion_exports__1": "User_id"
   }
 }
----------------
+```
 
-QueryPlan Hash
----------------
-CF3D9A7EDFFF39BD900F00B515F641838206630E
----------------
+## QueryPlan Hash
 
-Result
----------------
+```text
+7D3257F87D5E3FD2EA9D743001D2F7487EF312F7
+```
+
+## Result
+
+```json
 {
   "errors": [
     {
-      "message": "SOME USER ERROR",
+      "message": "SOME REVIEW ERROR",
       "locations": [
         {
           "line": 1,
-          "column": 94
+          "column": 107
         }
       ],
       "path": [
+        "userById",
         "reviews",
-        0,
-        "author",
+        1,
         "errorField"
       ],
       "extensions": {
         "remotePath": [
-          "usersById",1,
-          "errorField"
-        ]
-      }
-    },
-    {
-      "message": "SOME USER ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 94
-        }
-      ],
-      "path": [
-        "reviews",
-        0,
-        "author",
-        "errorField"
-      ],
-      "extensions": {
-        "remotePath": [
-          "usersById",0,
+          "authorById",
+          "reviews",1,
           "errorField"
         ]
       }
     }
   ],
   "data": {
-    "reviews": [
-      {
-        "body": "Love it!",
-        "author": {
-          "id": "VXNlcgppMQ==",
+    "userById": {
+      "account1": "1815-12-10",
+      "account2": "1815-12-10",
+      "username": "@ada",
+      "reviews": [
+        {
+          "body": "Love it!",
+          "errorField": null
+        },
+        {
+          "body": "Could be better.",
           "errorField": null
         }
-      },
-      {
-        "body": "Too expensive.",
-        "author": {
-          "id": "VXNlcgppMg==",
-          "errorField": null
-        }
-      },
-      {
-        "body": "Could be better.",
-        "author": {
-          "id": "VXNlcgppMQ==",
-          "errorField": null
-        }
-      },
-      {
-        "body": "Prefer something else.",
-        "author": {
-          "id": "VXNlcgppMg==",
-          "errorField": null
-        }
-      }
-    ]
+      ]
+    }
   }
 }
----------------
+```
 
-Fusion Graph
----------------
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
   @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
@@ -316,4 +290,5 @@ input AddUserInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
----------------
+```
+

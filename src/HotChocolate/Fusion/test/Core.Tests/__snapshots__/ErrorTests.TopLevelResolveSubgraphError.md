@@ -1,5 +1,8 @@
-User Request
----------------
+# TopLevelResolveSubgraphError
+
+## User Request
+
+```graphql
 {
   viewer {
     data {
@@ -8,10 +11,11 @@ User Request
   }
   errorField
 }
----------------
+```
 
-QueryPlan
----------------
+## QueryPlan
+
+```json
 {
   "document": "{ viewer { data { accountValue } } errorField }",
   "rootNode": {
@@ -32,15 +36,17 @@ QueryPlan
     ]
   }
 }
----------------
+```
 
-QueryPlan Hash
----------------
+## QueryPlan Hash
+
+```text
 9578FF2608B68C6D9AE96CD13B57F603C4554FFF
----------------
+```
 
-Result
----------------
+## Result
+
+```json
 {
   "errors": [
     {
@@ -70,10 +76,11 @@ Result
     "errorField": null
   }
 }
----------------
+```
 
-Fusion Graph
----------------
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
   @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
@@ -158,4 +165,5 @@ input AddUserInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
----------------
+```
+

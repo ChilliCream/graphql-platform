@@ -63,7 +63,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -265,7 +265,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -315,7 +315,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]
@@ -365,7 +365,7 @@ public class ErrorTests(ITestOutputHelper output)
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        snapshot.MatchMarkdownSnapshot();
     }
 
     [Fact]

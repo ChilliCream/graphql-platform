@@ -1,5 +1,8 @@
-User Request
----------------
+# Accounts_Offline_Reviews_ListElement_Nullable
+
+## User Request
+
+```graphql
 query ReformatIds {
   reviews[?]! {
     body
@@ -8,10 +11,11 @@ query ReformatIds {
     }
   }
 }
----------------
+```
 
-QueryPlan
----------------
+## QueryPlan
+
+```json
 {
   "document": "query ReformatIds { reviews[?]! { body author { birthdate } } }",
   "operation": "ReformatIds",
@@ -61,15 +65,17 @@ QueryPlan
     "__fusion_exports__1": "User_id"
   }
 }
----------------
+```
 
-QueryPlan Hash
----------------
+## QueryPlan Hash
+
+```text
 33778A501536384C3FDCA645FA673B8DD1640192
----------------
+```
 
-Result
----------------
+## Result
+
+```json
 {
   "errors": [
     {
@@ -85,10 +91,11 @@ Result
     ]
   }
 }
----------------
+```
 
-Fusion Graph
----------------
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
   @transport(subgraph: "Reviews", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
@@ -246,4 +253,5 @@ input AddUserInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
----------------
+```
+

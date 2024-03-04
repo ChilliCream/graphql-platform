@@ -33,6 +33,7 @@ public class Snapshot
             new JsonElementSnapshotValueFormatter(),
 #if NET7_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
+            new SkimmedSchemaSnapshotValueFormatter(),
 #endif
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
@@ -54,7 +55,7 @@ public class Snapshot
 
     public static Snapshot Create(string? postFix = null, string? extension = null)
         => new(postFix, extension);
-    
+
     public static DisposableSnapshot Start(string? postFix = null, string? extension = null)
         => new(postFix, extension);
 
@@ -257,15 +258,15 @@ public class Snapshot
             }
         }
     }
-    
+
     public void MatchMarkdown()
     {
         var writer = new ArrayBufferWriter<byte>();
-        
+
         writer.Append($"# {_title}");
         writer.AppendLine();
         writer.AppendLine();
-        
+
         WriteMarkdownSegments(writer);
 
         var snapshotFile = Combine(CreateSnapshotDirectoryName(), CreateMarkdownSnapshotFileName());
@@ -287,7 +288,7 @@ public class Snapshot
             {
                 return;
             }
-            
+
             EnsureDirectoryExists(mismatchFile);
             using var stream = File.Create(mismatchFile);
             stream.Write(writer.WrittenSpan);
@@ -344,7 +345,7 @@ public class Snapshot
             next = true;
         }
     }
-    
+
     private void WriteMarkdownSegments(IBufferWriter<byte> writer)
     {
         if (_segments.Count == 1)
@@ -488,11 +489,11 @@ public class Snapshot
             ? string.Concat(fileName, _extension)
             : string.Concat(fileName, "_", _postFix, _extension);
     }
-    
+
     private string CreateMarkdownSnapshotFileName()
     {
         var extension =  _extension.EqualsOrdinal(".snap") ? ".md" : _extension;
-        
+
         var fileName = GetFileNameWithoutExtension(_fileName);
 
         return string.IsNullOrEmpty(_postFix)
@@ -532,7 +533,7 @@ public class Snapshot
             "get the snapshot name, then reach this name to your " +
             "Snapshot.Match method.");
     }
-    
+
     private static string CreateMarkdownTitle(StackFrame[] frames)
     {
         foreach (var stackFrame in frames)

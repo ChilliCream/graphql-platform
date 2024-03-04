@@ -1,19 +1,23 @@
-User Request
----------------
+# Accounts_Offline_Author_Nullable
+
+## User Request
+
+```graphql
 query ReformatIds {
   reviews {
     body
-    author! {
+    author? {
       birthdate
     }
   }
 }
----------------
+```
 
-QueryPlan
----------------
+## QueryPlan
+
+```json
 {
-  "document": "query ReformatIds { reviews { body author! { birthdate } } }",
+  "document": "query ReformatIds { reviews { body author? { birthdate } } }",
   "operation": "ReformatIds",
   "rootNode": {
     "type": "Sequence",
@@ -21,7 +25,7 @@ QueryPlan
       {
         "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query ReformatIds_1 { reviews { body author! { __fusion_exports__1: id } } }",
+        "document": "query ReformatIds_1 { reviews { body author? { __fusion_exports__1: id } } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -61,27 +65,49 @@ QueryPlan
     "__fusion_exports__1": "User_id"
   }
 }
----------------
+```
 
-QueryPlan Hash
----------------
-DAC82CF381252DBDCD201FE838FA2FE069C60F40
----------------
+## QueryPlan Hash
 
-Result
----------------
+```text
+44090BD107B85A967BEBFFCA8844F840215A117F
+```
+
+## Result
+
+```json
 {
   "errors": [
     {
       "message": "Internal Execution Error"
     }
   ],
-  "data": null
+  "data": {
+    "reviews": [
+      {
+        "body": "Love it!",
+        "author": null
+      },
+      {
+        "body": "Too expensive.",
+        "author": null
+      },
+      {
+        "body": "Could be better.",
+        "author": null
+      },
+      {
+        "body": "Prefer something else.",
+        "author": null
+      }
+    ]
+  }
 }
----------------
+```
 
-Fusion Graph
----------------
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
   @transport(subgraph: "Reviews", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
@@ -239,4 +265,5 @@ input AddUserInput {
 
 "The `Date` scalar represents an ISO-8601 compliant date type."
 scalar Date
----------------
+```
+
