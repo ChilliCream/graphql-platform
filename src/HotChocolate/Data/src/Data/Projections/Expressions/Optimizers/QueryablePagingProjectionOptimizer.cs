@@ -155,8 +155,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         SelectionSetOptimizerContext context,
         List<ISelectionNode> selections)
     {
-        if (context.Selections.Values.FirstOrDefault(
-                x => x.Field.Name == "nodes") is { } nodeSelection)
+        if (context.Selections.Values.FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
         {
             foreach (var nodeField in nodeSelection.SelectionSet!.Selections)
             {
@@ -167,7 +166,7 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         }
     }
 
-    private static readonly ISyntaxRewriter<ISyntaxVisitorContext> _cloneSelectionSetRewriter =
+    private static readonly ISyntaxRewriter<object?> _cloneSelectionSetRewriter =
         SyntaxRewriter.Create(
             n => n.Kind is SyntaxKind.SelectionSet
                 ? new SelectionSetNode(((SelectionSetNode)n).Selections)

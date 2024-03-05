@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="CliCode" xml:space="preserve">
+        <value>using System.Buffers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Composition;
+using HotChocolate.Fusion.Composition.Features;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Skimmed.Serialization;
+
+namespace Projects;
+
+internal static class FusionGatewayConfiguration
+{
+    public static async Task ComposeAsync(CancellationToken cancellationToken = default)
+    {
+        var gatewayDirectory = Path.GetDirectoryName(FusionGatewayConfigurationFiles.GatewayProject)!;
+        var packageFileName = Path.Combine(gatewayDirectory, $"gateway{Extensions.FusionPackage}");
+        var packageFile = new FileInfo(packageFileName);
+        var settingsFileName = Path.Combine(gatewayDirectory, "gateway-settings.json");
+        var settingsFile = new FileInfo(settingsFileName);
+        var subgraphDirectories = FusionGatewayConfigurationFiles.SubgraphProjects.Select(t =&gt; Path.GetDirectoryName(t)!).ToArray();
+        
+        // Ensure Gateway Project Directory Exists.
+        if (!Directory.Exists(gatewayDirectory))
+        {
+            Directory.CreateDirectory(gatewayDirectory);
+        }
+
+        await using var package = FusionGraphPackage.Open(packageFile.FullName);
+        var subgraphConfigs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t =&gt; t.Name);
+        await ResolveSubgraphPackagesAsync(subgraphDirectories, subgraphConfigs, cancellationToken);
+
+        using var settingsJson = settingsFile.Exists
+            ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, cancellationToken))
+            : await package.GetFusionGraphSettingsAsync(cancellationToken);
+        var settings = settingsJson.Deserialize&lt;PackageSettings&gt;() ?? new PackageSettings();
+
+        var features = settings.CreateFeatures();
+
+        var composer = new FusionGraphComposer(
+            settings.FusionTypePrefix,
+            settings.FusionTypeSelf,
+            () =&gt; new ConsoleLog());
+
+        var fusionGraph = await composer.TryComposeAsync(subgraphConfigs.Values, features, cancellationToken);
+
+        if (fusionGraph is null)
+        {
+            Console.WriteLine("Fusion graph composition failed.");
+            return;
+        }
+
+        var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
+        var typeNames = FusionTypeNames.From(fusionGraphDoc);
+        var rewriter = new FusionGraphConfigurationToSchemaRewriter();
+        var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, typeNames)!;
+        
+        using var updateSettingsJson = JsonSerializer.SerializeToDocument(settings, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
+        await package.SetFusionGraphSettingsAsync(updateSettingsJson, cancellationToken);
+        await package.SetSchemaAsync(schemaDoc, cancellationToken);
+
+        foreach (var config in subgraphConfigs.Values)
+        {
+            await package.SetSubgraphConfigurationAsync(config, cancellationToken);
+        }
+
+        Console.WriteLine("Fusion graph composed.");
+    }
+
+    private static async Task ResolveSubgraphPackagesAsync(
+        IReadOnlyList&lt;string&gt; subgraphDirectories,
+        IDictionary&lt;string, SubgraphConfiguration&gt; subgraphConfigs,
+        CancellationToken cancellationToken)
+    {
+        for (var i = 0; i &lt; subgraphDirectories.Count; i++)
+        {
+            var path = subgraphDirectories[i];
+
+            if (!Directory.Exists(path))
+            {
+                continue;
+            }
+
+            var configFile = Path.Combine(path, Defaults.ConfigFile);
+            var schemaFile = Path.Combine(path, Defaults.SchemaFile);
+            var extensionFile = Path.Combine(path, Defaults.ExtensionFile);
+
+            if (!File.Exists(configFile) || !File.Exists(schemaFile))
+            {
+                continue;
+            }
+
+            var conf = await PackageHelper.LoadSubgraphConfigAsync(configFile, cancellationToken);
+            var schema = await File.ReadAllTextAsync(schemaFile, cancellationToken);
+            var extensions = Array.Empty&lt;string&gt;();
+
+            if (File.Exists(extensionFile))
+            {
+                extensions = [await File.ReadAllTextAsync(extensionFile, cancellationToken),];
+            }
+
+            subgraphConfigs[conf.Name] =
+                new SubgraphConfiguration(
+                    conf.Name,
+                    schema,
+                    extensions,
+                    conf.Clients,
+                    conf.Extensions);
+        }
+    }
+}
+
+file static class Defaults
+{
+    public const string SchemaFile = "schema.graphql";
+    public const string ExtensionFile = "schema.extensions.graphql";
+    public const string ConfigFile = "subgraph-config.json";
+}
+
+file static class Extensions
+{
+    public const string FusionPackage = ".fgp";
+}
+
+file class PackageSettings
+{
+    private Feature? _reEncodeIds;
+    private Feature? _nodeField;
+    private TagDirective? _tagDirective;
+    private Transport? _transport;
+
+    [JsonPropertyName("fusionTypePrefix")]
+    [JsonPropertyOrder(10)]
+    public string? FusionTypePrefix { get; set; }
+
+    [JsonPropertyName("fusionTypeSelf")]
+    [JsonPropertyOrder(11)]
+    public bool FusionTypeSelf { get; set; }
+
+    public Transport Transport
+    {
+        get =&gt; _transport ??= new();
+        set =&gt; _transport = value;
+    }
+
+    [JsonPropertyName("nodeField")]
+    [JsonPropertyOrder(12)]
+    public Feature NodeField
+    {
+        get =&gt; _nodeField ??= new();
+        set =&gt; _nodeField = value;
+    }
+
+    [JsonPropertyName("reEncodeIds")]
+    [JsonPropertyOrder(13)]
+    public Feature ReEncodeIds
+    {
+        get =&gt; _reEncodeIds ??= new();
+        set =&gt; _reEncodeIds = value;
+    }
+
+    [JsonPropertyName("tagDirective")]
+    [JsonPropertyOrder(14)]
+    public TagDirective TagDirective
+    {
+        get =&gt; _tagDirective ??= new();
+        set =&gt; _tagDirective = value;
+    }
+
+    public FusionFeatureCollection CreateFeatures()
+    {
+        var features = new List&lt;IFusionFeature&gt;
+        {
+            new TransportFeature
+            {
+                DefaultClientName = Transport.DefaultClientName,
+            },
+        };
+
+        if (NodeField.Enabled)
+        {
+            features.Add(FusionFeatures.NodeField);
+        }
+
+        if (ReEncodeIds.Enabled)
+        {
+            features.Add(FusionFeatures.ReEncodeIds);
+        }
+
+        if (TagDirective.Enabled)
+        {
+            features.Add(
+                FusionFeatures.TagDirective(
+                    TagDirective.Exclude,
+                    TagDirective.MakePublic));
+        }
+
+        return new FusionFeatureCollection(features);
+    }
+}
+
+file class Feature
+{
+    [JsonPropertyName("enabled")]
+    [JsonPropertyOrder(10)]
+    public bool Enabled { get; set; }
+}
+
+file sealed class TagDirective : Feature
+{
+    private string[]? _exclude;
+
+    [JsonPropertyName("makePublic")]
+    [JsonPropertyOrder(100)]
+    public bool MakePublic { get; set; }
+
+    [JsonPropertyName("exclude")]
+    [JsonPropertyOrder(101)]
+    public string[] Exclude
+    {
+        get =&gt; _exclude ?? Array.Empty&lt;string&gt;();
+        set =&gt; _exclude = value;
+    }
+}
+
+file sealed class Transport
+{
+    [JsonPropertyName("defaultClientName")]
+    [JsonPropertyOrder(10)]
+    public string? DefaultClientName { get; set; } = "Fusion";
+}
+
+file sealed class ConsoleLog : ICompositionLog
+{
+    public bool HasErrors { get; private set; }
+
+    public void Write(LogEntry e)
+    {
+        if (e.Severity is LogSeverity.Error)
+        {
+            HasErrors = true;
+        }
+
+        if (e.Code is null)
+        {
+            Console.WriteLine($"{e.Severity}: {e.Message}");
+        }
+        else if (e.Coordinate is null)
+        {
+            Console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+        }
+        else
+        {
+            Console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+        }
+    }
+}
+
+file sealed class SubgraphConfigurationDto(
+    string name,
+    IReadOnlyList&lt;IClientConfiguration&gt;? clients = null,
+    JsonElement? extensions = null)
+{
+    public string Name { get; } = name;
+
+    public IReadOnlyList&lt;IClientConfiguration&gt; Clients { get; } = clients ?? Array.Empty&lt;IClientConfiguration&gt;();
+
+    public JsonElement? Extensions { get; } = extensions;
+}
+
+file static class PackageHelper
+{
+    public static async Task&lt;SubgraphConfigurationDto&gt; LoadSubgraphConfigAsync(
+        string filename,
+        CancellationToken ct)
+    {
+        await using var stream = File.OpenRead(filename);
+        return await ParseSubgraphConfigAsync(stream, ct);
+    }
+
+    private static async Task&lt;SubgraphConfigurationDto&gt; ParseSubgraphConfigAsync(
+        Stream stream,
+        CancellationToken ct)
+    {
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct);
+        var configs = new List&lt;IClientConfiguration&gt;();
+        var subgraph = default(string?);
+        var extensions = default(JsonElement?);
+
+        foreach (var property in document.RootElement.EnumerateObject())
+        {
+            switch (property.Name)
+            {
+                case "subgraph":
+                    subgraph = property.Value.GetString();
+                    break;
+
+                case "http":
+                    configs.Add(ReadHttpClientConfiguration(property.Value));
+                    break;
+
+                case "websocket":
+                    configs.Add(ReadWebSocketClientConfiguration(property.Value));
+                    break;
+
+                case "extensions":
+                    extensions = property.Value.SafeClone();
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        $"Configuration property `{property.Value}` is not supported.");
+            }
+        }
+
+        if (string.IsNullOrEmpty(subgraph))
+        {
+            throw new InvalidOperationException("No subgraph name was specified.");
+        }
+
+        return new SubgraphConfigurationDto(subgraph, configs, extensions);
+    }
+
+    private static HttpClientConfiguration ReadHttpClientConfiguration(
+        JsonElement element)
+    {
+        var baseAddress = new Uri(element.GetProperty("baseAddress").GetString()!);
+        var clientName = default(string?);
+
+        if (element.TryGetProperty("clientName", out var clientNameElement))
+        {
+            clientName = clientNameElement.GetString();
+        }
+
+        return new HttpClientConfiguration(baseAddress, clientName);
+    }
+
+    private static WebSocketClientConfiguration ReadWebSocketClientConfiguration(
+        JsonElement element)
+    {
+        var baseAddress = new Uri(element.GetProperty("baseAddress").GetString()!);
+        var clientName = default(string?);
+
+        if (element.TryGetProperty("clientName", out var clientNameElement))
+        {
+            clientName = clientNameElement.GetString();
+        }
+
+        return new WebSocketClientConfiguration(baseAddress, clientName);
+    }
+
+    private static JsonElement SafeClone(this JsonElement element)
+    {
+        var writer = new ArrayBufferWriter&lt;byte&gt;();
+        using var jsonWriter = new Utf8JsonWriter(writer);
+
+        element.WriteTo(jsonWriter);
+        jsonWriter.Flush();
+        var reader = new Utf8JsonReader(writer.WrittenSpan, true, default);
+
+        return JsonElement.ParseValue(ref reader);
+    }
+}
+
+file sealed class FusionGraphConfigurationToSchemaRewriter
+    : SyntaxRewriter&lt;FusionTypeNames&gt;
+{
+    public DocumentNode Rewrite(DocumentNode fusionGraph)
+    {
+        var typeNames = FusionTypeNames.From(fusionGraph);
+        var schemaDoc = (DocumentNode?)Rewrite(fusionGraph, typeNames);
+
+        if (schemaDoc is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return schemaDoc;
+    }
+
+    protected override DirectiveNode? RewriteDirective(DirectiveNode node, FusionTypeNames context)
+        =&gt; context.IsFusionDirective(node.Name.Value) ? null : base.RewriteDirective(node, context);
+}</value>
+    </data>
+</root>

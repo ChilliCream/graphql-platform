@@ -337,7 +337,7 @@ internal sealed class QueryPlan
         public static ExportPathVisitor Instance { get; } = new();
     }
 
-    private sealed class ExportPathVisitorContext : ISyntaxVisitorContext
+    private sealed class ExportPathVisitorContext
     {
         public Queue<string> Path { get; } = new();
     }

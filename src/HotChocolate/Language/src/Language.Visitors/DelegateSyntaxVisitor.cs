@@ -1,8 +1,6 @@
 namespace HotChocolate.Language.Visitors;
 
-internal sealed class DelegateSyntaxVisitor<TContext>
-    : SyntaxVisitor<TContext>
-    where TContext : ISyntaxVisitorContext
+internal sealed class DelegateSyntaxVisitor<TContext> : SyntaxVisitor<TContext>
 {
     private readonly VisitSyntaxNode<TContext> _enter;
     private readonly VisitSyntaxNode<TContext> _leave;
@@ -14,8 +12,8 @@ internal sealed class DelegateSyntaxVisitor<TContext>
         SyntaxVisitorOptions options = default)
         : base(defaultResult ?? Skip, options)
     {
-        _enter = enter ?? new VisitSyntaxNode<TContext>((_, _) => DefaultAction);
-        _leave = leave ?? new VisitSyntaxNode<TContext>((_, _) => DefaultAction);
+        _enter = enter ?? ((_, _) => DefaultAction);
+        _leave = leave ?? ((_, _) => DefaultAction);
     }
 
     protected override ISyntaxVisitorAction Enter(ISyntaxNode node, TContext context)

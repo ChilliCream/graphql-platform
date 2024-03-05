@@ -289,6 +289,6 @@ public partial class SyntaxWalker<TContext>
 
     protected virtual ISyntaxVisitorAction Leave(
        SchemaCoordinateNode node,
-       ISyntaxVisitorContext context) =>
+       TContext context) =>
        DefaultAction;
 }
