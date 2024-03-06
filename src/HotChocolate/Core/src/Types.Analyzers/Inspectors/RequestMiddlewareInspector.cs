@@ -89,7 +89,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
                 var parameterTypeName = parameter.Type.ToFullyQualified();
 
                 if (parameterTypeName.Equals("global::HotChocolate.Schema") ||
-                    parameterTypeName.Equals("global::HotChocolate.!Schema"))
+                    parameterTypeName.Equals("global::HotChocolate.ISchema"))
                 {
                     kind = RequestMiddlewareParameterKind.Schema;
                 }
@@ -108,26 +108,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 
                 invokeParameters.Add(new RequestMiddlewareParameterInfo(kind, parameterTypeName));
             }
-
-
-            /*
-             public static IRequestExecutorBuilder UseRequest<TMiddleware>(
-               this IRequestExecutorBuilder builder)
-               where TMiddleware : class
-
-             [InterceptsLocation(@"C:\testapp\Program.cs", line: 4, column: 5)]
-               public static RouteHandlerBuilder InterceptMapGet( // 👈 The interceptor must
-                   this IEndpointRouteBuilder endpoints,          // have the same signature
-                   string pattern,                                // as the method being
-                   Delegate handler)                              // intercepted
-               {
-                   Console.WriteLine($"Intercepted '{pattern}'" );
-
-                   return endpoints.MapGet(pattern, handler);
-               }
-             */
-
-
+            
             syntaxInfo = new RequestMiddlewareInfo(
                 middlewareType.Name,
                 middlewareType.ToFullyQualified(),
