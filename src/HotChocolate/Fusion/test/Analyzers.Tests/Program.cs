@@ -52,17 +52,27 @@ public class Program
             .WithReference(orderingDb)
             .WithReference(catalogApi.GetEndpoint("http"))
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
+        
+        var purchaseApi = builder
+            .AddProject<Projects.eShop_Purchase_API>("ordering-api")
+            .WithReference(rabbitMq)
+            .WithReference(orderingDb)
+            .WithReference(catalogApi.GetEndpoint("http"))
+            .WithEnvironment("Identity__Url", identityHttpsEndpoint);
 
         // Fusion
+        /*
         builder
             .AddFusionGateway<Projects.eShop_Gateway>("gateway")
             .WithSubgraph(basketApi)
             .WithSubgraph(identityApi.GetEndpoint("http"))
             .WithSubgraph(catalogApi)
             .WithSubgraph(orderingApi)
+            .WithSubgraph(purchaseApi)
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
+            */
 
-        builder.Build().Run();
+        builder.Build().Compose().Run();
     }
 }
 

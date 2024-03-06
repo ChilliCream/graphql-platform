@@ -25,6 +25,12 @@ public class eShop_Ordering_API : global::Aspire.Hosting.IProjectMetadata
 }
 
 [global::System.Diagnostics.DebuggerDisplay("Type = {GetType().Name,nq}, ProjectPath = {ProjectPath}")]
+public class eShop_Purchase_API : global::Aspire.Hosting.IProjectMetadata
+{
+    public string ProjectPath => """/Users/michael/local/webshop-workshop/src/Purchase.API/eShop.Purchase.API.csproj""";
+}
+
+[global::System.Diagnostics.DebuggerDisplay("Type = {GetType().Name,nq}, ProjectPath = {ProjectPath}")]
 public class eShop_Gateway : global::Aspire.Hosting.IProjectMetadata
 {
     public string ProjectPath => """/Users/michael/local/webshop-workshop/src/Gateway/eShop.Gateway.csproj""";

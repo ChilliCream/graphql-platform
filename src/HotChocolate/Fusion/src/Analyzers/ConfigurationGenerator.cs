@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
-using System.Text;
 using HotChocolate.Fusion.Analyzers.Properties;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
@@ -101,7 +99,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                 if (current.Parent is EqualsValueClauseSyntax &&
                     current.Parent.Parent is VariableDeclaratorSyntax variable)
                 {
-                    return new ProjectClass(
+                    return new SubgraphClass(
                         subgraphType.Name,
                         subgraphType.ToFullyQualified(),
                         variable.Identifier.ValueText);
@@ -192,8 +190,8 @@ public class ConfigurationGenerator : IIncrementalGenerator
             return;
         }
 
-        var projects = new Dictionary<string, ProjectClass>();
-        foreach (var project in syntaxInfos.OfType<ProjectClass>())
+        var projects = new Dictionary<string, SubgraphClass>();
+        foreach (var project in syntaxInfos.OfType<SubgraphClass>())
         {
             projects[project.VariableName] = project;
         }
@@ -207,11 +205,11 @@ public class ConfigurationGenerator : IIncrementalGenerator
             {
                 if (projects.TryGetValue(projectLink.VariableName, out var project))
                 {
-                    gateway.Projects.Add(new ProjectInfo(project.Name, project.TypeName));
+                    gateway.Subgraphs.Add(new SubgraphInfo(project.Name, project.TypeName));
                     gateways.Add(gateway);
                 }
             }
-            
+
         }
 
         if (gateways.Count == 0)
@@ -226,36 +224,73 @@ public class ConfigurationGenerator : IIncrementalGenerator
         writer.Write(Resources.CliCode);
         writer.WriteLine();
         writer.WriteLine();
-        writer.WriteIndentedLine("file static class FusionGatewayConfigurationFiles");
+        writer.WriteIndentedLine("namespace HotChocolate.Fusion.Composition.Tooling");
         writer.WriteIndentedLine("{");
 
         using (writer.IncreaseIndent())
         {
-            writer.WriteIndentedLine("public static readonly string[] SubgraphProjects =");
-            writer.WriteIndentedLine("[");
+            writer.WriteIndentedLine("file class GatewayList : List<GatewayInfo>");
+            writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())
             {
-                foreach (var project in gateways[0].Projects)
+                writer.WriteIndentedLine("public GatewayList()");
+
+                using (writer.IncreaseIndent())
                 {
-                    writer.WriteIndentedLine("new {0}().ProjectPath,", project.TypeName);
+                    writer.WriteIndentedLine(": base(");
+                    writer.WriteIndentedLine("[");
+
+                    using (writer.IncreaseIndent())
+                    {
+                        foreach (var gateway in gateways)
+                        {
+                            writer.WriteIndentedLine("GatewayInfo.Create<{0}>(", gateway.TypeName);
+
+                            using (writer.IncreaseIndent())
+                            {
+                                writer.WriteIndentedLine("\"{}\",", gateway.Name);
+
+                                foreach (var project in gateway.Subgraphs)
+                                {
+                                    
+                                }
+                                writer.WriteIndentedLine("");
+                                writer.WriteIndentedLine("");
+                                writer.WriteIndentedLine("");
+                                writer.WriteIndentedLine("");
+                            }
+                        }
+                    }
+                    
+                    writer.WriteIndentedLine("]) { }");
                 }
             }
-
-            writer.WriteIndentedLine("];");
-            writer.WriteLine();
-            writer.WriteIndentedLine("public static string GatewayProject");
-
-            using (writer.IncreaseIndent())
-            {
-                writer.WriteIndentedLine("=> new {0}().ProjectPath;", gateways[0].TypeName);
-            }
+            
+            writer.WriteIndentedLine("}");
         }
-
-
+        
         writer.WriteIndentedLine("}");
 
         context.AddSource("FusionGatewayConfiguration.g.cs", code.ToString());
         StringBuilderPool.Return(code);
+    }
+}
+
+namespace HotChocolate.Fusion.Composition.Tooling
+{
+    file class GatewayList : List<GatewayInfo>
+    {
+        public GatewayList()
+            : base(
+            [
+                GatewayInfo.Create<global::Projects.eShop_Gateway>(
+                    "gateway",
+                    SubgraphInfo.Create<global::Projects.eShop_Purchase_API>("purchase-api", "purchaseApi"),
+                    SubgraphInfo.Create<global::Projects.eShop_Ordering_API>("ordering-api", "orderingApi"),
+                    SubgraphInfo.Create<global::Projects.eShop_Catalog_API>("catalog-api", "catalogApi"),
+                    SubgraphInfo.Create<global::Projects.eShop_Identity_API>("identity-api", "identityApi"),
+                    SubgraphInfo.Create<global::Projects.eShop_Basket_API>("basket-api", "basketApi"))
+            ]) { }
     }
 }
