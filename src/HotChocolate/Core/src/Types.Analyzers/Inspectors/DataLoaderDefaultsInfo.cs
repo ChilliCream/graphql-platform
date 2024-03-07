@@ -1,26 +1,20 @@
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
-public sealed class DataLoaderDefaultsInfo : ISyntaxInfo, IEquatable<DataLoaderDefaultsInfo>
+public sealed class DataLoaderDefaultsInfo(
+    bool? scoped,
+    bool? isPublic,
+    bool? isInterfacePublic,
+    bool registerServices)
+    : ISyntaxInfo
+    , IEquatable<DataLoaderDefaultsInfo>
 {
-    public DataLoaderDefaultsInfo(
-        bool? scoped,
-        bool? isPublic,
-        bool? isInterfacePublic,
-        bool registerServices)
-    {
-        Scoped = scoped;
-        IsPublic = isPublic;
-        IsInterfacePublic = isInterfacePublic;
-        RegisterServices = registerServices;
-    }
+    public bool? Scoped { get; } = scoped;
 
-    public bool? Scoped { get; }
+    public bool? IsPublic { get; } = isPublic;
 
-    public bool? IsPublic { get; }
+    public bool? IsInterfacePublic { get; } = isInterfacePublic;
 
-    public bool? IsInterfacePublic { get; }
-
-    public bool RegisterServices { get; }
+    public bool RegisterServices { get; } = registerServices;
 
     public bool Equals(DataLoaderDefaultsInfo? other)
     {

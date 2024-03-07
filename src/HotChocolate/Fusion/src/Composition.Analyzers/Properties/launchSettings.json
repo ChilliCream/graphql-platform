@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Generators": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../test/Analyzers.Tests/HotChocolate.Fusion.Analyzers.Tests.csproj"
+    }
+  }
+}

@@ -81,7 +81,7 @@ internal static class SchemaExtensions
         }
     }
 
-    private sealed class FieldVariableNameContext : ISyntaxVisitorContext
+    private sealed class FieldVariableNameContext
     {
         public StringBuilder Name { get; } = new();
     }

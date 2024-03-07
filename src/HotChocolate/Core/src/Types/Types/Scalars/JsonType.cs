@@ -268,14 +268,9 @@ public sealed class JsonType : ScalarType<JsonElement>
             }
         }
 
-        private sealed class JsonFormatterContext : ISyntaxVisitorContext
+        private sealed class JsonFormatterContext(Utf8JsonWriter writer)
         {
-            public JsonFormatterContext(Utf8JsonWriter writer)
-            {
-                Writer = writer;
-            }
-
-            public Utf8JsonWriter Writer { get; }
+            public Utf8JsonWriter Writer { get; } = writer;
         }
     }
 }

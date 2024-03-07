@@ -290,6 +290,6 @@ public partial class SyntaxWalker<TContext>
 
     protected virtual ISyntaxVisitorAction Enter(
        SchemaCoordinateNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 }

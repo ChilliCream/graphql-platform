@@ -280,15 +280,8 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private sealed class ConsoleLog : ICompositionLog
+    private sealed class ConsoleLog(IConsole console) : ICompositionLog
     {
-        private readonly IConsole _console;
-
-        public ConsoleLog(IConsole console)
-        {
-            _console = console;
-        }
-
         public bool HasErrors { get; private set; }
 
         public void Write(LogEntry e)
@@ -300,15 +293,15 @@ internal sealed class ComposeCommand : Command
 
             if (e.Code is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Message}");
+                console.WriteLine($"{e.Severity}: {e.Message}");
             }
             else if (e.Coordinate is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+                console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
             }
             else
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+                console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
             }
         }
     }

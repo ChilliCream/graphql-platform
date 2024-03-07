@@ -10,7 +10,7 @@ namespace HotChocolate.Validation;
 /// This interface represents the document validation context that can
 /// be used by validation visitors to build up state.
 /// </summary>
-public interface IDocumentValidatorContext : ISyntaxVisitorContext
+public interface IDocumentValidatorContext
 {
     /// <summary>
     /// Gets the schema on which the validation is executed.
