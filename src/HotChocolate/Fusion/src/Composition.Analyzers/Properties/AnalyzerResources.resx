@@ -27,7 +27,6 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
@@ -39,7 +38,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Composition.Tooling
 {
-
     internal static class FusionGatewayConfgHelper
     {
         public static async Task ConfigureAsync(CancellationToken cancellationToken = default)
@@ -604,19 +602,6 @@ namespace Aspire.Hosting
 {
     internal static class FusionExtensions
     {
-        public static DistributedApplication Compose(this DistributedApplication application)
-        {
-            var options = application.Services.GetRequiredService&lt;DistributedApplicationOptions&gt;();
-
-            if (options.Args is ["compose"])
-            {
-                global::HotChocolate.Fusion.Composition.Tooling.FusionGatewayConfgHelper.ConfigureAsync().Wait();
-                Environment.Exit(0);
-            }
-
-            return application;
-        }
-
         public static IResourceBuilder&lt;FusionGatewayResource&gt; AddFusionGateway&lt;TProject&gt;(
             this IDistributedApplicationBuilder builder,
             string name)
@@ -657,7 +642,42 @@ namespace Aspire.Hosting
 
         public FusionGatewayResource Resource { get; } = new(projectResourceBuilder.Resource);
     }
-}
-</value>
+}</value>
+    </data>
+    <data name="NoOpCompose" xml:space="preserve">
+        <value>using Microsoft.Extensions.DependencyInjection;
+
+namespace Aspire.Hosting
+{
+    internal static class DistributedApplicationExtensions
+    {
+        public static DistributedApplication Compose(this DistributedApplication application)
+        {
+            return application;
+        }
+    }
+}</value>
+    </data>
+    <data name="Compose" xml:space="preserve">
+        <value>using Microsoft.Extensions.DependencyInjection;
+
+namespace Aspire.Hosting
+{
+    internal static class HotChocolateDistributedApplicationExtensions
+    {
+        public static DistributedApplication Compose(this DistributedApplication application)
+        {
+            var options = application.Services.GetRequiredService&lt;DistributedApplicationOptions&gt;();
+
+            if (options.Args is ["compose"])
+            {
+                global::HotChocolate.Fusion.Composition.Tooling.FusionGatewayConfgHelper.ConfigureAsync().Wait();
+                Environment.Exit(0);
+            }
+
+            return application;
+        }
+    }
+}</value>
     </data>
 </root>

@@ -62,17 +62,16 @@ public class Program
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
 
         // Fusion
-        builder
+        var gateway = builder
             .AddFusionGateway<Projects.eShop_Gateway>("gateway")
             .WithSubgraph(basketApi)
-            .WithSubgraph(identityApi.GetEndpoint("http"))
+            .WithSubgraph(identityApi)
             .WithSubgraph(catalogApi)
             .WithSubgraph(orderingApi)
-            .WithSubgraph(purchaseApi)
-            .WithEnvironment("Identity__Url", identityHttpsEndpoint);
-            
+            .WithSubgraph(purchaseApi);
 
         builder.Build().Compose().Run();
     }
 }
+
 

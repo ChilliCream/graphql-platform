@@ -188,6 +188,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
     {
         if (syntaxInfos.Length == 0)
         {
+            WriteNoOpCompose(context);
             return;
         }
 
@@ -223,8 +224,11 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
         if (gateways.Count == 0)
         {
+            WriteNoOpCompose(context);
             return;
         }
+        
+        WriteCompose(context);
 
         var code = StringBuilderPool.Get();
         using var writer = new CodeWriter(code);
@@ -297,6 +301,30 @@ public class ConfigurationGenerator : IIncrementalGenerator
         writer.WriteIndentedLine("}");
 
         context.AddSource("FusionConfiguration.g.cs", code.ToString());
+        StringBuilderPool.Return(code);
+    }
+    
+    private static void WriteCompose(SourceProductionContext context)
+    {
+        var code = StringBuilderPool.Get();
+        using var writer = new CodeWriter(code);
+
+        writer.WriteFileHeader();
+        writer.Write(AnalyzerResources.Compose);
+
+        context.AddSource("FusionCompose.g.cs", code.ToString());
+        StringBuilderPool.Return(code);
+    }
+
+    private static void WriteNoOpCompose(SourceProductionContext context)
+    {
+        var code = StringBuilderPool.Get();
+        using var writer = new CodeWriter(code);
+
+        writer.WriteFileHeader();
+        writer.Write(AnalyzerResources.NoOpCompose);
+
+        context.AddSource("FusionCompose.g.cs", code.ToString());
         StringBuilderPool.Return(code);
     }
 
