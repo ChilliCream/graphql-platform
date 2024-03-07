@@ -3,7 +3,7 @@
   "profiles": {
     "Generators": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../../test/Analyzers.Tests/HotChocolate.Fusion.Analyzers.Tests.csproj"
+      "targetProject": "../../test/Composition.Analyzers.Tests/HotChocolate.Fusion.Composition.Analyzers.Tests.csproj"
     }
   }
 }

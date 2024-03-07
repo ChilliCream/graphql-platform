@@ -230,7 +230,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
         using var writer = new CodeWriter(code);
 
         writer.WriteFileHeader();
-        writer.Write(Resources.CliCode);
+        writer.Write(AnalyzerResources.CliCode);
         writer.WriteLine();
         writer.WriteLine();
         writer.WriteIndentedLine("namespace HotChocolate.Fusion.Composition.Tooling");
@@ -306,7 +306,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
         using var writer = new CodeWriter(code);
 
         writer.WriteFileHeader();
-        writer.Write(Resources.Extensions);
+        writer.Write(AnalyzerResources.Extensions);
 
         context.AddSource("FusionExtensions.g.cs", code.ToString());
         StringBuilderPool.Return(code);
