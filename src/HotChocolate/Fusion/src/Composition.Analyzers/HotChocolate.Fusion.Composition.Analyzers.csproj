@@ -25,7 +25,7 @@
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Fusion.Analyzers.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Analyzers.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Composition.Analyzers.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Composition.Analyzers.targets" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
