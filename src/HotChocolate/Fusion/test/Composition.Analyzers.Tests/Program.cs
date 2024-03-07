@@ -72,7 +72,7 @@ public class Program
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
             
 
-        // builder.Build().Compose().Run();
+        builder.Build().Compose().Run();
     }
 }
 
