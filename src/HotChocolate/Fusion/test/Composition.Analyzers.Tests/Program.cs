@@ -1,3 +1,4 @@
+
 namespace HotChocolate.Fusion.Analyzers.Tests;
 
 public class Program
@@ -61,7 +62,6 @@ public class Program
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
 
         // Fusion
-        /*
         builder
             .AddFusionGateway<Projects.eShop_Gateway>("gateway")
             .WithSubgraph(basketApi)
@@ -70,51 +70,9 @@ public class Program
             .WithSubgraph(orderingApi)
             .WithSubgraph(purchaseApi)
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
-            */
+            
 
-        builder.Build().Compose().Run();
+        // builder.Build().Compose().Run();
     }
 }
 
-file static class FusionExtensions
-{
-    public static IResourceBuilder<FusionGatewayResource> AddFusionGateway<TProject>(
-        this IDistributedApplicationBuilder builder,
-        string name)
-        where TProject : IProjectMetadata, new()
-        => new FusionGatewayResourceBuilder(builder.AddProject<TProject>(name));
-
-    public static IResourceBuilder<FusionGatewayResource> WithSubgraph(
-        this IResourceBuilder<FusionGatewayResource> builder,
-        IResourceBuilder<ProjectResource> subgraphProject)
-        => builder.WithReference(subgraphProject.GetEndpoint("http"));
-
-    public static IResourceBuilder<FusionGatewayResource> WithSubgraph(
-        this IResourceBuilder<FusionGatewayResource> builder,
-        EndpointReference subgraphEndpoint)
-        => builder.WithReference(subgraphEndpoint);
-}
-
-file class FusionGatewayResource(ProjectResource projectResource)
-    : Resource(projectResource.Name)
-        , IResourceWithEnvironment
-        , IResourceWithServiceDiscovery
-{
-    public ProjectResource ProjectResource { get; } = projectResource;
-}
-
-file class FusionGatewayResourceBuilder(
-    IResourceBuilder<ProjectResource> projectResourceBuilder)
-    : IResourceBuilder<FusionGatewayResource>
-{
-    public IResourceBuilder<FusionGatewayResource> WithAnnotation<TAnnotation>(TAnnotation annotation)
-        where TAnnotation : IResourceAnnotation
-    {
-        projectResourceBuilder.WithAnnotation(annotation);
-        return this;
-    }
-
-    public IDistributedApplicationBuilder ApplicationBuilder => projectResourceBuilder.ApplicationBuilder;
-
-    public FusionGatewayResource Resource { get; } = new(projectResourceBuilder.Resource);
-}

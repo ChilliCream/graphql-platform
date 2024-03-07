@@ -11,6 +11,8 @@ public class ConfigurationGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        context.RegisterPostInitializationOutput(AddInitializationContent);
+
         var modulesAndTypes =
             context.SyntaxProvider
                 .CreateSyntaxProvider(
@@ -22,7 +24,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(
             valueProvider,
-            static (context, source) => Execute(context, source.Left, source.Right!));
+            static (context, source) => Execute(context, source.Right!));
     }
 
     private static bool IsRelevant(SyntaxNode node)
@@ -37,8 +39,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                 Expression: MemberAccessExpressionSyntax memberAccess,
             })
         {
-            if (memberAccess.Name is GenericNameSyntax genericName &&
-                genericName.TypeArgumentList.Arguments.Count == 1)
+            if (memberAccess.Name is GenericNameSyntax { TypeArgumentList.Arguments.Count: 1, } genericName)
             {
                 if (genericName.Identifier.ValueText.Equals("AddFusionGateway", StringComparison.Ordinal))
                 {
@@ -139,7 +140,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                                 TypeArgumentList.Arguments: { Count: 1, } fusionArgs,
                             },
                         },
-                    } parentInvocation &&
+                    } &&
                     context.SemanticModel.GetTypeInfo(fusionArgs[0]).Type is INamedTypeSymbol gatewayType)
                 {
                     var argument = subgraphInvocation.ArgumentList.Arguments[0];
@@ -182,7 +183,6 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.Length == 0)
@@ -191,14 +191,22 @@ public class ConfigurationGenerator : IIncrementalGenerator
         }
 
         var projects = new Dictionary<string, SubgraphClass>();
+
         foreach (var project in syntaxInfos.OfType<SubgraphClass>())
         {
             projects[project.VariableName] = project;
         }
 
+        var processed = new HashSet<string>();
         var gateways = new List<GatewayInfo>();
+
         foreach (var gatewayGroup in syntaxInfos.OfType<GatewayClass>().GroupBy(t => t.Name))
         {
+            if (!processed.Add(gatewayGroup.Key))
+            {
+                continue;
+            }
+
             var gateway = new GatewayInfo(gatewayGroup.Key, gatewayGroup.First().TypeName);
 
             foreach (var projectLink in gatewayGroup)
@@ -206,10 +214,10 @@ public class ConfigurationGenerator : IIncrementalGenerator
                 if (projects.TryGetValue(projectLink.VariableName, out var project))
                 {
                     gateway.Subgraphs.Add(new SubgraphInfo(project.Name, project.TypeName));
-                    gateways.Add(gateway);
                 }
             }
-
+            
+            gateways.Add(gateway);
         }
 
         if (gateways.Count == 0)
@@ -219,8 +227,8 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
         var code = StringBuilderPool.Get();
         using var writer = new CodeWriter(code);
+
         writer.WriteFileHeader();
-        writer.WriteLine();
         writer.Write(Resources.CliCode);
         writer.WriteLine();
         writer.WriteLine();
@@ -249,48 +257,57 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
                             using (writer.IncreaseIndent())
                             {
-                                writer.WriteIndentedLine("\"{}\",", gateway.Name);
+                                writer.WriteIndentedLine("\"{0}\",", gateway.Name);
+
+                                var first = true;
 
                                 foreach (var project in gateway.Subgraphs)
                                 {
-                                    
+                                    if (first)
+                                    {
+                                        first = false;
+                                    }
+                                    else
+                                    {
+                                        writer.Write(",");
+                                        writer.WriteLine();
+                                    }
+
+                                    writer.WriteIndented(
+                                        "SubgraphInfo.Create<{0}>(\"{1}\", \"{2}\")",
+                                        project.TypeName,
+                                        project.Name,
+                                        project.Name);
                                 }
-                                writer.WriteIndentedLine("");
-                                writer.WriteIndentedLine("");
-                                writer.WriteIndentedLine("");
-                                writer.WriteIndentedLine("");
+
+                                writer.Write("),");
+                                writer.WriteLine();
                             }
                         }
                     }
-                    
+
                     writer.WriteIndentedLine("]) { }");
                 }
             }
-            
+
             writer.WriteIndentedLine("}");
         }
-        
+
         writer.WriteIndentedLine("}");
 
-        context.AddSource("FusionGatewayConfiguration.g.cs", code.ToString());
+        context.AddSource("FusionConfiguration.g.cs", code.ToString());
         StringBuilderPool.Return(code);
     }
-}
 
-namespace HotChocolate.Fusion.Composition.Tooling
-{
-    file class GatewayList : List<GatewayInfo>
+    private static void AddInitializationContent(IncrementalGeneratorPostInitializationContext context)
     {
-        public GatewayList()
-            : base(
-            [
-                GatewayInfo.Create<global::Projects.eShop_Gateway>(
-                    "gateway",
-                    SubgraphInfo.Create<global::Projects.eShop_Purchase_API>("purchase-api", "purchaseApi"),
-                    SubgraphInfo.Create<global::Projects.eShop_Ordering_API>("ordering-api", "orderingApi"),
-                    SubgraphInfo.Create<global::Projects.eShop_Catalog_API>("catalog-api", "catalogApi"),
-                    SubgraphInfo.Create<global::Projects.eShop_Identity_API>("identity-api", "identityApi"),
-                    SubgraphInfo.Create<global::Projects.eShop_Basket_API>("basket-api", "basketApi"))
-            ]) { }
+        var code = StringBuilderPool.Get();
+        using var writer = new CodeWriter(code);
+
+        writer.WriteFileHeader();
+        writer.Write(Resources.Extensions);
+
+        context.AddSource("FusionExtensions.g.cs", code.ToString());
+        StringBuilderPool.Return(code);
     }
 }

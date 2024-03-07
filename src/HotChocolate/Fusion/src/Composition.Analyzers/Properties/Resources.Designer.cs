@@ -50,5 +50,11 @@ namespace HotChocolate.Fusion.Analyzers.Properties {
                 return ResourceManager.GetString("CliCode", resourceCulture);
             }
         }
+        
+        internal static string Extensions {
+            get {
+                return ResourceManager.GetString("Extensions", resourceCulture);
+            }
+        }
     }
 }

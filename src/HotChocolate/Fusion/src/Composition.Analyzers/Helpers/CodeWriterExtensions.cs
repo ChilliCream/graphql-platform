@@ -32,9 +32,6 @@ public static class CodeWriterExtensions
         writer.WriteLine();
         writer.WriteIndentedLine("#nullable enable");
         writer.WriteLine();
-        writer.WriteIndentedLine("using System;");
-        writer.WriteIndentedLine("using System.Runtime.CompilerServices;");
-        writer.WriteIndentedLine("using HotChocolate.Execution.Configuration;");
     }
 
     public static CodeWriter WriteComment(this CodeWriter writer, string comment)

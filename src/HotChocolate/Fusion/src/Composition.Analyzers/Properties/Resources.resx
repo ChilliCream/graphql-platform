@@ -595,11 +595,14 @@ namespace HotChocolate.Fusion.Composition.Tooling
             where TProject : IProjectMetadata, new()
             =&gt; new(name, new TProject().ProjectPath, projects);
     }
-}
+}</value>
+    </data>
+    <data name="Extensions" xml:space="preserve">
+        <value>using Microsoft.Extensions.DependencyInjection;
 
 namespace Aspire.Hosting
 {
-    public static class Extensions
+    internal static class FusionExtensions
     {
         public static DistributedApplication Compose(this DistributedApplication application)
         {
@@ -607,13 +610,54 @@ namespace Aspire.Hosting
 
             if (options.Args is ["compose"])
             {
-                FusionGatewayConfgHelper.ConfigureAsync().Wait();
+                global::HotChocolate.Fusion.Composition.Tooling.FusionGatewayConfgHelper.ConfigureAsync().Wait();
                 Environment.Exit(0);
             }
 
             return application;
         }
+
+        public static IResourceBuilder&lt;FusionGatewayResource&gt; AddFusionGateway&lt;TProject&gt;(
+            this IDistributedApplicationBuilder builder,
+            string name)
+            where TProject : IProjectMetadata, new()
+            =&gt; new FusionGatewayResourceBuilder(builder.AddProject&lt;TProject&gt;(name));
+
+        public static IResourceBuilder&lt;FusionGatewayResource&gt; WithSubgraph(
+            this IResourceBuilder&lt;FusionGatewayResource&gt; builder,
+            IResourceBuilder&lt;ProjectResource&gt; subgraphProject)
+            =&gt; builder.WithReference(subgraphProject.GetEndpoint("http"));
+
+        public static IResourceBuilder&lt;FusionGatewayResource&gt; WithSubgraph(
+            this IResourceBuilder&lt;FusionGatewayResource&gt; builder,
+            EndpointReference subgraphEndpoint)
+            =&gt; builder.WithReference(subgraphEndpoint);
     }
-}</value>
+
+    internal sealed class FusionGatewayResource(ProjectResource projectResource)
+        : Resource(projectResource.Name)
+            , IResourceWithEnvironment
+            , IResourceWithServiceDiscovery
+    {
+        public ProjectResource ProjectResource { get; } = projectResource;
+    }
+
+    internal sealed class FusionGatewayResourceBuilder(
+        IResourceBuilder&lt;ProjectResource&gt; projectResourceBuilder)
+        : IResourceBuilder&lt;FusionGatewayResource&gt;
+    {
+        public IResourceBuilder&lt;FusionGatewayResource&gt; WithAnnotation&lt;TAnnotation&gt;(TAnnotation annotation)
+            where TAnnotation : IResourceAnnotation
+        {
+            projectResourceBuilder.WithAnnotation(annotation);
+            return this;
+        }
+
+        public IDistributedApplicationBuilder ApplicationBuilder =&gt; projectResourceBuilder.ApplicationBuilder;
+
+        public FusionGatewayResource Resource { get; } = new(projectResourceBuilder.Resource);
+    }
+}
+</value>
     </data>
 </root>
