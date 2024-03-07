@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Fusion.Analyzers</PackageId>
-    <AssemblyName>HotChocolate.Fusion.Analyzers</AssemblyName>
-    <RootNamespace>HotChocolate.Fusion.Analyzers</RootNamespace>
+    <PackageId>HotChocolate.Fusion.Composition.Analyzers</PackageId>
+    <AssemblyName>HotChocolate.Fusion.Composition.Analyzers</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Composition.Analyzers</RootNamespace>
     <Description>This package provides source generators for HotChocolate Fusion.</Description>
   </PropertyGroup>
 

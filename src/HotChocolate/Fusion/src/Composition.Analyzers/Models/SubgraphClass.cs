@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types.Analyzers;
+﻿namespace HotChocolate.Fusion.Composition.Analyzers.Models;
 
 public sealed class SubgraphClass(string name, string typeName, string variableName) : ISyntaxInfo
 {

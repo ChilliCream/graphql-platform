@@ -1,10 +1,11 @@
 using System.Collections.Immutable;
-using HotChocolate.Fusion.Analyzers.Properties;
-using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Fusion.Composition.Analyzers.Helpers;
+using HotChocolate.Fusion.Composition.Analyzers.Models;
+using HotChocolate.Fusion.Composition.Analyzers.Properties;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HotChocolate.Types.Analyzers;
+namespace HotChocolate.Fusion.Composition.Analyzers;
 
 [Generator]
 public class ConfigurationGenerator : IIncrementalGenerator

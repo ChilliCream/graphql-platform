@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace HotChocolate.Types.Analyzers.Helpers;
+namespace HotChocolate.Fusion.Composition.Analyzers.Helpers;
 
 public static class SymbolExtensions
 {

@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Analyzers;
+namespace HotChocolate.Fusion.Composition.Analyzers.Models;
 
 public class GatewayInfo(string name, string typeName)
 {
