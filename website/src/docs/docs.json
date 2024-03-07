@@ -46,6 +46,7 @@
             "items": [
               { "path": "overview", "title": "Overview" },
               { "path": "stages", "title": "Stages" },
+              { "path": "deployments", "title": "Deployments" },
               { "path": "fusion", "title": "Fusion" },
               {
                 "path": "schema-registry",
@@ -1491,6 +1492,10 @@
               { "path": "logout", "title": "logout" },
               { "path": "schema", "title": "schema" },
               { "path": "stage", "title": "stage" },
+              {
+                "path": "fusion-configuration",
+                "title": "fusion-configuration"
+              },
               { "path": "workspace", "title": "workspace" }
             ]
           }
