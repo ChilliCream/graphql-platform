@@ -217,6 +217,22 @@ public static class FusionRequestExecutorBuilderExtensions
         builder.CoreBuilder.AddTypeModule<GatewayConfigurationTypeModule>();
         return builder;
     }
+    
+    /// <summary>
+    /// Rewrites the gateway configuration to use the service discovery for HTTP clients.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <returns>
+    /// Returns the gateway builder for configuration chaining.
+    /// </returns>
+    public static FusionGatewayBuilder AddServiceDiscoveryRewriter(
+        this FusionGatewayBuilder builder)
+    {
+        builder.Services.AddSingleton<IConfigurationRewriter, ServiceDiscoveryConfigurationRewriter>();
+        return builder;
+    }
 
     /// <summary>
     /// Uses the default fusion gateway pipeline.

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Composition;
 
 internal static class JsonElementExtensions
 {

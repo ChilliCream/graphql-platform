@@ -1,9 +1,8 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Fusion.Composition;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
 /// Represents the formatter for the core subgraph configuration.
