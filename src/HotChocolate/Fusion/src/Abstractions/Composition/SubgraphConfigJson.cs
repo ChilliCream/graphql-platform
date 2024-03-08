@@ -1,7 +1,6 @@
 using System.Text.Json;
-using HotChocolate.Fusion.Composition;
 
-namespace HotChocolate.Fusion;
+namespace HotChocolate.Fusion.Composition;
 
 /// <summary>
 /// The runtime representation of subgraph-config.json.
