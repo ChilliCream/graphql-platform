@@ -175,10 +175,10 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
     {
         services.TryAddDataLoaderCore();
-        services.RemoveAll<IDataLoaderScope>();
+        services.RemoveAll<IDataLoaderContext>();
         services.TryAddSingleton<DataLoaderScopeHolder>();
         services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
-        services.TryAddScoped<IDataLoaderScope>(
+        services.TryAddScoped<IDataLoaderContext>(
             sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
         return services;
     }

@@ -1,24 +1,20 @@
-using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace GreenDonut;
 
 public class ManualBatchScheduler : IBatchScheduler
 {
-    private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
+    private readonly ConcurrentQueue<BatchJob> _queue = new();
 
     public void Dispatch()
     {
-        while (_queue.TryDequeue(out var dispatch))
+        while (_queue.TryDequeue(out var job))
         {
-            Task.Run(async () => await dispatch());
+            Task.Run(async () => await job.DispatchAsync());
         }
     }
 
-    public void Schedule(Func<ValueTask> dispatch)
-    {
-        _queue.Enqueue(dispatch);
-    }
+    public void Schedule(BatchJob job)
+        => _queue.Enqueue(job);
 }

@@ -10,8 +10,6 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Fetching.Utilities.ThrowHelper;
 using static HotChocolate.WellKnownMiddleware;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 

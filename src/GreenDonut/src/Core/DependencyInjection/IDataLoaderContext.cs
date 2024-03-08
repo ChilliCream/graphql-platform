@@ -1,10 +1,15 @@
 namespace GreenDonut.DependencyInjection;
 
 /// <summary>
-/// The DataLoader scope provides access to the DataLoader bound to the current execution. 
+/// The DataLoader context provides access to the DataLoader bound to the current execution. 
 /// </summary>
-public interface IDataLoaderScope
+public interface IDataLoaderContext
 {
+    /// <summary>
+    /// Gets access to the scheduler bound to this context.
+    /// </summary>
+    ActiveBatchScheduler Scheduler { get; }
+    
     /// <summary>
     /// Gets a <see cref="IDataLoader"/> from the current execution scope; or, creates a new instance for this scope.
     /// </summary>

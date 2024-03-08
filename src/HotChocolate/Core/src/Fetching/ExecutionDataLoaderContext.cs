@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
-internal sealed class ExecutionDataLoaderScope(
+internal sealed class ExecutionDataLoaderContext(
     IServiceProvider serviceProvider,
     IBatchScheduler batchScheduler,
 #if NET8_0_OR_GREATER
@@ -20,7 +20,7 @@ internal sealed class ExecutionDataLoaderScope(
 #else
     Dictionary<Type, DataLoaderRegistration> registrations)
 #endif
-    : IDataLoaderScope
+    : IDataLoaderContext
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
 

@@ -21,11 +21,10 @@ public class DataLoaderTests(ITestOutputHelper output)
         // arrange
         var fetch = CreateFetch<string, string>();
         var services = new ServiceCollection()
-            .AddScoped<IBatchScheduler, ManualBatchScheduler>()
             .AddDataLoader(sp => new DataLoader<string, string>(fetch, sp.GetRequiredService<IBatchScheduler>()));
         var scope = services.BuildServiceProvider().CreateScope();
         var dataLoader = scope.ServiceProvider.GetRequiredService<DataLoader<string, string>>();
-
+        
         // act
         void Verify() => dataLoader.Clear();
 

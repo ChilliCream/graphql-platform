@@ -73,7 +73,7 @@ public static class DataLoaderResolverContextExtensions
         }
 
         var services = context.RequestServices;
-        var scope = services.GetRequiredService<IDataLoaderScope>();
+        var scope = services.GetRequiredService<IDataLoaderContext>();
         return scope.GetDataLoader(Create, name);
         
         IDataLoader<TKey, TValue> Create(IServiceProvider sp)
@@ -145,7 +145,7 @@ public static class DataLoaderResolverContextExtensions
         }
 
         var services = context.RequestServices;
-        var scope = services.GetRequiredService<IDataLoaderScope>();
+        var scope = services.GetRequiredService<IDataLoaderContext>();
         return scope.GetDataLoader(Create, name);
 
         IDataLoader<TKey, TValue[]> Create(IServiceProvider sp)
@@ -202,7 +202,7 @@ public static class DataLoaderResolverContextExtensions
         }
 
         var services = context.RequestServices;
-        var scope = services.GetRequiredService<IDataLoaderScope>();
+        var scope = services.GetRequiredService<IDataLoaderContext>();
         return scope.GetDataLoader(Create, name);
 
         IDataLoader<TKey, TValue> Create(IServiceProvider sp)
@@ -247,7 +247,7 @@ public static class DataLoaderResolverContextExtensions
         }
 
         var services = context.RequestServices;
-        var reg = services.GetRequiredService<IDataLoaderScope>();
+        var reg = services.GetRequiredService<IDataLoaderContext>();
         return reg.GetDataLoader<T>();
     }
 }

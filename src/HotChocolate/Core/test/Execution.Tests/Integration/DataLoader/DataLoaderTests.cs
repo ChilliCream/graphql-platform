@@ -181,7 +181,7 @@ public class DataLoaderTests
 
                         var dataLoader =
                             context.Services
-                                .GetRequiredService<IDataLoaderScope>()
+                                .GetRequiredService<IDataLoaderContext>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                         context.Result = QueryResultBuilder
@@ -242,7 +242,7 @@ public class DataLoaderTests
 
                     var dataLoader =
                         context.Services
-                            .GetRequiredService<IDataLoaderScope>()
+                            .GetRequiredService<IDataLoaderContext>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                     context.Result = QueryResultBuilder
@@ -277,7 +277,7 @@ public class DataLoaderTests
 
                     var dataLoader =
                         context.Services
-                            .GetRequiredService<IDataLoaderScope>()
+                            .GetRequiredService<IDataLoaderContext>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                     context.Result = QueryResultBuilder
@@ -315,7 +315,7 @@ public class DataLoaderTests
 
                     var dataLoader =
                         context.Services
-                            .GetRequiredService<IDataLoaderScope>()
+                            .GetRequiredService<IDataLoaderContext>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                     context.Result = QueryResultBuilder

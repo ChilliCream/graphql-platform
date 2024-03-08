@@ -304,7 +304,7 @@ public abstract partial class DataLoaderBase<TKey, TValue>
 
         // set the batch before enqueueing to avoid concurrency issues.
         _currentBatch = newBatch;
-        _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _ct));
+        _batchScheduler.Schedule(new BatchJob(() => DispatchBatchAsync(newBatch, _ct)));
 
         return newPromise;
     }

@@ -14,12 +14,13 @@ public class AutoBatchSchedulerTests
         var waitHandle = new AutoResetEvent(false);
 
         // act
-        AutoBatchScheduler.Default.Schedule(() =>
-        {
-            dispatched = true;
-            waitHandle.Set();
-            return default;
-        });
+        AutoBatchScheduler.Default.Schedule(new BatchJob(
+            () =>
+            {
+                dispatched = true;
+                waitHandle.Set();
+                return default;
+            }));
 
         // assert
         waitHandle.WaitOne(TimeSpan.FromSeconds(5));

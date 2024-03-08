@@ -14,7 +14,7 @@ public sealed class ExecutionDataLoaderScopeFactory(IServiceProvider services) :
         var dataLoaderScope = dataLoaderScopeHolder.PinNewScope(services, batchHandler);
 
         // the pinned scope and the scope in the DI must match ... otherwise we fail here!
-        if (!ReferenceEquals(dataLoaderScope, services.GetRequiredService<IDataLoaderScope>()))
+        if (!ReferenceEquals(dataLoaderScope, services.GetRequiredService<IDataLoaderContext>()))
         {
             throw new InvalidOperationException("The DataLoaderScope has an inconsistent state.");
         }

@@ -50,32 +50,32 @@ public sealed class DataLoaderScopeHolder
     }
 
     /// <summary>
-    /// Creates and pins a new <see cref="IDataLoaderScope"/>.
+    /// Creates and pins a new <see cref="IDataLoaderContext"/>.
     /// </summary>
-    public IDataLoaderScope PinNewScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    public IDataLoaderContext PinNewScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
         scheduler ??= scopedServiceProvider.GetRequiredService<IBatchScheduler>();
-        return CurrentScope = new ExecutionDataLoaderScope(scopedServiceProvider, scheduler, _registrations);
+        return CurrentContext = new ExecutionDataLoaderContext(scopedServiceProvider, scheduler, _registrations);
     }
     
-    public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    public IDataLoaderContext GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
     {
-        if(_currentScope.Value?.Scope is null)
+        if(_currentScope.Value?.Context is null)
         {
-            CurrentScope = PinNewScope(scopedServiceProvider, scheduler);
+            CurrentContext = PinNewScope(scopedServiceProvider, scheduler);
         }
-        return CurrentScope;
+        return CurrentContext;
     }
 
     /// <summary>
-    /// Gets access to the current <see cref="IDataLoaderScope"/> instance.
+    /// Gets access to the current <see cref="IDataLoaderContext"/> instance.
     /// </summary>
     /// <exception cref="InvalidCastException">
     /// The instance was not initialized.
     /// </exception>
-    public IDataLoaderScope CurrentScope
+    public IDataLoaderContext CurrentContext
     {
-        get => _currentScope.Value?.Scope ??
+        get => _currentScope.Value?.Context ??
             throw new InvalidOperationException("No DataLoader scope exists.");
         set
         {
@@ -87,12 +87,12 @@ public sealed class DataLoaderScopeHolder
                 _currentScope.Value = holder;
             }
 
-            holder.Scope = value;
+            holder.Context = value;
         }
     }
 
     private sealed class InstanceHolder
     {
-        public IDataLoaderScope Scope = default!;
+        public IDataLoaderContext Context = default!;
     }
 }
