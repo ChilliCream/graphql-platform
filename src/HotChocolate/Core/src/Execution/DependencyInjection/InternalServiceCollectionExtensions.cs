@@ -168,7 +168,7 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddDataLoaderCore();
         services.RemoveAll<IDataLoaderContext>();
         services.TryAddSingleton<DataLoaderContextHolder>();
-        services.TryAddSingleton<IDataLoaderContextHelper, DataLoaderContextHelper>();
+        services.TryAddScoped<IDataLoaderContextHelper, DataLoaderContextHelper>();
         services.TryAddScoped<IDataLoaderContext>(
             sp => sp.GetRequiredService<DataLoaderContextHolder>().GetOrCreateContext(sp));
         return services;

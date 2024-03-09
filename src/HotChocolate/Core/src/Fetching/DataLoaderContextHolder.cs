@@ -52,7 +52,8 @@ public sealed class DataLoaderContextHolder
     /// </summary>
     public IDataLoaderContext PinNewScope(IServiceProvider scopedServiceProvider)
     {
-        return CurrentContext = new ExecutionDataLoaderContext(scopedServiceProvider, _registrations);
+        CurrentContext = new ExecutionDataLoaderContext(scopedServiceProvider, _registrations);
+        return CurrentContext;
     }
     
     public IDataLoaderContext GetOrCreateContext(IServiceProvider scopedServiceProvider)

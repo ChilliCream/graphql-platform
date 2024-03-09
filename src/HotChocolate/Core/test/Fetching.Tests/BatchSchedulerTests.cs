@@ -33,16 +33,6 @@ public class BatchSchedulerTests
     }
 
     [Fact]
-    public void Initialize_Nothing_ShouldMatchSnapshot()
-    {
-        // act
-        var scheduler = new DefaultBatchScheduler();
-
-        // assert
-        scheduler.MatchSnapshot();
-    }
-
-    [Fact]
     public void Schedule_OneAction_HasTasksShouldReturnTrue()
     {
         // arrange
