@@ -3,13 +3,11 @@ using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public class PersistedQueryCache
-    : IReadStoredQueries
-    , IWriteStoredQueries
+public sealed class TestOperationDocumentStorage : IOperationDocumentStorage
 {
     private readonly Dictionary<string, DocumentNode> _cache = new();
 
-    public PersistedQueryCache()
+    public TestOperationDocumentStorage()
     {
         _cache.Add(
             "60ddx_GGk4FDObSa6eK0sg",
@@ -20,11 +18,11 @@ public class PersistedQueryCache
             Utf8GraphQLParser.Parse(@"query($if: Boolean) { hero { name @skip(if: $if) } }"));
     }
 
-    public async Task<OperationDocument?> TryReadQueryAsync(
-        string queryId,
+    public async ValueTask<IOperationDocument?> TryReadAsync(
+        OperationDocumentId documentId, 
         CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(queryId, out var document))
+        if (_cache.TryGetValue(documentId.Value, out var document))
         {
             return await Task.FromResult(new OperationDocument(document));
         }
@@ -32,12 +30,12 @@ public class PersistedQueryCache
         return null;
     }
 
-    public Task WriteQueryAsync(
-        string queryId,
-        IQuery query,
+    public ValueTask SaveAsync(
+        OperationDocumentId documentId,
+        IOperationDocument document,
         CancellationToken cancellationToken = default)
     {
-        _cache[queryId] = Utf8GraphQLParser.Parse(query.AsSpan());
-        return Task.CompletedTask;
+        _cache[documentId.Value] = Utf8GraphQLParser.Parse(document.AsSpan());
+        return default;
     }
 }

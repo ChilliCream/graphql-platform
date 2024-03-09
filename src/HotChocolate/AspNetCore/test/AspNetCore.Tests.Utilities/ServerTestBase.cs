@@ -42,11 +42,11 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                     .UseAutomaticPersistedQueryPipeline()
                     .ConfigureSchemaServices(
                         s => s
-                            .AddSingleton<PersistedQueryCache>()
+                            .AddSingleton<TestOperationDocumentStorage>()
                             .AddSingleton<IReadStoredQueries>(
-                                c => c.GetRequiredService<PersistedQueryCache>())
+                                c => c.GetRequiredService<TestOperationDocumentStorage>())
                             .AddSingleton<IWriteStoredQueries>(
-                                c => c.GetRequiredService<PersistedQueryCache>()))
+                                c => c.GetRequiredService<TestOperationDocumentStorage>()))
                     .ModifyOptions(
                         o =>
                         {

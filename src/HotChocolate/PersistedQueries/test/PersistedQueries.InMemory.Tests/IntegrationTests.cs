@@ -44,7 +44,7 @@ public class IntegrationTests
         await cache.GetOrCreate(queryId, _ => Task.FromResult(new OperationDocument(document)))!;
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.Create(queryId));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -79,8 +79,7 @@ public class IntegrationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(new QueryRequest(queryId: "does_not_exist"));
+        var result = await executor.ExecuteAsync(OperationRequest.Create("does_not_exist"));
 
         // assert
         result.ToJson().MatchSnapshot();
