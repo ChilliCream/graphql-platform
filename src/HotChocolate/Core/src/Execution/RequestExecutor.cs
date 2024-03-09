@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Batching;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -15,7 +14,6 @@ internal sealed class RequestExecutor : IRequestExecutor
 {
     private readonly IServiceProvider _applicationServices;
     private readonly RequestDelegate _requestDelegate;
-    private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
     private readonly DefaultRequestContextAccessor _contextAccessor;
     private readonly IRequestContextEnricher[] _enricher;
@@ -25,7 +23,6 @@ internal sealed class RequestExecutor : IRequestExecutor
         IServiceProvider applicationServices,
         IServiceProvider executorServices,
         RequestDelegate requestDelegate,
-        BatchExecutor batchExecutor,
         ObjectPool<RequestContext> contextPool,
         DefaultRequestContextAccessor contextAccessor,
         ulong version)
@@ -38,8 +35,6 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(executorServices));
         _requestDelegate = requestDelegate ??
             throw new ArgumentNullException(nameof(requestDelegate));
-        _batchExecutor = batchExecutor ??
-            throw new ArgumentNullException(nameof(batchExecutor));
         _contextPool = contextPool ??
             throw new ArgumentNullException(nameof(contextPool));
         _contextAccessor = contextAccessor ??
@@ -146,38 +141,30 @@ internal sealed class RequestExecutor : IRequestExecutor
     public Task<IResponseStream> ExecuteBatchAsync(
         IReadOnlyList<IOperationRequest> requestBatch,
         CancellationToken cancellationToken = default)
-    {
-        if (requestBatch is null)
-        {
-            throw new ArgumentNullException(nameof(requestBatch));
-        }
-
-        return Task.FromResult<IResponseStream>(
-            new ResponseStream(
-                () => _batchExecutor.ExecuteAsync(this, requestBatch),
-                ExecutionResultKind.BatchResult));
-    }
+        => throw new NotImplementedException();
 
     private void EnrichContext(IRequestContext context)
     {
-        if (_enricher.Length > 0)
+        if (_enricher.Length <= 0)
         {
+            return;
+        }
+        
 #if NET6_0_OR_GREATER
             ref var start = ref MemoryMarshal.GetArrayDataReference(_enricher);
             ref var end = ref Unsafe.Add(ref start, _enricher.Length);
 #else
-            ref var start = ref MemoryMarshal.GetReference(_enricher.AsSpan());
-            ref var end = ref Unsafe.Add(ref start, _enricher.Length);
+        ref var start = ref MemoryMarshal.GetReference(_enricher.AsSpan());
+        ref var end = ref Unsafe.Add(ref start, _enricher.Length);
 #endif
 
-            while (Unsafe.IsAddressLessThan(ref start, ref end))
-            {
-                start.Enrich(context);
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            start.Enrich(context);
 
 #pragma warning disable CS8619
-                start = ref Unsafe.Add(ref start, 1);
+            start = ref Unsafe.Add(ref start, 1);
 #pragma warning restore CS8619
-            }
         }
     }
 }

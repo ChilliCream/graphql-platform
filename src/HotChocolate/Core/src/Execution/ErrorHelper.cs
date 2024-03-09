@@ -230,7 +230,7 @@ internal static class ErrorHelper
             .AddLocation(selection)
             .Build();
 
-    public static IError PersistedQueryNotFound(string requestedKey)
+    public static IError PersistedQueryNotFound(OperationDocumentId requestedKey)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_PersistedQueryNotFound)
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)

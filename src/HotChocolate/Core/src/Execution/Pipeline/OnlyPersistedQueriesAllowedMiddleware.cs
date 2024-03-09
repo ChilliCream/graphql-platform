@@ -41,7 +41,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
     public ValueTask InvokeAsync(IRequestContext context)
     {
         if (_allowAllQueries ||
-            context.Request.Query is null ||
+            context.Request.Document is null ||
             context.ContextData.ContainsKey(WellKnownContextData.NonPersistedQueryAllowed))
         {
             return _next(context);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
@@ -99,7 +100,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the coerced variable values.
     /// </summary>
-    IVariableValueCollection? Variables { get; set; }
+    IReadOnlyList<IVariableValueCollection>? Variables { get; set; }
 
     /// <summary>
     /// Gets or sets the execution result.

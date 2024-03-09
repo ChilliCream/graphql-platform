@@ -10,13 +10,11 @@ using HotChocolate.Configuration;
 #if NET6_0_OR_GREATER
 using HotChocolate.Execution;
 #endif
-using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -288,12 +286,6 @@ internal sealed partial class RequestExecutorResolver
                 setup.Pipeline,
                 sp,
                 sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
-
-        serviceCollection.AddSingleton(
-            sp => new BatchExecutor(
-                sp.GetRequiredService<IErrorHandler>(),
-                _applicationServices.GetRequiredService<ITypeConverter>(),
-                _applicationServices.GetRequiredService<InputFormatter>()));
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 

@@ -61,7 +61,7 @@ internal sealed class RequestContext(
 
     public IOperation? Operation { get; set; }
 
-    public IVariableValueCollection? Variables { get; set; }
+    public IReadOnlyList<IVariableValueCollection>? Variables { get; set; }
 
     public IExecutionResult? Result { get; set; }
 
@@ -103,12 +103,14 @@ internal sealed class RequestContext(
         Request = request;
         Services = services;
 
-        if (request.ContextData is not null)
+        if (request.ContextData is null)
         {
-            foreach (var item in request.ContextData)
-            {
-                _contextData.TryAdd(item.Key, item.Value);
-            }
+            return;
+        }
+
+        foreach (var item in request.ContextData)
+        {
+            _contextData.TryAdd(item.Key, item.Value);
         }
     }
 
