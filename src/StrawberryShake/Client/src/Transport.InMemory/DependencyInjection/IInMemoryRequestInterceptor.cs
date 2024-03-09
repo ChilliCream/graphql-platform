@@ -34,6 +34,6 @@ public interface IInMemoryRequestInterceptor
     ValueTask OnCreateAsync(
         IServiceProvider serviceProvider,
         OperationRequest request,
-        IOperationRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 }

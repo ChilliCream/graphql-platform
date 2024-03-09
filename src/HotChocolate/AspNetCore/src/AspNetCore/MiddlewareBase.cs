@@ -143,7 +143,7 @@ public class MiddlewareBase : IDisposable
     {
         diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
 
-        var requestBatch = new IQueryRequest[operationNames.Count];
+        var requestBatch = new IOperationRequest[operationNames.Count];
 
         for (var i = 0; i < operationNames.Count; i++)
         {
@@ -175,7 +175,7 @@ public class MiddlewareBase : IDisposable
     {
         diagnosticEvents.StartBatchRequest(context, requests);
 
-        var requestBatch = new IQueryRequest[requests.Count];
+        var requestBatch = new IOperationRequest[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
         {

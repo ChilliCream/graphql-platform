@@ -126,7 +126,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// <see cref="IOperationResult" />.
     /// </returns>
     public Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default) =>
         _executor.ExecuteAsync(request, cancellationToken);
 
@@ -143,7 +143,7 @@ public class AutoUpdateRequestExecutorProxy : IRequestExecutor, IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IQueryRequest> requestBatch,
+        IReadOnlyList<IOperationRequest> requestBatch,
         CancellationToken cancellationToken = default) =>
         _executor.ExecuteBatchAsync(requestBatch, cancellationToken);
 

@@ -64,7 +64,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// <see cref="IOperationResult" />.
     /// </returns>
     public async Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
         if (request == null)
@@ -97,7 +97,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public async Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IQueryRequest> requestBatch,
+        IReadOnlyList<IOperationRequest> requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch == null)

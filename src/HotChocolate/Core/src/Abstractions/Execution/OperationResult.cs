@@ -118,5 +118,5 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ToDictionary()
-        => QueryResultHelper.ToDictionary(this);
+        => OperationResultHelper.ToDictionary(this);
 }

@@ -59,19 +59,19 @@ public static class TestServerHelper
                                             if (headers.ContainsKey("sendErrorStatusCode"))
                                             {
                                                 context.Result = result =
-                                                    QueryResultBuilder
+                                                    OperationResultBuilder
                                                         .FromResult(result)
                                                         .SetContextData(HttpStatusCode, 403)
-                                                        .Create();
+                                                        .Build();
                                             }
 
                                             if (headers.ContainsKey("sendError"))
                                             {
                                                 context.Result =
-                                                    QueryResultBuilder
+                                                    OperationResultBuilder
                                                         .FromResult(result)
                                                         .AddError(new Error("Some error!"))
-                                                        .Create();
+                                                        .Build();
                                             }
                                         }
 

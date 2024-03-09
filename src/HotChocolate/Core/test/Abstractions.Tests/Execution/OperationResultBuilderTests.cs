@@ -4,14 +4,14 @@ using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
-public class QueryResultBuilderTests
+public class OperationResultBuilderTests
 {
     [Fact]
     public void Create_Result_Without_Data_And_Errors()
     {
         // arrange
         // act
-        Action result = () => QueryResultBuilder.New().Create();
+        Action result = () => OperationResultBuilder.New().Build();
 
         // assert
         Assert.Throws<ArgumentException>(result);
@@ -21,35 +21,35 @@ public class QueryResultBuilderTests
     public void Create_Result_Set_Data()
     {
         // arrange
-        var builder = new QueryResultBuilder();
+        var builder = new OperationResultBuilder();
 
         // act
         builder.SetData(new Dictionary<string, object> { { "a", "b" }, });
 
         // assert
-        builder.Create().MatchSnapshot();
+        builder.Build().MatchSnapshot();
     }
 
     [Fact]
     public void Create_Result_Set_Items()
     {
         // arrange
-        var builder = new QueryResultBuilder();
+        var builder = new OperationResultBuilder();
 
         // act
         builder.SetItems(new List<object> { 1, });
 
         // assert
-        builder.Create().MatchSnapshot();
+        builder.Build().MatchSnapshot();
     }
 
     [Fact]
     public void ExpectQueryResult()
     {
         // arrange
-        IExecutionResult result = QueryResultBuilder.New()
+        IExecutionResult result = OperationResultBuilder.New()
             .SetData(new Dictionary<string, object> { { "a", "b" }, })
-            .Create();
+            .Build();
 
         // act
         var queryResult = result.ExpectQueryResult();
@@ -62,9 +62,9 @@ public class QueryResultBuilderTests
     public void ExpectResponseStream()
     {
         // arrange
-        IExecutionResult result = QueryResultBuilder.New()
+        IExecutionResult result = OperationResultBuilder.New()
             .SetData(new Dictionary<string, object> { { "a", "b" }, })
-            .Create();
+            .Build();
 
         // act
         void Fail() => result.ExpectResponseStream();

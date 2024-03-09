@@ -17,7 +17,7 @@ internal partial class BatchExecutor
 {
     private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IOperationResult>
     {
-        private readonly IReadOnlyList<IQueryRequest> _requestBatch;
+        private readonly IReadOnlyList<IOperationRequest> _requestBatch;
         private readonly RequestExecutor _requestExecutor;
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConverter _typeConverter;
@@ -29,7 +29,7 @@ internal partial class BatchExecutor
         private Dictionary<string, FragmentDefinitionNode>? _fragments;
 
         public BatchExecutorEnumerable(
-            IReadOnlyList<IQueryRequest> requestBatch,
+            IReadOnlyList<IOperationRequest> requestBatch,
             RequestExecutor requestExecutor,
             IErrorHandler errorHandler,
             ITypeConverter typeConverter,
@@ -68,7 +68,7 @@ internal partial class BatchExecutor
         }
 
         private async Task<IOperationResult> ExecuteNextAsync(
-            IQueryRequest request,
+            IOperationRequest request,
             CancellationToken cancellationToken)
         {
             try
@@ -108,11 +108,11 @@ internal partial class BatchExecutor
             }
             catch (GraphQLException ex)
             {
-                return QueryResultBuilder.CreateError(ex.Errors);
+                return OperationResultBuilder.CreateError(ex.Errors);
             }
             catch (Exception ex)
             {
-                return QueryResultBuilder.CreateError(
+                return OperationResultBuilder.CreateError(
                     _errorHandler.Handle(
                         _errorHandler.CreateUnexpectedError(ex).Build()));
             }

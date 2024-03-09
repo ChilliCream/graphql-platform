@@ -73,7 +73,7 @@ internal sealed class DocumentValidationMiddleware
                             resultContextData.Add(HttpStatusCode, value);
                         }
 
-                        context.Result = QueryResultBuilder.CreateError(
+                        context.Result = OperationResultBuilder.CreateError(
                             validationResult.Errors,
                             resultContextData);
 

@@ -28,10 +28,10 @@ public class IntegrationTests
 
                     if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
@@ -66,10 +66,10 @@ public class IntegrationTests
 
                     if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()

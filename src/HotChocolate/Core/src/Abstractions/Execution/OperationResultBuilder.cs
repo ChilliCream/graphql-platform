@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution;
 
-public sealed class QueryResultBuilder : IQueryResultBuilder
+public sealed class OperationResultBuilder
 {
     private IReadOnlyDictionary<string, object?>? _data;
     private IReadOnlyList<object?>? _items;
@@ -18,7 +18,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
     private bool? _isDataSet;
     private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
 
-    public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
+    public OperationResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
     {
         _data = data;
         _items = null;
@@ -26,7 +26,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder SetItems(IReadOnlyList<object?>? items)
+    public OperationResultBuilder SetItems(IReadOnlyList<object?>? items)
     {
         _items = items;
 
@@ -38,7 +38,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder AddError(IError error)
+    public OperationResultBuilder AddError(IError error)
     {
         if (error is null)
         {
@@ -50,7 +50,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder AddErrors(IEnumerable<IError> errors)
+    public OperationResultBuilder AddErrors(IEnumerable<IError> errors)
     {
         if (errors is null)
         {
@@ -62,21 +62,21 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder AddExtension(string key, object? data)
+    public OperationResultBuilder AddExtension(string key, object? data)
     {
         _extensionData ??= new ExtensionData();
         _extensionData.Add(key, data);
         return this;
     }
 
-    public IQueryResultBuilder SetExtension(string key, object? data)
+    public OperationResultBuilder SetExtension(string key, object? data)
     {
         _extensionData ??= new ExtensionData();
         _extensionData[key] = data;
         return this;
     }
 
-    public IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
+    public OperationResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions)
     {
         if (extensions is ExtensionData extensionData)
         {
@@ -93,21 +93,21 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder AddContextData(string key, object? data)
+    public OperationResultBuilder AddContextData(string key, object? data)
     {
         _contextData ??= new ExtensionData();
         _contextData.Add(key, data);
         return this;
     }
 
-    public IQueryResultBuilder SetContextData(string key, object? data)
+    public OperationResultBuilder SetContextData(string key, object? data)
     {
         _contextData ??= new ExtensionData();
         _contextData[key] = data;
         return this;
     }
 
-    public IQueryResultBuilder SetContextData(IReadOnlyDictionary<string, object?>? contextData)
+    public OperationResultBuilder SetContextData(IReadOnlyDictionary<string, object?>? contextData)
     {
         if (contextData is ExtensionData extensionData)
         {
@@ -124,7 +124,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder AddPatch(IOperationResult patch)
+    public OperationResultBuilder AddPatch(IOperationResult patch)
     {
         if (patch is null)
         {
@@ -136,25 +136,25 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder SetLabel(string? label)
+    public OperationResultBuilder SetLabel(string? label)
     {
         _label = label;
         return this;
     }
 
-    public IQueryResultBuilder SetPath(Path? path)
+    public OperationResultBuilder SetPath(Path? path)
     {
         _path = path;
         return this;
     }
 
-    public IQueryResultBuilder SetHasNext(bool? hasNext)
+    public OperationResultBuilder SetHasNext(bool? hasNext)
     {
         _hasNext = hasNext;
         return this;
     }
 
-    public IQueryResultBuilder RegisterForCleanup(Func<ValueTask> clean)
+    public OperationResultBuilder RegisterForCleanup(Func<ValueTask> clean)
     {
         if (clean is null)
         {
@@ -167,7 +167,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IOperationResult Create()
+    public IOperationResult Build()
         => new OperationResult(
             _data,
             _errors?.Count > 0 ? _errors : null,
@@ -181,11 +181,11 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
             _cleanupTasks,
             _isDataSet ?? false);
 
-    public static QueryResultBuilder New() => new();
+    public static OperationResultBuilder New() => new();
 
-    public static QueryResultBuilder FromResult(IOperationResult result)
+    public static OperationResultBuilder FromResult(IOperationResult result)
     {
-        var builder = new QueryResultBuilder { _data = result.Data, };
+        var builder = new OperationResultBuilder { _data = result.Data, };
 
         if (result.Errors is not null)
         {

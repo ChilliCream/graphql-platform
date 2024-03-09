@@ -3,7 +3,7 @@ using System.Threading;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Execution.QueryResultBuilder;
+using static HotChocolate.Execution.OperationResultBuilder;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -122,7 +122,7 @@ internal sealed class DeferredWorkScheduler
             IOperation operation,
             IExecutionDiagnosticEvents diagnosticEvents)
         {
-            _initialResult = FromResult(initialResult).SetHasNext(true).Create();
+            _initialResult = FromResult(initialResult).SetHasNext(true).Build();
             _stateOwner = stateOwner;
             _operation = operation;
             _diagnosticEvents = diagnosticEvents;

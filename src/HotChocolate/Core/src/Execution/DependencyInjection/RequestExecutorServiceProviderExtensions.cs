@@ -150,7 +150,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IServiceProvider services,
-        IQueryRequest request,
+        IOperationRequest request,
         string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
@@ -195,7 +195,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async Task<IExecutionResult> ExecuteRequestAsync(
         this IRequestExecutorBuilder builder,
-        IQueryRequest request,
+        IOperationRequest request,
         string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
@@ -323,7 +323,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async Task<IResponseStream> ExecuteBatchRequestAsync(
         this IServiceProvider services,
-        IReadOnlyList<IQueryRequest> requestBatch,
+        IReadOnlyList<IOperationRequest> requestBatch,
         string? schemaName = default,
         CancellationToken cancellationToken = default)
     {

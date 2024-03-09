@@ -16,7 +16,7 @@ public static class TestHelper
     public static Task<IExecutionResult> ExpectValid(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IOperationRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null)
     {
         return ExpectValid(
@@ -50,7 +50,7 @@ public static class TestHelper
         string sdl,
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IOperationRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null,
         params Action<IError>[] elementInspectors) =>
         ExpectError(
@@ -67,7 +67,7 @@ public static class TestHelper
     public static Task ExpectError(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IOperationRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null,
         params Action<IError>[] elementInspectors)
     {
@@ -177,7 +177,7 @@ public static class TestHelper
             .GetRequestExecutorAsync();
     }
 
-    public static IQueryRequest CreateRequest(
+    public static IOperationRequest CreateRequest(
         TestConfiguration? configuration,
         string query)
     {

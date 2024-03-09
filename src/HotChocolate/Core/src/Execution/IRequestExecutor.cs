@@ -51,7 +51,7 @@ public interface IRequestExecutor
     /// <see cref="IOperationResult" />.
     /// </returns>
     Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -67,6 +67,6 @@ public interface IRequestExecutor
     /// Returns a stream of query results.
     /// </returns>
     Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IQueryRequest> requestBatch,
+        IReadOnlyList<IOperationRequest> requestBatch,
         CancellationToken cancellationToken = default);
 }

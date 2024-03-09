@@ -22,6 +22,15 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         Value = value;
     }
     
+    private OperationDocumentId(string value, bool skipValidation)
+    {
+        if (!skipValidation)
+        {
+            EnsureValidId(value);
+        }
+        Value = value;
+    }
+    
     /// <summary>
     /// Gets a value indicating whether the GraphQL operation document id is empty.
     /// </summary>
@@ -115,8 +124,8 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// <returns>
     /// A new instance of <see cref="OperationDocumentId"/> representing the specified <paramref name="value"/>.
     /// </returns>
-    public static implicit operator  OperationDocumentId(string value)
-        => new(value);
+    public static implicit operator  OperationDocumentId?(string? value)
+        => value is null ? null : new OperationDocumentId(value);
 
     /// <summary>
     /// Ensures that the specified GraphQL operation document id is valid.
@@ -129,11 +138,30 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </exception>
     public static void EnsureValidId(string operationId)
     {
-        if(operationId.Length == 0)
+        if(!IsValidId(operationId))
         {
             throw new ArgumentException(
                 OperationDocumentId_InvalidOperationIdFormat, 
                 nameof(operationId));
+        }
+    }
+    
+    /// <summary>
+    /// Determines whether the specified <paramref name="operationId"/>
+    /// string is valid input for an <see cref="OperationDocumentId"/>.
+    /// </summary>
+    /// <param name="operationId">
+    /// The GraphQL operation document id.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <paramref name="operationId"/> is valid;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsValidId(string operationId)
+    {
+        if(operationId.Length == 0)
+        {
+            return false;
         }
         
         var span = operationId.AsSpan();
@@ -144,13 +172,13 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
         {
             if (!IsAllowedCharacter((byte)start))
             {
-                throw new ArgumentException(
-                    OperationDocumentId_InvalidOperationIdFormat, 
-                    nameof(operationId));
+                return false;
             }
 
             start = ref Unsafe.Add(ref start, 1)!;
         }
+        
+        return true;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -180,4 +208,29 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// </returns>
     public static bool IsNullOrEmpty(OperationDocumentId? id)
         => string.IsNullOrEmpty(id?.Value);
+    
+    /// <summary>
+    /// Tries to parse the specified <paramref name="value"/> to a <see cref="OperationDocumentId"/>.
+    /// </summary>
+    /// <param name="value">
+    /// The GraphQL operation document id string representation.
+    /// </param>
+    /// <param name="id">
+    /// The parsed <see cref="OperationDocumentId"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <paramref name="value"/> could be parsed to a <see cref="OperationDocumentId"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public static bool TryParse(string? value, out OperationDocumentId id)
+    {
+        if (string.IsNullOrEmpty(value) || !IsValidId(value))
+        {
+            id = default;
+            return false;
+        }
+
+        id = new OperationDocumentId(value, skipValidation: true);
+        return true;
+    }
 }

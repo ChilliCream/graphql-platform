@@ -372,7 +372,7 @@ public class PersistedQueryTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IOperationRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             requestBuilder.AllowNonPersistedQuery();

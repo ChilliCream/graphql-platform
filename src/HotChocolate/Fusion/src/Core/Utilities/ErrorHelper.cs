@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Utilities;
 internal static class ErrorHelper
 {
     public static IOperationResult IncrementalDelivery_NotSupported() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("Incremental delivery is not yet supported.")
                 .Build());

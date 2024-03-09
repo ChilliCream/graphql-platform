@@ -70,7 +70,7 @@ internal sealed class DocumentParserMiddleware
                                 .Build());
 
                         context.Exception = ex;
-                        context.Result = QueryResultBuilder.CreateError(error);
+                        context.Result = OperationResultBuilder.CreateError(error);
 
                         _diagnosticEvents.SyntaxError(context, error);
                     }

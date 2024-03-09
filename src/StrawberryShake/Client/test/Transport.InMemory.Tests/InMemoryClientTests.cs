@@ -105,7 +105,7 @@ public class InMemoryClientTests
                 .OnCreateAsync(
                     StubExecutor.ApplicationServiceProvider,
                     operationRequest,
-                    It.IsAny<IOperationRequestBuilder>(),
+                    It.IsAny<OperationRequestBuilder>(),
                     It.IsAny<CancellationToken>()));
 
         // act
@@ -117,19 +117,19 @@ public class InMemoryClientTests
                     .OnCreateAsync(
                         StubExecutor.ApplicationServiceProvider,
                         operationRequest,
-                        It.IsAny<IOperationRequestBuilder>(),
+                        It.IsAny<OperationRequestBuilder>(),
                         It.IsAny<CancellationToken>()),
                 Times.Exactly(2));
     }
 
     private sealed class StubExecutor : IRequestExecutor
     {
-        public IQueryRequest? Request { get; private set; }
+        public IOperationRequest? Request { get; private set; }
 
         public ulong Version { get; }
 
         public Task<IExecutionResult> ExecuteAsync(
-            IQueryRequest request,
+            IOperationRequest request,
             CancellationToken cancellationToken = default)
         {
             Request = request;
@@ -137,7 +137,7 @@ public class InMemoryClientTests
         }
 
         public Task<IResponseStream> ExecuteBatchAsync(
-            IReadOnlyList<IQueryRequest> requestBatch,
+            IReadOnlyList<IOperationRequest> requestBatch,
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 

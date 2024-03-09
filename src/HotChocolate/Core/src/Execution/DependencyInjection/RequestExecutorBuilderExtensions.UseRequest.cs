@@ -140,7 +140,7 @@ public static partial class RequestExecutorBuilderExtensions
             }
             
             var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
-            var result = QueryResultBuilder.CreateError(
+            var result = OperationResultBuilder.CreateError(
                 error,
                 new Dictionary<string, object?>
                 {

@@ -40,7 +40,7 @@ internal sealed class PersistedQueryNotFoundMiddleware
         // failed already since no query is specified.
         var error = ErrorHelper.PersistedQueryNotFound(requestedKey!);
         _diagnosticEvents.RequestError(context, new GraphQLException(error));
-        context.Result = QueryResultBuilder.CreateError(error, _statusCode);
+        context.Result = OperationResultBuilder.CreateError(error, _statusCode);
 
         return default;
     }

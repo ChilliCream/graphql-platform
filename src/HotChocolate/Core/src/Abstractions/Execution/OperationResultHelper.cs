@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution;
 
-internal static class QueryResultHelper
+internal static class OperationResultHelper
 {
     private const string _data = "data";
     private const string _errors = "errors";

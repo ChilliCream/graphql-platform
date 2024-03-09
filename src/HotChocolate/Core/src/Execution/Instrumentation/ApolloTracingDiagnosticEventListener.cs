@@ -119,9 +119,9 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
 
                 if (_context.Result is IOperationResult queryResult)
                 {
-                    _context.Result = QueryResultBuilder.FromResult(queryResult)
+                    _context.Result = OperationResultBuilder.FromResult(queryResult)
                         .AddExtension(_extensionKey, _builder.Build())
-                        .Create();
+                        .Build();
                 }
                 _disposed = true;
             }

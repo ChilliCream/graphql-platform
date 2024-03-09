@@ -124,7 +124,7 @@ internal static class ErrorHelper
     }
 
     public static IOperationResult RootTypeNotFound(OperationType operationType) =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
                 .Build(),
@@ -134,19 +134,19 @@ internal static class ErrorHelper
             });
 
     public static IOperationResult StateInvalidForOperationResolver() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                 .Build());
 
     public static IOperationResult StateInvalidForOperationVariableCoercion() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationVariableCoercion_Message)
                 .Build());
 
     public static IOperationResult StateInvalidForOperationExecution() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationExecution_Message)
                 .Build());
@@ -165,14 +165,14 @@ internal static class ErrorHelper
             .Build();
 
     public static IOperationResult StateInvalidForDocumentValidation() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForDocumentValidation_Message)
                 .SetCode(ErrorCodes.Execution.QueryNotFound)
                 .Build());
 
     public static IOperationResult OperationKindNotAllowed() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The specified operation kind is not allowed.")
                 .Build(),
@@ -182,13 +182,13 @@ internal static class ErrorHelper
             });
 
     public static IOperationResult RequestTimeout(TimeSpan timeout) =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_RequestTimeout, timeout),
                 ErrorCodes.Execution.Timeout));
 
     public static IOperationResult OperationCanceled() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_OperationCanceled_Message,
                 ErrorCodes.Execution.Canceled));
@@ -196,7 +196,7 @@ internal static class ErrorHelper
     public static IOperationResult MaxComplexityReached(
         int complexity,
         int allowedComplexity) =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MaxComplexityReached,
                 ErrorCodes.Execution.ComplexityExceeded,
@@ -216,7 +216,7 @@ internal static class ErrorHelper
             ErrorCodes.Execution.ComplexityExceeded);
 
     public static IOperationResult StateInvalidForComplexityAnalyzer() =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
                 .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)

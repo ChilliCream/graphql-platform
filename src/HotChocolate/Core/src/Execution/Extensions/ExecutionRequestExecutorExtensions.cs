@@ -14,7 +14,7 @@ public static class ExecutionRequestExecutorExtensions
 {
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        IQueryRequest request)
+        IOperationRequest request)
     {
         if (executor is null)
         {
@@ -153,7 +153,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        IQueryRequest request)
+        IOperationRequest request)
     {
         if (executor is null)
         {
@@ -233,7 +233,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        Action<IOperationRequestBuilder> buildRequest,
+        Action<OperationRequestBuilder> buildRequest,
         CancellationToken cancellationToken)
     {
         if (executor is null)
@@ -256,7 +256,7 @@ public static class ExecutionRequestExecutorExtensions
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        Action<IOperationRequestBuilder> buildRequest)
+        Action<OperationRequestBuilder> buildRequest)
     {
         if (executor is null)
         {

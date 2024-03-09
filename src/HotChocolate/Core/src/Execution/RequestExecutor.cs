@@ -17,7 +17,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     private readonly RequestDelegate _requestDelegate;
     private readonly BatchExecutor _batchExecutor;
     private readonly ObjectPool<RequestContext> _contextPool;
-    private readonly DefaultRequestContextAccessor _contextAccessor;    
+    private readonly DefaultRequestContextAccessor _contextAccessor;
     private readonly IRequestContextEnricher[] _enricher;
 
     public RequestExecutor(
@@ -42,7 +42,7 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(batchExecutor));
         _contextPool = contextPool ??
             throw new ArgumentNullException(nameof(contextPool));
-        _contextAccessor = contextAccessor ?? 
+        _contextAccessor = contextAccessor ??
             throw new ArgumentNullException(nameof(contextAccessor));
         Version = version;
 
@@ -70,12 +70,12 @@ internal sealed class RequestExecutor : IRequestExecutor
     public ulong Version { get; }
 
     public Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default)
         => ExecuteAsync(request, true, cancellationToken);
-    
+
     internal async Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         bool scopeDataLoader,
         CancellationToken cancellationToken = default)
     {
@@ -97,7 +97,7 @@ internal sealed class RequestExecutor : IRequestExecutor
                 scope = _applicationServices.CreateScope();
             }
         }
-        
+
         var services = scope is null ? request.Services! : scope.ServiceProvider;
 
         var context = _contextPool.Get();
@@ -113,7 +113,7 @@ internal sealed class RequestExecutor : IRequestExecutor
             context.RequestAborted = cancellationToken;
             context.Initialize(request, services);
             EnrichContext(context);
-            
+
             _contextAccessor.RequestContext = context;
 
             await _requestDelegate(context).ConfigureAwait(false);
@@ -144,7 +144,7 @@ internal sealed class RequestExecutor : IRequestExecutor
     }
 
     public Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IQueryRequest> requestBatch,
+        IReadOnlyList<IOperationRequest> requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch is null)

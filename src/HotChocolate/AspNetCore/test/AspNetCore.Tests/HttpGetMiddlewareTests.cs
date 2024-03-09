@@ -780,7 +780,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IOperationRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             throw new GraphQLException("MyCustomError");

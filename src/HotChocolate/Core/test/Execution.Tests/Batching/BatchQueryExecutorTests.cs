@@ -23,7 +23,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -64,7 +64,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -109,7 +109,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -155,7 +155,7 @@ public class BatchQueryExecutorTests
             .AddStarWarsRepositories());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -219,7 +219,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -296,7 +296,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -344,7 +344,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(
@@ -395,7 +395,7 @@ public class BatchQueryExecutorTests
             .AddExportDirectiveType());
 
         // act
-        var batch = new List<IQueryRequest>
+        var batch = new List<IOperationRequest>
         {
             OperationRequestBuilder.Create()
                 .SetDocument(

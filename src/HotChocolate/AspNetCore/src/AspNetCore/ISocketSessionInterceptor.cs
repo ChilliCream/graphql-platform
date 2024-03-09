@@ -47,7 +47,7 @@ public interface ISocketSessionInterceptor
     ValueTask OnRequestAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken = default);
 
     /// <summary>

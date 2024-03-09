@@ -237,14 +237,14 @@ internal static class MiddlewareHelper
             }
 
             return new ExecuteRequestResult(
-                QueryResultBuilder.CreateError(ex.Errors));
+                OperationResultBuilder.CreateError(ex.Errors));
         }
         catch (Exception ex)
         {
             var error = errorHandler.CreateUnexpectedError(ex).Build();
             diagnosticEvents.HttpRequestError(context, error);
             return new ExecuteRequestResult(
-                QueryResultBuilder.CreateError(error),
+                OperationResultBuilder.CreateError(error),
                 HttpStatusCode.InternalServerError);
         }
     }
@@ -324,7 +324,7 @@ internal static class MiddlewareHelper
             AcceptMediaType[] acceptMediaTypes)
         {
             IsValid = false;
-            Error = QueryResultBuilder.CreateError(error);
+            Error = OperationResultBuilder.CreateError(error);
             StatusCode = statusCode;
             RequestFlags = GraphQLRequestFlags.None;
             AcceptMediaTypes = acceptMediaTypes;
@@ -356,7 +356,7 @@ internal static class MiddlewareHelper
         public ParseRequestResult(IReadOnlyList<IError> errors, HttpStatusCode statusCode)
         {
             IsValid = false;
-            Error = QueryResultBuilder.CreateError(errors);
+            Error = OperationResultBuilder.CreateError(errors);
             StatusCode = statusCode;
             Request = null;
         }
@@ -364,7 +364,7 @@ internal static class MiddlewareHelper
         public ParseRequestResult(IError error, HttpStatusCode statusCode)
         {
             IsValid = false;
-            Error = QueryResultBuilder.CreateError(error);
+            Error = OperationResultBuilder.CreateError(error);
             StatusCode = statusCode;
             Request = null;
         }

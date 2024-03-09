@@ -127,7 +127,7 @@ internal sealed class OperationSession : IOperationSession
         }
     }
 
-    private static IOperationRequestBuilder CreateRequestBuilder(GraphQLRequest request)
+    private static OperationRequestBuilder CreateRequestBuilder(GraphQLRequest request)
     {
         var requestBuilder = new OperationRequestBuilder();
 

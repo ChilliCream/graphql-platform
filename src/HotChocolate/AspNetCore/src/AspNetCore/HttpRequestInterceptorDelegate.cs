@@ -5,5 +5,5 @@ namespace HotChocolate.AspNetCore;
 public delegate ValueTask HttpRequestInterceptorDelegate(
     HttpContext context,
     IRequestExecutor requestExecutor,
-    IOperationRequestBuilder requestBuilder,
+    OperationRequestBuilder requestBuilder,
     CancellationToken cancellationToken);

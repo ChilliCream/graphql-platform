@@ -26,13 +26,13 @@ internal static class ErrorHelper
             .Build();
 
     public static IOperationResult TypeNameIsEmpty()
-        => QueryResultBuilder.CreateError(
+        => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_TypeNameIsEmpty,
                 code: ErrorCodes.Server.TypeParameterIsEmpty));
 
     public static IOperationResult InvalidTypeName(string typeName)
-        => QueryResultBuilder.CreateError(
+        => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_InvalidTypeName,
                 code: ErrorCodes.Server.InvalidTypeName,
@@ -42,7 +42,7 @@ internal static class ErrorHelper
                 }));
 
     public static IOperationResult TypeNotFound(string typeName)
-        => QueryResultBuilder.CreateError(
+        => OperationResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_TypeNotFound, typeName),
                 code: ErrorCodes.Server.TypeDoesNotExist,
@@ -52,7 +52,7 @@ internal static class ErrorHelper
                 }));
 
     public static IOperationResult InvalidAcceptMediaType(string headerValue)
-        => QueryResultBuilder.CreateError(
+        => OperationResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
                 code: ErrorCodes.Server.InvalidAcceptHeaderValue,
@@ -62,7 +62,7 @@ internal static class ErrorHelper
                 }));
     
     public static IOperationResult MultiPartRequestPreflightRequired()
-        => QueryResultBuilder.CreateError(
+        => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MultiPartRequestPreflightRequired,
                 code: ErrorCodes.Server.MultiPartPreflightRequired));

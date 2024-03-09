@@ -19,7 +19,7 @@ internal sealed class OperationExecutionMiddleware
     private readonly ITransactionScopeHandler _transactionScopeHandler;
     private object? _cachedQuery;
     private object? _cachedMutation;
-    
+
     private OperationExecutionMiddleware(RequestDelegate next,
         IFactory<OperationContextOwner> contextFactory,
         [SchemaService] QueryExecutor queryExecutor,
@@ -191,7 +191,7 @@ internal sealed class OperationExecutionMiddleware
             context.Schema.MutationType!,
             ref _cachedMutation);
 
-    private static bool IsOperationAllowed(IOperation operation, IQueryRequest request)
+    private static bool IsOperationAllowed(IOperation operation, IOperationRequest request)
     {
         if (request.Flags is AllowAll)
         {
@@ -227,7 +227,7 @@ internal sealed class OperationExecutionMiddleware
                 queryExecutor,
                 subscriptionExecutor,
                 transactionScopeHandler);
-            
+
             return async context =>
             {
                 var batchDispatcher = context.Services.GetService<IBatchDispatcher>();

@@ -44,7 +44,7 @@ internal sealed class WritePersistedQueryMiddleware
             context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
             s is IReadOnlyDictionary<string, object> settings)
         {
-            IQueryResultBuilder builder = QueryResultBuilder.FromResult(result);
+            OperationResultBuilder builder = OperationResultBuilder.FromResult(result);
 
             // hash is found and matches the query key -> store the query
             if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
@@ -97,7 +97,7 @@ internal sealed class WritePersistedQueryMiddleware
         userHash = null;
         return false;
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {

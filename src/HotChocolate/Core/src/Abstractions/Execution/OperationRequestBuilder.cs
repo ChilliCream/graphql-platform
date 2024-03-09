@@ -82,7 +82,7 @@ public sealed class OperationRequestBuilder
         _documentId = documentId;
         return this;
     }
-    
+
     /// <summary>
     /// Sets the hash of the GraphQL operation document.
     /// </summary>
@@ -108,7 +108,7 @@ public sealed class OperationRequestBuilder
         _operationName = operationName;
         return this;
     }
-    
+
     /// <summary>
     /// Sets the variable values for the GraphQL request.
     /// </summary>
@@ -144,7 +144,7 @@ public sealed class OperationRequestBuilder
     public OperationRequestBuilder SetVariableValues(
         IReadOnlyDictionary<string, object?>? variableValues)
     {
-        if(variableValues is null)
+        if (variableValues is null)
         {
             _variableValues = null;
             _readOnlyVariableValues = null;
@@ -156,7 +156,32 @@ public sealed class OperationRequestBuilder
         }
         return this;
     }
-    
+
+    /// <summary>
+    /// Sets the variable values for the GraphQL request.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values for the GraphQL request.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    public OperationRequestBuilder SetVariableValues(
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues)
+    {
+        if (variableValues is null)
+        {
+            _variableValues = null;
+            _readOnlyVariableValues = null;
+        }
+        else
+        {
+            _variableValues = null;
+            _readOnlyVariableValues = variableValues;
+        }
+        return this;
+    }
+
     /// <summary>
     /// Sets the GraphQL request extension data.
     /// </summary>
@@ -172,7 +197,7 @@ public sealed class OperationRequestBuilder
         _readOnlyExtensions = extensions;
         return this;
     }
-    
+
     /// <summary>
     /// Sets the initial global request state.
     /// </summary>
@@ -186,19 +211,20 @@ public sealed class OperationRequestBuilder
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
     public OperationRequestBuilder SetGlobalState(
-        string name, object? value)
+        string name,
+        object? value)
     {
         if (_readOnlyContextData is not null)
         {
             _contextData = _readOnlyContextData.ToDictionary(t => t.Key, t => t.Value);
             _readOnlyContextData = null;
         }
-        
+
         _contextData ??= new Dictionary<string, object?>();
         _contextData[name] = value;
         return this;
     }
-    
+
     /// <summary>
     /// Adds a global state to the initial global request state.
     /// </summary>
@@ -212,19 +238,20 @@ public sealed class OperationRequestBuilder
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
     public OperationRequestBuilder AddGlobalState(
-        string name, object? value)
+        string name,
+        object? value)
     {
         if (_readOnlyContextData is not null)
         {
             _contextData = _readOnlyContextData.ToDictionary(t => t.Key, t => t.Value);
             _readOnlyContextData = null;
         }
-        
+
         _contextData ??= new Dictionary<string, object?>();
         _contextData.Add(name, value);
         return this;
     }
-    
+
     /// <summary>
     /// Tries to add a global state to the initial global request state.
     /// </summary>
@@ -238,22 +265,24 @@ public sealed class OperationRequestBuilder
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
     public OperationRequestBuilder TryAddGlobalState(
-        string name, object? value)
+        string name,
+        object? value)
     {
         if (_readOnlyContextData is not null)
         {
             _contextData = _readOnlyContextData.ToDictionary(t => t.Key, t => t.Value);
             _readOnlyContextData = null;
         }
-        
+
         _contextData ??= new Dictionary<string, object?>();
+
         if (!_contextData.ContainsKey(name))
         {
             _contextData.Add(name, value);
         }
         return this;
     }
-    
+
     /// <summary>
     /// Removes a global state from the initial global request state.
     /// </summary>
@@ -270,16 +299,16 @@ public sealed class OperationRequestBuilder
             _contextData = _readOnlyContextData.ToDictionary(t => t.Key, t => t.Value);
             _readOnlyContextData = null;
         }
-        
+
         if (_contextData is null)
         {
             return this;
         }
-        
+
         _contextData.Remove(name);
         return this;
     }
-    
+
     /// <summary>
     /// Sets the initial global request state.
     /// </summary>
@@ -356,8 +385,9 @@ public sealed class OperationRequestBuilder
     public IOperationRequest Build()
     {
         IOperationRequest? request;
-        
+
         var variableSet = GetVariableValues();
+
         if (variableSet is { Count: > 1, })
         {
             request = new VariableBatchRequest(
@@ -373,13 +403,15 @@ public sealed class OperationRequestBuilder
             Reset();
             return request;
         }
-        
+
         request = new OperationRequest(
             document: _document,
             documentId: _documentId,
             documentHash: _documentHash,
             operationName: _operationName,
-            variableValues: variableSet is { Count: 1, } ? variableSet[0] : null,
+            variableValues: variableSet is { Count: 1, }
+                ? variableSet[0]
+                : null,
             contextData: _readOnlyContextData ?? _contextData,
             extensions: _readOnlyExtensions,
             services: _services,
@@ -391,7 +423,7 @@ public sealed class OperationRequestBuilder
 
     private IReadOnlyList<IReadOnlyDictionary<string, object?>>? GetVariableValues()
         => _variableValues ?? _readOnlyVariableValues;
-    
+
     /// <summary>
     /// Creates a new instance of <see cref="OperationRequestBuilder" />.
     /// </summary>
@@ -411,7 +443,7 @@ public sealed class OperationRequestBuilder
     public static OperationRequestBuilder From(IOperationRequest request)
         => request switch
         {
-            VariableBatchRequest batch 
+            VariableBatchRequest batch
                 => new OperationRequestBuilder
                 {
                     _document = batch.Document,
@@ -424,7 +456,7 @@ public sealed class OperationRequestBuilder
                     _services = batch.Services,
                     _flags = batch.Flags,
                 },
-            OperationRequest operation 
+            OperationRequest operation
                 => new OperationRequestBuilder
                 {
                     _document = operation.Document,

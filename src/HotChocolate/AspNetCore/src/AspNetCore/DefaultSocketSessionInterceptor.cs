@@ -18,7 +18,7 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
     public virtual ValueTask OnRequestAsync(
         ISocketSession session,
         string operationSessionId,
-        IOperationRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken = default)
     {
         var context = session.Connection.HttpContext;

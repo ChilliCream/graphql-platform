@@ -146,10 +146,10 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
+                            OperationResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()

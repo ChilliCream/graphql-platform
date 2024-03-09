@@ -6,9 +6,9 @@ public static class QueryCacheOperationRequestBuilderExtensions
     /// Skip the query result caching for the current request.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IOperationRequestBuilder"/>.
+    /// The <see cref="OperationRequestBuilder"/>.
     /// </param>
-    public static IOperationRequestBuilder SkipQueryCaching(
-        this IOperationRequestBuilder builder) =>
+    public static OperationRequestBuilder SkipQueryCaching(
+        this OperationRequestBuilder builder) =>
         builder.SetGlobalState(WellKnownContextData.SkipQueryCaching, null);
 }

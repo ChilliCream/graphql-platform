@@ -184,10 +184,10 @@ public class DataLoaderTests
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                        context.Result = QueryResultBuilder
+                        context.Result = OperationResultBuilder
                             .FromResult((IOperationResult)context.Result!)
                             .AddExtension("loads", dataLoader.Loads)
-                            .Create();
+                            .Build();
                     })
                 .UseDefaultPipeline());
 
@@ -245,10 +245,10 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = QueryResultBuilder
+                    context.Result = OperationResultBuilder
                         .FromResult((IOperationResult)context.Result!)
                         .AddExtension("loads", dataLoader.Loads)
-                        .Create();
+                        .Build();
                 })
             .UseDefaultPipeline()
             .Services
@@ -280,10 +280,10 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = QueryResultBuilder
+                    context.Result = OperationResultBuilder
                         .FromResult((IOperationResult)context.Result!)
                         .AddExtension("loads", dataLoader.Loads)
-                        .Create();
+                        .Build();
                 })
             .UseDefaultPipeline()
             .Services
@@ -318,10 +318,10 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = QueryResultBuilder
+                    context.Result = OperationResultBuilder
                         .FromResult((IOperationResult)context.Result!)
                         .AddExtension("loads", dataLoader.Loads)
-                        .Create();
+                        .Build();
                 })
             .UseDefaultPipeline()
             .Services
@@ -397,10 +397,10 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = QueryResultBuilder
+                        context.Result = OperationResultBuilder
                             .FromResult(((IOperationResult)context.Result!))
                             .AddExtension("loads", dataLoader.Loads)
-                            .Create();
+                            .Build();
                     })
                 .UseDefaultPipeline());
 

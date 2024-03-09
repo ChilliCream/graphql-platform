@@ -34,7 +34,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
         // prepare options.
         _allowAllQueries = !options.OnlyAllowPersistedQueries;
         var error = options.OnlyPersistedQueriesAreAllowedError;
-        _errorResult =  QueryResultBuilder.CreateError(error, _statusCode);
+        _errorResult =  OperationResultBuilder.CreateError(error, _statusCode);
         _exception = new GraphQLException(error);
     }
 
