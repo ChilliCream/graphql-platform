@@ -62,10 +62,14 @@ public class IdAttributeTests
                                 guidIdList(id: [$guidId $guidId])
                                 nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
                             }")
-                        .SetVariableValue("intId", intId)
-                        .SetVariableValue("stringId", stringId)
-                        .SetVariableValue("guidId", guidId)
-                        .Create());
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                {"intId", intId }, 
+                                {"stringId", stringId },
+                                {"guidId", guidId },
+                            })
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -127,11 +131,15 @@ public class IdAttributeTests
                                     }
                                 }
                             }")
-                        .SetVariableValue("someId", someId)
-                        .SetVariableValue("someNullableId", null)
-                        .SetVariableValue("someIntId", someIntId)
-                        .SetVariableValue("someNullableIntId", null)
-                        .Create());
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                {"someId", someId }, 
+                                {"someNullableId", null}, 
+                                {"someIntId", someIntId},
+                                {"someNullableIntId", null},
+                            })
+                        .Build());
 
         // assert
         new
@@ -178,11 +186,15 @@ public class IdAttributeTests
                                     }
                                 }
                             }")
-                        .SetVariableValue("someId", someId)
-                        .SetVariableValue("someNullableId", null)
-                        .SetVariableValue("someIntId", someIntId)
-                        .SetVariableValue("someNullableIntId", null)
-                        .Create());
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                {"someId", someId}, 
+                                {"someNullableId", null}, 
+                                {"someIntId", someIntId}, 
+                                {"someNullableIntId", null},
+                            })
+                        .Build());
 
         // assert
         new
@@ -226,9 +238,13 @@ public class IdAttributeTests
                                     interceptedIds
                                 }
                             }")
-                    .SetVariableValue("someId", someId)
-                    .SetVariableValue("someIntId", someIntId)
-                    .Create());
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                        {
+                            {"someId", someId },
+                            {"someIntId", someIntId},
+                        })
+                    .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -260,8 +276,8 @@ public class IdAttributeTests
                                         }
                                     }
                                 }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId }, })
+                        .Build());
 
         // assert
         new
@@ -296,8 +312,8 @@ public class IdAttributeTests
                                         }
                                     }
                                 }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId}, })
+                        .Build());
 
         // assert
         new

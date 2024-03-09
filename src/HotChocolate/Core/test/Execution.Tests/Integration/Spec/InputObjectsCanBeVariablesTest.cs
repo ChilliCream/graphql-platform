@@ -26,11 +26,11 @@ public class InputObjectsCanBeVariablesTest
                     }
                 ",
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValue(
+            r => r.SetVariableValues(new Dictionary<string, object?> { {
                     "a",
                     "a"
                 )
-                .SetVariableValue(
+                .SetVariableValues(new Dictionary<string, object?> { {
                     "b",
                     "b"
                 )
@@ -55,7 +55,7 @@ public class InputObjectsCanBeVariablesTest
                     }
                 ",
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValue(
+            r => r.SetVariableValues(new Dictionary<string, object?> { {
                 "a",
                 "a"
             )

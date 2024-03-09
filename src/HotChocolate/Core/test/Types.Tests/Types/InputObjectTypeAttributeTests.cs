@@ -118,8 +118,8 @@ public class InputObjectTypeAttributeTests
                                     foo bar baz qux quux
                                 }
                             }")
-                    .SetVariableValue("q", new Dictionary<string, object>())
-                    .Create())
+                    .SetVariableValues(new Dictionary<string, object> { {"q", new Dictionary<string, object>() }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 

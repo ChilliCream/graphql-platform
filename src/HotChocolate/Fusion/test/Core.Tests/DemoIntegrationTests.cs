@@ -652,8 +652,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("first", 2)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "first", 2 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -761,8 +761,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -811,8 +811,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -862,8 +862,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -915,8 +915,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -969,8 +969,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1138,9 +1138,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1191,9 +1190,13 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "id", "UHJvZHVjdAppMQ==" },
+                        { "first", 1 },
+                    })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1248,9 +1251,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1303,9 +1305,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1360,9 +1361,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1421,9 +1421,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1481,9 +1480,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1547,9 +1545,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1595,8 +1592,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("after", null)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "after", null }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1651,9 +1648,8 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1704,10 +1700,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                 _observer.OnNext(_owner._configuration);
             }
 
-            public void Dispose()
-            {
-
-            }
+            public void Dispose() { }
         }
     }
 }

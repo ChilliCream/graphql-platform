@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 using NodaTime;
@@ -24,58 +25,53 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
-
-        public DateTimeZoneTypeIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
-                .Create()
-                .MakeExecutable();
-        }
+        private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
+            .AddQueryType<Schema.Query>()
+            .AddMutationType<Schema.Mutation>()
+            .AddNodaTime()
+            .Create()
+            .MakeExecutable();
 
         [Fact]
         public void QueryReturnsUtc()
         {
-            IExecutionResult result =  testExecutor.Execute("query { test: utc }");
+            var result =  _testExecutor.Execute("query { test: utc }");
             Assert.Equal("UTC", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsRome()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: rome }");
+            var result = _testExecutor.Execute("query { test: rome }");
             Assert.Equal("Europe/Rome", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsChihuahua()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: chihuahua }");
+            var result = _testExecutor.Execute("query { test: chihuahua }");
             Assert.Equal("America/Chihuahua", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult result = testExecutor
+            var result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "Europe/Amsterdam")
-                    .Create());
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Amsterdam" }, })
+                    .Build());
             Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            var result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "Europe/Hamster")
-                    .Create());
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Hamster" }, })
+                    .Build());
             Assert.Null(Assert.IsType<OperationResult>(result).Data);
             Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
         }
@@ -83,7 +79,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation { test(arg: \"Europe/Amsterdam\") }")
                     .Build());
@@ -93,7 +89,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult result = testExecutor
+            var result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation { test(arg: \"Europe/Hamster\") }")
                     .Build());

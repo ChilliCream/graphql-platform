@@ -122,7 +122,7 @@ public class TrueNullabilityTests
                             }
                         }
                         """)
-                        .SetVariableValue("enable", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"enable", false)
                         .Create());
 
         response.MatchSnapshot();

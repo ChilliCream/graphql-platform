@@ -79,7 +79,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         [Fact]
-        public void ParsesVariableWithUTC()
+        public void ParsesVariableWithUtc()
         {
             var result = _testExecutor
                 .Execute(
@@ -127,7 +127,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         [Fact]
-        public void ParsesLiteralWithUTC()
+        public void ParsesLiteralWithUtc()
         {
             var result = _testExecutor
                 .Execute(

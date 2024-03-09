@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -37,113 +38,108 @@ public class DurationTypeJsonRoundtripIntegrationTests
         }
     }
 
-    private readonly IRequestExecutor testExecutor;
-
-    public DurationTypeJsonRoundtripIntegrationTests()
-    {
-        testExecutor = SchemaBuilder.New()
-            .AddQueryType<Schema.Query>()
-            .AddMutationType<Schema.Mutation>()
-            .AddNodaTime(excludeTypes: typeof(DurationType))
-            .AddType(new DurationType(DurationPattern.JsonRoundtrip))
-            .Create()
-            .MakeExecutable();
-    }
+    private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
+        .AddQueryType<Schema.Query>()
+        .AddMutationType<Schema.Mutation>()
+        .AddNodaTime(excludeTypes: typeof(DurationType))
+        .AddType(new DurationType(DurationPattern.JsonRoundtrip))
+        .Create()
+        .MakeExecutable();
 
     [Fact]
     public void QueryReturnsSerializedDataWithDecimals()
     {
-        IExecutionResult result = testExecutor.Execute("query { test: positiveWithDecimals }");
+        var result = _testExecutor.Execute("query { test: positiveWithDecimals }");
         Assert.Equal("2959:53:10.019", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithNegativeValue()
     {
-        IExecutionResult result = testExecutor.Execute("query { test: negativeWithDecimals }");
+        var result = _testExecutor.Execute("query { test: negativeWithDecimals }");
         Assert.Equal("-2959:53:10.019", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutDecimals()
     {
-        IExecutionResult result = testExecutor.Execute("query { test: positiveWithoutDecimals }");
+        var result = _testExecutor.Execute("query { test: positiveWithoutDecimals }");
         Assert.Equal("2959:53:10", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutSeconds()
     {
-        IExecutionResult result = testExecutor.Execute("query { test: positiveWithoutSeconds }");
+        var result = _testExecutor.Execute("query { test: positiveWithoutSeconds }");
         Assert.Equal("2959:53:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithoutMinutes()
     {
-        IExecutionResult result = testExecutor.Execute("query { test: positiveWithoutMinutes }");
+        var result = _testExecutor.Execute("query { test: positiveWithoutMinutes }");
         Assert.Equal("2959:00:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void QueryReturnsSerializedDataWithRoundtrip()
     {
-        IExecutionResult result = testExecutor.Execute("query { test: positiveWithRoundtrip }");
+        var result = _testExecutor.Execute("query { test: positiveWithRoundtrip }");
         Assert.Equal("2978:01:10", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void MutationParsesInputWithDecimals()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValue("arg", "238:01:00.019")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00.019" }, })
+                .Build());
         Assert.Equal("238:11:00.019", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void MutationParsesInputWithoutDecimals()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValue("arg", "238:01:00")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00" }, })
+                .Build());
         Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void MutationParsesInputWithoutLeadingZero()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValue("arg", "238:01:00")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "238:01:00" }, })
+                .Build());
         Assert.Equal("238:11:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void MutationParsesInputWithNegativeValue()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValue("arg", "-238:01:00")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "-238:01:00" }, })
+                .Build());
         Assert.Equal("-237:51:00", Assert.IsType<OperationResult>(result).Data!["test"]);
     }
 
     [Fact]
     public void MutationDoesntParseInputWithPlusSign()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
-                .SetVariableValue("arg", "+09:22:01:00")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" }, })
+                .Build());
         Assert.Null(Assert.IsType<OperationResult>(result).Data);
         Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
     }
@@ -151,7 +147,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     [Fact]
     public void MutationParsesLiteralWithDecimals()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation { test(arg: \"238:01:00.019\") }")
                 .Build());
@@ -161,7 +157,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     [Fact]
     public void MutationParsesLiteralWithoutDecimals()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation { test(arg: \"238:01:00\") }")
                 .Build());
@@ -171,7 +167,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     [Fact]
     public void MutationParsesLiteralWithoutLeadingZero()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation { test(arg: \"238:01:00\") }")
                 .Build());
@@ -181,7 +177,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     [Fact]
     public void MutationParsesLiteralWithNegativeValue()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation { test(arg: \"-238:01:00\") }")
                 .Build());
@@ -191,7 +187,7 @@ public class DurationTypeJsonRoundtripIntegrationTests
     [Fact]
     public void MutationDoesntParseLiteralWithPlusSign()
     {
-        IExecutionResult result = testExecutor
+        var result = _testExecutor
             .Execute(OperationRequestBuilder.Create()
                 .SetDocument("mutation { test(arg: \"+238:01:00\") }")
                 .Build());

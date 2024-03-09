@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime.Text;
 
@@ -5,22 +6,19 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class LocalTimeTypeGeneralIsoIntegrationTests
     {
-        private readonly IRequestExecutor testExecutor;
-        public LocalTimeTypeGeneralIsoIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor = 
+            SchemaBuilder.New()
                 .AddQueryType<LocalTimeTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<LocalTimeTypeIntegrationTests.Schema.Mutation>()
                 .AddNodaTime(typeof(LocalTimeType))
                 .AddType(new LocalTimeType(LocalTimePattern.GeneralIso))
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: one }");
+            var result = _testExecutor.Execute("query { test: one }");
 
             Assert.Equal("12:42:13", result.ExpectQueryResult().Data!["test"]);
         }
@@ -28,11 +26,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult? result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "12:42:13")
-                    .Create());
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "12:42:13" }, })
+                    .Build());
 
             Assert.Equal("12:52:13", result.ExpectQueryResult().Data!["test"]);
         }
@@ -40,11 +38,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            IExecutionResult? result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "12:42")
-                    .Create());
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "12:42" }, })
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -53,7 +51,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation { test(arg: \"12:42:13\") }")
                     .Build());
@@ -64,7 +62,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = _testExecutor
                 .Execute(OperationRequestBuilder.Create()
                     .SetDocument("mutation { test(arg: \"12:42\") }")
                     .Build());

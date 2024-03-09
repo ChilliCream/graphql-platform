@@ -23,8 +23,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", user)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }
@@ -43,8 +43,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", user)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }
@@ -64,8 +64,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", user)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }
@@ -84,8 +84,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", user)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }
@@ -103,8 +103,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", user)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }
@@ -120,8 +120,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", null)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", null }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }
@@ -158,8 +158,8 @@ public class VariableCoercionIntegrationTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
-                .SetVariableValue("user", user)
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
+                .Build();
 
         await executor.ExecuteAsync(request).MatchSnapshotAsync();
     }

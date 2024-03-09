@@ -21,8 +21,8 @@ public class ListTypeTests
                 b => b
                     .AddQueryType<Query>(),
                 r => r
-                    .SetVariableValue("a", "a")
-                    .SetVariableValue("b", "b"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"a", "a")
+                    .SetVariableValues(new Dictionary<string, object?> { {"b", "b"))
             .MatchSnapshotAsync();
     }
 

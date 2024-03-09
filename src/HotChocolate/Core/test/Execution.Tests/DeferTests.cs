@@ -101,8 +101,8 @@ public class DeferTests
                             }
                         }
                     }")
-                .SetVariableValue("defer", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object> { {"defer", false }, })
+                .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
@@ -216,8 +216,8 @@ public class DeferTests
                             id
                         }
                     }")
-                .SetVariableValue("defer", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { {"defer", false }, })
+                .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();
     }

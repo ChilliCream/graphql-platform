@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -32,10 +33,14 @@ public class IdDescriptorTests
                                     stringId(id: $stringId)
                                     guidId(id: $guidId)
                                 }")
-                        .SetVariableValue("intId", intId)
-                        .SetVariableValue("stringId", stringId)
-                        .SetVariableValue("guidId", guidId)
-                        .Create());
+                        .SetVariableValues(
+                            new Dictionary<string, object>
+                            {
+                                { "intId", intId },
+                                { "stringId", stringId },
+                                { "guidId", guidId },
+                            })
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -64,8 +69,8 @@ public class IdDescriptorTests
                                     someId
                                 }
                             }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object> { { "someId", someId }, })
+                        .Build());
 
         // assert
         new

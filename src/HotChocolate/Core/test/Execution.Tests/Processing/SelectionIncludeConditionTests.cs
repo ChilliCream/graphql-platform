@@ -292,8 +292,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"include", true)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -327,7 +327,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("shouldSkip", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"shouldSkip", true)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -361,7 +361,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("shouldSkip", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"shouldSkip", false)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -395,8 +395,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"include", true)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -424,8 +424,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"include", true)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -453,8 +453,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
-                        .SetVariableValue("include", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"include", false)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -509,8 +509,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", false)
-                        .SetVariableValue("include", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"include", false)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -569,8 +569,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", false)
-                        .SetVariableValue("include", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"include", true)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -629,7 +629,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .SetVariableValue("skip", true)
+                        .SetVariableValues(new Dictionary<string, object?> { {"skip", true)
                         .Create());
 
         result.MatchInlineSnapshot(
@@ -699,7 +699,7 @@ public class SelectionIncludeConditionTests
                                 __typename
                             }
                             """)
-                        .SetVariableValue("permission", false)
+                        .SetVariableValues(new Dictionary<string, object?> { {"permission", false)
                         .Create());
 
         result.MatchInlineSnapshot(

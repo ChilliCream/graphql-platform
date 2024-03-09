@@ -174,7 +174,7 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: c => c.SetVariableValue("episode", new EnumValueNode("JEDI")))
+                request: c => c.SetVariableValues(new Dictionary<string, object?> { {"episode", new EnumValueNode("JEDI")))
             .MatchSnapshotAsync();
     }
 
@@ -214,8 +214,8 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: c => c
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(false)))
+                    .SetVariableValues(new Dictionary<string, object?> { {"episode", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"withFriends", new BooleanValueNode(false)))
             .MatchSnapshotAsync();
     }
 
@@ -236,8 +236,8 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(true)))
+                    .SetVariableValues(new Dictionary<string, object?> { {"episode", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"withFriends", new BooleanValueNode(true)))
             .MatchSnapshotAsync();
     }
 
@@ -258,8 +258,8 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(false)))
+                    .SetVariableValues(new Dictionary<string, object?> { {"episode", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"withFriends", new BooleanValueNode(false)))
             .MatchSnapshotAsync();
     }
 
@@ -280,8 +280,8 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                    .SetVariableValue("withFriends", new BooleanValueNode(true)))
+                    .SetVariableValues(new Dictionary<string, object?> { {"episode", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"withFriends", new BooleanValueNode(true)))
             .MatchSnapshotAsync();
     }
 
@@ -302,8 +302,8 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("episode", "JEDI")
-                    .SetVariableValue("withFriends", false))
+                    .SetVariableValues(new Dictionary<string, object?> { {"episode", "JEDI")
+                    .SetVariableValues(new Dictionary<string, object?> { {"withFriends", false))
             .MatchSnapshotAsync();
     }
 
@@ -321,8 +321,8 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue(
+                    .SetVariableValues(new Dictionary<string, object?> { {"ep", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {
                         "review",
                         new ObjectValueNode(
                             new ObjectFieldNode("stars", new IntValueNode(5)),
@@ -354,8 +354,8 @@ public class StarWarsCodeFirstTests
                     AddDefaultConfiguration(c);
                 },
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue(
+                    .SetVariableValues(new Dictionary<string, object?> { {"ep", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {
                         "review",
                         new ObjectValueNode(
                             // Invalid fields
@@ -388,9 +388,9 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue("ep2", new EnumValueNode("JEDI"))
-                    .SetVariableValue(
+                    .SetVariableValues(new Dictionary<string, object?> { {"ep", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"ep2", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {
                         "review",
                         new ObjectValueNode(
                             new ObjectFieldNode("stars", new IntValueNode(5)),
@@ -418,9 +418,9 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
-                    .SetVariableValue("stars", new IntValueNode(5))
-                    .SetVariableValue("commentary", new StringValueNode("This is a great movie!")))
+                    .SetVariableValues(new Dictionary<string, object?> { {"ep", new EnumValueNode("JEDI"))
+                    .SetVariableValues(new Dictionary<string, object?> { {"stars", new IntValueNode(5))
+                    .SetVariableValues(new Dictionary<string, object?> { {"commentary", new StringValueNode("This is a great movie!")))
             .MatchSnapshotAsync();
     }
 
@@ -441,7 +441,7 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: r => r.SetVariableValue("ep", new EnumValueNode("JEDI")))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"ep", new EnumValueNode("JEDI")))
             .MatchSnapshotAsync();
     }
 
@@ -462,7 +462,7 @@ public class StarWarsCodeFirstTests
                         }
                     }
                 }",
-                request: r => r.SetVariableValue("ep", new EnumValueNode("EMPIRE")))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"ep", new EnumValueNode("EMPIRE")))
             .MatchSnapshotAsync();
     }
 
@@ -505,7 +505,7 @@ public class StarWarsCodeFirstTests
                     }
                 }",
                 request: r => r
-                    .SetVariableValue("ep", new ListValueNode(new EnumValueNode("EMPIRE"))))
+                    .SetVariableValues(new Dictionary<string, object?> { {"ep", new ListValueNode(new EnumValueNode("EMPIRE"))))
             .MatchSnapshotAsync();
     }
 
@@ -537,7 +537,7 @@ public class StarWarsCodeFirstTests
                         name
                     }
                 }",
-                request: r => r.SetVariableValue("episode", "NEW_HOPE"))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"episode", "NEW_HOPE"))
             .MatchSnapshotAsync();
     }
 
@@ -1088,7 +1088,7 @@ public class StarWarsCodeFirstTests
                         height
                     }}
                 }}",
-                request: r => r.SetVariableValue("if", ifValue))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"if", ifValue))
             .MatchSnapshotAsync();
     }
 
@@ -1123,7 +1123,7 @@ public class StarWarsCodeFirstTests
                         height
                     }
                 }",
-                request: r => r.SetVariableValue("if", ifValue))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"if", ifValue))
             .MatchSnapshotAsync();
     }
 
@@ -1140,7 +1140,7 @@ public class StarWarsCodeFirstTests
                         height
                     }
                 }",
-                request: r => r.SetVariableValue("if", true))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"if", true))
             .MatchSnapshotAsync();
     }
 
@@ -1188,7 +1188,7 @@ public class StarWarsCodeFirstTests
                         name @skip(if: $if)
                     }
                 }",
-                request: r => r.SetVariableValue("if", true))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"if", true))
             .MatchSnapshotAsync();
     }
 
@@ -1288,7 +1288,7 @@ public class StarWarsCodeFirstTests
                   name
                 }
             }",
-                request: r => r.SetVariableValue("if", true))
+                request: r => r.SetVariableValues(new Dictionary<string, object?> { {"if", true))
             .MatchSnapshotAsync();
     }
 }

@@ -26,7 +26,7 @@ public class MiddlewareContextTests
 
         var request = OperationRequestBuilder.Create()
             .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
-            .SetVariableValue("abc", "def")
+            .SetVariableValues(new Dictionary<string, object?> { {"abc", "def")
             .Create();
 
         // act
@@ -52,7 +52,7 @@ public class MiddlewareContextTests
 
         var request = OperationRequestBuilder.Create()
             .SetDocument("query abc($def: String){ foo(bar: $def) }")
-            .SetVariableValue("def", "ghi")
+            .SetVariableValues(new Dictionary<string, object?> { {"def", "ghi")
             .Create();
 
         // act

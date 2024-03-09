@@ -282,8 +282,8 @@ public class JsonTypeTests
                                 inputJson(input: $input)
                             }
                             """)
-                        .SetVariableValue("input", input)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object> { {"input", input }, })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """

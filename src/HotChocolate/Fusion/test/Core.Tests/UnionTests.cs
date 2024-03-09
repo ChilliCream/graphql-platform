@@ -74,7 +74,7 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("input", input)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
                 .Create(),
             cts.Token);
 
@@ -136,7 +136,7 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("input", input)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
                 .Create(),
             cts.Token);
 
@@ -195,7 +195,7 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("input", input)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
                 .Create(),
             cts.Token);
 
@@ -254,7 +254,7 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValue("input", input)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
                 .Create(),
             cts.Token);
 
