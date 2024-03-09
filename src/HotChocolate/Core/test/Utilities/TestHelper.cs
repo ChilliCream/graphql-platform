@@ -23,7 +23,9 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                ConfigureRequest = request, Configure = configure, Services = requestServices,
+                ConfigureRequest = request, 
+                Configure = configure, 
+                Services = requestServices,
             });
     }
 
@@ -73,7 +75,9 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                Configure = configure, ConfigureRequest = request, Services = requestServices,
+                Configure = configure, 
+                ConfigureRequest = request, 
+                Services = requestServices,
             },
             elementInspectors);
     }
