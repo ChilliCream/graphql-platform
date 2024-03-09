@@ -17,7 +17,7 @@ public class FileSystemQueryStorage
     : IReadStoredQueries
     , IWriteStoredQueries
 {
-    private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
+    private static readonly Task<OperationDocument?> _null = Task.FromResult<OperationDocument?>(null);
     private readonly IQueryFileMap _queryMap;
 
     /// <summary>
@@ -36,16 +36,16 @@ public class FileSystemQueryStorage
     }
 
     /// <inheritdoc />
-    public Task<QueryDocument?> TryReadQueryAsync(
-        string queryId,
+    public Task<OperationDocument?> TryReadQueryAsync(
+        string documentId,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (string.IsNullOrWhiteSpace(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
         }
 
-        var filePath = _queryMap.MapToFilePath(queryId);
+        var filePath = _queryMap.MapToFilePath(documentId);
 
         if (!File.Exists(filePath))
         {
@@ -55,7 +55,7 @@ public class FileSystemQueryStorage
         return TryReadQueryInternalAsync(filePath, cancellationToken);
     }
 
-    private static async Task<QueryDocument?> TryReadQueryInternalAsync(
+    private static async Task<OperationDocument?> TryReadQueryInternalAsync(
         string filePath,
         CancellationToken cancellationToken)
     {
@@ -75,13 +75,13 @@ public class FileSystemQueryStorage
                 cancellationToken)
             .ConfigureAwait(false);
 
-        return new QueryDocument(document);
+        return new OperationDocument(document);
     }
 
     /// <inheritdoc />
     public Task WriteQueryAsync(
         string queryId,
-        IQuery query,
+        IOperationDocument document,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(queryId))
@@ -89,24 +89,24 @@ public class FileSystemQueryStorage
             throw new ArgumentNullException(nameof(queryId));
         }
 
-        if (query is null)
+        if (document is null)
         {
-            throw new ArgumentNullException(nameof(query));
+            throw new ArgumentNullException(nameof(document));
         }
 
         var filePath = _queryMap.MapToFilePath(queryId);
-        return WriteQueryInternalAsync(query, filePath, cancellationToken);
+        return WriteQueryInternalAsync(document, filePath, cancellationToken);
     }
 
     private static async Task WriteQueryInternalAsync(
-        IQuery query,
+        IOperationDocument document,
         string filePath,
         CancellationToken cancellationToken)
     {
         if (!File.Exists(filePath))
         {
             using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
-            await query.WriteToAsync(stream, cancellationToken).ConfigureAwait(false);
+            await document.WriteToAsync(stream, cancellationToken).ConfigureAwait(false);
             await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
         }
     }

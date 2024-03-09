@@ -81,9 +81,9 @@ public class FileUploadTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("file", new StreamFile("abc", () => stream))
                 .Create(),
             cts.Token);
@@ -137,9 +137,9 @@ public class FileUploadTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("input", input)
                 .Create(),
             cts.Token);

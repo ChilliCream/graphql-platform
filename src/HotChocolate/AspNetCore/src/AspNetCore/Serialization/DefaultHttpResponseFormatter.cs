@@ -161,7 +161,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         if (result.Kind is SingleResult)
         {
-            var queryResult = (IQueryResult)result;
+            var queryResult = (IOperationResult)result;
             var statusCode = (int)OnDetermineStatusCode(queryResult, format, proposedStatusCode);
 
             response.ContentType = format.ContentType;
@@ -204,7 +204,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Determines which status code shall be returned for this result.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IQueryResult"/>.
+    /// The <see cref="IOperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -216,7 +216,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
     /// </returns>
     protected virtual HttpStatusCode OnDetermineStatusCode(
-        IQueryResult result,
+        IOperationResult result,
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
@@ -309,7 +309,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// the the formatter starts writing the response body.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IQueryResult"/>.
+    /// The <see cref="IOperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -318,7 +318,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// The header dictionary.
     /// </param>
     protected virtual void OnWriteResponseHeaders(
-        IQueryResult result,
+        IOperationResult result,
         FormatInfo format,
         IHeaderDictionary headers) { }
 

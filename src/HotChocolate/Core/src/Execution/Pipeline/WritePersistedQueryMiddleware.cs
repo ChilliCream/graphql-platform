@@ -35,12 +35,12 @@ internal sealed class WritePersistedQueryMiddleware
         await _next(context).ConfigureAwait(false);
 
         if (!context.IsCachedDocument &&
-            context.Document is { } &&
+            context.Document is not null &&
             context.DocumentId is { } documentId &&
-            context.Request.Query is { } query &&
-            context.Result is IQueryResult result &&
+            context.Request.Document is { } document &&
+            context.Result is IOperationResult result &&
             context.IsValidDocument &&
-            context.Request.Extensions is { } &&
+            context.Request.Extensions is not null &&
             context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
             s is IReadOnlyDictionary<string, object> settings)
         {
@@ -50,7 +50,7 @@ internal sealed class WritePersistedQueryMiddleware
             if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
             {
                 // save the query
-                await _persistedQueryStore.WriteQueryAsync(documentId, query).ConfigureAwait(false);
+                await _persistedQueryStore.WriteQueryAsync(documentId, document).ConfigureAwait(false);
 
                 // add persistence receipt to the result
                 builder.SetExtension(

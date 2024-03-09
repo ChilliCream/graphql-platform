@@ -5,8 +5,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -43,7 +41,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the initial query request.
     /// </summary>
-    IQueryRequest Request { get; }
+    OperationRequestBase Request { get; }
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted

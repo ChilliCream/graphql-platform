@@ -49,15 +49,15 @@ public class QueryableProjectionVisitorTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             id
                             bar { coordinates }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

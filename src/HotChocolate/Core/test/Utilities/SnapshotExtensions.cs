@@ -23,7 +23,7 @@ public static class SnapshotExtensions
         this IExecutionResult result,
         CancellationToken cancellationToken = default)
     {
-        if (result is IQueryResult q)
+        if (result is IOperationResult q)
         {
             q.ToJson().MatchSnapshot();
             return result;

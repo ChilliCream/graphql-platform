@@ -20,9 +20,9 @@ public class AuthorizeSchemaTests
             .AddTypeExtension<QueryExtensions>()
             .AddAuthorization()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ bar }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ bar }")
                     .SetUser(new ClaimsPrincipal())
                     .Create());
 

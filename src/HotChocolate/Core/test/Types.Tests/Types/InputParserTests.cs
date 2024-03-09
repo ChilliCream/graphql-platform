@@ -380,7 +380,7 @@ public class InputParserTests
             .BuildRequestExecutorAsync();
 
         // act
-        var query = QueryRequestBuilder.Create(@"
+        var query = OperationRequestBuilder.Build(@"
             {
                 loopback(input: {field2: 1}) {
                     field1

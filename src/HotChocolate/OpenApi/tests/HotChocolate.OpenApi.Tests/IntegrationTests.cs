@@ -49,7 +49,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // Act
-        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
+        var result = await schema.ExecuteAsync(OperationRequestBuilder.Build(query));
 
         // Assert
         Assert.NotNull(result);
@@ -90,7 +90,7 @@ public class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // Act
-        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
+        var result = await schema.ExecuteAsync(OperationRequestBuilder.Build(query));
 
         // Assert
         Assert.NotNull(result);

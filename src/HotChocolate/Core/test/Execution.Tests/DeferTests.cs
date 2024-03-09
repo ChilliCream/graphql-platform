@@ -80,7 +80,7 @@ public class DeferTests
                 }
             }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -91,9 +91,9 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     @"query($defer: Boolean!) {
                         ... @defer(if: $defer) {
                             person(id: ""UGVyc29uCmkx"") {
@@ -104,7 +104,7 @@ public class DeferTests
                 .SetVariableValue("defer", false)
                 .Create());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class DeferTests
             @"{
                 ... Foo @defer
             }
-            
+
             fragment Foo on Query {
                 person(id: ""UGVyc29uCmkx"") {
                     id
@@ -136,11 +136,11 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            """    
+            """
             {
                 ... Foo @defer
             }
-            
+
             fragment Foo on Query {
                 person(id: "UGVyc29uCmkx") {
                     id
@@ -165,7 +165,7 @@ public class DeferTests
             @"{
                 ... Foo @defer(label: ""abc"")
             }
-            
+
             fragment Foo on Query {
                 person(id: ""UGVyc29uCmkx"") {
                     id
@@ -186,14 +186,14 @@ public class DeferTests
             @"{
                 ... Foo @defer(if: false)
             }
-            
+
             fragment Foo on Query {
                 person(id: ""UGVyc29uCmkx"") {
                     id
                 }
             }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -204,13 +204,13 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     @"query ($defer: Boolean!) {
                         ... Foo @defer(if: $defer)
                     }
-                    
+
                     fragment Foo on Query {
                         person(id: ""UGVyc29uCmkx"") {
                             id
@@ -219,6 +219,6 @@ public class DeferTests
                 .SetVariableValue("defer", false)
                 .Create());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 }

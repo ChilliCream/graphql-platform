@@ -29,14 +29,14 @@ public class QueryableFilterVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("where", true)
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("where", false)
                 .Create());
 
@@ -58,14 +58,14 @@ public class QueryableFilterVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("where", true)
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("where", false)
                 .Create());
 

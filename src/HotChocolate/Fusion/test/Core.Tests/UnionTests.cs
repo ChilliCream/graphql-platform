@@ -71,9 +71,9 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("input", input)
                 .Create(),
             cts.Token);
@@ -133,9 +133,9 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("input", input)
                 .Create(),
             cts.Token);
@@ -192,9 +192,9 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("input", input)
                 .Create(),
             cts.Token);
@@ -251,9 +251,9 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("input", input)
                 .Create(),
             cts.Token);

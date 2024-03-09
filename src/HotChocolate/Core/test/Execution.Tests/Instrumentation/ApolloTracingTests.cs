@@ -85,10 +85,10 @@ public class DiagnosticsEventsTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ a }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ a }")
                 .SetGlobalState(WellKnownContextData.EnableTracing, true)
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();

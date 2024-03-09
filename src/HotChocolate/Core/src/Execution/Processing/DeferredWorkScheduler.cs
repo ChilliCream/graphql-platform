@@ -94,7 +94,7 @@ internal sealed class DeferredWorkScheduler
     public void Complete(DeferredExecutionTaskResult result)
         => StateOwner.State.Complete(result);
 
-    public IAsyncEnumerable<IQueryResult> CreateResultStream(IQueryResult initialResult)
+    public IAsyncEnumerable<IOperationResult> CreateResultStream(IOperationResult initialResult)
         => new DeferredResultStream(
             initialResult,
             StateOwner,
@@ -109,15 +109,15 @@ internal sealed class DeferredWorkScheduler
         _parentContext = default!;
     }
 
-    private class DeferredResultStream : IAsyncEnumerable<IQueryResult>
+    private class DeferredResultStream : IAsyncEnumerable<IOperationResult>
     {
-        private readonly IQueryResult _initialResult;
+        private readonly IOperationResult _initialResult;
         private readonly DeferredWorkStateOwner _stateOwner;
         private readonly IOperation _operation;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public DeferredResultStream(
-            IQueryResult initialResult,
+            IOperationResult initialResult,
             DeferredWorkStateOwner stateOwner,
             IOperation operation,
             IExecutionDiagnosticEvents diagnosticEvents)
@@ -128,7 +128,7 @@ internal sealed class DeferredWorkScheduler
             _diagnosticEvents = diagnosticEvents;
         }
 
-        public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
+        public async IAsyncEnumerator<IOperationResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             var span = _diagnosticEvents.ExecuteStream(_operation);
@@ -155,7 +155,7 @@ internal sealed class DeferredWorkScheduler
                     {
                         if (hasNext)
                         {
-                            yield return new QueryResult(null, hasNext: false);
+                            yield return new OperationResult(null, hasNext: false);
                         }
 
                         yield break;

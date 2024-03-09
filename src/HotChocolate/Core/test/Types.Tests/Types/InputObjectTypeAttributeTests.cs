@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
-using QueryRequestBuilder = HotChocolate.Execution.QueryRequestBuilder;
+using OperationRequestBuilder = HotChocolate.Execution.OperationRequestBuilder;
 
 namespace HotChocolate.Types;
 
@@ -87,9 +87,9 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo(a: { }) { foo bar baz qux quux } }")
-                    .Create())
+                OperationRequestBuilder.Create()
+                    .SetDocument("{ foo(a: { }) { foo bar baz qux quux } }")
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -111,8 +111,8 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(@"
+                OperationRequestBuilder.Create()
+                    .SetDocument(@"
                             query($q: InputWithDefaultsInput) {
                                 foo(a: $q) {
                                     foo bar baz qux quux

@@ -100,8 +100,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     {
                       posts {
@@ -112,7 +112,7 @@ public class ProjectToTests
                         }
                       }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -128,8 +128,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         posts {
@@ -149,7 +149,7 @@ public class ProjectToTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -164,8 +164,8 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     {
                       blogs {
@@ -175,7 +175,7 @@ public class ProjectToTests
                         }
                       }
                     }")
-                .Create());
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -192,8 +192,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         posts {
@@ -207,7 +207,7 @@ public class ProjectToTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -222,8 +222,8 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         members {
@@ -232,7 +232,7 @@ public class ProjectToTests
                             ... on StandardMemberDto { standard }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -249,8 +249,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         members {
@@ -258,7 +258,7 @@ public class ProjectToTests
                             ... on PremiumMemberDto { premium }
                         }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);

@@ -33,23 +33,23 @@ public class RedisQueryStorage
     }
 
     /// <inheritdoc />
-    public Task<QueryDocument?> TryReadQueryAsync(
-        string queryId,
+    public Task<OperationDocument?> TryReadQueryAsync(
+        string documentId,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (string.IsNullOrWhiteSpace(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
         }
 
-        return TryReadQueryInternalAsync(queryId);
+        return TryReadQueryInternalAsync(documentId);
     }
 
-    private async Task<QueryDocument?> TryReadQueryInternalAsync(
+    private async Task<OperationDocument?> TryReadQueryInternalAsync(
         string queryId)
     {
         var buffer = (byte[]?)await _database.StringGetAsync(queryId).ConfigureAwait(false);
-        return buffer is null ? null : new QueryDocument(Utf8GraphQLParser.Parse(buffer));
+        return buffer is null ? null : new OperationDocument(Utf8GraphQLParser.Parse(buffer));
     }
 
     /// <inheritdoc />

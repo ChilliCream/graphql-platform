@@ -630,8 +630,8 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     query($id: ID!) {
                       node(id: $id) {
@@ -690,8 +690,8 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     query($id: ID!) {
                       node(id: $id) {

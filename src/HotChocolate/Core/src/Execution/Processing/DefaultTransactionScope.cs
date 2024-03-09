@@ -37,7 +37,7 @@ public class DefaultTransactionScope : ITransactionScope
     /// </summary>
     public void Complete()
     {
-        if (Context.Result is QueryResult { Data: not null, Errors: null or { Count: 0, }, })
+        if (Context.Result is OperationResult { Data: not null, Errors: null or { Count: 0, }, })
         {
             Transaction.Complete();
         }

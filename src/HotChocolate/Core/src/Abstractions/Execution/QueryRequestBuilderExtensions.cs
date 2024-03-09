@@ -4,22 +4,22 @@ using System.Security.Claims;
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Extensions methods for <see cref="IQueryRequestBuilder"/>.
+/// Extensions methods for <see cref="IOperationRequestBuilder"/>.
 /// </summary>
-public static class QueryRequestBuilderExtensions
+public static class OperationRequestBuilderExtensions
 {
     /// <summary>
     /// Allows introspection usage in the current request.
     /// </summary>
-    public static IQueryRequestBuilder AllowIntrospection(
-        this IQueryRequestBuilder builder) =>
+    public static IOperationRequestBuilder AllowIntrospection(
+        this IOperationRequestBuilder builder) =>
         builder.SetGlobalState(WellKnownContextData.IntrospectionAllowed, null);
 
     /// <summary>
     /// Sets the error message for when the introspection is not allowed.
     /// </summary>
-    public static IQueryRequestBuilder SetIntrospectionNotAllowedMessage(
-        this IQueryRequestBuilder builder,
+    public static IOperationRequestBuilder SetIntrospectionNotAllowedMessage(
+        this IOperationRequestBuilder builder,
         string message)
     {
         if (message is null)
@@ -33,8 +33,8 @@ public static class QueryRequestBuilderExtensions
     /// <summary>
     /// Sets the error message for when the introspection is not allowed.
     /// </summary>
-    public static IQueryRequestBuilder SetIntrospectionNotAllowedMessage(
-        this IQueryRequestBuilder builder,
+    public static IOperationRequestBuilder SetIntrospectionNotAllowedMessage(
+        this IOperationRequestBuilder builder,
         Func<string> messageFactory)
     {
         if (messageFactory is null)
@@ -48,15 +48,15 @@ public static class QueryRequestBuilderExtensions
     /// <summary>
     /// Skips the operation complexity analysis of this request.
     /// </summary>
-    public static IQueryRequestBuilder SkipComplexityAnalysis(
-        this IQueryRequestBuilder builder) =>
+    public static IOperationRequestBuilder SkipComplexityAnalysis(
+        this IOperationRequestBuilder builder) =>
         builder.SetGlobalState(WellKnownContextData.SkipComplexityAnalysis, null);
 
     /// <summary>
     /// Set allowed complexity for this request and override the global allowed complexity.
     /// </summary>
-    public static IQueryRequestBuilder SetMaximumAllowedComplexity(
-        this IQueryRequestBuilder builder,
+    public static IOperationRequestBuilder SetMaximumAllowedComplexity(
+        this IOperationRequestBuilder builder,
         int maximumAllowedComplexity) =>
         builder.SetGlobalState(
             WellKnownContextData.MaximumAllowedComplexity,
@@ -65,31 +65,31 @@ public static class QueryRequestBuilderExtensions
     /// <summary>
     /// Marks the current request to allow non-persisted queries.
     /// </summary>
-    public static IQueryRequestBuilder AllowNonPersistedQuery(
-        this IQueryRequestBuilder builder) =>
+    public static IOperationRequestBuilder AllowNonPersistedQuery(
+        this IOperationRequestBuilder builder) =>
         builder.SetGlobalState(WellKnownContextData.NonPersistedQueryAllowed, true);
 
     /// <summary>
     /// Skips the request execution depth analysis.
     /// </summary>
-    public static IQueryRequestBuilder SkipExecutionDepthAnalysis(
-        this IQueryRequestBuilder builder) =>
+    public static IOperationRequestBuilder SkipExecutionDepthAnalysis(
+        this IOperationRequestBuilder builder) =>
         builder.SetGlobalState(WellKnownContextData.SkipDepthAnalysis, null);
 
     /// <summary>
     /// Set allowed execution depth for this request and override the
     /// global allowed execution depth.
     /// </summary>
-    public static IQueryRequestBuilder SetMaximumAllowedExecutionDepth(
-        this IQueryRequestBuilder builder,
+    public static IOperationRequestBuilder SetMaximumAllowedExecutionDepth(
+        this IOperationRequestBuilder builder,
         int maximumAllowedDepth) =>
         builder.SetGlobalState(WellKnownContextData.MaxAllowedExecutionDepth, maximumAllowedDepth);
 
     /// <summary>
     /// Sets the user for this request.
     /// </summary>
-    public static IQueryRequestBuilder SetUser(
-        this IQueryRequestBuilder builder,
+    public static IOperationRequestBuilder SetUser(
+        this IOperationRequestBuilder builder,
         ClaimsPrincipal claimsPrincipal) =>
         builder.SetGlobalState(nameof(ClaimsPrincipal), claimsPrincipal);
 

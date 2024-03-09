@@ -53,7 +53,7 @@ public static class TestServerHelper
                                                 nameof(HttpContext),
                                                 out var value) &&
                                             value is HttpContext httpContext &&
-                                            context.Result is IQueryResult result)
+                                            context.Result is HotChocolate.Execution.IOperationResult result)
                                         {
                                             var headers = httpContext.Request.Headers;
                                             if (headers.ContainsKey("sendErrorStatusCode"))

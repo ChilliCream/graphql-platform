@@ -28,7 +28,7 @@ public class RedisQueryStorageTests
             {
                 // arrange
                 var storage = new RedisQueryStorage(_database);
-                var query = new QuerySourceText("{ foo }");
+                var query = new OperationDocumentSourceText("{ foo }");
 
                 // act
                 await storage.WriteQueryAsync(queryId, query);
@@ -48,7 +48,7 @@ public class RedisQueryStorageTests
         return TryTest(async () =>
         {
             var storage = new RedisQueryStorage(_database);
-            var query = new QuerySourceText("{ foo }");
+            var query = new OperationDocumentSourceText("{ foo }");
 
             // act
             Task Action() => storage.WriteQueryAsync(queryId, query);

@@ -25,8 +25,8 @@ public class IdDescriptorTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
                                     intId(id: $intId)
                                     stringId(id: $stringId)
@@ -57,8 +57,8 @@ public class IdDescriptorTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($someId: ID!) {
                                 foo(input: { someId: $someId }) {
                                     someId

@@ -24,7 +24,7 @@ public class FileSystemQueryStorageTests
             var storage = new FileSystemQueryStorage(
                 new DefaultQueryFileMap(path));
 
-            var query = new QuerySourceText("{ foo }");
+            var query = new OperationDocumentSourceText("{ foo }");
             var queryId = "1234";
 
             // act
@@ -62,7 +62,7 @@ public class FileSystemQueryStorageTests
             var storage = new FileSystemQueryStorage(
                 new DefaultQueryFileMap(path));
 
-            var query = new QuerySourceText("{ foo }");
+            var query = new OperationDocumentSourceText("{ foo }");
 
             // act
             Task Action() => storage.WriteQueryAsync(queryId, query);

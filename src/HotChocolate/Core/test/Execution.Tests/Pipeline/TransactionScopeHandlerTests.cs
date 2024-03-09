@@ -127,7 +127,7 @@ public class TransactionScopeHandlerTests
 
         public void Complete()
         {
-            if(_context.Result is IQueryResult { Data: not null, Errors: null or { Count: 0, }, })
+            if(_context.Result is IOperationResult { Data: not null, Errors: null or { Count: 0, }, })
             {
                 _complete();
             }

@@ -38,8 +38,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31T18:30:13+02")
                     .Create());
 
@@ -50,8 +50,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariableWithMinutes()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31T18:30:13+02:35")
                     .Create());
 
@@ -62,8 +62,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31T18:30:13")
                     .Create());
 
@@ -75,9 +75,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31T18:30:13+02\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02\") }")
+                    .Build());
 
             Assert.Equal("2020-12-31T18:40:13+02", result.ExpectQueryResult().Data!["test"]);
         }
@@ -86,9 +86,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteralWithMinutes()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
+                    .Build());
 
             Assert.Equal("2020-12-31T18:40:13+02:35", result.ExpectQueryResult().Data!["test"]);
         }
@@ -97,9 +97,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31T18:30:13\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13\") }")
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);

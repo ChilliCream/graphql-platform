@@ -4,14 +4,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Represents a formatter for <see cref="IQueryResult"/>s.
+/// Represents a formatter for <see cref="IOperationResult"/>s.
 /// </summary>
-public interface IQueryResultFormatter
+public interface IOperationResultFormatter
 {
     /// <summary>
     /// Formats a query result and writes the formatted result to
@@ -31,7 +29,7 @@ public interface IQueryResultFormatter
     /// <paramref name="outputStream"/> is <c>null</c>.
     /// </exception>
     ValueTask FormatAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default);
 
@@ -50,6 +48,6 @@ public interface IQueryResultFormatter
     /// <paramref name="writer"/> is <c>null</c>.
     /// </exception>
     void Format(
-        IQueryResult result,
+        IOperationResult result,
         IBufferWriter<byte> writer);
 }

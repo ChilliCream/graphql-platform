@@ -105,7 +105,7 @@ public class InMemoryClientTests
                 .OnCreateAsync(
                     StubExecutor.ApplicationServiceProvider,
                     operationRequest,
-                    It.IsAny<IQueryRequestBuilder>(),
+                    It.IsAny<IOperationRequestBuilder>(),
                     It.IsAny<CancellationToken>()));
 
         // act
@@ -117,7 +117,7 @@ public class InMemoryClientTests
                     .OnCreateAsync(
                         StubExecutor.ApplicationServiceProvider,
                         operationRequest,
-                        It.IsAny<IQueryRequestBuilder>(),
+                        It.IsAny<IOperationRequestBuilder>(),
                         It.IsAny<CancellationToken>()),
                 Times.Exactly(2));
     }

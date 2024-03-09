@@ -283,8 +283,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: true) @include(if: true) {
@@ -303,7 +303,7 @@ public class SelectionIncludeConditionTests
             }
             """);
     }
-    
+
     [Fact]
     public async Task Skip_Include_Merge_Issue_6550_True()
     {
@@ -312,8 +312,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($shouldSkip: Boolean! = true) {
                                 person @skip(if: $shouldSkip) {
@@ -337,7 +337,7 @@ public class SelectionIncludeConditionTests
             }
             """);
     }
-    
+
     [Fact]
     public async Task Skip_Include_Merge_Issue_6550_False()
     {
@@ -346,8 +346,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($shouldSkip: Boolean! = true) {
                                 person @skip(if: $shouldSkip) {
@@ -386,8 +386,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -415,8 +415,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: true) @include(if: false) {
@@ -444,8 +444,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -473,8 +473,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: false) @include(if: false) {
@@ -482,7 +482,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -500,8 +500,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -529,8 +529,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: false) @include(if: true) {
@@ -538,7 +538,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -560,8 +560,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($skip: Boolean! $include: Boolean!) {
                                 person @skip(if: $skip) @include(if: $include) {
@@ -593,8 +593,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query {
                                 person @skip(if: true) {
@@ -602,7 +602,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -620,8 +620,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($skip: Boolean!) {
                                 person @skip(if: $skip){
@@ -648,8 +648,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query {
                                 persons @skip(if: true) {
@@ -659,7 +659,7 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Create());
+                        .Build());
 
         result.MatchInlineSnapshot(
             """
@@ -678,8 +678,8 @@ public class SelectionIncludeConditionTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($permission: Boolean!) {
                                 person {

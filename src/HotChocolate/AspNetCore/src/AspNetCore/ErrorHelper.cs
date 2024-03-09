@@ -25,13 +25,13 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.NoSupportedAcceptMediaType)
             .Build();
 
-    public static IQueryResult TypeNameIsEmpty()
+    public static IOperationResult TypeNameIsEmpty()
         => QueryResultBuilder.CreateError(
             new Error(
                 ErrorHelper_TypeNameIsEmpty,
                 code: ErrorCodes.Server.TypeParameterIsEmpty));
 
-    public static IQueryResult InvalidTypeName(string typeName)
+    public static IOperationResult InvalidTypeName(string typeName)
         => QueryResultBuilder.CreateError(
             new Error(
                 ErrorHelper_InvalidTypeName,
@@ -41,7 +41,7 @@ internal static class ErrorHelper
                     { nameof(typeName), typeName },
                 }));
 
-    public static IQueryResult TypeNotFound(string typeName)
+    public static IOperationResult TypeNotFound(string typeName)
         => QueryResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_TypeNotFound, typeName),
@@ -51,7 +51,7 @@ internal static class ErrorHelper
                     { nameof(typeName), typeName },
                 }));
 
-    public static IQueryResult InvalidAcceptMediaType(string headerValue)
+    public static IOperationResult InvalidAcceptMediaType(string headerValue)
         => QueryResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
@@ -61,7 +61,7 @@ internal static class ErrorHelper
                     { nameof(headerValue), headerValue },
                 }));
     
-    public static IQueryResult MultiPartRequestPreflightRequired()
+    public static IOperationResult MultiPartRequestPreflightRequired()
         => QueryResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MultiPartRequestPreflightRequired,

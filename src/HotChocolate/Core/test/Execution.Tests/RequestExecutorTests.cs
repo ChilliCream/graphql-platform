@@ -79,9 +79,9 @@ public class RequestExecutorTests
 
         var executor = schema.MakeExecutable();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ foo }")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ foo }")
+            .Build();
 
         // act
         var result = await executor.ExecuteAsync(request, cts.Token);

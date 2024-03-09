@@ -26,12 +26,12 @@ public class InMemoryQueryStorageTests
         // act
         await queryStorage.WriteQueryAsync(
             queryId,
-            new QueryDocument(query),
+            new OperationDocument(query),
             CancellationToken.None);
 
         // assert
         Assert.True(memoryCache.TryGetValue(queryId, out var o));
-        await Assert.IsType<Task<QueryDocument>>(o);
+        await Assert.IsType<Task<OperationDocument>>(o);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class InMemoryQueryStorageTests
 
         const string queryId = "abc";
         var query = Utf8GraphQLParser.Parse("{ __typename }");
-        await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(query)))!;
+        await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new OperationDocument(query)))!;
 
         // act
         var document = await queryStorage.TryReadQueryAsync(

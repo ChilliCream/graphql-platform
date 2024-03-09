@@ -9,34 +9,27 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution;
 
-internal sealed class RequestContext : IRequestContext
+internal sealed class RequestContext(
+    ISchema schema,
+    ulong executorVersion,
+    IErrorHandler errorHandler,
+    IExecutionDiagnosticEvents diagnosticEvents)
+    : IRequestContext
 {
     private readonly ConcurrentDictionary<string, object?> _contextData = new();
     private DocumentValidatorResult? _validationResult;
 
-    public RequestContext(
-        ISchema schema,
-        ulong executorVersion,
-        IErrorHandler errorHandler,
-        IExecutionDiagnosticEvents diagnosticEvents)
-    {
-        Schema = schema;
-        ExecutorVersion = executorVersion;
-        ErrorHandler = errorHandler;
-        DiagnosticEvents = diagnosticEvents;
-    }
+    public ISchema Schema { get; } = schema;
 
-    public ISchema Schema { get; }
-
-    public ulong ExecutorVersion { get; }
+    public ulong ExecutorVersion { get; } = executorVersion;
 
     public IServiceProvider Services { get; private set; } = default!;
 
-    public IErrorHandler ErrorHandler { get; }
+    public IErrorHandler ErrorHandler { get; } = errorHandler;
 
-    public IExecutionDiagnosticEvents DiagnosticEvents { get; }
+    public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-    public IQueryRequest Request { get; private set; } = default!;
+    public OperationRequestBase Request { get; private set; } = default!;
 
     public IDictionary<string, object?> ContextData => _contextData;
 
@@ -105,7 +98,7 @@ internal sealed class RequestContext : IRequestContext
         return cloned;
     }
 
-    public void Initialize(IQueryRequest request, IServiceProvider services)
+    public void Initialize(OperationRequestBase request, IServiceProvider services)
     {
         Request = request;
         Services = services;

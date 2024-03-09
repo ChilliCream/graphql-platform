@@ -35,14 +35,14 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -60,14 +60,14 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: [{ bar: ASC}]){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(order: [{ bar: ASC}]){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: [{ bar: DESC}]){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(order: [{ bar: DESC}]){ bar}}")
+                .Build());
 
         // assert
         res1.MatchSnapshot("ASC");
@@ -83,14 +83,14 @@ public class QueryableSortVisitorExecutableTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: ASC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(order: { bar: ASC}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(order: { bar: DESC}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(order: { bar: DESC}){ bar}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

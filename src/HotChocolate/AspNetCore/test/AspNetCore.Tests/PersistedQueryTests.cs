@@ -350,20 +350,20 @@ public class PersistedQueryTests : ServerTestBase
 
     private sealed class QueryStorage : IReadStoredQueries
     {
-        private readonly Dictionary<string, Task<QueryDocument?>> _cache =
+        private readonly Dictionary<string, Task<OperationDocument?>> _cache =
             new(StringComparer.Ordinal);
 
-        public Task<QueryDocument?> TryReadQueryAsync(
+        public Task<OperationDocument?> TryReadQueryAsync(
             string queryId,
             CancellationToken cancellationToken = default)
             => _cache.TryGetValue(queryId, out var value)
                 ? value
-                : Task.FromResult<QueryDocument?>(null);
+                : Task.FromResult<OperationDocument?>(null);
 
         public void AddQuery(string key, string query)
         {
-            var doc = new QueryDocument(Utf8GraphQLParser.Parse(query));
-            _cache.Add(key, Task.FromResult<QueryDocument?>(doc));
+            var doc = new OperationDocument(Utf8GraphQLParser.Parse(query));
+            _cache.Add(key, Task.FromResult<OperationDocument?>(doc));
         }
     }
 
@@ -372,7 +372,7 @@ public class PersistedQueryTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
+            IOperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             requestBuilder.AllowNonPersistedQuery();

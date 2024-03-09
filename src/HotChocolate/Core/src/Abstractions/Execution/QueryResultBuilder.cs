@@ -11,7 +11,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
     private List<IError>? _errors;
     private ExtensionData? _extensionData;
     private ExtensionData? _contextData;
-    private List<IQueryResult>? _incremental;
+    private List<IOperationResult>? _incremental;
     private string? _label;
     private Path? _path;
     private bool? _hasNext;
@@ -124,7 +124,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResultBuilder AddPatch(IQueryResult patch)
+    public IQueryResultBuilder AddPatch(IOperationResult patch)
     {
         if (patch is null)
         {
@@ -167,8 +167,8 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return this;
     }
 
-    public IQueryResult Create()
-        => new QueryResult(
+    public IOperationResult Create()
+        => new OperationResult(
             _data,
             _errors?.Count > 0 ? _errors : null,
             _extensionData?.Count > 0 ? _extensionData : null,
@@ -183,7 +183,7 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
 
     public static QueryResultBuilder New() => new();
 
-    public static QueryResultBuilder FromResult(IQueryResult result)
+    public static QueryResultBuilder FromResult(IOperationResult result)
     {
         var builder = new QueryResultBuilder { _data = result.Data, };
 
@@ -218,15 +218,15 @@ public sealed class QueryResultBuilder : IQueryResultBuilder
         return builder;
     }
 
-    public static IQueryResult CreateError(
+    public static IOperationResult CreateError(
         IError error,
         IReadOnlyDictionary<string, object?>? contextData = null)
         => error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, contextData)
-            : new QueryResult(null, new List<IError> { error, }, contextData: contextData);
+            : new OperationResult(null, new List<IError> { error, }, contextData: contextData);
 
-    public static IQueryResult CreateError(
+    public static IOperationResult CreateError(
         IReadOnlyList<IError> errors,
         IReadOnlyDictionary<string, object?>? contextData = null)
-        => new QueryResult(null, errors, contextData: contextData);
+        => new OperationResult(null, errors, contextData: contextData);
 }

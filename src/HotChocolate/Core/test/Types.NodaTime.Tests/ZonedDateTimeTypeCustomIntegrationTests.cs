@@ -28,7 +28,7 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     {
         IExecutionResult result = _testExecutor.Execute("query { test: rome }");
         Assert.Equal(
-            "2020-12-31T18:30:13 Asia/Kathmandu (+05:45)", 
+            "2020-12-31T18:30:13 Asia/Kathmandu (+05:45)",
             result.ExpectQueryResult().Data!["test"]);
     }
 
@@ -43,8 +43,8 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     public void ParsesVariable()
     {
         IExecutionResult result = _testExecutor
-            .Execute(QueryRequestBuilder.New()
-                .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
+            .Execute(OperationRequestBuilder.Create()
+                .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValue("arg", "2020-12-31T19:30:13 Asia/Kathmandu (+05:45)")
                 .Create());
 
@@ -57,8 +57,8 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     public void ParsesVariableWithUTC()
     {
         IExecutionResult result = _testExecutor
-            .Execute(QueryRequestBuilder.New()
-                .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
+            .Execute(OperationRequestBuilder.Create()
+                .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValue("arg", "2020-12-31T19:30:13 UTC (+00)")
                 .Create());
 
@@ -69,8 +69,8 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     public void DoesntParseAnIncorrectVariable()
     {
         IExecutionResult result = _testExecutor
-            .Execute(QueryRequestBuilder.New()
-                .SetQuery("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
+            .Execute(OperationRequestBuilder.Create()
+                .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                 .SetVariableValue("arg", "2020-12-31T19:30:13 (UTC)")
                 .Create());
 
@@ -82,13 +82,13 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     public void ParsesLiteral()
     {
         IExecutionResult result = _testExecutor
-            .Execute(QueryRequestBuilder.New()
-                .SetQuery(
+            .Execute(OperationRequestBuilder.Create()
+                .SetDocument(
                     @"mutation
                     {
-                        test(arg: ""2020-12-31T19:30:13 Asia/Kathmandu (+05:45)"") 
+                        test(arg: ""2020-12-31T19:30:13 Asia/Kathmandu (+05:45)"")
                     }")
-                .Create());
+                .Build());
 
         Assert.Equal(
             "2020-12-31T19:40:13 Asia/Kathmandu (+05:45)",
@@ -99,9 +99,9 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     public void ParsesLiteralWithUTC()
     {
         IExecutionResult result = _testExecutor
-            .Execute(QueryRequestBuilder.New()
-                .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 UTC (+00)\") }")
-                .Create());
+            .Execute(OperationRequestBuilder.Create()
+                .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC (+00)\") }")
+                .Build());
 
         Assert.Equal("2020-12-31T19:40:13 UTC (+00)", result.ExpectQueryResult().Data!["test"]);
     }
@@ -110,9 +110,9 @@ public class ZonedDateTimeTypeCustomIntegrationTests
     public void DoesntParseIncorrectLiteral()
     {
         IExecutionResult result = _testExecutor
-            .Execute(QueryRequestBuilder.New()
-                .SetQuery("mutation { test(arg: \"2020-12-31T19:30:13 (UTC)\") }")
-                .Create());
+            .Execute(OperationRequestBuilder.Create()
+                .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 (UTC)\") }")
+                .Build());
 
         Assert.Null(result.ExpectQueryResult().Data);
         Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);

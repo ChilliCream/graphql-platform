@@ -28,14 +28,14 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("order", "ASC")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("order", "DESC")
                 .Create());
 
@@ -57,14 +57,14 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("order", "ASC")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .AddVariableValue("order", "DESC")
                 .Create());
 

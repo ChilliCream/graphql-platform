@@ -2,8 +2,6 @@ using System;
 using System.Globalization;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public static class ErrorBuilderExtensions

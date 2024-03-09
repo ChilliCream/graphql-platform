@@ -36,7 +36,7 @@ internal sealed class DocumentParserMiddleware
             var query = context.Request.Query;
 
             // a parsed document was passed into the request.
-            if (query is QueryDocument parsed)
+            if (query is OperationDocument parsed)
             {
                 context.DocumentId = ComputeDocumentHash(
                     context.DocumentHash,
@@ -45,7 +45,7 @@ internal sealed class DocumentParserMiddleware
                 context.Document = parsed.Document;
                 success = true;
             }
-            else if (query is QuerySourceText source)
+            else if (query is OperationDocumentSourceText source)
             {
                 using (_diagnosticEvents.ParseDocument(context))
                 {

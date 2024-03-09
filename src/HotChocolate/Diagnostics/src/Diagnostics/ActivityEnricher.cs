@@ -372,7 +372,7 @@ public class ActivityEnricher
             activity.SetTag("graphql.document.body", context.Document.Print());
         }
 
-        if (context.Result is IQueryResult result)
+        if (context.Result is IOperationResult result)
         {
             var errorCount = result.Errors?.Count ?? 0;
             activity.SetTag("graphql.errors.count", errorCount);

@@ -40,69 +40,69 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void QueryReturnsUtc()
         {
             IExecutionResult result =  testExecutor.Execute("query { test: utc }");
-            Assert.Equal("UTC", Assert.IsType<QueryResult>(result).Data!["test"]);
+            Assert.Equal("UTC", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsRome()
         {
             IExecutionResult result = testExecutor.Execute("query { test: rome }");
-            Assert.Equal("Europe/Rome", Assert.IsType<QueryResult>(result).Data!["test"]);
+            Assert.Equal("Europe/Rome", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsChihuahua()
         {
             IExecutionResult result = testExecutor.Execute("query { test: chihuahua }");
-            Assert.Equal("America/Chihuahua", Assert.IsType<QueryResult>(result).Data!["test"]);
+            Assert.Equal("America/Chihuahua", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
             IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "Europe/Amsterdam")
                     .Create());
-            Assert.Equal("Europe/Amsterdam", Assert.IsType<QueryResult>(result).Data!["test"]);
+            Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectVariable()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "Europe/Hamster")
                     .Create());
-            Assert.Null(Assert.IsType<QueryResult>(result).Data);
-            Assert.Equal(1, Assert.IsType<QueryResult>(result).Errors!.Count);
+            Assert.Null(Assert.IsType<OperationResult>(result).Data);
+            Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"Europe/Amsterdam\") }")
-                    .Create());
-            Assert.Equal("Europe/Amsterdam", Assert.IsType<QueryResult>(result).Data!["test"]);
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"Europe/Amsterdam\") }")
+                    .Build());
+            Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
             IExecutionResult result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"Europe/Hamster\") }")
-                    .Create());
-            Assert.Null(Assert.IsType<QueryResult>(result).Data);
-            Assert.Equal(1, Assert.IsType<QueryResult>(result).Errors!.Count);
-            Assert.Null(Assert.IsType<QueryResult>(result).Errors!.First().Code);
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"Europe/Hamster\") }")
+                    .Build());
+            Assert.Null(Assert.IsType<OperationResult>(result).Data);
+            Assert.Equal(1, Assert.IsType<OperationResult>(result).Errors!.Count);
+            Assert.Null(Assert.IsType<OperationResult>(result).Errors!.First().Code);
             Assert.Equal(
                 "Unable to deserialize string to DateTimeZone",
-                Assert.IsType<QueryResult>(result).Errors!.First().Message);
+                Assert.IsType<OperationResult>(result).Errors!.First().Message);
         }
     }
 }

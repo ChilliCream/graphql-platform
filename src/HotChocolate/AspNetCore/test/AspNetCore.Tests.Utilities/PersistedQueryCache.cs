@@ -20,13 +20,13 @@ public class PersistedQueryCache
             Utf8GraphQLParser.Parse(@"query($if: Boolean) { hero { name @skip(if: $if) } }"));
     }
 
-    public async Task<QueryDocument?> TryReadQueryAsync(
+    public async Task<OperationDocument?> TryReadQueryAsync(
         string queryId,
         CancellationToken cancellationToken = default)
     {
         if (_cache.TryGetValue(queryId, out var document))
         {
-            return await Task.FromResult(new QueryDocument(document));
+            return await Task.FromResult(new OperationDocument(document));
         }
 
         return null;

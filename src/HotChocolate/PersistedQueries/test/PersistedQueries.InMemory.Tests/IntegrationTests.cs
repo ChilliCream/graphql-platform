@@ -26,7 +26,7 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -41,7 +41,7 @@ public class IntegrationTests
         var cache = services.GetRequiredService<IMemoryCache>();
         var executor = await services.GetRequestExecutorAsync();
 
-        await cache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(document)))!;
+        await cache.GetOrCreate(queryId, _ => Task.FromResult(new OperationDocument(document)))!;
 
         // act
         var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
@@ -64,7 +64,7 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)

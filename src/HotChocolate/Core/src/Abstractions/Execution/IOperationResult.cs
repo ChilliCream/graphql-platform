@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
 /// Represents a query result object.
 /// </summary>
-public interface IQueryResult : IExecutionResult
+public interface IOperationResult : IExecutionResult
 {
     /// <summary>
     /// A string that was passed to the label argument of the @defer or @stream
@@ -52,7 +50,7 @@ public interface IQueryResult : IExecutionResult
     /// <summary>
     /// Gets the incremental patches provided with this result.
     /// </summary>
-    IReadOnlyList<IQueryResult>? Incremental { get; }
+    IReadOnlyList<IOperationResult>? Incremental { get; }
 
     /// <summary>
     /// A boolean that is present and <c>true</c> when there are more payloads

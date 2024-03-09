@@ -16,7 +16,7 @@ public class InMemoryQueryStorage
     : IReadStoredQueries
     , IWriteStoredQueries
 {
-    private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
+    private static readonly Task<OperationDocument?> _null = Task.FromResult<OperationDocument?>(null);
     private readonly IMemoryCache _cache;
 
     /// <summary>
@@ -28,16 +28,16 @@ public class InMemoryQueryStorage
     }
 
     /// <inheritdoc />
-    public Task<QueryDocument?> TryReadQueryAsync(
-        string queryId,
+    public Task<OperationDocument?> TryReadQueryAsync(
+        string documentId,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (string.IsNullOrWhiteSpace(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (_cache.TryGetValue(queryId, out Task<QueryDocument?>? queryDocumentTask))
+        if (_cache.TryGetValue(documentId, out Task<OperationDocument?>? queryDocumentTask))
         {
             return queryDocumentTask ?? _null;
         }
@@ -62,15 +62,15 @@ public class InMemoryQueryStorage
             throw new ArgumentNullException(nameof(query));
         }
 
-        _cache.GetOrCreate<Task<QueryDocument>>(queryId, _ =>
+        _cache.GetOrCreate<Task<OperationDocument>>(queryId, _ =>
         {
-            if (query is QueryDocument queryDocument)
+            if (query is OperationDocument queryDocument)
             {
                 return Task.FromResult(queryDocument);
             }
 
             var document = Utf8GraphQLParser.Parse(query.AsSpan());
-            queryDocument = new QueryDocument(document);
+            queryDocument = new OperationDocument(document);
             return Task.FromResult(queryDocument);
         });
 

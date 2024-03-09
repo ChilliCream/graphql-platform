@@ -92,10 +92,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -137,10 +137,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -182,10 +182,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -234,10 +234,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert
@@ -285,10 +285,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert
@@ -347,10 +347,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -397,10 +397,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -447,10 +447,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -498,10 +498,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -550,10 +550,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -603,10 +603,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -649,9 +649,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("first", 2)
                 .Create());
 
@@ -706,10 +706,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -758,9 +758,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", id)
                 .Create());
 
@@ -808,9 +808,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", 1)
                 .Create());
 
@@ -859,9 +859,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", id)
                 .Create());
 
@@ -912,9 +912,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", id)
                 .Create());
 
@@ -966,9 +966,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", id)
                 .Create());
 
@@ -1019,10 +1019,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var executorProxy = new RequestExecutorProxy(executorResolver, Schema.DefaultName);
 
         var result = await executorProxy.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.Add(result, "1. Version");
@@ -1042,10 +1042,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                 SchemaFormatter.FormatAsDocument(fusionGraph)));
 
         result = await executorProxy.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         snapshot.Add(result, "2. Version");
 
@@ -1084,10 +1084,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1135,9 +1135,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1188,9 +1188,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1245,9 +1245,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1300,9 +1300,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1357,9 +1357,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1418,9 +1418,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1478,9 +1478,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1544,9 +1544,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());
@@ -1592,9 +1592,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("after", null)
                 .Create());
 
@@ -1648,9 +1648,9 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
                 .SetVariableValue("id", "UHJvZHVjdAppMQ==")
                 .SetVariableValue("first", 1)
                 .Create());

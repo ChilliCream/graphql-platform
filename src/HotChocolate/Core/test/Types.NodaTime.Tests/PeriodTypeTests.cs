@@ -45,8 +45,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "P-3W15DT139t")
                     .Create());
             Assert.Equal("P-3W15DT-10M139t", result.ExpectQueryResult().Data!["test"]);
@@ -56,8 +56,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "-3W3DT-10M139t")
                     .Create());
             Assert.Null(result.ExpectQueryResult().Data);
@@ -68,9 +68,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"P-3W15DT139t\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"P-3W15DT139t\") }")
+                    .Build());
             Assert.Equal("P-3W15DT-10M139t", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -78,9 +78,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"-3W3DT-10M139t\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"-3W3DT-10M139t\") }")
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);

@@ -380,7 +380,7 @@ public class OperationManagerTests
         public ValueTask SendResultMessageAsync(
             ISocketSession session,
             string operationSessionId,
-            IQueryResult result,
+            IOperationResult result,
             CancellationToken cancellationToken)
             => default;
 

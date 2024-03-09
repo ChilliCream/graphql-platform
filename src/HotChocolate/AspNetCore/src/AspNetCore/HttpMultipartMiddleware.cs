@@ -18,7 +18,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private const string _operations = "operations";
     private const string _map = "map";
     private readonly FormOptions _formOptions;
-    private readonly IQueryResult _multipartRequestError = MultiPartRequestPreflightRequired();
+    private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,

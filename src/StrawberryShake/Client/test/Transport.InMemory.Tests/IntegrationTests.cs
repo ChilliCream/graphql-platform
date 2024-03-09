@@ -234,7 +234,7 @@ public class IntegrationTests : ServerTestBase
         public ValueTask OnCreateAsync(
             IServiceProvider serviceProvider,
             OperationRequest request,
-            IQueryRequestBuilder requestBuilder,
+            IOperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             requestBuilder.AddGlobalState("Foo", "bar");

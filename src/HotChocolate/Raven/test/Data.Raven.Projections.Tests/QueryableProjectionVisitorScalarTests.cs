@@ -27,9 +27,9 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ notSettable }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ notSettable }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -45,9 +45,9 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ computed }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ computed }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -63,9 +63,9 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ bar baz }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ bar baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -81,9 +81,9 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ baz }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -105,9 +105,9 @@ public class QueryableProjectionVisitorScalarTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ baz foo }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ baz foo }}")
+                .Build());
 
         // assert
         await Snapshot

@@ -1170,10 +1170,10 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ desc }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1481,12 +1481,12 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ bar baz }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
                     new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value", })
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();

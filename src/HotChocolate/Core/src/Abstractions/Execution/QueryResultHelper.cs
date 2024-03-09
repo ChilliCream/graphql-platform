@@ -13,7 +13,7 @@ internal static class QueryResultHelper
     private const string _line = "line";
     private const string _column = "column";
 
-    public static IReadOnlyDictionary<string, object?> ToDictionary(IQueryResult result)
+    public static IReadOnlyDictionary<string, object?> ToDictionary(IOperationResult result)
     {
         var formatted = new OrderedDictionary();
 

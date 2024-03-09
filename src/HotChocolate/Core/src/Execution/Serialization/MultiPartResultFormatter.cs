@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Serialization;
 /// </summary>
 public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
 {
-    private readonly IQueryResultFormatter _payloadFormatter;
+    private readonly IOperationResultFormatter _payloadFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
@@ -30,16 +30,16 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
     /// </summary>
-    /// <param name="queryResultFormatter">
+    /// <param name="operationResultFormatter">
     /// The serializer that shall be used to serialize query results.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="queryResultFormatter"/> is <c>null</c>.
+    /// <paramref name="operationResultFormatter"/> is <c>null</c>.
     /// </exception>
-    public MultiPartResultFormatter(IQueryResultFormatter queryResultFormatter)
+    public MultiPartResultFormatter(IOperationResultFormatter operationResultFormatter)
     {
-        _payloadFormatter = queryResultFormatter ??
-            throw new ArgumentNullException(nameof(queryResultFormatter));
+        _payloadFormatter = operationResultFormatter ??
+            throw new ArgumentNullException(nameof(operationResultFormatter));
     }
 
     /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
@@ -62,7 +62,7 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
         {
             SingleResult =>
                 WriteSingleResponseAsync(
-                    (IQueryResult)result,
+                    (IOperationResult)result,
                     outputStream,
                     cancellationToken),
             DeferredResult or BatchResult or SubscriptionResult
@@ -152,7 +152,7 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
     }
 
     private async ValueTask WriteSingleResponseAsync(
-        IQueryResult queryResult,
+        IOperationResult operationResult,
         Stream outputStream,
         CancellationToken ct = default)
     {
@@ -163,13 +163,13 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
         try
         {
             // Now we can write the header and body of the part.
-            await WriteResultAsync(queryResult, outputStream, ct).ConfigureAwait(false);
+            await WriteResultAsync(operationResult, outputStream, ct).ConfigureAwait(false);
         }
         finally
         {
             // The result objects use pooled memory so we need to ensure that they
             // return the memory by disposing them.
-            await queryResult.DisposeAsync().ConfigureAwait(false);
+            await operationResult.DisposeAsync().ConfigureAwait(false);
         }
 
         await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
@@ -177,7 +177,7 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
     }
 
     private async ValueTask WriteResultAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken ct)
     {

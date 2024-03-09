@@ -134,7 +134,7 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         => builder.UseRequest(next => context =>
         {
-            if (context.Document is not null || context.Request.Query is not null)
+            if (context.Document is not null || context.Request.Document is not null)
             {
                 return next(context);
             }

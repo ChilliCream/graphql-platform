@@ -24,7 +24,7 @@ internal partial class BatchExecutor
             throw new ArgumentNullException(nameof(inputFormatter));
     }
 
-    public IAsyncEnumerable<IQueryResult> ExecuteAsync(
+    public IAsyncEnumerable<IOperationResult> ExecuteAsync(
         RequestExecutor requestExecutor,
         IReadOnlyList<IQueryRequest> requestBatch)
         => new BatchExecutorEnumerable(

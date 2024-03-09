@@ -7,14 +7,14 @@ using Snapshooter.Xunit;
 
 namespace HotChocolate.Execution;
 
-public class QueryDocumentTests
+public class OperationDocumentSourceTextTests
 {
     [Fact]
     public void Create_Document_IsNull()
     {
         // arrange
         // act
-        void Action() => new QueryDocument(null);
+        void Action() => new OperationDocumentSourceText(null);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -24,36 +24,30 @@ public class QueryDocumentTests
     public void Create_Document()
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse("{ a }");
-
         // act
-        var query = new QueryDocument(document);
+        var query = new OperationDocumentSourceText("{ a }");
 
         // assert
-        Assert.Equal(document, query.Document);
+        Assert.Equal("{ a }", query.SourceText);
     }
 
     [Fact]
     public void QueryDocument_ToString()
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse("{ a }");
-
         // act
-        var query = new QueryDocument(document);
+        var query = new OperationDocumentSourceText("{ a }");
 
         // assert
-        query.Document.ToString(false).MatchSnapshot();
+        query.ToString().MatchSnapshot();
     }
 
     [Fact]
     public void QueryDocument_ToSource()
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse("{ a }");
-
         // act
-        var query = new QueryDocument(document);
+        var query = new OperationDocumentSourceText("{ a }");
 
         // assert
         Utf8GraphQLParser
@@ -63,11 +57,10 @@ public class QueryDocumentTests
     }
 
     [Fact]
-    public async Task QueryDocument_WriteToAsync()
+    public async Task QuerySourceText_WriteToAsync()
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse("{ a }");
-        var query = new QueryDocument(document);
+        var query = new OperationDocumentSourceText("{ a }");
         byte[] buffer;
 
         // act
@@ -85,11 +78,10 @@ public class QueryDocumentTests
     }
 
     [Fact]
-    public void QueryDocument_WriteTo()
+    public void QuerySourceText_WriteTo()
     {
         // arrange
-        var document = Utf8GraphQLParser.Parse("{ a }");
-        var query = new QueryDocument(document);
+        var query = new OperationDocumentSourceText("{ a }");
         byte[] buffer;
 
         // act

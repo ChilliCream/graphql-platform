@@ -27,7 +27,7 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -65,7 +65,7 @@ public class IntegrationTests
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)

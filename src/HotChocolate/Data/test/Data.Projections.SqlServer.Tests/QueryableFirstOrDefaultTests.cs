@@ -111,8 +111,8 @@ public class QueryableFirstOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -125,7 +125,7 @@ public class QueryableFirstOrDefaultTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -142,8 +142,8 @@ public class QueryableFirstOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -157,7 +157,7 @@ public class QueryableFirstOrDefaultTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -174,8 +174,8 @@ public class QueryableFirstOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -188,7 +188,7 @@ public class QueryableFirstOrDefaultTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -205,8 +205,8 @@ public class QueryableFirstOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -220,7 +220,7 @@ public class QueryableFirstOrDefaultTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -237,8 +237,8 @@ public class QueryableFirstOrDefaultTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         rootExecutable {
                             foo {
@@ -251,7 +251,7 @@ public class QueryableFirstOrDefaultTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

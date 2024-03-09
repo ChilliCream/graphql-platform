@@ -16,9 +16,9 @@ using static HotChocolate.Execution.ThrowHelper;
 namespace HotChocolate.Execution.Serialization;
 
 /// <summary>
-/// The default JSON formatter for <see cref="IQueryResult"/>.
+/// The default JSON formatter for <see cref="IOperationResult"/>.
 /// </summary>
-public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecutionResultFormatter
+public sealed partial class JsonResultFormatter : IOperationResultFormatter, IExecutionResultFormatter
 {
     private readonly JsonWriterOptions _options;
     private readonly JsonSerializerOptions _serializerOptions;
@@ -47,7 +47,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     {
         if (result.Kind is ExecutionResultKind.SingleResult)
         {
-            await FormatAsync((IQueryResult)result, outputStream, cancellationToken)
+            await FormatAsync((IOperationResult)result, outputStream, cancellationToken)
                 .ConfigureAwait(false);
         }
         else
@@ -68,7 +68,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     /// <exception cref="ArgumentNullException">
     /// <paramref name="result"/> is <c>null</c>.
     /// </exception>
-    public unsafe string Format(IQueryResult result)
+    public unsafe string Format(IOperationResult result)
     {
         if (result is null)
         {
@@ -98,7 +98,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     /// <paramref name="result"/> is <c>null</c>.
     /// <paramref name="writer"/> is <c>null</c>.
     /// </exception>
-    public void Format(IQueryResult result, Utf8JsonWriter writer)
+    public void Format(IOperationResult result, Utf8JsonWriter writer)
     {
         if (result is null)
         {
@@ -176,8 +176,8 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         writer.WriteEndArray();
     }
 
-    /// <inheritdoc cref="IQueryResultFormatter.Format"/>
-    public void Format(IQueryResult result, IBufferWriter<byte> writer)
+    /// <inheritdoc cref="IOperationResultFormatter.Format"/>
+    public void Format(IOperationResult result, IBufferWriter<byte> writer)
     {
         if (result is null)
         {
@@ -192,16 +192,16 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         FormatInternal(result, writer);
     }
     
-    private void FormatInternal(IQueryResult result, IBufferWriter<byte> writer)
+    private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
     {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
 
-    /// <inheritdoc cref="IQueryResultFormatter.FormatAsync"/>
+    /// <inheritdoc cref="IOperationResultFormatter.FormatAsync"/>
     public ValueTask FormatAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
@@ -219,7 +219,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
     }
 
     private async ValueTask FormatInternalAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
@@ -239,7 +239,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private void WriteResult(Utf8JsonWriter writer, IQueryResult result)
+    private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
     {
         writer.WriteStartObject();
 
@@ -256,7 +256,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private static void WritePatchInfo(
         Utf8JsonWriter writer,
-        IQueryResult result)
+        IOperationResult result)
     {
         if (result.Label is not null)
         {
@@ -271,7 +271,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private static void WriteHasNext(
         Utf8JsonWriter writer,
-        IQueryResult result)
+        IOperationResult result)
     {
         if (result.HasNext.HasValue)
         {
@@ -281,7 +281,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
 
     private void WriteData(
         Utf8JsonWriter writer,
-        IQueryResult result)
+        IOperationResult result)
     {
         if (!result.IsDataSet)
         {
@@ -440,7 +440,7 @@ public sealed partial class JsonResultFormatter : IQueryResultFormatter, IExecut
         }
     }
 
-    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IQueryResult>? patches)
+    private void WriteIncremental(Utf8JsonWriter writer, IReadOnlyList<IOperationResult>? patches)
     {
         if (patches is { Count: > 0, })
         {

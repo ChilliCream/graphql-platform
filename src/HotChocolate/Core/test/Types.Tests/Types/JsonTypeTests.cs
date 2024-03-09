@@ -24,14 +24,14 @@ public class JsonTypeTests
             schema {
               query: Query
             }
-            
+
             type Query {
               someJson: JSON!
               manyJson: [JSON!]
               inputJson(input: JSON!): JSON!
               jsonFromString: JSON!
             }
-            
+
             scalar JSON
             """);
     }
@@ -275,8 +275,8 @@ public class JsonTypeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($input: JSON!) {
                                 inputJson(input: $input)

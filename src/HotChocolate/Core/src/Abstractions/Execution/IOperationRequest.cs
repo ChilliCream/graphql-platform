@@ -1,40 +1,33 @@
 using System;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
-/// Representation of a GraphQL request.
+/// Defines the basic properties fro a GraphQL operation request.
 /// </summary>
-public interface IQueryRequest
+public interface IOperationRequest
 {
     /// <summary>
     /// Gets the GraphQL request document.
     /// </summary>
-    IQuery? Query { get; }
+    IOperationDocument? Document { get; }
 
     /// <summary>
     /// Gets the GraphQL request document ID.
     /// </summary>
-    string? QueryId { get; }
+    OperationDocumentId? DocumentId { get; }
 
     /// <summary>
     /// Gets GraphQL request document hash.
     /// </summary>
-    string? QueryHash { get; }
+    string? DocumentHash { get; }
 
     /// <summary>
     /// A name of an operation in the GraphQL request document that shall be executed;
     /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     string? OperationName { get; }
-
-    /// <summary>
-    /// Gets the variable values for the GraphQL request.
-    /// </summary>
-    IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.

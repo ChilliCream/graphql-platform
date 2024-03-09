@@ -1,14 +1,14 @@
 namespace HotChocolate.Execution;
 
-public static class QueryCacheQueryRequestBuilderExtensions
+public static class QueryCacheOperationRequestBuilderExtensions
 {
     /// <summary>
     /// Skip the query result caching for the current request.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IQueryRequestBuilder"/>.
+    /// The <see cref="IOperationRequestBuilder"/>.
     /// </param>
-    public static IQueryRequestBuilder SkipQueryCaching(
-        this IQueryRequestBuilder builder) =>
+    public static IOperationRequestBuilder SkipQueryCaching(
+        this IOperationRequestBuilder builder) =>
         builder.SetGlobalState(WellKnownContextData.SkipQueryCaching, null);
 }

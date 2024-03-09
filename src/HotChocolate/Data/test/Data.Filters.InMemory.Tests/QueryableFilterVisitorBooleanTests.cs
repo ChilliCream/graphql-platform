@@ -35,15 +35,15 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         // assert
@@ -59,15 +59,15 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         // assert
@@ -83,21 +83,21 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: null}}){ bar}}")
+                .Build());
         snapshot.Add(res3, "null");
 
         // assert
@@ -113,21 +113,21 @@ public class QueryableFilterVisitorBooleanTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: true}}){ bar}}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: false}}){ bar}}")
+                .Build());
         snapshot.Add(res2, "false");
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: null}}){ bar}}")
+                .Build());
         snapshot.Add(res3, "null");
 
         // assert

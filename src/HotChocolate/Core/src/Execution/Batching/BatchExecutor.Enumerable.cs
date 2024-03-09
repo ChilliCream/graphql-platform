@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Batching;
 
 internal partial class BatchExecutor
 {
-    private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
+    private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IOperationResult>
     {
         private readonly IReadOnlyList<IQueryRequest> _requestBatch;
         private readonly RequestExecutor _requestExecutor;
@@ -48,7 +48,7 @@ internal partial class BatchExecutor
             _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
         }
 
-        public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
+        public async IAsyncEnumerator<IOperationResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
             for (var i = 0; i < _requestBatch.Count; i++)
@@ -67,13 +67,13 @@ internal partial class BatchExecutor
             }
         }
 
-        private async Task<IQueryResult> ExecuteNextAsync(
+        private async Task<IOperationResult> ExecuteNextAsync(
             IQueryRequest request,
             CancellationToken cancellationToken)
         {
             try
             {
-                var document = request.Query is QueryDocument d
+                var document = request.Query is OperationDocument d
                     ? d.Document
                     : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
 
@@ -93,8 +93,8 @@ internal partial class BatchExecutor
                 operation = (OperationDefinitionNode)document.Definitions[0];
                 var variableValues = MergeVariables(request.VariableValues, operation);
 
-                request = QueryRequestBuilder.From(request)
-                    .SetQuery(document)
+                request = OperationRequestBuilder.From(request)
+                    .SetDocument(document)
                     .SetVariableValues(variableValues)
                     .AddExportedVariables(_exportedVariables)
                     .SetQueryId(null)

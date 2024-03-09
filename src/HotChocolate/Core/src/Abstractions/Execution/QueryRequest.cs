@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -42,7 +40,7 @@ public class QueryRequest : IQueryRequest
     /// <param name="flags">
     /// The GraphQL request flags can be used to limit the execution engine capabilities.
     /// </param>
-    /// <exception cref="QueryRequestBuilderException">
+    /// <exception cref="OperationRequestBuilderException">
     /// <paramref name="query"/> and <paramref name="queryId"/> are both null.
     /// </exception>
     public QueryRequest(
@@ -58,8 +56,8 @@ public class QueryRequest : IQueryRequest
     {
         if (query is null && queryId is null)
         {
-            throw new QueryRequestBuilderException(
-                AbstractionResources.QueryRequestBuilder_QueryIsNull);
+            throw new OperationRequestBuilderException(
+                AbstractionResources.OperationRequestBuilder_QueryIsNull);
         }
 
         Query = query;

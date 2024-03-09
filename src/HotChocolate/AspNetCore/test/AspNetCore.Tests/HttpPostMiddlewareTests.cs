@@ -280,7 +280,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     private class CustomFormatter : DefaultHttpResponseFormatter
     {
         protected override void OnWriteResponseHeaders(
-            IQueryResult result,
+            IOperationResult result,
             FormatInfo format,
             IHeaderDictionary headers)
         {
@@ -1438,7 +1438,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
+            IOperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             throw new GraphQLException("MyCustomError");

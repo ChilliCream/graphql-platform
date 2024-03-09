@@ -24,8 +24,8 @@ public class MiddlewareContextTests
                     ctx.Variables.GetVariable<string>("abc"))
             .Create();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
             .SetVariableValue("abc", "def")
             .Create();
 
@@ -50,8 +50,8 @@ public class MiddlewareContextTests
                     ctx.Variables.GetVariable<string>("abc"))
             .Create();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("query abc($def: String){ foo(bar: $def) }")
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("query abc($def: String){ foo(bar: $def) }")
             .SetVariableValue("def", "ghi")
             .Create();
 

@@ -19,10 +19,10 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         cache.TryAddDocument("a", document);
@@ -57,10 +57,10 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryHash("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentHash("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         cache.TryAddDocument("a", document);
@@ -95,10 +95,10 @@ public class DocumentCacheMiddlewareTests
             cache,
             hashProvider);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         cache.TryAddDocument("b", document);
@@ -129,9 +129,9 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -169,9 +169,9 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .Build();
 
         var parserMiddleware = DocumentParserMiddleware.Create(
             _ => default,

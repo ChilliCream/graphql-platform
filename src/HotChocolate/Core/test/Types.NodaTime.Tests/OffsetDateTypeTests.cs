@@ -11,7 +11,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             public class Query
             {
-                public OffsetDate Hours 
+                public OffsetDate Hours
                     => new OffsetDate(
                         LocalDate.FromDateTime(new DateTime(2020, 12, 31, 18, 30, 13)),
                         Offset.FromHours(2)).WithCalendar(CalendarSystem.Gregorian);
@@ -58,8 +58,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             IExecutionResult result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31+02")
                     .Create());
             Assert.Equal("2020-12-31+02", result.ExpectQueryResult().Data!["test"]);
@@ -69,8 +69,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariableWithMinutes()
         {
             IExecutionResult result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31+02:35")
                     .Create());
             Assert.Equal("2020-12-31+02:35", result.ExpectQueryResult().Data!["test"]);
@@ -80,8 +80,8 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             IExecutionResult result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetDate!) { test(arg: $arg) }")
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-12-31")
                     .Create());
             Assert.Null(result.ExpectQueryResult().Data);
@@ -92,9 +92,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             IExecutionResult result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31+02\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-12-31+02\") }")
+                    .Build());
             Assert.Equal("2020-12-31+02", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -102,9 +102,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteralWithMinutes()
         {
             IExecutionResult result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31+02:35\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-12-31+02:35\") }")
+                    .Build());
             Assert.Equal("2020-12-31+02:35", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -112,9 +112,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             IExecutionResult result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-12-31\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-12-31\") }")
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);

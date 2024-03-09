@@ -117,7 +117,7 @@ internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventLi
                 var endTime = _timestampProvider.UtcNow();
                 _builder.SetRequestDuration(endTime - _startTime);
 
-                if (_context.Result is IQueryResult queryResult)
+                if (_context.Result is IOperationResult queryResult)
                 {
                     _context.Result = QueryResultBuilder.FromResult(queryResult)
                         .AddExtension(_extensionKey, _builder.Build())

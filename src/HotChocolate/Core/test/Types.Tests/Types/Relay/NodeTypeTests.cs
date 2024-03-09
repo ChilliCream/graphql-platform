@@ -158,8 +158,8 @@ public class NodeTypeTests : TypeTestBase
             .AddQueryType<Query3>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {
                                 id
@@ -212,8 +212,8 @@ public class NodeTypeTests : TypeTestBase
             .AddTypeExtension<Foo2>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {
                                 id

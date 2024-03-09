@@ -25,24 +25,24 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         query getHero {
                             hero(episode: EMPIRE) {
                                 id @export
                             }
                         }")
-                .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+                .Build(),
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         query getHuman {
                             human(id: $id) {
                                 name
                             }
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -66,8 +66,8 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         query getHero {
                             hero(episode: EMPIRE) {
@@ -78,16 +78,16 @@ public class BatchQueryExecutorTests
                                 }
                             }
                         }")
-                .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+                .Build(),
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         query getCharacter {
                             character(characterIds: $abc) {
                                 name
                             }
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -111,8 +111,8 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         query getHero {
                             hero(episode: EMPIRE) {
@@ -123,16 +123,16 @@ public class BatchQueryExecutorTests
                                 }
                             }
                         }")
-                .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+                .Build(),
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         query getCharacter($abc: [String!]!) {
                             character(characterIds: $abc) {
                                 name
                             }
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -157,8 +157,8 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"mutation firstReview {
                             createReview(
                                 episode: NEW_HOPE
@@ -168,9 +168,9 @@ public class BatchQueryExecutorTests
                                 stars
                             }
                         }")
-                .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+                .Build(),
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         mutation secondReview {
                             createReview(
@@ -180,7 +180,7 @@ public class BatchQueryExecutorTests
                                 stars
                             }
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -221,18 +221,18 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             foo @export(as: ""b"")
                         }")
-                .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+                .Build(),
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             foo(bar: $b)
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -298,24 +298,24 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             foo @export(as: ""b"")
                             {
                                 bar
                             }
                         }")
-                .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+                .Build(),
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             foo(f: $b)
                             {
                                 bar
                             }
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -346,19 +346,19 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"query foo1($b: [String]) {
                             foo(bar: $b) @export(as: ""b"")
                         }")
                 .AddVariableValue("b", new[] { "123", })
                 .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"query foo2($b: [String]) {
                             foo(bar: $b)
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);
@@ -397,19 +397,19 @@ public class BatchQueryExecutorTests
         // act
         var batch = new List<IQueryRequest>
         {
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"query foo1($b1: [String]) {
                             foo(bar: $b1) @export(as: ""b2"")
                         }")
                 .AddVariableValue("b1", new[] { "123", })
                 .Create(),
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"query foo2($b2: String) {
                             baz(bar: $b2)
                         }")
-                .Create(),
+                .Build(),
         };
 
         var batchResult = await executor.ExecuteBatchAsync(batch);

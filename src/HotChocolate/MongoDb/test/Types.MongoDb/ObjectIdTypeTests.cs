@@ -35,7 +35,7 @@ public class ObjectIdTypeTests
             ";
 
         // act
-        var request = QueryRequestBuilder.Create(query);
+        var request = OperationRequestBuilder.Build(query);
         var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
         // assert
@@ -53,7 +53,7 @@ public class ObjectIdTypeTests
             }";
 
         // act
-        var request = QueryRequestBuilder.Create(query);
+        var request = OperationRequestBuilder.Build(query);
         var result = await executor.ExecuteAsync(request, CancellationToken.None);
 
         // assert

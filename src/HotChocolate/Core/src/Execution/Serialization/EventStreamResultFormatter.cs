@@ -64,7 +64,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     {
         if (result.Kind is SingleResult)
         {
-            await WriteNextMessageAsync((IQueryResult)result, outputStream, ct).ConfigureAwait(false);
+            await WriteNextMessageAsync((IOperationResult)result, outputStream, ct).ConfigureAwait(false);
             await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
             await WriteCompleteMessage(outputStream, ct).ConfigureAwait(false);
             await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
@@ -158,7 +158,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     }
 
     private async ValueTask WriteNextMessageAsync(
-        IQueryResult result,
+        IOperationResult result,
         Stream outputStream,
         CancellationToken ct)
     {
@@ -187,7 +187,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 #endif
     }
 
-    private void FormatPayload(ArrayWriter bufferWriter, IQueryResult result)
+    private void FormatPayload(ArrayWriter bufferWriter, IOperationResult result)
     {
         using var writer = new Utf8JsonWriter(bufferWriter, _options);
         _payloadFormatter.Format(result, writer);

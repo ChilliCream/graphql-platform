@@ -24,7 +24,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var queryId = Guid.NewGuid().ToString("N");
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.WriteQueryAsync(queryId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -35,7 +35,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -68,7 +68,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -81,7 +81,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // ... write query to cache
         var cache = executor.Services.GetRequiredService<IWriteStoredQueries>();
-        await cache.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await cache.WriteQueryAsync(queryId, new OperationDocumentSourceText("{ __typename }"));
 
         // ... wait for query to expire
         await Task.Delay(100).ConfigureAwait(false);
@@ -105,7 +105,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var queryId = Guid.NewGuid().ToString("N");
         var storage = new RedisQueryStorage(_database, TimeSpan.FromMilliseconds(10000));
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.WriteQueryAsync(queryId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -116,7 +116,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -142,7 +142,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var queryId = Guid.NewGuid().ToString("N");
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.WriteQueryAsync(queryId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -156,7 +156,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -181,7 +181,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var queryId = Guid.NewGuid().ToString("N");
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.WriteQueryAsync(queryId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -195,7 +195,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)
@@ -220,7 +220,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         // arrange
         var queryId = Guid.NewGuid().ToString("N");
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.WriteQueryAsync(queryId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -231,7 +231,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
                         c.Result = QueryResultBuilder
                             .FromResult(r)

@@ -635,7 +635,7 @@ public class StarWarsCodeFirstTests
                     }
                 }");
 
-        IQueryResult eventResult = null;
+        IOperationResult eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -678,7 +678,7 @@ public class StarWarsCodeFirstTests
                     }
                 }");
 
-        IQueryResult eventResult = null;
+        IOperationResult eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -723,7 +723,7 @@ public class StarWarsCodeFirstTests
                     }
                 }");
 
-        IQueryResult eventResult = null;
+        IOperationResult eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -766,7 +766,7 @@ public class StarWarsCodeFirstTests
                     }
                 }");
 
-        IQueryResult eventResult = null;
+        IOperationResult eventResult = null;
 
         using (var cts = new CancellationTokenSource(2000))
         {
@@ -1017,8 +1017,8 @@ public class StarWarsCodeFirstTests
         var resultB = await executor.ExecuteAsync(requestB);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(resultA).Errors);
-        Assert.NotNull(Assert.IsType<QueryResult>(resultB).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(resultA).Errors);
+        Assert.NotNull(Assert.IsType<OperationResult>(resultB).Errors);
     }
 
     [Fact]

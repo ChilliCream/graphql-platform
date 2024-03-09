@@ -3,22 +3,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
 /// Represents a query result object.
 /// </summary>
-public sealed class QueryResult : ExecutionResult, IQueryResult
+public sealed class OperationResult : ExecutionResult, IOperationResult
 {
-    internal QueryResult(
+    internal OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         IReadOnlyList<IError>? errors,
         IReadOnlyDictionary<string, object?>? extension,
         IReadOnlyDictionary<string, object?>? contextData,
         IReadOnlyList<object?>? items,
-        IReadOnlyList<IQueryResult>? incremental,
+        IReadOnlyList<IOperationResult>? incremental,
         string? label,
         Path? path,
         bool? hasNext,
@@ -50,15 +48,15 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
     }
 
     /// <summary>
-    /// Initializes a new <see cref="QueryResult"/>.
+    /// Initializes a new <see cref="OperationResult"/>.
     /// </summary>
-    public QueryResult(
+    public OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         IReadOnlyList<IError>? errors = null,
         IReadOnlyDictionary<string, object?>? extension = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
         IReadOnlyList<object?>? items = null,
-        IReadOnlyList<IQueryResult>? incremental = null,
+        IReadOnlyList<IOperationResult>? incremental = null,
         string? label = null,
         Path? path = null,
         bool? hasNext = null)
@@ -107,7 +105,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <inheritdoc />
-    public IReadOnlyList<IQueryResult>? Incremental { get; }
+    public IReadOnlyList<IOperationResult>? Incremental { get; }
 
     /// <inheritdoc />
     public override IReadOnlyDictionary<string, object?>? ContextData { get; }

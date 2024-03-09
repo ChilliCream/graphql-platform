@@ -262,7 +262,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
 
-            if (result is IQueryResult queryResult)
+            if (result is IOperationResult queryResult)
             {
                 formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }

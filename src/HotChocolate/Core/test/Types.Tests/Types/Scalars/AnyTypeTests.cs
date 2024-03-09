@@ -387,8 +387,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", new List<object> { "abc", })
                 .Create());
 
@@ -413,8 +413,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", new List<object>
                 {
                     new Dictionary<string, object>
@@ -445,8 +445,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", "bar")
                 .Create());
 
@@ -471,8 +471,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", 123)
                 .Create());
 
@@ -497,8 +497,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", 1.2)
                 .Create());
 
@@ -523,8 +523,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", new { a = "b", })
                 .Create());
 
@@ -549,8 +549,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" }, })
                 .Create());
 
@@ -575,8 +575,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" }, })
                 .Create());
 
@@ -601,8 +601,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", false)
                 .Create());
 
@@ -627,8 +627,8 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValue("foo", null)
                 .Create());
 

@@ -405,7 +405,7 @@ public class InMemoryClientBuilderExtensionsTests
         public ValueTask OnCreateAsync(
             IServiceProvider serviceProvider,
             OperationRequest request,
-            IQueryRequestBuilder requestBuilder,
+            IOperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             return default;

@@ -37,8 +37,8 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(@"query foo (
+                    OperationRequestBuilder.Create()
+                        .SetDocument(@"query foo (
                                 $intId: ID!
                                 $nullIntId: ID = null
                                 $stringId: ID!
@@ -84,12 +84,12 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(@"query foo {
+                    OperationRequestBuilder.Create()
+                        .SetDocument(@"query foo {
                                 interceptedId(id: 1)
                                 interceptedIds(id: [1, 2])
                             }")
-                        .Create());
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -112,8 +112,8 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($someId: ID! $someIntId: ID!) {
                                 foo(input: {
                                     someId: $someId someIds: [$someIntId]
@@ -159,8 +159,8 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo (
                                 $someId: ID! $someIntId: ID!
                                 $someNullableId: ID
@@ -211,8 +211,8 @@ public class IdAttributeTests
         // act
         var result = await executor
             .ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"query foo($someId: ID! $someIntId: ID!) {
                                 foo(input: {
                                     someId: $someId
@@ -250,8 +250,8 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($someId: ID!) {
                                     foo(input: { someId: $someId someIds: [$someId] }) {
                                         someId
@@ -286,8 +286,8 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($someId: ID!) {
                                     foo(input: { someId: $someId someIds: [$someId] }) {
                                         someId

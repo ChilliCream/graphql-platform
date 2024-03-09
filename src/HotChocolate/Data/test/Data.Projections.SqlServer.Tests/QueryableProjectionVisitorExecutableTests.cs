@@ -22,9 +22,9 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable{ bar baz }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable{ bar baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -41,9 +41,9 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable{ baz }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable{ baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -66,9 +66,9 @@ public class QueryableProjectionVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable{ baz foo }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable{ baz foo }}")
+                .Build());
 
         // assert
         await Snapshot

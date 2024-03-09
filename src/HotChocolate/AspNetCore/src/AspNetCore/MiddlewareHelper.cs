@@ -127,13 +127,13 @@ internal static class MiddlewareHelper
         using (diagnosticEvents.ParseHttpRequest(context))
         {
             try
-            { 
-                request = 
+            {
+                request =
                     await requestParser.ParsePersistedOperationRequestAsync(
                         operationId,
-                        context.Request.Body, 
+                        context.Request.Body,
                         context.RequestAborted);
-                
+
             }
             catch (GraphQLRequestException ex)
             {
@@ -212,7 +212,7 @@ internal static class MiddlewareHelper
         {
             diagnosticEvents.StartSingleRequest(context, request);
 
-            var requestBuilder = QueryRequestBuilder.From(request);
+            var requestBuilder = OperationRequestBuilder.From(request);
             requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
@@ -222,7 +222,7 @@ internal static class MiddlewareHelper
                 context.RequestAborted);
 
             var result = await requestExecutor.ExecuteAsync(
-                requestBuilder.Create(),
+                requestBuilder.Build(),
                 context.RequestAborted);
 
             return new ExecuteRequestResult(result);
@@ -235,7 +235,7 @@ internal static class MiddlewareHelper
             {
                 diagnosticEvents.HttpRequestError(context, error);
             }
-            
+
             return new ExecuteRequestResult(
                 QueryResultBuilder.CreateError(ex.Errors));
         }
@@ -275,7 +275,7 @@ internal static class MiddlewareHelper
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
 
-            if (result is IQueryResult queryResult)
+            if (result is IOperationResult queryResult)
             {
                 formatScope = diagnosticEvents.FormatHttpResponse(context, queryResult);
             }
@@ -308,7 +308,7 @@ internal static class MiddlewareHelper
         }
 
         public ValidateAcceptContentTypeResult(
-            IQueryResult errorResult,
+            IOperationResult errorResult,
             HttpStatusCode statusCode)
         {
             IsValid = false;
@@ -334,7 +334,7 @@ internal static class MiddlewareHelper
         [MemberNotNullWhen(false, nameof(StatusCode))]
         public bool IsValid { get; }
 
-        public IQueryResult? Error { get; }
+        public IOperationResult? Error { get; }
 
         public HttpStatusCode? StatusCode { get; }
 
@@ -376,7 +376,7 @@ internal static class MiddlewareHelper
 
         public GraphQLRequest? Request { get; }
 
-        public IQueryResult? Error { get; }
+        public IOperationResult? Error { get; }
 
         public HttpStatusCode? StatusCode { get; }
     }

@@ -2,13 +2,13 @@ using System;
 
 namespace HotChocolate.Execution;
 
-public class QueryRequestBuilderException : Exception
+public class OperationRequestBuilderException : Exception
 {
-    public QueryRequestBuilderException() { }
+    public OperationRequestBuilderException() { }
 
-    public QueryRequestBuilderException(string message)
+    public OperationRequestBuilderException(string message)
         : base(message) { }
 
-    public QueryRequestBuilderException(string message, Exception inner)
+    public OperationRequestBuilderException(string message, Exception inner)
         : base(message, inner) { }
 }

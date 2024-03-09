@@ -27,10 +27,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
@@ -69,10 +69,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
@@ -112,10 +112,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -156,10 +156,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -199,10 +199,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);

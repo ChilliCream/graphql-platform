@@ -12,7 +12,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly bool _allowAllQueries;
-    private readonly IQueryResult _errorResult;
+    private readonly IOperationResult _errorResult;
     private readonly GraphQLException _exception;
     private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 }, };
 

@@ -100,7 +100,7 @@ internal sealed class OperationExecutionMiddleware
                     .ConfigureAwait(false);
 
                 if (operationContext.DeferredScheduler.HasResults &&
-                    context.Result is IQueryResult result)
+                    context.Result is IOperationResult result)
                 {
                     var results = operationContext.DeferredScheduler.CreateResultStream(result);
                     var responseStream = new ResponseStream(
