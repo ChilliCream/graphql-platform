@@ -41,7 +41,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the initial query request.
     /// </summary>
-    OperationRequestBase Request { get; }
+    IOperationRequest Request { get; }
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted
@@ -52,7 +52,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets a unique identifier for a query document.
     /// </summary>
-    string? DocumentId { get; set; }
+    OperationDocumentId? DocumentId { get; set; }
 
     /// <summary>
     /// Gets or sets the document hash.

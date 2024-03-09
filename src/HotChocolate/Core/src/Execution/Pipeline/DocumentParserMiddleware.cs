@@ -30,18 +30,18 @@ internal sealed class DocumentParserMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.Document is null && context.Request.Query is not null)
+        if (context.Document is null && context.Request.Document is not null)
         {
             var success = false;
-            var query = context.Request.Query;
+            var query = context.Request.Document;
 
             // a parsed document was passed into the request.
             if (query is OperationDocument parsed)
             {
                 context.DocumentId = ComputeDocumentHash(
                     context.DocumentHash,
-                    context.Request.QueryHash,
-                    context.Request.Query);
+                    context.Request.DocumentHash,
+                    context.Request.Document);
                 context.Document = parsed.Document;
                 success = true;
             }
@@ -53,8 +53,8 @@ internal sealed class DocumentParserMiddleware
                     {
                         context.DocumentId = ComputeDocumentHash(
                             context.DocumentHash,
-                            context.Request.QueryHash,
-                            context.Request.Query);
+                            context.Request.DocumentHash,
+                            context.Request.Document);
                         context.Document = Utf8GraphQLParser.Parse(source.AsSpan(), _parserOptions);
                         success = true;
                     }
@@ -92,10 +92,8 @@ internal sealed class DocumentParserMiddleware
         }
     }
 
-    private string ComputeDocumentHash(string? documentHash, string? queryHash, IQuery query)
-    {
-        return documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
-    }
+    private string ComputeDocumentHash(string? documentHash, string? queryHash, IOperationDocument query)
+        => documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
 
     public static RequestCoreMiddleware Create()
         => (core, next) =>

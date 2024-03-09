@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static HotChocolate.Properties.AbstractionResources;
@@ -206,7 +207,7 @@ public readonly struct OperationDocumentId : IEquatable<OperationDocumentId>
     /// <c>true</c> if the specified <paramref name="id"/> is <c>null</c> or empty;
     /// otherwise, <c>false</c>.
     /// </returns>
-    public static bool IsNullOrEmpty(OperationDocumentId? id)
+    public static bool IsNullOrEmpty([NotNullWhen(false)] OperationDocumentId? id)
         => string.IsNullOrEmpty(id?.Value);
     
     /// <summary>

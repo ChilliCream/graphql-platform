@@ -6,7 +6,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Represents a storage for operation documents.
 /// </summary>
-public interface IOperationDocumentStorage
+public interface IOperationDocumentStore
 {
     /// <summary>
     /// Tries to read an operation document from the storage.

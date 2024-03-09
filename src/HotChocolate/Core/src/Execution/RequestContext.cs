@@ -29,13 +29,13 @@ internal sealed class RequestContext(
 
     public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-    public OperationRequestBase Request { get; private set; } = default!;
+    public IOperationRequest Request { get; private set; } = default!;
 
     public IDictionary<string, object?> ContextData => _contextData;
 
     public CancellationToken RequestAborted { get; set; }
 
-    public string? DocumentId { get; set; }
+    public OperationDocumentId? DocumentId { get; set; }
 
     public string? DocumentHash { get; set; }
 
@@ -98,7 +98,7 @@ internal sealed class RequestContext(
         return cloned;
     }
 
-    public void Initialize(OperationRequestBase request, IServiceProvider services)
+    public void Initialize(IOperationRequest request, IServiceProvider services)
     {
         Request = request;
         Services = services;
