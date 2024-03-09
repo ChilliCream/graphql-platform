@@ -29,7 +29,7 @@ public sealed class OperationDocumentSourceText(string sourceText) : IOperationD
     /// <exception cref="ArgumentNullException">
     /// <paramref name="output"/> is <c>null</c>.
     /// </exception>
-    public async Task WriteToAsync(Stream output, CancellationToken cancellationToken)
+    public async Task WriteToAsync(Stream output, CancellationToken cancellationToken = default)
     {
         if (output == null)
         {

@@ -22,7 +22,7 @@ public class RedisQueryStorageTests
     public Task Write_Query_To_Storage()
     {
         var snapshotName = Snapshot.FullName();
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
 
         return TryTest(async () =>
             {
@@ -31,19 +31,19 @@ public class RedisQueryStorageTests
                 var query = new OperationDocumentSourceText("{ foo }");
 
                 // act
-                await storage.WriteQueryAsync(queryId, query);
+                await storage.SaveAsync(documentId, query);
 
                 // assert
-                var buffer = ((byte[])await _database.StringGetAsync(queryId!))!;
+                var buffer = ((byte[])await _database.StringGetAsync(documentId!))!;
                 Utf8GraphQLParser.Parse(buffer).Print().MatchSnapshot(snapshotName);
             },
-            () => _database.KeyDeleteAsync(queryId));
+            () => _database.KeyDeleteAsync(documentId));
     }
 
     [InlineData(null)]
     [InlineData("")]
     [Theory]
-    public Task Write_Query_QueryId_Invalid(string queryId)
+    public Task Write_Query_documentId_Invalid(string documentId)
     {
         return TryTest(async () =>
         {
@@ -51,7 +51,7 @@ public class RedisQueryStorageTests
             var query = new OperationDocumentSourceText("{ foo }");
 
             // act
-            Task Action() => storage.WriteQueryAsync(queryId, query);
+            Task Action() => storage.WriteQueryAsync(documentId, query);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -64,10 +64,10 @@ public class RedisQueryStorageTests
         return TryTest(async () =>
         {
             var storage = new RedisQueryStorage(_database);
-            var queryId = Guid.NewGuid().ToString("N");
+            var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
 
             // act
-            Task Action() => storage.WriteQueryAsync(queryId, null!);
+            async Task Action() => await storage.SaveAsync(documentId, null!);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -78,36 +78,36 @@ public class RedisQueryStorageTests
     public Task Read_Query_From_Storage()
     {
         var snapshotName = Snapshot.FullName();
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
 
         return TryTest(async () =>
             {
                 // arrange
                 var storage = new RedisQueryStorage(_database);
-                var buffer = Encoding.UTF8.GetBytes("{ foo }");
-                await _database.StringSetAsync(queryId, buffer);
+                var buffer = "{ foo }"u8.ToArray();
+                await _database.StringSetAsync(documentId.Value, buffer);
 
                 // act
-                var query = await storage.TryReadQueryAsync(queryId);
+                var query = await storage.TryReadAsync(documentId);
 
                 // assert
                 Assert.NotNull(query);
-                query!.Document.Print().MatchSnapshot(snapshotName);
+                Assert.IsType<OperationDocument>(query).Document.Print().MatchSnapshot(snapshotName);
             },
-            () => _database.KeyDeleteAsync(queryId));
+            () => _database.KeyDeleteAsync(documentId));
     }
 
     [InlineData(null)]
     [InlineData("")]
     [Theory]
-    public Task Read_Query_QueryId_Invalid(string queryId)
+    public Task Read_Query_documentId_Invalid(string documentId)
     {
         return TryTest(async () =>
         {
             var storage = new RedisQueryStorage(_database);
 
             // act
-            Task Action() => storage.TryReadQueryAsync(queryId);
+            Task Action() => storage.TryReadQueryAsync(documentId);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);

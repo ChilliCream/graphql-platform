@@ -468,22 +468,24 @@ public class QueryableSortVisitorObjectTests
                                 }
                             }
                         }")
-                .SetVariableValue(
-                    "order",
-                    new List<Dictionary<string, object>>
+                .SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        new()
+                        ["order"] = new List<Dictionary<string, object>>
                         {
+                            new()
                             {
-                                "foo",
-                                new Dictionary<string, object>
                                 {
-                                    { "barShort", "ASC" }, { "barBool", "ASC" },
-                                }
+                                    "foo",
+                                    new Dictionary<string, object>
+                                    {
+                                        { "barShort", "ASC" }, { "barBool", "ASC" },
+                                    }
+                                },
                             },
-                        },
+                        }
                     })
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
@@ -497,24 +499,26 @@ public class QueryableSortVisitorObjectTests
                                 }
                             }
                         }")
-                .SetVariableValue(
-                    "order",
-                    new List<Dictionary<string, object>>
+                .SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        new()
+                        ["order"] = new List<Dictionary<string, object>>
                         {
+                            new()
                             {
-                                "foo", new Dictionary<string, object> { { "barShort", "ASC" }, }
+                                {
+                                    "foo", new Dictionary<string, object> { { "barShort", "ASC" }, }
+                                },
                             },
-                        },
-                        new()
-                        {
+                            new()
                             {
-                                "foo", new Dictionary<string, object> { { "barBool", "ASC" }, }
+                                {
+                                    "foo", new Dictionary<string, object> { { "barBool", "ASC" }, }
+                                },
                             },
-                        },
+                        }
                     })
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
@@ -528,22 +532,24 @@ public class QueryableSortVisitorObjectTests
                                 }
                             }
                         }")
-                .SetVariableValue(
-                    "order",
-                    new List<Dictionary<string, object>>
+                .SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        new()
+                        ["order"] = new List<Dictionary<string, object>>
                         {
+                            new()
                             {
-                                "foo",
-                                new Dictionary<string, object>
                                 {
-                                    { "barShort", "DESC" }, { "barBool", "DESC" },
-                                }
+                                    "foo",
+                                    new Dictionary<string, object>
+                                    {
+                                        { "barShort", "DESC" }, { "barBool", "DESC" },
+                                    }
+                                },
                             },
-                        },
+                        }
                     })
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
@@ -557,24 +563,26 @@ public class QueryableSortVisitorObjectTests
                                 }
                             }
                         }")
-                .SetVariableValue(
-                    "order",
-                    new List<Dictionary<string, object>>
+                .SetVariableValues(
+                    new Dictionary<string, object?>
                     {
-                        new()
+                        ["order"] = new List<Dictionary<string, object>>
                         {
+                            new()
                             {
-                                "foo", new Dictionary<string, object> { { "barShort", "DESC" }, }
+                                {
+                                    "foo", new Dictionary<string, object> { { "barShort", "DESC" }, }
+                                },
                             },
-                        },
-                        new()
-                        {
+                            new()
                             {
-                                "foo", new Dictionary<string, object> { { "barBool", "DESC" }, }
+                                {
+                                    "foo", new Dictionary<string, object> { { "barBool", "DESC" }, }
+                                },
                             },
-                        },
+                        }
                     })
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -637,14 +645,10 @@ public class QueryableSortVisitorObjectTests
     }
 
     public class BarSortType
-        : SortInputType<Bar>
-    {
-    }
+        : SortInputType<Bar> { }
 
     public class BarNullableSortType
-        : SortInputType<BarNullable>
-    {
-    }
+        : SortInputType<BarNullable> { }
 
     public enum BarEnum
     {

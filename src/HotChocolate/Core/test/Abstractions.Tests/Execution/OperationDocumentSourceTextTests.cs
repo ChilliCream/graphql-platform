@@ -73,28 +73,7 @@ public class OperationDocumentSourceTextTests
         // assert
         Utf8GraphQLParser
             .Parse(buffer)
-            .Print(true)
-            .MatchSnapshot();
-    }
-
-    [Fact]
-    public void QuerySourceText_WriteTo()
-    {
-        // arrange
-        var query = new OperationDocumentSourceText("{ a }");
-        byte[] buffer;
-
-        // act
-        using (var stream = new MemoryStream())
-        {
-            query.WriteTo(stream);
-            buffer = stream.ToArray();
-        }
-
-        // assert
-        Utf8GraphQLParser
-            .Parse(buffer)
-            .Print(true)
+            .Print()
             .MatchSnapshot();
     }
 }

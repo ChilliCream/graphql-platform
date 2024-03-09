@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+#if NET7_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Linq;
 using HotChocolate.Language;
 using static HotChocolate.Properties.AbstractionResources;
@@ -32,7 +35,12 @@ public sealed class OperationRequestBuilder
     /// <exception cref="ArgumentException">
     /// <paramref name="sourceText"/> is <c>null</c> or empty.
     /// </exception>
-    public OperationRequestBuilder SetDocument(string sourceText)
+    public OperationRequestBuilder SetDocument(
+#if NET7_0_OR_GREATER
+        [StringSyntax("graphql")] string sourceText)
+#else
+        string sourceText)
+#endif
     {
         if (string.IsNullOrEmpty(sourceText))
         {
