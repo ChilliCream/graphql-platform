@@ -67,7 +67,8 @@ internal sealed class OperationExecutionMiddleware
             {
                 if ((context.Variables?.Count ?? 0) is 0 or 1)
                 {
-                    await ExecuteOperationAsync(context, batchDispatcher, context.Operation).ConfigureAwait(false);
+                    await ExecuteOperationRequestAsync(context, batchDispatcher, context.Operation)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -75,6 +76,8 @@ internal sealed class OperationExecutionMiddleware
                         .ConfigureAwait(false);
                 }
             }
+            
+            await _next(context).ConfigureAwait(false);
         }
         else
         {
@@ -87,7 +90,26 @@ internal sealed class OperationExecutionMiddleware
         IBatchDispatcher batchDispatcher,
         IOperation operation)
     {
-        await Task.CompletedTask;
+        if (operation.Definition.Operation is OperationType.Subscription)
+        {
+            // since the request context is pooled we need to clone the context for
+            // long running executions.
+            var cloned = context.Clone();
+
+            context.Result = await _subscriptionExecutor
+                .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            context.Result = 
+                await ExecuteQueryOrMutationAsync(
+                        context, 
+                        batchDispatcher, 
+                        operation, 
+                        context.Variables![0])
+                    .ConfigureAwait(false);
+        }
     }
 
     private async Task ExecuteVariableBatchRequestAsync(
@@ -97,40 +119,15 @@ internal sealed class OperationExecutionMiddleware
     {
         var variableSet = context.Variables!;
         var variableSetCount = variableSet.Count;
-        var tasks = new Task<IExecutionResult>[variableSetCount];
+        var tasks = new Task<IOperationResult>[variableSetCount];
 
         for (var i = 0; i < variableSetCount; i++)
         {
-            tasks[i] = ExecuteQueryOrMutationAsync(
-                context,
-                batchDispatcher,
-                operation,
-                variableSet[i]);
+            tasks[i] = ExecuteQueryOrMutationNoStreamAsync(context, batchDispatcher, operation, variableSet[i]);
         }
 
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-        
-        
-    }
-
-    private async Task ExecuteOperationAsync(
-        IRequestContext context,
-        IBatchDispatcher batchDispatcher,
-        IOperation operation)
-    {
-        if (operation.Definition.Operation == OperationType.Subscription)
-        {
-            // since the request context is pooled we need to clone the context for
-            // long running executions.
-            var cloned = context.Clone();
-
-            context.Result = await _subscriptionExecutor
-                .ExecuteAsync(cloned, () => GetQueryRootValue(cloned))
-                .ConfigureAwait(false);
-
-            await _next(cloned).ConfigureAwait(false);
-        }
-        else { }
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        context.Result = new BatchOperationResult(results);
     }
 
     private async Task<IExecutionResult> ExecuteQueryOrMutationAsync(
@@ -163,7 +160,41 @@ internal sealed class OperationExecutionMiddleware
                 return responseStream;
             }
 
-            await _next(context).ConfigureAwait(false);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            // if an operation is canceled we will abandon the the rented operation context
+            // to ensure that that abandoned tasks to not leak execution into new operations.
+            operationContextOwner = null;
+
+            // we rethrow so that another middleware can deal with the cancellation.
+            throw;
+        }
+        finally
+        {
+            operationContextOwner?.Dispose();
+        }
+    }
+    
+    private async Task<IOperationResult> ExecuteQueryOrMutationNoStreamAsync(
+        IRequestContext context,
+        IBatchDispatcher batchDispatcher,
+        IOperation operation,
+        IVariableValueCollection variables)
+    {
+        var operationContextOwner = _contextFactory.Create();
+        var operationContext = operationContextOwner.OperationContext;
+
+        try
+        {
+            return await ExecuteQueryOrMutationAsync(
+                context,
+                batchDispatcher,
+                operation,
+                operationContext,
+                variables)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -266,8 +297,15 @@ internal sealed class OperationExecutionMiddleware
     private static bool IsRequestTypeAllowed(
         IOperation operation,
         IReadOnlyList<IVariableValueCollection>? variables)
-        => operation.Definition.Operation is not OperationType.Subscription ||
-            variables is null or { Count: <= 1, };
+    {
+        if (variables is { Count: > 1, })
+        {
+            return operation.Definition.Operation is not OperationType.Subscription &&
+                !operation.HasIncrementalParts;
+        }
+
+        return true;
+    }
 
     public static RequestCoreMiddleware Create()
         => (core, next) =>

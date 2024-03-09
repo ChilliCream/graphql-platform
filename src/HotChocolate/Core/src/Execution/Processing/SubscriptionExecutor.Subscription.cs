@@ -171,7 +171,7 @@ internal sealed partial class SubscriptionExecutor
                     eventServices,
                     dispatcher,
                     _requestContext.Operation!,
-                    _requestContext.Variables!,
+                    _requestContext.Variables![0],
                     rootValue,
                     _resolveQueryRootValue);
 
@@ -239,7 +239,7 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext.Services,
                     NoopBatchDispatcher.Default,
                     _requestContext.Operation!,
-                    _requestContext.Variables!,
+                    _requestContext.Variables![0],
                     rootValue,
                     _resolveQueryRootValue);
 

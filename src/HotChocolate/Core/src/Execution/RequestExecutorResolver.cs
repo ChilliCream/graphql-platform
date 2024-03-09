@@ -307,7 +307,6 @@ internal sealed partial class RequestExecutorResolver
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
-                sp.GetRequiredService<BatchExecutor>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));

@@ -197,6 +197,22 @@ public sealed class OperationRequestBuilder
         _readOnlyExtensions = extensions;
         return this;
     }
+    
+    /// <summary>
+    /// Sets the initial global request state.
+    /// </summary>
+    /// <param name="contextData">
+    /// The initial global request state.
+    /// </param>
+    /// <returns>
+    /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
+    /// </returns>
+    public OperationRequestBuilder SetGlobalState(IReadOnlyDictionary<string, object?>? contextData)
+    {
+        _readOnlyContextData = _contextData;
+        _contextData = null;
+        return this;
+    }
 
     /// <summary>
     /// Sets the initial global request state.
@@ -210,9 +226,7 @@ public sealed class OperationRequestBuilder
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetGlobalState(
-        string name,
-        object? value)
+    public OperationRequestBuilder SetGlobalState(string name, object? value)
     {
         if (_readOnlyContextData is not null)
         {
@@ -237,9 +251,7 @@ public sealed class OperationRequestBuilder
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder AddGlobalState(
-        string name,
-        object? value)
+    public OperationRequestBuilder AddGlobalState(string name, object? value)
     {
         if (_readOnlyContextData is not null)
         {
@@ -264,9 +276,7 @@ public sealed class OperationRequestBuilder
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder TryAddGlobalState(
-        string name,
-        object? value)
+    public OperationRequestBuilder TryAddGlobalState(string name, object? value)
     {
         if (_readOnlyContextData is not null)
         {

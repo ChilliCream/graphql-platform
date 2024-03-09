@@ -75,7 +75,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetOperationName(request.Name);
         requestBuilder.SetVariableValues(CreateVariables(request));
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
-        requestBuilder.InitializeGlobalState(request.GetContextDataOrNull());
+        requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
         IServiceProvider applicationService = Executor.Services.GetApplicationServices();
         foreach (var interceptor in RequestInterceptors)
