@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using CookieCrumble;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
-using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -291,9 +290,6 @@ public class DataLoaderTests
 
         // act
         using var serviceScope = services.CreateScope();
-        var dataLoaderScopeFactory = serviceScope.ServiceProvider.GetRequiredService<IDataLoaderScopeFactory>();
-        dataLoaderScopeFactory.BeginScope();
-
         var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
         var result = await dataLoader.LoadAsync("a");
         Assert.Equal("a", result);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using GreenDonut.DependencyInjection;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
@@ -30,7 +31,7 @@ internal sealed partial class OperationContext
     private IVariableValueCollection _variables = default!;
     private IServiceProvider _services = default!;
     private Func<object?> _resolveQueryRootValue = default!;
-    private IBatchDispatcher _batchDispatcher = default!;
+    private IDataLoaderContext _dataLoaderContext = default!;
     private InputParser _inputParser = default!;
     private object? _rootValue;
     private bool _isInitialized;
@@ -52,7 +53,6 @@ internal sealed partial class OperationContext
     public void Initialize(
         IRequestContext requestContext,
         IServiceProvider scopedServices,
-        IBatchDispatcher batchDispatcher,
         IOperation operation,
         IVariableValueCollection variables,
         object? rootValue,
@@ -71,11 +71,11 @@ internal sealed partial class OperationContext
         _inputParser = scopedServices.GetRequiredService<InputParser>();
         _rootValue = rootValue;
         _resolveQueryRootValue = resolveQueryRootValue;
-        _batchDispatcher = batchDispatcher;
+        _dataLoaderContext = scopedServices.GetRequiredService<IDataLoaderContext>();
         _isInitialized = true;
 
         IncludeFlags = _operation.CreateIncludeFlags(variables);
-        _workScheduler.Initialize(batchDispatcher);
+        _workScheduler.Initialize();
         _deferredWorkScheduler.Initialize(this);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
     }
@@ -95,11 +95,11 @@ internal sealed partial class OperationContext
         _inputParser = context._inputParser;
         _rootValue = context._rootValue;
         _resolveQueryRootValue = context._resolveQueryRootValue;
-        _batchDispatcher = context._batchDispatcher;
+        _dataLoaderContext = context._dataLoaderContext;
         _isInitialized = true;
 
         IncludeFlags = _operation.CreateIncludeFlags(_variables);
-        _workScheduler.Initialize(_batchDispatcher);
+        _workScheduler.Initialize();
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
     }
@@ -122,7 +122,7 @@ internal sealed partial class OperationContext
             _services = default!;
             _rootValue = null;
             _resolveQueryRootValue = default!;
-            _batchDispatcher = default!;
+            _dataLoaderContext = default!;
             _isInitialized = false;
         }
     }

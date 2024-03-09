@@ -144,14 +144,13 @@ internal sealed partial class SubscriptionExecutor
             using var es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
             using var serviceScope = _requestContext.Services.CreateScope();
             
-            serviceScope.ServiceProvider.InitializeDataLoaderScope();
+            serviceScope.ServiceProvider.CreateNewDataLoaderContext();
 
             var operationContext = _operationContextPool.Get();
 
             try
             {
                 var eventServices = serviceScope.ServiceProvider;
-                var dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
 
                 // we store the event payload on the scoped context so that it is accessible
                 // in the resolvers.
@@ -169,7 +168,6 @@ internal sealed partial class SubscriptionExecutor
                 operationContext.Initialize(
                     _requestContext,
                     eventServices,
-                    dispatcher,
                     _requestContext.Operation!,
                     _requestContext.Variables!,
                     rootValue,
@@ -237,7 +235,6 @@ internal sealed partial class SubscriptionExecutor
                 operationContext.Initialize(
                     _requestContext,
                     _requestContext.Services,
-                    NoopBatchDispatcher.Default,
                     _requestContext.Operation!,
                     _requestContext.Variables!,
                     rootValue,

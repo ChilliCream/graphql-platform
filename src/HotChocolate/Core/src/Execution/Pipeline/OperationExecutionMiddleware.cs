@@ -2,11 +2,9 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.GraphQLRequestFlags;
-using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -38,23 +36,15 @@ internal sealed class OperationExecutionMiddleware
             throw new ArgumentNullException(nameof(transactionScopeHandler));
     }
 
-    public async ValueTask InvokeAsync(
-        IRequestContext context,
-        IBatchDispatcher? batchDispatcher)
+    public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (batchDispatcher is null)
-        {
-            throw OperationExecutionMiddleware_NoBatchDispatcher();
-        }
-
         if (context.Operation is not null && context.Variables is not null)
         {
             if (IsOperationAllowed(context.Operation, context.Request))
             {
                 using (context.DiagnosticEvents.ExecuteOperation(context))
                 {
-                    await ExecuteOperationAsync(context, batchDispatcher, context.Operation)
-                        .ConfigureAwait(false);
+                    await ExecuteOperationAsync(context, context.Operation).ConfigureAwait(false);
                 }
             }
             else
@@ -70,7 +60,6 @@ internal sealed class OperationExecutionMiddleware
 
     private async Task ExecuteOperationAsync(
         IRequestContext context,
-        IBatchDispatcher batchDispatcher,
         IOperation operation)
     {
         if (operation.Definition.Operation == OperationType.Subscription)
@@ -94,7 +83,6 @@ internal sealed class OperationExecutionMiddleware
             {
                 await ExecuteQueryOrMutationAsync(
                         context,
-                        batchDispatcher,
                         operation,
                         operationContext)
                     .ConfigureAwait(false);
@@ -132,7 +120,6 @@ internal sealed class OperationExecutionMiddleware
 
     private async Task ExecuteQueryOrMutationAsync(
         IRequestContext context,
-        IBatchDispatcher batchDispatcher,
         IOperation operation,
         OperationContext operationContext)
     {
@@ -143,7 +130,6 @@ internal sealed class OperationExecutionMiddleware
             operationContext.Initialize(
                 context,
                 context.Services,
-                batchDispatcher,
                 operation,
                 context.Variables!,
                 query,
@@ -163,7 +149,6 @@ internal sealed class OperationExecutionMiddleware
             operationContext.Initialize(
                 context,
                 context.Services,
-                batchDispatcher,
                 operation,
                 context.Variables!,
                 mutation,
@@ -228,10 +213,6 @@ internal sealed class OperationExecutionMiddleware
                 subscriptionExecutor,
                 transactionScopeHandler);
             
-            return async context =>
-            {
-                var batchDispatcher = context.Services.GetService<IBatchDispatcher>();
-                await middleware.InvokeAsync(context, batchDispatcher).ConfigureAwait(false);
-            };
+            return async context => await middleware.InvokeAsync(context).ConfigureAwait(false);
         };
 }

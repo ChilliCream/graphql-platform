@@ -12,19 +12,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
-internal sealed class ExecutionDataLoaderContext(
-    IServiceProvider serviceProvider,
-    IBatchScheduler batchScheduler,
-#if NET8_0_OR_GREATER
-    FrozenDictionary<Type, DataLoaderRegistration> registrations)
-#else
-    Dictionary<Type, DataLoaderRegistration> registrations)
-#endif
-    : IDataLoaderContext
+internal sealed class ExecutionDataLoaderContext : IDataLoaderContext
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
+    private readonly IServiceProvider _serviceProvider;
+#if NET8_0_OR_GREATER
+    private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
+#else
+    private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
+#endif
+    
+    public ExecutionDataLoaderContext(IServiceProvider serviceProvider,
+#if NET8_0_OR_GREATER
+        FrozenDictionary<Type, DataLoaderRegistration> registrations)
+#else
+        Dictionary<Type, DataLoaderRegistration> registrations)
+#endif
+    {
+        _registrations = registrations;
+        _serviceProvider = new DataLoaderServiceProvider(serviceProvider, Scheduler);
+    }
 
-    private readonly IServiceProvider _serviceProvider = new DataLoaderServiceProvider(serviceProvider, batchScheduler);
+    public ActiveBatchScheduler Scheduler { get; } = new();
 
     public T GetDataLoader<T>(DataLoaderFactory<T> createDataLoader, string? name = null) where T : IDataLoader
     {
@@ -47,7 +56,7 @@ internal sealed class ExecutionDataLoaderContext(
 
     private T CreateDataLoader<T>() where T : IDataLoader
     {
-        if (registrations.TryGetValue(typeof(T), out var registration))
+        if (_registrations.TryGetValue(typeof(T), out var registration))
         {
             return (T)registration.CreateDataLoader(_serviceProvider);
         }
@@ -100,7 +109,7 @@ internal sealed class ExecutionDataLoaderContext(
             : IServiceProviderIsService
         {
             public bool IsService(Type serviceType)
-                => typeof(IBatchDispatcher) == serviceType || 
+                => typeof(IBatchScheduler) == serviceType || 
                     innerIsServiceInspector.IsService(serviceType);
         }
     }

@@ -6,16 +6,14 @@ using System.Linq;
 #endif
 using System.Collections.Generic;
 using System.Threading;
-using GreenDonut;
 using GreenDonut.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
 /// <summary>
 /// This instance holds the current DataLoader scope and allows to create a new scope.
 /// </summary>
-public sealed class DataLoaderScopeHolder
+public sealed class DataLoaderContextHolder
 {
     private static readonly AsyncLocal<InstanceHolder> _currentScope = new();
 #if NET8_0_OR_GREATER
@@ -24,7 +22,7 @@ public sealed class DataLoaderScopeHolder
     private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
 #endif
 
-    public DataLoaderScopeHolder(IEnumerable<DataLoaderRegistration> registrations)
+    public DataLoaderContextHolder(IEnumerable<DataLoaderRegistration> registrations)
     {
 #if NET8_0_OR_GREATER
         _registrations = CreateRegistrations().ToFrozenDictionary(t => t.Item1, t => t.Item2);
@@ -52,17 +50,16 @@ public sealed class DataLoaderScopeHolder
     /// <summary>
     /// Creates and pins a new <see cref="IDataLoaderContext"/>.
     /// </summary>
-    public IDataLoaderContext PinNewScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    public IDataLoaderContext PinNewScope(IServiceProvider scopedServiceProvider)
     {
-        scheduler ??= scopedServiceProvider.GetRequiredService<IBatchScheduler>();
-        return CurrentContext = new ExecutionDataLoaderContext(scopedServiceProvider, scheduler, _registrations);
+        return CurrentContext = new ExecutionDataLoaderContext(scopedServiceProvider, _registrations);
     }
     
-    public IDataLoaderContext GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    public IDataLoaderContext GetOrCreateContext(IServiceProvider scopedServiceProvider)
     {
         if(_currentScope.Value?.Context is null)
         {
-            CurrentContext = PinNewScope(scopedServiceProvider, scheduler);
+            CurrentContext = PinNewScope(scopedServiceProvider);
         }
         return CurrentContext;
     }

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
   </ItemGroup>
 
   <ItemGroup>

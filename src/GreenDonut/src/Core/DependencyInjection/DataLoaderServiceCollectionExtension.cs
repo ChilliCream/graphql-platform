@@ -55,9 +55,7 @@ public static class DataLoaderServiceCollectionExtension
         services.AddSingleton<DataLoaderContextFactory>();
         services.TryAddScoped<IDataLoaderContext>(
             sp => sp.GetRequiredService<DataLoaderContextFactory>().CreateScope(sp));
-        services.TryAddScoped<ActiveBatchScheduler>();
-        services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<ActiveBatchScheduler>());
-
+        services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<IDataLoaderContext>().Scheduler);
         services.TryAddSingleton(sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
         services.TryAddScoped(sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
 
@@ -130,7 +128,7 @@ file sealed class DefaultDataLoaderContext(
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
 
-    public ActiveBatchScheduler Scheduler { get; } = serviceProvider.GetRequiredService<ActiveBatchScheduler>();
+    public ActiveBatchScheduler Scheduler { get; } = new();
 
     public T GetDataLoader<T>(DataLoaderFactory<T> createDataLoader, string? name = null) where T : IDataLoader
     {

@@ -52,7 +52,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddInputParser()
             .TryAddDefaultCaches()
             .TryAddDefaultDocumentHashProvider()
-            .TryAddDefaultBatchDispatcher()
             .TryAddDefaultDataLoaderRegistry()
             .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
@@ -231,29 +230,6 @@ public static class RequestExecutorServiceCollectionExtensions
         services.RemoveAll<IDocumentHashProvider>();
         services.AddSingleton<IDocumentHashProvider>(
             new Sha256DocumentHashProvider(format));
-        return services;
-    }
-
-    public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
-        where T : class, IBatchDispatcher
-    {
-        services.RemoveAll<IBatchDispatcher>();
-        services.AddScoped<IBatchDispatcher, T>();
-        return services;
-    }
-
-    public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
-        where T : class, IBatchScheduler
-    {
-        services.RemoveAll<IBatchScheduler>();
-        services.AddScoped<IBatchScheduler, T>();
-        return services;
-    }
-
-    public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
-    {
-        services.RemoveAll<IBatchScheduler>();
-        services.TryAddDefaultBatchDispatcher();
         return services;
     }
 }

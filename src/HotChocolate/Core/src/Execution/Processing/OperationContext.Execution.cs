@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using GreenDonut.DependencyInjection;
 using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing;
@@ -39,6 +40,15 @@ internal sealed partial class OperationContext
         {
             AssertInitialized();
             return _resultBuilder;
+        }
+    }
+
+    public IDataLoaderContext DataLoaderContext
+    {
+        get
+        {
+            AssertInitialized();
+            return _dataLoaderContext;
         }
     }
 

@@ -23,7 +23,7 @@ public class AutoBatchSchedulerTests
         }
 
         // act
-        scheduler.Schedule(Dispatch);
+        scheduler.Schedule(new BatchJob(Dispatch));
 
         // assert
         wait.WaitOne(TimeSpan.FromSeconds(5));

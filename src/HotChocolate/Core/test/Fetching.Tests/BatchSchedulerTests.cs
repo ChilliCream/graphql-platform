@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Execution;
 using Moq;
 using Snapshooter.Xunit;
@@ -15,12 +16,12 @@ public class BatchSchedulerTests
         context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
         var hasTask = false;
 
-        var scheduler = new BatchScheduler();
-        scheduler.TaskEnqueued += (_, _) => hasTask = true;
+        var scheduler = new DefaultBatchScheduler();
+        scheduler.RegisterTaskEnqueuedCallback(() => hasTask = true);
 
         ValueTask Dispatch() => default;
 
-        scheduler.Schedule(Dispatch);
+        scheduler.Schedule(new BatchJob(Dispatch));
         Assert.True(hasTask);
         hasTask = false;
 
@@ -35,7 +36,7 @@ public class BatchSchedulerTests
     public void Initialize_Nothing_ShouldMatchSnapshot()
     {
         // act
-        var scheduler = new BatchScheduler();
+        var scheduler = new DefaultBatchScheduler();
 
         // assert
         scheduler.MatchSnapshot();
@@ -46,12 +47,12 @@ public class BatchSchedulerTests
     {
         // arrange
         var hasTask = false;
-        var scheduler = new BatchScheduler();
-        scheduler.TaskEnqueued += (_, _) => hasTask = true;
+        var scheduler = new DefaultBatchScheduler();
+        scheduler.RegisterTaskEnqueuedCallback(() => hasTask = true);
         ValueTask Dispatch() => default;
 
         // act
-        scheduler.Schedule(Dispatch);
+        scheduler.Schedule(new BatchJob(Dispatch));
 
         // assert
         Assert.True(hasTask);
@@ -62,13 +63,13 @@ public class BatchSchedulerTests
     {
         // arrange
         var hasBeenRaised = false;
-        var scheduler = new BatchScheduler();
+        var scheduler = new DefaultBatchScheduler();
         ValueTask Dispatch() => default;
 
-        scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
+        scheduler.RegisterTaskEnqueuedCallback(() => hasBeenRaised = true);
 
         // act
-        scheduler.Schedule(Dispatch);
+        scheduler.Schedule(new BatchJob(Dispatch));
 
         // assert
         Assert.True(hasBeenRaised);

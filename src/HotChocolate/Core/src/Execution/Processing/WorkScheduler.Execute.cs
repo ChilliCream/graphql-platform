@@ -59,14 +59,14 @@ RESTART:
                         // wait for the task to be finished.
                         try
                         {
-                            _batchDispatcher.DispatchOnSchedule = true;
+                            UseSynchronizedAutoScheduler();
                             first.BeginExecute(_ct);
                             await first.WaitForCompletionAsync(_ct).ConfigureAwait(false);
                             buffer[0] = null;
                         }
                         finally
                         {
-                            _batchDispatcher.DispatchOnSchedule = false;
+                            UseBatchScheduler();
                         }
                     }
                 }
@@ -136,7 +136,7 @@ RESTART:
         return size;
     }
 
-    private void BatchDispatcherEventHandler(object? source, EventArgs args)
+    private void BatchDispatcherEventHandler()
     {
         lock (_sync)
         {
@@ -171,32 +171,36 @@ RESTART:
 
     private void TryDispatchOrComplete()
     {
-        if (!_isCompleted)
+        if (_isCompleted)
         {
-            lock (_sync)
+            return;
+        }
+
+        lock (_sync)
+        {
+            if (_isCompleted)
             {
-                if (!_isCompleted)
+                return;
+            }
+            
+            var isWaitingForTaskCompletion = _work is { HasRunningTasks: true, IsEmpty: true, };
+            var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+
+            if (isWaitingForTaskCompletion)
+            {
+                _pause.Reset();
+
+                if (_hasBatches)
                 {
-                    var isWaitingForTaskCompletion = _work.HasRunningTasks && _work.IsEmpty;
-                    var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
-
-                    if (isWaitingForTaskCompletion)
-                    {
-                        _pause.Reset();
-
-                        if (_hasBatches)
-                        {
-                            _hasBatches = false;
-                            _batchDispatcher.BeginDispatch(_ct);
-                        }
-                    }
-                    else
-                    {
-                        if (!hasWork)
-                        {
-                            _isCompleted = true;
-                        }
-                    }
+                    _hasBatches = false;
+                    _batchScheduler.BeginDispatch(_ct);
+                }
+            }
+            else
+            {
+                if (!hasWork)
+                {
+                    _isCompleted = true;
                 }
             }
         }
@@ -204,15 +208,18 @@ RESTART:
 
     private async ValueTask<bool> TryPauseAsync()
     {
-        if (!_isCompleted)
+        if (_isCompleted)
         {
-            if (_pause.IsPaused)
-            {
-                _diagnosticEvents.StopProcessing(_requestContext);
-                await _pause;
-            }
+            return false;
+        }
+
+        if (!_pause.IsPaused)
+        {
             return true;
         }
-        return false;
+        
+        _diagnosticEvents.StopProcessing(_requestContext);
+        await _pause;
+        return true;
     }
 }
