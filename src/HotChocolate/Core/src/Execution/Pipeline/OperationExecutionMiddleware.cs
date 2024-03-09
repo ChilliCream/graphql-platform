@@ -49,23 +49,62 @@ internal sealed class OperationExecutionMiddleware
 
         if (context.Operation is not null && context.Variables is not null)
         {
-            if (IsOperationAllowed(context.Operation, context.Request))
-            {
-                using (context.DiagnosticEvents.ExecuteOperation(context))
-                {
-                    await ExecuteOperationAsync(context, batchDispatcher, context.Operation)
-                        .ConfigureAwait(false);
-                }
-            }
-            else
+            if (!IsOperationAllowed(context.Operation, context.Request))
             {
                 context.Result = ErrorHelper.OperationKindNotAllowed();
+                return;
+            }
+
+            if (!IsRequestTypeAllowed(context.Operation, context.Request))
+            {
+                context.Result = ErrorHelper.RequestTypeNotAllowed();
+                return;
+            }
+
+            using (context.DiagnosticEvents.ExecuteOperation(context))
+            {
+                switch (context.Request)
+                {
+                    case OperationRequest operationRequest:
+                        await ExecuteOperationRequestAsync(
+                            context, batchDispatcher, context.Operation, operationRequest)
+                            .ConfigureAwait(false);
+                        break;
+
+                    case VariableBatchRequest variableBatchRequest:
+                        await ExecuteVariableBatchRequestAsync(
+                            context, batchDispatcher, context.Operation, variableBatchRequest)
+                            .ConfigureAwait(false);
+                        break;
+
+                    default:
+                        context.Result = ErrorHelper.StateInvalidForOperationExecution();
+                        break;
+                }
             }
         }
         else
         {
             context.Result = ErrorHelper.StateInvalidForOperationExecution();
         }
+    }
+
+    private async Task ExecuteOperationRequestAsync(
+        IRequestContext context,
+        IBatchDispatcher batchDispatcher,
+        IOperation operation,
+        OperationRequest request)
+    {
+        await Task.CompletedTask;
+    }
+    
+    private async Task ExecuteVariableBatchRequestAsync(
+        IRequestContext context,
+        IBatchDispatcher batchDispatcher,
+        IOperation operation,
+        VariableBatchRequest request)
+    {
+        await Task.CompletedTask;
     }
 
     private async Task ExecuteOperationAsync(
@@ -213,6 +252,10 @@ internal sealed class OperationExecutionMiddleware
 
         return allowed;
     }
+
+    private static bool IsRequestTypeAllowed(IOperation operation, IOperationRequest request)
+        => operation.Definition.Operation is not OperationType.Subscription || 
+            request is not VariableBatchRequest;
 
     public static RequestCoreMiddleware Create()
         => (core, next) =>

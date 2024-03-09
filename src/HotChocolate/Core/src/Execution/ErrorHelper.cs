@@ -178,7 +178,17 @@ internal static class ErrorHelper
                 .Build(),
             new Dictionary<string, object?>
             {
-                    { WellKnownContextData.OperationNotAllowed, null },
+                { WellKnownContextData.OperationNotAllowed, null },
+            });
+    
+    public static IOperationResult RequestTypeNotAllowed() =>
+        OperationResultBuilder.CreateError(
+            ErrorBuilder.New()
+                .SetMessage("Variable batch requests are only allowed for mutations and subscriptions.")
+                .Build(),
+            new Dictionary<string, object?>
+            {
+                { WellKnownContextData.ValidationErrors, null },
             });
 
     public static IOperationResult RequestTimeout(TimeSpan timeout) =>
