@@ -14,7 +14,7 @@ public class InMemoryQueryStorageTests
         // arrange
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddMemoryCache();
-        serviceCollection.AddInMemoryQueryStorage();
+        serviceCollection.AddInMemoryOperationDocumentStorage();
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
         var memoryCache = services.GetRequiredService<IMemoryCache>();
@@ -24,8 +24,8 @@ public class InMemoryQueryStorageTests
         var query = Utf8GraphQLParser.Parse("{ __typename }");
 
         // act
-        await queryStorage.WriteQueryAsync(
-            queryId,
+        await queryStorage.SaveAsync(
+            new OperationDocumentId(queryId),
             new OperationDocument(query),
             CancellationToken.None);
 
@@ -40,7 +40,7 @@ public class InMemoryQueryStorageTests
         // arrange
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddMemoryCache();
-        serviceCollection.AddInMemoryQueryStorage();
+        serviceCollection.AddInMemoryOperationDocumentStorage();
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
         var memoryCache = services.GetRequiredService<IMemoryCache>();
@@ -51,12 +51,12 @@ public class InMemoryQueryStorageTests
         await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new OperationDocument(query)))!;
 
         // act
-        var document = await queryStorage.TryReadQueryAsync(
-            queryId,
+        var document = await queryStorage.TryReadAsync(
+            new OperationDocumentId(queryId),
             CancellationToken.None);
 
         // assert
         Assert.NotNull(document);
-        Assert.Same(query, document!.Document);
+        Assert.Same(query, Assert.IsType<OperationDocument>(document).Document);
     }
 }

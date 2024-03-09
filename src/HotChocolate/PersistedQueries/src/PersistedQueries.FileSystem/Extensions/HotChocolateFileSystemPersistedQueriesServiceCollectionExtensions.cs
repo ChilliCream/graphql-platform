@@ -12,33 +12,7 @@ namespace HotChocolate;
 public static class HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds a file system read and write query storage to the
-    /// services collection.
-    /// </summary>
-    /// <param name="services">
-    /// The service collection to which the services are added.
-    /// </param>
-    /// <param name="cacheDirectory">
-    /// The directory path that shall be used to store queries.
-    /// </param>
-    public static IServiceCollection AddFileSystemQueryStorage(
-        this IServiceCollection services,
-        string? cacheDirectory = null)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        return services
-            .AddReadOnlyFileSystemQueryStorage(cacheDirectory)
-            .AddSingleton<IWriteStoredQueries>(
-                sp => sp.GetRequiredService<FileSystemQueryStorage>());
-    }
-
-    /// <summary>
-    /// Adds a file system read-only query storage to the
-    /// services collection.
+    /// Adds a file system based operation document storage to the service collection.
     /// </summary>
     /// <param name="services">
     /// The service collection to which the services are added.
@@ -46,7 +20,7 @@ public static class HotChocolateFileSystemPersistedQueriesServiceCollectionExten
     /// <param name="cacheDirectory">
     /// The directory path that shall be used to read queries from.
     /// </param>
-    public static IServiceCollection AddReadOnlyFileSystemQueryStorage(
+    public static IServiceCollection AddFileSystemOperationDocumentStorage(
         this IServiceCollection services,
         string? cacheDirectory = null)
     {
@@ -56,12 +30,9 @@ public static class HotChocolateFileSystemPersistedQueriesServiceCollectionExten
         }
 
         return services
-            .RemoveService<IReadStoredQueries>()
-            .RemoveService<IWriteStoredQueries>()
+            .RemoveService<IOperationDocumentStorage>()
             .RemoveService<IQueryFileMap>()
-            .AddSingleton<FileSystemQueryStorage>()
-            .AddSingleton<IReadStoredQueries>(
-                sp => sp.GetRequiredService<FileSystemQueryStorage>())
+            .AddSingleton<IOperationDocumentStorage, FileSystemQueryStorage>()
             .AddSingleton<IQueryFileMap>(
                 cacheDirectory is null
                     ? new DefaultQueryFileMap()

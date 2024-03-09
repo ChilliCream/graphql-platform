@@ -21,7 +21,7 @@ public class IntegrationTests
                 .AddMemoryCache()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddInMemoryQueryStorage()
+                .AddInMemoryOperationDocumentStorage()
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -59,7 +59,7 @@ public class IntegrationTests
                 .AddMemoryCache()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddInMemoryQueryStorage()
+                .AddInMemoryOperationDocumentStorage()
                 .UseRequest(n => async c =>
                 {
                     await n(c);

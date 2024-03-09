@@ -16,18 +16,18 @@ internal sealed class WritePersistedQueryMiddleware
     private const string _expectedFormat = "expectedHashFormat";
     private readonly RequestDelegate _next;
     private readonly IDocumentHashProvider _hashProvider;
-    private readonly IOperationDocumentStore _operationDocumentStore;
+    private readonly IOperationDocumentStorage _operationDocumentStorage;
 
     private WritePersistedQueryMiddleware(RequestDelegate next,
         IDocumentHashProvider documentHashProvider,
-        [SchemaService] IOperationDocumentStore operationDocumentStore)
+        [SchemaService] IOperationDocumentStorage operationDocumentStorage)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _hashProvider = documentHashProvider ??
             throw new ArgumentNullException(nameof(documentHashProvider));
-        _operationDocumentStore = operationDocumentStore ??
-            throw new ArgumentNullException(nameof(operationDocumentStore));
+        _operationDocumentStorage = operationDocumentStorage ??
+            throw new ArgumentNullException(nameof(operationDocumentStorage));
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -50,7 +50,7 @@ internal sealed class WritePersistedQueryMiddleware
             if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
             {
                 // save the query
-                await _operationDocumentStore.SaveAsync(documentId, document).ConfigureAwait(false);
+                await _operationDocumentStorage.SaveAsync(documentId, document).ConfigureAwait(false);
 
                 // add persistence receipt to the result
                 resultBuilder.SetExtension(
@@ -102,7 +102,7 @@ internal sealed class WritePersistedQueryMiddleware
         => (core, next) =>
         {
             var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStore>();
+            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
             var middleware = new WritePersistedQueryMiddleware(next, documentHashProvider, persistedQueryStore);
             return context => middleware.InvokeAsync(context);
         };

@@ -39,7 +39,7 @@ public class IntegrationTests
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.Create(queryId));
 
         // assert
         File.Delete(cachedQuery);

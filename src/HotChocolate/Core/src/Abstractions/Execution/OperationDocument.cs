@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -49,15 +50,16 @@ public sealed class OperationDocument(DocumentNode document) : IOperationDocumen
     /// Returns the binary document representation.
     /// </returns>
     public ReadOnlySpan<byte> AsSpan()
-    {
-        using var stream = new MemoryStream();
-        using var sw = new StreamWriter(stream);
+        => Encoding.UTF8.GetBytes(Document.Print(false));
 
-        sw.Write(Document.Print(false));
-        sw.Flush();
-
-        return stream.ToArray();
-    }
+    /// <summary>
+    /// Returns the binary document representation.
+    /// </summary>
+    /// <returns>
+    /// Returns the binary document representation.
+    /// </returns>
+    public byte[] ToArray()
+        => Encoding.UTF8.GetBytes(Document.Print(false));
 
     /// <summary>
     /// Returns the document string representation.

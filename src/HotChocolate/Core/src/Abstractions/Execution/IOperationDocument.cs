@@ -19,6 +19,11 @@ public interface IOperationDocument
     /// Returns the binary document representation.
     /// </summary>
     ReadOnlySpan<byte> AsSpan();
+    
+    /// <summary>
+    /// Returns the binary document representation.
+    /// </summary>
+    byte[] ToArray();
 
     /// <summary>
     /// Returns the document string representation.

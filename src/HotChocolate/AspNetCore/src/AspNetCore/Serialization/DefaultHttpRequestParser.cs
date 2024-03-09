@@ -139,11 +139,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
             if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
             {
-                var variables = ParseVariables(sv);
-                if(variables?.Count > 0)
-                {
-                    variableSet = new[] { variables, };
-                }
+                variableSet = ParseVariables(sv);
             }
 
             if (extensions is null &&
@@ -180,11 +176,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
             if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
             {
-                var variables = ParseVariables(sv);
-                if(variables?.Count > 0)
-                {
-                    variableSet = new[] { variables, };
-                }
+                variableSet = ParseVariables(sv);
             }
             
             IReadOnlyDictionary<string, object?>? extensions = null;

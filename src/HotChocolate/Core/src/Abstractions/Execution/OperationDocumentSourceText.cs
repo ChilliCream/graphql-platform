@@ -12,8 +12,6 @@ namespace HotChocolate.Execution;
 /// <param name="sourceText"></param>
 public sealed class OperationDocumentSourceText(string sourceText) : IOperationDocument
 {
-    private byte[]? _source;
-    
     /// <summary>
     /// Gets the GraphQL operation document source text. 
     /// </summary>
@@ -49,7 +47,10 @@ public sealed class OperationDocumentSourceText(string sourceText) : IOperationD
     /// Returns the binary document representation.
     /// </returns>
     public ReadOnlySpan<byte> AsSpan()
-        => _source ??= Encoding.UTF8.GetBytes(SourceText);
+        => Encoding.UTF8.GetBytes(SourceText);
+
+    public byte[] ToArray()
+        => Encoding.UTF8.GetBytes(SourceText);
 
     /// <summary>
     /// Returns the document string representation.

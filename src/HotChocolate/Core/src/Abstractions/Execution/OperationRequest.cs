@@ -57,7 +57,7 @@ public sealed class OperationRequest : IOperationRequest
         {
             throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
         }
-        
+
         Document = document;
         DocumentId = documentId;
         DocumentHash = documentHash;
@@ -68,7 +68,7 @@ public sealed class OperationRequest : IOperationRequest
         Services = services;
         Flags = flags;
     }
-    
+
     /// <summary>
     /// Gets the GraphQL request document.
     /// </summary>
@@ -89,7 +89,7 @@ public sealed class OperationRequest : IOperationRequest
     /// or, <c>null</c> if the document only contains a single operation.
     /// </summary>
     public string? OperationName { get; }
-    
+
     /// <summary>
     /// Gets the variable values for the GraphQL request.
     /// </summary>
@@ -99,7 +99,7 @@ public sealed class OperationRequest : IOperationRequest
     /// Gets the GraphQL request extension data.
     /// </summary>
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
-    
+
     /// <summary>
     /// Gets the initial request state.
     /// </summary>
@@ -114,4 +114,116 @@ public sealed class OperationRequest : IOperationRequest
     /// GraphQL request flags allow to limit the GraphQL executor capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
+
+    /// <summary>
+    /// Creates a persisted operation request.
+    /// </summary>
+    /// <param name="documentId">
+    /// The ID of the persisted operation document.
+    /// </param>
+    /// <param name="documentHash">
+    /// The hash of the persisted operation document.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the operation that shall be executed.
+    /// </param>
+    /// <param name="variableValues">
+    /// The variable values for the operation.
+    /// </param>
+    /// <param name="extensions">
+    /// The extensions for the operation.
+    /// </param>
+    /// <param name="contextData">
+    /// The context data for the operation.
+    /// </param>
+    /// <param name="services">
+    /// The services that shall be used while executing the operation.
+    /// </param>
+    /// <param name="flags">
+    /// The request flags.
+    /// </param>
+    /// <returns>
+    /// Returns a new persisted operation request.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="documentId"/> is <c>null</c>.
+    /// </exception>
+    public static OperationRequest Create(
+        OperationDocumentId documentId,
+        string? documentHash = null,
+        string? operationName = null,
+        IReadOnlyDictionary<string, object?>? variableValues = null,
+        IReadOnlyDictionary<string, object?>? extensions = null,
+        IReadOnlyDictionary<string, object?>? contextData = null,
+        IServiceProvider? services = null,
+        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
+    {
+        if (OperationDocumentId.IsNullOrEmpty(documentId))
+        {
+            throw new ArgumentNullException(nameof(documentId));
+        }
+
+        return new OperationRequest(
+            null,
+            documentId,
+            documentHash,
+            operationName,
+            variableValues,
+            extensions,
+            contextData,
+            services,
+            flags);
+    }
+    
+    /// <summary>
+    /// Creates a persisted operation request.
+    /// </summary>
+    /// <param name="documentId">
+    /// The ID of the persisted operation document.
+    /// </param>
+    /// <param name="documentHash">
+    /// The hash of the persisted operation document.
+    /// </param>
+    /// <param name="operationName">
+    /// The name of the operation that shall be executed.
+    /// </param>
+    /// <param name="variableValues">
+    /// The variable values for the operation.
+    /// </param>
+    /// <param name="extensions">
+    /// The extensions for the operation.
+    /// </param>
+    /// <param name="contextData">
+    /// The context data for the operation.
+    /// </param>
+    /// <param name="services">
+    /// The services that shall be used while executing the operation.
+    /// </param>
+    /// <param name="flags">
+    /// The request flags.
+    /// </param>
+    /// <returns>
+    /// Returns a new persisted operation request.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="documentId"/> is <c>null</c>.
+    /// </exception>
+    public static OperationRequest Create(
+        string documentId,
+        string? documentHash = null,
+        string? operationName = null,
+        IReadOnlyDictionary<string, object?>? variableValues = null,
+        IReadOnlyDictionary<string, object?>? extensions = null,
+        IReadOnlyDictionary<string, object?>? contextData = null,
+        IServiceProvider? services = null,
+        GraphQLRequestFlags flags = GraphQLRequestFlags.AllowAll)
+        => Create(
+            new OperationDocumentId(documentId),
+            documentHash,
+            operationName,
+            variableValues,
+            extensions,
+            contextData,
+            services,
+            flags);
 }

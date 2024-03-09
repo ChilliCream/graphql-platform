@@ -23,7 +23,7 @@ public class ServiceCollectionExtensionsTests
         // act
         void Action()
             => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                .AddRedisQueryStorage(null!, _ => _database);
+                .AddRedisOperationDocumentStorage(null!, _ => _database);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -37,7 +37,7 @@ public class ServiceCollectionExtensionsTests
 
         // act
         void Action()
-            => services.AddRedisQueryStorage(null!);
+            => services.AddRedisOperationDocumentStorage(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -50,7 +50,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // act
-        services.AddRedisQueryStorage(_ => _database);
+        services.AddRedisOperationDocumentStorage(_ => _database);
 
         // assert
         services.ToDictionary(

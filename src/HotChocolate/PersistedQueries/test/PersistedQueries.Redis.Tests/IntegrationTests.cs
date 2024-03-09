@@ -30,7 +30,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database)
+                .AddRedisOperationDocumentStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -63,7 +63,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database, TimeSpan.FromMilliseconds(10))
+                .AddRedisOperationDocumentStorage(_ => _database, TimeSpan.FromMilliseconds(10))
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -111,7 +111,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database)
+                .AddRedisOperationDocumentStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -151,7 +151,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
-                .AddRedisQueryStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
+                .AddRedisOperationDocumentStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -190,7 +190,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
-                .AddRedisQueryStorage()
+                .AddRedisOperationDocumentStorage()
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -226,7 +226,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database)
+                .AddRedisOperationDocumentStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);

@@ -11,18 +11,18 @@ internal sealed class ReadPersistedQueryMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly IOperationDocumentStore _operationDocumentStore;
+    private readonly IOperationDocumentStorage _operationDocumentStorage;
 
     private ReadPersistedQueryMiddleware(RequestDelegate next,
         [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
-        [SchemaService] IOperationDocumentStore operationDocumentStore)
+        [SchemaService] IOperationDocumentStorage operationDocumentStorage)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
-        _operationDocumentStore = operationDocumentStore ??
-            throw new ArgumentNullException(nameof(operationDocumentStore));
+        _operationDocumentStorage = operationDocumentStorage ??
+            throw new ArgumentNullException(nameof(operationDocumentStorage));
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -47,7 +47,7 @@ internal sealed class ReadPersistedQueryMiddleware
         if (!OperationDocumentId.IsNullOrEmpty(documentId))
         {
             var operationDocument =
-                await _operationDocumentStore.TryReadAsync(
+                await _operationDocumentStorage.TryReadAsync(
                     documentId.Value, context.RequestAborted)
                     .ConfigureAwait(false);
 
@@ -77,7 +77,7 @@ internal sealed class ReadPersistedQueryMiddleware
         => (core, next) =>
         {
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStore>();
+            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
             var middleware = new ReadPersistedQueryMiddleware(next, diagnosticEvents, persistedQueryStore);
             return context => middleware.InvokeAsync(context);
         };

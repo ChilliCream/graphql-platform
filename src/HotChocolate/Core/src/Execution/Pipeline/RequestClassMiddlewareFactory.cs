@@ -100,7 +100,7 @@ internal static class RequestClassMiddlewareFactory
         
         AddService<IErrorHandler>(list, schemaServices);
         AddService<IExecutionDiagnosticEvents>(list, schemaServices);
-        AddService<IOperationDocumentStore>(list, schemaServices);
+        AddService<IOperationDocumentStorage>(list, schemaServices);
         AddService<QueryExecutor>(list, schemaServices);
         AddService<IEnumerable<IOperationCompilerOptimizer>>(list, schemaServices);
         AddService<SubscriptionExecutor>(list, schemaServices);
