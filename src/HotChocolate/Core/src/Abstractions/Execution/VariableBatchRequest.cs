@@ -53,7 +53,7 @@ public sealed class VariableBatchRequest : IOperationRequest
         IServiceProvider? services,
         GraphQLRequestFlags flags)
     {
-        if (document is null && !OperationDocumentId.IsNullOrEmpty(documentId))
+        if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
             throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
         }

@@ -153,7 +153,7 @@ internal sealed class OperationSession : IOperationSession
 
         if (request.Variables is not null)
         {
-            requestBuilder.SetVariableValues(request.Variables);
+            requestBuilder.SetVariableValuesSet(request.Variables);
         }
 
         if (request.Extensions is not null)

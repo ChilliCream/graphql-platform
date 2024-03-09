@@ -48,8 +48,7 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        Assert.Throws<OperationRequestBuilderException>(action)
-            .Message.MatchSnapshot();
+        Assert.Throws<InvalidOperationException>(action).Message.MatchSnapshot();
     }
 
     [InlineData("")]
@@ -65,62 +64,9 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        Assert.Equal("sourceText",
+        Assert.Equal(
+            "sourceText",
             Assert.Throws<ArgumentException>(Action).ParamName);
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndAddVariables_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddVariableValue("one", "foo")
-                .AddVariableValue("two", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetVariables_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddVariableValue("one", "foo")
-                .AddVariableValue("two", "bar")
-                .SetVariableValues(new Dictionary<string, object>
-                {
-                    { "three", "baz" },
-                })
-                .Create();
-
-        // assert
-        // only three should be in the request
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetVariable_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddVariableValue("one", "foo")
-                .SetVariableValue("one", "bar")
-                .Create();
-
-        // assert
-        // one should be bar
-        request.MatchSnapshot();
     }
 
     [Fact]
@@ -131,8 +77,8 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument("{ foo }")
-                .SetVariableValue("one", "bar")
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
+                .Build();
 
         // assert
         // one should be bar
@@ -147,10 +93,9 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument("{ foo }")
-                .AddVariableValue("one", "foo")
-                .AddVariableValue("two", "bar")
+                .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
                 .SetVariableValues(null)
-                .Create();
+                .Build();
 
         // assert
         // no variable should be in the request
@@ -183,11 +128,12 @@ public class OperationRequestBuilderTests
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
-                .InitializeGlobalState(new Dictionary<string, object>
-                {
-                    { "three", "baz" },
-                })
-                .Create();
+                .SetGlobalState(
+                    new Dictionary<string, object>
+                    {
+                        { "three", "baz" },
+                    })
+                .Build();
 
         // assert
         // only three should exist
@@ -237,8 +183,8 @@ public class OperationRequestBuilderTests
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
-                .InitializeGlobalState(null)
-                .Create();
+                .SetGlobalState(null)
+                .Build();
 
         // assert
         // no property should be in the request
@@ -302,8 +248,10 @@ public class OperationRequestBuilderTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument("{ foo }")
-                .SetServices(new DictionaryServiceProvider(
-                    service.GetType(), service))
+                .SetServices(
+                    new DictionaryServiceProvider(
+                        service.GetType(),
+                        service))
                 .Build();
 
         // assert
@@ -322,10 +270,9 @@ public class OperationRequestBuilderTests
                 .SetDocument("{ foo }")
                 .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
-                .AddVariableValue("two", "bar")
-                .SetServices(new DictionaryServiceProvider(
-                    service.GetType(), service))
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { { "two", "bar" }, })
+                .SetServices(new DictionaryServiceProvider(service.GetType(), service))
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -359,220 +306,6 @@ public class OperationRequestBuilderTests
                 .Build();
 
         // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddVariable_VariableIsSet()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .TryAddVariableValue("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddVariable_VariableIsNotSet()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddVariableValue("one", "foo")
-                .TryAddVariableValue("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddExtension_ExtensionIsSet()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .TryAddExtension("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddExtension_ExtensionIsNotSet()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .TryAddExtension("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndAddExtension_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_1()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(new Dictionary<string, object>
-                {
-                    { "three", "baz" },
-                })
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_2()
-    {
-        // arrange
-        IReadOnlyDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_3()
-    {
-        // arrange
-        IReadOnlyDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .AddExtension("four", "bar")
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_4()
-    {
-        // arrange
-        IDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_5()
-    {
-        // arrange
-        IDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .AddExtension("four", "bar")
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtension_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument("{ foo }")
-                .AddExtension("one", "foo")
-                .SetExtension("one", "bar")
-                .Create();
-
-        // assert
-        // one should be bar
         request.MatchSnapshot();
     }
 }

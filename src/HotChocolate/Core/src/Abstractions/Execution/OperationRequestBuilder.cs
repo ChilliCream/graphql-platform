@@ -174,7 +174,7 @@ public sealed class OperationRequestBuilder
     /// <returns>
     /// Returns this instance of <see cref="OperationRequestBuilder" /> for configuration chaining.
     /// </returns>
-    public OperationRequestBuilder SetVariableValues(
+    public OperationRequestBuilder SetVariableValuesSet(
         IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues)
     {
         if (variableValues is null)
@@ -509,7 +509,7 @@ public sealed class OperationRequestBuilder
             .SetDocumentId(request.QueryId)
             .SetDocumentHash(request.QueryHash)
             .SetOperationName(request.OperationName)
-            .SetVariableValues(request.Variables)
+            .SetVariableValuesSet(request.Variables)
             .SetExtensions(request.Extensions);
 
         if (request.Query is not null)
