@@ -1,5 +1,7 @@
 #nullable enable
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -19,7 +21,16 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
     public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => serviceInspector.IsService(parameter.ParameterType);
+    {
+        if (parameter.ParameterType.IsGenericType &&
+            typeof(IEnumerable).IsAssignableFrom(parameter.ParameterType) &&
+            parameter.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        {
+            return serviceInspector.IsService(parameter.ParameterType.GetGenericArguments()[0]);
+        }
+        
+        return serviceInspector.IsService(parameter.ParameterType);
+    }
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
