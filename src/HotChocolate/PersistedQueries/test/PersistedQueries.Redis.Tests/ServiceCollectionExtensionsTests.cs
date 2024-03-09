@@ -59,48 +59,4 @@ public class ServiceCollectionExtensionsTests
             .OrderBy(t => t.Key)
             .MatchSnapshot();
     }
-
-    [Fact]
-    public void AddReadOnlyRedisQueryStorage_Services_Is_Null()
-    {
-        // arrange
-        // act
-        void Action()
-            => HotChocolateRedisPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyRedisQueryStorage(null!, _ => _database);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void AddReadOnlyRedisQueryStorage_Factory_Is_Null()
-    {
-        // arrange
-        var services = new ServiceCollection();
-
-        // act
-        void Action()
-            => services.AddReadOnlyRedisQueryStorage(null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void AddReadOnlyRedisQueryStorage_Services()
-    {
-        // arrange
-        var services = new ServiceCollection();
-
-        // act
-        services.AddReadOnlyRedisQueryStorage(_ => _database);
-
-        // assert
-        services.ToDictionary(
-                k => k.ServiceType.GetTypeName(),
-                v => v.ImplementationType?.GetTypeName())
-            .OrderBy(t => t.Key)
-            .MatchSnapshot();
-    }
 }

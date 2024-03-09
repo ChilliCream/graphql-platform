@@ -1,5 +1,4 @@
-﻿using System.Text;
-using HotChocolate.Execution;
+﻿using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
@@ -8,15 +7,9 @@ using StackExchange.Redis;
 
 namespace HotChocolate.PersistedQueries.Redis;
 
-public class RedisQueryStorageTests
-    : IClassFixture<RedisResource>
+public class RedisQueryStorageTests(RedisResource redisResource) : IClassFixture<RedisResource>
 {
-    private readonly IDatabase _database;
-
-    public RedisQueryStorageTests(RedisResource redisResource)
-    {
-        _database = redisResource.GetConnection().GetDatabase();
-    }
+    private readonly IDatabase _database = redisResource.GetConnection().GetDatabase();
 
     [Fact]
     public Task Write_Query_To_Storage()
@@ -34,24 +27,24 @@ public class RedisQueryStorageTests
                 await storage.SaveAsync(documentId, query);
 
                 // assert
-                var buffer = ((byte[])await _database.StringGetAsync(documentId!))!;
+                var buffer = ((byte[])await _database.StringGetAsync(documentId.Value))!;
                 Utf8GraphQLParser.Parse(buffer).Print().MatchSnapshot(snapshotName);
             },
-            () => _database.KeyDeleteAsync(documentId));
+            () => _database.KeyDeleteAsync(documentId.Value));
     }
-
-    [InlineData(null)]
-    [InlineData("")]
-    [Theory]
-    public Task Write_Query_documentId_Invalid(string documentId)
+    
+    [Fact]
+    public Task Write_Query_documentId_Invalid()
     {
+        var documentId = new OperationDocumentId();
+        
         return TryTest(async () =>
         {
             var storage = new RedisQueryStorage(_database);
             var query = new OperationDocumentSourceText("{ foo }");
 
             // act
-            Task Action() => storage.WriteQueryAsync(documentId, query);
+            async Task Action() => await storage.SaveAsync(documentId, query);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -94,20 +87,19 @@ public class RedisQueryStorageTests
                 Assert.NotNull(query);
                 Assert.IsType<OperationDocument>(query).Document.Print().MatchSnapshot(snapshotName);
             },
-            () => _database.KeyDeleteAsync(documentId));
+            () => _database.KeyDeleteAsync(documentId.Value));
     }
 
-    [InlineData(null)]
-    [InlineData("")]
-    [Theory]
-    public Task Read_Query_documentId_Invalid(string documentId)
+    [Fact]
+    public Task Read_Query_documentId_Invalid()
     {
+        var documentId = new OperationDocumentId();
         return TryTest(async () =>
         {
             var storage = new RedisQueryStorage(_database);
 
             // act
-            Task Action() => storage.TryReadQueryAsync(documentId);
+            async Task Action() => await storage.TryReadAsync(documentId);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
