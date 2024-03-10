@@ -185,7 +185,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         GraphQLRequest request,
         IDictionary<string, IFile> fileMap)
     {
-        if (!(request.Variables is Dictionary<string, object?> mutableVariables))
+        if (request.Variables is not [Dictionary<string, object?> mutableVariables,])
         {
             throw new InvalidOperationException(
                 HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);
