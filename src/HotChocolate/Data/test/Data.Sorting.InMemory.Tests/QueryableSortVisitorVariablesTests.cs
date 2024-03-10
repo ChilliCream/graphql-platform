@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
@@ -30,14 +29,14 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
                 .SetDocument(query)
-                .AddVariableValue("order", "ASC")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
                 .SetDocument(query)
-                .AddVariableValue("order", "DESC")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .Build());
 
         // assert
         await Snapshot
@@ -59,14 +58,14 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
                 .SetDocument(query)
-                .AddVariableValue("order", "ASC")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
                 .SetDocument(query)
-                .AddVariableValue("order", "DESC")
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .Build());
 
         // assert
         await Snapshot
@@ -131,28 +130,29 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         where T : SortInputType<TEntity>
     {
         var builder = new WebHostBuilder()
-            .ConfigureServices((_, services) =>
-            {
-                services.AddRouting();
-                services.AddGraphQLServer()
-                    .AddSorting()
-                    .AddQueryType(
-                        c =>
-                        {
-                            c
-                                .Name("Query")
-                                .Field("root")
-                                .Resolve(entities)
-                                .UseSorting<T>();
+            .ConfigureServices(
+                (_, services) =>
+                {
+                    services.AddRouting();
+                    services.AddGraphQLServer()
+                        .AddSorting()
+                        .AddQueryType(
+                            c =>
+                            {
+                                c
+                                    .Name("Query")
+                                    .Field("root")
+                                    .Resolve(entities)
+                                    .UseSorting<T>();
 
-                            c
-                                .Name("Query")
-                                .Field("rootExecutable")
-                                .Resolve(entities.AsExecutable())
-                                .UseSorting<T>();
-                        })
-                    .BuildRequestExecutorAsync();
-            })
+                                c
+                                    .Name("Query")
+                                    .Field("rootExecutable")
+                                    .Resolve(entities.AsExecutable())
+                                    .UseSorting<T>();
+                            })
+                        .BuildRequestExecutorAsync();
+                })
             .Configure(x => x.UseRouting().UseEndpoints(c => c.MapGraphQL()));
         return new TestServer(builder);
     }
@@ -189,7 +189,5 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         public bool Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo> { }
 }

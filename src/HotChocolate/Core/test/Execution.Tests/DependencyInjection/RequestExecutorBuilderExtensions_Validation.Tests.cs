@@ -134,7 +134,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
                     .Create()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Bar")
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -152,7 +152,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
                     .Create()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage(() => "Bar")
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -170,7 +170,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
                     .Create()
                     .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Baz")
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -194,7 +194,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
                     .Create()
                     .SetDocument("{ __schema { description } }")
                     .AllowIntrospection()
-                    .Create());
+                    .Build());
         results.Add(result.ToJson());
 
         result =

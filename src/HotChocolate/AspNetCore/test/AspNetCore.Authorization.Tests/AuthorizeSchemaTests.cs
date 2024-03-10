@@ -24,7 +24,7 @@ public class AuthorizeSchemaTests
                     .Create()
                     .SetDocument("{ bar }")
                     .SetUser(new ClaimsPrincipal())
-                    .Create());
+                    .Build());
 
         result.MatchSnapshot();
     }

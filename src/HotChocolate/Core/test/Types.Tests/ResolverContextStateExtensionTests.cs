@@ -39,7 +39,7 @@ public class ResolverContextStateExtensionTests
                 OperationRequestBuilder.Create()
                     .SetDocument("{ foo }")
                     .SetUser(user)
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 

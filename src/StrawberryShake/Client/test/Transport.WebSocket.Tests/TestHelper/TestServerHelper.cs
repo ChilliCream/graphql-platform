@@ -36,7 +36,6 @@ public static class TestServerHelper
 
                             builder
                                 .AddStarWarsTypes()
-                                .AddExportDirectiveType()
                                 .AddStarWarsRepositories()
                                 .AddInMemorySubscriptions()
                                 .ModifyOptions(

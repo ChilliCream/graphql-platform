@@ -74,8 +74,8 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
-                .Create(),
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -136,8 +136,8 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
-                .Create(),
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -195,8 +195,8 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
-                .Create(),
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -254,8 +254,8 @@ public class UnionTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
-                .Create(),
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert

@@ -50,7 +50,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.Create(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -90,7 +90,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         await Task.Delay(100).ConfigureAwait(false);
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.Create(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         Assert.Collection(
@@ -131,7 +131,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.Create(documentId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         Assert.Null(result.ExpectQueryResult().Errors);
@@ -172,7 +172,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // act
         var result =
-            await executor.ExecuteAsync(OperationRequest.Create(documentId));
+            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -211,7 +211,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // act
         var result =
-            await executor.ExecuteAsync(OperationRequest.Create(documentId));
+            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -247,7 +247,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // act
         var result =
-            await executor.ExecuteAsync(OperationRequest.Create("does_not_exist"));
+            await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         result.MatchSnapshot();

@@ -83,9 +83,10 @@ public class InMemoryClientTests
         await client.ExecuteAsync(operationRequest);
 
         // assert
-        Assert.Equal(operationRequest.Name, executor.Request!.OperationName);
-        Assert.Equal(variables, executor.Request!.VariableValues);
-        Assert.Equal("{ foo }", Encoding.UTF8.GetString(executor.Request.Query!.AsSpan()));
+        var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
+        Assert.Equal(operationRequest.Name, request.OperationName);
+        Assert.Equal(variables, request.VariableValues);
+        Assert.Equal("{ foo }", Encoding.UTF8.GetString(request.Document!.AsSpan()));
     }
 
     [Fact]

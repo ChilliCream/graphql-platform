@@ -26,8 +26,8 @@ public class MiddlewareContextTests
 
         var request = OperationRequestBuilder.Create()
             .SetDocument("query abc($abc: String){ foo(bar: $abc) }")
-            .SetVariableValues(new Dictionary<string, object?> { {"abc", "def")
-            .Create();
+            .SetVariableValues(new Dictionary<string, object> { {"abc", "def" }, })
+            .Build();
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(request);
@@ -52,8 +52,8 @@ public class MiddlewareContextTests
 
         var request = OperationRequestBuilder.Create()
             .SetDocument("query abc($def: String){ foo(bar: $def) }")
-            .SetVariableValues(new Dictionary<string, object?> { {"def", "ghi")
-            .Create();
+            .SetVariableValues(new Dictionary<string, object> { {"def", "ghi" }, })
+            .Build();
 
         // act
         var result =
@@ -71,18 +71,19 @@ public class MiddlewareContextTests
 
         var schema = SchemaBuilder.New()
             .AddDocumentFromString(
-                @"
-                    type Query {
-                        foo: Foo
-                    }
+                """
+                type Query {
+                    foo: Foo
+                }
 
-                    type Foo {
-                        bar: Bar
-                    }
+                type Foo {
+                    bar: Bar
+                }
 
-                    type Bar {
-                        baz: String
-                    }")
+                type Bar {
+                    baz: String
+                }
+                """)
             .Use(
                 _ => context =>
                 {

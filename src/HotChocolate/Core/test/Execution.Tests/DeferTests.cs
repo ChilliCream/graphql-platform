@@ -216,7 +216,7 @@ public class DeferTests
                             id
                         }
                     }")
-                .SetVariableValues(new Dictionary<string, object?> { {"defer", false }, })
+                .SetVariableValues(new Dictionary<string, object> { {"defer", false }, })
                 .Build());
 
         Assert.IsType<OperationResult>(result).MatchSnapshot();

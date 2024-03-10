@@ -16,7 +16,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -58,7 +58,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -101,7 +101,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -145,7 +145,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -188,7 +188,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))

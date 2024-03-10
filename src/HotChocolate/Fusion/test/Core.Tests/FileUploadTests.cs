@@ -84,8 +84,8 @@ public class FileUploadTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { {"file", new StreamFile("abc", () => stream))
-                .Create(),
+                .SetVariableValues(new Dictionary<string, object?> { {"file", new StreamFile("abc", () => stream) }, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -140,8 +140,8 @@ public class FileUploadTests
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { {"input", input)
-                .Create(),
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
+                .Build(),
             cts.Token);
 
         // assert

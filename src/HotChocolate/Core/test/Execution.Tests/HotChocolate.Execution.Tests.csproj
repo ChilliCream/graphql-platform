@@ -26,4 +26,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Batching\" />
+  </ItemGroup>
+
 </Project>

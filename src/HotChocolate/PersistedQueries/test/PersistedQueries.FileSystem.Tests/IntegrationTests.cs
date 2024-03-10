@@ -39,7 +39,7 @@ public class IntegrationTests
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.Create(queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(queryId));
 
         // assert
         File.Delete(cachedQuery);
@@ -77,7 +77,7 @@ public class IntegrationTests
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(OperationRequest.Create("does_not_exist"));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         File.Delete(cachedQuery);

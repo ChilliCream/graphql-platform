@@ -72,7 +72,7 @@ public class RequestExecutorTests
                     catch (OperationCanceledException)
                     {
                         tokenWasCorrectlyPassedToResolver = true;
-                        throw new QueryException("CancellationRaised");
+                        throw new GraphQLException("CancellationRaised");
                     }
                 }))
             .Create();
