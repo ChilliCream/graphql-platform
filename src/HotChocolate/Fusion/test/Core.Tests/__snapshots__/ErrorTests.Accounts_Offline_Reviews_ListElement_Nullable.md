@@ -17,11 +17,6 @@ query ReformatIds {
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Internal Execution Error"
-    }
-  ],
   "data": {
     "reviews": [
       null,

@@ -22,8 +22,6 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class GraphQLHttpResponse : IDisposable
 {
-    private static readonly OperationResult _transportError = CreateTransportError();
-
 #if NET6_0_OR_GREATER
     private static readonly Encoding _utf8 = Encoding.UTF8;
 #endif
@@ -57,7 +55,7 @@ public sealed class GraphQLHttpResponse : IDisposable
     /// Gets the reason phrase which typically is sent by servers together with the status code.
     /// </summary>
     public string? ReasonPhrase => _message.ReasonPhrase;
-    
+
     /// <summary>
     /// Throws an exception if the HTTP response was unsuccessful.
     /// </summary>
@@ -100,8 +98,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #endif
         }
 
-        // if the media type is anything else we will return a transport error.
-        return new ValueTask<OperationResult>(_transportError);
+        throw new Exception("Transport error");
     }
 
 #if NET6_0_OR_GREATER
@@ -187,7 +184,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 #endif
         }
 
-        return SingleResult(new ValueTask<OperationResult>(_transportError));
+        throw new Exception("Stream transport error");
     }
 
 #if NET6_0_OR_GREATER
@@ -263,13 +260,6 @@ public sealed class GraphQLHttpResponse : IDisposable
             innerStreamEncoding: sourceEncoding,
             outerStreamEncoding: _utf8);
 #endif
-
-    private static OperationResult CreateTransportError()
-        => new OperationResult(
-            errors: JsonDocument.Parse(
-                """
-                [{"message": "Internal Execution Error"}]
-                """).RootElement);
 
     /// <summary>
     /// Disposes the underlying <see cref="HttpResponseMessage"/>.

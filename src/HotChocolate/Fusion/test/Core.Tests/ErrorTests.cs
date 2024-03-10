@@ -12,11 +12,64 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
 
+// TODO: Locations in mapped errors are wrong
+// TODO: Options to disable debug info
+
 namespace HotChocolate.Fusion;
 
 public class ErrorTests(ITestOutputHelper output)
 {
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
+
+    [Fact]
+    public async Task Resolve_Sequence_Accounts_Offline_Field_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              reviewById(id: "UmV2aWV3Cmkx") {
+                body
+                author? {
+                  username
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
 
     [Fact]
     public async Task Resolve_Parallel_Accounts_Offline_FieldNullable()

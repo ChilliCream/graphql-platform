@@ -132,21 +132,24 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
 
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
-            var data = UnwrapResult(response);
-            var selectionSet = state.SelectionSet;
-            var selectionSetData = state.SelectionSetData;
-            var selectionSetResult = state.SelectionSetResult;
-            var exportKeys = state.Requires;
-            var variableValues = state.VariableValues;
+            if (!response.IsUnrecoverableError)
+            {
+                var data = UnwrapResult(response);
+                var selectionSet = state.SelectionSet;
+                var selectionSetData = state.SelectionSetData;
+                var selectionSetResult = state.SelectionSetResult;
+                var exportKeys = state.Requires;
+                var variableValues = state.VariableValues;
 
-            ExtractErrors(context.Result, response.Errors, selectionSetResult, pathLength, context.ShowDebugInfo);
+                ExtractErrors(context.Result, response.Errors, selectionSetResult, pathLength, context.ShowDebugInfo);
 
-            // we extract the selection data from the request and add it to the
-            // workItem results.
-            ExtractSelectionResults(SelectionSet, subgraphName, data, selectionSetData);
+                // we extract the selection data from the request and add it to the
+                // workItem results.
+                ExtractSelectionResults(SelectionSet, subgraphName, data, selectionSetData);
 
-            // next we need to extract any variables that we need for followup requests.
-            ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
+                // next we need to extract any variables that we need for followup requests.
+                ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
+            }
 
             state = ref Unsafe.Add(ref state, 1)!;
             request = ref Unsafe.Add(ref request, 1)!;

@@ -21,53 +21,10 @@
 {
   "errors": [
     {
-      "message": "Internal Execution Error"
+      "message": "Unexpected Execution Error"
     }
-  ],
-  "data": null
+  ]
 }
-```
-
-## QueryPlan
-
-```json
-{
-  "document": "{ viewer? { user! { name } latestReview { body } } }",
-  "rootNode": {
-    "type": "Sequence",
-    "nodes": [
-      {
-        "type": "Parallel",
-        "nodes": [
-          {
-            "type": "Resolve",
-            "subgraph": "Accounts",
-            "document": "query fetch_viewer_1 { viewer { user! { name } } }",
-            "selectionSetId": 0
-          },
-          {
-            "type": "Resolve",
-            "subgraph": "Reviews2",
-            "document": "query fetch_viewer_2 { viewer? { latestReview { body } } }",
-            "selectionSetId": 0
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          0
-        ]
-      }
-    ]
-  }
-}
-```
-
-## QueryPlan Hash
-
-```text
-B1F8BD87F08DD7941DBB6AF4852DA3AA3EB10097
 ```
 
 ## Fusion Graph

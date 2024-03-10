@@ -7,9 +7,9 @@ public sealed class GraphQLResponse : IDisposable
 {
     private readonly IDisposable? _resource;
 
-    internal GraphQLResponse(JsonElement errors)
+    internal GraphQLResponse(bool isUnrecoverableError)
     {
-        Errors = errors;
+        IsUnrecoverableError = isUnrecoverableError;
     }
 
     internal GraphQLResponse(OperationResult result)
@@ -39,6 +39,8 @@ public sealed class GraphQLResponse : IDisposable
             Extensions = value;
         }
     }
+
+    public bool IsUnrecoverableError { get; }
 
     public JsonElement Data { get; }
 

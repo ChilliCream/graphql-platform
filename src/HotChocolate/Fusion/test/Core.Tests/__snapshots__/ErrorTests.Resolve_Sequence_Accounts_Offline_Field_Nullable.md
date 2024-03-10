@@ -1,15 +1,13 @@
-# Resolve_Parallel_Accounts_Offline_FieldNullable
+# Resolve_Sequence_Accounts_Offline_Field_Nullable
 
 ## User Request
 
 ```graphql
 {
-  viewer {
-    user {
-      name
-    }
-    latestReview {
-      body
+  reviewById(id: "UmV2aWV3Cmkx") {
+    body
+    author? {
+      username
     }
   }
 }
@@ -20,11 +18,9 @@
 ```json
 {
   "data": {
-    "viewer": {
-      "user": null,
-      "latestReview": {
-        "body": "Love it!"
-      }
+    "reviewById": {
+      "body": "Love it!",
+      "author": null
     }
   }
 }
@@ -34,24 +30,18 @@
 
 ```json
 {
-  "document": "{ viewer { user { name } latestReview { body } } }",
+  "document": "{ reviewById(id: \u0022UmV2aWV3Cmkx\u0022) { body author? { username } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Reviews2",
+        "document": "query fetch_reviewById_1 { reviewById(id: \u0022UmV2aWV3Cmkx\u0022) { body author? { __fusion_exports__1: id } } }",
+        "selectionSetId": 0,
+        "provides": [
           {
-            "type": "Resolve",
-            "subgraph": "Accounts",
-            "document": "query fetch_viewer_1 { viewer { user { name } } }",
-            "selectionSetId": 0
-          },
-          {
-            "type": "Resolve",
-            "subgraph": "Reviews2",
-            "document": "query fetch_viewer_2 { viewer { latestReview { body } } }",
-            "selectionSetId": 0
+            "variable": "__fusion_exports__1"
           }
         ]
       },
@@ -60,8 +50,31 @@
         "selectionSetIds": [
           0
         ]
+      },
+      {
+        "type": "Resolve",
+        "subgraph": "Accounts",
+        "document": "query fetch_reviewById_2($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { username } }",
+        "selectionSetId": 2,
+        "path": [
+          "userById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          2
+        ]
       }
     ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id"
   }
 }
 ```
@@ -69,7 +82,7 @@
 ## QueryPlan Hash
 
 ```text
-930F8D997CDADB2111A654E427F1A70D211017CE
+29C5098196BB6C32895D2B7AB4FC690F6C63A3A3
 ```
 
 ## Fusion Graph
