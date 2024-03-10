@@ -21,12 +21,6 @@
   "errors": [
     {
       "message": "SOME USER ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 101
-        }
-      ],
       "path": [
         "reviewById",
         "author",
@@ -36,6 +30,12 @@
         "remotePath": [
           "userById",
           "errorField"
+        ],
+        "remoteLocations": [
+          {
+            "line": 1,
+            "column": 101
+          }
         ]
       }
     }

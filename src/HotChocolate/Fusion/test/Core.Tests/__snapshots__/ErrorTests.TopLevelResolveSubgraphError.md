@@ -20,18 +20,18 @@
   "errors": [
     {
       "message": "SOME TOP LEVEL USER ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 68
-        }
-      ],
       "path": [
         "errorField"
       ],
       "extensions": {
         "remotePath": [
           "errorField"
+        ],
+        "remoteLocations": [
+          {
+            "line": 1,
+            "column": 68
+          }
         ]
       }
     }

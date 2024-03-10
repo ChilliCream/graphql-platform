@@ -538,25 +538,31 @@ internal static class ExecutorUtils
             {
                 var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
                 errorBuilder.SetPath(path);
-                
+
                 if (addDebugInfo)
                 {
                     errorBuilder.SetExtension("remotePath", remotePath);
                 }
             }
 
-            if (error.TryGetProperty("locations", out var locations) &&
+            if (addDebugInfo && error.TryGetProperty("locations", out var locations) &&
                 locations.ValueKind is JsonValueKind.Array)
             {
+                var remoteLocations = new List<JsonElement>();
                 foreach (var location in locations.EnumerateArray())
                 {
                     if (location.TryGetProperty("line", out var lineValue) &&
                         location.TryGetProperty("column", out var columnValue) &&
-                        lineValue.TryGetInt32(out var line) &&
-                        columnValue.TryGetInt32(out var column))
+                        lineValue.TryGetInt32(out _) &&
+                        columnValue.TryGetInt32(out _))
                     {
-                        errorBuilder.AddLocation(line, column);
+                        remoteLocations.Add(location);
                     }
+                }
+
+                if (remoteLocations.Count > 0)
+                {
+                    errorBuilder.SetExtension("remoteLocations", remoteLocations);
                 }
             }
 

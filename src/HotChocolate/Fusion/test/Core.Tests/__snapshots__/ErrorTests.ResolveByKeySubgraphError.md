@@ -21,12 +21,6 @@
   "errors": [
     {
       "message": "SOME USER ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 94
-        }
-      ],
       "path": [
         "reviews",
         0,
@@ -37,17 +31,17 @@
         "remotePath": [
           "usersById",1,
           "errorField"
+        ],
+        "remoteLocations": [
+          {
+            "line": 1,
+            "column": 94
+          }
         ]
       }
     },
     {
       "message": "SOME USER ERROR",
-      "locations": [
-        {
-          "line": 1,
-          "column": 94
-        }
-      ],
       "path": [
         "reviews",
         0,
@@ -58,6 +52,12 @@
         "remotePath": [
           "usersById",0,
           "errorField"
+        ],
+        "remoteLocations": [
+          {
+            "line": 1,
+            "column": 94
+          }
         ]
       }
     }

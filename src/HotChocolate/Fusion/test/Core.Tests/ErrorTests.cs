@@ -12,9 +12,6 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
 
-// TODO: Locations in mapped errors are wrong
-// TODO: Options to disable debug info
-
 namespace HotChocolate.Fusion;
 
 public class ErrorTests(ITestOutputHelper output)
