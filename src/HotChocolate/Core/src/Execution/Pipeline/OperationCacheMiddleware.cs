@@ -52,7 +52,7 @@ internal sealed class OperationCacheMiddleware
 
             if (addToCache &&
                 context.Operation is not null &&
-                OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
+                !OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
                 context.Document is not null &&
                 context.IsValidDocument)
             {

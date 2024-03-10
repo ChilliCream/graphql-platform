@@ -264,7 +264,6 @@ internal sealed partial class RequestExecutorResolver
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();
-        serviceCollection.TryAddTimespanProvider();
 
         // register global error filters
         foreach (var errorFilter in _applicationServices.GetServices<IErrorFilter>())

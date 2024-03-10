@@ -250,6 +250,11 @@ internal sealed class OperationExecutionMiddleware
                 () => GetQueryRootValue(context));
 
             var result = await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
+            
+            // we capture the result here so that we can capture it in the transaction scope.
+            context.Result = result;
+            
+            // we complete the transaction scope and are done.
             transactionScope.Complete();
             return result;
         }

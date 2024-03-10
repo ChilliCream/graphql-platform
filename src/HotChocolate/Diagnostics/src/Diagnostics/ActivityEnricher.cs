@@ -330,7 +330,7 @@ public class ActivityEnricher
         }
 
         activity.DisplayName = operationDisplayName ?? "Execute Request";
-        activity.SetTag("graphql.document.id", context.DocumentId);
+        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
         activity.SetTag("graphql.document.valid", context.IsValidDocument);
         activity.SetTag("graphql.operation.id", context.OperationId);
@@ -459,7 +459,7 @@ public class ActivityEnricher
             UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
         }
 
-        activity.SetTag("graphql.document.id", context.DocumentId);
+        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
     }
 

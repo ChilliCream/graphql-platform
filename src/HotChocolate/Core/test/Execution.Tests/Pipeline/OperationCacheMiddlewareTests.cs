@@ -43,9 +43,7 @@ public class OperationCacheMiddlewareTests
             }
             """;
 
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument(requestDocument);
+        var request = OperationRequest.FromSourceText(requestDocument);
 
         var diagnostics = new CacheHit();
 
@@ -60,14 +58,14 @@ public class OperationCacheMiddlewareTests
                 .BuildRequestExecutorAsync();
 
         // act
-        await executor.ExecuteAsync(request.SetOperationName("GetBazBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("FooBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("GetBazBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("FooBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("GetBazBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("GetBazBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("GetBazBar").Build());
-        await executor.ExecuteAsync(request.SetOperationName("FooBar").Build());
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("FooBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("FooBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("FooBar"));
 
         // assert
         Assert.Equal(2, diagnostics.AddedToCache);
@@ -106,9 +104,7 @@ public class OperationCacheMiddlewareTests
             }
             """;
 
-        var request =
-            OperationRequestBuilder.Create()
-                .SetDocument(requestDocument);
+        var request = OperationRequest.FromSourceText(requestDocument);
 
         var diagnostics = new CacheHit();
 
@@ -123,8 +119,8 @@ public class OperationCacheMiddlewareTests
                 .BuildRequestExecutorAsync();
 
         // act
-        await executor.ExecuteAsync(request.Build());
-        await executor.ExecuteAsync(request.Build());
+        await executor.ExecuteAsync(request);
+        await executor.ExecuteAsync(request);
 
         // assert
         Assert.Equal(1, diagnostics.AddedToCache);

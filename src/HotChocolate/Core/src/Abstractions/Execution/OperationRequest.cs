@@ -114,6 +114,195 @@ public sealed class OperationRequest : IOperationRequest
     /// GraphQL request flags allow to limit the GraphQL executor capabilities.
     /// </summary>
     public GraphQLRequestFlags Flags { get; }
+    
+    /// <summary>
+    /// Creates a new request with the specified document.
+    /// </summary>
+    /// <param name="document">
+    /// The GraphQL request document.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified document.
+    /// </returns>
+    public OperationRequest WithDocument(IOperationDocument document)
+        => new OperationRequest(
+            document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified document ID.
+    /// </summary>
+    /// <param name="documentId">
+    /// The ID of the persisted operation document.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified document ID.
+    /// </returns>
+    public OperationRequest WithDocumentId(OperationDocumentId documentId)
+        => new OperationRequest(
+            Document,
+            documentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified document hash.
+    /// </summary>
+    /// <param name="documentHash">
+    /// The hash of the persisted operation document.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified document hash.
+    /// </returns>
+    public OperationRequest WithDocumentHash(string documentHash)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            documentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified operation name.
+    /// </summary>
+    /// <param name="operationName">
+    /// The name of the operation that shall be executed.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified operation name.
+    /// </returns>
+    public OperationRequest WithOperationName(string operationName)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            operationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified variable values.
+    /// </summary>
+    /// <param name="variableValues">
+    /// The variable values that shall be used while executing the operation.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified variable values.
+    /// </returns>
+    public OperationRequest WithVariableValues(IReadOnlyDictionary<string, object?> variableValues)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            variableValues,
+            Extensions,
+            ContextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified extensions.
+    /// </summary>
+    /// <param name="extensions">
+    /// The extensions that shall be used while executing the operation.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified extensions.
+    /// </returns>
+    public OperationRequest WithExtensions(IReadOnlyDictionary<string, object?> extensions)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            extensions,
+            ContextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified context data.
+    /// </summary>
+    /// <param name="contextData">
+    /// The context data that shall be used while executing the operation.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified context data.
+    /// </returns>
+    public OperationRequest WithContextData(IReadOnlyDictionary<string, object?> contextData)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            contextData,
+            Services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified services.
+    /// </summary>
+    /// <param name="services">
+    /// The services that shall be used while executing the operation.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified services.
+    /// </returns>
+    public OperationRequest WithServices(IServiceProvider services)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            services,
+            Flags);
+    
+    /// <summary>
+    /// Creates a new request with the specified flags.
+    /// </summary>
+    /// <param name="flags">
+    /// The request flags.
+    /// </param>
+    /// <returns>
+    /// Returns a new request with the specified flags.
+    /// </returns>
+    public OperationRequest WithFlags(GraphQLRequestFlags flags)
+        => new OperationRequest(
+            Document,
+            DocumentId,
+            DocumentHash,
+            OperationName,
+            VariableValues,
+            Extensions,
+            ContextData,
+            Services,
+            flags);
 
     /// <summary>
     /// Creates a persisted operation request.

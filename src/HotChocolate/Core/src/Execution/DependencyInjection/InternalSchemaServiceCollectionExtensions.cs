@@ -39,14 +39,7 @@ public static class InternalSchemaServiceCollectionExtensions
         });
         return services;
     }
-
-    internal static IServiceCollection TryAddTimespanProvider(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<ITimestampProvider, DefaultTimestampProvider>();
-        return services;
-    }
-
+    
     public static T GetApplicationService<T>(this IServiceProvider services) where T : notnull
         => services.GetApplicationServices().GetRequiredService<T>();
 

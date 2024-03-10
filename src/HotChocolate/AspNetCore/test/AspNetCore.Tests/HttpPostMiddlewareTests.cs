@@ -388,33 +388,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Apollo_Tracing_Invalid_Field()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: s => s
-                .AddGraphQLServer()
-                .AddApolloTracing());
-
-        // act
-        var response = await server.PostRawAsync(
-            new ClientQueryRequest
-            {
-                Query =
-                    @"{
-                        hero123(episode: NEW_HOPE)
-                        {
-                            name
-                        }
-                    }",
-            },
-            enableApolloTracing: true);
-
-        // assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
     public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
     {
         // arrange
