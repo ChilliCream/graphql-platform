@@ -147,9 +147,6 @@ internal static class RequestClassMiddlewareFactory
             typeof(IRequestExecutorOptionsAccessor),
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
-            typeof(IComplexityAnalyzerOptionsAccessor),
-            Expression.Constant(options)));
-        parameterHandlers.Add(new TypeParameterHandler(
             typeof(IPersistedQueryOptionsAccessor),
             Expression.Constant(options)));
     }

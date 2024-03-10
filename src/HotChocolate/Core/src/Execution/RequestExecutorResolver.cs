@@ -342,13 +342,10 @@ internal sealed partial class RequestExecutorResolver
             return setup.Schema;
         }
 
-        var complexitySettings = executorOptions.Complexity;
-
         context
             .SchemaBuilder
             .AddServices(schemaServices)
-            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
-            .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
+            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions);
 
         var descriptorContext = context.SchemaBuilder.CreateContext();
 

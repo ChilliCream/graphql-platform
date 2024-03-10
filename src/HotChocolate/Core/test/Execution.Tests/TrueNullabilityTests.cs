@@ -54,30 +54,7 @@ public class TrueNullabilityTests
 
         response.MatchSnapshot();
     }
-
-    [Fact]
-    public async Task Error_Query_With_TrueNullability_And_NullBubbling_Enabled()
-    {
-        var response =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType<Query>()
-                .ModifyOptions(o => o.EnableTrueNullability = true)
-                .ExecuteRequestAsync(
-                    """
-                    query @nullBubbling {
-                        book {
-                            name
-                            author {
-                                name
-                            }
-                        }
-                    }
-                    """);
-
-        response.MatchSnapshot();
-    }
-
+    
     [Fact]
     public async Task Error_Query_With_TrueNullability_And_NullBubbling_Disabled()
     {
@@ -87,42 +64,19 @@ public class TrueNullabilityTests
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.EnableTrueNullability = true)
                 .ExecuteRequestAsync(
-                    """
-                    query @nullBubbling(enable: false) {
-                        book {
-                            name
-                            author {
-                                name
-                            }
-                        }
-                    }
-                    """);
-
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Error_Query_With_TrueNullability_And_NullBubbling_Disabled_With_Variable()
-    {
-        var response =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType<Query>()
-                .ModifyOptions(o => o.EnableTrueNullability = true)
-                .ExecuteRequestAsync(
                     OperationRequestBuilder.Create()
                         .SetDocument(
-                        """
-                        query($enable: Boolean!) @nullBubbling(enable: $enable) {
-                            book {
-                                name
-                                author {
+                            """
+                            query {
+                                book {
                                     name
+                                    author {
+                                        name
+                                    }
                                 }
                             }
-                        }
-                        """)
-                        .SetVariableValues(new Dictionary<string, object?> { {"enable", false }, })
+                            """)
+                        .SetGlobalState(WellKnownContextData.EnableTrueNullability, null)
                         .Build());
 
         response.MatchSnapshot();
