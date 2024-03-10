@@ -40,11 +40,9 @@ public class FileSystemQueryStorageTests
             }
         }
     }
-
-    [InlineData(null)]
-    [InlineData("")]
-    [Theory]
-    public async Task Write_Query_documentId_Invalid(string documentId)
+    
+    [Fact]
+    public async Task Write_Query_documentId_Invalid()
     {
         string? path = null;
 
@@ -59,7 +57,7 @@ public class FileSystemQueryStorageTests
             var query = new OperationDocumentSourceText("{ foo }");
 
             // act
-            async Task Action() => await storage.SaveAsync(new OperationDocumentId(documentId), query);
+            async Task Action() => await storage.SaveAsync(new OperationDocumentId(), query);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -122,7 +120,7 @@ public class FileSystemQueryStorageTests
 
             // assert
             Assert.NotNull(query);
-            Assert.IsType<OperationRequest>(query).Document!.ToString().MatchSnapshot();
+            Assert.IsType<OperationDocument>(query).Document!.ToString().MatchSnapshot();
         }
         finally
         {
@@ -132,27 +130,22 @@ public class FileSystemQueryStorageTests
             }
         }
     }
-
-    [InlineData(null)]
-    [InlineData("")]
-    [Theory]
-    public async Task Read_Query_documentId_Invalid(string documentId)
+    
+    [Fact]
+    public async Task Read_Query_documentId_Invalid()
     {
         string? path = null;
 
         try
         {
             // arrange
-            path = IOPath.Combine(
-                IOPath.GetTempPath(),
-                "d_" + Guid.NewGuid().ToString("N"));
+            path = IOPath.Combine(IOPath.GetTempPath(), "d_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(path);
 
-            var storage = new FileSystemQueryStorage(
-                new DefaultQueryFileMap(path));
+            var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
             // act
-            async Task Action() => await storage.TryReadAsync(new OperationDocumentId(documentId));
+            async Task Action() => await storage.TryReadAsync(new OperationDocumentId());
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);

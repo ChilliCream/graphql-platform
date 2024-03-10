@@ -18,7 +18,7 @@ public class InMemoryQueryStorageTests
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
         var memoryCache = services.GetRequiredService<IMemoryCache>();
-        var queryStorage = services.GetRequiredService<InMemoryQueryStorage>();
+        var queryStorage = services.GetRequiredService<IOperationDocumentStorage>();
 
         const string queryId = "abc";
         var query = Utf8GraphQLParser.Parse("{ __typename }");
@@ -31,7 +31,7 @@ public class InMemoryQueryStorageTests
 
         // assert
         Assert.True(memoryCache.TryGetValue(queryId, out var o));
-        await Assert.IsType<Task<OperationDocument>>(o);
+        Assert.IsType<OperationDocument>(o);
     }
 
     [Fact]
@@ -44,11 +44,11 @@ public class InMemoryQueryStorageTests
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
         var memoryCache = services.GetRequiredService<IMemoryCache>();
-        var queryStorage = services.GetRequiredService<InMemoryQueryStorage>();
+        var queryStorage = services.GetRequiredService<IOperationDocumentStorage>();
 
         const string queryId = "abc";
         var query = Utf8GraphQLParser.Parse("{ __typename }");
-        await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new OperationDocument(query)))!;
+        memoryCache.GetOrCreate(queryId, _ => new OperationDocument(query));
 
         // act
         var document = await queryStorage.TryReadAsync(
