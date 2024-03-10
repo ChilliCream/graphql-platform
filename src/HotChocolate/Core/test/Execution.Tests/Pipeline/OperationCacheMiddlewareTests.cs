@@ -52,7 +52,6 @@ public class OperationCacheMiddlewareTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
                 .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
                 .AddDiagnosticEventListener(_ => diagnostics)
                 .UseDefaultPipeline()
                 .BuildRequestExecutorAsync();
@@ -113,7 +112,6 @@ public class OperationCacheMiddlewareTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
                 .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
                 .UseDefaultPipeline()
                 .AddDiagnosticEventListener(_ => diagnostics)
                 .BuildRequestExecutorAsync();

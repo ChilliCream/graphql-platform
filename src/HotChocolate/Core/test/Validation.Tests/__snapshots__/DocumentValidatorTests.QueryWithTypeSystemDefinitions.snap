@@ -5,8 +5,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 9,
-        "Column": 17
+        "Line": 8,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -24,35 +24,35 @@
           "Type": {
             "Kind": "NamedType",
             "Location": {
-              "Start": 223,
-              "End": 247,
-              "Line": 10,
-              "Column": 28
+              "Start": 94,
+              "End": 102,
+              "Line": 9,
+              "Column": 12
             },
             "Name": {
               "Kind": "Name",
               "Location": {
-                "Start": 223,
-                "End": 247,
-                "Line": 10,
-                "Column": 28
+                "Start": 94,
+                "End": 102,
+                "Line": 9,
+                "Column": 12
               },
               "Value": "String"
             }
           },
           "Location": {
-            "Start": 216,
-            "End": 247,
-            "Line": 10,
-            "Column": 21
+            "Start": 87,
+            "End": 102,
+            "Line": 9,
+            "Column": 5
           },
           "Name": {
             "Kind": "Name",
             "Location": {
-              "Start": 216,
-              "End": 222,
-              "Line": 10,
-              "Column": 21
+              "Start": 87,
+              "End": 93,
+              "Line": 9,
+              "Column": 5
             },
             "Value": "color"
           },
@@ -60,18 +60,18 @@
         }
       ],
       "Location": {
-        "Start": 178,
-        "End": 260,
-        "Line": 9,
-        "Column": 17
+        "Start": 65,
+        "End": 102,
+        "Line": 8,
+        "Column": 1
       },
       "Name": {
         "Kind": "Name",
         "Location": {
-          "Start": 190,
-          "End": 195,
-          "Line": 9,
-          "Column": 29
+          "Start": 77,
+          "End": 82,
+          "Line": 8,
+          "Column": 13
         },
         "Value": "Dog"
       },
@@ -93,8 +93,8 @@
     },
     "Locations": [
       {
-        "Line": 5,
-        "Column": 25
+        "Line": 4,
+        "Column": 9
       }
     ],
     "Extensions": {
@@ -111,18 +111,18 @@
       "Required": null,
       "SelectionSet": null,
       "Location": {
-        "Start": 115,
-        "End": 142,
-        "Line": 5,
-        "Column": 25
+        "Start": 50,
+        "End": 61,
+        "Line": 4,
+        "Column": 9
       },
       "Name": {
         "Kind": "Name",
         "Location": {
-          "Start": 115,
-          "End": 142,
-          "Line": 5,
-          "Column": 25
+          "Start": 50,
+          "End": 61,
+          "Line": 4,
+          "Column": 9
         },
         "Value": "color"
       },
