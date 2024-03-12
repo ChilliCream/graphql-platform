@@ -138,7 +138,7 @@ public class InMemoryClientTests
         }
 
         public Task<IResponseStream> ExecuteBatchAsync(
-            IReadOnlyList<IOperationRequest> requestBatch,
+            OperationRequestBatch requestBatch,
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 

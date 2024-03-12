@@ -161,7 +161,7 @@ public class MiddlewareBase : IDisposable
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch,
+            new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
     }
 
@@ -192,7 +192,7 @@ public class MiddlewareBase : IDisposable
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch,
+            new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
     }
 

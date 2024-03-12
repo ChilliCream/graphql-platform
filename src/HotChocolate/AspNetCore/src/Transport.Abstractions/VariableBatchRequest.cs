@@ -7,9 +7,9 @@ using HotChocolate.Transport.Serialization;
 namespace HotChocolate.Transport;
 
 /// <summary>
-/// Represents a GraphQL operation request that can be sent over a WebSocket or HTTP connection.
+/// Represents a GraphQL operation request that can be sent over a WebSocket connection.
 /// </summary>
-public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperationRequest
+public readonly struct VariableBatchRequest : IOperationRequest, IEquatable<OperationRequest>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.
@@ -24,7 +24,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// The name of the operation to execute.
     /// </param>
     /// <param name="variables">
-    /// A dictionary containing the variable values to use when executing the operation.
+    /// A list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </param>
     /// <param name="extensions">
     /// A dictionary containing extension values to include with the operation.
@@ -32,11 +32,11 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <exception cref="ArgumentException">
     /// Thrown if the query, ID, and extensions parameters are all null.
     /// </exception>
-    public OperationRequest(
+    public VariableBatchRequest(
         string? query,
         string? id,
         string? operationName,
-        ObjectValueNode? variables,
+        IReadOnlyList<ObjectValueNode>? variables,
         ObjectValueNode? extensions)
     {
         Query = query;
@@ -59,7 +59,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// The name of the operation to execute.
     /// </param>
     /// <param name="variables">
-    /// A dictionary containing the variable values to use when executing the operation.
+    /// A list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </param>
     /// <param name="extensions">
     /// A dictionary containing extension values to include with the operation.
@@ -67,11 +67,11 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <exception cref="ArgumentException">
     /// Thrown if the query, ID, and extensions parameters are all null.
     /// </exception>
-    public OperationRequest(
+    public VariableBatchRequest(
         string? query = null,
         string? id = null,
         string? operationName = null,
-        IReadOnlyDictionary<string, object?>? variables = null,
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
         Query = query;
@@ -102,15 +102,15 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     public string? OperationName { get; }
 
     /// <summary>
-    /// Gets a dictionary containing the variable values to use when executing the operation.
+    /// Gets a list of dictionaries representing the sets of variable values to use when executing the operation.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? Variables { get; }
+    public IReadOnlyList<IReadOnlyDictionary<string, object?>>? Variables { get; }
 
     /// <summary>
-    /// Gets an <see cref="ObjectValueNode"/> representing the variable values to use when executing
-    /// the operation.
+    /// Gets a list of <see cref="ObjectValueNode"/> representing the sets of variable values to
+    /// use when executing the operation.
     /// </summary>
-    public ObjectValueNode? VariablesNode { get; }
+    public IReadOnlyList<ObjectValueNode>? VariablesNode { get; }
 
     /// <summary>
     /// Gets a dictionary containing extension values to include with the operation.
@@ -176,7 +176,7 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <returns>
     /// <see langword="true"/> if the two objects are equal; otherwise, <see langword="false"/>.
     /// </returns>
-    public static bool operator ==(OperationRequest left, OperationRequest right)
+    public static bool operator ==(VariableBatchRequest left, VariableBatchRequest right)
         => left.Equals(right);
 
     /// <summary>
@@ -191,6 +191,6 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperati
     /// <returns>
     /// <see langword="true"/> if the two objects are not equal; otherwise, <see langword="false"/>.
     /// </returns>
-    public static bool operator !=(OperationRequest left, OperationRequest right)
+    public static bool operator !=(VariableBatchRequest left, VariableBatchRequest right)
         => !left.Equals(right);
 }

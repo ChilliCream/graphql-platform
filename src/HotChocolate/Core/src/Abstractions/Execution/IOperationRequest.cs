@@ -6,7 +6,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Defines the basic properties fro a GraphQL operation request.
 /// </summary>
-public interface IOperationRequest
+public interface IOperationRequest : IExecutionRequest
 {
     /// <summary>
     /// Gets the GraphQL request document.
@@ -33,16 +33,6 @@ public interface IOperationRequest
     /// Gets the GraphQL request extension data.
     /// </summary>
     IReadOnlyDictionary<string, object?>? Extensions { get; }
-
-    /// <summary>
-    /// Gets the initial request state.
-    /// </summary>
-    IReadOnlyDictionary<string, object?>? ContextData { get; }
-
-    /// <summary>
-    /// Gets the services that shall be used while executing the GraphQL request.
-    /// </summary>
-    IServiceProvider? Services { get; }
 
     /// <summary>
     /// GraphQL request flags allow to limit the GraphQL executor capabilities.

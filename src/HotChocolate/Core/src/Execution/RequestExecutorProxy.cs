@@ -97,7 +97,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public async Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IOperationRequest> requestBatch,
+        OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch == null)

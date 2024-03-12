@@ -323,7 +323,7 @@ public static class RequestExecutorServiceProviderExtensions
     /// </returns>
     public static async Task<IResponseStream> ExecuteBatchRequestAsync(
         this IServiceProvider services,
-        IReadOnlyList<IOperationRequest> requestBatch,
+        OperationRequestBatch requestBatch,
         string? schemaName = default,
         CancellationToken cancellationToken = default)
     {
