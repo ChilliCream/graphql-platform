@@ -278,5 +278,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("OperationRequest_DocumentOrIdMustBeSet", resourceCulture);
             }
         }
+        
+        internal static string OperationResultBatch_ResponseStreamOrOperationResult {
+            get {
+                return ResourceManager.GetString("OperationResultBatch_ResponseStreamOrOperationResult", resourceCulture);
+            }
+        }
     }
 }

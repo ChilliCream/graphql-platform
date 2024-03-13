@@ -21,7 +21,8 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Path? path,
         bool? hasNext,
         Func<ValueTask>[] cleanupTasks,
-        bool isDataSet)
+        bool isDataSet,
+        int? requestIndex)
         : base(cleanupTasks)
     {
         if (data is null &&
@@ -45,6 +46,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Path = path;
         HasNext = hasNext;
         IsDataSet = isDataSet;
+        RequestIndex = requestIndex;
     }
 
     /// <summary>
@@ -59,7 +61,8 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         IReadOnlyList<IOperationResult>? incremental = null,
         string? label = null,
         Path? path = null,
-        bool? hasNext = null)
+        bool? hasNext = null,
+        int? requestIndex = null)
     {
         if (data is null &&
             items is null &&
@@ -81,10 +84,14 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Label = label;
         Path = path;
         HasNext = hasNext;
+        RequestIndex = requestIndex;
     }
 
     /// <inheritdoc />
     public override ExecutionResultKind Kind => ExecutionResultKind.SingleResult;
+
+    /// <inheritdoc />
+    public int? RequestIndex { get; }
 
     /// <inheritdoc />
     public string? Label { get; }

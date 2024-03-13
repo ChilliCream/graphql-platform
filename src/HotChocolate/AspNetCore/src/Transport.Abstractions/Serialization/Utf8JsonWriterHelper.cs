@@ -15,8 +15,6 @@ internal static class Utf8JsonWriterHelper
 {
     public static void WriteOperationRequest(Utf8JsonWriter writer, OperationBatchRequest batchRequest)
     {
-        writer.WriteStartObject();
-
         writer.WriteStartArray();
 
         foreach (var request in batchRequest.Requests)
@@ -190,6 +188,10 @@ internal static class Utf8JsonWriterHelper
             case byte[] bytes:
                 writer.WriteBase64StringValue(bytes);
                 break;
+            
+            case IReadOnlyList<IReadOnlyDictionary<string, object?>> list:
+                WriteList(writer, list);
+                break;
 
             case IList list:
                 WriteList(writer, list);
@@ -274,6 +276,20 @@ internal static class Utf8JsonWriterHelper
         }
 
         writer.WriteEndObject();
+    }
+    
+    private static void WriteList<T>(
+        Utf8JsonWriter writer,
+        IReadOnlyList<T> list)
+    {
+        writer.WriteStartArray();
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            WriteFieldValue(writer, list[i]);
+        }
+
+        writer.WriteEndArray();
     }
 
     private static void WriteList(

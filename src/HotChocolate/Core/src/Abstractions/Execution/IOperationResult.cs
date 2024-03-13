@@ -8,6 +8,11 @@ namespace HotChocolate.Execution;
 public interface IOperationResult : IExecutionResult
 {
     /// <summary>
+    /// Gets the index of the request that corresponds to this result.
+    /// </summary>
+    int? RequestIndex { get; }
+    
+    /// <summary>
     /// A string that was passed to the label argument of the @defer or @stream
     /// directive that corresponds to this results.
     /// </summary>

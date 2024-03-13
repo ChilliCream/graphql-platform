@@ -179,7 +179,8 @@ public sealed class OperationResultBuilder
             _path,
             _hasNext,
             _cleanupTasks,
-            _isDataSet ?? false);
+            _isDataSet ?? false,
+            null);
 
     public static OperationResultBuilder New() => new();
 

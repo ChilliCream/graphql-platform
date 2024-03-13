@@ -45,14 +45,22 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result.Kind is ExecutionResultKind.SingleResult)
+        switch (result)
         {
-            await FormatAsync((IOperationResult)result, outputStream, cancellationToken)
-                .ConfigureAwait(false);
-        }
-        else
-        {
-            throw JsonFormatter_ResultNotSupported(nameof(JsonResultFormatter));
+            case IOperationResult singleResult:
+                await FormatInternalAsync(singleResult, outputStream, cancellationToken).ConfigureAwait(false);
+                break;
+
+            case OperationResultBatch resultBatch:
+                await FormatInternalAsync(resultBatch, outputStream, cancellationToken).ConfigureAwait(false);
+                break;
+
+            case IResponseStream responseStream:
+                await FormatInternalAsync(responseStream, outputStream, cancellationToken).ConfigureAwait(false);
+                break;
+
+            default:
+                throw JsonFormatter_ResultNotSupported(nameof(JsonResultFormatter));
         }
     }
 
@@ -191,7 +199,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
 
         FormatInternal(result, writer);
     }
-    
+
     private void FormatInternal(IOperationResult result, IBufferWriter<byte> writer)
     {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
@@ -239,10 +247,83 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    private async ValueTask FormatInternalAsync(
+        OperationResultBatch resultBatch,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        using var buffer = new ArrayWriter();
+
+        foreach (var result in resultBatch.Results)
+        {
+            switch (result)
+            {
+                case IOperationResult singleResult:
+                    FormatInternal(singleResult, buffer);
+                    break;
+
+                case IResponseStream batchResult:
+                {
+                    await foreach (var partialResult in batchResult.ReadResultsAsync()
+                        .WithCancellation(cancellationToken)
+                        .ConfigureAwait(false))
+                    {
+                        FormatInternal(partialResult, buffer);
+                    }
+                    break;
+                }
+            }
+        }
+
+#if NETSTANDARD2_0
+        await outputStream
+            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
+            .ConfigureAwait(false);
+#else
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
+#endif
+
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask FormatInternalAsync(
+        IResponseStream batchResult,
+        Stream outputStream,
+        CancellationToken cancellationToken = default)
+    {
+        using var buffer = new ArrayWriter();
+        
+        await foreach (var partialResult in batchResult.ReadResultsAsync()
+            .WithCancellation(cancellationToken)
+            .ConfigureAwait(false))
+        {
+            FormatInternal(partialResult, buffer);
+        }
+
+#if NETSTANDARD2_0
+        await outputStream
+            .WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, cancellationToken)
+            .ConfigureAwait(false);
+#else
+        await outputStream
+            .WriteAsync(buffer.GetWrittenMemory(), cancellationToken)
+            .ConfigureAwait(false);
+#endif
+
+        await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     private void WriteResult(Utf8JsonWriter writer, IOperationResult result)
     {
         writer.WriteStartObject();
 
+        if (result.RequestIndex.HasValue)
+        {
+            writer.WriteNumber("requestIndex", result.RequestIndex.Value);
+        }
+        
         WriteErrors(writer, result.Errors);
         WriteData(writer, result);
         WriteItems(writer, result.Items);
@@ -293,7 +374,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
             writer.WriteNull(Data);
             return;
         }
-        
+
         writer.WritePropertyName(Data);
 
         if (result.Data is ObjectResult resultMap)

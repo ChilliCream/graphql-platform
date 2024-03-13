@@ -253,7 +253,8 @@ internal sealed partial class ResultBuilder
             cleanupTasks: _cleanupTasks.Count == 0 
                 ? _emptyCleanupTasks 
                 : _cleanupTasks.ToArray(),
-            isDataSet: true);
+            isDataSet: true,
+            requestIndex: null);
 
         if (_data is not null)
         {

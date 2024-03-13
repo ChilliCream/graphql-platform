@@ -159,44 +159,60 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             throw ThrowHelper.Formatter_InvalidAcceptMediaType();
         }
 
-        if (result.Kind is SingleResult)
+        switch (result)
         {
-            var queryResult = (IOperationResult)result;
-            var statusCode = (int)OnDetermineStatusCode(queryResult, format, proposedStatusCode);
-
-            response.ContentType = format.ContentType;
-            response.StatusCode = statusCode;
-
-            if (result.ContextData is not null &&
-                result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
-                value is string cacheControlHeaderValue)
+            case IOperationResult operationResult:
             {
-                response.Headers.CacheControl = cacheControlHeaderValue;
+                var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
+
+                response.ContentType = format.ContentType;
+                response.StatusCode = statusCode;
+
+                if (result.ContextData is not null &&
+                    result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
+                    value is string cacheControlHeaderValue)
+                {
+                    response.Headers.CacheControl = cacheControlHeaderValue;
+                }
+
+                OnWriteResponseHeaders(operationResult, format, response.Headers);
+
+                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                break;
             }
 
-            OnWriteResponseHeaders(queryResult, format, response.Headers);
+            case OperationResultBatch resultBatch:
+            {
+                var statusCode = (int)OnDetermineStatusCode(resultBatch, format, proposedStatusCode);
+                
+                response.ContentType = format.ContentType;
+                response.StatusCode = statusCode;
+                response.Headers.CacheControl = HttpHeaderValues.NoCache;
+                OnWriteResponseHeaders(resultBatch, format, response.Headers);
+                await response.Body.FlushAsync(cancellationToken);
+                
+                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                break;
+            }
 
-            await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
-        }
-        else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
-        {
-            var responseStream = (IResponseStream)result;
-            var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
+            case IResponseStream responseStream:
+            {
+                var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
 
-            response.ContentType = format.ContentType;
-            response.StatusCode = statusCode;
-            response.Headers.CacheControl = HttpHeaderValues.NoCache;
-            OnWriteResponseHeaders(responseStream, format, response.Headers);
+                response.ContentType = format.ContentType;
+                response.StatusCode = statusCode;
+                response.Headers.CacheControl = HttpHeaderValues.NoCache;
+                OnWriteResponseHeaders(responseStream, format, response.Headers);
+                await response.Body.FlushAsync(cancellationToken);
 
-            await response.Body.FlushAsync(cancellationToken);
+                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                break;
+            }
 
-            await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
-        }
-        else
-        {
-            // we should not hit this point except in the case that we introduce a new
-            // ExecutionResultKind and forget to update this method.
-            throw ThrowHelper.Formatter_ResultKindNotSupported();
+            default:
+                // we should not hit this point except in the case that we introduce a new
+                // ExecutionResultKind and forget to update this method.
+                throw ThrowHelper.Formatter_ResultKindNotSupported();
         }
     }
 
@@ -371,6 +387,45 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// </param>
     protected virtual void OnWriteResponseHeaders(
         IResponseStream responseStream,
+        FormatInfo format,
+        IHeaderDictionary headers) { }
+    
+    /// <summary>
+    /// Determines which status code shall be returned for a result batch.
+    /// </summary>
+    /// <param name="resultBatch">
+    /// The <see cref="OperationResultBatch"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="proposedStatusCode">
+    /// The proposed status code of the middleware.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
+    /// </returns>
+    protected virtual HttpStatusCode OnDetermineStatusCode(
+        OperationResultBatch resultBatch,
+        FormatInfo format,
+        HttpStatusCode? proposedStatusCode)
+        => HttpStatusCode.OK;
+
+    /// <summary>
+    /// Override to write response headers to the response message before
+    /// the the formatter starts writing the response body.
+    /// </summary>
+    /// <param name="resultBatch">
+    /// The <see cref="OperationResultBatch"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="headers">
+    /// The header dictionary.
+    /// </param>
+    protected virtual void OnWriteResponseHeaders(
+        OperationResultBatch resultBatch,
         FormatInfo format,
         IHeaderDictionary headers) { }
 

@@ -127,7 +127,7 @@ internal sealed class OperationExecutionMiddleware
         }
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-        context.Result = new BatchOperationResult(results);
+        context.Result = new OperationResultBatch(results);
     }
 
     private async Task<IExecutionResult> ExecuteQueryOrMutationAsync(

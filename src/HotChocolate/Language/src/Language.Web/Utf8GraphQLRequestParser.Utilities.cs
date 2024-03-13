@@ -56,6 +56,8 @@ public ref partial struct Utf8GraphQLRequestParser
                 {
                     list.Add(ParseObject());
                 }
+                
+                _reader.Expect(TokenKind.RightBracket);
 
                 return list;
 
