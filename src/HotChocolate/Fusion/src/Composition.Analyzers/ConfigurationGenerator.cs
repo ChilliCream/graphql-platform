@@ -243,14 +243,13 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
             using (writer.IncreaseIndent())
             {
-                writer.WriteIndentedLine(
-                    "public static DistributedApplication Compose(this DistributedApplication application)");
+                writer.WriteIndentedLine("public static DistributedApplication Compose(this DistributedApplication application)");
                 writer.WriteIndentedLine("{");
 
                 using (writer.IncreaseIndent())
                 {
-                    writer.WriteIndentedLine(
-                        "var options = application.Services.GetRequiredService<DistributedApplicationOptions>();");
+                    writer.WriteIndentedLine("var options = application.Services.GetRequiredService<DistributedApplicationOptions>();");
+                    writer.WriteLine();
                     writer.WriteIndentedLine("if (options.Args is [\"compose\"])");
                     writer.WriteIndentedLine("{");
 
