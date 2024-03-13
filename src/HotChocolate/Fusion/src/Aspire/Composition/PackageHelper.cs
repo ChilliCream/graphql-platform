@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Text;
 using System.Text.Json;
 
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
 internal static class PackageHelper
 {

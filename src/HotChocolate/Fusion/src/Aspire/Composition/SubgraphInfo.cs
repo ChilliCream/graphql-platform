@@ -1,6 +1,6 @@
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
-internal sealed class SubgraphInfo(string name, string path, string variableName)
+public sealed class SubgraphInfo(string name, string path, string variableName)
 {
     public string Name { get; } = name;
 

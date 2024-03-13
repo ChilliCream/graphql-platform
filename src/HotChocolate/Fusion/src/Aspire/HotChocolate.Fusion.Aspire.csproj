@@ -1,18 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+
     <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <TargetFramework>net8.0</TargetFramework>
-    <TargetFrameworks>net8.0</TargetFrameworks>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.4.24156.9" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Composition\HotChocolate.Fusion.Composition.csproj" />
   </ItemGroup>

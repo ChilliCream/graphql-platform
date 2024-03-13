@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using HotChocolate.Fusion.Composition.Features;
 
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition.Settings;
 
 internal class PackageSettings
 {

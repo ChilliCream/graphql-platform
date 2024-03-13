@@ -1,6 +1,6 @@
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
-internal sealed class GatewayInfo(string name, string path, IReadOnlyList<SubgraphInfo> subgraphs)
+public sealed class GatewayInfo(string name, string path, IReadOnlyList<SubgraphInfo> subgraphs)
 {
     public string Name { get; } = name;
 

@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
 internal static class WellKnownFileNames
 {

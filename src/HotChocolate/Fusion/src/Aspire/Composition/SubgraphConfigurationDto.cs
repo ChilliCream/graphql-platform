@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
 internal sealed class SubgraphConfigurationDto(
     string name,

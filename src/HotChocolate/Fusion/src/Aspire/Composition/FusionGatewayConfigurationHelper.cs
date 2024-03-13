@@ -1,11 +1,12 @@
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Fusion.Composition.Settings;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
-internal static class FusionGatewayConfigurationHelper
+public static class FusionGatewayConfigurationUtilities
 {
     public static async Task ConfigureAsync(
         IReadOnlyList<GatewayInfo> gateways,
@@ -45,8 +46,8 @@ internal static class FusionGatewayConfigurationHelper
 
                 using (var process = Process.Start(processStartInfo)!)
                 {
-                    string output = process.StandardOutput.ReadToEnd();
-                    string errors = process.StandardError.ReadToEnd();
+                    var output = process.StandardOutput.ReadToEnd();
+                    var errors = process.StandardError.ReadToEnd();
 
                     process.WaitForExit();
 
@@ -75,7 +76,7 @@ internal static class FusionGatewayConfigurationHelper
 
     private static async Task EnsureSubgraphHasConfigAsync(
         IReadOnlyList<GatewayInfo> gateways,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct)
     {
         foreach (var gateway in gateways)
         {
@@ -91,25 +92,25 @@ internal static class FusionGatewayConfigurationHelper
 
                 var config = new SubgraphConfigurationDto(project.Name);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
-                await File.WriteAllTextAsync(configFile, configJson, cancellationToken);
+                await File.WriteAllTextAsync(configFile, configJson, ct);
             }
         }
     }
 
     private static async Task ComposeAsync(
         IReadOnlyList<GatewayInfo> gateways,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct)
     {
         foreach (var gateway in gateways)
         {
-            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), cancellationToken);
+            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), ct);
         }
     }
 
     private static async Task ComposeGatewayAsync(
         string gatewayProject,
         IEnumerable<string> subgraphProjects,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct)
     {
         var gatewayDirectory = System.IO.Path.GetDirectoryName(gatewayProject)!;
         var packageFileName = System.IO.Path.Combine(gatewayDirectory, $"gateway{WellKnownFileExtensions.FusionPackage}");
@@ -126,12 +127,12 @@ internal static class FusionGatewayConfigurationHelper
 
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
         var subgraphConfigs =
-            (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
-        await ResolveSubgraphPackagesAsync(subgraphDirectories, subgraphConfigs, cancellationToken);
+            (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
+        await ResolveSubgraphPackagesAsync(subgraphDirectories, subgraphConfigs, ct);
 
         using var settingsJson = settingsFile.Exists
-            ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, cancellationToken))
-            : await package.GetFusionGraphSettingsAsync(cancellationToken);
+            ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, ct))
+            : await package.GetFusionGraphSettingsAsync(ct);
         var settings = settingsJson.Deserialize<PackageSettings>() ?? new PackageSettings();
 
         var features = settings.CreateFeatures();
@@ -141,7 +142,7 @@ internal static class FusionGatewayConfigurationHelper
             settings.FusionTypeSelf,
             () => new ConsoleLog());
 
-        var fusionGraph = await composer.TryComposeAsync(subgraphConfigs.Values, features, cancellationToken);
+        var fusionGraph = await composer.TryComposeAsync(subgraphConfigs.Values, features, ct);
 
         if (fusionGraph is null)
         {
@@ -158,13 +159,13 @@ internal static class FusionGatewayConfigurationHelper
             settings,
             new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-        await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
-        await package.SetFusionGraphSettingsAsync(updateSettingsJson, cancellationToken);
-        await package.SetSchemaAsync(schemaDoc, cancellationToken);
+        await package.SetFusionGraphAsync(fusionGraphDoc, ct);
+        await package.SetFusionGraphSettingsAsync(updateSettingsJson, ct);
+        await package.SetSchemaAsync(schemaDoc, ct);
 
         foreach (var config in subgraphConfigs.Values)
         {
-            await package.SetSubgraphConfigurationAsync(config, cancellationToken);
+            await package.SetSubgraphConfigurationAsync(config, ct);
         }
 
         Console.WriteLine("Fusion graph composed.");

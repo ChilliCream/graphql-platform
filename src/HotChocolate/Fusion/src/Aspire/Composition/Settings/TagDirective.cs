@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition.Settings;
 
 internal sealed class TagDirective : Feature
 {

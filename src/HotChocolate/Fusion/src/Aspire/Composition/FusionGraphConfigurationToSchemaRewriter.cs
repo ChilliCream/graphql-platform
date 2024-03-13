@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-namespace HotChocolate.Fusion.Composition.Tooling;
+namespace HotChocolate.Fusion.Composition;
 
 internal sealed class FusionGraphConfigurationToSchemaRewriter : SyntaxRewriter<FusionTypeNames>
 {
