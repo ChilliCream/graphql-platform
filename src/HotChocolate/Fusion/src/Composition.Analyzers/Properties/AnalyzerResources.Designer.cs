@@ -45,27 +45,9 @@ namespace HotChocolate.Fusion.Composition.Analyzers.Properties {
             }
         }
         
-        internal static string CliCode {
-            get {
-                return ResourceManager.GetString("CliCode", resourceCulture);
-            }
-        }
-        
-        internal static string Extensions {
-            get {
-                return ResourceManager.GetString("Extensions", resourceCulture);
-            }
-        }
-        
         internal static string NoOpCompose {
             get {
                 return ResourceManager.GetString("NoOpCompose", resourceCulture);
-            }
-        }
-        
-        internal static string Compose {
-            get {
-                return ResourceManager.GetString("Compose", resourceCulture);
             }
         }
     }

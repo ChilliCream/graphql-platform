@@ -8,10 +8,11 @@ public class Program
         var builder = DistributedApplication.CreateBuilder(args);
 
         // resources
-        var redis = builder.AddRedisContainer("redis");
+        var redis = builder
+            .AddRedis("redis");
 
         var postgres = builder
-            .AddPostgresContainer("postgres")
+            .AddPostgres("postgres")
             .WithPgAdmin()
             .WithAnnotation(
                 new ContainerImageAnnotation
@@ -21,7 +22,7 @@ public class Program
                 });
 
         var rabbitMq = builder
-            .AddRabbitMQContainer("event-bus")
+            .AddRabbitMQ("event-bus")
             .WithEndpoint(containerPort: 58812, name: "management");
 
         var catalogDb = postgres.AddDatabase("CatalogDB");

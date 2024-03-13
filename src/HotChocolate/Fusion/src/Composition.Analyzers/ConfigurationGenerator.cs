@@ -12,8 +12,6 @@ public class ConfigurationGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        context.RegisterPostInitializationOutput(AddInitializationContent);
-
         var modulesAndTypes =
             context.SyntaxProvider
                 .CreateSyntaxProvider(
@@ -218,7 +216,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                     gateway.Subgraphs.Add(new SubgraphInfo(project.Name, project.TypeName));
                 }
             }
-            
+
             gateways.Add(gateway);
         }
 
@@ -227,72 +225,88 @@ public class ConfigurationGenerator : IIncrementalGenerator
             WriteNoOpCompose(context);
             return;
         }
-        
-        WriteCompose(context);
 
         var code = StringBuilderPool.Get();
         using var writer = new CodeWriter(code);
 
         writer.WriteFileHeader();
-        writer.Write(AnalyzerResources.CliCode);
         writer.WriteLine();
+        writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");
         writer.WriteLine();
-        writer.WriteIndentedLine("namespace HotChocolate.Fusion.Composition.Tooling");
+        writer.WriteIndentedLine("namespace Aspire.Hosting");
         writer.WriteIndentedLine("{");
 
         using (writer.IncreaseIndent())
         {
-            writer.WriteIndentedLine("file class GatewayList : List<GatewayInfo>");
+            writer.WriteIndentedLine("internal static class HotChocolateDistributedApplicationExtensions");
             writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())
             {
-                writer.WriteIndentedLine("public GatewayList()");
+                writer.WriteIndentedLine("public static DistributedApplication Compose(this DistributedApplication application)");
+                writer.WriteIndentedLine("{");
 
                 using (writer.IncreaseIndent())
                 {
-                    writer.WriteIndentedLine(": base(");
-                    writer.WriteIndentedLine("[");
+                    writer.WriteIndentedLine("var options = application.Services.GetRequiredService<DistributedApplicationOptions>();");
+                    writer.WriteLine();
+                    writer.WriteIndentedLine("if (options.Args is [\"compose\"])");
+                    writer.WriteIndentedLine("{");
 
                     using (writer.IncreaseIndent())
                     {
+                        writer.WriteIndentedLine("var gateways = new List<global::HotChocolate.Fusion.Composition.GatewayInfo>();");
+                        writer.WriteLine();
+
                         foreach (var gateway in gateways)
                         {
-                            writer.WriteIndentedLine("GatewayInfo.Create<{0}>(", gateway.TypeName);
+                            writer.WriteIndentedLine("gateways.Add(");
 
                             using (writer.IncreaseIndent())
                             {
-                                writer.WriteIndentedLine("\"{0}\",", gateway.Name);
+                                writer.WriteIndentedLine("global::HotChocolate.Fusion.Composition.GatewayInfo.Create<{0}>(", gateway.TypeName);
 
-                                var first = true;
-
-                                foreach (var project in gateway.Subgraphs)
+                                using (writer.IncreaseIndent())
                                 {
-                                    if (first)
+                                    writer.WriteIndentedLine("\"{0}\",", gateway.Name);
+
+                                    var first = true;
+
+                                    foreach (var project in gateway.Subgraphs)
                                     {
-                                        first = false;
-                                    }
-                                    else
-                                    {
-                                        writer.Write(",");
-                                        writer.WriteLine();
+                                        if (first)
+                                        {
+                                            first = false;
+                                        }
+                                        else
+                                        {
+                                            writer.Write(",");
+                                            writer.WriteLine();
+                                        }
+
+                                        writer.WriteIndented(
+                                            "global::HotChocolate.Fusion.Composition.SubgraphInfo.Create<{0}>(\"{1}\", \"{2}\")",
+                                            project.TypeName,
+                                            project.Name,
+                                            project.Name);
                                     }
 
-                                    writer.WriteIndented(
-                                        "SubgraphInfo.Create<{0}>(\"{1}\", \"{2}\")",
-                                        project.TypeName,
-                                        project.Name,
-                                        project.Name);
+                                    writer.Write("));");
+                                    writer.WriteLine();
                                 }
-
-                                writer.Write("),");
-                                writer.WriteLine();
                             }
                         }
+                        
+                        writer.WriteLine();
+                        writer.WriteIndentedLine("global::HotChocolate.Fusion.Composition.FusionGatewayConfigurationUtilities.ConfigureAsync(gateways).Wait();");
                     }
 
-                    writer.WriteIndentedLine("]) { }");
+                    writer.WriteIndentedLine("}");
+                    writer.WriteLine();
+                    writer.WriteIndentedLine("return application;");
                 }
+                
+                writer.WriteIndentedLine("}");
             }
 
             writer.WriteIndentedLine("}");
@@ -301,18 +315,6 @@ public class ConfigurationGenerator : IIncrementalGenerator
         writer.WriteIndentedLine("}");
 
         context.AddSource("FusionConfiguration.g.cs", code.ToString());
-        StringBuilderPool.Return(code);
-    }
-    
-    private static void WriteCompose(SourceProductionContext context)
-    {
-        var code = StringBuilderPool.Get();
-        using var writer = new CodeWriter(code);
-
-        writer.WriteFileHeader();
-        writer.Write(AnalyzerResources.Compose);
-
-        context.AddSource("FusionCompose.g.cs", code.ToString());
         StringBuilderPool.Return(code);
     }
 
@@ -324,19 +326,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
         writer.WriteFileHeader();
         writer.Write(AnalyzerResources.NoOpCompose);
 
-        context.AddSource("FusionCompose.g.cs", code.ToString());
-        StringBuilderPool.Return(code);
-    }
-
-    private static void AddInitializationContent(IncrementalGeneratorPostInitializationContext context)
-    {
-        var code = StringBuilderPool.Get();
-        using var writer = new CodeWriter(code);
-
-        writer.WriteFileHeader();
-        writer.Write(AnalyzerResources.Extensions);
-
-        context.AddSource("FusionExtensions.g.cs", code.ToString());
+        context.AddSource("FusionConfiguration.g.cs", code.ToString());
         StringBuilderPool.Return(code);
     }
 }
