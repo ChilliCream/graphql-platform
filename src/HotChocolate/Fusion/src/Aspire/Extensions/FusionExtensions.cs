@@ -1,4 +1,3 @@
-using HotChocolate.Fusion;
 using HotChocolate.Fusion.Aspire;
 
 namespace Aspire.Hosting;
