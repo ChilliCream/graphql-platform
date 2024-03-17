@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Fusion.Composition.Analyzers</PackageId>
-    <AssemblyName>HotChocolate.Fusion.Composition.Analyzers</AssemblyName>
-    <RootNamespace>HotChocolate.Fusion.Composition.Analyzers</RootNamespace>
+    <PackageId>HotChocolate.Fusion.Aspire.Analyzers</PackageId>
+    <AssemblyName>HotChocolate.Fusion.Aspire.Analyzers</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Aspire.Analyzers</RootNamespace>
     <Description>This package provides source generators for HotChocolate Fusion.</Description>
   </PropertyGroup>
 
@@ -25,7 +25,7 @@
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Composition.Analyzers.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Composition.Analyzers.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Aspire.Analyzers.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Aspire.Analyzers.targets" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
