@@ -1,9 +1,9 @@
-# Accounts_Offline_Author_NonNull
+# Resolve_ResolveByKey_Sequence_Second_Service_Offline_Field_NonNull
 
 ## User Request
 
 ```graphql
-query ReformatIds {
+{
   reviews {
     body
     author! {
@@ -59,15 +59,14 @@ query ReformatIds {
 
 ```json
 {
-  "document": "query ReformatIds { reviews { body author! { birthdate } } }",
-  "operation": "ReformatIds",
+  "document": "{ reviews { body author! { birthdate } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query ReformatIds_1 { reviews { body author! { __fusion_exports__1: id } } }",
+        "document": "query fetch_reviews_1 { reviews { body author! { __fusion_exports__1: id } } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -84,7 +83,7 @@ query ReformatIds {
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Accounts",
-        "document": "query ReformatIds_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
+        "document": "query fetch_reviews_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
         "selectionSetId": 2,
         "path": [
           "usersById"
@@ -112,7 +111,7 @@ query ReformatIds {
 ## QueryPlan Hash
 
 ```text
-DAC82CF381252DBDCD201FE838FA2FE069C60F40
+D3DF4C60C31E8FDA340A144F37950B63E301252E
 ```
 
 ## Fusion Graph

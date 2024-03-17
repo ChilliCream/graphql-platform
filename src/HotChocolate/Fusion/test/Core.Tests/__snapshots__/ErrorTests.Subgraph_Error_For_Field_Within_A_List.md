@@ -1,13 +1,15 @@
-# ResolveByKeySubgraphError
+# Subgraph_Error_For_Field_Within_A_List
 
 ## User Request
 
 ```graphql
 {
-  reviews {
-    body
-    author {
-      id
+  userById(id: "VXNlcgppMQ==") {
+    account1: birthdate
+    account2: birthdate
+    username
+    reviews {
+      body
       errorField
     }
   }
@@ -20,79 +22,44 @@
 {
   "errors": [
     {
-      "message": "SOME USER ERROR",
+      "message": "SOME REVIEW ERROR",
       "path": [
+        "userById",
         "reviews",
-        0,
-        "author",
+        1,
         "errorField"
       ],
       "extensions": {
         "remotePath": [
-          "usersById",1,
+          "authorById",
+          "reviews",1,
           "errorField"
         ],
         "remoteLocations": [
           {
             "line": 1,
-            "column": 94
-          }
-        ]
-      }
-    },
-    {
-      "message": "SOME USER ERROR",
-      "path": [
-        "reviews",
-        0,
-        "author",
-        "errorField"
-      ],
-      "extensions": {
-        "remotePath": [
-          "usersById",0,
-          "errorField"
-        ],
-        "remoteLocations": [
-          {
-            "line": 1,
-            "column": 94
+            "column": 107
           }
         ]
       }
     }
   ],
   "data": {
-    "reviews": [
-      {
-        "body": "Love it!",
-        "author": {
-          "id": "VXNlcgppMQ==",
+    "userById": {
+      "account1": "1815-12-10",
+      "account2": "1815-12-10",
+      "username": "@ada",
+      "reviews": [
+        {
+          "body": "Love it!",
+          "errorField": null
+        },
+        {
+          "body": "Could be better.",
           "errorField": null
         }
-      },
-      {
-        "body": "Too expensive.",
-        "author": {
-          "id": "VXNlcgppMg==",
-          "errorField": null
-        }
-      },
-      {
-        "body": "Could be better.",
-        "author": {
-          "id": "VXNlcgppMQ==",
-          "errorField": null
-        }
-      },
-      {
-        "body": "Prefer something else.",
-        "author": {
-          "id": "VXNlcgppMg==",
-          "errorField": null
-        }
-      }
-    ]
+      ]
+    }
   }
 }
 ```
@@ -101,14 +68,14 @@
 
 ```json
 {
-  "document": "{ reviews { body author { id errorField } } }",
+  "document": "{ userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username reviews { body errorField } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
-        "subgraph": "Reviews2",
-        "document": "query fetch_reviews_1 { reviews { body author { id __fusion_exports__1: id } } }",
+        "subgraph": "Accounts",
+        "document": "query fetch_userById_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -123,12 +90,12 @@
         ]
       },
       {
-        "type": "ResolveByKeyBatch",
-        "subgraph": "Accounts",
-        "document": "query fetch_reviews_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { errorField __fusion_exports__1: id } }",
-        "selectionSetId": 2,
+        "type": "Resolve",
+        "subgraph": "Reviews2",
+        "document": "query fetch_userById_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body errorField } } }",
+        "selectionSetId": 1,
         "path": [
-          "usersById"
+          "authorById"
         ],
         "requires": [
           {
@@ -139,7 +106,7 @@
       {
         "type": "Compose",
         "selectionSetIds": [
-          2
+          1
         ]
       }
     ]
@@ -153,7 +120,7 @@
 ## QueryPlan Hash
 
 ```text
-CF3D9A7EDFFF39BD900F00B515F641838206630E
+7D3257F87D5E3FD2EA9D743001D2F7487EF312F7
 ```
 
 ## Fusion Graph

@@ -1,10 +1,10 @@
-# Resolve_Parallel_Both_Services_Offline_Viewer_Nullable
+# Resolve_Parallel_One_Service_Offline_Sub_Field_On_Shared_Entry_Type_Nullable
 
 ## User Request
 
 ```graphql
 {
-  viewer? {
+  viewer {
     user {
       name
     }
@@ -22,11 +22,16 @@
   "errors": [
     {
       "message": "Unexpected Subgraph Failure",
-      "path": ["viewer"]
+      "path": ["viewer", "user"]
     }
   ],
   "data": {
-    "viewer": null
+    "viewer": {
+      "user": null,
+      "latestReview": {
+        "body": "Love it!"
+      }
+    }
   }
 }
 ```
@@ -35,7 +40,7 @@
 
 ```json
 {
-  "document": "{ viewer? { user { name } latestReview { body } } }",
+  "document": "{ viewer { user { name } latestReview { body } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
@@ -51,7 +56,7 @@
           {
             "type": "Resolve",
             "subgraph": "Reviews2",
-            "document": "query fetch_viewer_2 { viewer? { latestReview { body } } }",
+            "document": "query fetch_viewer_2 { viewer { latestReview { body } } }",
             "selectionSetId": 0
           }
         ]
@@ -70,7 +75,7 @@
 ## QueryPlan Hash
 
 ```text
-C386689A676850AE8B4599D2222B45B7806102E9
+930F8D997CDADB2111A654E427F1A70D211017CE
 ```
 
 ## Fusion Graph

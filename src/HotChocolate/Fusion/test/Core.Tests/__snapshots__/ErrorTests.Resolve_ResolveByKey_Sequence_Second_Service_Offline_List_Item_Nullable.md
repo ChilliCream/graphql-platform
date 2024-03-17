@@ -1,12 +1,12 @@
-# Accounts_Offline_Author_Nullable
+# Resolve_ResolveByKey_Sequence_Second_Service_Offline_List_Item_Nullable
 
 ## User Request
 
 ```graphql
-query ReformatIds {
-  reviews {
+{
+  reviews[?]! {
     body
-    author? {
+    author {
       birthdate
     }
   }
@@ -53,22 +53,10 @@ query ReformatIds {
   ],
   "data": {
     "reviews": [
-      {
-        "body": "Love it!",
-        "author": null
-      },
-      {
-        "body": "Too expensive.",
-        "author": null
-      },
-      {
-        "body": "Could be better.",
-        "author": null
-      },
-      {
-        "body": "Prefer something else.",
-        "author": null
-      }
+      null,
+      null,
+      null,
+      null
     ]
   }
 }
@@ -78,15 +66,14 @@ query ReformatIds {
 
 ```json
 {
-  "document": "query ReformatIds { reviews { body author? { birthdate } } }",
-  "operation": "ReformatIds",
+  "document": "{ reviews[?]! { body author { birthdate } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
         "subgraph": "Reviews",
-        "document": "query ReformatIds_1 { reviews { body author? { __fusion_exports__1: id } } }",
+        "document": "query fetch_reviews_1 { reviews { body author { __fusion_exports__1: id } } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -103,7 +90,7 @@ query ReformatIds {
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Accounts",
-        "document": "query ReformatIds_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
+        "document": "query fetch_reviews_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
         "selectionSetId": 2,
         "path": [
           "usersById"
@@ -131,7 +118,7 @@ query ReformatIds {
 ## QueryPlan Hash
 
 ```text
-44090BD107B85A967BEBFFCA8844F840215A117F
+492E394752EA7846F9F38A03799B632F5D9289CC
 ```
 
 ## Fusion Graph

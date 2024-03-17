@@ -5,12 +5,13 @@ using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
+
+// TODO: Two errors pointing to the same field is not spec-compliant.
 
 namespace HotChocolate.Fusion;
 
@@ -19,7 +20,299 @@ public class ErrorTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
-    public async Task Resolve_Sequence_Accounts_Offline_Field_Nullable()
+    public async Task Resolve_ResolveByKey_Sequence_Second_Service_Offline_Field_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              reviews {
+                body
+                author? {
+                  birthdate
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_ResolveByKey_Sequence_Second_Service_Offline_Field_NonNull()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              reviews {
+                body
+                author! {
+                  birthdate
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_ResolveByKey_Sequence_Second_Service_Offline_List_Item_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              reviews[?]! {
+                body
+                author {
+                  birthdate
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_ResolveByKey_Sequence_Second_Service_Offline_Entry_Field_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query {
+              reviews? {
+                body
+                author {
+                  birthdate
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_Service_Offline_Entry_Field_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Reviews2.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              reviewById(id: "UmV2aWV3Cmkx")? {
+                body
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_Service_Offline_Entry_Field_NonNull()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Reviews2.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              reviewById(id: "UmV2aWV3Cmkx")! {
+                body
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_Sequence_Second_Service_Offline_Field_Nullable()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -69,7 +362,57 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_Accounts_Offline_Field_On_Viewer_Nullable()
+    public async Task Resolve_Sequence_Second_Service_Offline_Field_NonNull()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              reviewById(id: "UmV2aWV3Cmkx") {
+                body
+                author! {
+                  username
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_Parallel_One_Service_Offline_Sub_Field_On_Shared_Entry_Type_Nullable()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -118,7 +461,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_Accounts_Offline_Field_On_Viewer_NonNull()
+    public async Task Resolve_Parallel_One_Service_Offline_Sub_Field_On_Shared_Entry_Type_NonNull()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -168,7 +511,7 @@ public class ErrorTests(ITestOutputHelper output)
 
 
     [Fact]
-    public async Task Resolve_Parallel_Both_Services_Offline_Viewer_Nullable()
+    public async Task Resolve_Parallel_Both_Services_Offline_Shared_Entry_Field_Nullable()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -219,7 +562,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task TopLevelResolveSubgraphError()
+    public async Task Subgraph_Error_Top_Level_Field()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -241,12 +584,12 @@ public class ErrorTests(ITestOutputHelper output)
         var request = Parse(
             """
             {
-                viewer {
-                  data {
-                    accountValue
-                  }
+              viewer {
+                data {
+                  accountValue
                 }
-                errorField
+              }
+              errorField
             }
             """);
 
@@ -264,7 +607,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task NestedResolveSubgraphError()
+    public async Task Subgraph_Error_For_Field_Resolved_In_Sequence()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -314,7 +657,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task NestedResolveWithListSubgraphError()
+    public async Task Subgraph_Error_For_Field_Within_A_List()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -366,7 +709,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task ResolveByKeySubgraphError()
+    public async Task Subgraph_Error_For_Field_Resolved_Via_Key_Batch()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -413,254 +756,6 @@ public class ErrorTests(ITestOutputHelper output)
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
         snapshot.MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Accounts_Offline_Author_Nullable()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var fusionGraph =
-            await new FusionGraphComposer(logFactory: _logFactory)
-                .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
-                    new FusionFeatureCollection(FusionFeatures.NodeField));
-
-        var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(
-                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            query ReformatIds {
-                reviews {
-                    body
-                    author? {
-                        birthdate
-                    }
-                }
-            }
-            """);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
-
-        // assert
-        var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        snapshot.MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Accounts_Offline_Author_NonNull()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var fusionGraph =
-            await new FusionGraphComposer(logFactory: _logFactory)
-                .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
-                    new FusionFeatureCollection(FusionFeatures.NodeField));
-
-        var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(
-                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            query ReformatIds {
-                reviews {
-                    body
-                    author! {
-                        birthdate
-                    }
-                }
-            }
-            """);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
-
-        // assert
-        var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        snapshot.MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Accounts_Offline_Reviews_ListElement_Nullable()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var fusionGraph =
-            await new FusionGraphComposer(logFactory: _logFactory)
-                .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
-                    new FusionFeatureCollection(FusionFeatures.NodeField));
-
-        var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(
-                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            query ReformatIds {
-                reviews[?]! {
-                    body
-                    author {
-                        birthdate
-                    }
-                }
-            }
-            """);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
-
-        // assert
-        var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        snapshot.MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Accounts_Offline_Reviews_Nullable()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var fusionGraph =
-            await new FusionGraphComposer(logFactory: _logFactory)
-                .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
-                    new FusionFeatureCollection(FusionFeatures.NodeField));
-
-        var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(
-                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Accounts.Name))
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            query ReformatIds {
-                reviews? {
-                    body
-                    author {
-                        birthdate
-                    }
-                }
-            }
-            """);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
-
-        // assert
-        var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        snapshot.MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Internal_Server_Error_On_Root_Field()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var executor = await new ServiceCollection()
-            .AddSingleton<IHttpClientFactory>(new ErrorFactory(demoProject.HttpClientFactory, "a"))
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(
-                Parse(
-                    """
-                    schema
-                      @fusion(version: 1)
-                      @transport(subgraph: "a", group: "a", location: "http:\/\/localhost\/graphql", kind: "HTTP") {
-                      query: Query
-                      mutation: Mutation
-                    }
-
-                    type Query {
-                      a: Boolean!
-                        @resolver(subgraph: "a", select: "{ a }")
-                    }
-                    """))
-            .CoreBuilder
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            query A {
-                a
-            }
-            """);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
-
-        // assert
-        result.MatchSnapshot();
     }
 
     private class ErrorFactory(IHttpClientFactory innerFactory, params string[] errorClients)

@@ -1,17 +1,11 @@
-# NestedResolveWithListSubgraphError
+# Resolve_Service_Offline_Entry_Field_NonNull
 
 ## User Request
 
 ```graphql
 {
-  userById(id: "VXNlcgppMQ==") {
-    account1: birthdate
-    account2: birthdate
-    username
-    reviews {
-      body
-      errorField
-    }
+  reviewById(id: "UmV2aWV3Cmkx")! {
+    body
   }
 }
 ```
@@ -22,45 +16,11 @@
 {
   "errors": [
     {
-      "message": "SOME REVIEW ERROR",
-      "path": [
-        "userById",
-        "reviews",
-        1,
-        "errorField"
-      ],
-      "extensions": {
-        "remotePath": [
-          "authorById",
-          "reviews",1,
-          "errorField"
-        ],
-        "remoteLocations": [
-          {
-            "line": 1,
-            "column": 107
-          }
-        ]
-      }
+      "message": "Unexpected Subgraph Failure",
+      "path": ["reviewById"]
     }
   ],
-  "data": {
-    "userById": {
-      "account1": "1815-12-10",
-      "account2": "1815-12-10",
-      "username": "@ada",
-      "reviews": [
-        {
-          "body": "Love it!",
-          "errorField": null
-        },
-        {
-          "body": "Could be better.",
-          "errorField": null
-        }
-      ]
-    }
-  }
+  "data": null
 }
 ```
 
@@ -68,51 +28,23 @@
 
 ```json
 {
-  "document": "{ userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username reviews { body errorField } } }",
+  "document": "{ reviewById(id: \u0022UmV2aWV3Cmkx\u0022)! { body } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
-        "subgraph": "Accounts",
-        "document": "query fetch_userById_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username __fusion_exports__1: id } }",
-        "selectionSetId": 0,
-        "provides": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
+        "subgraph": "Reviews2",
+        "document": "query fetch_reviewById_1 { reviewById(id: \u0022UmV2aWV3Cmkx\u0022) { body } }",
+        "selectionSetId": 0
       },
       {
         "type": "Compose",
         "selectionSetIds": [
           0
         ]
-      },
-      {
-        "type": "Resolve",
-        "subgraph": "Reviews2",
-        "document": "query fetch_userById_2($__fusion_exports__1: ID!) { authorById(id: $__fusion_exports__1) { reviews { body errorField } } }",
-        "selectionSetId": 1,
-        "path": [
-          "authorById"
-        ],
-        "requires": [
-          {
-            "variable": "__fusion_exports__1"
-          }
-        ]
-      },
-      {
-        "type": "Compose",
-        "selectionSetIds": [
-          1
-        ]
       }
     ]
-  },
-  "state": {
-    "__fusion_exports__1": "User_id"
   }
 }
 ```
@@ -120,7 +52,7 @@
 ## QueryPlan Hash
 
 ```text
-7D3257F87D5E3FD2EA9D743001D2F7487EF312F7
+5E9ED7CB8D5E47CAA7DF59E9712C7BBE53C597E7
 ```
 
 ## Fusion Graph
@@ -128,11 +60,8 @@
 ```graphql
 schema
   @fusion(version: 1)
-  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
-  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
   @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
   @transport(subgraph: "Reviews2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
-  @node(subgraph: "Accounts", types: [ "User" ])
   @node(subgraph: "Reviews2", types: [ "User", "Review" ]) {
   query: Query
   mutation: Mutation
@@ -140,18 +69,12 @@ schema
 }
 
 type Query {
-  errorField: String
-    @resolver(subgraph: "Accounts", select: "{ errorField }")
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
-    @variable(subgraph: "Accounts", name: "id", argument: "id")
-    @resolver(subgraph: "Accounts", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
-    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
-    @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
     @variable(subgraph: "Reviews2", name: "ids", argument: "ids")
     @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   productById(id: ID!): Product
@@ -165,17 +88,9 @@ type Query {
   reviews: [Review!]!
     @resolver(subgraph: "Reviews2", select: "{ reviews }")
   userById(id: ID!): User
-    @variable(subgraph: "Accounts", name: "id", argument: "id")
-    @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
-  users: [User!]!
-    @resolver(subgraph: "Accounts", select: "{ users }")
-  usersById(ids: [ID!]!): [User!]!
-    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
-    @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   viewer: Viewer!
-    @resolver(subgraph: "Accounts", select: "{ viewer }")
     @resolver(subgraph: "Reviews2", select: "{ viewer }")
 }
 
@@ -183,9 +98,6 @@ type Mutation {
   addReview(input: AddReviewInput!): AddReviewPayload!
     @variable(subgraph: "Reviews2", name: "input", argument: "input")
     @resolver(subgraph: "Reviews2", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
-  addUser(input: AddUserInput!): AddUserPayload!
-    @variable(subgraph: "Accounts", name: "input", argument: "input")
-    @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
 }
 
 type Subscription {
@@ -196,11 +108,6 @@ type Subscription {
 type AddReviewPayload {
   review: Review
     @source(subgraph: "Reviews2")
-}
-
-type AddUserPayload {
-  user: User
-    @source(subgraph: "Accounts")
 }
 
 type Product
@@ -229,44 +136,28 @@ type Review implements Node
 }
 
 type SomeData {
-  accountValue: String!
-    @source(subgraph: "Accounts")
   reviewsValue: String!
     @source(subgraph: "Reviews2")
 }
 
 "The user who wrote the review."
 type User implements Node
-  @variable(subgraph: "Accounts", name: "User_id", select: "id")
   @variable(subgraph: "Reviews2", name: "User_id", select: "id")
-  @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
   @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
-  birthdate: Date!
-    @source(subgraph: "Accounts")
-  errorField: String
-    @source(subgraph: "Accounts")
   id: ID!
-    @source(subgraph: "Accounts")
     @source(subgraph: "Reviews2")
   name: String!
-    @source(subgraph: "Accounts")
     @source(subgraph: "Reviews2")
   reviews: [Review!]!
     @source(subgraph: "Reviews2")
-  username: String!
-    @source(subgraph: "Accounts")
 }
 
 type Viewer {
   data: SomeData!
-    @source(subgraph: "Accounts")
     @source(subgraph: "Reviews2")
   latestReview: Review
     @source(subgraph: "Reviews2")
-  user: User
-    @source(subgraph: "Accounts")
 }
 
 "The node interface is implemented by entities that have a global unique identifier."
@@ -281,14 +172,5 @@ input AddReviewInput {
   body: String!
   upc: Int!
 }
-
-input AddUserInput {
-  birthdate: Date!
-  name: String!
-  username: String!
-}
-
-"The `Date` scalar represents an ISO-8601 compliant date type."
-scalar Date
 ```
 

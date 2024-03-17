@@ -1,16 +1,11 @@
-# Resolve_Parallel_Accounts_Offline_Field_On_Viewer_Nullable
+# Resolve_Service_Offline_Entry_Field_Nullable
 
 ## User Request
 
 ```graphql
 {
-  viewer {
-    user {
-      name
-    }
-    latestReview {
-      body
-    }
+  reviewById(id: "UmV2aWV3Cmkx")? {
+    body
   }
 }
 ```
@@ -22,16 +17,11 @@
   "errors": [
     {
       "message": "Unexpected Subgraph Failure",
-      "path": ["viewer", "user"]
+      "path": ["reviewById"]
     }
   ],
   "data": {
-    "viewer": {
-      "user": null,
-      "latestReview": {
-        "body": "Love it!"
-      }
-    }
+    "reviewById": null
   }
 }
 ```
@@ -40,26 +30,15 @@
 
 ```json
 {
-  "document": "{ viewer { user { name } latestReview { body } } }",
+  "document": "{ reviewById(id: \u0022UmV2aWV3Cmkx\u0022)? { body } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
-        "type": "Parallel",
-        "nodes": [
-          {
-            "type": "Resolve",
-            "subgraph": "Accounts",
-            "document": "query fetch_viewer_1 { viewer { user { name } } }",
-            "selectionSetId": 0
-          },
-          {
-            "type": "Resolve",
-            "subgraph": "Reviews2",
-            "document": "query fetch_viewer_2 { viewer { latestReview { body } } }",
-            "selectionSetId": 0
-          }
-        ]
+        "type": "Resolve",
+        "subgraph": "Reviews2",
+        "document": "query fetch_reviewById_1 { reviewById(id: \u0022UmV2aWV3Cmkx\u0022) { body } }",
+        "selectionSetId": 0
       },
       {
         "type": "Compose",
@@ -75,7 +54,7 @@
 ## QueryPlan Hash
 
 ```text
-930F8D997CDADB2111A654E427F1A70D211017CE
+EB123B025E9F2C5281B591822539B697B0B08675
 ```
 
 ## Fusion Graph
@@ -83,11 +62,8 @@
 ```graphql
 schema
   @fusion(version: 1)
-  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
-  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
   @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
   @transport(subgraph: "Reviews2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
-  @node(subgraph: "Accounts", types: [ "User" ])
   @node(subgraph: "Reviews2", types: [ "User", "Review" ]) {
   query: Query
   mutation: Mutation
@@ -95,18 +71,12 @@ schema
 }
 
 type Query {
-  errorField: String
-    @resolver(subgraph: "Accounts", select: "{ errorField }")
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
-    @variable(subgraph: "Accounts", name: "id", argument: "id")
-    @resolver(subgraph: "Accounts", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ node(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
-    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
-    @resolver(subgraph: "Accounts", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
     @variable(subgraph: "Reviews2", name: "ids", argument: "ids")
     @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   productById(id: ID!): Product
@@ -120,17 +90,9 @@ type Query {
   reviews: [Review!]!
     @resolver(subgraph: "Reviews2", select: "{ reviews }")
   userById(id: ID!): User
-    @variable(subgraph: "Accounts", name: "id", argument: "id")
-    @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
-  users: [User!]!
-    @resolver(subgraph: "Accounts", select: "{ users }")
-  usersById(ids: [ID!]!): [User!]!
-    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
-    @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   viewer: Viewer!
-    @resolver(subgraph: "Accounts", select: "{ viewer }")
     @resolver(subgraph: "Reviews2", select: "{ viewer }")
 }
 
@@ -138,9 +100,6 @@ type Mutation {
   addReview(input: AddReviewInput!): AddReviewPayload!
     @variable(subgraph: "Reviews2", name: "input", argument: "input")
     @resolver(subgraph: "Reviews2", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
-  addUser(input: AddUserInput!): AddUserPayload!
-    @variable(subgraph: "Accounts", name: "input", argument: "input")
-    @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
 }
 
 type Subscription {
@@ -151,11 +110,6 @@ type Subscription {
 type AddReviewPayload {
   review: Review
     @source(subgraph: "Reviews2")
-}
-
-type AddUserPayload {
-  user: User
-    @source(subgraph: "Accounts")
 }
 
 type Product
@@ -184,44 +138,28 @@ type Review implements Node
 }
 
 type SomeData {
-  accountValue: String!
-    @source(subgraph: "Accounts")
   reviewsValue: String!
     @source(subgraph: "Reviews2")
 }
 
 "The user who wrote the review."
 type User implements Node
-  @variable(subgraph: "Accounts", name: "User_id", select: "id")
   @variable(subgraph: "Reviews2", name: "User_id", select: "id")
-  @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
   @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
-  birthdate: Date!
-    @source(subgraph: "Accounts")
-  errorField: String
-    @source(subgraph: "Accounts")
   id: ID!
-    @source(subgraph: "Accounts")
     @source(subgraph: "Reviews2")
   name: String!
-    @source(subgraph: "Accounts")
     @source(subgraph: "Reviews2")
   reviews: [Review!]!
     @source(subgraph: "Reviews2")
-  username: String!
-    @source(subgraph: "Accounts")
 }
 
 type Viewer {
   data: SomeData!
-    @source(subgraph: "Accounts")
     @source(subgraph: "Reviews2")
   latestReview: Review
     @source(subgraph: "Reviews2")
-  user: User
-    @source(subgraph: "Accounts")
 }
 
 "The node interface is implemented by entities that have a global unique identifier."
@@ -236,14 +174,5 @@ input AddReviewInput {
   body: String!
   upc: Int!
 }
-
-input AddUserInput {
-  birthdate: Date!
-  name: String!
-  username: String!
-}
-
-"The `Date` scalar represents an ISO-8601 compliant date type."
-scalar Date
 ```
 

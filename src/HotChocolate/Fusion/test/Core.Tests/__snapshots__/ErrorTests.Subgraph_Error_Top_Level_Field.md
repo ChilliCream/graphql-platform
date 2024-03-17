@@ -1,4 +1,4 @@
-# TopLevelResolveSubgraphError
+# Subgraph_Error_Top_Level_Field
 
 ## User Request
 
