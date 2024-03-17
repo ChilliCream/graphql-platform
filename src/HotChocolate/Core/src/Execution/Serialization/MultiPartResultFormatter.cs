@@ -225,10 +225,7 @@ public sealed class MultiPartResultFormatter : IExecutionResultFormatter
             IBufferWriter<byte> writer,
             IOperationResult result,
             IOperationResultFormatter payloadFormatter)
-        {
-            payloadFormatter.Format(result, writer);
-            writer.Write(CrLf);
-        }
+            => payloadFormatter.Format(result, writer);
 
         public static void WriteResultHeader(IBufferWriter<byte> writer)
         {
