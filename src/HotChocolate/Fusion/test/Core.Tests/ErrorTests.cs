@@ -69,7 +69,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_Accounts_Offline_FieldNullable()
+    public async Task Resolve_Parallel_Accounts_Offline_Field_On_Viewer_Nullable()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -118,7 +118,7 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public async Task Resolve_Parallel_Accounts_Offline_FieldNonNull()
+    public async Task Resolve_Parallel_Accounts_Offline_Field_On_Viewer_NonNull()
     {
         // arrange
         using var demoProject = await DemoProject.CreateAsync();
@@ -166,6 +166,58 @@ public class ErrorTests(ITestOutputHelper output)
         snapshot.MatchMarkdownSnapshot();
     }
 
+
+    [Fact]
+    public async Task Resolve_Parallel_Both_Services_Offline_Viewer_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory,
+                    demoProject.Accounts.Name,
+                    demoProject.Reviews2.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              viewer? {
+                user {
+                  name
+                }
+                latestReview {
+                  body
+                }
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task TopLevelResolveSubgraphError()
     {
@@ -176,10 +228,7 @@ public class ErrorTests(ITestOutputHelper output)
         var fusionGraph =
             await new FusionGraphComposer(logFactory: _logFactory)
                 .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
+                    new[] { demoProject.Accounts.ToConfiguration(AccountsExtensionSdl), },
                     new FusionFeatureCollection(FusionFeatures.NodeField));
 
         var executor = await new ServiceCollection()
@@ -614,26 +663,18 @@ public class ErrorTests(ITestOutputHelper output)
         result.MatchSnapshot();
     }
 
-    private class ErrorFactory : IHttpClientFactory
+    private class ErrorFactory(IHttpClientFactory innerFactory, params string[] errorClients)
+        : IHttpClientFactory
     {
-        private readonly IHttpClientFactory _innerFactory;
-        private readonly string _errorClient;
-
-        public ErrorFactory(IHttpClientFactory innerFactory, string errorClient)
-        {
-            _innerFactory = innerFactory;
-            _errorClient = errorClient;
-        }
-
         public HttpClient CreateClient(string name)
         {
-            if (_errorClient.EqualsOrdinal(name))
+            if (errorClients.Contains(name, StringComparer.Ordinal))
             {
                 var client = new HttpClient(new ErrorHandler());
                 return client;
             }
 
-            return _innerFactory.CreateClient(name);
+            return innerFactory.CreateClient(name);
         }
 
         private class ErrorHandler : HttpClientHandler

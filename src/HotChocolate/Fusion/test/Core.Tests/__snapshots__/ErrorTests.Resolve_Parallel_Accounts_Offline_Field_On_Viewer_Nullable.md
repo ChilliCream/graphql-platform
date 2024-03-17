@@ -1,4 +1,4 @@
-# Resolve_Parallel_Accounts_Offline_FieldNullable
+# Resolve_Parallel_Accounts_Offline_Field_On_Viewer_Nullable
 
 ## User Request
 
@@ -19,6 +19,12 @@
 
 ```json
 {
+  "errors": [
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": ["viewer", "user"]
+    }
+  ],
   "data": {
     "viewer": {
       "user": null,

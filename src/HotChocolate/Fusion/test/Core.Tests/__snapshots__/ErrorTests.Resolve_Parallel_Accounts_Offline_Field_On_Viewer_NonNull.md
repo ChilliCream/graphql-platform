@@ -1,4 +1,4 @@
-# Resolve_Parallel_Accounts_Offline_FieldNonNull
+# Resolve_Parallel_Accounts_Offline_Field_On_Viewer_NonNull
 
 ## User Request
 
@@ -21,9 +21,13 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error"
+      "message": "Unexpected Subgraph Failure",
+      "path": ["viewer", "user"]
     }
-  ]
+  ],
+  "data": {
+    "viewer": null
+  }
 }
 ```
 
