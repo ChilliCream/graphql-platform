@@ -153,11 +153,26 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     context.ShowDebugInfo);
                 first = false;
             }
-            
-            if (result.TryGetValue(batchState.Key, out var data))
+
+            if (!response.IsUnrecoverableError)
             {
-                ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
-                ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
+                if (result.TryGetValue(batchState.Key, out var data))
+                {
+                    ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
+                    ExtractVariables(data, context.QueryPlan, SelectionSet, batchState.Requires, batchState.VariableValues);
+                }
+            }
+            else
+            {
+                // TODO: Is this correct?
+                batchState.SelectionSetResult.IsInvalidated = true;
+                var fusionResult = context.Result;
+                var errorPath = PathHelper.CreatePathFromContext(batchState.SelectionSetResult);
+                var error = ErrorBuilder.New()
+                    .SetMessage("Unexpected Subgraph Failure")
+                    .SetPath(errorPath)
+                    .Build();
+                fusionResult.AddError(error);
             }
 
             batchState = ref Unsafe.Add(ref batchState, 1)!;

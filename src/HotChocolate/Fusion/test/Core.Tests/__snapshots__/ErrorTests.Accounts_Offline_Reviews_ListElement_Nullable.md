@@ -17,12 +17,58 @@ query ReformatIds {
 
 ```json
 {
+  "errors": [
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        0,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        1,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        2,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        3,
+        "author"
+      ]
+    }
+  ],
   "data": {
     "reviews": [
-      null,
-      null,
-      null,
-      null
+      {
+        "body": "Love it!",
+        "author": null
+      },
+      {
+        "body": "Too expensive.",
+        "author": null
+      },
+      {
+        "body": "Could be better.",
+        "author": null
+      },
+      {
+        "body": "Prefer something else.",
+        "author": null
+      }
     ]
   }
 }

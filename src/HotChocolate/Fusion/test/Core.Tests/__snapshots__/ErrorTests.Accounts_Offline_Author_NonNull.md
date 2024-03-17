@@ -19,10 +19,119 @@ query ReformatIds {
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error"
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        0,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        1,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        2,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        3,
+        "author"
+      ]
     }
-  ]
+  ],
+  "data": {
+    "reviews": [
+      {
+        "body": "Love it!",
+        "author": null
+      },
+      {
+        "body": "Too expensive.",
+        "author": null
+      },
+      {
+        "body": "Could be better.",
+        "author": null
+      },
+      {
+        "body": "Prefer something else.",
+        "author": null
+      }
+    ]
+  }
 }
+```
+
+## QueryPlan
+
+```json
+{
+  "document": "query ReformatIds { reviews { body author! { birthdate } } }",
+  "operation": "ReformatIds",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Reviews",
+        "document": "query ReformatIds_1 { reviews { body author! { __fusion_exports__1: id } } }",
+        "selectionSetId": 0,
+        "provides": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      },
+      {
+        "type": "ResolveByKeyBatch",
+        "subgraph": "Accounts",
+        "document": "query ReformatIds_2($__fusion_exports__1: [ID!]!) { usersById(ids: $__fusion_exports__1) { birthdate __fusion_exports__1: id } }",
+        "selectionSetId": 2,
+        "path": [
+          "usersById"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__1"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          2
+        ]
+      }
+    ]
+  },
+  "state": {
+    "__fusion_exports__1": "User_id"
+  }
+}
+```
+
+## QueryPlan Hash
+
+```text
+DAC82CF381252DBDCD201FE838FA2FE069C60F40
 ```
 
 ## Fusion Graph

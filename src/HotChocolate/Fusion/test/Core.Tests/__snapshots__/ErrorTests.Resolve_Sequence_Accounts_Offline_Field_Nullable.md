@@ -17,6 +17,15 @@
 
 ```json
 {
+  "errors": [
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviewById",
+        "author"
+      ]
+    }
+  ],
   "data": {
     "reviewById": {
       "body": "Love it!",

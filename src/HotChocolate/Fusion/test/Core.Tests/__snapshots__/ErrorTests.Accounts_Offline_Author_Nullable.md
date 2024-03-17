@@ -17,6 +17,40 @@ query ReformatIds {
 
 ```json
 {
+  "errors": [
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        0,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        1,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        2,
+        "author"
+      ]
+    },
+    {
+      "message": "Unexpected Subgraph Failure",
+      "path": [
+        "reviews",
+        3,
+        "author"
+      ]
+    }
+  ],
   "data": {
     "reviews": [
       {

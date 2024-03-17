@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
@@ -149,6 +150,18 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
 
                 // next we need to extract any variables that we need for followup requests.
                 ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);
+            }
+            else
+            {
+                // TODO: Is this correct?
+                state.SelectionSetResult.IsInvalidated = true;
+                var fusionResult = context.Result;
+                var errorPath = PathHelper.CreatePathFromContext(state.SelectionSetResult);
+                var error = ErrorBuilder.New()
+                    .SetMessage("Unexpected Subgraph Failure")
+                    .SetPath(errorPath)
+                    .Build();
+                fusionResult.AddError(error);
             }
 
             state = ref Unsafe.Add(ref state, 1)!;
