@@ -266,6 +266,114 @@ public class ErrorTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Resolve_Followed_By_Parallel_Resolve_One_Service_Offline_Field_Nullable()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                        demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Products.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              reviewById(id: "UmV2aWV3Cmkx")? {
+                body
+                author {
+                  username
+                }
+                product? {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolve_Followed_By_Parallel_Resolve_One_Service_Offline_Field_NonNull()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                        demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton<IHttpClientFactory>(
+                new ErrorFactory(demoProject.HttpClientFactory, demoProject.Products.Name))
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              reviewById(id: "UmV2aWV3Cmkx")? {
+                body
+                author {
+                  username
+                }
+                product! {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Resolve_Service_Offline_Entry_Field_NonNull()
     {
         // arrange
