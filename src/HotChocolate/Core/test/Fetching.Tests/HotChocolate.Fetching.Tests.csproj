@@ -11,4 +11,8 @@
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="__snapshots__\" />
+  </ItemGroup>
+
 </Project>

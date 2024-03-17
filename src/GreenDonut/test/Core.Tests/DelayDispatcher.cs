@@ -1,14 +1,13 @@
-using System;
 using System.Threading.Tasks;
 
 namespace GreenDonut;
 
-public class DelayDispatcher : IBatchScheduler
+public sealed class DelayDispatcher : IBatchScheduler
 {
-    public void Schedule(Func<ValueTask> dispatch)
+    public void Schedule(BatchJob job)
         => Task.Run(async () =>
         {
             await Task.Delay(150);
-            await dispatch();
+            await job.DispatchAsync();
         });
 }

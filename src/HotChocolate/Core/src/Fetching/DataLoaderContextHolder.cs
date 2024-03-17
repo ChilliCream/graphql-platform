@@ -6,16 +6,14 @@ using System.Linq;
 #endif
 using System.Collections.Generic;
 using System.Threading;
-using GreenDonut;
 using GreenDonut.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fetching;
 
 /// <summary>
 /// This instance holds the current DataLoader scope and allows to create a new scope.
 /// </summary>
-public sealed class DataLoaderScopeHolder
+public sealed class DataLoaderContextHolder
 {
     private static readonly AsyncLocal<InstanceHolder> _currentScope = new();
 #if NET8_0_OR_GREATER
@@ -24,7 +22,7 @@ public sealed class DataLoaderScopeHolder
     private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
 #endif
 
-    public DataLoaderScopeHolder(IEnumerable<DataLoaderRegistration> registrations)
+    public DataLoaderContextHolder(IEnumerable<DataLoaderRegistration> registrations)
     {
 #if NET8_0_OR_GREATER
         _registrations = CreateRegistrations().ToFrozenDictionary(t => t.Item1, t => t.Item2);
@@ -50,32 +48,32 @@ public sealed class DataLoaderScopeHolder
     }
 
     /// <summary>
-    /// Creates and pins a new <see cref="IDataLoaderScope"/>.
+    /// Creates and pins a new <see cref="IDataLoaderContext"/>.
     /// </summary>
-    public IDataLoaderScope PinNewScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    public IDataLoaderContext PinNewScope(IServiceProvider scopedServiceProvider)
     {
-        scheduler ??= scopedServiceProvider.GetRequiredService<IBatchScheduler>();
-        return CurrentScope = new ExecutionDataLoaderScope(scopedServiceProvider, scheduler, _registrations);
+        CurrentContext = new ExecutionDataLoaderContext(scopedServiceProvider, _registrations);
+        return CurrentContext;
     }
     
-    public IDataLoaderScope GetOrCreateScope(IServiceProvider scopedServiceProvider, IBatchScheduler? scheduler = null)
+    public IDataLoaderContext GetOrCreateContext(IServiceProvider scopedServiceProvider)
     {
-        if(_currentScope.Value?.Scope is null)
+        if(_currentScope.Value?.Context is null)
         {
-            CurrentScope = PinNewScope(scopedServiceProvider, scheduler);
+            CurrentContext = PinNewScope(scopedServiceProvider);
         }
-        return CurrentScope;
+        return CurrentContext;
     }
 
     /// <summary>
-    /// Gets access to the current <see cref="IDataLoaderScope"/> instance.
+    /// Gets access to the current <see cref="IDataLoaderContext"/> instance.
     /// </summary>
     /// <exception cref="InvalidCastException">
     /// The instance was not initialized.
     /// </exception>
-    public IDataLoaderScope CurrentScope
+    public IDataLoaderContext CurrentContext
     {
-        get => _currentScope.Value?.Scope ??
+        get => _currentScope.Value?.Context ??
             throw new InvalidOperationException("No DataLoader scope exists.");
         set
         {
@@ -87,12 +85,12 @@ public sealed class DataLoaderScopeHolder
                 _currentScope.Value = holder;
             }
 
-            holder.Scope = value;
+            holder.Context = value;
         }
     }
 
     private sealed class InstanceHolder
     {
-        public IDataLoaderScope Scope = default!;
+        public IDataLoaderContext Context = default!;
     }
 }

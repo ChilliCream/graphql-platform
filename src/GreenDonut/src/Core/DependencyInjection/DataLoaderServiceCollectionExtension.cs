@@ -51,11 +51,11 @@ public static class DataLoaderServiceCollectionExtension
         this IServiceCollection services)
     {
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
-        
-        services.AddSingleton<DataLoaderScopeFactory>();
-        services.TryAddScoped<IDataLoaderScope>(sp => sp.GetRequiredService<DataLoaderScopeFactory>().CreateScope(sp));
-        services.TryAddScoped<IBatchScheduler, AutoBatchScheduler>();
 
+        services.AddSingleton<DataLoaderContextFactory>();
+        services.TryAddScoped<IDataLoaderContext>(
+            sp => sp.GetRequiredService<DataLoaderContextFactory>().CreateScope(sp));
+        services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<IDataLoaderContext>().Scheduler);
         services.TryAddSingleton(sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
         services.TryAddScoped(sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
 
@@ -93,39 +93,42 @@ public static class DataLoaderServiceCollectionExtension
 file static class DataLoaderServiceProviderExtensions
 {
     public static T GetDataLoader<T>(this IServiceProvider services) where T : IDataLoader
-        => services.GetRequiredService<IDataLoaderScope>().GetDataLoader<T>();
+        => services.GetRequiredService<IDataLoaderContext>().GetDataLoader<T>();
 }
 
-internal sealed class DataLoaderScopeFactory
+internal sealed class DataLoaderContextFactory
 {
 #if NET8_0_OR_GREATER
     private readonly FrozenDictionary<Type, DataLoaderRegistration> _registrations;
-#else 
+#else
     private readonly Dictionary<Type, DataLoaderRegistration> _registrations;
 #endif
 
-    public DataLoaderScopeFactory(IEnumerable<DataLoaderRegistration> dataLoaderRegistrations)
+    public DataLoaderContextFactory(IEnumerable<DataLoaderRegistration> dataLoaderRegistrations)
 #if NET8_0_OR_GREATER
         => _registrations = dataLoaderRegistrations.ToFrozenDictionary(t => t.ServiceType);
 #else
         => _registrations = dataLoaderRegistrations.ToDictionary(t => t.ServiceType);
 #endif
 
-    public IDataLoaderScope CreateScope(IServiceProvider scopedServiceProvider)
-        => new DefaultDataLoaderScope(scopedServiceProvider, _registrations);
+    public IDataLoaderContext CreateScope(IServiceProvider scopedServiceProvider)
+        => new DefaultDataLoaderContext(
+            scopedServiceProvider,
+            _registrations);
 }
 
-file sealed class DefaultDataLoaderScope(
+file sealed class DefaultDataLoaderContext(
     IServiceProvider serviceProvider,
 #if NET8_0_OR_GREATER
     FrozenDictionary<Type, DataLoaderRegistration> registrations)
 #else
     Dictionary<Type, DataLoaderRegistration> registrations)
 #endif
-    : IDataLoaderScope
+    : IDataLoaderContext
 {
     private readonly ConcurrentDictionary<string, IDataLoader> _dataLoaders = new();
 
+    public ActiveBatchScheduler Scheduler { get; } = new();
 
     public T GetDataLoader<T>(DataLoaderFactory<T> createDataLoader, string? name = null) where T : IDataLoader
     {

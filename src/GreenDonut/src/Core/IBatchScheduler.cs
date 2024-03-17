@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace GreenDonut;
 
 /// <summary>
@@ -10,10 +7,10 @@ namespace GreenDonut;
 public interface IBatchScheduler
 {
     /// <summary>
-    /// Schedules work.
+    /// Schedules the work that has to be executed to fetch the data.
     /// </summary>
-    /// <param name="dispatch">
-    /// A delegate that represents the work.
+    /// <param name="job">
+    /// The work that has to be executed to fetch the data.
     /// </param>
-    void Schedule(Func<ValueTask> dispatch);
+    void Schedule(BatchJob job);
 }

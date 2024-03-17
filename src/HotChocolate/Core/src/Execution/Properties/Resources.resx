@@ -228,9 +228,6 @@
   <data name="ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message" xml:space="preserve">
     <value>A composite type always needs to specify a selection set.</value>
   </data>
-  <data name="ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message" xml:space="preserve">
-    <value>Make sure that you have registered an IBatchDispatcher with your scoped request services.</value>
-  </data>
   <data name="OperationCompiler_Compile_SelectionSetIsEmpty" xml:space="preserve">
     <value>The operation selection set is empty.</value>
   </data>

@@ -38,9 +38,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
 
-    public async ValueTask InvokeAsync(
-        IRequestContext context,
-        IBatchDispatcher batchDispatcher)
+    public async ValueTask InvokeAsync(IRequestContext context)
     {
         if (context.Operation is not null &&
             context.Variables is not null &&
@@ -53,7 +51,6 @@ internal sealed class DistributedOperationExecutionMiddleware(
             operationContext.Initialize(
                 context,
                 context.Services,
-                batchDispatcher,
                 context.Operation,
                 context.Variables,
                 GetRootObject(context.Operation),
@@ -109,10 +106,6 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 serviceConfig,
                 clientFactory,
                 nodeIdParser);
-            return async context =>
-            {
-                var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();
-                await middleware.InvokeAsync(context, batchDispatcher);
-            };
+            return async context => await middleware.InvokeAsync(context);
         };
 }

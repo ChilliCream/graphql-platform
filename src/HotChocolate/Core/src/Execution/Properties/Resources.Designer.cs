@@ -267,12 +267,6 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message {
-            get {
-                return ResourceManager.GetString("ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message", resourceCulture);
-            }
-        }
-        
         internal static string OperationCompiler_Compile_SelectionSetIsEmpty {
             get {
                 return ResourceManager.GetString("OperationCompiler_Compile_SelectionSetIsEmpty", resourceCulture);

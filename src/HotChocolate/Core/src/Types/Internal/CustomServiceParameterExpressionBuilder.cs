@@ -10,18 +10,13 @@ namespace HotChocolate.Internal;
 /// This expression builder allows to map custom services as resolver parameters that do
 /// not need an attribute.
 /// </summary>
-public sealed class CustomServiceParameterExpressionBuilder<TService>
+public sealed class CustomServiceParameterExpressionBuilder<TService>(
+    ServiceKind kind = ServiceKind.Default)
     : IParameterExpressionBuilder
     , IParameterFieldConfiguration
     where TService : class
 {
     private static readonly Type _serviceType = typeof(TService);
-    private readonly ServiceKind _kind;
-
-    public CustomServiceParameterExpressionBuilder(ServiceKind kind = ServiceKind.Default)
-    {
-        _kind = kind;
-    }
 
     ArgumentKind IParameterExpressionBuilder.Kind
         => ArgumentKind.Service;
@@ -29,14 +24,14 @@ public sealed class CustomServiceParameterExpressionBuilder<TService>
     bool IParameterExpressionBuilder.IsDefaultHandler => false;
 
     bool IParameterExpressionBuilder.IsPure
-        => _kind is ServiceKind.Default;
+        => kind is ServiceKind.Default;
 
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == _serviceType;
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
-        => ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, _kind);
+        => ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, kind);
 
     public Expression Build(ParameterExpressionBuilderContext context)
-        => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, _kind);
+        => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, kind);
 }

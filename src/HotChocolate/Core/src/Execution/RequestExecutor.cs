@@ -107,7 +107,7 @@ internal sealed class RequestExecutor : IRequestExecutor
             if (scopeDataLoader)
             {
                 // we ensure that at the begin of each execution there is a fresh batching scope.
-                services.InitializeDataLoaderScope();
+                services.EnsureDataLoaderContextExists();
             }
 
             context.RequestAborted = cancellationToken;

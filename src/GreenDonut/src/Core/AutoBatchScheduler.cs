@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 
 namespace GreenDonut;
@@ -11,15 +10,15 @@ public class AutoBatchScheduler : IBatchScheduler
     /// <summary>
     /// Schedules a new job to the dispatcher that is immediately executed.
     /// </summary>
-    /// <param name="dispatch">
+    /// <param name="job">
     /// The job that is being scheduled.
     /// </param>
-    public void Schedule(Func<ValueTask> dispatch)
-        => BeginDispatch(dispatch);
+    public void Schedule(BatchJob job)
+        => BeginDispatch(job);
 
-    private static void BeginDispatch(Func<ValueTask> dispatch)
+    private static void BeginDispatch(BatchJob job)
         => Task.Factory.StartNew(
-            async () => await dispatch().ConfigureAwait(false),
+            async () => await job.DispatchAsync().ConfigureAwait(false),
             default,
             TaskCreationOptions.DenyChildAttach,
             TaskScheduler.Default);

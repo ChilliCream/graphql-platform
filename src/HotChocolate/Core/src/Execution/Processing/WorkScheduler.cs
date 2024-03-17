@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -115,5 +116,14 @@ internal sealed partial class WorkScheduler
                 }
             }
         }
+    }
+    
+    private void UseBatchScheduler()
+        => _dataLoaderContext.Scheduler.SetActiveScheduler(_batchScheduler);
+    
+    private void UseSynchronizedAutoScheduler()
+    {
+        _synchronizedAutoScheduler ??= new SynchronizedAutoScheduler();
+        _dataLoaderContext.Scheduler.SetActiveScheduler(_synchronizedAutoScheduler);
     }
 }

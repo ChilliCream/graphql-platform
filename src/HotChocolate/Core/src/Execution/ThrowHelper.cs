@@ -237,9 +237,6 @@ internal static class ThrowHelper
             .AddLocation(selection)
             .Build());
 
-    public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
-        new(ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
-
     public static SchemaException Convention_UnableToCreateConvention(
         Type convention) =>
         new(SchemaErrorBuilder.New()

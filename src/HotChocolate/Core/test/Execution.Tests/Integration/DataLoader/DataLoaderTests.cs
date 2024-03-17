@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using CookieCrumble;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
-using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
@@ -181,7 +180,7 @@ public class DataLoaderTests
 
                         var dataLoader =
                             context.Services
-                                .GetRequiredService<IDataLoaderScope>()
+                                .GetRequiredService<IDataLoaderContext>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                         context.Result = QueryResultBuilder
@@ -242,7 +241,7 @@ public class DataLoaderTests
 
                     var dataLoader =
                         context.Services
-                            .GetRequiredService<IDataLoaderScope>()
+                            .GetRequiredService<IDataLoaderContext>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                     context.Result = QueryResultBuilder
@@ -277,7 +276,7 @@ public class DataLoaderTests
 
                     var dataLoader =
                         context.Services
-                            .GetRequiredService<IDataLoaderScope>()
+                            .GetRequiredService<IDataLoaderContext>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                     context.Result = QueryResultBuilder
@@ -291,9 +290,6 @@ public class DataLoaderTests
 
         // act
         using var serviceScope = services.CreateScope();
-        var dataLoaderScopeFactory = serviceScope.ServiceProvider.GetRequiredService<IDataLoaderScopeFactory>();
-        dataLoaderScopeFactory.BeginScope();
-
         var dataLoader = serviceScope.ServiceProvider.GetRequiredService<ITestDataLoader>();
         var result = await dataLoader.LoadAsync("a");
         Assert.Equal("a", result);
@@ -315,7 +311,7 @@ public class DataLoaderTests
 
                     var dataLoader =
                         context.Services
-                            .GetRequiredService<IDataLoaderScope>()
+                            .GetRequiredService<IDataLoaderContext>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
                     context.Result = QueryResultBuilder
