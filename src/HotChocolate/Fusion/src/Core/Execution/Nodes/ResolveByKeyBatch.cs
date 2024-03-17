@@ -164,15 +164,17 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             }
             else
             {
-                // TODO: Is this correct?
-                batchState.SelectionSetResult.IsInvalidated = true;
-                var fusionResult = context.Result;
-                var errorPath = PathHelper.CreatePathFromContext(batchState.SelectionSetResult);
-                var error = ErrorBuilder.New()
-                    .SetMessage("Unexpected Subgraph Failure")
-                    .SetPath(errorPath)
-                    .Build();
-                fusionResult.AddError(error);
+                ref var currentSelection = ref SelectionSet.GetSelectionsReference();
+                ref var currentResult = ref MemoryMarshal.GetArrayDataReference(batchState.SelectionSetData);
+                ref var endSelection = ref Unsafe.Add(ref currentSelection, SelectionSet.Selections.Count);
+
+                while (Unsafe.IsAddressLessThan(ref currentSelection, ref endSelection))
+                {
+                    currentResult = currentResult.AddError();
+
+                    currentSelection = ref Unsafe.Add(ref currentSelection, 1)!;
+                    currentResult = ref Unsafe.Add(ref currentResult, 1)!;
+                }
             }
 
             batchState = ref Unsafe.Add(ref batchState, 1)!;

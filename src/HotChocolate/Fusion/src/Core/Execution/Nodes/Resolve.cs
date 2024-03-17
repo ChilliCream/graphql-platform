@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using static HotChocolate.Fusion.Execution.ExecutorUtils;
 using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
@@ -153,15 +152,17 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             }
             else
             {
-                // TODO: Is this correct?
-                state.SelectionSetResult.IsInvalidated = true;
-                var fusionResult = context.Result;
-                var errorPath = PathHelper.CreatePathFromContext(state.SelectionSetResult);
-                var error = ErrorBuilder.New()
-                    .SetMessage("Unexpected Subgraph Failure")
-                    .SetPath(errorPath)
-                    .Build();
-                fusionResult.AddError(error);
+                ref var currentSelection = ref SelectionSet.GetSelectionsReference();
+                ref var currentResult = ref MemoryMarshal.GetArrayDataReference(state.SelectionSetData);
+                ref var endSelection = ref Unsafe.Add(ref currentSelection, SelectionSet.Selections.Count);
+
+                while (Unsafe.IsAddressLessThan(ref currentSelection, ref endSelection))
+                {
+                    currentResult = currentResult.AddError();
+
+                    currentSelection = ref Unsafe.Add(ref currentSelection, 1)!;
+                    currentResult = ref Unsafe.Add(ref currentResult, 1)!;
+                }
             }
 
             state = ref Unsafe.Add(ref state, 1)!;

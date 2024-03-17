@@ -51,26 +51,7 @@ query ReformatIds {
       ]
     }
   ],
-  "data": {
-    "reviews": [
-      {
-        "body": "Love it!",
-        "author": null
-      },
-      {
-        "body": "Too expensive.",
-        "author": null
-      },
-      {
-        "body": "Could be better.",
-        "author": null
-      },
-      {
-        "body": "Prefer something else.",
-        "author": null
-      }
-    ]
-  }
+  "data": null
 }
 ```
 

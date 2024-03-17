@@ -19,6 +19,13 @@ internal readonly struct SelectionData
         HasValue = true;
     }
 
+    private SelectionData(bool hasError)
+    {
+        HasError = hasError;
+    }
+
+    public bool HasError { get; }
+
     public bool HasValue { get; }
 
     public JsonResult Single { get; }
@@ -73,6 +80,11 @@ internal readonly struct SelectionData
 
         array[Multiple.Length] = result;
         return new SelectionData(array);
+    }
+
+    public SelectionData AddError()
+    {
+        return new SelectionData(true);
     }
 
     public static SelectionData Empty { get; } = new();

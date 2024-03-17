@@ -1,10 +1,10 @@
-# Accounts_Offline_Reviews_ListElement_Nullable
+# Accounts_Offline_Reviews_Nullable
 
 ## User Request
 
 ```graphql
 query ReformatIds {
-  reviews[?]! {
+  reviews? {
     body
     author {
       birthdate
@@ -52,12 +52,7 @@ query ReformatIds {
     }
   ],
   "data": {
-    "reviews": [
-      null,
-      null,
-      null,
-      null
-    ]
+    "reviews": null
   }
 }
 ```
@@ -66,7 +61,7 @@ query ReformatIds {
 
 ```json
 {
-  "document": "query ReformatIds { reviews[?]! { body author { birthdate } } }",
+  "document": "query ReformatIds { reviews? { body author { birthdate } } }",
   "operation": "ReformatIds",
   "rootNode": {
     "type": "Sequence",
@@ -119,7 +114,7 @@ query ReformatIds {
 ## QueryPlan Hash
 
 ```text
-33778A501536384C3FDCA645FA673B8DD1640192
+9169D6B01D0785B8DF3C787CE779D602D5C250E1
 ```
 
 ## Fusion Graph

@@ -19,17 +19,11 @@
 
 ```json
 {
-  "errors": [
-    {
-      "message": "Unexpected Subgraph Failure",
-      "path": ["viewer", "user"]
-    }
-  ],
   "data": {
     "viewer": {
       "user": null,
       "latestReview": {
-        "body": ""
+        "body": "Love it!"
       }
     }
   }

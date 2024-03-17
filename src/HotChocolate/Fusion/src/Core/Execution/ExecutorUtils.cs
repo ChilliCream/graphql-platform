@@ -62,7 +62,23 @@ internal static class ExecutorUtils
                 var nullable = selection.TypeKind is not TypeKind.NonNull;
                 var namedType = selectionType.NamedType();
 
-                if (!data.HasValue)
+                if (data.HasError)
+                {
+                    var error = ErrorBuilder.New()
+                        .SetMessage("Unexpected Subgraph Failure")
+                        .SetPath(PathHelper.CreatePathFromContext(selectionSetResult))
+                        .Build();
+                    context.Result.AddError(error, selection);
+
+                    if (!nullable)
+                    {
+                        PropagateNullValues(selectionSetResult);
+                        break;
+                    }
+
+                    result.Set(responseName, null, nullable);
+                }
+                else if (!data.HasValue)
                 {
                     if (!partialResult)
                     {
@@ -545,7 +561,8 @@ internal static class ExecutorUtils
                 }
             }
 
-            if (addDebugInfo && error.TryGetProperty("locations", out var locations) &&
+            if (addDebugInfo &&
+                error.TryGetProperty("locations", out var locations) &&
                 locations.ValueKind is JsonValueKind.Array)
             {
                 var remoteLocations = new List<JsonElement>();
