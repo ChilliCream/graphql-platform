@@ -160,11 +160,18 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
                 .WithCancellation(ct)
                 .ConfigureAwait(false))
             {
-                MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
-                writer.Write(buffer.GetWrittenSpan());
-                await writer.FlushAsync(ct).ConfigureAwait(false);
-                keepAliveJob.Reset();
-                buffer.Reset();
+                try
+                {
+                    MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
+                    writer.Write(buffer.GetWrittenSpan());
+                    await writer.FlushAsync(ct).ConfigureAwait(false);
+                    keepAliveJob.Reset();
+                    buffer.Reset();
+                }
+                finally
+                {
+                    await result.DisposeAsync().ConfigureAwait(false);
+                }
             }
         }
     }

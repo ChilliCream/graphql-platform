@@ -268,7 +268,14 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
                         .WithCancellation(cancellationToken)
                         .ConfigureAwait(false))
                     {
-                        FormatInternal(partialResult, buffer);
+                        try
+                        {
+                            FormatInternal(partialResult, buffer);
+                        }
+                        finally
+                        {
+                            await partialResult.DisposeAsync().ConfigureAwait(false);
+                        }
                     }
                     break;
                 }
@@ -294,12 +301,19 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         CancellationToken cancellationToken = default)
     {
         using var buffer = new ArrayWriter();
-        
+
         await foreach (var partialResult in batchResult.ReadResultsAsync()
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
-            FormatInternal(partialResult, buffer);
+            try
+            {
+                FormatInternal(partialResult, buffer);
+            }
+            finally
+            {
+                await partialResult.DisposeAsync().ConfigureAwait(false);
+            }
         }
 
 #if NETSTANDARD2_0
@@ -323,7 +337,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         {
             writer.WriteNumber("requestIndex", result.RequestIndex.Value);
         }
-        
+
         WriteErrors(writer, result.Errors);
         WriteData(writer, result);
         WriteItems(writer, result.Items);
