@@ -16,7 +16,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -27,10 +27,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
@@ -58,7 +58,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -69,10 +69,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
@@ -101,7 +101,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -112,10 +112,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -145,7 +145,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -156,10 +156,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -188,7 +188,7 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
@@ -199,10 +199,10 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);

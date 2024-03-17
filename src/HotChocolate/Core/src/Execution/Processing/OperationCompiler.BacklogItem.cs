@@ -5,30 +5,21 @@ namespace HotChocolate.Execution.Processing;
 
 public sealed partial class OperationCompiler
 {
-    private readonly struct BacklogItem
+    private readonly struct BacklogItem(
+        ObjectType type,
+        int selectionSetId,
+        Selection selection,
+        SelectionPath path,
+        IImmutableList<ISelectionSetOptimizer> optimizers)
     {
-        public BacklogItem(
-            ObjectType type,
-            int selectionSetId,
-            Selection selection,
-            SelectionPath path,
-            IImmutableList<ISelectionSetOptimizer> optimizers)
-        {
-            Type = type;
-            SelectionSetId = selectionSetId;
-            Selection = selection;
-            Path = path;
-            Optimizers = optimizers;
-        }
+        public ObjectType Type { get; } = type;
 
-        public ObjectType Type { get; }
+        public int SelectionSetId { get; } = selectionSetId;
 
-        public int SelectionSetId { get; }
+        public Selection Selection { get; } = selection;
 
-        public Selection Selection { get; }
+        public SelectionPath Path { get; } = path;
 
-        public SelectionPath Path { get; }
-
-        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; }
+        public IImmutableList<ISelectionSetOptimizer> Optimizers { get; } = optimizers;
     }
 }

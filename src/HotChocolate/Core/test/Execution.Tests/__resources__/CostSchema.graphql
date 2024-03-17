@@ -18,3 +18,5 @@ type Baz {
 }
 
 union BazOrBar = Baz | Bar
+
+directive @cost(complexity: Int!) on FIELD_DEFINITION

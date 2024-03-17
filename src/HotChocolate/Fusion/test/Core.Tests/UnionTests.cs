@@ -71,11 +71,11 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -133,11 +133,11 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -192,11 +192,11 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
@@ -251,11 +251,11 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert

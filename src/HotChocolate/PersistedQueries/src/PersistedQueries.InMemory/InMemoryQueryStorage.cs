@@ -8,15 +8,10 @@ using Microsoft.Extensions.Caching.Memory;
 namespace HotChocolate.PersistedQueries.FileSystem;
 
 /// <summary>
-/// An implementation of <see cref="IReadStoredQueries"/>
-/// and <see cref="IWriteStoredQueries"/> that
-/// uses the local file system.
+/// An implementation of <see cref="IOperationDocumentStorage"/> that uses an in-memory cache.
 /// </summary>
-public class InMemoryQueryStorage
-    : IReadStoredQueries
-    , IWriteStoredQueries
+public class InMemoryQueryStorage : IOperationDocumentStorage
 {
-    private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
     private readonly IMemoryCache _cache;
 
     /// <summary>
@@ -26,54 +21,52 @@ public class InMemoryQueryStorage
     {
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
-
+    
     /// <inheritdoc />
-    public Task<QueryDocument?> TryReadQueryAsync(
-        string queryId,
+    public ValueTask<IOperationDocument?> TryReadAsync(
+        OperationDocumentId documentId, 
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (_cache.TryGetValue(queryId, out Task<QueryDocument?>? queryDocumentTask))
-        {
-            return queryDocumentTask ?? _null;
-        }
-
-        return _null;
+        return _cache.TryGetValue(documentId.Value, out OperationDocument? document)
+            ? new ValueTask<IOperationDocument?>(document)
+            : new ValueTask<IOperationDocument?>(default(IOperationDocument));
     }
 
-
     /// <inheritdoc />
-    public Task WriteQueryAsync(
-        string queryId,
-        IQuery query,
+    public ValueTask SaveAsync(
+        OperationDocumentId documentId,
+        IOperationDocument document,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
+        }
+        
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
         }
 
-        if (query is null)
-        {
-            throw new ArgumentNullException(nameof(query));
-        }
-
-        _cache.GetOrCreate<Task<QueryDocument>>(queryId, _ =>
-        {
-            if (query is QueryDocument queryDocument)
+        _cache.GetOrCreate<OperationDocument>(
+            documentId.Value, 
+            _ =>
             {
-                return Task.FromResult(queryDocument);
-            }
+                if (document is OperationDocument parsedDocument)
+                {
+                    return parsedDocument;
+                }
+                
+                var documentNode = Utf8GraphQLParser.Parse(document.AsSpan());
+                return new OperationDocument(documentNode);
 
-            var document = Utf8GraphQLParser.Parse(query.AsSpan());
-            queryDocument = new QueryDocument(document);
-            return Task.FromResult(queryDocument);
-        });
+            });
 
-        return Task.CompletedTask;
+        return default;
     }
 }

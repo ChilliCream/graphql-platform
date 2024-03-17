@@ -134,7 +134,7 @@ public class PersonsIntegrationTests
         }";
 
         IReadOnlyQueryRequest request =
-            QueryRequestBuilder.New().SetQuery(query).Create();
+            OperationRequestBuilder.New().SetQuery(query).Create();
 
         // act
         IExecutionResult result = await executor.ExecuteAsync(request);

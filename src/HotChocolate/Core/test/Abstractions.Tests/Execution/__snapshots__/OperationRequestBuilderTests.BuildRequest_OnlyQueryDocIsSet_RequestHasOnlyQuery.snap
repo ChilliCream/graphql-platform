@@ -1,0 +1,73 @@
+﻿{
+  "Document": {
+    "Document": {
+      "Kind": "Document",
+      "Location": {
+        "Start": 0,
+        "End": 7,
+        "Line": 1,
+        "Column": 1
+      },
+      "Definitions": [
+        {
+          "Kind": "OperationDefinition",
+          "Location": {
+            "Start": 0,
+            "End": 7,
+            "Line": 1,
+            "Column": 1
+          },
+          "Name": null,
+          "Operation": "Query",
+          "VariableDefinitions": [],
+          "Directives": [],
+          "SelectionSet": {
+            "Kind": "SelectionSet",
+            "Location": {
+              "Start": 0,
+              "End": 7,
+              "Line": 1,
+              "Column": 1
+            },
+            "Selections": [
+              {
+                "Kind": "Field",
+                "Alias": null,
+                "Arguments": [],
+                "Required": null,
+                "SelectionSet": null,
+                "Location": {
+                  "Start": 2,
+                  "End": 7,
+                  "Line": 1,
+                  "Column": 3
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 2,
+                    "End": 7,
+                    "Line": 1,
+                    "Column": 3
+                  },
+                  "Value": "foo"
+                },
+                "Directives": []
+              }
+            ]
+          }
+        }
+      ],
+      "Count": 5,
+      "FieldsCount": 1
+    }
+  },
+  "DocumentId": null,
+  "DocumentHash": null,
+  "OperationName": null,
+  "VariableValues": null,
+  "Extensions": null,
+  "ContextData": null,
+  "Services": null,
+  "Flags": "AllowAll"
+}

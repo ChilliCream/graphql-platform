@@ -43,9 +43,7 @@ public class OperationCacheMiddlewareTests
             }
             """;
 
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery(requestDocument);
+        var request = OperationRequest.FromSourceText(requestDocument);
 
         var diagnostics = new CacheHit();
 
@@ -54,20 +52,19 @@ public class OperationCacheMiddlewareTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
                 .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
                 .AddDiagnosticEventListener(_ => diagnostics)
                 .UseDefaultPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        await executor.ExecuteAsync(request.SetOperation("GetBazBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("FooBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("GetBazBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("FooBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("GetBazBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("GetBazBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("GetBazBar").Create());
-        await executor.ExecuteAsync(request.SetOperation("FooBar").Create());
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("FooBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("FooBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("GetBazBar"));
+        await executor.ExecuteAsync(request.WithOperationName("FooBar"));
 
         // assert
         Assert.Equal(2, diagnostics.AddedToCache);
@@ -106,9 +103,7 @@ public class OperationCacheMiddlewareTests
             }
             """;
 
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery(requestDocument);
+        var request = OperationRequest.FromSourceText(requestDocument);
 
         var diagnostics = new CacheHit();
 
@@ -117,14 +112,13 @@ public class OperationCacheMiddlewareTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
                 .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
                 .UseDefaultPipeline()
                 .AddDiagnosticEventListener(_ => diagnostics)
                 .BuildRequestExecutorAsync();
 
         // act
-        await executor.ExecuteAsync(request.Create());
-        await executor.ExecuteAsync(request.Create());
+        await executor.ExecuteAsync(request);
+        await executor.ExecuteAsync(request);
 
         // assert
         Assert.Equal(1, diagnostics.AddedToCache);

@@ -16,19 +16,16 @@ public class FileSystemQueryStorageTests
         try
         {
             // arrange
-            path = IOPath.Combine(
-                IOPath.GetTempPath(),
-                "d_" + Guid.NewGuid().ToString("N"));
+            path = IOPath.Combine(IOPath.GetTempPath(), "d_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(path);
 
-            var storage = new FileSystemQueryStorage(
-                new DefaultQueryFileMap(path));
+            var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
-            var query = new QuerySourceText("{ foo }");
-            var queryId = "1234";
+            var query = new OperationDocumentSourceText("{ foo }");
+            var documentId = new OperationDocumentId("1234");
 
             // act
-            await storage.WriteQueryAsync(queryId, query);
+            await storage.SaveAsync(documentId, query);
 
             // assert
             Assert.True(File.Exists(IOPath.Combine(path, "1234.graphql")));
@@ -43,29 +40,24 @@ public class FileSystemQueryStorageTests
             }
         }
     }
-
-    [InlineData(null)]
-    [InlineData("")]
-    [Theory]
-    public async Task Write_Query_QueryId_Invalid(string queryId)
+    
+    [Fact]
+    public async Task Write_Query_documentId_Invalid()
     {
         string? path = null;
 
         try
         {
             // arrange
-            path = IOPath.Combine(
-                IOPath.GetTempPath(),
-                "d_" + Guid.NewGuid().ToString("N"));
+            path = IOPath.Combine(IOPath.GetTempPath(), "d_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(path);
 
-            var storage = new FileSystemQueryStorage(
-                new DefaultQueryFileMap(path));
+            var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
-            var query = new QuerySourceText("{ foo }");
+            var query = new OperationDocumentSourceText("{ foo }");
 
             // act
-            Task Action() => storage.WriteQueryAsync(queryId, query);
+            async Task Action() => await storage.SaveAsync(new OperationDocumentId(), query);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -87,16 +79,13 @@ public class FileSystemQueryStorageTests
         try
         {
             // arrange
-            path = IOPath.Combine(
-                IOPath.GetTempPath(),
-                "d_" + Guid.NewGuid().ToString("N"));
+            path = IOPath.Combine(IOPath.GetTempPath(), "d_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(path);
 
-            var storage = new FileSystemQueryStorage(
-                new DefaultQueryFileMap(path));
+            var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
             // act
-            Task Action() => storage.WriteQueryAsync("1234", null!);
+            async Task Action() => await storage.SaveAsync(new OperationDocumentId("1234"), null!);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -123,15 +112,15 @@ public class FileSystemQueryStorageTests
 
             var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
-            var queryId = "1234";
-            await File.WriteAllTextAsync(IOPath.Combine(path, queryId + ".graphql"), "{ foo }");
+            var documentId = "1234";
+            await File.WriteAllTextAsync(IOPath.Combine(path, documentId + ".graphql"), "{ foo }");
 
             // act
-            var query = await storage.TryReadQueryAsync(queryId);
+            var query = await storage.TryReadAsync(new OperationDocumentId(documentId));
 
             // assert
             Assert.NotNull(query);
-            query!.Document.ToString().MatchSnapshot();
+            Assert.IsType<OperationDocument>(query).Document!.ToString().MatchSnapshot();
         }
         finally
         {
@@ -141,27 +130,22 @@ public class FileSystemQueryStorageTests
             }
         }
     }
-
-    [InlineData(null)]
-    [InlineData("")]
-    [Theory]
-    public async Task Read_Query_QueryId_Invalid(string queryId)
+    
+    [Fact]
+    public async Task Read_Query_documentId_Invalid()
     {
         string? path = null;
 
         try
         {
             // arrange
-            path = IOPath.Combine(
-                IOPath.GetTempPath(),
-                "d_" + Guid.NewGuid().ToString("N"));
+            path = IOPath.Combine(IOPath.GetTempPath(), "d_" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(path);
 
-            var storage = new FileSystemQueryStorage(
-                new DefaultQueryFileMap(path));
+            var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
             // act
-            Task Action() => storage.TryReadQueryAsync(queryId);
+            async Task Action() => await storage.TryReadAsync(new OperationDocumentId());
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);

@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using HotChocolate.Properties;
 using static HotChocolate.Execution.ExecutionResultKind;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 public sealed class ResponseStream : ExecutionResult, IResponseStream
 {
-    private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
+    private readonly Func<IAsyncEnumerable<IOperationResult>>? _resultStreamFactory;
     private bool _isRead;
 
     public ResponseStream(
-        Func<IAsyncEnumerable<IQueryResult>>? resultStreamFactory,
+        Func<IAsyncEnumerable<IOperationResult>>? resultStreamFactory,
         ExecutionResultKind kind = SubscriptionResult,
         IReadOnlyDictionary<string, object?>? contextData = null)
     {
@@ -34,7 +32,7 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
 
     public override IReadOnlyDictionary<string, object?>? ContextData { get; }
 
-    public IAsyncEnumerable<IQueryResult> ReadResultsAsync()
+    public IAsyncEnumerable<IOperationResult> ReadResultsAsync()
     {
         if (_resultStreamFactory is null)
         {

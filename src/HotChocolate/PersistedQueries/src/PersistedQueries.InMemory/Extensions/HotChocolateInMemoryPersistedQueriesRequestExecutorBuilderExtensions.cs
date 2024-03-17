@@ -16,7 +16,7 @@ public static class HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderEx
     /// <param name="builder">
     /// The service collection to which the services are added.
     /// </param>
-    public static IRequestExecutorBuilder AddInMemoryQueryStorage(
+    public static IRequestExecutorBuilder AddInMemoryOperationDocumentStorage(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
@@ -25,25 +25,6 @@ public static class HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderEx
         }
 
         return builder.ConfigureSchemaServices(
-            s => s.AddInMemoryQueryStorage());
-    }
-
-    /// <summary>
-    /// Adds a file system read-only query storage to the
-    /// services collection.
-    /// </summary>
-    /// <param name="builder">
-    /// The service collection to which the services are added.
-    /// </param>
-    public static IRequestExecutorBuilder AddReadOnlyInMemoryQueryStorage(
-        this IRequestExecutorBuilder builder)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder.ConfigureSchemaServices(
-            s => s.AddReadOnlyInMemoryQueryStorage());
+            s => s.AddInMemoryOperationDocumentStorage());
     }
 }

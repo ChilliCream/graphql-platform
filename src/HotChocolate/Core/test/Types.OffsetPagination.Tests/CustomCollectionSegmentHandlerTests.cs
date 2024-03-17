@@ -25,9 +25,9 @@ namespace HotChocolate.Types.Pagination
             Snapshot.FullName();
 
             var request =
-                QueryRequestBuilder.New()
-                    .SetQuery("{ items { items } }")
-                    .Create();
+                OperationRequestBuilder.Create()
+                    .SetDocument("{ items { items } }")
+                    .Build();
 
             // act
             // assert

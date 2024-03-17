@@ -114,7 +114,6 @@ public class IntrospectionRuleTests
     {
         return SchemaBuilder.New()
             .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
-            .AddCostDirectiveType()
             .Use(_ => _ => default)
             .Create();
     }

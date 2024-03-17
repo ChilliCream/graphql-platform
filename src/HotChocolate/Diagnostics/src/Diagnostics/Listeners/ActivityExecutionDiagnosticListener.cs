@@ -204,7 +204,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value;
 
-            activity.SetTag("graphql.document.id", context.DocumentId);
+            activity.SetTag("graphql.document.id", context.DocumentId?.Value);
             activity.SetTag("graphql.document.complexity", complexity);
             activity.SetTag("graphql.executor.allowedComplexity", allowedComplexity);
 

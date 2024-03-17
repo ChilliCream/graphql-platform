@@ -45,10 +45,10 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .CreateScope();
 
         var result = await scope.ServiceProvider.ExecuteRequestAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ books { title } }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ books { title } }")
                 .SetServices(scope.ServiceProvider)
-                .Create());
+                .Build());
 
         result.MatchSnapshot();
     }
@@ -67,14 +67,14 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider();
 
         var result = await service.ExecuteRequestAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ books { title } }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ books { title } }")
                 .SetServices(service)
-                .Create());
+                .Build());
 
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Resolver_Pipeline_With_Field_AutoRegistered_DbContext_Is_Created()
     {
@@ -89,10 +89,10 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider();
 
         var result = await service.ExecuteRequestAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ books { title } }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ books { title } }")
                 .SetServices(service)
-                .Create());
+                .Build());
 
         result.MatchSnapshot();
     }

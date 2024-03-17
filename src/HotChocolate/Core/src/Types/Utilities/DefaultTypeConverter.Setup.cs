@@ -48,7 +48,16 @@ public partial class DefaultTypeConverter
         DefaultTypeConverter registry)
     {
         registry.Register<DateTimeOffset, DateTime>(from => from.UtcDateTime);
-        registry.Register<DateTime, DateTimeOffset>(from => from);
+        registry.Register<DateTime, DateTimeOffset>(
+            from =>
+            {
+                if (from.Kind is DateTimeKind.Unspecified)
+                {
+                    from = DateTime.SpecifyKind(from, DateTimeKind.Utc);
+                }
+                
+                return new DateTimeOffset(from);
+            });
 
         registry.Register<DateTimeOffset, long>(from => from.ToUnixTimeSeconds());
         registry.Register<long, DateTimeOffset>(from => FromUnixTimeSeconds(from));

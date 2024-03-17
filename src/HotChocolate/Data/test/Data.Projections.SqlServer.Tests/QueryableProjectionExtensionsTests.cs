@@ -30,10 +30,10 @@ public class QueryableProjectionExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
@@ -51,10 +51,10 @@ public class QueryableProjectionExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ typeMissmatch { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ typeMissmatch { bar baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -75,10 +75,10 @@ public class QueryableProjectionExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ missingMiddleware { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ missingMiddleware { bar baz }}")
+                .Build());
 
         // assert
         await Snapshot

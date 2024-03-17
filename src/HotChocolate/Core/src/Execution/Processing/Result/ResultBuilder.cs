@@ -205,7 +205,7 @@ internal sealed partial class ResultBuilder
     }
 
     // ReSharper disable InconsistentlySynchronizedField
-    public IQueryResult BuildResult()
+    public IOperationResult BuildResult()
     {
         ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors);
         
@@ -240,7 +240,7 @@ internal sealed partial class ResultBuilder
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
         }
 
-        var result = new QueryResult(
+        var result = new OperationResult(
             _data,
             _errors.Count == 0 ? null : _errors.ToArray(),
             CreateExtensionData(_extensions),
@@ -253,7 +253,8 @@ internal sealed partial class ResultBuilder
             cleanupTasks: _cleanupTasks.Count == 0 
                 ? _emptyCleanupTasks 
                 : _cleanupTasks.ToArray(),
-            isDataSet: true);
+            isDataSet: true,
+            requestIndex: null);
 
         if (_data is not null)
         {

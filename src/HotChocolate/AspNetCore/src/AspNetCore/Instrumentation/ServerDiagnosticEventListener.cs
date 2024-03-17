@@ -57,7 +57,7 @@ public class ServerDiagnosticEventListener : IServerDiagnosticEventListener
     }
 
     /// <inheritdoc />
-    public virtual IDisposable FormatHttpResponse(HttpContext context, IQueryResult result)
+    public virtual IDisposable FormatHttpResponse(HttpContext context, IOperationResult result)
         => EmptyScope;
 
     /// <inheritdoc />

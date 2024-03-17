@@ -104,10 +104,10 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
+                            OperationResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline();

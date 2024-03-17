@@ -9,40 +9,33 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution;
 
-internal sealed class RequestContext : IRequestContext
+internal sealed class RequestContext(
+    ISchema schema,
+    ulong executorVersion,
+    IErrorHandler errorHandler,
+    IExecutionDiagnosticEvents diagnosticEvents)
+    : IRequestContext
 {
     private readonly ConcurrentDictionary<string, object?> _contextData = new();
     private DocumentValidatorResult? _validationResult;
 
-    public RequestContext(
-        ISchema schema,
-        ulong executorVersion,
-        IErrorHandler errorHandler,
-        IExecutionDiagnosticEvents diagnosticEvents)
-    {
-        Schema = schema;
-        ExecutorVersion = executorVersion;
-        ErrorHandler = errorHandler;
-        DiagnosticEvents = diagnosticEvents;
-    }
+    public ISchema Schema { get; } = schema;
 
-    public ISchema Schema { get; }
-
-    public ulong ExecutorVersion { get; }
+    public ulong ExecutorVersion { get; } = executorVersion;
 
     public IServiceProvider Services { get; private set; } = default!;
 
-    public IErrorHandler ErrorHandler { get; }
+    public IErrorHandler ErrorHandler { get; } = errorHandler;
 
-    public IExecutionDiagnosticEvents DiagnosticEvents { get; }
+    public IExecutionDiagnosticEvents DiagnosticEvents { get; } = diagnosticEvents;
 
-    public IQueryRequest Request { get; private set; } = default!;
+    public IOperationRequest Request { get; private set; } = default!;
 
     public IDictionary<string, object?> ContextData => _contextData;
 
     public CancellationToken RequestAborted { get; set; }
 
-    public string? DocumentId { get; set; }
+    public OperationDocumentId? DocumentId { get; set; }
 
     public string? DocumentHash { get; set; }
 
@@ -68,7 +61,7 @@ internal sealed class RequestContext : IRequestContext
 
     public IOperation? Operation { get; set; }
 
-    public IVariableValueCollection? Variables { get; set; }
+    public IReadOnlyList<IVariableValueCollection>? Variables { get; set; }
 
     public IExecutionResult? Result { get; set; }
 
@@ -105,17 +98,19 @@ internal sealed class RequestContext : IRequestContext
         return cloned;
     }
 
-    public void Initialize(IQueryRequest request, IServiceProvider services)
+    public void Initialize(IOperationRequest request, IServiceProvider services)
     {
         Request = request;
         Services = services;
 
-        if (request.ContextData is not null)
+        if (request.ContextData is null)
         {
-            foreach (var item in request.ContextData)
-            {
-                _contextData.TryAdd(item.Key, item.Value);
-            }
+            return;
+        }
+
+        foreach (var item in request.ContextData)
+        {
+            _contextData.TryAdd(item.Key, item.Value);
         }
     }
 

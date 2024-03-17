@@ -18,7 +18,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private const string _operations = "operations";
     private const string _map = "map";
     private readonly FormOptions _formOptions;
-    private readonly IQueryResult _multipartRequestError = MultiPartRequestPreflightRequired();
+    private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
@@ -185,7 +185,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         GraphQLRequest request,
         IDictionary<string, IFile> fileMap)
     {
-        if (!(request.Variables is Dictionary<string, object?> mutableVariables))
+        if (request.Variables is not [Dictionary<string, object?> mutableVariables,])
         {
             throw new InvalidOperationException(
                 HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);

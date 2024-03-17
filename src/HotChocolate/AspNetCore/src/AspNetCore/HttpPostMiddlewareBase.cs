@@ -99,7 +99,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             statusCode = HttpStatusCode.NotAcceptable;
 
             var error = ErrorHelper.NoSupportedAcceptMediaType();
-            result = QueryResultBuilder.CreateError(error);
+            result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
             goto HANDLE_RESULT;
         }
@@ -120,7 +120,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
                 var errors = errorHandler.Handle(ex.Errors);
-                result = QueryResultBuilder.CreateError(errors);
+                result = OperationResultBuilder.CreateError(errors);
                 DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
@@ -128,7 +128,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             {
                 statusCode = HttpStatusCode.InternalServerError;
                 var error = errorHandler.CreateUnexpectedError(ex).Build();
-                result = QueryResultBuilder.CreateError(error);
+                result = OperationResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
             }
@@ -145,7 +145,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 {
                     statusCode = HttpStatusCode.BadRequest;
                     var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
-                    result = QueryResultBuilder.CreateError(error);
+                    result = OperationResultBuilder.CreateError(error);
                     DiagnosticEvents.HttpRequestError(context, error);
                     break;
                 }
@@ -178,7 +178,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                     {
                         var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
-                        result = QueryResultBuilder.CreateError(error);
+                        result = OperationResultBuilder.CreateError(error);
                         DiagnosticEvents.HttpRequestError(context, error);
                     }
 
@@ -221,7 +221,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                     {
                         var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
-                        result = QueryResultBuilder.CreateError(error);
+                        result = OperationResultBuilder.CreateError(error);
                         DiagnosticEvents.HttpRequestError(context, error);
                     }
                     break;
@@ -231,7 +231,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
             statusCode = null; // we let the serializer determine the status code.
-            result = QueryResultBuilder.CreateError(ex.Errors);
+            result = OperationResultBuilder.CreateError(ex.Errors);
 
             foreach (var error in ex.Errors)
             {
@@ -242,7 +242,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             statusCode = HttpStatusCode.InternalServerError;
             var error = errorHandler.CreateUnexpectedError(ex).Build();
-            result = QueryResultBuilder.CreateError(error);
+            result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }
 
@@ -262,7 +262,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
 
-            if (result is IQueryResult queryResult)
+            if (result is IOperationResult queryResult)
             {
                 formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }

@@ -1,104 +1,106 @@
 Variables:
 ---------------
-{
-  "a": {
-    "Kind": "StringValue",
-    "Location": null,
-    "Value": "b",
-    "Block": false
-  },
-  "b": {
-    "Kind": "ObjectValue",
-    "Location": null,
-    "Fields": [
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
+[
+  {
+    "a": {
+      "Kind": "StringValue",
+      "Location": null,
+      "Value": "b",
+      "Block": false
+    },
+    "b": {
+      "Kind": "ObjectValue",
+      "Location": null,
+      "Fields": [
+        {
+          "Kind": "ObjectField",
           "Location": null,
-          "Value": "a"
-        },
-        "Value": {
-          "Kind": "StringValue",
-          "Location": null,
-          "Value": "b",
-          "Block": false
-        }
-      },
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
-          "Location": null,
-          "Value": "b"
-        },
-        "Value": {
-          "Kind": "BooleanValue",
-          "Location": null,
-          "Value": true
-        }
-      },
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
-          "Location": null,
-          "Value": "c"
-        },
-        "Value": {
-          "Kind": "IntValue",
-          "Location": null,
-          "Value": "1"
-        }
-      },
-      {
-        "Kind": "ObjectField",
-        "Location": null,
-        "Name": {
-          "Kind": "Name",
-          "Location": null,
-          "Value": "d"
-        },
-        "Value": {
-          "Kind": "FloatValue",
-          "Location": null,
-          "Format": "FixedPoint",
-          "Value": "1.1"
-        }
-      }
-    ]
-  },
-  "c": {
-    "Kind": "ListValue",
-    "Location": null,
-    "Items": [
-      {
-        "Kind": "ObjectValue",
-        "Location": null,
-        "Fields": [
-          {
-            "Kind": "ObjectField",
+          "Name": {
+            "Kind": "Name",
             "Location": null,
-            "Name": {
-              "Kind": "Name",
-              "Location": null,
-              "Value": "a"
-            },
-            "Value": {
-              "Kind": "StringValue",
-              "Location": null,
-              "Value": "b",
-              "Block": false
-            }
+            "Value": "a"
+          },
+          "Value": {
+            "Kind": "StringValue",
+            "Location": null,
+            "Value": "b",
+            "Block": false
           }
-        ]
-      }
-    ]
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "b"
+          },
+          "Value": {
+            "Kind": "BooleanValue",
+            "Location": null,
+            "Value": true
+          }
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "c"
+          },
+          "Value": {
+            "Kind": "IntValue",
+            "Location": null,
+            "Value": "1"
+          }
+        },
+        {
+          "Kind": "ObjectField",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "d"
+          },
+          "Value": {
+            "Kind": "FloatValue",
+            "Location": null,
+            "Format": "FixedPoint",
+            "Value": "1.1"
+          }
+        }
+      ]
+    },
+    "c": {
+      "Kind": "ListValue",
+      "Location": null,
+      "Items": [
+        {
+          "Kind": "ObjectValue",
+          "Location": null,
+          "Fields": [
+            {
+              "Kind": "ObjectField",
+              "Location": null,
+              "Name": {
+                "Kind": "Name",
+                "Location": null,
+                "Value": "a"
+              },
+              "Value": {
+                "Kind": "StringValue",
+                "Location": null,
+                "Value": "b",
+                "Block": false
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
-}
+]
 ---------------
 
 Extensions:

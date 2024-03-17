@@ -54,10 +54,10 @@ public class EventStreamTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert

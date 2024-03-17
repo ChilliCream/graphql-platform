@@ -40,7 +40,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
                 _services,
                 context.ContextData,
                 document,
-                context.DocumentId);
+                context.DocumentId.Value);
 
             var result = await handler.AuthorizeAsync(ctx, directives, ct).ConfigureAwait(false);
 

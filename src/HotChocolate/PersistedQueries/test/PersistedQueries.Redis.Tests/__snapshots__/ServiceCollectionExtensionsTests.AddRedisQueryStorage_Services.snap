@@ -1,14 +1,6 @@
 ﻿[
   {
-    "Key": "HotChocolate.Execution.IReadStoredQueries",
-    "Value": null
-  },
-  {
-    "Key": "HotChocolate.Execution.IWriteStoredQueries",
-    "Value": null
-  },
-  {
-    "Key": "HotChocolate.PersistedQueries.Redis.RedisQueryStorage",
+    "Key": "HotChocolate.Execution.IOperationDocumentStorage",
     "Value": null
   }
 ]

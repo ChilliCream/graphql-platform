@@ -29,9 +29,9 @@ public class MongoDbProjectionVisitorScalarTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ bar baz }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -48,9 +48,9 @@ public class MongoDbProjectionVisitorScalarTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ baz }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -77,9 +77,9 @@ public class MongoDbProjectionVisitorScalarTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ baz foo }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ baz foo }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

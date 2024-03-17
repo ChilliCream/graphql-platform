@@ -48,8 +48,8 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root(where: {
                             bar: {
@@ -72,11 +72,11 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                             id
                         }
                     }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root(where: {
                             bar: {
@@ -99,7 +99,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                             id
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

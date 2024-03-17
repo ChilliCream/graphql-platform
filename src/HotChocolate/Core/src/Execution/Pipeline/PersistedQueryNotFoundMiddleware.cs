@@ -25,22 +25,22 @@ internal sealed class PersistedQueryNotFoundMiddleware
 
     public ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.Document is not null || context.Request.Query is not null)
+        if (context.Document is not null || context.Request.Document is not null)
         {
             return _next(context);
         }
 
         var requestedKey =
-            context.Request.QueryId ??
+            context.Request.DocumentId ??
             context.DocumentId ??
             context.DocumentHash ??
-            context.Request.QueryHash;
+            context.Request.DocumentHash;
 
         // we know that the key is not null since otherwise the request would have
         // failed already since no query is specified.
-        var error = ErrorHelper.PersistedQueryNotFound(requestedKey!);
+        var error = ErrorHelper.PersistedQueryNotFound(requestedKey!.Value);
         _diagnosticEvents.RequestError(context, new GraphQLException(error));
-        context.Result = QueryResultBuilder.CreateError(error, _statusCode);
+        context.Result = OperationResultBuilder.CreateError(error, _statusCode);
 
         return default;
     }

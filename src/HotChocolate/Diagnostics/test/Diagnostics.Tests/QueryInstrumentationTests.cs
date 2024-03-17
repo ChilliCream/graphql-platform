@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -345,102 +344,6 @@ public partial class QueryInstrumentationTests
                 })
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("query SayHelloOperation { causeFatalError }");
-
-            // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
-            activities.MatchSnapshot();
-#endif
-        }
-    }
-
-    [Fact]
-    public async Task MaxComplexity_Not_Reached()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.IncludeDocument = true;
-                })
-                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
-                .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
-                .ModifyRequestOptions(o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 9;
-                })
-                .ExecuteRequestAsync(@"
-                    {
-                        foo {
-                            ... on Foo {
-                                ... on Foo {
-                                    field
-                                    ... on Bar {
-                                        baz {
-                                            foo {
-                                                field
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }");
-
-            // assert
-#if NET7_0_OR_GREATER
-            activities.MatchSnapshot(new SnapshotNameExtension("_NET7"));
-#else
-            activities.MatchSnapshot();
-#endif
-        }
-    }
-
-    [Fact]
-    public async Task MaxComplexity_Reached()
-    {
-        using (CaptureActivities(out var activities))
-        {
-            // arrange & act
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddInstrumentation(o =>
-                {
-                    o.Scopes = ActivityScopes.All;
-                    o.IncludeDocument = true;
-                })
-                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
-                .UseField(_ => _ => default)
-                .ConfigureSchema(s => s.AddCostDirectiveType())
-                .ModifyRequestOptions(o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 2;
-                })
-                .ExecuteRequestAsync(@"
-                    {
-                        foo {
-                            ... on Foo {
-                                ... on Foo {
-                                    field
-                                    ... on Bar {
-                                        baz {
-                                            foo {
-                                                field
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }");
 
             // assert
 #if NET7_0_OR_GREATER

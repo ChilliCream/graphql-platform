@@ -9,12 +9,12 @@ public class NullErrorPropagation
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot();
-        
+
         var executor = await CreateExecutorAsync();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     {
                       foo {
@@ -43,7 +43,7 @@ public class NullErrorPropagation
                     """)
                 .AddGlobalState("a", null)
                 .AddGlobalState("b", "not_null")
-                .Create();
+                .Build();
 
         // act
         var result = await executor.ExecuteAsync(request);
@@ -61,14 +61,14 @@ public class NullErrorPropagation
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
-        
+
         var executor = await CreateExecutorAsync();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
+            OperationRequestBuilder.Create()
+                .SetDocument($"{{ foo {{ {fieldType} {{ b }} }} }}")
                 .AddGlobalState("b", null)
-                .Create();
+                .Build();
 
         // act
         var result = await executor.ExecuteAsync(request);
@@ -86,14 +86,14 @@ public class NullErrorPropagation
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
-        
+
         var executor = await CreateExecutorAsync();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
+            OperationRequestBuilder.Create()
+                .SetDocument($"{{ foo {{ {fieldType} {{ c }} }} }}")
                 .AddGlobalState("b", null)
-                .Create();
+                .Build();
 
         // act
         var result = await executor.ExecuteAsync(request);
@@ -109,14 +109,14 @@ public class NullErrorPropagation
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
-        
+
         var executor = await CreateExecutorAsync();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery($"{{ foo {{ {fieldType} {{ b }} }} }}")
+            OperationRequestBuilder.Create()
+                .SetDocument($"{{ foo {{ {fieldType} {{ b }} }} }}")
                 .AddGlobalState("b", null)
-                .Create();
+                .Build();
 
         // act
         var result = await executor.ExecuteAsync(request);
@@ -132,14 +132,14 @@ public class NullErrorPropagation
     {
         // arrange
         using var snapshot = SnapshotHelpers.StartResultSnapshot(fieldType);
-        
+
         var executor = await CreateExecutorAsync();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery($"{{ foo {{ {fieldType} {{ c }} }} }}")
+            OperationRequestBuilder.Create()
+                .SetDocument($"{{ foo {{ {fieldType} {{ c }} }} }}")
                 .AddGlobalState("b", null)
-                .Create();
+                .Build();
 
         // act
         var result = await executor.ExecuteAsync(request);
@@ -150,12 +150,12 @@ public class NullErrorPropagation
 
     private static async Task<IRequestExecutor> CreateExecutorAsync()
     {
-        const string schema = 
+        const string schema =
             """
             type Query {
                 foo: Foo
             }
-                     
+
             type Foo {
                 nullable_list_nullable_element: [Bar]
                 nonnull_list_nullable_element: [Bar]!
@@ -164,7 +164,7 @@ public class NullErrorPropagation
                 nonnull_prop: Bar!
                 nullable_prop: Bar
             }
-                     
+
             type Bar {
                 a: String
                 b: String!

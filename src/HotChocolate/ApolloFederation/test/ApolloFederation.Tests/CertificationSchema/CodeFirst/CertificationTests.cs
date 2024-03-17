@@ -33,7 +33,7 @@ public class CertificationTests
             """);
 
         // assert
-        var queryResult = Assert.IsType<QueryResult>(result);
+        var queryResult = Assert.IsType<OperationResult>(result);
         var data = Assert.IsType<ObjectResult>(queryResult.Data);
         var service = Assert.IsType<ObjectResult>(data.GetValueOrDefault("_service"));
         service.GetValueOrDefault("sdl").MatchSnapshot();

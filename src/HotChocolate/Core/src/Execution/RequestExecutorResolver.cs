@@ -10,13 +10,11 @@ using HotChocolate.Configuration;
 #if NET6_0_OR_GREATER
 using HotChocolate.Execution;
 #endif
-using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -266,7 +264,6 @@ internal sealed partial class RequestExecutorResolver
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();
-        serviceCollection.TryAddTimespanProvider();
 
         // register global error filters
         foreach (var errorFilter in _applicationServices.GetServices<IErrorFilter>())
@@ -289,12 +286,6 @@ internal sealed partial class RequestExecutorResolver
                 sp,
                 sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
 
-        serviceCollection.AddSingleton(
-            sp => new BatchExecutor(
-                sp.GetRequiredService<IErrorHandler>(),
-                _applicationServices.GetRequiredService<ITypeConverter>(),
-                _applicationServices.GetRequiredService<InputFormatter>()));
-
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
         serviceCollection.TryAddSingleton(
@@ -315,7 +306,6 @@ internal sealed partial class RequestExecutorResolver
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
-                sp.GetRequiredService<BatchExecutor>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
@@ -351,13 +341,10 @@ internal sealed partial class RequestExecutorResolver
             return setup.Schema;
         }
 
-        var complexitySettings = executorOptions.Complexity;
-
         context
             .SchemaBuilder
             .AddServices(schemaServices)
-            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
-            .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
+            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions);
 
         var descriptorContext = context.SchemaBuilder.CreateContext();
 

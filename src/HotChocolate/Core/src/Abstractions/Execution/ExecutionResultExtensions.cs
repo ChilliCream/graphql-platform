@@ -100,9 +100,9 @@ public static class ExecutionResultExtensions
     /// <summary>
     /// Expect a query result.
     /// </summary>
-    public static IQueryResult ExpectQueryResult(this IExecutionResult result)
+    public static IOperationResult ExpectQueryResult(this IExecutionResult result)
     {
-        if (result is IQueryResult qr)
+        if (result is IOperationResult qr)
         {
             return qr;
         }

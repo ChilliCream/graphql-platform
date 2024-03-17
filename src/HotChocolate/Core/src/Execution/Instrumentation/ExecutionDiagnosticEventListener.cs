@@ -134,7 +134,7 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     /// <inheritdoc />
     public virtual void SubscriptionEventResult(
         SubscriptionEventContext context,
-        IQueryResult result)
+        IOperationResult result)
     {
     }
 

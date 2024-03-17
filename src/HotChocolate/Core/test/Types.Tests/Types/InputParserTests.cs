@@ -380,13 +380,16 @@ public class InputParserTests
             .BuildRequestExecutorAsync();
 
         // act
-        var query = QueryRequestBuilder.Create(@"
-            {
-                loopback(input: {field2: 1}) {
-                    field1
-                    field2
+        var query = 
+            OperationRequest.FromSourceText(
+                """
+                {
+                    loopback(input: {field2: 1}) {
+                        field1
+                        field2
+                    }
                 }
-            }");
+                """);
         var result = await executor.ExecuteAsync(query, CancellationToken.None);
 
         // assert

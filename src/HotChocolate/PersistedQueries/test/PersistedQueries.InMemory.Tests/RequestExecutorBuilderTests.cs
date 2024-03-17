@@ -11,21 +11,8 @@ public class RequestExecutorBuilderTests
         // act
         void Action()
             => HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
-                .AddInMemoryQueryStorage(null!);
+                .AddInMemoryOperationDocumentStorage(null!);
 
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
-    {
-        // arrange
-        // act
-        void Action()
-            => HotChocolateInMemoryPersistedQueriesRequestExecutorBuilderExtensions
-                .AddReadOnlyInMemoryQueryStorage(null!);
-
-        // assert
         Assert.Throws<ArgumentNullException>(Action);
     }
 }

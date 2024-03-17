@@ -39,9 +39,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -59,9 +59,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -79,9 +79,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { bar baz }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ edges { node { bar baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -99,9 +99,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -119,9 +119,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { bar }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -139,9 +139,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -159,9 +159,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -179,9 +179,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes { baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -199,9 +199,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { bar baz }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ edges { node { bar baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -219,9 +219,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -239,9 +239,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { bar }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -259,9 +259,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ baz } edges { node { baz }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -279,9 +279,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ bar list { barBaz } } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes{ bar list { barBaz } } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -299,9 +299,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ nodes{ bar paging { nodes {barBaz }} } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ nodes{ bar paging { nodes {barBaz }} } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -319,9 +319,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(take:10, skip:1){ items { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(take:10, skip:1){ items { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -339,9 +339,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ items { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -359,9 +359,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ items { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -380,9 +380,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { bar baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ items { bar baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -400,9 +400,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items { baz } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ items { baz } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -420,9 +420,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items{ bar list { barBaz } } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ items{ bar list { barBaz } } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -440,9 +440,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ items{ bar paging { nodes {barBaz }} } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ items{ bar paging { nodes {barBaz }} } }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -460,9 +460,9 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
+                .Build());
 
         // assert
         await Snapshot

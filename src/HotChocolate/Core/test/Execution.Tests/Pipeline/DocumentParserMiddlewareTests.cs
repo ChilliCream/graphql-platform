@@ -20,10 +20,10 @@ public class DocumentParserMiddlewareTests
             hashProvider,
             new ParserOptions());
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -50,10 +50,10 @@ public class DocumentParserMiddlewareTests
             hashProvider,
             new ParserOptions());
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
@@ -80,10 +80,10 @@ public class DocumentParserMiddlewareTests
             hashProvider,
             new ParserOptions());
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);

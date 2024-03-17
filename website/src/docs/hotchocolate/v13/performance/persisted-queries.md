@@ -160,7 +160,7 @@ builder.Services
 
 This will block any dynamic queries that do not contain the `id` of a persisted query.
 
-You might still want to allow the execution of dynamic queries in certain circumstances. You can override the `OnlyAllowPersistedQueries` rule on a per-request basis, using the `AllowNonPersistedQuery` method on the `IQueryRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v13/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedQuery` if a certain condition is met:
+You might still want to allow the execution of dynamic queries in certain circumstances. You can override the `OnlyAllowPersistedQueries` rule on a per-request basis, using the `AllowNonPersistedQuery` method on the `OperationRequestBuilder`. Simply implement a custom [IHttpRequestInterceptor](/docs/hotchocolate/v13/server/interceptors#ihttprequestinterceptor) and call `AllowNonPersistedQuery` if a certain condition is met:
 
 ```csharp
 builder.Services
@@ -172,7 +172,7 @@ builder.Services
 public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         if (context.Request.Headers.ContainsKey("X-Developer"))

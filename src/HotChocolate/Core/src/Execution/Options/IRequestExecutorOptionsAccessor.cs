@@ -9,5 +9,4 @@ namespace HotChocolate.Execution.Options;
 public interface IRequestExecutorOptionsAccessor
     : IErrorHandlerOptionsAccessor
     , IRequestTimeoutOptionsAccessor
-    , IComplexityAnalyzerOptionsAccessor
     , IPersistedQueryOptionsAccessor;

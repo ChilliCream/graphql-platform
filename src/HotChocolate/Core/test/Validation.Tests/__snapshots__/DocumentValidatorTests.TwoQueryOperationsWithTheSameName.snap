@@ -5,8 +5,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 8,
-        "Column": 17
+        "Line": 7,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -17,18 +17,18 @@
     "SyntaxNode": {
       "Kind": "OperationDefinition",
       "Location": {
-        "Start": 145,
-        "End": 330,
-        "Line": 8,
-        "Column": 17
+        "Start": 48,
+        "End": 124,
+        "Line": 7,
+        "Column": 1
       },
       "Name": {
         "Kind": "Name",
         "Location": {
-          "Start": 151,
-          "End": 160,
-          "Line": 8,
-          "Column": 23
+          "Start": 54,
+          "End": 63,
+          "Line": 7,
+          "Column": 7
         },
         "Value": "getName"
       },
@@ -38,10 +38,10 @@
       "SelectionSet": {
         "Kind": "SelectionSet",
         "Location": {
-          "Start": 159,
-          "End": 330,
-          "Line": 8,
-          "Column": 31
+          "Start": 62,
+          "End": 124,
+          "Line": 7,
+          "Column": 15
         },
         "Selections": [
           {
@@ -52,10 +52,10 @@
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
-                "Start": 185,
-                "End": 317,
-                "Line": 9,
-                "Column": 25
+                "Start": 72,
+                "End": 124,
+                "Line": 8,
+                "Column": 9
               },
               "Selections": [
                 {
@@ -66,10 +66,10 @@
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
-                      "Start": 217,
-                      "End": 299,
-                      "Line": 10,
-                      "Column": 31
+                      "Start": 88,
+                      "End": 122,
+                      "Line": 9,
+                      "Column": 15
                     },
                     "Selections": [
                       {
@@ -79,18 +79,18 @@
                         "Required": null,
                         "SelectionSet": null,
                         "Location": {
-                          "Start": 247,
-                          "End": 277,
-                          "Line": 11,
-                          "Column": 29
+                          "Start": 102,
+                          "End": 116,
+                          "Line": 10,
+                          "Column": 13
                         },
                         "Name": {
                           "Kind": "Name",
                           "Location": {
-                            "Start": 247,
-                            "End": 277,
-                            "Line": 11,
-                            "Column": 29
+                            "Start": 102,
+                            "End": 116,
+                            "Line": 10,
+                            "Column": 13
                           },
                           "Value": "name"
                         },
@@ -99,18 +99,18 @@
                     ]
                   },
                   "Location": {
-                    "Start": 211,
-                    "End": 299,
-                    "Line": 10,
-                    "Column": 25
+                    "Start": 82,
+                    "End": 122,
+                    "Line": 9,
+                    "Column": 9
                   },
                   "Name": {
                     "Kind": "Name",
                     "Location": {
-                      "Start": 211,
-                      "End": 218,
-                      "Line": 10,
-                      "Column": 25
+                      "Start": 82,
+                      "End": 89,
+                      "Line": 9,
+                      "Column": 9
                     },
                     "Value": "owner"
                   },
@@ -119,18 +119,18 @@
               ]
             },
             "Location": {
-              "Start": 181,
-              "End": 317,
-              "Line": 9,
-              "Column": 21
+              "Start": 68,
+              "End": 124,
+              "Line": 8,
+              "Column": 5
             },
             "Name": {
               "Kind": "Name",
               "Location": {
-                "Start": 181,
-                "End": 186,
-                "Line": 9,
-                "Column": 21
+                "Start": 68,
+                "End": 73,
+                "Line": 8,
+                "Column": 5
               },
               "Value": "dog"
             },

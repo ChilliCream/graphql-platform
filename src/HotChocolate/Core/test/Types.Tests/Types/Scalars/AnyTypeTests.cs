@@ -19,11 +19,12 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => new Foo()))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => new Foo()))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -40,11 +41,12 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => new List<Foo> { new(), }))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => new List<Foo> { new(), }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -61,13 +63,15 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => new DateTimeOffset(
-                    new DateTime(2016, 01, 01),
-                    TimeSpan.Zero)))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(
+                        _ => new DateTimeOffset(
+                            new DateTime(2016, 01, 01),
+                            TimeSpan.Zero)))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -84,11 +88,12 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => "abc"))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => "abc"))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -105,11 +110,12 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => 123))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => 123))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -126,11 +132,12 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => 1.2))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => 1.2))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -147,11 +154,12 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Resolve(_ => true))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => true))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -168,12 +176,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -191,12 +200,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -214,12 +224,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -237,12 +248,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<Foo>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<Foo>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -260,12 +272,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -283,12 +296,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -306,12 +320,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -329,12 +344,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -352,12 +368,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -375,22 +392,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new List<object> { "abc", })
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", new List<object> { "abc", } }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -401,28 +419,35 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new List<object>
-                {
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(
                     new Dictionary<string, object>
                     {
-                        { "abc", "def" },
-                    },
-                })
-                .Create());
+                        {
+                            "foo", new List<object>
+                            {
+                                new Dictionary<string, object>
+                                {
+                                    { "abc", "def" },
+                                },
+                            }
+                        },
+                    })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -433,22 +458,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", "bar")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", "bar" }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -459,22 +485,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", 123)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", 123 }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -485,22 +512,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", 1.2)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", 1.2 }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -511,22 +539,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new { a = "b", })
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", new { a = "b", } }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -537,22 +566,27 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" }, })
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(
+                    new Dictionary<string, object>
+                    {
+                        { "foo", new Dictionary<string, object> { { "a", "b" }, } },
+                    })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -563,22 +597,27 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentKind("input").ToString()))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentKind("input").ToString()))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" }, })
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(
+                    new Dictionary<string, object>
+                    {
+                        { "foo", new Dictionary<string, object> { { "a", "b" }, } },
+                    })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -589,22 +628,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", false)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", false }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -615,22 +655,23 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var executor = schema.MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                .SetVariableValue("foo", null)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("query ($foo: Any) { foo(input: $foo) }")
+                .SetVariableValues(new Dictionary<string, object> { { "foo", null }, })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -641,12 +682,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -663,12 +705,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -685,12 +728,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -707,12 +751,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -729,12 +774,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -751,12 +797,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -773,12 +820,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -795,12 +843,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -817,12 +866,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -847,12 +897,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -869,12 +920,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -891,12 +943,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -913,12 +966,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -935,12 +989,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -957,12 +1012,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -979,12 +1035,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -1002,12 +1059,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
@@ -1024,19 +1082,20 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo", new StringValueNode("Bar")},
+            { "Foo", new StringValueNode("Bar") },
         };
 
         // act
@@ -1051,19 +1110,20 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");
 
         var toDeserialize = new Dictionary<string, object>
         {
-            {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}, }},
+            { "Foo", new Dictionary<string, object> { { "Bar", new StringValueNode("Baz") }, } },
         };
 
         // act
@@ -1079,12 +1139,13 @@ public class AnyTypeTests
     {
         // arrange
         var schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<AnyType>()
-                .Argument("input", a => a.Type<AnyType>())
-                .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
             .Create();
 
         var type = schema.GetType<AnyType>("Any");

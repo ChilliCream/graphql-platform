@@ -39,9 +39,7 @@ public abstract class GraphQLHttpClient : IDisposable
     /// <summary>
     /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
     /// </summary>
-    protected virtual void Dispose(bool disposing)
-    {
-    }
+    protected virtual void Dispose(bool disposing) { }
 
     /// <summary>
     /// Creates a new <see cref="GraphQLHttpClient"/> instance.

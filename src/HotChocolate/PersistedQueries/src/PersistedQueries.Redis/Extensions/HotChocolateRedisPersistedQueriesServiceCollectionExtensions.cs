@@ -13,8 +13,7 @@ namespace HotChocolate;
 public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds a redis read and write query storage to the
-    /// services collection.
+    /// Adds a Redis based operation document storage to the service collection.
     /// </summary>
     /// <param name="services">
     /// The service collection to which the services are added.
@@ -26,7 +25,7 @@ public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
     /// <param name="queryExpiration">
     /// A timeout after which a query is removed from the Redis cache.
     /// </param>
-    public static IServiceCollection AddRedisQueryStorage(
+    public static IServiceCollection AddRedisOperationDocumentStorage(
         this IServiceCollection services,
         Func<IServiceProvider, IDatabase> databaseFactory,
         TimeSpan? queryExpiration = null)
@@ -42,44 +41,11 @@ public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
         }
 
         return services
-            .RemoveService<IReadStoredQueries>()
-            .RemoveService<IWriteStoredQueries>()
-            .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp), queryExpiration))
-            .AddSingleton<IReadStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>())
-            .AddSingleton<IWriteStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
+            .RemoveService<IOperationDocumentStorage>()
+            .AddSingleton<IOperationDocumentStorage>(
+                sp => new RedisQueryStorage(databaseFactory(sp), queryExpiration));
     }
-
-    /// <summary>
-    /// Adds a redis read-only query storage to the services collection.
-    /// </summary>
-    /// <param name="services">
-    /// The service collection to which the services are added.
-    /// </param>
-    /// <param name="databaseFactory">
-    /// A factory that resolves the redis database that
-    /// shall be used for persistence.
-    /// </param>
-    public static IServiceCollection AddReadOnlyRedisQueryStorage(
-        this IServiceCollection services,
-        Func<IServiceProvider, IDatabase> databaseFactory)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        if (databaseFactory is null)
-        {
-            throw new ArgumentNullException(nameof(databaseFactory));
-        }
-
-        return services
-            .RemoveService<IReadStoredQueries>()
-            .RemoveService<IWriteStoredQueries>()
-            .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp)))
-            .AddSingleton<IReadStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
-    }
-
+    
     private static IServiceCollection RemoveService<TService>(
         this IServiceCollection services)
     {

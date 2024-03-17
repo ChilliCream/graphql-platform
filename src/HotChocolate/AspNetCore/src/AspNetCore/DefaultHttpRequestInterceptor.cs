@@ -13,7 +13,7 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     public virtual ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         var userState = new UserState(context.User);

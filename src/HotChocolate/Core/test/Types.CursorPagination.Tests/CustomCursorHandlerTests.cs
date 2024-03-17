@@ -26,9 +26,9 @@ public class CustomCursorHandlerTests
         Snapshot.FullName();
 
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ items { nodes } }")
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ items { nodes } }")
+                .Build();
 
         // act
         // assert

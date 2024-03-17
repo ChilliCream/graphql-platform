@@ -5,19 +5,19 @@ using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource) 
+public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
     : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     [
         new Foo
         {
-            IsProjectedTrue = true, 
+            IsProjectedTrue = true,
             IsProjectedFalse = false,
         },
         new Foo
         {
-            IsProjectedTrue = true, 
+            IsProjectedTrue = true,
             IsProjectedFalse = false,
         },
     ];
@@ -38,9 +38,9 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -57,9 +57,9 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse isProjectedTrue  }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -76,9 +76,9 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -98,7 +98,7 @@ public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
             """
             {
               root {
-                isProjectedFalse 
+                isProjectedFalse
               }
             }
             """);

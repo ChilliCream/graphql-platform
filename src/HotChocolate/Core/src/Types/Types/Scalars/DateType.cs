@@ -132,7 +132,7 @@ public class DateType : ScalarType<DateTime, StringValueNode>
         if (DateTime.TryParse(
            serialized,
            CultureInfo.InvariantCulture,
-           DateTimeStyles.AssumeLocal,
+           DateTimeStyles.None,
            out var dateTime))
         {
             value = dateTime.Date;

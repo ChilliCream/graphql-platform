@@ -12,7 +12,7 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly bool _allowAllQueries;
-    private readonly IQueryResult _errorResult;
+    private readonly IOperationResult _errorResult;
     private readonly GraphQLException _exception;
     private readonly Dictionary<string, object?> _statusCode = new() { { WellKnownContextData.HttpStatusCode, 400 }, };
 
@@ -34,14 +34,14 @@ internal sealed class OnlyPersistedQueriesAllowedMiddleware
         // prepare options.
         _allowAllQueries = !options.OnlyAllowPersistedQueries;
         var error = options.OnlyPersistedQueriesAreAllowedError;
-        _errorResult =  QueryResultBuilder.CreateError(error, _statusCode);
+        _errorResult =  OperationResultBuilder.CreateError(error, _statusCode);
         _exception = new GraphQLException(error);
     }
 
     public ValueTask InvokeAsync(IRequestContext context)
     {
         if (_allowAllQueries ||
-            context.Request.Query is null ||
+            context.Request.Document is null ||
             context.ContextData.ContainsKey(WellKnownContextData.NonPersistedQueryAllowed))
         {
             return _next(context);

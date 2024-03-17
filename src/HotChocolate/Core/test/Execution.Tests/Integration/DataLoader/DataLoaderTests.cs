@@ -184,10 +184,10 @@ public class DataLoaderTests
                                 .GetRequiredService<IDataLoaderScope>()
                                 .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                        context.Result = QueryResultBuilder
-                            .FromResult((IQueryResult)context.Result!)
+                        context.Result = OperationResultBuilder
+                            .FromResult((IOperationResult)context.Result!)
                             .AddExtension("loads", dataLoader.Loads)
-                            .Create();
+                            .Build();
                     })
                 .UseDefaultPipeline());
 
@@ -195,8 +195,8 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             a: withDataLoader(key: ""a"")
                             b: withDataLoader(key: ""b"")
@@ -204,28 +204,28 @@ public class DataLoaderTests
                                 c: withDataLoader(key: ""c"")
                             }
                         }")
-                    .Create()));
+                    .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             a: withDataLoader(key: ""a"")
                         }")
-                    .Create()));
+                    .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             c: withDataLoader(key: ""c"")
                         }")
-                    .Create()));
+                    .Build()));
 
         // assert
         snapshot.MatchMarkdown();
     }
-    
+
     [Fact]
     public async Task ClassDataLoader_Out_Off_GraphQL_Context_Not_Initialized()
     {
@@ -245,10 +245,10 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result!)
+                    context.Result = OperationResultBuilder
+                        .FromResult((IOperationResult)context.Result!)
                         .AddExtension("loads", dataLoader.Loads)
-                        .Create();
+                        .Build();
                 })
             .UseDefaultPipeline()
             .Services
@@ -260,7 +260,7 @@ public class DataLoaderTests
         var result = await dataLoader.LoadAsync("a");
         Assert.Equal("a", result);
     }
-    
+
     [Fact]
     public async Task ClassDataLoader_Out_Off_GraphQL_Context()
     {
@@ -280,10 +280,10 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result!)
+                    context.Result = OperationResultBuilder
+                        .FromResult((IOperationResult)context.Result!)
                         .AddExtension("loads", dataLoader.Loads)
-                        .Create();
+                        .Build();
                 })
             .UseDefaultPipeline()
             .Services
@@ -298,7 +298,7 @@ public class DataLoaderTests
         var result = await dataLoader.LoadAsync("a");
         Assert.Equal("a", result);
     }
-    
+
     [Fact]
     public async Task ClassDataLoader_Out_Off_GraphQL_Context_Just_Works()
     {
@@ -318,10 +318,10 @@ public class DataLoaderTests
                             .GetRequiredService<IDataLoaderScope>()
                             .GetDataLoader<TestDataLoader>(_ => throw new Exception());
 
-                    context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result!)
+                    context.Result = OperationResultBuilder
+                        .FromResult((IOperationResult)context.Result!)
                         .AddExtension("loads", dataLoader.Loads)
-                        .Create();
+                        .Build();
                 })
             .UseDefaultPipeline()
             .Services
@@ -349,31 +349,31 @@ public class DataLoaderTests
         // act
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             a: withStackedDataLoader(key: ""a"")
                             b: withStackedDataLoader(key: ""b"")
                         }")
-                    .Create()));
+                    .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             a: withStackedDataLoader(key: ""a"")
                         }")
-                    .Create()));
+                    .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             c: withStackedDataLoader(key: ""c"")
                         }")
-                    .Create()));
+                    .Build()));
 
         // assert
         snapshot.MatchMarkdown();
@@ -397,41 +397,41 @@ public class DataLoaderTests
 
                         var dataLoader = (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
-                        context.Result = QueryResultBuilder
-                            .FromResult(((IQueryResult)context.Result!))
+                        context.Result = OperationResultBuilder
+                            .FromResult(((IOperationResult)context.Result!))
                             .AddExtension("loads", dataLoader.Loads)
-                            .Create();
+                            .Build();
                     })
                 .UseDefaultPipeline());
 
         // act
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
                             b: dataLoaderWithInterface(key: ""b"")
                         }")
-                    .Create()));
+                    .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
                         }")
-                    .Create()));
+                    .Build()));
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
+                OperationRequestBuilder.Create()
+                    .SetDocument(
                         @"{
                             c: dataLoaderWithInterface(key: ""c"")
                         }")
-                    .Create()));
+                    .Build()));
 
         // assert
         snapshot.MatchMarkdown();

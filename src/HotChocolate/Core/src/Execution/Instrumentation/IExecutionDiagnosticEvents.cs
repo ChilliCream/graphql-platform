@@ -305,7 +305,7 @@ public interface IExecutionDiagnosticEvents
     /// <param name="result">
     /// The subscription result that is being written to the response stream.
     /// </param>
-    void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result);
+    void SubscriptionEventResult(SubscriptionEventContext context, IOperationResult result);
 
     /// <summary>
     /// Called when an error occurred while producing the subscription event result.

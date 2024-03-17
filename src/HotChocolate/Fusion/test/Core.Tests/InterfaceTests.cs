@@ -57,10 +57,10 @@ public class InterfaceTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -110,10 +110,10 @@ public class InterfaceTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -165,10 +165,10 @@ public class InterfaceTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();

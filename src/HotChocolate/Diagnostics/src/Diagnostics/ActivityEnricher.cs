@@ -128,17 +128,7 @@ public class ActivityEnricher
         if (request.Variables is not null &&
             (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            var variables = new ObjectValueNode(
-                request.Variables.Select(
-                    t => new ObjectFieldNode(
-                        null,
-                        new NameNode(t.Key),
-                        t.Value is null
-                            ? NullValueNode.Default
-                            : (IValueNode)t.Value))
-                    .ToArray());
-
-            EnrichRequestVariables(context, request, variables, activity);
+            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables), activity);
         }
 
         if (request.Extensions is not null &&
@@ -186,17 +176,7 @@ public class ActivityEnricher
             if (request.Variables is not null &&
                 (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
             {
-                var variables = new ObjectValueNode(
-                    request.Variables.Select(
-                        t => new ObjectFieldNode(
-                            null,
-                            new NameNode(t.Key),
-                            t.Value is null
-                                ? NullValueNode.Default
-                                : (IValueNode)t.Value))
-                        .ToArray());
-
-                EnrichBatchVariables(context, request, variables, i, activity);
+                EnrichBatchVariables(context, request, CreateVariablesNode(request.Variables), i, activity);
             }
 
             if (request.Extensions is not null &&
@@ -242,17 +222,7 @@ public class ActivityEnricher
         if (request.Variables is not null &&
             (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
         {
-            var variables = new ObjectValueNode(
-                request.Variables.Select(
-                    t => new ObjectFieldNode(
-                        null,
-                        new NameNode(t.Key),
-                        t.Value is null
-                            ? NullValueNode.Default
-                            : (IValueNode)t.Value))
-                    .ToArray());
-
-            EnrichRequestVariables(context, request, variables, activity);
+            EnrichRequestVariables(context, request, CreateVariablesNode(request.Variables), activity);
         }
 
         if (request.Extensions is not null &&
@@ -265,7 +235,7 @@ public class ActivityEnricher
     protected virtual void EnrichRequestVariables(
         HttpContext context,
         GraphQLRequest request,
-        ObjectValueNode variables,
+        ISyntaxNode variables,
         Activity activity)
     {
         activity.SetTag("graphql.http.request.variables", variables.Print());
@@ -274,7 +244,7 @@ public class ActivityEnricher
     protected virtual void EnrichBatchVariables(
         HttpContext context,
         GraphQLRequest request,
-        ObjectValueNode variables,
+        ISyntaxNode variables,
         int index,
         Activity activity)
     {
@@ -360,7 +330,7 @@ public class ActivityEnricher
         }
 
         activity.DisplayName = operationDisplayName ?? "Execute Request";
-        activity.SetTag("graphql.document.id", context.DocumentId);
+        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
         activity.SetTag("graphql.document.valid", context.IsValidDocument);
         activity.SetTag("graphql.operation.id", context.OperationId);
@@ -372,7 +342,7 @@ public class ActivityEnricher
             activity.SetTag("graphql.document.body", context.Document.Print());
         }
 
-        if (context.Result is IQueryResult result)
+        if (context.Result is IOperationResult result)
         {
             var errorCount = result.Errors?.Count ?? 0;
             activity.SetTag("graphql.errors.count", errorCount);
@@ -489,7 +459,7 @@ public class ActivityEnricher
             UpdateRootActivityName(activity, $"Begin {activity.DisplayName}");
         }
 
-        activity.SetTag("graphql.document.id", context.DocumentId);
+        activity.SetTag("graphql.document.id", context.DocumentId?.Value);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
     }
 
@@ -627,8 +597,8 @@ public class ActivityEnricher
         {
             if (error.Locations.Count == 1)
             {
-                tags.Add(new($"graphql.error.location.column", error.Locations[0].Column));
-                tags.Add(new($"graphql.error.location.line", error.Locations[0].Line));
+                tags.Add(new("graphql.error.location.column", error.Locations[0].Column));
+                tags.Add(new("graphql.error.location.line", error.Locations[0].Line));
             }
             else
             {
@@ -641,5 +611,55 @@ public class ActivityEnricher
         }
 
         activity.AddEvent(new("Error", tags: new(tags)));
+    }
+
+    private static ISyntaxNode CreateVariablesNode(IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet)
+    {
+        if (variableSet is null or { Count: 0, })
+        {
+            return NullValueNode.Default;
+        }
+        
+        if (variableSet.Count == 1)
+        {
+            var variables = variableSet[0];
+            var variablesCount = variables.Count;
+            var fields = new ObjectFieldNode[variablesCount];
+            var index = 0;
+
+            foreach (var (name, value) in variables)
+            {
+                // since we are in the HTTP context here we know that it will always be a IValueNode.
+                var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
+                fields[index++] = new ObjectFieldNode(name, valueNode);
+            }
+            
+            return new ObjectValueNode(fields);
+        }
+
+        if (variableSet.Count > 0)
+        {
+            var variableSetCount = variableSet.Count;
+            var items = new IValueNode[variableSetCount];
+            
+            for(var i = 0; i < variableSetCount; i++)
+            {
+                var variables = variableSet[i];
+                var variablesCount = variables.Count;
+                var fields = new ObjectFieldNode[variablesCount];
+                var index = 0;
+
+                foreach (var (name, value) in variables)
+                {
+                    // since we are in the HTTP context here we know that it will always be a IValueNode.
+                    var valueNode = value is null ? NullValueNode.Default : (IValueNode)value;
+                    fields[index++] = new ObjectFieldNode(name, valueNode);
+                }
+
+                items[i] = new ObjectValueNode(fields);
+            }
+        }
+
+        throw new InvalidOperationException();
     }
 }

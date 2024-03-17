@@ -110,10 +110,6 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest(OperationCacheMiddleware.Create());
 
-    public static IRequestExecutorBuilder UseOperationComplexityAnalyzer(
-        this IRequestExecutorBuilder builder) =>
-        builder.UseRequest(OperationComplexityMiddleware.Create());
-
     public static IRequestExecutorBuilder UseOperationExecution(
         this IRequestExecutorBuilder builder) =>
         builder.UseRequest(OperationExecutionMiddleware.Create());
@@ -134,13 +130,13 @@ public static partial class RequestExecutorBuilderExtensions
         this IRequestExecutorBuilder builder)
         => builder.UseRequest(next => context =>
         {
-            if (context.Document is not null || context.Request.Query is not null)
+            if (context.Document is not null || context.Request.Document is not null)
             {
                 return next(context);
             }
             
             var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
-            var result = QueryResultBuilder.CreateError(
+            var result = OperationResultBuilder.CreateError(
                 error,
                 new Dictionary<string, object?>
                 {
@@ -197,7 +193,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
@@ -222,7 +217,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
@@ -237,7 +231,6 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(DocumentParserMiddleware.Create());
         pipeline.Add(DocumentValidationMiddleware.Create());
         pipeline.Add(OperationCacheMiddleware.Create());
-        pipeline.Add(OperationComplexityMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(OperationExecutionMiddleware.Create());

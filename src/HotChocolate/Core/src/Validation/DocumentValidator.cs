@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation.Options;
 
@@ -67,7 +68,7 @@ public sealed class DocumentValidator : IDocumentValidator
     public ValueTask<DocumentValidatorResult> ValidateAsync(
         ISchema schema,
         DocumentNode document,
-        string documentId,
+        OperationDocumentId documentId,
         IDictionary<string, object?> contextData,
         bool onlyNonCachable,
         CancellationToken cancellationToken = default)
@@ -82,7 +83,7 @@ public sealed class DocumentValidator : IDocumentValidator
             throw new ArgumentNullException(nameof(document));
         }
 
-        if (documentId is null)
+        if (documentId.IsEmpty)
         {
             throw new ArgumentNullException(nameof(documentId));
         }
@@ -172,7 +173,7 @@ public sealed class DocumentValidator : IDocumentValidator
     private void PrepareContext(
         ISchema schema,
         DocumentNode document,
-        string documentId,
+        OperationDocumentId documentId,
         DocumentValidatorContext context,
         IDictionary<string, object?> contextData)
     {

@@ -12,7 +12,7 @@ public class MongoDbFilterCombinatorTests
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = true, }, 
+        new() { Bar = true, },
         new() { Bar = false, },
     ];
 
@@ -30,9 +30,9 @@ public class MongoDbFilterCombinatorTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { }){ bar }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { }){ bar }}")
+                .Build());
 
         await Snapshot.Create()
             .Add(res1)

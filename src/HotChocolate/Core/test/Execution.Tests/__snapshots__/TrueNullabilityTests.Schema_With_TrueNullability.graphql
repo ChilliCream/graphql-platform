@@ -14,5 +14,3 @@ type Book {
 type Query {
   book: Book
 }
-
-directive @nullBubbling(enable: Boolean! = true) on QUERY | MUTATION | SUBSCRIPTION

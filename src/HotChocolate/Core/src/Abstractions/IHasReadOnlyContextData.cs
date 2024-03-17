@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public interface IHasReadOnlyContextData

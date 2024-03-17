@@ -78,7 +78,7 @@ internal sealed class NoopExecutionDiagnosticEvents
 
     public IDisposable OnSubscriptionEvent(SubscriptionEventContext context) => this;
 
-    public void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result)
+    public void SubscriptionEventResult(SubscriptionEventContext context, IOperationResult result)
     {
     }
 

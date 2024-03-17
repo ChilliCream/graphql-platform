@@ -123,11 +123,11 @@
   <data name="Name_MustNotBeEmpty" xml:space="preserve">
     <value>The specified name mustn't be empty.</value>
   </data>
-  <data name="QueryRequestBuilder_QueryIsNull" xml:space="preserve">
+  <data name="OperationRequestBuilder_QueryIsNull" xml:space="preserve">
     <value>You must specify a query before creating a query request.</value>
   </data>
-  <data name="QueryRequestBuilder_QueryIsNullOrEmpty" xml:space="preserve">
-    <value>The query mustn't be null or empty.</value>
+  <data name="OperationRequestBuilder_OperationIsNullOrEmpty" xml:space="preserve">
+    <value>The operation source text mustn't be null or empty.</value>
   </data>
   <data name="State_KeyMustNotBeNullOrEmpty" xml:space="preserve">
     <value>The state key mustn't null or empty.</value>
@@ -227,5 +227,14 @@
   </data>
   <data name="MutationError_ErrorsEmpty" xml:space="preserve">
     <value>There must be at least one error in the errors list.</value>
+  </data>
+  <data name="OperationDocumentId_InvalidOperationIdFormat" xml:space="preserve">
+    <value>Invalid operation id format.</value>
+  </data>
+  <data name="OperationRequest_DocumentOrIdMustBeSet" xml:space="preserve">
+    <value>A GraphQL operation document or a document id is required to create a query request.</value>
+  </data>
+  <data name="OperationResultBatch_ResponseStreamOrOperationResult" xml:space="preserve">
+    <value>The result must be either an operation result or a response stream.</value>
   </data>
 </root>

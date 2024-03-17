@@ -50,10 +50,10 @@ public class DataTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();

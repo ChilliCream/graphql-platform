@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -25,17 +26,21 @@ public class IdDescriptorTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
                                     intId(id: $intId)
                                     stringId(id: $stringId)
                                     guidId(id: $guidId)
                                 }")
-                        .SetVariableValue("intId", intId)
-                        .SetVariableValue("stringId", stringId)
-                        .SetVariableValue("guidId", guidId)
-                        .Create());
+                        .SetVariableValues(
+                            new Dictionary<string, object>
+                            {
+                                { "intId", intId },
+                                { "stringId", stringId },
+                                { "guidId", guidId },
+                            })
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -57,15 +62,15 @@ public class IdDescriptorTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($someId: ID!) {
                                 foo(input: { someId: $someId }) {
                                     someId
                                 }
                             }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object> { { "someId", someId }, })
+                        .Build());
 
         // assert
         new

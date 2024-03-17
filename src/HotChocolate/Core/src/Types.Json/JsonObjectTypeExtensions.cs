@@ -241,11 +241,11 @@ public static class JsonObjectTypeExtensions
                     {
                         return null;
                     }
-
+                    
                     return DateTime.Parse(
                         property.Value.GetString()!,
                         CultureInfo.InvariantCulture,
-                        DateTimeStyles.AssumeUniversal);
+                        DateTimeStyles.None);
                 };
                 return;
 

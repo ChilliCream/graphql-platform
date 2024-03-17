@@ -92,10 +92,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -137,10 +137,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -182,10 +182,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -234,10 +234,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert
@@ -285,10 +285,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert
@@ -347,10 +347,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -397,10 +397,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -447,10 +447,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -498,10 +498,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -550,10 +550,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -603,10 +603,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -649,11 +649,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("first", 2)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "first", 2 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -706,10 +706,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -758,11 +758,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", id)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -808,11 +808,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -859,11 +859,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", id)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -912,11 +912,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", id)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -966,11 +966,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", id)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1019,10 +1019,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var executorProxy = new RequestExecutorProxy(executorResolver, Schema.DefaultName);
 
         var result = await executorProxy.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.Add(result, "1. Version");
@@ -1042,10 +1042,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                 SchemaFormatter.FormatAsDocument(fusionGraph)));
 
         result = await executorProxy.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         snapshot.Add(result, "2. Version");
 
@@ -1084,10 +1084,10 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1135,12 +1135,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1188,12 +1187,16 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(
+                    new Dictionary<string, object?>
+                    {
+                        { "id", "UHJvZHVjdAppMQ==" },
+                        { "first", 1 },
+                    })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1245,12 +1248,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1300,12 +1302,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1357,12 +1358,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1418,12 +1418,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1478,12 +1477,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1544,12 +1542,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1592,11 +1589,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("after", null)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "after", null }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1648,12 +1645,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
-                .SetVariableValue("first", 1)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -1704,10 +1700,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                 _observer.OnNext(_owner._configuration);
             }
 
-            public void Dispose()
-            {
-
-            }
+            public void Dispose() { }
         }
     }
 }

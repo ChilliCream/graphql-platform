@@ -5,8 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class ErrorBuilder : IErrorBuilder

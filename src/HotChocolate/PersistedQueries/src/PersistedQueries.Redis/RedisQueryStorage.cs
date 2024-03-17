@@ -8,13 +8,9 @@ using StackExchange.Redis;
 namespace HotChocolate.PersistedQueries.Redis;
 
 /// <summary>
-/// An implementation of <see cref="IReadStoredQueries"/>
-/// and <see cref="IWriteStoredQueries"/> that
-/// uses a redis database.
+/// An implementation of <see cref="IOperationDocumentStorage"/> that uses Redis as a storage.
 /// </summary>
-public class RedisQueryStorage
-    : IReadStoredQueries
-        , IWriteStoredQueries
+public class RedisQueryStorage : IOperationDocumentStorage
 {
     private readonly IDatabase _database;
     private readonly TimeSpan? _queryExpiration;
@@ -33,43 +29,50 @@ public class RedisQueryStorage
     }
 
     /// <inheritdoc />
-    public Task<QueryDocument?> TryReadQueryAsync(
-        string queryId,
+    public ValueTask<IOperationDocument?> TryReadAsync(
+        OperationDocumentId documentId, 
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
         }
 
-        return TryReadQueryInternalAsync(queryId);
+        return TryReadInternalAsync(documentId);
     }
-
-    private async Task<QueryDocument?> TryReadQueryInternalAsync(
-        string queryId)
+    
+    private async ValueTask<IOperationDocument?> TryReadInternalAsync(OperationDocumentId documentId)
     {
-        var buffer = (byte[]?)await _database.StringGetAsync(queryId).ConfigureAwait(false);
-        return buffer is null ? null : new QueryDocument(Utf8GraphQLParser.Parse(buffer));
+        var buffer = (byte[]?)await _database.StringGetAsync(documentId.Value).ConfigureAwait(false);
+        return buffer is null ? null : new OperationDocument(Utf8GraphQLParser.Parse(buffer));
     }
 
     /// <inheritdoc />
-    public Task WriteQueryAsync(
-        string queryId,
-        IQuery query,
+    public ValueTask SaveAsync(
+        OperationDocumentId documentId,
+        IOperationDocument document,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(queryId))
+        if (OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new ArgumentNullException(nameof(queryId));
+            throw new ArgumentNullException(nameof(documentId));
         }
-
-        if (query is null)
+        
+        if (document is null)
         {
-            throw new ArgumentNullException(nameof(query));
+            throw new ArgumentNullException(nameof(document));
         }
+        
+        return SaveInternalAsync(documentId, document);
+    }
 
-        return _queryExpiration.HasValue
-            ? _database.StringSetAsync(queryId, query.AsSpan().ToArray(), _queryExpiration.Value)
-            : _database.StringSetAsync(queryId, query.AsSpan().ToArray());
+    private async ValueTask SaveInternalAsync(
+        OperationDocumentId documentId,
+        IOperationDocument document)
+    {
+        var promise = _queryExpiration.HasValue
+            ? _database.StringSetAsync(documentId.Value, document.ToArray(), _queryExpiration.Value)
+            : _database.StringSetAsync(documentId.Value, document.ToArray());
+        await promise.ConfigureAwait(false);
     }
 }

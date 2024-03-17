@@ -31,13 +31,13 @@ internal sealed class ExceptionMiddleware
         catch (GraphQLException ex)
         {
             context.Exception = ex;
-            context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(ex.Errors));
+            context.Result = OperationResultBuilder.CreateError(_errorHandler.Handle(ex.Errors));
         }
         catch (Exception ex)
         {
             context.Exception = ex;
             var error = _errorHandler.CreateUnexpectedError(ex).Build();
-            context.Result = QueryResultBuilder.CreateError(_errorHandler.Handle(error));
+            context.Result = OperationResultBuilder.CreateError(_errorHandler.Handle(error));
         }
     }
 

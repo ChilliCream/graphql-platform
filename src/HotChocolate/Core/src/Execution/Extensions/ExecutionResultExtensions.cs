@@ -13,7 +13,7 @@ public static class ExecutionResultExtensions
     private static readonly JsonResultFormatter _formatterIndented = new(new() { Indented = true, });
 
     public static void WriteTo(
-        this IQueryResult result,
+        this IOperationResult result,
         IBufferWriter<byte> writer,
         bool withIndentations = true)
     {
@@ -62,7 +62,7 @@ public static class ExecutionResultExtensions
             throw new ArgumentNullException(nameof(result));
         }
 
-        if (result is IQueryResult queryResult)
+        if (result is IOperationResult queryResult)
         {
             return withIndentations
                 ? _formatterIndented.Format(queryResult)

@@ -54,14 +54,14 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(
@@ -90,14 +90,14 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(
@@ -123,14 +123,14 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"2020-01-11T00:00:00Z\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"2020-01-11T00:00:00Z\"}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"2020-01-12T00:00:00Z\"}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"2020-01-12T00:00:00Z\"}}){ bar}}")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(
@@ -192,10 +192,10 @@ public class MongoDbFindFluentTests : IClassFixture<MongoResource>
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
+                            OperationResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline()
