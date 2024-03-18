@@ -140,16 +140,6 @@ public class QueryType : ObjectType
             .Resolve(ctx =>
             {
                 var context = ctx.Service<BookContext>();
-
-                return context.Books;
-            });
-
-        descriptor
-            .Field("booksWithMissingContext")
-            .Resolve(ctx =>
-            {
-                var context = ctx.Service<BookContext>();
-
                 return context.Books;
             });
     }

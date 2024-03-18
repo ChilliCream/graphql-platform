@@ -72,7 +72,7 @@ public class SqlLiteOffsetTestBase
             .Configure<RequestExecutorSetup>(
                 Schema.DefaultName,
                 o => o.Schema = schema)
-            .AddPooledDbContextFactory<DatabaseContext<TEntity>>(
+            .AddDbContextPool<DatabaseContext<TEntity>>(
                 b => b.UseSqlite($"Data Source={Guid.NewGuid():N}.db"))
             .AddGraphQL()
             .UseDefaultPipeline()

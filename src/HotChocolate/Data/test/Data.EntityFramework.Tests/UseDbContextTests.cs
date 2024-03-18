@@ -556,31 +556,6 @@ public class UseDbContextTests
     }
 
     [Fact]
-    public async Task DbContext_ResolverExtension_Missing_DbContext()
-    {
-        // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddDbContextPool<BookContext>(
-                    b => b.UseInMemoryDatabase(CreateConnectionString()))
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            @"query Test {
-                    booksWithMissingContext {
-                        id
-                    }
-                }");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Execute_Queryable_CursorPaging_TotalCount()
     {
         // arrange
