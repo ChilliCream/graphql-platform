@@ -11,8 +11,6 @@ using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.TestHelper;
 
-// TODO: Two errors pointing to the same field is not spec-compliant.
-
 namespace HotChocolate.Fusion;
 
 public class ErrorTests(ITestOutputHelper output)
@@ -65,7 +63,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -115,7 +113,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -165,7 +163,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -215,7 +213,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -261,7 +259,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -315,7 +313,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -369,7 +367,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -415,7 +413,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -465,7 +463,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -515,7 +513,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -564,7 +562,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -613,7 +611,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -665,7 +663,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -710,7 +708,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -760,7 +758,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -812,7 +810,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -862,7 +860,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectErrorSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
