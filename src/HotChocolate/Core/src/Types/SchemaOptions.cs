@@ -217,6 +217,16 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool EnableTag { get; set; } = true;
 
     /// <summary>
+    /// Defines the default dependency injection scope for query fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; }
+
+    /// <summary>
+    /// Defines the default dependency injection scope for mutation fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; }
+
+    /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
@@ -252,6 +262,8 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTrueNullability = options.EnableTrueNullability,
             EnableTag = options.EnableTag,
+            DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
         };
     }
 }

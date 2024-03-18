@@ -41,12 +41,10 @@ public class SqlLiteCursorTestBase
                     c.Name("Query");
                     
                     c.Field("root")
-                        .UseDbContext<DatabaseContext<TEntity>>()
                         .Resolve(
                             ctx =>
                             {
-                                var context =
-                                    ctx.DbContext<DatabaseContext<TEntity>>();
+                                var context = ctx.Service<DatabaseContext<TEntity>>();
                                 BuildContext(context, entities);
                                 return context.Data;
                             })
@@ -74,11 +72,10 @@ public class SqlLiteCursorTestBase
                             });
 
                     c.Field("root1")
-                        .UseDbContext<DatabaseContext<TEntity>>()
                         .Resolve(
                             ctx =>
                             {
-                                var context = ctx.DbContext<DatabaseContext<TEntity>>();
+                                var context = ctx.Service<DatabaseContext<TEntity>>();
                                 BuildContext(context, entities);
                                 return context.Data.ToArray().AsQueryable();
                             })

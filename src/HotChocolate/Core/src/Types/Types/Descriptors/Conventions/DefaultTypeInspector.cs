@@ -876,9 +876,6 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             element.IsDefined(typeof(ParentAttribute), true) ||
             element.IsDefined(typeof(ServiceAttribute), true) ||
             element.IsDefined(typeof(GlobalStateAttribute), true) ||
-#pragma warning disable CS0618
-            element.IsDefined(typeof(ScopedServiceAttribute), true) ||
-#pragma warning restore CS0618
             element.IsDefined(typeof(ScopedStateAttribute), true) ||
             element.IsDefined(typeof(LocalStateAttribute), true) ||
             element.IsDefined(typeof(DescriptorAttribute), true);

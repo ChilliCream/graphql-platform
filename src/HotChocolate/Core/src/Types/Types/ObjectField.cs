@@ -58,6 +58,11 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     }
 
     /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    public DependencyInjectionScope DependencyInjectionScope { get; private set; }
+
+    /// <summary>
     /// Defines that the resolver pipeline returns an
     /// <see cref="IAsyncEnumerable{T}"/> as its result.
     /// </summary>
@@ -130,6 +135,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
         var options = context.DescriptorContext.Options;
+        var isQuery = !(((RegisteredType)context).IsMutationType ?? false);
 
         if (Directives.Count > 0)
         {

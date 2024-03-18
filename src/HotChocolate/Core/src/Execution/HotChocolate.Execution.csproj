@@ -144,9 +144,6 @@
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
-    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ResolverCompiler.cs">
-      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
-    </Compile>
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>

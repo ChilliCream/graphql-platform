@@ -199,6 +199,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+    
+    /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    public DependencyInjectionScope? DependencyInjectionScope { get; set; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an
@@ -319,6 +324,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
+        target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
         target.SubscribeWith = SubscribeWith;
     }
@@ -356,6 +362,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         if (!IsParallelExecutable)
         {
             target.IsParallelExecutable = false;
+        }
+        
+        if(DependencyInjectionScope.HasValue)
+        {
+            target.DependencyInjectionScope = DependencyInjectionScope;
         }
 
         if (!HasStreamResult)

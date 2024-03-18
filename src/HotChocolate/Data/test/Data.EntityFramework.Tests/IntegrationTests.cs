@@ -226,7 +226,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // arrange
         // act
         var executor = await new ServiceCollection()
-            .AddPooledDbContextFactory<BookContext>(
+            .AddDbContextPool<BookContext>(
                 b => b.UseInMemoryDatabase("Data Source=EF.OffsetPagingExecutable.db"))
             .AddGraphQL()
             .AddFiltering()

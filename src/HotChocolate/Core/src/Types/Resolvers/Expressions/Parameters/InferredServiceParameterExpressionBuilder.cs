@@ -33,23 +33,5 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
     }
 
     public Expression Build(ParameterExpressionBuilderContext context)
-    {
-#if NET8_0_OR_GREATER
-        return ServiceExpressionHelper.TryGetServiceKey(context.Parameter, out var key)
-            ? ServiceExpressionHelper.Build(
-                context.Parameter,
-                context.ResolverContext,
-                ServiceKind.Default,
-                key)
-            : ServiceExpressionHelper.Build(
-                context.Parameter,
-                context.ResolverContext,
-                ServiceKind.Default);
-#else
-        return ServiceExpressionHelper.Build(
-            context.Parameter,
-            context.ResolverContext,
-            ServiceKind.Default);
-#endif
-    }
+        => ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
 }

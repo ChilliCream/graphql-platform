@@ -38,11 +38,9 @@ public class SqlLiteOffsetTestBase
             .AddQueryType(
                 c => c.Name("Query")
                     .Field("root")
-                    .UseDbContext<DatabaseContext<TEntity>>()
                     .Resolve(ctx =>
                     {
-                        var context =
-                            ctx.DbContext<DatabaseContext<TEntity>>();
+                        var context = ctx.Service<DatabaseContext<TEntity>>();
                         BuildContext(context, entities);
                         return context.Data;
                     })

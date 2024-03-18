@@ -5,7 +5,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -17,7 +19,7 @@ internal sealed partial class ResolverTask
         {
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
-                // we initialize the field here so we are able to propagate non-null violations
+                // we initialize the field so we are able to propagate non-null violations
                 // through the result tree.
                 _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
                 
@@ -135,6 +137,13 @@ internal sealed partial class ResolverTask
 
     private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)
     {
+        if(_context.Field.DependencyInjectionScope == DependencyInjectionScope.Resolver)
+        {
+            var serviceScope = _operationContext.Services.CreateAsyncScope();
+            _context.Services = serviceScope.ServiceProvider;
+            _context.RegisterForCleanup(serviceScope.DisposeAsync);
+        }
+        
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);
 
         var result = _context.Result;
