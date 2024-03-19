@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -17,28 +18,17 @@ namespace Microsoft.Extensions.DependencyInjection;
 ///
 /// The <see cref="OperationContextFactory"/> MUST be a singleton.
 /// </summary>
-internal sealed class OperationContextFactory : IFactory<OperationContext>
+internal sealed class OperationContextFactory(
+    IFactory<ResolverTask> resolverTaskFactory,
+    ResultPool resultPool,
+    ITypeConverter typeConverter,
+    AggregateServiceScopeInitializer serviceScopeInitializer)
+    : IFactory<OperationContext>
 {
-    private readonly IFactory<ResolverTask> _resolverTaskFactory;
-    private readonly ResultPool _resultPool;
-    private readonly ITypeConverter _typeConverter;
-
-    public OperationContextFactory(
-        IFactory<ResolverTask> resolverTaskFactory,
-        ResultPool resultPool,
-        ITypeConverter typeConverter)
-    {
-        _resolverTaskFactory = resolverTaskFactory ??
-            throw new ArgumentNullException(nameof(resolverTaskFactory));
-        _resultPool = resultPool ??
-            throw new ArgumentNullException(nameof(resultPool));
-        _typeConverter = typeConverter ??
-            throw new ArgumentNullException(nameof(typeConverter));
-    }
-
     public OperationContext Create()
         => new OperationContext(
-            _resolverTaskFactory,
-            new ResultBuilder(_resultPool),
-            _typeConverter);
+            resolverTaskFactory,
+            new ResultBuilder(resultPool),
+            typeConverter,
+            serviceScopeInitializer);
 }

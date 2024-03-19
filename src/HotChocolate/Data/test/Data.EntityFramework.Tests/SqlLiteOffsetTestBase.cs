@@ -38,11 +38,9 @@ public class SqlLiteOffsetTestBase
             .AddQueryType(
                 c => c.Name("Query")
                     .Field("root")
-                    .UseDbContext<DatabaseContext<TEntity>>()
                     .Resolve(ctx =>
                     {
-                        var context =
-                            ctx.DbContext<DatabaseContext<TEntity>>();
+                        var context = ctx.Service<DatabaseContext<TEntity>>();
                         BuildContext(context, entities);
                         return context.Data;
                     })
@@ -74,7 +72,7 @@ public class SqlLiteOffsetTestBase
             .Configure<RequestExecutorSetup>(
                 Schema.DefaultName,
                 o => o.Schema = schema)
-            .AddPooledDbContextFactory<DatabaseContext<TEntity>>(
+            .AddDbContextPool<DatabaseContext<TEntity>>(
                 b => b.UseSqlite($"Data Source={Guid.NewGuid():N}.db"))
             .AddGraphQL()
             .UseDefaultPipeline()

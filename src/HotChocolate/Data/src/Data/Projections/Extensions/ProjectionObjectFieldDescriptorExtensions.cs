@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Projections;
@@ -416,6 +412,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public IObjectType DeclaringType => _nodeField.DeclaringType;
 
         public bool IsParallelExecutable => _nodeField.IsParallelExecutable;
+
+        public DependencyInjectionScope DependencyInjectionScope => _nodeField.DependencyInjectionScope;
 
         public bool HasStreamResult => _nodeField.HasStreamResult;
 

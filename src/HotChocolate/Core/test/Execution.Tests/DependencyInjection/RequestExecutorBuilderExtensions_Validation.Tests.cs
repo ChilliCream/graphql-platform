@@ -217,9 +217,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         Assert.Throws<ArgumentNullException>(Fail);
     }
 
-    public class MockVisitor : DocumentValidatorVisitor
-    {
-    }
+    public class MockVisitor : DocumentValidatorVisitor;
 
     public class MockRule : IDocumentValidatorRule
     {
