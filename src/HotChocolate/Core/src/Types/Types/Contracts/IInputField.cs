@@ -1,7 +1,5 @@
 #nullable enable
 
-using System.Reflection;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -19,14 +17,4 @@ public interface IInputField : IField, IInputFieldInfo
     /// Gets the deprecation reason.
     /// </summary>
     string? DeprecationReason { get; }
-}
-
-internal interface IHasProperty
-{
-    PropertyInfo? Property { get; }
-}
-
-internal interface IHasOptional
-{
-    bool IsOptional { get; }
 }

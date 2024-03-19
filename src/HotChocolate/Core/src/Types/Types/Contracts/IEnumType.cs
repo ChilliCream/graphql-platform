@@ -1,7 +1,7 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 

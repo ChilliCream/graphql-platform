@@ -69,9 +69,3 @@ public interface IObjectField : IOutputField
     /// </summary>
     MemberInfo? ResolverMember { get; }
 }
-
-public enum DependencyInjectionScope
-{
-    Request,
-    Resolver,
-}
