@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
@@ -19,7 +20,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
     IIdSerializer idSerializer,
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
-    [SchemaService] NodeIdParser nodeIdParser)
+    [SchemaService] NodeIdParser nodeIdParser,
+    [SchemaService] IFusionOptionsAccessor fusionOptionsAccessor)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -37,6 +39,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
+    private readonly IFusionOptionsAccessor _fusionOptionsAccessor = fusionOptionsAccessor
+        ?? throw new ArgumentNullException(nameof(fusionOptionsAccessor));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -66,7 +70,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     operationContextOwner,
                     _clientFactory,
                     _idSerializer,
-                    _nodeIdParser);
+                    _nodeIdParser,
+                    _fusionOptionsAccessor);
 
             context.Result =
                 await FederatedQueryExecutor.ExecuteAsync(
@@ -93,7 +98,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
             OperationType.Subscription => _subscriptionRoot,
             _ => throw new NotSupportedException(),
         };
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
@@ -102,13 +107,15 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
+            var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<IFusionOptionsAccessor>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
                 contextFactory,
                 idSerializer,
                 serviceConfig,
                 clientFactory,
-                nodeIdParser);
+                nodeIdParser,
+                fusionOptionsAccessor);
             return async context =>
             {
                 var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();

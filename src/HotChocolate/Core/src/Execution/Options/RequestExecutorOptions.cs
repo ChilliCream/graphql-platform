@@ -45,10 +45,27 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 
     /// <summary>
     /// Gets or sets a value indicating whether the <c>GraphQL</c> errors
-    /// should be extended with exception details. The default value is
-    /// <see cref="Debugger.IsAttached"/>.
+    /// should be extended with exception details.
+    ///
+    /// The default value is <see cref="Debugger.IsAttached"/>.
     /// </summary>
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the <c>Fusion</c> query plan
+    /// can be requested on a per request basis.
+    ///
+    /// The default is <c>false</c>.
+    /// </summary>
+    public bool AllowFusionQueryPlan { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether <c>Fusion</c> debugging
+    /// information should be included in the response.
+    ///
+    /// The default value is <see cref="Debugger.IsAttached"/>.
+    /// </summary>
+    public bool IncludeFusionDebugInfo { get; set; } = Debugger.IsAttached;
 
     /// <summary>
     /// Gets the complexity analyzer settings.

@@ -39,6 +39,7 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .CoreBuilder.ModifyRequestOptions(options => options.IncludeFusionDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -88,6 +89,7 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .CoreBuilder.ModifyRequestOptions(options => options.IncludeFusionDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -138,6 +140,7 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .CoreBuilder.ModifyRequestOptions(options => options.IncludeFusionDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -190,6 +193,7 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .CoreBuilder.ModifyRequestOptions(options => options.IncludeFusionDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
