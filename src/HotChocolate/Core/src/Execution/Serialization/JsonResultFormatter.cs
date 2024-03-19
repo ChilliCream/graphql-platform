@@ -335,7 +335,12 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
 
         if (result.RequestIndex.HasValue)
         {
-            writer.WriteNumber("requestIndex", result.RequestIndex.Value);
+            writer.WriteNumber(RequestIndex, result.RequestIndex.Value);
+        }
+        
+        if (result.VariableIndex.HasValue)
+        {
+            writer.WriteNumber(VariableIndex, result.VariableIndex.Value);
         }
 
         WriteErrors(writer, result.Errors);

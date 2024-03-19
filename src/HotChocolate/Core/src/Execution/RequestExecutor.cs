@@ -67,18 +67,21 @@ internal sealed class RequestExecutor : IRequestExecutor
     public Task<IExecutionResult> ExecuteAsync(
         IOperationRequest request,
         CancellationToken cancellationToken = default)
-        => ExecuteAsync(request, true, cancellationToken);
-
-    internal async Task<IExecutionResult> ExecuteAsync(
-        IOperationRequest request,
-        bool scopeDataLoader,
-        CancellationToken cancellationToken = default)
     {
         if (request is null)
         {
             throw new ArgumentNullException(nameof(request));
         }
 
+        return ExecuteAsync(request, true, null, cancellationToken);
+    }
+
+    internal async Task<IExecutionResult> ExecuteAsync(
+        IOperationRequest request,
+        bool scopeDataLoader,
+        int? requestIndex,
+        CancellationToken cancellationToken)
+    {
         IServiceScope? scope = null;
 
         if (request.Services is null)
@@ -107,8 +110,9 @@ internal sealed class RequestExecutor : IRequestExecutor
 
         try
         {
-            context.RequestAborted = cancellationToken;
             context.Initialize(request, services);
+            context.RequestAborted = cancellationToken;
+            context.RequestIndex = requestIndex;
             EnrichContext(context);
 
             _contextAccessor.RequestContext = context;
@@ -149,9 +153,10 @@ internal sealed class RequestExecutor : IRequestExecutor
             throw new ArgumentNullException(nameof(requestBatch));
         }
 
-        return Task.FromResult<IResponseStream>(new ResponseStream(
-            () => CreateResponseStream(requestBatch, cancellationToken), 
-            ExecutionResultKind.BatchResult));
+        return Task.FromResult<IResponseStream>(
+            new ResponseStream(
+                () => CreateResponseStream(requestBatch, cancellationToken),
+                ExecutionResultKind.BatchResult));
     }
 
     private async IAsyncEnumerable<IOperationResult> CreateResponseStream(
@@ -185,7 +190,7 @@ internal sealed class RequestExecutor : IRequestExecutor
 
         for (var i = 0; i < requestCount; i++)
         {
-            tasks[i] = ExecuteAsync(requests[i], false, cancellationToken);
+            tasks[i] = ExecuteAsync(requests[i], false, i, cancellationToken);
         }
 
         for (var i = 0; i < requestCount; i++)

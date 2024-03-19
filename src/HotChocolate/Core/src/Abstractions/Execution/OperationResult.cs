@@ -22,7 +22,8 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         bool? hasNext,
         Func<ValueTask>[] cleanupTasks,
         bool isDataSet,
-        int? requestIndex)
+        int? requestIndex,
+        int? variableIndex)
         : base(cleanupTasks)
     {
         if (data is null &&
@@ -47,6 +48,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         HasNext = hasNext;
         IsDataSet = isDataSet;
         RequestIndex = requestIndex;
+        VariableIndex = variableIndex;
     }
 
     /// <summary>
@@ -62,7 +64,8 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         string? label = null,
         Path? path = null,
         bool? hasNext = null,
-        int? requestIndex = null)
+        int? requestIndex = null,
+        int? variableIndex = null)
     {
         if (data is null &&
             items is null &&
@@ -85,6 +88,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Path = path;
         HasNext = hasNext;
         RequestIndex = requestIndex;
+        VariableIndex = variableIndex;
     }
 
     /// <inheritdoc />
@@ -92,6 +96,9 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
 
     /// <inheritdoc />
     public int? RequestIndex { get; }
+
+    /// <inheritdoc />
+    public int? VariableIndex { get; }
 
     /// <inheritdoc />
     public string? Label { get; }

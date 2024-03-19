@@ -16,6 +16,8 @@ public sealed class OperationResultBuilder
     private Path? _path;
     private bool? _hasNext;
     private bool? _isDataSet;
+    private int? _requestIndex;
+    private int? _variableIndex;
     private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
 
     public OperationResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
@@ -180,7 +182,8 @@ public sealed class OperationResultBuilder
             _hasNext,
             _cleanupTasks,
             _isDataSet ?? false,
-            null);
+            _requestIndex,
+            _variableIndex);
 
     public static OperationResultBuilder New() => new();
 
@@ -215,6 +218,8 @@ public sealed class OperationResultBuilder
         builder._path = result.Path;
         builder._hasNext = result.HasNext;
         builder._isDataSet = result.IsDataSet;
+        builder._requestIndex = result.RequestIndex;
+        builder._variableIndex = result.VariableIndex;
 
         return builder;
     }

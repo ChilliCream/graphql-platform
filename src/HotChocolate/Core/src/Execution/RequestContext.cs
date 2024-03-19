@@ -23,6 +23,8 @@ internal sealed class RequestContext(
 
     public ulong ExecutorVersion { get; } = executorVersion;
 
+    public int? RequestIndex { get; set; }
+
     public IServiceProvider Services { get; private set; } = default!;
 
     public IErrorHandler ErrorHandler { get; } = errorHandler;
@@ -88,6 +90,7 @@ internal sealed class RequestContext(
             Variables = Variables,
             Result = Result,
             Exception = Exception,
+            RequestIndex = RequestIndex,
         };
 
         foreach (var item in _contextData)
@@ -135,5 +138,6 @@ internal sealed class RequestContext(
         Variables = default;
         Result = default;
         Exception = default;
+        RequestIndex = default;
     }
 }

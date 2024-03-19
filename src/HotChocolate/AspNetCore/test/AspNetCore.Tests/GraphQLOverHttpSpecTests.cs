@@ -538,7 +538,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(response.StatusCode, OK);
 
-        await foreach (var result in response.ReadAsResultStreamAsync())
+        await foreach (OperationResult result in response.ReadAsResultStreamAsync())
         {
             snapshot.Add(result);
         }

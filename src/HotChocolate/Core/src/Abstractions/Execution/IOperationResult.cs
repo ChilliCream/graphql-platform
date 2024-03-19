@@ -13,6 +13,11 @@ public interface IOperationResult : IExecutionResult
     int? RequestIndex { get; }
     
     /// <summary>
+    /// Gets the index of of the variable set that corresponds to this result.
+    /// </summary>
+    int? VariableIndex { get; }
+    
+    /// <summary>
     /// A string that was passed to the label argument of the @defer or @stream
     /// directive that corresponds to this results.
     /// </summary>

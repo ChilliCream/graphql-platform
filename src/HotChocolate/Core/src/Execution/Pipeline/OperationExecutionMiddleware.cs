@@ -123,7 +123,7 @@ internal sealed class OperationExecutionMiddleware
 
         for (var i = 0; i < variableSetCount; i++)
         {
-            tasks[i] = ExecuteQueryOrMutationNoStreamAsync(context, batchDispatcher, operation, variableSet[i]);
+            tasks[i] = ExecuteQueryOrMutationNoStreamAsync(context, batchDispatcher, operation, variableSet[i], i);
         }
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -181,7 +181,8 @@ internal sealed class OperationExecutionMiddleware
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
         IOperation operation,
-        IVariableValueCollection variables)
+        IVariableValueCollection variables,
+        int? variableIndex = null)
     {
         var operationContextOwner = _contextFactory.Create();
         var operationContext = operationContextOwner.OperationContext;
@@ -193,7 +194,8 @@ internal sealed class OperationExecutionMiddleware
                 batchDispatcher,
                 operation,
                 operationContext,
-                variables)
+                variables,
+                variableIndex)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -216,7 +218,8 @@ internal sealed class OperationExecutionMiddleware
         IBatchDispatcher batchDispatcher,
         IOperation operation,
         OperationContext operationContext,
-        IVariableValueCollection variables)
+        IVariableValueCollection variables,
+        int? variableIndex = null)
     {
         if (operation.Definition.Operation is OperationType.Query)
         {
@@ -229,7 +232,8 @@ internal sealed class OperationExecutionMiddleware
                 operation,
                 variables,
                 query,
-                () => query);
+                () => query,
+                variableIndex);
 
             return await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
         }
@@ -247,7 +251,8 @@ internal sealed class OperationExecutionMiddleware
                 operation,
                 variables,
                 mutation,
-                () => GetQueryRootValue(context));
+                () => GetQueryRootValue(context),
+                variableIndex);
 
             var result = await _queryExecutor.ExecuteAsync(operationContext).ConfigureAwait(false);
             

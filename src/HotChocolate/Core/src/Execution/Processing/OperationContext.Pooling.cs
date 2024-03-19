@@ -32,6 +32,7 @@ internal sealed partial class OperationContext
     private Func<object?> _resolveQueryRootValue = default!;
     private IBatchDispatcher _batchDispatcher = default!;
     private InputParser _inputParser = default!;
+    private int? _variableIndex;
     private object? _rootValue;
     private bool _isInitialized;
 
@@ -41,8 +42,8 @@ internal sealed partial class OperationContext
         ITypeConverter typeConverter)
     {
         _resolverTaskFactory = resolverTaskFactory;
-        _workScheduler = new(this);
-        _deferredWorkScheduler = new();
+        _workScheduler = new WorkScheduler(this);
+        _deferredWorkScheduler = new DeferredWorkScheduler();
         _resultBuilder = resultBuilder;
         Converter = typeConverter;
     }
@@ -56,7 +57,8 @@ internal sealed partial class OperationContext
         IOperation operation,
         IVariableValueCollection variables,
         object? rootValue,
-        Func<object?> resolveQueryRootValue)
+        Func<object?> resolveQueryRootValue, 
+        int? variableIndex = null)
     {
         _requestContext = requestContext;
         _schema = requestContext.Schema;
@@ -72,12 +74,23 @@ internal sealed partial class OperationContext
         _rootValue = rootValue;
         _resolveQueryRootValue = resolveQueryRootValue;
         _batchDispatcher = batchDispatcher;
+        _variableIndex = variableIndex;
         _isInitialized = true;
 
         IncludeFlags = _operation.CreateIncludeFlags(variables);
         _workScheduler.Initialize(batchDispatcher);
         _deferredWorkScheduler.Initialize(this);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
+
+        if (requestContext.RequestIndex.HasValue)
+        {
+            _resultBuilder.SetRequestIndex(requestContext.RequestIndex.Value);
+        }
+        
+        if (variableIndex.HasValue)
+        {
+            _resultBuilder.SetVariableIndex(variableIndex.Value);
+        }
     }
 
     public void InitializeFrom(OperationContext context)
@@ -102,6 +115,16 @@ internal sealed partial class OperationContext
         _workScheduler.Initialize(_batchDispatcher);
         _deferredWorkScheduler.InitializeFrom(this, context._deferredWorkScheduler);
         _resultBuilder.Initialize(_requestContext, _diagnosticEvents);
+        
+        if (context._requestContext.RequestIndex.HasValue)
+        {
+            _resultBuilder.SetRequestIndex(context._requestContext.RequestIndex.Value);
+        }
+        
+        if (context._variableIndex.HasValue)
+        {
+            _resultBuilder.SetVariableIndex(context._variableIndex.Value);
+        }
     }
 
     public void Clean()
