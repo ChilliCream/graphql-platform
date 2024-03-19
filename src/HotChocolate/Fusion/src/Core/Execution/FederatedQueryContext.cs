@@ -44,7 +44,7 @@ internal sealed class FusionExecutionContext : IDisposable
         _nodeIdParser = nodeIdParser ??
             throw new ArgumentNullException(nameof(nodeIdParser));
         _fusionOptionsAccessor = fusionOptionsAccessor ??
-            throw new ArgumentNullException(nameof(fusionOptionsAccessor));Í
+            throw new ArgumentNullException(nameof(fusionOptionsAccessor));
         _schemaName = Schema.Name;
     }
 
