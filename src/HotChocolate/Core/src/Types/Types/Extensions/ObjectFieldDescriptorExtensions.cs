@@ -110,4 +110,52 @@ public static class ObjectFieldDescriptorExtensions
 
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
+    
+    /// <summary>
+    /// Specifies that the resolver of this field shall use services from the request service scope. 
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <returns>
+    /// Returns the object field descriptor for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor UseRequestScope(
+        this IObjectFieldDescriptor descriptor)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Request;
+        return descriptor;
+    }
+    
+    /// <summary>
+    /// Specifies that the resolver of this field shall use services from the resolver service scope.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <returns>
+    /// Returns the object field descriptor for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor UseResolverScope(
+        this IObjectFieldDescriptor descriptor)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Resolver;
+        return descriptor;
+    }
 }
