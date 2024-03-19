@@ -135,7 +135,18 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
         var options = context.DescriptorContext.Options;
-        var isQuery = !(((RegisteredType)context).IsMutationType ?? false);
+        var isMutation = ((RegisteredType)context).IsMutationType ?? false;
+
+        if (definition.DependencyInjectionScope.HasValue)
+        {
+            DependencyInjectionScope = definition.DependencyInjectionScope.Value;
+        }
+        else
+        {
+            DependencyInjectionScope = isMutation
+                ? options.DefaultMutationDependencyInjectionScope
+                : options.DefaultQueryDependencyInjectionScope;
+        }
 
         if (Directives.Count > 0)
         {

@@ -219,12 +219,14 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Defines the default dependency injection scope for query fields.
     /// </summary>
-    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; }
+    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
+        DependencyInjectionScope.Resolver;
 
     /// <summary>
     /// Defines the default dependency injection scope for mutation fields.
     /// </summary>
-    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; }
+    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; } =
+        DependencyInjectionScope.Request;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
