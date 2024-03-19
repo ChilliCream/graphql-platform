@@ -44,6 +44,11 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
             requestBuilder.TryAddGlobalState(IncludeQueryPlan, true);
         }
 
+        if (context.IsNullBubblingDisabled())
+        {
+            requestBuilder.TryAddGlobalState(WellKnownContextData.DisableNullBubbling, true);
+        }
+
         return default;
     }
 

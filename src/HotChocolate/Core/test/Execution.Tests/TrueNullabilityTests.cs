@@ -15,10 +15,10 @@ public class TrueNullabilityTests
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.EnableTrueNullability = false)
                 .BuildSchemaAsync();
-        
+
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Schema_With_TrueNullability()
     {
@@ -28,10 +28,10 @@ public class TrueNullabilityTests
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.EnableTrueNullability = true)
                 .BuildSchemaAsync();
-        
+
         schema.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Error_Query_With_TrueNullability_And_NullBubbling_Enabled_By_Default()
     {
@@ -51,10 +51,10 @@ public class TrueNullabilityTests
                         }
                     }
                     """);
-        
+
         response.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Error_Query_With_TrueNullability_And_NullBubbling_Enabled()
     {
@@ -74,10 +74,10 @@ public class TrueNullabilityTests
                         }
                     }
                     """);
-        
+
         response.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Error_Query_With_TrueNullability_And_NullBubbling_Disabled()
     {
@@ -97,10 +97,10 @@ public class TrueNullabilityTests
                         }
                     }
                     """);
-        
+
         response.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Error_Query_With_TrueNullability_And_NullBubbling_Disabled_With_Variable()
     {
@@ -124,24 +124,50 @@ public class TrueNullabilityTests
                         """)
                         .SetVariableValue("enable", false)
                         .Create());
-        
+
         response.MatchSnapshot();
     }
-    
+
+    [Fact]
+    public async Task Error_Query_With_NullBubbling_Disabled()
+    {
+        var request = QueryRequestBuilder.New()
+            .SetQuery("""
+                      query {
+                          book {
+                              name
+                              author {
+                                  name
+                              }
+                          }
+                      }
+                      """)
+            .TryAddGlobalState(WellKnownContextData.DisableNullBubbling, true)
+            .Create();
+
+        var response =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(request);
+
+        response.MatchSnapshot();
+    }
+
     public class Query
     {
         public Book? GetBook() => new();
     }
-    
+
     public class Book
     {
         public string Name => "Some book!";
 
         public Author Author => new();
     }
-    
+
     public class Author
     {
         public string Name => throw new Exception();
-    } 
+    }
 }

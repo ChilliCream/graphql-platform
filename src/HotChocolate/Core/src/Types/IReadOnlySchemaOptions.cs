@@ -55,7 +55,7 @@ public interface IReadOnlySchemaOptions
     /// unreachable from the root types.
     /// </summary>
     bool RemoveUnreachableTypes { get; }
-    
+
     /// <summary>
     /// Defines if unused type system directives shall
     /// be removed from the schema.
@@ -97,7 +97,7 @@ public interface IReadOnlySchemaOptions
     /// Defines if the order of important middleware components shall be validated.
     /// </summary>
     bool ValidatePipelineOrder { get; }
-    
+
     /// <summary>
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
