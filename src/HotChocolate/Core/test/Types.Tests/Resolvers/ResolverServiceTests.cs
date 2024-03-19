@@ -135,6 +135,42 @@ public class ResolverServiceTests
     }
     
     [Fact]
+    public async Task Resolver_Service_Attribute_Copy_State()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .AddScopedServiceInitializer<SayHelloService>(
+                    (request, resolver) =>
+                    {
+                        resolver.Scope += $"_{request.Scope}";
+                    })
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+        
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+            
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder
+                    .New()
+                    .SetQuery("{ sayHelloAttribute }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Create());
+        }
+        
+        result.MatchMarkdownSnapshot();
+    }
+    
+    [Fact]
     public async Task Mutation_Resolver_Service_Attribute_Default_Scope()
     {
         // arrange

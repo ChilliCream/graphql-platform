@@ -207,6 +207,15 @@
     <Compile Update="Batching\BatchExecutor.Enumerable.cs">
       <DependentUpon>BatchExecutor.cs</DependentUpon>
     </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.InputParser.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TypeDiscovery.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

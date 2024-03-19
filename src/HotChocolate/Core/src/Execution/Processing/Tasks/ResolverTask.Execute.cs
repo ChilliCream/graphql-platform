@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -71,7 +72,7 @@ internal sealed partial class ResolverTask
                 await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
             }
 
-            _objectPool.Return(this);
+            objectPool.Return(this);
         }
     }
 
@@ -142,6 +143,7 @@ internal sealed partial class ResolverTask
             var serviceScope = _operationContext.Services.CreateAsyncScope();
             _context.Services = serviceScope.ServiceProvider;
             _context.RegisterForCleanup(serviceScope.DisposeAsync);
+            _operationContext.ServiceScopeInitializer.Initialize(_context.RequestServices, _context.Services);
         }
         
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);
@@ -304,7 +306,7 @@ internal sealed partial class ResolverTask
 
             Status = _completionStatus;
             _operationContext.Scheduler.Complete(this);
-            _objectPool.Return(this);
+            objectPool.Return(this);
         }
     }
 }
