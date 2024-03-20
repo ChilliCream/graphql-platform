@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,6 +11,8 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public static class FilterExpressionBuilder
 {
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates = new();
+
 #pragma warning disable CA1307
     private static readonly MethodInfo _startsWith =
         ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(default(string)!));
@@ -192,7 +195,13 @@ public static class FilterExpressionBuilder
     }
 
     private static Expression CreateParameter(object? value, Type type)
-        => (Expression)_createAndConvert
-            .MakeGenericMethod(type)
-            .Invoke(null, [value,])!;
+    {
+        var expressionDelegate = _cachedDelegates.GetOrAdd(type, static type =>
+        {
+            var methodInfo = _createAndConvert.MakeGenericMethod(type);
+            return methodInfo.CreateDelegate<Func<object?, Expression>>();
+        });
+
+        return expressionDelegate(value);
+    }
 }
