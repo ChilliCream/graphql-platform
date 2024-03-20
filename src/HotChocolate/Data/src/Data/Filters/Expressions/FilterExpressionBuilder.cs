@@ -12,6 +12,13 @@ namespace HotChocolate.Data.Filters.Expressions;
 public static class FilterExpressionBuilder
 {
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates = new();
+    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)> _cachedEnumerableDelegates = new();
+
+    private static readonly MethodInfo _enumerableContains = typeof(Enumerable)
+        .GetMethods(Public | Static)
+        .Single(m => m.Name.Equals(nameof(Enumerable.Contains))
+            && m.GetGenericArguments().Length == 1
+            && m.GetParameters().Length is 2);
 
 #pragma warning disable CA1307
     private static readonly MethodInfo _startsWith =
@@ -64,15 +71,8 @@ public static class FilterExpressionBuilder
         Type genericType,
         object? parsedValue)
     {
-        var enumerableType = typeof(IEnumerable<>);
-        var enumerableGenericType = enumerableType.MakeGenericType(genericType);
-
-        return Expression.Call(
-            typeof(Enumerable),
-            nameof(Enumerable.Contains),
-            [genericType,],
-            CreateParameter(parsedValue, enumerableGenericType),
-            property);
+        var (methodInfo, expressionDelegate) = GetEnumerableDelegates(genericType);
+        return Expression.Call(methodInfo, expressionDelegate(parsedValue), property);
     }
 
     public static Expression GreaterThan(
@@ -203,5 +203,18 @@ public static class FilterExpressionBuilder
         });
 
         return expressionDelegate(value);
+    }
+
+    private static (MethodInfo, Func<object?, Expression>) GetEnumerableDelegates(Type type)
+    {
+        return _cachedEnumerableDelegates.GetOrAdd(type, static type =>
+        {
+            var methodInfo = _enumerableContains.MakeGenericMethod(type);
+            var expressionDelegate = _createAndConvert
+                .MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(type))
+                .CreateDelegate<Func<object?, Expression>>();
+
+            return (methodInfo, expressionDelegate);
+        });
     }
 }
