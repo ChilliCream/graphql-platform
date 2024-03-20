@@ -157,7 +157,7 @@ public static class FilterExpressionBuilder
         LambdaExpression lambda)
         => Expression.Call(
             _anyWithParameter.MakeGenericMethod(type),
-            [property, lambda,]);
+            property, lambda);
 
     public static Expression Any(
         Type type,
@@ -165,7 +165,7 @@ public static class FilterExpressionBuilder
     {
         return Expression.Call(
             _anyMethod.MakeGenericMethod(type),
-            [property,]);
+            property);
     }
 
     public static Expression All(
@@ -174,7 +174,7 @@ public static class FilterExpressionBuilder
         LambdaExpression lambda)
         => Expression.Call(
             _allMethod.MakeGenericMethod(type),
-            [property, lambda,]);
+            property, lambda);
 
     public static Expression NotContains(
         Expression property,
