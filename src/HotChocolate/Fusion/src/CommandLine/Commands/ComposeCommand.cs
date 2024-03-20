@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -293,17 +294,23 @@ internal sealed class ComposeCommand : Command
                 HasErrors = true;
             }
 
+            var writer = console.Out;
+            if (e.Severity == LogSeverity.Error)
+            {
+                writer = console.Error;
+            }
+
             if (e.Code is null)
             {
-                console.WriteLine($"{e.Severity}: {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Message}");
             }
             else if (e.Coordinate is null)
             {
-                console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
             }
             else
             {
-                console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
             }
         }
     }
