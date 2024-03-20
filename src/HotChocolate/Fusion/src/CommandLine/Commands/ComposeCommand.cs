@@ -63,7 +63,7 @@ internal sealed class ComposeCommand : Command
 
     [RequiresUnreferencedCode(
         "Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
-    private static async Task ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         IConsole console,
         FileInfo packageFile,
         List<string>? subgraphPackageFiles,
@@ -125,7 +125,7 @@ internal sealed class ComposeCommand : Command
         if (settings is null)
         {
             console.WriteLine("Fusion graph settings are invalid.");
-            return;
+            return 1;
         }
 
         if (enableNodes.HasValue && enableNodes.Value)
@@ -145,7 +145,7 @@ internal sealed class ComposeCommand : Command
         if (fusionGraph is null)
         {
             console.WriteLine("Fusion graph composition failed.");
-            return;
+            return 1;
         }
 
         var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
@@ -164,6 +164,8 @@ internal sealed class ComposeCommand : Command
         }
 
         console.WriteLine("Fusion graph composed.");
+
+        return 0;
     }
 
     private static FusionFeatureCollection CreateFeatures(

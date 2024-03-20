@@ -19,7 +19,7 @@ internal sealed class ExportGraphCommand : Command
 
         var graphFile = new Option<FileInfo?>("--file");
         graphFile.AddAlias("-f");
-        
+
         AddOption(fusionPackageFile);
         AddOption(graphFile);
 
@@ -31,40 +31,42 @@ internal sealed class ExportGraphCommand : Command
             Bind.FromServiceProvider<CancellationToken>());
     }
 
-    private static async Task ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         IConsole console,
         FileInfo? packageFile,
         FileInfo? graphFile,
         CancellationToken cancellationToken)
     {
         packageFile ??= new FileInfo(Combine(Environment.CurrentDirectory, "gateway" + FusionPackage));
-        
+
         if (!packageFile.Exists)
         {
             if (Directory.Exists(packageFile.FullName))
             {
-                packageFile = new FileInfo(Combine(packageFile.FullName, "gateway" + FusionPackage));   
+                packageFile = new FileInfo(Combine(packageFile.FullName, "gateway" + FusionPackage));
             }
             else if (!packageFile.Extension.EqualsOrdinal(FusionPackage) &&
                 !packageFile.Extension.EqualsOrdinal(ZipPackage))
             {
-                packageFile = new FileInfo(packageFile.FullName + FusionPackage);   
+                packageFile = new FileInfo(packageFile.FullName + FusionPackage);
             }
 
             if (!packageFile.Exists)
             {
                 console.WriteLine($"The package file `{packageFile.FullName}` does not exist.");
-                return;
+                return 1;
             }
         }
 
         graphFile ??= new FileInfo(Combine(packageFile.DirectoryName!, "fusion.graphql"));
-        
+
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
         var graph = await package.GetFusionGraphAsync(cancellationToken);
         var options = new SyntaxSerializerOptions { Indented = true, MaxDirectivesPerLine = 0, };
-        
+
         await File.WriteAllTextAsync(graphFile.FullName, graph.ToString(options), Encoding.UTF8, cancellationToken);
+
+        return 0;
     }
 }
