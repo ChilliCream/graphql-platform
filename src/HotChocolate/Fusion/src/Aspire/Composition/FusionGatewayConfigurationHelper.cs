@@ -90,7 +90,9 @@ public static class FusionGatewayConfigurationUtilities
                     continue;
                 }
 
-                var config = new SubgraphConfigurationDto(project.Name);
+                var config = new SubgraphConfigurationDto(
+                    project.Name,
+                    [new HttpClientConfiguration(new Uri("http://localhost:5000"), "http"),]);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
                 await File.WriteAllTextAsync(configFile, configJson, ct);
             }
@@ -125,9 +127,13 @@ public static class FusionGatewayConfigurationUtilities
             Directory.CreateDirectory(gatewayDirectory);
         }
 
+        if (packageFile.Exists)
+        {
+            packageFile.Delete();
+        }
+
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
-        var subgraphConfigs =
-            (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
+        var subgraphConfigs = (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
         await ResolveSubgraphPackagesAsync(subgraphDirectories, subgraphConfigs, ct);
 
         using var settingsJson = settingsFile.Exists
