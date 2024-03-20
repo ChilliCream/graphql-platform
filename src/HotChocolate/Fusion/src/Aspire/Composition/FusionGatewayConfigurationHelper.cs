@@ -127,9 +127,13 @@ public static class FusionGatewayConfigurationUtilities
             Directory.CreateDirectory(gatewayDirectory);
         }
 
+        if (packageFile.Exists)
+        {
+            packageFile.Delete();
+        }
+
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
-        var subgraphConfigs =
-            (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
+        var subgraphConfigs = (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
         await ResolveSubgraphPackagesAsync(subgraphDirectories, subgraphConfigs, ct);
 
         using var settingsJson = settingsFile.Exists
