@@ -27,6 +27,13 @@ namespace Aspire.Hosting
     {
         public static DistributedApplication Compose(this DistributedApplication application)
         {
+            var options = application.Services.GetRequiredService&lt;DistributedApplicationOptions&gt;();
+
+            if (options.Args is ["compose"])
+            {
+                Environment.Exit(0);
+            }
+            
             return application;
         }
     }

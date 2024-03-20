@@ -28,7 +28,7 @@ namespace HotChocolate.Fusion.Composition.Analyzers.Properties {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Fusion.Composition.Analyzers.Properties.AnalyzerResources", typeof(AnalyzerResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Fusion.Aspire.Analyzers.Properties.AnalyzerResources", typeof(AnalyzerResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

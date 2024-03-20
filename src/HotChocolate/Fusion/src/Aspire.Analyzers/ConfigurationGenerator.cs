@@ -299,6 +299,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                         
                         writer.WriteLine();
                         writer.WriteIndentedLine("global::HotChocolate.Fusion.Composition.FusionGatewayConfigurationUtilities.ConfigureAsync(gateways).Wait();");
+                        writer.WriteIndentedLine("Environment.Exit(0);");
                     }
 
                     writer.WriteIndentedLine("}");
