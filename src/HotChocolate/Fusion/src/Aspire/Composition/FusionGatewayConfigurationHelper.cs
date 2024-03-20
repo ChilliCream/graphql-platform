@@ -90,7 +90,9 @@ public static class FusionGatewayConfigurationUtilities
                     continue;
                 }
 
-                var config = new SubgraphConfigurationDto(project.Name);
+                var config = new SubgraphConfigurationDto(
+                    project.Name,
+                    [new HttpClientConfiguration(new Uri("http://localhost:5000"), "http"),]);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
                 await File.WriteAllTextAsync(configFile, configJson, ct);
             }
