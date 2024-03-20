@@ -30,7 +30,7 @@ public static class FusionGatewayConfigurationUtilities
                     continue;
                 }
 
-                Console.WriteLine("Expoorting schema document for subgraph {0} ...", subgraph.Name);
+                Console.WriteLine("Exporting schema document for subgraph {0} ...", subgraph.Name);
 
                 var workingDirectory = System.IO.Path.GetDirectoryName(subgraph.Path)!;
 
@@ -64,7 +64,7 @@ public static class FusionGatewayConfigurationUtilities
                     if (process.ExitCode != 0)
                     {
                         Console.WriteLine(
-                            "{0}(1,1): error HF1002: ; Failed to export schema document for subgraph {1} ...",
+                            "{0}(1,1): error HF1002: Failed to export schema document for subgraph {1} ...",
                             subgraph.Path,
                             subgraph.Name);
                         Environment.Exit(-255);
