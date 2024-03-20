@@ -44,7 +44,7 @@ public class SortingContext : ISortingContext
     }
 
     /// <inheritdoc />
-    public bool IsDefined => _value is [{ ValueNode.Kind: SyntaxKind.NullValue, },];
+    public bool IsDefined => _value is not [{ ValueNode.Kind: SyntaxKind.NullValue, },];
 
     /// <inheritdoc />
     public IReadOnlyList<IReadOnlyList<ISortingFieldInfo>> GetFields()
