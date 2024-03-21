@@ -12,6 +12,7 @@ namespace HotChocolate.Data.Filters.Expressions;
 public static class FilterExpressionBuilder
 {
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates = new();
+    private static readonly ConcurrentDictionary<Type, Expression> _cachedNullExpressions = new();
     private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)> _cachedEnumerableDelegates = new();
 
     private static readonly MethodInfo _enumerableContains = typeof(Enumerable)
@@ -196,6 +197,11 @@ public static class FilterExpressionBuilder
 
     private static Expression CreateParameter(object? value, Type type)
     {
+        if (value is null)
+        {
+            return CreateNullParameter(type);
+        }
+
         var expressionDelegate = _cachedDelegates.GetOrAdd(type, static type =>
         {
             var methodInfo = _createAndConvert.MakeGenericMethod(type);
@@ -203,6 +209,15 @@ public static class FilterExpressionBuilder
         });
 
         return expressionDelegate(value);
+    }
+
+    private static Expression CreateNullParameter(Type type)
+    {
+        return _cachedNullExpressions.GetOrAdd(type, static type =>
+        {
+            var methodInfo = _createAndConvert.MakeGenericMethod(type);
+            return (Expression) methodInfo.Invoke(null, [null])!;
+        });
     }
 
     private static (MethodInfo, Func<object?, Expression>) GetEnumerableDelegates(Type type)
