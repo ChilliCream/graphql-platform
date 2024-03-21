@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.DependencyInjection;
-using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;

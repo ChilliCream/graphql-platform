@@ -1,11 +1,9 @@
 using System.Runtime.CompilerServices;
-using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
-using HotChocolate.Transport;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Fusion.Execution;

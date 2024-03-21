@@ -74,6 +74,8 @@ public static class FusionRequestExecutorBuilderExtensions
                             sc.TryAddSingleton(fusionGraphConfig);
                             sc.TryAddSingleton<QueryPlanner>();
                             sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
+
+                            sc.TryAddSingleton<IFusionOptionsAccessor>(GetFusionOptions);
                         });
                 });
 
@@ -269,6 +271,37 @@ public static class FusionRequestExecutorBuilderExtensions
         builder.CoreBuilder.Configure(options => options.OnConfigureRequestExecutorOptionsHooks.Add(
                 new OnConfigureRequestExecutorOptionsAction(
                     (_, opt) => modify(opt))));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="FusionOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="FusionOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder ModifyFusionOptions(
+        this FusionGatewayBuilder builder,
+        Action<FusionOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.Services.AddSingleton(modify);
 
         return builder;
     }
@@ -511,4 +544,18 @@ public static class FusionRequestExecutorBuilderExtensions
         string? graphName = default,
         CancellationToken cancellationToken = default)
         => builder.CoreBuilder.BuildSchemaAsync(graphName, cancellationToken);
+
+    private static FusionOptions GetFusionOptions(IServiceProvider sp)
+    {
+        var appSp = sp.GetApplicationServices();
+        var configures = appSp.GetServices<Action<FusionOptions>>();
+        var options = new FusionOptions();
+
+        foreach (var configure in configures)
+        {
+            configure(options);
+        }
+
+        return options;
+    }
 }
