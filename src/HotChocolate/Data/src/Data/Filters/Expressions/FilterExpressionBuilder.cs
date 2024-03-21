@@ -54,6 +54,12 @@ public static class FilterExpressionBuilder
     private static readonly ConstantExpression _null =
         Expression.Constant(null, typeof(object));
 
+    private static readonly ConstantExpression _true =
+        Expression.Constant(true);
+
+    private static readonly ConstantExpression _false =
+        Expression.Constant(false);
+
     public static Expression Not(Expression expression)
         => Expression.Not(expression);
 
@@ -200,6 +206,11 @@ public static class FilterExpressionBuilder
         if (value is null)
         {
             return CreateNullParameter(type);
+        }
+
+        if (value is bool boolean)
+        {
+            return boolean ? _true : _false;
         }
 
         var expressionDelegate = _cachedDelegates.GetOrAdd(type, static type =>
