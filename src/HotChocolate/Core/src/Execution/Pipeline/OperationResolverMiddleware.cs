@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -19,6 +20,7 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
+    private readonly IRequestExecutorOptionsAccessor _options;
     private readonly VariableCoercionHelper _coercionHelper;
     private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
 
@@ -26,6 +28,7 @@ internal sealed class OperationResolverMiddleware
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
         IEnumerable<IOperationCompilerOptimizer> optimizers,
+        IRequestExecutorOptionsAccessor options,
         VariableCoercionHelper coercionHelper)
     {
         if (optimizers is null)
@@ -37,6 +40,8 @@ internal sealed class OperationResolverMiddleware
             throw new ArgumentNullException(nameof(next));
         _operationCompilerPool = operationCompilerPool ??
             throw new ArgumentNullException(nameof(operationCompilerPool));
+        _options = options ??
+            throw new ArgumentNullException(nameof(options));
         _coercionHelper = coercionHelper ??
             throw new ArgumentNullException(nameof(coercionHelper));
         _optimizers = optimizers.ToArray();
@@ -109,8 +114,7 @@ internal sealed class OperationResolverMiddleware
 
     private bool IsNullBubblingEnabled(IRequestContext context, OperationDefinitionNode operationDefinition)
     {
-        if (context.ContextData.TryGetValue(DisableNullBubbling, out var disableNullBubbling)
-            && disableNullBubbling is true)
+        if (_options.AllowDisablingNullBubbling && context.ContextData.ContainsKey(DisableNullBubbling))
         {
             return false;
         }
@@ -175,11 +179,13 @@ internal sealed class OperationResolverMiddleware
             var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
             var optimizers1 = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
             var optimizers2 = core.SchemaServices.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var options = core.SchemaServices.GetRequiredService<IRequestExecutorOptionsAccessor>();
             var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
             var middleware = new OperationResolverMiddleware(
                 next,
                 operationCompilerPool,
                 optimizers1.Concat(optimizers2),
+                options,
                 coercionHelper);
             return context => middleware.InvokeAsync(context);
         };

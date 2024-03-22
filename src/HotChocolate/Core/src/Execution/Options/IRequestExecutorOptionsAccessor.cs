@@ -8,6 +8,12 @@ namespace HotChocolate.Execution.Options;
 /// </summary>
 public interface IRequestExecutorOptionsAccessor
     : IErrorHandlerOptionsAccessor
-    , IRequestTimeoutOptionsAccessor
-    , IComplexityAnalyzerOptionsAccessor
-    , IPersistedQueryOptionsAccessor;
+        , IRequestTimeoutOptionsAccessor
+        , IComplexityAnalyzerOptionsAccessor
+        , IPersistedQueryOptionsAccessor
+{
+    /// <summary>
+    /// Determine whether null-bubbling can be disabled on a per-request basis.
+    /// </summary>
+    bool AllowDisablingNullBubbling { get; }
+}

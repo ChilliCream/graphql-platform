@@ -72,9 +72,14 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
         get => _onlyPersistedQueriesAreAllowedError;
         set
         {
-            _onlyPersistedQueriesAreAllowedError = value
-                ?? throw new ArgumentNullException(
+            _onlyPersistedQueriesAreAllowedError = value ??
+                throw new ArgumentNullException(
                     nameof(OnlyPersistedQueriesAreAllowedError));
         }
     }
+
+    /// <summary>
+    /// Determine whether null-bubbling can be disabled on a per-request basis.
+    /// </summary>
+    public bool AllowDisablingNullBubbling { get; set; } = false;
 }

@@ -148,6 +148,7 @@ public class TrueNullabilityTests
         var response =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyRequestOptions(options => options.AllowDisablingNullBubbling = true)
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(request);
 
