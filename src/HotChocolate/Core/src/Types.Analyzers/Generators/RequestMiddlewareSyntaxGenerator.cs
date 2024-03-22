@@ -156,7 +156,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         for (var i = 0; i < parameters.Count; i++)
         {
             var parameter = parameters[i];
-            
+
             if(i > 0)
             {
                 _writer.Write(", ");
@@ -223,7 +223,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         for (var i = 0; i < parameters.Count; i++)
         {
             var parameter = parameters[i];
-            
+
             if(i > 0)
             {
                 _writer.Write(", ");

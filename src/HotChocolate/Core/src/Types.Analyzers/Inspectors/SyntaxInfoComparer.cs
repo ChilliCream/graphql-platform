@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 internal sealed class SyntaxInfoComparer : IEqualityComparer<ISyntaxInfo>
@@ -13,12 +15,12 @@ internal sealed class SyntaxInfoComparer : IEqualityComparer<ISyntaxInfo>
         {
             return false;
         }
-        
+
         return x.Equals(y);
     }
 
     public int GetHashCode(ISyntaxInfo obj)
         => obj.GetHashCode();
-    
+
     public static SyntaxInfoComparer Default { get; } = new();
 }

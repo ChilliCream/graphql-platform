@@ -29,7 +29,7 @@ public sealed class TypeExtensionInfo : ISyntaxInfo, IEquatable<TypeExtensionInf
 
         return Name == other.Name;
     }
-    
+
     public bool Equals(ISyntaxInfo other)
     {
         if (ReferenceEquals(null, other))

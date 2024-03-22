@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Threading;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -8,19 +9,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace HotChocolate.Types.Analyzers;
 
 [Generator]
-public class MiddlewareModuleGenerator : IIncrementalGenerator
+public class TypesGenerator : IIncrementalGenerator
 {
-    private const string _namespace = "HotChocolate.Execution.Generated";
-    
     private static readonly ISyntaxInspector[] _inspectors =
     [
-        new TypeAttributeInspector(),
-        new ClassBaseClassInspector(),
         new ModuleInspector(),
-        new DataLoaderInspector(),
-        new DataLoaderDefaultsInspector(),
-        new OperationInspector(),
-        new RequestMiddlewareInspector(),
+        new ObjectTypeExtensionInfoInspector(),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -41,17 +35,13 @@ public class MiddlewareModuleGenerator : IIncrementalGenerator
     }
 
     private static bool IsRelevant(SyntaxNode node)
-        => IsMiddlewareMethod(node);
+        => IsClassWithAttribute(node) || IsAssemblyAttributeList(node);
 
-    private static bool IsMiddlewareMethod(SyntaxNode node)
-        => node is InvocationExpressionSyntax
-            {
-                Expression: MemberAccessExpressionSyntax
-                {
-                    Name.Identifier.ValueText: var method,
-                },
-            } &&
-            (method.Equals("UseRequest") || method.Equals("UseField") || method.Equals("Use"));
+    private static bool IsClassWithAttribute(SyntaxNode node)
+        => node is ClassDeclarationSyntax { AttributeLists.Count: > 0, };
+
+    private static bool IsAssemblyAttributeList(SyntaxNode node)
+        => node is AttributeListSyntax;
 
     private static ISyntaxInfo? TryGetModuleOrType(
         GeneratorSyntaxContext context,
@@ -86,30 +76,36 @@ public class MiddlewareModuleGenerator : IIncrementalGenerator
             return;
         }
 
-        using var generator = new RequestMiddlewareSyntaxGenerator(module.ModuleName, _namespace);
-        
-        generator.WriterHeader();
-        generator.WriteBeginNamespace();
-        
-        generator.WriteBeginClass();
+        var sb = StringBuilderPool.Get();
 
-        var i = 0;
         foreach (var syntaxInfo in syntaxInfos)
         {
-            if (syntaxInfo is not RequestMiddlewareInfo middleware)
+            if (syntaxInfo is ObjectTypeExtensionInfo objectTypeExtension)
             {
-                continue;
+                if (objectTypeExtension.Diagnostics.Length > 0)
+                {
+                    foreach (var diagnostic in objectTypeExtension.Diagnostics)
+                    {
+                        context.ReportDiagnostic(diagnostic);
+                    }
+                    continue;
+                }
+
+                var generator = new ObjectTypeExtensionSyntaxGenerator(
+                    sb,
+                    objectTypeExtension.Type.ContainingNamespace.ToDisplayString());
+
+                generator.WriterHeader();
+                generator.WriteBeginNamespace();
+                generator.WriteBeginClass(objectTypeExtension.Type.Name);
+                generator.WriteInitializeMethod(objectTypeExtension);
+                generator.WriteConfigureMethod(objectTypeExtension);
+                generator.WriteEndClass();
+                generator.WriteEndNamespace();
             }
-            
-            generator.WriteFactory(i, middleware);
-            generator.WriteInterceptMethod(i, middleware.Location);
-            i++;
         }
-        
-        generator.WriteEndClass();
-      
-        generator.WriteEndNamespace();
-        
-        context.AddSource(WellKnownFileNames.MiddlewareFile, generator.ToSourceText());
+
+        context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+        StringBuilderPool.Return(sb);
     }
 }
