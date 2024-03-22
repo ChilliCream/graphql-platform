@@ -269,8 +269,8 @@ public static class FusionRequestExecutorBuilderExtensions
         }
 
         builder.CoreBuilder.Configure(options => options.OnConfigureRequestExecutorOptionsHooks.Add(
-                new OnConfigureRequestExecutorOptionsAction(
-                    (_, opt) => modify(opt))));
+            new OnConfigureRequestExecutorOptionsAction(
+                (_, opt) => modify(opt))));
 
         return builder;
     }
@@ -301,7 +301,8 @@ public static class FusionRequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(modify));
         }
 
-        builder.Services.AddSingleton(modify);
+        builder.CoreBuilder.Configure(options => options.OnConfigureSchemaServicesHooks.Add(
+            (ctx, sc) => sc.AddSingleton(modify)));
 
         return builder;
     }
@@ -547,8 +548,7 @@ public static class FusionRequestExecutorBuilderExtensions
 
     private static FusionOptions GetFusionOptions(IServiceProvider sp)
     {
-        var appSp = sp.GetApplicationServices();
-        var configures = appSp.GetServices<Action<FusionOptions>>();
+        var configures = sp.GetServices<Action<FusionOptions>>();
         var options = new FusionOptions();
 
         foreach (var configure in configures)
