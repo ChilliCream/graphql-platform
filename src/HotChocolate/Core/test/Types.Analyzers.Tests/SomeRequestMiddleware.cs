@@ -17,7 +17,7 @@ public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Serv
                     {
                         {
                             $"{service1.Say()} {service3.Hello()} {service2.World()}", true
-                        }
+                        },
                     })
                 .Create();
     }

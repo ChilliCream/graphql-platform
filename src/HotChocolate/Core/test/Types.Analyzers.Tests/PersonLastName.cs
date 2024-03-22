@@ -1,7 +1,18 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Types;
 
-[ExtendObjectType<Person>]
-public class PersonLastName
+[ObjectType<Person>]
+public static partial class PersonLastName
 {
-    public string LastName { get; } = default!;
+    public static string LastName => default!;
+
+    [Query]
+    public static string GetFooBarBaz() => "hello";
+
+    [NodeResolver]
+    public static Person GetPersonById(int id)
+    {
+        return new Person();
+    }
 }

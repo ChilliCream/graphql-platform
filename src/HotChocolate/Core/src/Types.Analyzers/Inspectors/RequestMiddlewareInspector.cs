@@ -108,7 +108,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 
                 invokeParameters.Add(new RequestMiddlewareParameterInfo(kind, parameterTypeName));
             }
-            
+
             syntaxInfo = new RequestMiddlewareInfo(
                 middlewareType.Name,
                 middlewareType.ToFullyQualified(),

@@ -45,7 +45,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
             _writer.WriteLine();
         }
         _first = false;
-        
+
         _writer.WriteIndentedLine("public sealed class {0}", typeName);
 
         using (_writer.IncreaseIndent())
@@ -79,14 +79,14 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
             _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
             _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
         }
-        
+
         _writer.WriteIndentedLine("descriptor.Name({0});", GetOperationConstant(type));
 
         var typeIndex = 0;
         foreach (var group in operations.GroupBy(t => t.TypeName))
         {
             _writer.WriteLine();
-            
+
             var typeName = $"type{++typeIndex}";
             _writer.WriteIndentedLine("var {0} = typeof({1});", typeName, group.Key);
 
@@ -98,7 +98,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
                     operation.MethodName);
             }
         }
-        
+
         _writer.DecreaseIndent();
         _writer.WriteIndentedLine("}");
     }
@@ -109,7 +109,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
             OperationType.Query => "global::HotChocolate.Types.OperationTypeNames.Query",
             OperationType.Mutation => "global::HotChocolate.Types.OperationTypeNames.Mutation",
             OperationType.Subscription => "global::HotChocolate.Types.OperationTypeNames.Subscription",
-            _ => throw new InvalidOperationException()
+            _ => throw new InvalidOperationException(),
         };
 
     public override string ToString()
@@ -117,7 +117,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
 
     public SourceText ToSourceText()
         => SourceText.From(ToString(), Encoding.UTF8);
-    
+
     public void Dispose()
     {
         if (_disposed)

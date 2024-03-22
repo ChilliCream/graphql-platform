@@ -11,18 +11,29 @@ interface Entity {
   name: String!
 }
 
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
 type Mutation {
   bar: String!
   doSomething: String!
 }
 
-type Person implements Entity {
+type Person implements Node & Entity {
+  id: ID!
+  lastName: String!
   name: String!
   address: String!
-  lastName: String!
 }
 
 type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+  fooBarBaz: String!
   foo: String!
   person: Entity
   enum: CustomEnum
