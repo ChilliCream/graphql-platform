@@ -28,6 +28,22 @@ internal static class TestHelper
         snapshot.Add(fusionGraph, "Fusion Graph");
     }
 
+    public static void CollectErrorSnapshotData(
+        Snapshot snapshot,
+        DocumentNode request,
+        IExecutionResult result)
+    {
+        snapshot.Add(request, "User Request");
+        snapshot.Add(result, "Result");
+
+        if (result.ContextData is not null &&
+            result.ContextData.TryGetValue("queryPlan", out var value) &&
+            value is QueryPlan queryPlan)
+        {
+            snapshot.Add(queryPlan, "QueryPlan");
+        }
+    }
+
     public static async Task CollectStreamSnapshotData(
         Snapshot snapshot,
         DocumentNode request,
