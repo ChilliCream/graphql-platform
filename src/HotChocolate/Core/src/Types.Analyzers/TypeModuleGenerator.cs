@@ -175,7 +175,8 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
                 case ObjectTypeExtensionInfo objectTypeExtension:
                     if ((module.Options & ModuleOptions.RegisterTypes) ==
-                        ModuleOptions.RegisterTypes)
+                        ModuleOptions.RegisterTypes &&
+                        objectTypeExtension.Diagnostics.Length == 0)
                     {
                         generator.WriteRegisterObjectTypeExtension(
                             objectTypeExtension.RuntimeType.ToFullyQualified(),

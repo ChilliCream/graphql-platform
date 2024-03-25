@@ -13,7 +13,6 @@ public class TypesGenerator : IIncrementalGenerator
 {
     private static readonly ISyntaxInspector[] _inspectors =
     [
-        new ModuleInspector(),
         new ObjectTypeExtensionInfoInspector(),
     ];
 
@@ -68,41 +67,41 @@ public class TypesGenerator : IIncrementalGenerator
             return;
         }
 
-        var module = syntaxInfos.GetModuleInfo(compilation.AssemblyName, out var defaultModule);
-
-        // if there is only the module info we do not need to generate a module.
-        if (!defaultModule && syntaxInfos.Length == 1)
-        {
-            return;
-        }
-
         var sb = StringBuilderPool.Get();
+        var first = true;
 
         foreach (var syntaxInfo in syntaxInfos)
         {
-            if (syntaxInfo is ObjectTypeExtensionInfo objectTypeExtension)
+            if (syntaxInfo is not ObjectTypeExtensionInfo objectTypeExtension)
             {
-                if (objectTypeExtension.Diagnostics.Length > 0)
-                {
-                    foreach (var diagnostic in objectTypeExtension.Diagnostics)
-                    {
-                        context.ReportDiagnostic(diagnostic);
-                    }
-                    continue;
-                }
-
-                var generator = new ObjectTypeExtensionSyntaxGenerator(
-                    sb,
-                    objectTypeExtension.Type.ContainingNamespace.ToDisplayString());
-
-                generator.WriterHeader();
-                generator.WriteBeginNamespace();
-                generator.WriteBeginClass(objectTypeExtension.Type.Name);
-                generator.WriteInitializeMethod(objectTypeExtension);
-                generator.WriteConfigureMethod(objectTypeExtension);
-                generator.WriteEndClass();
-                generator.WriteEndNamespace();
+                continue;
             }
+
+            if (objectTypeExtension.Diagnostics.Length > 0)
+            {
+                foreach (var diagnostic in objectTypeExtension.Diagnostics)
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
+                continue;
+            }
+
+            var generator = new ObjectTypeExtensionSyntaxGenerator(
+                sb,
+                objectTypeExtension.Type.ContainingNamespace.ToDisplayString());
+
+            if (first)
+            {
+                generator.WriterHeader();
+                first = false;
+            }
+
+            generator.WriteBeginNamespace();
+            generator.WriteBeginClass(objectTypeExtension.Type.Name);
+            generator.WriteInitializeMethod(objectTypeExtension);
+            generator.WriteConfigureMethod(objectTypeExtension);
+            generator.WriteEndClass();
+            generator.WriteEndNamespace();
         }
 
         context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());

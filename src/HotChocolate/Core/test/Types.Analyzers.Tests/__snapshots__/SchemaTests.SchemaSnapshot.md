@@ -16,6 +16,11 @@ interface Node {
   id: ID!
 }
 
+type Author {
+  address: String!
+  name: String!
+}
+
 type Mutation {
   bar: String!
   doSomething: String!
@@ -44,6 +49,7 @@ type Query {
 
 type SomeBook {
   title: String
+  author: Author
 }
 
 type Subscription {
