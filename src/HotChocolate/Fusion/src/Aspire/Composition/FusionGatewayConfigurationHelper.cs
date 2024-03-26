@@ -9,6 +9,10 @@ namespace HotChocolate.Fusion.Composition;
 
 public static class FusionGatewayConfigurationUtilities
 {
+    public static void Configure(
+        IReadOnlyList<GatewayInfo> gateways)
+        => ConfigureAsync(gateways).Wait();
+
     public static async Task ConfigureAsync(
         IReadOnlyList<GatewayInfo> gateways,
         CancellationToken cancellationToken = default)
