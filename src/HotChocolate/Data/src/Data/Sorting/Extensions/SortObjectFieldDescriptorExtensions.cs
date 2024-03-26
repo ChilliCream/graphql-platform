@@ -141,7 +141,6 @@ public static class SortObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (c, definition) =>
                 {
-                    var convention = c.GetSortConvention(scope);
                     TypeReference argumentTypeReference;
                     if (sortTypeInstance is not null)
                     {
@@ -150,6 +149,8 @@ public static class SortObjectFieldDescriptorExtensions
                     }
                     else if (sortType is null)
                     {
+                        var convention = c.GetSortConvention(scope);
+
                         if (definition.ResultType is null ||
                             definition.ResultType == typeof(object) ||
                             !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
@@ -234,11 +235,11 @@ public static class SortObjectFieldDescriptorExtensions
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
-        
+
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
-    
+
     private static IQueryBuilder CreateMiddleware<TEntity>(
         ISortConvention convention) =>
         convention.CreateBuilder<TEntity>();
