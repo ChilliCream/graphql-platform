@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Fusion.Aspire;
 using HotChocolate.Fusion.Composition.Settings;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
@@ -91,7 +92,7 @@ public static class FusionGatewayConfigurationUtilities
                 }
 
                 var config = new SubgraphConfigurationDto(
-                    project.Name,
+                    project.VariableName,
                     [new HttpClientConfiguration(new Uri("http://localhost:5000"), "http"),]);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
                 await File.WriteAllTextAsync(configFile, configJson, ct);
@@ -105,13 +106,14 @@ public static class FusionGatewayConfigurationUtilities
     {
         foreach (var gateway in gateways)
         {
-            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), ct);
+            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), gateway.Options, ct);
         }
     }
 
     private static async Task ComposeGatewayAsync(
         string gatewayProject,
         IEnumerable<string> subgraphProjects,
+        FusionOptions options,
         CancellationToken ct)
     {
         var gatewayDirectory = System.IO.Path.GetDirectoryName(gatewayProject)!;
@@ -140,6 +142,7 @@ public static class FusionGatewayConfigurationUtilities
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, ct))
             : await package.GetFusionGraphSettingsAsync(ct);
         var settings = settingsJson.Deserialize<PackageSettings>() ?? new PackageSettings();
+        settings.NodeField.Enabled = options.EnableGlobalObjectIdentification;
 
         var features = settings.CreateFeatures();
 
