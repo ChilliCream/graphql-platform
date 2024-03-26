@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Aspire\HotChocolate.Fusion.Aspire.csproj" />
-    <ProjectReference Include="..\..\src\Aspire.Analyzers\HotChocolate.Fusion.Aspire.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

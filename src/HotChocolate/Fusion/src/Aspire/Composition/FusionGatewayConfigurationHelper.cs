@@ -9,6 +9,10 @@ namespace HotChocolate.Fusion.Composition;
 
 public static class FusionGatewayConfigurationUtilities
 {
+    public static void Configure(
+        IReadOnlyList<GatewayInfo> gateways)
+        => ConfigureAsync(gateways).Wait();
+
     public static async Task ConfigureAsync(
         IReadOnlyList<GatewayInfo> gateways,
         CancellationToken cancellationToken = default)
@@ -92,7 +96,7 @@ public static class FusionGatewayConfigurationUtilities
                 }
 
                 var config = new SubgraphConfigurationDto(
-                    project.VariableName,
+                    project.Name,
                     [new HttpClientConfiguration(new Uri("http://localhost:5000"), "http"),]);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
                 await File.WriteAllTextAsync(configFile, configJson, ct);
