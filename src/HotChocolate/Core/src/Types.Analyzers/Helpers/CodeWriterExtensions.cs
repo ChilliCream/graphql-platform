@@ -8,10 +8,10 @@ public static class CodeWriterExtensions
         {
             throw new ArgumentNullException(nameof(writer));
         }
-        
+
 #if DEBUG
         writer.WriteIndentedLine(
-            "[global::System.CodeDom.Compiler.GeneratedCode(" + 
+            "[global::System.CodeDom.Compiler.GeneratedCode(" +
             "\"HotChocolate\", \"11.0.0\")]");
 #else
         var version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
@@ -34,6 +34,8 @@ public static class CodeWriterExtensions
         writer.WriteLine();
         writer.WriteIndentedLine("using System;");
         writer.WriteIndentedLine("using System.Runtime.CompilerServices;");
+        writer.WriteIndentedLine("using HotChocolate;");
+        writer.WriteIndentedLine("using HotChocolate.Types;");
         writer.WriteIndentedLine("using HotChocolate.Execution.Configuration;");
     }
 

@@ -207,13 +207,16 @@ public class ConfigurationGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var gateway = new GatewayInfo(gatewayGroup.Key, gatewayGroup.First().TypeName);
+            var gateway = new GatewayInfo(
+                gatewayGroup.Key,
+                gatewayGroup.First().VariableName,
+                gatewayGroup.First().TypeName);
 
             foreach (var projectLink in gatewayGroup)
             {
                 if (projects.TryGetValue(projectLink.VariableName, out var project))
                 {
-                    gateway.Subgraphs.Add(new SubgraphInfo(project.Name, project.TypeName));
+                    gateway.Subgraphs.Add(new SubgraphInfo(project.Name, project.VariableName, project.TypeName));
                 }
             }
 
@@ -231,7 +234,12 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
         writer.WriteFileHeader();
         writer.WriteLine();
+        writer.WriteIndentedLine("using System;");
+        writer.WriteIndentedLine("using System.Collections.Generic;");
+        writer.WriteIndentedLine("using System.Linq;");
+        writer.WriteIndentedLine("using Aspire.Hosting.ApplicationModel;");
         writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");
+        writer.WriteIndentedLine("using HotChocolate.Fusion.Aspire;");
         writer.WriteLine();
         writer.WriteIndentedLine("namespace Aspire.Hosting");
         writer.WriteIndentedLine("{");
@@ -255,6 +263,20 @@ public class ConfigurationGenerator : IIncrementalGenerator
 
                     using (writer.IncreaseIndent())
                     {
+
+                        writer.WriteIndentedLine("var appModel = application.Services.GetRequiredService<DistributedApplicationModel>();");
+                        writer.WriteIndentedLine("var gatewayOptions =");
+                        using (writer.IncreaseIndent())
+                        {
+                            writer.WriteIndentedLine("appModel.Resources");
+                            using (writer.IncreaseIndent())
+                            {
+                                writer.WriteIndentedLine(".Where(t => t.Annotations.Any(a => a is FusionGateway))");
+                                writer.WriteIndentedLine(".Select(t => (t.Name, t.Annotations.OfType<FusionOptions>().FirstOrDefault()))");
+                                writer.WriteIndentedLine(".ToDictionary(t => t.Name, t => t.Item2);");
+                            }
+                        }
+
                         writer.WriteIndentedLine("var gateways = new List<global::HotChocolate.Fusion.Composition.GatewayInfo>();");
                         writer.WriteLine();
 
@@ -269,6 +291,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                                 using (writer.IncreaseIndent())
                                 {
                                     writer.WriteIndentedLine("\"{0}\",", gateway.Name);
+                                    writer.WriteIndentedLine("gatewayOptions[\"{0}\"] ?? new FusionOptions(),", gateway.VariableName);
 
                                     var first = true;
 
@@ -288,7 +311,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                                             "global::HotChocolate.Fusion.Composition.SubgraphInfo.Create<{0}>(\"{1}\", \"{2}\")",
                                             project.TypeName,
                                             project.Name,
-                                            project.Name);
+                                            project.VariableName);
                                     }
 
                                     writer.Write("));");
@@ -296,7 +319,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                                 }
                             }
                         }
-                        
+
                         writer.WriteLine();
                         writer.WriteIndentedLine("global::HotChocolate.Fusion.Composition.FusionGatewayConfigurationUtilities.ConfigureAsync(gateways).Wait();");
                         writer.WriteIndentedLine("Environment.Exit(0);");
@@ -306,7 +329,7 @@ public class ConfigurationGenerator : IIncrementalGenerator
                     writer.WriteLine();
                     writer.WriteIndentedLine("return application;");
                 }
-                
+
                 writer.WriteIndentedLine("}");
             }
 

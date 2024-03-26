@@ -31,6 +31,7 @@ internal sealed class ServiceParameterExpressionBuilder
         {
             return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.Key);
         }
+
 #endif
         return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
     }

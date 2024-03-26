@@ -6,4 +6,7 @@ public sealed class FusionGatewayResource(ProjectResource projectResource)
     , IResourceWithServiceDiscovery
 {
     public ProjectResource ProjectResource { get; } = projectResource;
+
+    public EndpointReference GetEndpoint(string endpointName)
+        => ((IResourceWithEndpoints)ProjectResource).GetEndpoint(endpointName);
 }

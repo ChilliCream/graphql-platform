@@ -9,7 +9,6 @@ using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Processing.Selection;
-using static HotChocolate.Execution.Processing.ValueCompletion;
 using IType = HotChocolate.Types.IType;
 using ObjectType = HotChocolate.Types.ObjectType;
 
@@ -68,7 +67,7 @@ internal static class ExecutorUtils
                     {
                         if (!nullable)
                         {
-                            PropagateNullValues(selectionSetResult);
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                             break;
                         }
 
@@ -79,10 +78,9 @@ internal static class ExecutorUtils
                 {
                     var value = data.Single.Element;
 
-                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
-                        !nullable)
+                    if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined && !nullable)
                     {
-                        PropagateNullValues(selectionSetResult);
+                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                         break;
                     }
 
@@ -104,7 +102,7 @@ internal static class ExecutorUtils
                     if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined &&
                         !nullable)
                     {
-                        PropagateNullValues(selectionSetResult);
+                        PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                         break;
                     }
 
@@ -123,7 +121,7 @@ internal static class ExecutorUtils
 
                         if (value is null && !nullable)
                         {
-                            PropagateNullValues(selectionSetResult);
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                             break;
                         }
 
@@ -144,7 +142,7 @@ internal static class ExecutorUtils
 
                         if (value is null && !nullable)
                         {
-                            PropagateNullValues(selectionSetResult);
+                            PropagateNullValues(context.Result, selection, selectionSetResult, responseIndex);
                             break;
                         }
 
@@ -216,7 +214,7 @@ internal static class ExecutorUtils
 
             if (!nullable && element is null)
             {
-                PropagateNullValues(result);
+                PropagateNullValues(context.Result, selection, result, index);
                 return null;
             }
 
@@ -495,14 +493,13 @@ internal static class ExecutorUtils
         var path = PathHelper.CreatePathFromContext(selectionSetResult);
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(resultBuilder, error, selectionSetResult, path, pathDepth, addDebugInfo);
+            ExtractError(resultBuilder, error, path, pathDepth, addDebugInfo);
         }
     }
 
     private static void ExtractError(
         ResultBuilder resultBuilder,
         JsonElement error,
-        ObjectResult selectionSetResult,
         Path parentPath,
         int pathDepth,
         bool addDebugInfo)
@@ -538,7 +535,7 @@ internal static class ExecutorUtils
             {
                 var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
                 errorBuilder.SetPath(path);
-                
+
                 if (addDebugInfo)
                 {
                     errorBuilder.SetExtension("remotePath", remotePath);
@@ -641,5 +638,16 @@ internal static class ExecutorUtils
                 }
             }
         }
+    }
+
+    private static void PropagateNullValues(
+        ResultBuilder resultBuilder,
+        Selection selection,
+        ResultData selectionSetResult,
+        int responseIndex)
+    {
+        var path = PathHelper.CreatePathFromContext(selection, selectionSetResult, responseIndex);
+        resultBuilder.AddNonNullViolation(selection, path);
+        ValueCompletion.PropagateNullValues(selectionSetResult);
     }
 }

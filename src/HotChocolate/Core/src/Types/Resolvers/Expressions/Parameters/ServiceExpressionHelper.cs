@@ -1,10 +1,7 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -20,17 +17,17 @@ internal static class ServiceExpressionHelper
     private static readonly MethodInfo _getServiceMethod =
         ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
             method => method.Name.Equals(_service, StringComparison.Ordinal) &&
-                method.IsGenericMethod && 
+                method.IsGenericMethod &&
                 method.GetParameters().Length == 0);
-    
+
 #if NET8_0_OR_GREATER
     private static readonly MethodInfo _getKeyedServiceMethod =
         ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
             method => method.Name.Equals(_service, StringComparison.Ordinal) &&
-                method.IsGenericMethod && 
+                method.IsGenericMethod &&
                 method.GetParameters().Length == 1);
 #endif
-    
+
     /// <summary>
     /// Builds the service expression.
     /// </summary>
@@ -56,7 +53,7 @@ internal static class ServiceExpressionHelper
         var argumentMethod = _getServiceMethod.MakeGenericMethod(parameterType);
         return Expression.Call(context, argumentMethod);
     }
-    
+
 #if NET8_0_OR_GREATER
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
     {
