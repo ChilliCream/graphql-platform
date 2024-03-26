@@ -55,22 +55,24 @@ public static class FusionExtensions
 
     private static GatewayInfo GetFusionGatewayMetadata(
         this IResourceBuilder<FusionGatewayResource> fusionResourceBuilder) =>
-        fusionResourceBuilder.GetFusionGatewayMetadata();
+        fusionResourceBuilder.Resource.GetFusionGatewayMetadata();
 
     internal static GatewayInfo GetFusionGatewayMetadata(
         this FusionGatewayResource fusionResource) =>
-        fusionResource.Annotations.OfType<GatewayInfo>().Single();
+        fusionResource.ProjectResource.Annotations.OfType<GatewayInfo>().First();
 
     internal static void SetFusionGatewayMetadata(
         this IResourceBuilder<FusionGatewayResource> builder,
         GatewayInfo gateway)
     {
-        foreach (var annotation in builder.Resource.Annotations.OfType<GatewayInfo>().ToArray())
+        var resource = builder.Resource.ProjectResource;
+
+        foreach (var annotation in resource.Annotations.OfType<GatewayInfo>().ToArray())
         {
-            builder.Resource.Annotations.Remove(annotation);
+            resource.Annotations.Remove(annotation);
         }
 
-        builder.Resource.Annotations.Add(gateway);
+        resource.Annotations.Add(gateway);
     }
 
     public static DistributedApplication Compose(this DistributedApplication application)
