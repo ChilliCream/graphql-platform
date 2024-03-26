@@ -8,7 +8,7 @@ public static class FusionExtensions
         this IDistributedApplicationBuilder builder,
         string name)
         where TProject : IProjectMetadata, new()
-        => new FusionGatewayResourceBuilder(builder.AddProject<TProject>(name));
+        => new FusionGatewayResourceBuilder(builder.AddProject<TProject>(name).WithAnnotation(new FusionGateway()));
 
     public static IResourceBuilder<FusionGatewayResource> WithSubgraph(
         this IResourceBuilder<FusionGatewayResource> builder,
@@ -19,4 +19,13 @@ public static class FusionExtensions
         this IResourceBuilder<FusionGatewayResource> builder,
         EndpointReference subgraphEndpoint)
         => builder.WithReference(subgraphEndpoint);
+
+    public static IResourceBuilder<FusionGatewayResource> WithOptions(
+        this IResourceBuilder<FusionGatewayResource> builder,
+        FusionOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        builder.Resource.Annotations.Add(options);
+        return builder;
+    }
 }
