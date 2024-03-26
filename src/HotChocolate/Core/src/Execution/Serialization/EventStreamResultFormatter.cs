@@ -79,12 +79,12 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
             // we need to keep track if the stream is completed so that we can stop sending keep
             // alive messages.
-            var completion = new TaskCompletionSource<bool>();
+            var responseTask = ProcessResponseStreamAsync(synchronization, responseStream, outputStream, ct);
 
             // we await all tasks so that we can catch all exceptions.
             await Task.WhenAll(
-                ProcessResponseStreamAsync(synchronization, completion, responseStream, outputStream, ct),
-                SendKeepAliveMessagesAsync(synchronization, completion, outputStream, ct));
+                responseTask,
+                SendKeepAliveMessagesAsync(synchronization, responseTask, outputStream, ct));
         }
 
         else
@@ -95,15 +95,15 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private static async Task SendKeepAliveMessagesAsync(
         SemaphoreSlim synchronization,
-        TaskCompletionSource<bool> completion,
+        Task responseTask,
         Stream outputStream,
         CancellationToken ct)
     {
         while (true)
         {
-            await Task.WhenAny(Task.Delay(_keepAliveTimeSpan, ct), completion.Task);
+            await Task.WhenAny(Task.Delay(_keepAliveTimeSpan, ct), responseTask);
 
-            if (!ct.IsCancellationRequested && !completion.Task.IsCompleted)
+            if (!ct.IsCancellationRequested && !responseTask.IsCompleted)
             {
                 // we do not need try-finally here because we dispose the semaphore in the parent
                 // method.
@@ -122,7 +122,6 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 
     private async Task ProcessResponseStreamAsync(
         SemaphoreSlim synchronization,
-        TaskCompletionSource<bool> completion,
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken ct)
@@ -154,7 +153,6 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
 
         synchronization.Release();
-        completion.SetResult(true);
     }
 
     private async ValueTask WriteNextMessageAsync(
