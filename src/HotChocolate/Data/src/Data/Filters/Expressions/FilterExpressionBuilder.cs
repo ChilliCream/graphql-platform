@@ -11,15 +11,17 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public static class FilterExpressionBuilder
 {
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates = new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates =
+        new();
     private static readonly ConcurrentDictionary<Type, Expression> _cachedNullExpressions = new();
-    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)> _cachedEnumerableDelegates = new();
+    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)>
+        _cachedEnumerableDelegates = new();
 
     private static readonly MethodInfo _enumerableContains = typeof(Enumerable)
         .GetMethods(Public | Static)
-        .Single(m => m.Name.Equals(nameof(Enumerable.Contains))
-            && m.GetGenericArguments().Length == 1
-            && m.GetParameters().Length is 2);
+        .Single(m => m.Name.Equals(nameof(Enumerable.Contains)) &&
+            m.GetGenericArguments().Length == 1 &&
+            m.GetParameters().Length is 2);
 
 #pragma warning disable CA1307
     private static readonly MethodInfo _startsWith =
@@ -164,7 +166,8 @@ public static class FilterExpressionBuilder
         LambdaExpression lambda)
         => Expression.Call(
             _anyWithParameter.MakeGenericMethod(type),
-            property, lambda);
+            property,
+            lambda);
 
     public static Expression Any(
         Type type,
@@ -181,7 +184,8 @@ public static class FilterExpressionBuilder
         LambdaExpression lambda)
         => Expression.Call(
             _allMethod.MakeGenericMethod(type),
-            property, lambda);
+            property,
+            lambda);
 
     public static Expression NotContains(
         Expression property,
@@ -227,7 +231,7 @@ public static class FilterExpressionBuilder
         return _cachedNullExpressions.GetOrAdd(type, static type =>
         {
             var methodInfo = _createAndConvert.MakeGenericMethod(type);
-            return (Expression) methodInfo.Invoke(null, [null])!;
+            return (Expression)methodInfo.Invoke(null, [null])!;
         });
     }
 
