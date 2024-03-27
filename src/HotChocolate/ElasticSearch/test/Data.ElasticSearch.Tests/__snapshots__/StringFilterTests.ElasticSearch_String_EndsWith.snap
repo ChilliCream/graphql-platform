@@ -1,0 +1,10 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "value": "Subscription",
+        "description": "The subscription type can be used to directly notify on changes"
+      }
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+﻿{
+  "data": {
+    "test": {
+      "edges": [
+        {
+          "node": {
+            "index": 0
+          },
+          "cursor": "MA=="
+        },
+        {
+          "node": {
+            "index": 1
+          },
+          "cursor": "MQ=="
+        },
+        {
+          "node": {
+            "index": 2
+          },
+          "cursor": "Mg=="
+        },
+        {
+          "node": {
+            "index": 3
+          },
+          "cursor": "Mw=="
+        },
+        {
+          "node": {
+            "index": 4
+          },
+          "cursor": "NA=="
+        },
+        {
+          "node": {
+            "index": 5
+          },
+          "cursor": "NQ=="
+        },
+        {
+          "node": {
+            "index": 6
+          },
+          "cursor": "Ng=="
+        },
+        {
+          "node": {
+            "index": 7
+          },
+          "cursor": "Nw=="
+        },
+        {
+          "node": {
+            "index": 8
+          },
+          "cursor": "OA=="
+        },
+        {
+          "node": {
+            "index": 9
+          },
+          "cursor": "OQ=="
+        }
+      ],
+      "nodes": [
+        {
+          "index": 0
+        },
+        {
+          "index": 1
+        },
+        {
+          "index": 2
+        },
+        {
+          "index": 3
+        },
+        {
+          "index": 4
+        },
+        {
+          "index": 5
+        },
+        {
+          "index": 6
+        },
+        {
+          "index": 7
+        },
+        {
+          "index": 8
+        },
+        {
+          "index": 9
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "OQ=="
+      },
+      "totalCount": 20
+    }
+  }
+}

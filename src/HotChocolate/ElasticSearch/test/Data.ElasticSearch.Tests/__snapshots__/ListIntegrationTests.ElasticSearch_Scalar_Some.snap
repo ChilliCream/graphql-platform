@@ -1,0 +1,28 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "bar": "A",
+        "scalarList": [
+          "A1",
+          "A2",
+          "A3"
+        ],
+        "objectList": [
+          {
+            "bar": "A1",
+            "qux": "A1"
+          },
+          {
+            "bar": "A2",
+            "qux": "A2"
+          },
+          {
+            "bar": "A3",
+            "qux": "A3"
+          }
+        ]
+      }
+    ]
+  }
+}

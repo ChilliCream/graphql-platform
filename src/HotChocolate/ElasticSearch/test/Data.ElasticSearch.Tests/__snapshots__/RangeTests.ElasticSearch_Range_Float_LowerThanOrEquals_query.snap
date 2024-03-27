@@ -1,0 +1,15 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "range": {
+            "fValue": {
+              "lte": 0.0
+            }
+          }
+        }
+      ]
+    }
+  }
+}

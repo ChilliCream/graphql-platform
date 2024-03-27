@@ -1,0 +1,28 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "range": {
+                  "fValue": {
+                    "lt": 1.0
+                  }
+                }
+              },
+              {
+                "range": {
+                  "fValue": {
+                    "gt": -1.0
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

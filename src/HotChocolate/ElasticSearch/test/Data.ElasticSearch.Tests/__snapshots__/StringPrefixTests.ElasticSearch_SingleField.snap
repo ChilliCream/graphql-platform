@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "bar": "this starts with this"
+      },
+      {
+        "bar": "that starts with that"
+      }
+    ]
+  }
+}

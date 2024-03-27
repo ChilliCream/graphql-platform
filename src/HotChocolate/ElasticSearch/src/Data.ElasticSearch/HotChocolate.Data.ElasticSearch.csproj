@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.ElasticSearch</PackageId>
+    <AssemblyName>HotChocolate.Data.ElasticSearch</AssemblyName>
+    <RootNamespace>HotChocolate.Data.ElasticSearch</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NeutralLanguage>en</NeutralLanguage>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <Description>Contains the driver for HotChocolate.ElasticSearch and HotChocolate.OpenSearch.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\Data.ElasticSearch.Driver\HotChocolate.Data.ElasticSearch.Driver.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NEST" Version="7.17.1" />
+  </ItemGroup>
+
+</Project>

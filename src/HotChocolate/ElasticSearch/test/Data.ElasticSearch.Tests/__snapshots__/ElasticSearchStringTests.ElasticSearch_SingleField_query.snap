@@ -1,0 +1,15 @@
+﻿{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "match": {
+            "bar": {
+              "query": "A"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

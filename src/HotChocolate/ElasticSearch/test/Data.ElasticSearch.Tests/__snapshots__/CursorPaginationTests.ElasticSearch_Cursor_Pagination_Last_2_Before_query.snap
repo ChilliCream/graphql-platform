@@ -1,0 +1,7 @@
+﻿{
+  "from": 19,
+  "query": {
+    "match_all": {}
+  },
+  "size": 2
+}

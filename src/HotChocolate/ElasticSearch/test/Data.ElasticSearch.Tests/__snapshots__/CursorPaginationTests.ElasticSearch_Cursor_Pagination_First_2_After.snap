@@ -1,0 +1,35 @@
+﻿{
+  "data": {
+    "test": {
+      "edges": [
+        {
+          "node": {
+            "index": 2
+          },
+          "cursor": "Mg=="
+        },
+        {
+          "node": {
+            "index": 3
+          },
+          "cursor": "Mw=="
+        }
+      ],
+      "nodes": [
+        {
+          "index": 2
+        },
+        {
+          "index": 3
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true,
+        "startCursor": "Mg==",
+        "endCursor": "Mw=="
+      },
+      "totalCount": 20
+    }
+  }
+}

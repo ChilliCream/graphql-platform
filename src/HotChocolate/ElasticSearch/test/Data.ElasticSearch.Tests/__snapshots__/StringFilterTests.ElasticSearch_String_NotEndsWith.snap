@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "test": [
+      {
+        "value": "Query",
+        "description": "The query type has fields to get data."
+      },
+      {
+        "value": "Mutation",
+        "description": "The mutation type has several operations to manipulate data."
+      }
+    ]
+  }
+}
