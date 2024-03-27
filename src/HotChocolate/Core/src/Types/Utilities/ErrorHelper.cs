@@ -464,7 +464,7 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError NodeResolver_NodeTypeHasNoId(
-        ObjectType type)
+        ITypeSystemObject type)
         => SchemaErrorBuilder
             .New()
             .SetMessage(ErrorHelper_NodeResolver_NodeTypeHasNoId, type.Name)
