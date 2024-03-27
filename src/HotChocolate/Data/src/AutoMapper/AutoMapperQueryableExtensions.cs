@@ -1,11 +1,9 @@
-using System;
-using System.Linq;
-using System.Linq.Expressions;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Resolvers;
-using static HotChocolate.Data.Projections.Expressions.QueryableProjectionProvider;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace HotChocolate.Data;
 
@@ -31,7 +29,7 @@ public static class AutoMapperQueryableExtensions
         IMapper mapper = context.Service<IMapper>();
 
         // ensure projections are only applied once
-        context.LocalContextData = context.LocalContextData.SetItem(SkipProjectionKey, true);
+        context.LocalContextData = context.LocalContextData.SetItem(QueryableProjectionProvider.SkipProjectionKey, true);
 
         QueryableProjectionContext visitorContext =
             new(context, context.ObjectType, context.Selection.Field.Type.UnwrapRuntimeType(), true);
@@ -42,6 +40,34 @@ public static class AutoMapperQueryableExtensions
         Expression<Func<TResult, object?>> projection = visitorContext.Project<TResult, object?>();
 #pragma warning restore CS8631
 
-        return queryable.ProjectTo(mapper.ConfigurationProvider, projection);
+        var memberInfos = MemberVisitor.GetMemberPath(projection);
+        var membersToExpand = new List<string>();
+
+        for (var i = 0; i < memberInfos.Length; i++)
+        {
+            var current = memberInfos[i];
+            var path = current.Name;
+            for (var j = i; j >= 0; j--)
+            {
+                if (memberInfos[j].HasProperty(current))
+                {
+                    current = memberInfos[j];
+
+                    path = $"{current.Name}.{path}";
+                    if (memberInfos[j].ReflectedType == typeof(TResult))
+                        break;
+                }
+            }
+            membersToExpand.Add(path);
+        }
+
+        return queryable.ProjectTo<TResult>(mapper.ConfigurationProvider, null, membersToExpand.Distinct().ToArray());
+    }
+
+    private static bool HasProperty(this MemberInfo member, MemberInfo property)
+    {
+        return member.ReflectedType!.GetRuntimeProperties().Any(p =>
+        p.PropertyType == property.ReflectedType ||
+            (p.PropertyType.IsGenericType && p.PropertyType.GenericTypeArguments[0] == property.ReflectedType));
     }
 }
