@@ -160,7 +160,8 @@ internal sealed class QueryPlan
         {
             throw ThrowHelper.SubscriptionsMustSubscribe();
         }
-
+        
+        using var _ = context.DiagnosticEvents.BeginExecutePlan(context, this);
         var operationContext = context.OperationContext;
 
         if (operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
