@@ -20,7 +20,7 @@ Result:
 
 SQL:
 ---------------
-SELECT 1, "f"."BarString"
+SELECT "f"."BarString"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 ---------------

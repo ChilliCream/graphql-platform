@@ -14,6 +14,8 @@ public class QueryableProjectionFieldHandler
         selection.Field.Member is { } &&
         selection.SelectionSet is not null;
 
+    private readonly NullabilityInfoContext _nullabilityInfoContext = new();
+
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
         ISelection selection,
@@ -90,7 +92,10 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
-        if (context.InMemory)
+        // TODO: Use existing utility function/extension method? Cache?
+        var nullabilityInfo = _nullabilityInfoContext.Create(propertyInfo);
+
+        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
             parentScope.Level
                 .Peek()

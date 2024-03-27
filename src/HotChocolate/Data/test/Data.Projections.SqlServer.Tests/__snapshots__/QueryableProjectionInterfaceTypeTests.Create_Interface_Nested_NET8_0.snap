@@ -22,7 +22,7 @@ Result:
 
 SQL:
 ---------------
-SELECT 1, "a"."d" = 'bar', "a"."Name", "a"."BarProp", "a"."d" = 'foo', "a"."FooProp"
+SELECT "a"."d" = 'bar', "a"."Name", "a"."BarProp", "a"."d" = 'foo', "a"."FooProp"
 FROM "Data" AS "d"
 INNER JOIN "AbstractType" AS "a" ON "d"."NestedId" = "a"."Id"
 ---------------
