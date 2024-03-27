@@ -155,7 +155,7 @@ Under the hood, sorting is based on top of normal Hot Chocolate input types. You
 `ISortInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>`. By default, operations are generated for all fields of the type.
 Members that are collections are skipped because you cannot order based on lists.
 If you do want to specify the sorting types by yourself, you can change this behavior with `BindFields`, `BindFieldsExplicitly`, or `BindFieldsImplicitly`.
-When fields are bound implicitly, meaning sorting is added for all valid properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
+When fields are bound implicitly, meaning sorting is added for all valid properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`. You an also use the `[GraphQLIgnoreSort]` attribute on a particular property to explicitly exclude that field, or place it on a class definition to remove all fields from sort inputs that use that type.
 It is also possible to customize the GraphQL field of the operation further. You can change the name or add a description or directive.
 
 ```csharp
