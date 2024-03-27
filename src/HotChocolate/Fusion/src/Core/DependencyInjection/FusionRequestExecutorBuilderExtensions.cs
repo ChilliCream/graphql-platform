@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Pipeline;
@@ -27,7 +28,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// The name of the fusion graph.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="services"/> is <c>null</c> or
@@ -73,15 +74,20 @@ public static class FusionRequestExecutorBuilderExtensions
                             sc.TryAddSingleton(fusionGraphConfig);
                             sc.TryAddSingleton<QueryPlanner>();
                             sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
+
+                            sc.TryAddSingleton<IFusionOptionsAccessor>(GetFusionOptions);
                         });
                 });
 
         return new FusionGatewayBuilder(builder);
     }
-    
+
     /// <summary>
     /// Adds a custom ID parser to the gateway.
     /// </summary>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
     public static FusionGatewayBuilder AddNodeIdParser<T>(
         this FusionGatewayBuilder builder)
         where T : NodeIdParser
@@ -95,7 +101,7 @@ public static class FusionRequestExecutorBuilderExtensions
                     sc.RemoveAll<NodeIdParser>();
                     sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
                 }));
-        
+
         return builder;
     }
 
@@ -113,7 +119,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// the schema is rebuild whenever the file changes.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c> or
@@ -159,7 +165,7 @@ public static class FusionRequestExecutorBuilderExtensions
     /// The fusion gateway configuration document.
     /// </param>
     /// <returns>
-    /// Returns the <see cref="IRequestExecutorBuilder"/> that can be used to configure the Gateway.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c> or
@@ -193,7 +199,9 @@ public static class FusionRequestExecutorBuilderExtensions
     /// <param name="factory">
     /// The factory that creates the observable Gateway configuration.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="builder"/> is <c>null</c> or
     /// <paramref name="factory"/> is <c>null</c>.
@@ -217,7 +225,7 @@ public static class FusionRequestExecutorBuilderExtensions
         builder.CoreBuilder.AddTypeModule<GatewayConfigurationTypeModule>();
         return builder;
     }
-    
+
     /// <summary>
     /// Rewrites the gateway configuration to use the service discovery for HTTP clients.
     /// </summary>
@@ -225,12 +233,77 @@ public static class FusionRequestExecutorBuilderExtensions
     /// The gateway builder.
     /// </param>
     /// <returns>
-    /// Returns the gateway builder for configuration chaining.
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
     /// </returns>
     public static FusionGatewayBuilder AddServiceDiscoveryRewriter(
         this FusionGatewayBuilder builder)
     {
         builder.Services.AddSingleton<IConfigurationRewriter, ServiceDiscoveryConfigurationRewriter>();
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder ModifyRequestOptions(
+        this FusionGatewayBuilder builder,
+        Action<RequestExecutorOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.CoreBuilder.Configure(options => options.OnConfigureRequestExecutorOptionsHooks.Add(
+            new OnConfigureRequestExecutorOptionsAction(
+                (_, opt) => modify(opt))));
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a delegate that will be used to modify the <see cref="FusionOptions"/>.
+    /// </summary>
+    /// <param name="builder">
+    /// The gateway builder.
+    /// </param>
+    /// <param name="modify">
+    /// A delegate that is used to modify the <see cref="FusionOptions"/>.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="FusionGatewayBuilder"/> that can be used to configure the Gateway.
+    /// </returns>
+    public static FusionGatewayBuilder ModifyFusionOptions(
+        this FusionGatewayBuilder builder,
+        Action<FusionOptions> modify)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (modify is null)
+        {
+            throw new ArgumentNullException(nameof(modify));
+        }
+
+        builder.CoreBuilder.Configure(options => options.OnConfigureSchemaServicesHooks.Add(
+            (ctx, sc) => sc.AddSingleton(modify)));
+
         return builder;
     }
 
@@ -472,4 +545,17 @@ public static class FusionRequestExecutorBuilderExtensions
         string? graphName = default,
         CancellationToken cancellationToken = default)
         => builder.CoreBuilder.BuildSchemaAsync(graphName, cancellationToken);
+
+    private static FusionOptions GetFusionOptions(IServiceProvider sp)
+    {
+        var configures = sp.GetServices<Action<FusionOptions>>();
+        var options = new FusionOptions();
+
+        foreach (var configure in configures)
+        {
+            configure(options);
+        }
+
+        return options;
+    }
 }

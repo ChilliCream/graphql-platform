@@ -163,7 +163,7 @@ internal sealed class QueryPlan
 
         var operationContext = context.OperationContext;
 
-        if (operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
+        if (context.AllowQueryPlan && operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             context.QueryPlan.Format(bufferWriter);
