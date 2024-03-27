@@ -9,19 +9,23 @@ internal sealed class ApplyPolicyType : EnumType<ApplyPolicy>
     {
         descriptor
             .Name(Names.ApplyPolicy)
+            .Description("Defines when a policy shall be executed.")
             .BindValuesExplicitly();
 
         descriptor
             .Value(ApplyPolicy.BeforeResolver)
-            .Name(Names.BeforeResolver);
+            .Name(Names.BeforeResolver)
+            .Description("Before the resolver was executed.");
 
         descriptor
             .Value(ApplyPolicy.AfterResolver)
-            .Name(Names.AfterResolver);
+            .Name(Names.AfterResolver)
+            .Description("After the resolver was executed.");
 
         descriptor
             .Value(ApplyPolicy.Validation)
-            .Name(Names.Validation);
+            .Name(Names.Validation)
+            .Description("The policy is applied in the validation step before the execution.");
     }
 
     public static class Names
