@@ -9,6 +9,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
 #nullable enable
@@ -65,6 +66,57 @@ public class IdAttributeTests
                         .SetVariableValue("intId", intId)
                         .SetVariableValue("stringId", stringId)
                         .SetVariableValue("guidId", guidId)
+                        .Create());
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Id_On_Arguments_Given_CustomId()
+    {
+        // arrange
+        var idSerializer = new IdSerializer();
+        var defaultCustomId = idSerializer.Serialize("Query", new CustomId(1));
+        var intCustomId = idSerializer.Serialize("Query", 2);
+        var guidCustomId = idSerializer.Serialize("Query", Guid.Parse("00000000-0000-0000-0000-000000000003"));
+        var stringCustomId = idSerializer.Serialize("Query", "4");
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddTypeConverter<int, CustomId>(s => new CustomId(s))
+                .AddTypeConverter<Guid, CustomId>(s => new CustomId(3))
+                .AddTypeConverter<string, CustomId>(s => new CustomId(int.Parse(s)))
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"query foo (
+                                $defaultCustomId: ID!
+                                $intCustomId: ID!
+                                $guidCustomId: ID!
+                                $stringCustomId: ID!
+                                $nullCustomId: ID = null)
+                            {
+                                customIdGivenDefault: customId(id: $defaultCustomId)
+                                nullableCustomIdGivenDefault: nullableCustomId(id: $defaultCustomId)
+                                customIdGivenInt: customId(id: $intCustomId)
+                                nullableCustomIdGivenInt: nullableCustomId(id: $intCustomId)
+                                customIdGivenGuid: customId(id: $guidCustomId)
+                                nullableCustomIdGivenGuid: nullableCustomId(id: $guidCustomId)
+                                customIdGivenString: customId(id: $stringCustomId)
+                                nullableCustomIdGivenString: nullableCustomId(id: $stringCustomId)
+                                nullableCustomIdGivenNull: nullableCustomId(id: $nullCustomId)
+                                customIdList(id: [$defaultCustomId $intCustomId $guidCustomId $stringCustomId])
+                                nullableCustomIdList(id: [$nullCustomId $defaultCustomId $intCustomId $guidCustomId $stringCustomId])
+                            }")
+                        .SetVariableValue("defaultCustomId", defaultCustomId)
+                        .SetVariableValue("intCustomId", intCustomId)
+                        .SetVariableValue("guidCustomId", guidCustomId)
+                        .SetVariableValue("stringCustomId", stringCustomId)
                         .Create());
 
         // assert
@@ -363,6 +415,14 @@ public class IdAttributeTests
         public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
         public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+        public string CustomId([ID] CustomId id) => id.Value.ToString();
+        public string CustomIdList([ID] IReadOnlyList<CustomId> id) =>
+            string.Join(", ", id.Select(i => i.Value));
+
+        public string NullableCustomId([ID] CustomId? id) => id?.Value.ToString() ?? "null";
+        public string NullableCustomIdList([ID] IReadOnlyList<CustomId?> id) =>
+            string.Join(", ", id.Select(i => i?.Value.ToString() ?? "null"));
 
         public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
 
