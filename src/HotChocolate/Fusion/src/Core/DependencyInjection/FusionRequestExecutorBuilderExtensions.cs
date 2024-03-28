@@ -74,6 +74,7 @@ public static class FusionRequestExecutorBuilderExtensions
                             sc.TryAddSingleton(fusionGraphConfig);
                             sc.TryAddSingleton<QueryPlanner>();
                             sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
+                            sc.TryAddFusionDiagnosticEvents();
                         });
                 });
 
@@ -95,6 +96,22 @@ public static class FusionRequestExecutorBuilderExtensions
                 sp => (IFusionDiagnosticEventListener)sp.GetApplicationService<T>()));
 
         return builder;
+    }
+
+    internal static IServiceCollection TryAddFusionDiagnosticEvents(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton<IFusionDiagnosticEvents>(sp =>
+        {
+            var listeners = sp.GetServices<IFusionDiagnosticEventListener>().ToArray();
+            return listeners.Length switch
+            {
+                0 => new NoopFusionDiagnosticEvents(),
+                1 => listeners[0],
+                _ => new AggregateFusionDiagnosticEvents(listeners),
+            };
+        });
+        return services;
     }
 
     /// <summary>
