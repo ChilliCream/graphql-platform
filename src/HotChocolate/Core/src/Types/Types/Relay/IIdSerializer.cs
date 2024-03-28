@@ -291,7 +291,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
     {
 #if NET8_0_OR_GREATER
         _stringSerializerMap =
- serializers.ToFrozenDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
+            serializers.ToFrozenDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
 #else
         _stringSerializerMap = serializers.ToDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
 #endif
@@ -384,17 +384,19 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
 
             while (result == NodeIdFormatterResult.BufferTooSmall)
             {
+                capacity *= 2;
+                var newBuffer = ArrayPool<byte>.Shared.Rent(capacity);
+                span.CopyTo(newBuffer);
+                span = rentedBuffer;
+
                 if (rentedBuffer is not null)
                 {
                     ArrayPool<byte>.Shared.Return(rentedBuffer);
                 }
-
-                capacity *= 2;
-                rentedBuffer = ArrayPool<byte>.Shared.Rent(capacity);
-                valueSpan = rentedBuffer;
+                rentedBuffer = newBuffer;
 
                 _formattedTypeName.CopyTo(span);
-                valueSpan = valueSpan.Slice(_formattedTypeName.Length);
+                valueSpan = span.Slice(_formattedTypeName.Length);
                 valueSpan[0] = _delimiter;
                 valueSpan = valueSpan.Slice(1);
                 result = valueSerializer.Format(valueSpan, value, out written);
@@ -402,11 +404,31 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
 
             if (result == NodeIdFormatterResult.Success)
             {
-                fixed (byte* buffer = rentedBuffer)
+                string? formattedId;
+                var dataLength = _formattedTypeName.Length + 1 + written;
+
+                while(Base64.EncodeToUtf8InPlace(span, dataLength, out written)
+                      == OperationStatus.DestinationTooSmall)
                 {
-                    Clear(rentedBuffer);
-                    return _utf8.GetString(buffer, written);
+                    capacity *= 2;
+                    var newBuffer = ArrayPool<byte>.Shared.Rent(capacity);
+                    span.Slice(0, dataLength).CopyTo(newBuffer);
+                    span = rentedBuffer;
+
+                    if (rentedBuffer is not null)
+                    {
+                        ArrayPool<byte>.Shared.Return(rentedBuffer);
+                    }
+                    rentedBuffer = newBuffer;
                 }
+
+                fixed (byte* buffer = span)
+                {
+                    formattedId = _utf8.GetString(buffer, written);
+                }
+
+                Clear(rentedBuffer);
+                return formattedId;
             }
 
             Clear(rentedBuffer);
@@ -429,7 +451,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
                 return new NodeId(typeName, internalId);
             }
 
-            fixed(byte* buffer = formattedValue)
+            fixed (byte* buffer = formattedValue)
             {
                 throw new NodeIdInvalidFormatException(_utf8.GetString(buffer, formattedValue.Length));
             }
@@ -551,7 +573,7 @@ public sealed class NodeIdSerializerEntry(
 {
     public string TypeName { get; } = typeName;
 
-    public INodeIdValueSerializer Serializer {get;} = serializer;
+    public INodeIdValueSerializer Serializer { get; } = serializer;
 
     public bool Equals(NodeIdSerializerEntry? other)
     {
