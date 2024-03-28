@@ -386,8 +386,8 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
             {
                 capacity *= 2;
                 var newBuffer = ArrayPool<byte>.Shared.Rent(capacity);
-                span.CopyTo(newBuffer);
-                span = rentedBuffer;
+                span = newBuffer;
+                capacity = newBuffer.Length;
 
                 if (rentedBuffer is not null)
                 {
@@ -407,18 +407,19 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
                 string? formattedId;
                 var dataLength = _formattedTypeName.Length + 1 + written;
 
-                while(Base64.EncodeToUtf8InPlace(span, dataLength, out written)
-                      == OperationStatus.DestinationTooSmall)
+                while (Base64.EncodeToUtf8InPlace(span, dataLength, out written) == OperationStatus.DestinationTooSmall)
                 {
                     capacity *= 2;
                     var newBuffer = ArrayPool<byte>.Shared.Rent(capacity);
                     span.Slice(0, dataLength).CopyTo(newBuffer);
-                    span = rentedBuffer;
+                    span = newBuffer;
+                    capacity = newBuffer.Length;
 
                     if (rentedBuffer is not null)
                     {
                         ArrayPool<byte>.Shared.Return(rentedBuffer);
                     }
+
                     rentedBuffer = newBuffer;
                 }
 
