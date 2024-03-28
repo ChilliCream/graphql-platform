@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;

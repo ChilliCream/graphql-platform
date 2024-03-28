@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
@@ -62,7 +63,7 @@ internal sealed class FusionExecutionContext : IDisposable
     public QueryPlan QueryPlan { get; }
 
     /// <summary>
-    /// TODO
+    /// Gets the diagnostic event reporter.
     /// </summary>
     public IFusionDiagnosticEvents DiagnosticEvents { get; }
 

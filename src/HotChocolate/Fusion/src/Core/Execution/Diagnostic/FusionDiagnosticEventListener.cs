@@ -1,35 +1,11 @@
 using HotChocolate.Execution;
 
-namespace HotChocolate.Fusion.Execution.Pipeline;
-
-public interface IFusionDiagnosticEvents
-{
-    /// <summary>
-    /// TODO
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed when the execution has finished.
-    /// </returns>
-    IDisposable ExecuteFederatedQuery(IRequestContext context);
-
-    /// <summary>
-    /// TODO
-    /// </summary>
-    /// <param name="exception"></param>
-    void QueryPlanExecutionError(Exception exception);
-}
-
-public interface IFusionDiagnosticEventListener : IFusionDiagnosticEvents
-{
-
-}
+namespace HotChocolate.Fusion.Execution.Diagnostic;
 
 /// <summary>
-/// TODO
+/// This class can be used as a base class for <see cref="IFusionDiagnosticEventListener"/>
+/// implementations, so that they only have to override the methods they
+/// are interested in instead of having to provide implementations for all of them.
 /// </summary>
 public class FusionDiagnosticEventListener : IFusionDiagnosticEventListener
 {
@@ -45,6 +21,16 @@ public class FusionDiagnosticEventListener : IFusionDiagnosticEventListener
 
     /// <inheritdoc />
     public virtual void QueryPlanExecutionError(Exception exception)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void ResolveError(Exception exception)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void ResolveByKeyBatchError(Exception exception)
     {
     }
 

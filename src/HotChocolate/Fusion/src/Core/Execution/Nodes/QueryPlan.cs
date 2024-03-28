@@ -190,6 +190,8 @@ internal sealed class QueryPlan
         }
         catch (Exception ex)
         {
+            context.DiagnosticEvents.QueryPlanExecutionError(ex);
+
             if (context.Result.Errors.Count == 0)
             {
                 var errorHandler = context.OperationContext.ErrorHandler;

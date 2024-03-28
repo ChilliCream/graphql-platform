@@ -3,6 +3,7 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
