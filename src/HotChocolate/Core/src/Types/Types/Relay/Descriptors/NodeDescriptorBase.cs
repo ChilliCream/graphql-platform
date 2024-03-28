@@ -12,19 +12,12 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
-#nullable enable
-
 namespace HotChocolate.Types.Relay.Descriptors;
 
-public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
+public abstract class NodeDescriptorBase(IDescriptorContext context)
+    : DescriptorBase<NodeDefinition>(context)
 {
-    protected NodeDescriptorBase(IDescriptorContext context)
-        : base(context)
-    {
-    }
-
-    protected internal sealed override NodeDefinition Definition { get; protected set; } =
-        new();
+    protected internal sealed override NodeDefinition Definition { get; protected set; } = new();
 
     protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
@@ -183,23 +176,36 @@ public abstract class NodeDescriptorBase : DescriptorBase<NodeDefinition>
 
     protected static class ConverterHelper
     {
-        private static ResultFormatterDefinition? _resultConverter;
-
-        private static ResultFormatterDefinition Formatter
-        {
-            get => _resultConverter ??= IdMiddleware.Create();
-        }
-
         public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
         {
-            var converters = descriptor.Extend().Definition.FormatterDefinitions;
+            var extensions = descriptor.Extend();
+            var context = extensions.Context;
 
-            if (!converters.Contains(Formatter))
+            if (!context.ContextData.TryGetValue(WellKnownContextData.NodeIdResultFormatter, out var value) ||
+                value is null)
             {
-                converters.Add(Formatter);
+                value = Create(context.NodeIdSerializerAccessor);
+                context.ContextData[WellKnownContextData.NodeIdResultFormatter] = value;
+            }
+
+            var formatter = (ResultFormatterDefinition)value;
+            var converters = extensions.Definition.FormatterDefinitions;
+
+            if (!converters.Contains(formatter))
+            {
+                converters.Add(formatter);
             }
 
             return descriptor;
         }
+
+        public static ResultFormatterDefinition Create(
+            INodeIdSerializerAccessor serializerAccessor)
+            => new((context, result)
+                    => result is not null
+                        ? serializerAccessor.Serializer.Format(context.ObjectType.Name, result)
+                        : null,
+                key: WellKnownMiddleware.GlobalId,
+                isRepeatable: false);
     }
 }

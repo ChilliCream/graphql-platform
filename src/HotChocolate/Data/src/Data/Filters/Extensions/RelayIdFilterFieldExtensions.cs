@@ -12,8 +12,6 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public static class RelayIdFilterFieldExtensions
 {
-    private static IdSerializer? _idSerializer;
-    
     /// <summary>
     /// Makes the operation field type an ID type.
     /// </summary>
@@ -46,11 +44,6 @@ public static class RelayIdFilterFieldExtensions
 
     private static IInputValueFormatter CreateSerializer(
         ITypeCompletionContext completionContext)
-    {
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            (_idSerializer ??= new IdSerializer());
-
-        return new FilterGlobalIdInputValueFormatter(serializer);
-    }
+        => new FilterGlobalIdInputValueFormatter(
+            completionContext.DescriptorContext.NodeIdSerializerAccessor);
 }

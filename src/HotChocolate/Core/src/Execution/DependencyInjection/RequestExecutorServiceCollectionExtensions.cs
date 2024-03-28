@@ -56,7 +56,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher()
             .TryAddDefaultDataLoaderRegistry()
-            .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
             .AddSingleton<ResolverProvider>();
 
