@@ -197,7 +197,7 @@ internal static class NodeFieldResolvers
         IdValue deserializedId,
         ObjectType type)
     {
-        context.SetLocalState(NodeId, nodeId.Value);
+        context.SetLocalState(WellKnownContextData.NodeId, nodeId.Value);
         context.SetLocalState(InternalId, deserializedId.Value);
         context.SetLocalState(InternalType, type);
         context.SetLocalState(InternalTypeName, type.Name);
