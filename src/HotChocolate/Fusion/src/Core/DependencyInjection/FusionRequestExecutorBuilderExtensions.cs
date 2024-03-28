@@ -78,7 +78,24 @@ public static class FusionRequestExecutorBuilderExtensions
 
         return new FusionGatewayBuilder(builder);
     }
-    
+
+    public static FusionGatewayBuilder AddDiagnosticEventListener<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IFusionDiagnosticEventListener
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton(
+                sp => (IFusionDiagnosticEventListener)sp.GetApplicationService<T>()));
+
+        return builder;
+    }
+
     /// <summary>
     /// Adds a custom ID parser to the gateway.
     /// </summary>
@@ -95,7 +112,7 @@ public static class FusionRequestExecutorBuilderExtensions
                     sc.RemoveAll<NodeIdParser>();
                     sc.AddSingleton<NodeIdParser, DefaultNodeIdParser>();
                 }));
-        
+
         return builder;
     }
 
@@ -217,7 +234,7 @@ public static class FusionRequestExecutorBuilderExtensions
         builder.CoreBuilder.AddTypeModule<GatewayConfigurationTypeModule>();
         return builder;
     }
-    
+
     /// <summary>
     /// Rewrites the gateway configuration to use the service discovery for HTTP clients.
     /// </summary>

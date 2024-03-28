@@ -19,7 +19,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
     IIdSerializer idSerializer,
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
-    [SchemaService] NodeIdParser nodeIdParser)
+    [SchemaService] NodeIdParser nodeIdParser,
+    [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -37,6 +38,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
+    private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
+        ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -66,13 +69,17 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     operationContextOwner,
                     _clientFactory,
                     _idSerializer,
-                    _nodeIdParser);
+                    _nodeIdParser,
+                    diagnosticEvents);
 
-            context.Result =
-                await FederatedQueryExecutor.ExecuteAsync(
-                    federatedQueryContext,
-                    context.RequestAborted)
-                    .ConfigureAwait(false);
+            using (federatedQueryContext.DiagnosticEvents.ExecuteFederatedQuery(context))
+            {
+                context.Result =
+                    await FederatedQueryExecutor.ExecuteAsync(
+                            federatedQueryContext,
+                            context.RequestAborted)
+                        .ConfigureAwait(false);
+            }
 
             await _next(context).ConfigureAwait(false);
         }
@@ -93,7 +100,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
             OperationType.Subscription => _subscriptionRoot,
             _ => throw new NotSupportedException(),
         };
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
@@ -102,13 +109,15 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
                 contextFactory,
                 idSerializer,
                 serviceConfig,
                 clientFactory,
-                nodeIdParser);
+                nodeIdParser,
+                diagnosticEvents);
             return async context =>
             {
                 var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();

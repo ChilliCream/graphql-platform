@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
@@ -25,19 +26,22 @@ internal sealed class FusionExecutionContext : IDisposable
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
         IIdSerializer idSerializer,
-        NodeIdParser nodeIdParser)
+        NodeIdParser nodeIdParser,
+        IFusionDiagnosticEvents diagnosticEvents)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
+        DiagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory ??
             throw new ArgumentNullException(nameof(clientFactory));
         _idSerializer = idSerializer ??
             throw new ArgumentNullException(nameof(idSerializer));
-        _nodeIdParser = nodeIdParser ?? 
+        _nodeIdParser = nodeIdParser ??
             throw new ArgumentNullException(nameof(nodeIdParser));
         _schemaName = Schema.Name;
     }
@@ -56,6 +60,11 @@ internal sealed class FusionExecutionContext : IDisposable
     /// Gets the query plan that is being executed.
     /// </summary>
     public QueryPlan QueryPlan { get; }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    public IFusionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets the execution state.
@@ -100,7 +109,7 @@ internal sealed class FusionExecutionContext : IDisposable
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Serialize(_schemaName, typeName, id.Value);
     }
-    
+
     public string ParseTypeNameFromId(string id)
         => _nodeIdParser.ParseTypeName(id);
 
@@ -160,5 +169,6 @@ internal sealed class FusionExecutionContext : IDisposable
             operationContextOwner,
             context._clientFactory,
             context._idSerializer,
-            context._nodeIdParser);
+            context._nodeIdParser,
+            context.DiagnosticEvents);
 }
