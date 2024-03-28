@@ -16,7 +16,7 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class DistributedOperationExecutionMiddleware(
     RequestDelegate next,
     IFactory<OperationContextOwner> contextFactory,
-    IIdSerializer idSerializer,
+    [SchemaService] INodeIdSerializer nodeIdSerializer,
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
     [SchemaService] NodeIdParser nodeIdParser)
@@ -31,8 +31,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(serviceConfig));
     private readonly IFactory<OperationContextOwner> _contextFactory = contextFactory
         ?? throw new ArgumentNullException(nameof(contextFactory));
-    private readonly IIdSerializer _idSerializer = idSerializer
-        ?? throw new ArgumentNullException(nameof(idSerializer));
+    private readonly INodeIdSerializer _nodeIdSerializer = nodeIdSerializer
+        ?? throw new ArgumentNullException(nameof(nodeIdSerializer));
     private readonly GraphQLClientFactory _clientFactory = clientFactory
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
@@ -65,7 +65,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     queryPlan,
                     operationContextOwner,
                     _clientFactory,
-                    _idSerializer,
+                    _nodeIdSerializer,
                     _nodeIdParser);
 
             context.Result =
@@ -93,12 +93,12 @@ internal sealed class DistributedOperationExecutionMiddleware(
             OperationType.Subscription => _subscriptionRoot,
             _ => throw new NotSupportedException(),
         };
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
             var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
-            var idSerializer = core.Services.GetRequiredService<IIdSerializer>();
+            var idSerializer = core.SchemaServices.GetRequiredService<INodeIdSerializer>();
             var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();

@@ -25,7 +25,7 @@ public interface ISchema
     /// <summary>
     /// Gets the global schema services.
     /// </summary>
-    IServiceProvider? Services { get; }
+    IServiceProvider Services { get; }
 
     /// <summary>
     /// The type that query operations will be rooted at.

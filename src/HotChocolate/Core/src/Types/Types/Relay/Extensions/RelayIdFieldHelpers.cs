@@ -19,8 +19,6 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal static class RelayIdFieldHelpers
 {
-    private static IdSerializer? _idSerializer;
-
     /// <summary>
     /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
     /// descriptor
@@ -205,19 +203,25 @@ internal static class RelayIdFieldHelpers
                 completionContext.Type);
         }
 
-        string? schemaName = default;
-        completionContext.DescriptorContext.SchemaCompleted += (_, args) =>
-            schemaName = args.Schema.Name;
-
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            new IdSerializer();
+        var serializerAccessor = completionContext.DescriptorContext.NodeIdSerializerAccessor;
         var index = definition.FormatterDefinitions.IndexOf(placeholder);
-
         typeName ??= completionContext.Type.Name;
 
-        definition.FormatterDefinitions[index] = new((_, result) =>
+        definition.FormatterDefinitions[index] =
+            CreateResultFormatter(typeName, resultType, serializerAccessor);
+    }
+
+    private static ResultFormatterDefinition CreateResultFormatter(
+        string typeName,
+        IExtendedType resultType,
+        INodeIdSerializerAccessor serializerAccessor)
+    {
+        INodeIdSerializer? serializer = null;
+
+        return new((_, result) =>
             {
+                serializer ??= serializerAccessor.Serializer;
+
                 if (result is not null)
                 {
                     if (resultType.IsArrayOrList)
@@ -228,13 +232,13 @@ internal static class RelayIdFieldHelpers
                         {
                             list.Add(element is null
                                 ? element
-                                : serializer.Serialize(schemaName, typeName, element));
+                                : serializer.Format(typeName, element));
                         }
 
                         return list;
                     }
 
-                    return serializer.Serialize(schemaName, typeName, result);
+                    return serializer.Format(typeName, result);
                 }
 
                 return result;
@@ -247,15 +251,9 @@ internal static class RelayIdFieldHelpers
         ITypeCompletionContext completionContext,
         IExtendedType resultType,
         string? typeName)
-    {
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            (_idSerializer ??= new IdSerializer());
-
-        return new GlobalIdInputValueFormatter(
+        => new GlobalIdInputValueFormatter(
             typeName ?? completionContext.Type.Name,
-            serializer,
+            completionContext.DescriptorContext.NodeIdSerializerAccessor,
             resultType,
             typeName is not null);
-    }
 }

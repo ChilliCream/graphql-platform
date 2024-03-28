@@ -108,7 +108,7 @@ internal static class InternalServiceCollectionExtensions
 
         return services;
     }
-    
+
     internal static IServiceCollection TryAddTypeConverter(
         this IServiceCollection services)
     {
@@ -180,13 +180,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(
             sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
-        return services;
-    }
-
-    internal static IServiceCollection TryAddIdSerializer(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IIdSerializer, IdSerializer>();
         return services;
     }
 

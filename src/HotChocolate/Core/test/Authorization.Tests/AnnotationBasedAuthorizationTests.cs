@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using CookieCrumble;
-using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -10,7 +9,7 @@ using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 public class AnnotationBasedAuthorizationTests
 {
@@ -625,8 +624,8 @@ public class AnnotationBasedAuthorizationTests
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Street", 1);
+        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var id = idSerializer.Format("Street", 1);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -685,8 +684,8 @@ public class AnnotationBasedAuthorizationTests
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Street", 1);
+        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var id = idSerializer.Format("Street", 1);
 
         // act
         var result = await executor.ExecuteAsync(

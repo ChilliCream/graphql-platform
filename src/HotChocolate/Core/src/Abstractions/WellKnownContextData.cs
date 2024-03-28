@@ -299,4 +299,9 @@ public static class WellKnownContextData
     /// Type key to access the object type configuration hooks in the schema builder context data.
     /// </summary>
     public const string ObjectTypeConfigurations = "HotChocolate.Types.ObjectTypeConfigurations";
+
+    /// <summary>
+    /// Type key to access the node id result formatter on the descriptor context.
+    /// </summary>
+    public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
 }

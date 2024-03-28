@@ -42,9 +42,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         {
             var typeInspector = _queryContext.TypeInspector;
 
-            var serializer =
-                _queryContext.Services.GetService<IIdSerializer>() ??
-                new IdSerializer();
+            var serializer = _queryContext.DescriptorContext.NodeIdSerializerAccessor;
 
             // the nodes fields shall be chained in after the introspection fields,
             // so we first get the index of the last introspection field,
@@ -72,7 +70,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void CreateNodeField(
         ITypeInspector typeInspector,
-        IIdSerializer serializer,
+        INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldDefinition> fields,
         int index)
     {
@@ -88,9 +86,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    _ => async context =>
+                    _ =>
                     {
-                        await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
+                        INodeIdSerializer? serializer = null;
+                        return async context =>
+                        {
+                            serializer ??= serializerAccessor.Serializer;
+                            await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
+                        };
                     }),
             },
         };
@@ -105,7 +108,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void CreateNodesField(
         ITypeInspector typeInspector,
-        IIdSerializer serializer,
+        INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldDefinition> fields,
         int index,
         int maxAllowedNodes)
@@ -122,10 +125,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    _ => async context =>
+                    _ =>
                     {
-                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
-                            .ConfigureAwait(false);
+                        INodeIdSerializer? serializer = null;
+                        return async context =>
+                        {
+                            serializer ??= serializerAccessor.Serializer;
+                            await ResolveManyNodeAsync(context, serializer, maxAllowedNodes).ConfigureAwait(false);
+                        };
                     }),
             },
         };
