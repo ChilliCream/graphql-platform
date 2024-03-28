@@ -1,9 +1,11 @@
+using System;
+
 namespace HotChocolate.Types.Relay;
 
 public class DefaultNodeIdSerializerTests
 {
     [Fact]
-    public void Serialize_Small_StringId()
+    public void Format_Small_StringId()
     {
         var serializer = new DefaultNodeIdSerializer(
             [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
@@ -14,7 +16,19 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Serialize_480_Byte_Long_StringId()
+    public void Parse_Small_StringId()
+    {
+        var serializer = new DefaultNodeIdSerializer(
+            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+
+        var id = serializer.Parse("Rm9vOmFiYw==");
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Format_480_Byte_Long_StringId()
     {
         var serializer = new DefaultNodeIdSerializer(
             [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
@@ -36,6 +50,31 @@ public class DefaultNodeIdSerializerTests
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
             "YWFhYWFhYWFhYWFhYWFhYQ==",
             id);
+    }
+
+    [Fact]
+    public void Parse_480_Byte_Long_StringId()
+    {
+        var serializer = new DefaultNodeIdSerializer(
+            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+
+        var id = serializer.Parse(
+            "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
+            "YWFhYWFhYWFhYWFhYWFhYQ==");
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal(new string('a', 480), id.InternalId);
     }
 
     [Fact]
@@ -80,5 +119,27 @@ public class DefaultNodeIdSerializerTests
         var id = serializer.Format("Foo", (long)64);
 
         Assert.Equal("Rm9vOjY0", id);
+    }
+
+    [Fact]
+    public void Serialize_Guid()
+    {
+        var serializer = new DefaultNodeIdSerializer(
+            [new NodeIdSerializerEntry("Foo", new GuidNodeIdValueSerializer())]);
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        Assert.Equal("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", id);
+    }
+
+    [Fact]
+    public void Serialize_Guid_Normal()
+    {
+        var serializer = new DefaultNodeIdSerializer(
+            [new NodeIdSerializerEntry("Foo", new GuidNodeIdValueSerializer(false))]);
+
+        var id = serializer.Format("Foo", Guid.Empty);
+
+        Assert.Equal("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", id);
     }
 }

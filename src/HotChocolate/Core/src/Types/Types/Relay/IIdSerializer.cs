@@ -103,7 +103,7 @@ public sealed class Int16NodeIdValueSerializer : INodeIdValueSerializer
         return NodeIdFormatterResult.InvalidValue;
     }
 
-    public unsafe bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
+    public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
         if (Utf8Parser.TryParse(buffer, out short parsedValue, out _))
         {
@@ -159,7 +159,7 @@ public sealed class Int64NodeIdValueSerializer : INodeIdValueSerializer
         return NodeIdFormatterResult.InvalidValue;
     }
 
-    public unsafe bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
+    public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
         if (Utf8Parser.TryParse(buffer, out long parsedValue, out _))
         {
@@ -172,13 +172,30 @@ public sealed class Int64NodeIdValueSerializer : INodeIdValueSerializer
     }
 }
 
-public sealed class GuidNodeIdValueSerializer : INodeIdValueSerializer
+public sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdValueSerializer
 {
     public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
     {
         if (value is Guid g)
         {
-            return Utf8Formatter.TryFormat(g, buffer, out written)
+            if (compress)
+            {
+                if(buffer.Length < 16)
+                {
+                    written = 0;
+                    return NodeIdFormatterResult.BufferTooSmall;
+                }
+
+                Span<byte> span = stackalloc byte[16];
+                #pragma warning disable CS9191
+                MemoryMarshal.TryWrite(span, ref g);
+                #pragma warning restore CS9191
+                span.CopyTo(buffer);
+                written = 16;
+                return NodeIdFormatterResult.Success;
+            }
+
+            return Utf8Formatter.TryFormat(g, buffer, out written, format: 'N')
                 ? NodeIdFormatterResult.Success
                 : NodeIdFormatterResult.BufferTooSmall;
         }
@@ -187,8 +204,24 @@ public sealed class GuidNodeIdValueSerializer : INodeIdValueSerializer
         return NodeIdFormatterResult.InvalidValue;
     }
 
-    public unsafe bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
+    public bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
+        if(compress)
+        {
+            if(buffer.Length == 16)
+            {
+#if NETSTANDARD2_0
+                value = new Guid(buffer.ToArray());
+#else
+                value = new Guid(buffer);
+#endif
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
         if (Utf8Parser.TryParse(buffer, out Guid parsedValue, out _))
         {
             value = parsedValue;
@@ -337,6 +370,9 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
             : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
 
         Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
+        Base64.DecodeFromUtf8InPlace(span, out var written);
+        span = span.Slice(0, written);
+
         var index = span.IndexOf(_delimiter);
         var typeName = span.Slice(0, index);
 
@@ -348,7 +384,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
 
         var value = serializer.Parse(span.Slice(index + 1));
         Clear(rentedBuffer);
-        return new NodeId(serializer.TypeName, value);
+        return value;
 
         static void Clear(byte[]? rentedBuffer = null)
         {
