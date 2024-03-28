@@ -70,6 +70,7 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         }
         catch (Exception ex)
         {
+            context.DiagnosticEvents.ResolveError(ex);
             var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
             context.Result.AddError(error.Build());
         }

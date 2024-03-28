@@ -90,6 +90,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         }
         catch (Exception ex)
         {
+            context.DiagnosticEvents.ResolveByKeyBatchError(ex);
             var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
             context.Result.AddError(error.Build());
         }
@@ -153,7 +154,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
                     context.ShowDebugInfo);
                 first = false;
             }
-            
+
             if (result.TryGetValue(batchState.Key, out var data))
             {
                 ExtractSelectionResults(SelectionSet, SubgraphName, data, batchState.SelectionSetData);
