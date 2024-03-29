@@ -1,0 +1,18 @@
+﻿{
+  "errors": [
+    {
+      "message": "The requested number of values per page must be at least 0.",
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "code": "HC0053",
+        "field": "Query.letters",
+        "requestedItems": -1
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}
