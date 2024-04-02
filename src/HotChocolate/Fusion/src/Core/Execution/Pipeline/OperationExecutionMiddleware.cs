@@ -21,6 +21,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
     [SchemaService] NodeIdParser nodeIdParser,
+    [SchemaService] FusionOptions options,
     [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
 {
     private static readonly object _queryRoot = new();
@@ -39,6 +40,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
+    private readonly FusionOptions _fusionOptionsAccessor = options
+        ?? throw new ArgumentNullException(nameof(options));
     private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
         ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
@@ -71,6 +74,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     _clientFactory,
                     _idSerializer,
                     _nodeIdParser,
+                    _fusionOptionsAccessor,
                     diagnosticEvents);
 
             using (federatedQueryContext.DiagnosticEvents.ExecuteFederatedQuery(context))
@@ -110,6 +114,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
+            var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<FusionOptions>();
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
@@ -118,6 +123,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 serviceConfig,
                 clientFactory,
                 nodeIdParser,
+                fusionOptionsAccessor,
                 diagnosticEvents);
             return async context =>
             {
