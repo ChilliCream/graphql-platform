@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Aspire;
 /// <summary>
 /// The fusion options.
 /// </summary>
-public class FusionOptions : IResourceAnnotation
+public class FusionCompositionOptions : IResourceAnnotation
 {
     /// <summary>
     /// Adds a <c>node</c> field to the root query according to the

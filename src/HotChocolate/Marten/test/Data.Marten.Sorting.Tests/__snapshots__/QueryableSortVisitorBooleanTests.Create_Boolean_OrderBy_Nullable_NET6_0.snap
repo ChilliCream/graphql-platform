@@ -19,7 +19,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorbooleantests_foonullable as d order by CAST(d.data ->> 'Bar' as boolean)
+select d.id, d.data from public.mt_doc_queryablesortvisitorbooleantests_foonullable as d order by CAST(d.data ->> 'Bar' as boolean);
 ---------------
 
 DESC Result:
@@ -43,5 +43,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorbooleantests_foonullable as d order by CAST(d.data ->> 'Bar' as boolean) desc
+select d.id, d.data from public.mt_doc_queryablesortvisitorbooleantests_foonullable as d order by CAST(d.data ->> 'Bar' as boolean) desc;
 ---------------

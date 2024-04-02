@@ -3,7 +3,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
@@ -20,6 +19,7 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
     private readonly NodeIdParser _nodeIdParser;
+    private readonly FusionOptions _options;
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
@@ -28,6 +28,7 @@ internal sealed class FusionExecutionContext : IDisposable
         GraphQLClientFactory clientFactory,
         IIdSerializer idSerializer,
         NodeIdParser nodeIdParser,
+        FusionOptions options,
         IFusionDiagnosticEvents diagnosticEvents)
     {
         Configuration = configuration ??
@@ -44,6 +45,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(idSerializer));
         _nodeIdParser = nodeIdParser ??
             throw new ArgumentNullException(nameof(nodeIdParser));
+        _options = options ??
+            throw new ArgumentNullException(nameof(options));
         _schemaName = Schema.Name;
     }
 
@@ -90,7 +93,12 @@ internal sealed class FusionExecutionContext : IDisposable
     /// <summary>
     /// Defines if query plan components should emit debug infos.
     /// </summary>
-    public bool ShowDebugInfo => true;
+    public bool ShowDebugInfo => _options.IncludeDebugInfo;
+
+    /// <summary>
+    /// Defines if the query plan should be included in the result.
+    /// </summary>
+    public bool AllowQueryPlan => _options.AllowQueryPlan;
 
     /// <summary>
     /// Determines if all data has been fetched for the specified selection set.
@@ -128,7 +136,7 @@ internal sealed class FusionExecutionContext : IDisposable
         IReadOnlyList<SubgraphGraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
-        if(requests.Count == 1)
+        if (requests.Count == 1)
         {
             return [await ExecuteAsync(subgraphName, requests[0], cancellationToken),];
         }
@@ -152,7 +160,7 @@ internal sealed class FusionExecutionContext : IDisposable
         await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
 
         await foreach (var response in client.SubscribeAsync(request, cancellationToken)
-            .ConfigureAwait(false))
+                           .ConfigureAwait(false))
         {
             yield return response;
         }
@@ -171,5 +179,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context._clientFactory,
             context._idSerializer,
             context._nodeIdParser,
+            context._options,
             context.DiagnosticEvents);
 }

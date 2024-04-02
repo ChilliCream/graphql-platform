@@ -15,7 +15,7 @@ true Result:
 
 true SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) = :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) = :p0;
 ---------------
 
 false Result:
@@ -40,7 +40,7 @@ false Result:
 
 false SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) = :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) = :p0;
 ---------------
 
 null Result:
@@ -60,5 +60,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where d.data -> 'Foo' ->> 'BarBool' is null
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where d.data -> 'Foo' ->> 'BarBool' is null;
 ---------------
