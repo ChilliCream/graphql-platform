@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Aspire.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Aspire.targets" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.4.24156.9" />
   </ItemGroup>
 
