@@ -1,6 +1,5 @@
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
-using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,14 +59,14 @@ public class OptionsTests
         var executor = await services
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .ModifyFusionOptions(options => options.AllowFusionQueryPlan = !options.AllowFusionQueryPlan)
-            .ModifyFusionOptions(options => options.IncludeFusionDebugInfo = !options.IncludeFusionDebugInfo)
+            .ModifyFusionOptions(options => options.AllowQueryPlan = !options.AllowQueryPlan)
+            .ModifyFusionOptions(options => options.IncludeDebugInfo = !options.IncludeDebugInfo)
             .BuildRequestExecutorAsync();
 
-        var options = executor.Services.GetRequiredService<IFusionOptionsAccessor>();
+        var options = executor.Services.GetRequiredService<FusionOptions>();
         var defaultOptions = new FusionOptions();
 
-        Assert.Equal(options.AllowFusionQueryPlan, !defaultOptions.AllowQueryPlan);
-        Assert.Equal(options.IncludeFusionDebugInfo, !defaultOptions.IncludeDebugInfo);
+        Assert.Equal(options.AllowQueryPlan, !defaultOptions.AllowQueryPlan);
+        Assert.Equal(options.IncludeDebugInfo, !defaultOptions.IncludeDebugInfo);
     }
 }
