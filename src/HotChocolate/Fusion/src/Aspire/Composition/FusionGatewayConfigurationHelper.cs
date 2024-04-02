@@ -110,14 +110,14 @@ public static class FusionGatewayConfigurationUtilities
     {
         foreach (var gateway in gateways)
         {
-            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), gateway.Options, ct);
+            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), gateway.CompositionOptions, ct);
         }
     }
 
     private static async Task ComposeGatewayAsync(
         string gatewayProject,
         IEnumerable<string> subgraphProjects,
-        FusionOptions options,
+        FusionCompositionOptions compositionOptions,
         CancellationToken ct)
     {
         var gatewayDirectory = System.IO.Path.GetDirectoryName(gatewayProject)!;
@@ -146,7 +146,7 @@ public static class FusionGatewayConfigurationUtilities
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, ct))
             : await package.GetFusionGraphSettingsAsync(ct);
         var settings = settingsJson.Deserialize<PackageSettings>() ?? new PackageSettings();
-        settings.NodeField.Enabled = options.EnableGlobalObjectIdentification;
+        settings.NodeField.Enabled = compositionOptions.EnableGlobalObjectIdentification;
 
         var features = settings.CreateFeatures();
 

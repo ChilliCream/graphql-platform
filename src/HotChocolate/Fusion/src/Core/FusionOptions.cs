@@ -10,7 +10,7 @@ public sealed class FusionOptions
     ///
     /// The default is <c>false</c>.
     /// </summary>
-    public bool AllowQueryPlan { get; set; } = false;
+    public bool AllowQueryPlan { get; set; } = Debugger.IsAttached;
 
     /// <summary>
     /// Gets or sets a value indicating whether <c>Fusion</c> debugging

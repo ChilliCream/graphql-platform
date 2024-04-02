@@ -27,19 +27,19 @@ public class OptionsTests
         var executor1 = await services
             .AddFusionGatewayServer("graph1")
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .ModifyFusionOptions(options => options.AllowFusionQueryPlan = !options.AllowFusionQueryPlan)
+            .ModifyFusionOptions(options => options.AllowQueryPlan = !options.AllowQueryPlan)
             .BuildRequestExecutorAsync("graph1");
 
         var executor2 = await services.AddFusionGatewayServer("graph2")
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
             .BuildRequestExecutorAsync("graph2");
 
-        var options1 = executor1.Services.GetRequiredService<IFusionOptionsAccessor>();
-        var options2 = executor2.Services.GetRequiredService<IFusionOptionsAccessor>();
+        var options1 = executor1.Services.GetRequiredService<FusionOptions>();
+        var options2 = executor2.Services.GetRequiredService<FusionOptions>();
         var defaultOptions = new FusionOptions();
 
-        Assert.Equal(options1.AllowFusionQueryPlan, !defaultOptions.AllowQueryPlan);
-        Assert.Equal(options2.AllowFusionQueryPlan, defaultOptions.AllowQueryPlan);
+        Assert.Equal(options1.AllowQueryPlan, !defaultOptions.AllowQueryPlan);
+        Assert.Equal(options2.AllowQueryPlan, defaultOptions.AllowQueryPlan);
     }
 
     [Fact]

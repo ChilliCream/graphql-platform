@@ -69,7 +69,7 @@ public class Program
         // Fusion
         var gateway = builder
             .AddFusionGateway<Projects.eShop_Gateway>("gateway")
-            .WithOptions(new FusionOptions { EnableGlobalObjectIdentification = true })
+            .WithOptions(new FusionCompositionOptions { EnableGlobalObjectIdentification = true })
             .WithSubgraph(basketApi)
             .WithSubgraph(identityApi)
             .WithSubgraph(catalogApi)
