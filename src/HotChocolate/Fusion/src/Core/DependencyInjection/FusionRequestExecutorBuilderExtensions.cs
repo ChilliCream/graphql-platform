@@ -3,6 +3,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Pipeline;
@@ -76,7 +77,7 @@ public static class FusionRequestExecutorBuilderExtensions
                             sc.TryAddSingleton<QueryPlanner>();
                             sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
 
-                            sc.TryAddSingleton<IFusionOptionsAccessor>(GetFusionOptions);
+                            sc.TryAddSingleton(GetFusionOptions);
                             sc.TryAddFusionDiagnosticEvents();
                         });
                 });

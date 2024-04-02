@@ -1,8 +1,8 @@
 using System.Diagnostics;
 
-namespace HotChocolate.Fusion.Metadata;
+namespace HotChocolate.Fusion;
 
-public class FusionOptions : IFusionOptionsAccessor
+public sealed class FusionOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the <c>Fusion</c> query plan
@@ -10,7 +10,7 @@ public class FusionOptions : IFusionOptionsAccessor
     ///
     /// The default is <c>false</c>.
     /// </summary>
-    public bool AllowFusionQueryPlan { get; set; } = false;
+    public bool AllowQueryPlan { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether <c>Fusion</c> debugging
@@ -18,5 +18,5 @@ public class FusionOptions : IFusionOptionsAccessor
     ///
     /// The default value is <see cref="Debugger.IsAttached"/>.
     /// </summary>
-    public bool IncludeFusionDebugInfo { get; set; } = Debugger.IsAttached;
+    public bool IncludeDebugInfo { get; set; } = Debugger.IsAttached;
 }

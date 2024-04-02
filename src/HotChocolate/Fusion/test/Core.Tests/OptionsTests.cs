@@ -38,8 +38,8 @@ public class OptionsTests
         var options2 = executor2.Services.GetRequiredService<IFusionOptionsAccessor>();
         var defaultOptions = new FusionOptions();
 
-        Assert.Equal(options1.AllowFusionQueryPlan, !defaultOptions.AllowFusionQueryPlan);
-        Assert.Equal(options2.AllowFusionQueryPlan, defaultOptions.AllowFusionQueryPlan);
+        Assert.Equal(options1.AllowFusionQueryPlan, !defaultOptions.AllowQueryPlan);
+        Assert.Equal(options2.AllowFusionQueryPlan, defaultOptions.AllowQueryPlan);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class OptionsTests
         var options = executor.Services.GetRequiredService<IFusionOptionsAccessor>();
         var defaultOptions = new FusionOptions();
 
-        Assert.Equal(options.AllowFusionQueryPlan, !defaultOptions.AllowFusionQueryPlan);
-        Assert.Equal(options.IncludeFusionDebugInfo, !defaultOptions.IncludeFusionDebugInfo);
+        Assert.Equal(options.AllowFusionQueryPlan, !defaultOptions.AllowQueryPlan);
+        Assert.Equal(options.IncludeFusionDebugInfo, !defaultOptions.IncludeDebugInfo);
     }
 }

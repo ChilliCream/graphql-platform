@@ -19,7 +19,7 @@ internal sealed class FusionExecutionContext : IDisposable
     private readonly IIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
     private readonly NodeIdParser _nodeIdParser;
-    private readonly IFusionOptionsAccessor _fusionOptionsAccessor;
+    private readonly FusionOptions _options;
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
@@ -28,7 +28,7 @@ internal sealed class FusionExecutionContext : IDisposable
         GraphQLClientFactory clientFactory,
         IIdSerializer idSerializer,
         NodeIdParser nodeIdParser,
-        IFusionOptionsAccessor fusionOptionsAccessor,
+        FusionOptions options,
         IFusionDiagnosticEvents diagnosticEvents)
     {
         Configuration = configuration ??
@@ -45,8 +45,8 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(idSerializer));
         _nodeIdParser = nodeIdParser ??
             throw new ArgumentNullException(nameof(nodeIdParser));
-        _fusionOptionsAccessor = fusionOptionsAccessor ??
-            throw new ArgumentNullException(nameof(fusionOptionsAccessor));
+        _options = options ??
+            throw new ArgumentNullException(nameof(options));
         _schemaName = Schema.Name;
     }
 
@@ -93,12 +93,12 @@ internal sealed class FusionExecutionContext : IDisposable
     /// <summary>
     /// Defines if query plan components should emit debug infos.
     /// </summary>
-    public bool ShowDebugInfo => _fusionOptionsAccessor.IncludeFusionDebugInfo;
+    public bool ShowDebugInfo => _options.IncludeDebugInfo;
 
     /// <summary>
     /// Defines if the query plan should be included in the result.
     /// </summary>
-    public bool AllowQueryPlan => _fusionOptionsAccessor.AllowFusionQueryPlan;
+    public bool AllowQueryPlan => _options.AllowQueryPlan;
 
     /// <summary>
     /// Determines if all data has been fetched for the specified selection set.
@@ -179,6 +179,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context._clientFactory,
             context._idSerializer,
             context._nodeIdParser,
-            context._fusionOptionsAccessor,
+            context._options,
             context.DiagnosticEvents);
 }

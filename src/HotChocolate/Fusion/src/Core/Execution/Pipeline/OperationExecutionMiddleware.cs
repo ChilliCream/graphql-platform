@@ -21,7 +21,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
     [SchemaService] NodeIdParser nodeIdParser,
-    [SchemaService] IFusionOptionsAccessor fusionOptionsAccessor,
+    [SchemaService] FusionOptions options,
     [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
 {
     private static readonly object _queryRoot = new();
@@ -40,8 +40,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
-    private readonly IFusionOptionsAccessor _fusionOptionsAccessor = fusionOptionsAccessor
-        ?? throw new ArgumentNullException(nameof(fusionOptionsAccessor));
+    private readonly FusionOptions _fusionOptionsAccessor = options
+        ?? throw new ArgumentNullException(nameof(options));
     private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
         ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
@@ -114,7 +114,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
-            var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<IFusionOptionsAccessor>();
+            var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<FusionOptions>();
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
