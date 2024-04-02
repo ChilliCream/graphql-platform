@@ -356,7 +356,7 @@ public static class ErrorCodes
         /// <summary>
         /// The requested number of values per page must be at least 0.
         /// </summary>
-        public const string MinPaginationItems = "HC0053";
+        public const string MinPaginationItems = "HC0079";
 
         /// <summary>
         /// The cursor format is invalid.
