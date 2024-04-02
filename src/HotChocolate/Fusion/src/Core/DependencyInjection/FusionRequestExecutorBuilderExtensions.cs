@@ -4,6 +4,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Planning;
@@ -76,10 +77,44 @@ public static class FusionRequestExecutorBuilderExtensions
                             sc.TryAddSingleton<NodeIdParser, DefaultNodeIdParser>();
 
                             sc.TryAddSingleton<IFusionOptionsAccessor>(GetFusionOptions);
+                            sc.TryAddFusionDiagnosticEvents();
                         });
                 });
 
         return new FusionGatewayBuilder(builder);
+    }
+
+    public static FusionGatewayBuilder AddDiagnosticEventListener<T>(
+        this FusionGatewayBuilder builder)
+        where T : class, IFusionDiagnosticEventListener
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.Services.TryAddSingleton<T>();
+        builder.CoreBuilder.ConfigureSchemaServices(
+            s => s.AddSingleton(
+                sp => (IFusionDiagnosticEventListener)sp.GetApplicationService<T>()));
+
+        return builder;
+    }
+
+    internal static IServiceCollection TryAddFusionDiagnosticEvents(
+        this IServiceCollection services)
+    {
+        services.TryAddSingleton<IFusionDiagnosticEvents>(sp =>
+        {
+            var listeners = sp.GetServices<IFusionDiagnosticEventListener>().ToArray();
+            return listeners.Length switch
+            {
+                0 => new NoopFusionDiagnosticEvents(),
+                1 => listeners[0],
+                _ => new AggregateFusionDiagnosticEvents(listeners),
+            };
+        });
+        return services;
     }
 
     /// <summary>

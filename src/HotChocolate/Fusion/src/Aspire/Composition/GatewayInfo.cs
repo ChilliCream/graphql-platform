@@ -1,14 +1,16 @@
+using System.Collections.Immutable;
+using HotChocolate.Fusion.Aspire;
+
 namespace HotChocolate.Fusion.Composition;
 
-public sealed class GatewayInfo(string name, string path, IReadOnlyList<SubgraphInfo> subgraphs)
+public sealed record GatewayInfo(
+    string Name,
+    string Path,
+    FusionOptions Options,
+    ImmutableArray<SubgraphInfo> Subgraphs)
+    : IResourceAnnotation
 {
-    public string Name { get; } = name;
-
-    public string Path { get; } = path;
-
-    public IReadOnlyList<SubgraphInfo> Subgraphs { get; } = subgraphs;
-
-    public static GatewayInfo Create<TProject>(string name, params SubgraphInfo[] projects)
+    public static GatewayInfo Create<TProject>(string name, FusionOptions options, params SubgraphInfo[] projects)
         where TProject : IProjectMetadata, new()
-        => new(name, new TProject().ProjectPath, projects);
+        => new(name, new TProject().ProjectPath, options, ImmutableArray<SubgraphInfo>.Empty.AddRange(projects));
 }

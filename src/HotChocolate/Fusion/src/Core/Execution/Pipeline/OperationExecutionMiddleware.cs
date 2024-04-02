@@ -3,6 +3,7 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
@@ -20,7 +21,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
     [SchemaService] NodeIdParser nodeIdParser,
-    [SchemaService] IFusionOptionsAccessor fusionOptionsAccessor)
+    [SchemaService] IFusionOptionsAccessor fusionOptionsAccessor,
+    [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -40,6 +42,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
     private readonly IFusionOptionsAccessor _fusionOptionsAccessor = fusionOptionsAccessor
         ?? throw new ArgumentNullException(nameof(fusionOptionsAccessor));
+    private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
+        ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -70,13 +74,17 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     _clientFactory,
                     _idSerializer,
                     _nodeIdParser,
-                    _fusionOptionsAccessor);
+                    _fusionOptionsAccessor,
+                    diagnosticEvents);
 
-            context.Result =
-                await FederatedQueryExecutor.ExecuteAsync(
-                    federatedQueryContext,
-                    context.RequestAborted)
-                    .ConfigureAwait(false);
+            using (federatedQueryContext.DiagnosticEvents.ExecuteFederatedQuery(context))
+            {
+                context.Result =
+                    await FederatedQueryExecutor.ExecuteAsync(
+                            federatedQueryContext,
+                            context.RequestAborted)
+                        .ConfigureAwait(false);
+            }
 
             await _next(context).ConfigureAwait(false);
         }
@@ -107,6 +115,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
             var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<IFusionOptionsAccessor>();
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
                 contextFactory,
@@ -114,7 +123,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 serviceConfig,
                 clientFactory,
                 nodeIdParser,
-                fusionOptionsAccessor);
+                fusionOptionsAccessor,
+                diagnosticEvents);
             return async context =>
             {
                 var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();

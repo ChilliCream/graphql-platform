@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Fusion.Aspire;
 using HotChocolate.Fusion.Composition.Settings;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
@@ -8,6 +9,10 @@ namespace HotChocolate.Fusion.Composition;
 
 public static class FusionGatewayConfigurationUtilities
 {
+    public static void Configure(
+        IReadOnlyList<GatewayInfo> gateways)
+        => ConfigureAsync(gateways).Wait();
+
     public static async Task ConfigureAsync(
         IReadOnlyList<GatewayInfo> gateways,
         CancellationToken cancellationToken = default)
@@ -92,7 +97,7 @@ public static class FusionGatewayConfigurationUtilities
 
                 var config = new SubgraphConfigurationDto(
                     project.Name,
-                    [new HttpClientConfiguration(new Uri("http://localhost:5000"), "http"),]);
+                    [new HttpClientConfiguration(new Uri("http://localhost:5000/graphql"), "http"),]);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
                 await File.WriteAllTextAsync(configFile, configJson, ct);
             }
@@ -105,13 +110,14 @@ public static class FusionGatewayConfigurationUtilities
     {
         foreach (var gateway in gateways)
         {
-            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), ct);
+            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), gateway.Options, ct);
         }
     }
 
     private static async Task ComposeGatewayAsync(
         string gatewayProject,
         IEnumerable<string> subgraphProjects,
+        FusionOptions options,
         CancellationToken ct)
     {
         var gatewayDirectory = System.IO.Path.GetDirectoryName(gatewayProject)!;
@@ -140,6 +146,7 @@ public static class FusionGatewayConfigurationUtilities
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, ct))
             : await package.GetFusionGraphSettingsAsync(ct);
         var settings = settingsJson.Deserialize<PackageSettings>() ?? new PackageSettings();
+        settings.NodeField.Enabled = options.EnableGlobalObjectIdentification;
 
         var features = settings.CreateFeatures();
 

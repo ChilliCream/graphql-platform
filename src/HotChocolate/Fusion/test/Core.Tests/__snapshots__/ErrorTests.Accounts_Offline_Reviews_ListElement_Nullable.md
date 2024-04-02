@@ -19,6 +19,78 @@ query ReformatIds {
 {
   "errors": [
     {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 5,
+          "column": 13
+        }
+      ],
+      "path": [
+        "reviews",
+        3,
+        "author",
+        "birthdate"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 5,
+          "column": 13
+        }
+      ],
+      "path": [
+        "reviews",
+        2,
+        "author",
+        "birthdate"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 5,
+          "column": 13
+        }
+      ],
+      "path": [
+        "reviews",
+        1,
+        "author",
+        "birthdate"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 5,
+          "column": 13
+        }
+      ],
+      "path": [
+        "reviews",
+        0,
+        "author",
+        "birthdate"
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
+    },
+    {
       "message": "Internal Execution Error"
     }
   ],

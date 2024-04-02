@@ -1,4 +1,8 @@
 
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+using HotChocolate.Fusion.Aspire;
+
 namespace HotChocolate.Fusion.Analyzers.Tests;
 
 public class Program
@@ -54,7 +58,7 @@ public class Program
             .WithReference(orderingDb)
             .WithReference(catalogApi.GetEndpoint("http"))
             .WithEnvironment("Identity__Url", identityHttpsEndpoint);
-        
+
         var purchaseApi = builder
             .AddProject<Projects.eShop_Purchase_API>("ordering-api")
             .WithReference(rabbitMq)
@@ -65,6 +69,7 @@ public class Program
         // Fusion
         var gateway = builder
             .AddFusionGateway<Projects.eShop_Gateway>("gateway")
+            .WithOptions(new FusionOptions { EnableGlobalObjectIdentification = true })
             .WithSubgraph(basketApi)
             .WithSubgraph(identityApi)
             .WithSubgraph(catalogApi)

@@ -1,7 +1,9 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
@@ -27,12 +29,15 @@ internal sealed class FusionExecutionContext : IDisposable
         GraphQLClientFactory clientFactory,
         IIdSerializer idSerializer,
         NodeIdParser nodeIdParser,
-        IFusionOptionsAccessor fusionOptionsAccessor)
+        IFusionOptionsAccessor fusionOptionsAccessor,
+        IFusionDiagnosticEvents diagnosticEvents)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
+        DiagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory ??
@@ -60,6 +65,11 @@ internal sealed class FusionExecutionContext : IDisposable
     /// Gets the query plan that is being executed.
     /// </summary>
     public QueryPlan QueryPlan { get; }
+
+    /// <summary>
+    /// Gets the diagnostic event reporter.
+    /// </summary>
+    public IFusionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets the execution state.
@@ -170,5 +180,6 @@ internal sealed class FusionExecutionContext : IDisposable
             context._clientFactory,
             context._idSerializer,
             context._nodeIdParser,
-            context._fusionOptionsAccessor);
+            context._fusionOptionsAccessor,
+            context.DiagnosticEvents);
 }

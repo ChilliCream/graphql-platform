@@ -22,7 +22,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foonullable as d order by CAST(d.data ->> 'BarShort' as smallint)
+select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foonullable as d order by CAST(d.data ->> 'BarShort' as smallint);
 ---------------
 
 DESC Result:
@@ -49,5 +49,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foonullable as d order by CAST(d.data ->> 'BarShort' as smallint) desc
+select d.id, d.data from public.mt_doc_queryablesortvisitorcomparabletests_foonullable as d order by CAST(d.data ->> 'BarShort' as smallint) desc;
 ---------------
