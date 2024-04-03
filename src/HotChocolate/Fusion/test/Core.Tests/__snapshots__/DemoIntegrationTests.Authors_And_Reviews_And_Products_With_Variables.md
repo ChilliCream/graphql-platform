@@ -17,10 +17,10 @@ query TopProducts($first: Int!) {
   "data": {
     "topProducts": [
       {
-        "id": "UHJvZHVjdAppMQ=="
+        "id": "UHJvZHVjdDox"
       },
       {
-        "id": "UHJvZHVjdAppMg=="
+        "id": "UHJvZHVjdDoy"
       }
     ]
   }

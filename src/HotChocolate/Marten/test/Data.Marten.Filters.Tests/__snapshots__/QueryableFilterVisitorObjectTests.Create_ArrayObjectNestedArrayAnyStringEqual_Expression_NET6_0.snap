@@ -15,7 +15,7 @@ false Result:
 
 false SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where (CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb) is null or jsonb_array_length(CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb)) = 0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data @? '$ ? (@.Foo.ObjectArray[*] == null || @.Foo.ObjectArray[*].size() == 0)';
 ---------------
 
 true Result:
@@ -52,7 +52,7 @@ true Result:
 
 true SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where (CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb) is not null and jsonb_array_length(CAST(d.data -> 'Foo' ->> 'ObjectArray' as jsonb)) > 0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_bar as d where d.data @? '$ ? (@.Foo.ObjectArray[*] != null && @.Foo.ObjectArray[*].size() > 0)';
 ---------------
 
 null

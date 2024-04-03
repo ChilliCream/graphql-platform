@@ -18,7 +18,7 @@ query FetchNode($id: ID!) {
 {
   "data": {
     "node": {
-      "id": "VXNlcgppMQ=="
+      "id": "VXNlcjox"
     }
   }
 }
