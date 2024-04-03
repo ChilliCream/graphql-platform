@@ -177,7 +177,7 @@ internal static class RelayIdFieldHelpers
         }
 
         typeName ??= completionContext.Type.Name;
-        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType.Source);
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
         definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
     }
 
@@ -209,7 +209,7 @@ internal static class RelayIdFieldHelpers
         var index = definition.FormatterDefinitions.IndexOf(placeholder);
 
         typeName ??= completionContext.Type.Name;
-        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType.Source);
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
 
         definition.FormatterDefinitions[index] =
             CreateResultFormatter(typeName, resultType, serializerAccessor);
@@ -255,15 +255,31 @@ internal static class RelayIdFieldHelpers
         ITypeCompletionContext completionContext,
         IExtendedType resultType,
         string? typeName)
-        => new GlobalIdInputValueFormatter(
+    {
+        var resultTypeInfo = completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
+
+        return new GlobalIdInputValueFormatter(
             typeName ?? completionContext.Type.Name,
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
             resultType,
+            resultTypeInfo.NamedType,
             typeName is not null);
+    }
 
     internal static void SetSerializerInfos(IDescriptorContext context, string typeName, Type runtimeType)
     {
-        if (runtimeType == typeof(object))
+        var extendedType = context.TypeInspector.GetType(runtimeType);
+        SetSerializerInfos(context, typeName, extendedType);
+    }
+
+    internal static void SetSerializerInfos(IDescriptorContext context, string typeName, IExtendedType runtimeType)
+    {
+        if (!context.TypeInspector.TryCreateTypeInfo(runtimeType, out var runtimeTypeInfo))
+        {
+            return;
+        }
+
+        if (runtimeTypeInfo.NamedType == typeof(object))
         {
             return;
         }
@@ -276,11 +292,11 @@ internal static class RelayIdFieldHelpers
 
         var mappings = (Dictionary<string, Type>)obj!;
 #if NET6_0_OR_GREATER
-        mappings.TryAdd(typeName, runtimeType);
+        mappings.TryAdd(typeName, runtimeTypeInfo.NamedType);
 #else
         if (!mappings.ContainsKey(typeName))
         {
-            mappings.Add(typeName, runtimeType);
+            mappings.Add(typeName, runtimeTypeInfo.NamedType);
         }
 #endif
     }

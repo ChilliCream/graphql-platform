@@ -7,8 +7,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Format_Small_StringId()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", "abc");
 
@@ -18,8 +17,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Parse_Small_StringId()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         var id = serializer.Parse("Rm9vOmFiYw==");
 
@@ -30,8 +28,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Format_480_Byte_Long_StringId()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", new string('a', 480));
 
@@ -55,8 +52,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Parse_480_Byte_Long_StringId()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         var id = serializer.Parse(
             "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
@@ -80,8 +76,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_TypeName_Not_Registered()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new StringNodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         void Error() => serializer.Format("Baz", "abc");
 
@@ -91,8 +86,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Int16Id()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new Int16NodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new Int16NodeIdValueSerializer());
 
         var id = serializer.Format("Foo", (short)6);
 
@@ -102,8 +96,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Int32Id()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new Int32NodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new Int32NodeIdValueSerializer());
 
         var id = serializer.Format("Foo", 32);
 
@@ -113,8 +106,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Int64Id()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new Int64NodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new Int64NodeIdValueSerializer());
 
         var id = serializer.Format("Foo", (long)64);
 
@@ -124,8 +116,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Guid()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new GuidNodeIdValueSerializer())]);
+        var serializer = CreateSerializer("Foo", new GuidNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", Guid.Empty);
 
@@ -135,11 +126,17 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Guid_Normal()
     {
-        var serializer = new DefaultNodeIdSerializer(
-            [new NodeIdSerializerEntry("Foo", new GuidNodeIdValueSerializer(false))]);
+        var serializer = CreateSerializer("Foo", new GuidNodeIdValueSerializer(false));
 
         var id = serializer.Format("Foo", Guid.Empty);
 
         Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
+    }
+
+    private static DefaultNodeIdSerializer CreateSerializer(string typeName, INodeIdValueSerializer serializer)
+    {
+        return new DefaultNodeIdSerializer(
+            [new BoundNodeIdValueSerializer(typeName, serializer)],
+            [serializer]);
     }
 }

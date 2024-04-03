@@ -16,18 +16,21 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
     private readonly string _typeName;
     private readonly bool _validateType;
     private readonly Func<IList> _createList;
+    private readonly Type _namedRuntimeType;
     private INodeIdSerializer? _serializer;
 
     public GlobalIdInputValueFormatter(
         string typeName,
         INodeIdSerializerAccessor serializerAccessor,
         IExtendedType resultType,
+        Type namedRuntimeType,
         bool validateType)
     {
         _typeName = typeName;
         _serializerAccessor = serializerAccessor;
         _validateType = validateType;
         _createList = CreateListFactory(resultType);
+        _namedRuntimeType = namedRuntimeType;
     }
 
     public object? Format(object? runtimeValue)
@@ -49,7 +52,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
         {
             try
             {
-                id = _serializer.Parse(s);
+                id = _serializer.Parse(s, _namedRuntimeType);
                 if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
                 {
                     return id.InternalId;
@@ -121,7 +124,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
                         continue;
                     }
 
-                    id = _serializer.Parse(sv);
+                    id = _serializer.Parse(sv, _namedRuntimeType);
 
                     if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
                     {

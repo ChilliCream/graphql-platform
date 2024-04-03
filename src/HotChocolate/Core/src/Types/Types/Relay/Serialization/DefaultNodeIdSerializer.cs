@@ -28,20 +28,29 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
     private readonly Dictionary<string, Serializer> _stringSerializerMap;
 #endif
     private readonly SpanSerializerMap _spanSerializerMap;
+    private readonly INodeIdValueSerializer[] _serializers;
+    private readonly int _maxIdLength;
 
-    public DefaultNodeIdSerializer(IEnumerable<NodeIdSerializerEntry> serializers)
+    internal DefaultNodeIdSerializer(
+        IEnumerable<BoundNodeIdValueSerializer> boundSerializers,
+        INodeIdValueSerializer[] allSerializers,
+        int maxIdLength = 1024)
     {
 #if NET8_0_OR_GREATER
         _stringSerializerMap =
-            serializers.ToFrozenDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
+            boundSerializers.ToFrozenDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
 #else
-        _stringSerializerMap = serializers.ToDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
+        _stringSerializerMap =
+            boundSerializers.ToDictionary(t => t.TypeName, t => new Serializer(t.TypeName, t.Serializer));
 #endif
+        _serializers = allSerializers;
         _spanSerializerMap = new SpanSerializerMap();
         foreach (var serializer in _stringSerializerMap.Values)
         {
             _spanSerializerMap.Add(serializer.FormattedTypeName, serializer);
         }
+
+        _maxIdLength = maxIdLength;
     }
 
     public string Format(string typeName, object internalId)
@@ -71,6 +80,11 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
             throw new ArgumentNullException(nameof(formattedId));
         }
 
+        if (formattedId.Length > _maxIdLength)
+        {
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
         var expectedSize = _utf8.GetByteCount(formattedId);
 
         byte[]? rentedBuffer = null;
@@ -83,7 +97,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
         span = span.Slice(0, written);
 
         var index = span.IndexOf(_delimiter);
-        if(index == -1)
+        if (index == -1)
         {
             Clear(rentedBuffer);
             throw new NodeIdInvalidFormatException(formattedId);
@@ -92,18 +106,13 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
         var typeName = span.Slice(0, index);
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
-            string typeNameString;
-            fixed(byte* typeNamePtr = typeName)
-            {
-                typeNameString = _utf8.GetString(typeNamePtr, typeName.Length);
-            }
-
+            var typeNameString = ToString(typeName);
             Clear(rentedBuffer);
             throw new NodeIdMissingSerializerException(typeNameString);
         }
 
         var valueSpan = span.Slice(index + 1);
-        if(valueSpan.IsEmpty)
+        if (valueSpan.IsEmpty)
         {
             Clear(rentedBuffer);
             throw new NodeIdInvalidFormatException(formattedId);
@@ -112,13 +121,144 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
         var value = serializer.Parse(valueSpan);
         Clear(rentedBuffer);
         return value;
+    }
 
-        static void Clear(byte[]? rentedBuffer = null)
+    public unsafe NodeId Parse(string formattedId, Type runtimeType)
+    {
+        if (formattedId is null)
         {
-            if (rentedBuffer is not null)
+            throw new ArgumentNullException(nameof(formattedId));
+        }
+
+        if (runtimeType is null)
+        {
+            throw new ArgumentNullException(nameof(runtimeType));
+        }
+
+        if (formattedId.Length > _maxIdLength)
+        {
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
+        var expectedSize = _utf8.GetByteCount(formattedId);
+
+        byte[]? rentedBuffer = null;
+        var span = expectedSize <= _stackallocThreshold
+            ? stackalloc byte[_stackallocThreshold]
+            : rentedBuffer = ArrayPool<byte>.Shared.Rent(expectedSize);
+
+        Utf8GraphQLParser.ConvertToBytes(formattedId, ref span);
+        Base64.DecodeFromUtf8InPlace(span, out var written);
+        span = span.Slice(0, written);
+
+        var index = span.IndexOf(_delimiter);
+        if (index == -1)
+        {
+            Clear(rentedBuffer);
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
+        var typeName = span.Slice(0, index);
+        INodeIdValueSerializer? valueSerializer = null;
+        if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
+        {
+            valueSerializer = TryResolveSerializer(runtimeType);
+
+            if (valueSerializer is null)
             {
-                ArrayPool<byte>.Shared.Return(rentedBuffer);
+                throw SerializerMissing(typeName, rentedBuffer);
             }
+
+            lock (_spanSerializerMap)
+            {
+                if (!_spanSerializerMap.TryGetValue(typeName, out serializer))
+                {
+                    serializer = new Serializer(ToString(typeName), valueSerializer);
+                    _spanSerializerMap.Add(serializer.FormattedTypeName, serializer);
+                }
+            }
+        }
+
+        if (serializer.ValueSerializer.IsSupported(runtimeType))
+        {
+            valueSerializer = serializer.ValueSerializer;
+        }
+        else if (valueSerializer is null)
+        {
+            valueSerializer = TryResolveSerializer(runtimeType);
+        }
+
+        if (valueSerializer is null)
+        {
+            throw SerializerMissing(typeName, rentedBuffer);
+        }
+
+        var valueSpan = span.Slice(index + 1);
+        if (valueSpan.IsEmpty)
+        {
+            Clear(rentedBuffer);
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
+        var value = ParseValue(valueSerializer, serializer.TypeName, valueSpan);
+        Clear(rentedBuffer);
+        return value;
+    }
+
+    private INodeIdValueSerializer? TryResolveSerializer(Type type)
+    {
+        ref var serializer = ref MemoryMarshal.GetReference(_serializers.AsSpan());
+        ref var end = ref Unsafe.Add(ref serializer, _serializers.Length);
+
+        while (Unsafe.IsAddressLessThan(ref serializer, ref end))
+        {
+            if (serializer.IsSupported(type))
+            {
+                return serializer;
+            }
+
+            serializer = ref Unsafe.Add(ref serializer, 1)!;
+        }
+
+        return null;
+    }
+
+    private static NodeId ParseValue(
+        INodeIdValueSerializer valueSerializer,
+        string typeName,
+        ReadOnlySpan<byte> formattedValue)
+    {
+        if (valueSerializer.TryParse(formattedValue, out var internalId))
+        {
+            return new NodeId(typeName, internalId);
+        }
+
+        throw new NodeIdInvalidFormatException(ToString(formattedValue));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe string ToString(ReadOnlySpan<byte> span)
+    {
+        fixed (byte* buffer = span)
+        {
+            return _utf8.GetString(buffer, span.Length);
+        }
+    }
+
+    private static NodeIdMissingSerializerException SerializerMissing(
+        ReadOnlySpan<byte> typeName,
+        byte[]? rentedBuffer = null)
+    {
+        var typeNameString = ToString(typeName);
+        Clear(rentedBuffer);
+        return new NodeIdMissingSerializerException(typeNameString);
+    }
+
+    private static void Clear(byte[]? rentedBuffer = null)
+    {
+        if (rentedBuffer is not null)
+        {
+            ArrayPool<byte>.Shared.Return(rentedBuffer);
         }
     }
 
@@ -126,7 +266,11 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
     {
         private readonly byte[] _formattedTypeName = _utf8.GetBytes(typeName);
 
+        public string TypeName => typeName;
+
         public byte[] FormattedTypeName => _formattedTypeName;
+
+        public INodeIdValueSerializer ValueSerializer => valueSerializer;
 
         public unsafe string Format(object value)
         {
@@ -154,6 +298,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
                 {
                     ArrayPool<byte>.Shared.Return(rentedBuffer);
                 }
+
                 rentedBuffer = newBuffer;
 
                 _formattedTypeName.CopyTo(span);
@@ -165,7 +310,6 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
 
             if (result == NodeIdFormatterResult.Success)
             {
-                string? formattedId;
                 var dataLength = _formattedTypeName.Length + 1 + written;
 
                 while (Base64.EncodeToUtf8InPlace(span, dataLength, out written) == OperationStatus.DestinationTooSmall)
@@ -184,10 +328,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
                     rentedBuffer = newBuffer;
                 }
 
-                fixed (byte* buffer = span)
-                {
-                    formattedId = _utf8.GetString(buffer, written);
-                }
+                var formattedId = DefaultNodeIdSerializer.ToString(span.Slice(0, written));
 
                 Clear(rentedBuffer);
                 return formattedId;
@@ -196,33 +337,18 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
             Clear(rentedBuffer);
 
             throw new NodeIdInvalidFormatException(value);
-
-            static void Clear(byte[]? rentedBuffer = null)
-            {
-                if (rentedBuffer is not null)
-                {
-                    ArrayPool<byte>.Shared.Return(rentedBuffer);
-                }
-            }
         }
 
-        public unsafe NodeId Parse(ReadOnlySpan<byte> formattedValue)
-        {
-            if (valueSerializer.TryParse(formattedValue, out var internalId))
-            {
-                return new NodeId(typeName, internalId);
-            }
-
-            fixed (byte* buffer = formattedValue)
-            {
-                throw new NodeIdInvalidFormatException(_utf8.GetString(buffer, formattedValue.Length));
-            }
-        }
+        public NodeId Parse(ReadOnlySpan<byte> formattedValue)
+            => ParseValue(valueSerializer, typeName, formattedValue);
     }
 
-    private sealed class SpanSerializerMap(int size = 100)
+    // we keep the initial bucket size small to reduce memory overhead since we usually will build the map
+    // once and then only read from it. Even in the case where we add serializers at runtime, the overhead
+    // of resizing the buckets is not that big as the map will become constant after a while since all types
+    // are known.
+    private sealed class SpanSerializerMap(int size = 100, int initialBucketSize = 1)
     {
-        private const int _initialBucketSize = 4;
         private readonly Entry[]?[] _buckets = new Entry[size][];
 
         public void Add(byte[] formattedTypeName, Serializer serializer)
@@ -233,7 +359,7 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
 
             if (bucket == null)
             {
-                bucket = new Entry[_initialBucketSize];
+                bucket = new Entry[initialBucketSize];
                 _buckets[bucketIndex] = bucket;
             }
 
@@ -257,7 +383,10 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
 
             if (!foundSpot)
             {
-                var newBucket = new Entry[bucket.Length * 2];
+                // we will only resize the bucket if we have not found a spot and we will only add one additional
+                // spot to the bucket. This is to reduce memory overhead, even as there is a memory overhead
+                // when we have to resize the bucket.
+                var newBucket = new Entry[bucket.Length + 1];
                 _buckets[bucketIndex] = newBucket;
                 Array.Copy(bucket, newBucket, bucket.Length);
                 insertAt = _buckets.Length;

@@ -29,10 +29,11 @@ public class IdAttributeTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var intId = serializer.Format("Query", 1);
-        var stringId = serializer.Format("Query", "abc");
-        var guidId = serializer.Format("Query", new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
+
+        var intId = Convert.ToBase64String("Query:1"u8);
+        var stringId = Convert.ToBase64String("Query:abc"u8);
+        var guidId = Convert.ToBase64String(
+            Combine("Query:"u8, new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5").ToByteArray()));
 
         // act
         var result = await executor.ExecuteAsync(
@@ -86,10 +87,13 @@ public class IdAttributeTests
                 .MakeExecutable()
                 .ExecuteAsync(
                     QueryRequestBuilder.New()
-                        .SetQuery(@"query foo {
-                                interceptedId(id: 1)
-                                interceptedIds(id: [1, 2])
-                            }")
+                        .SetQuery(
+                            """
+                            query foo {
+                              interceptedId(id: 1)
+                              interceptedIds(id: [1, 2])
+                            }
+                            """)
                         .Create());
 
         // assert
@@ -107,9 +111,8 @@ public class IdAttributeTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var someId = serializer.Format("Some", "1");
-        var someIntId = serializer.Format("Some", 1);
+        var someId = Convert.ToBase64String("Some:1"u8);
+        var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -154,9 +157,8 @@ public class IdAttributeTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var someId = serializer.Format("Some", "1");
-        var someIntId = serializer.Format("Some", 1);
+        var someId = Convert.ToBase64String("Some:1"u8);
+        var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -205,9 +207,8 @@ public class IdAttributeTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var someId = serializer.Format("Some", "1");
-        var someIntId = serializer.Format("Some", 1);
+        var someId = Convert.ToBase64String("Some:1"u8);
+        var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result = await executor
@@ -246,8 +247,7 @@ public class IdAttributeTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var someId = serializer.Format("Some", Guid.Empty);
+        var someId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result = await executor.ExecuteAsync(
@@ -433,11 +433,11 @@ public class IdAttributeTests
 
         [ID("Bar")] public string SomeId { get; }
 
-        [ID("Bar")] public IReadOnlyList<int> SomeIds { get; }
+        [ID("Baz")] public IReadOnlyList<int> SomeIds { get; }
 
         [ID("Bar")] public string? SomeNullableId { get; }
 
-        [ID("Bar")] public IReadOnlyList<int?>? SomeNullableIds { get; }
+        [ID("Baz")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
         public int? InterceptedId { get; }
 
@@ -522,5 +522,13 @@ public class IdAttributeTests
                     .Count;
             }
         }
+    }
+
+    private static byte[] Combine(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
+    {
+        var buffer = new byte[s1.Length + s2.Length];
+        s1.CopyTo(buffer);
+        s2.CopyTo(buffer.AsSpan()[s1.Length..]);
+        return buffer;
     }
 }

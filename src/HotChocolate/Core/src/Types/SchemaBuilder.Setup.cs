@@ -511,7 +511,8 @@ public partial class SchemaBuilder
         services.TryAddSingleton<INodeIdSerializer>(static sp =>
         {
             var schema = sp.GetRequiredService<ISchema>();
-            var entries = new List<NodeIdSerializerEntry>();
+            var boundSerializers = new List<BoundNodeIdValueSerializer>();
+            var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
 
             if (schema.ContextData.TryGetValue(WellKnownContextData.SerializerTypes, out var value))
             {
@@ -519,18 +520,18 @@ public partial class SchemaBuilder
 
                 foreach (var item in serializerTypes)
                 {
-                    foreach (var serializer in sp.GetServices<INodeIdValueSerializer>())
+                    foreach (var serializer in allSerializers)
                     {
                         if (serializer.IsSupported(item.Value))
                         {
-                            entries.Add(new NodeIdSerializerEntry(item.Key, serializer));
+                            boundSerializers.Add(new BoundNodeIdValueSerializer(item.Key, serializer));
                             break;
                         }
                     }
                 }
             }
 
-            return new DefaultNodeIdSerializer(entries);
+            return new DefaultNodeIdSerializer(boundSerializers, allSerializers);
         });
 
         services.TryAddSingleton<INodeIdSerializerAccessor>(

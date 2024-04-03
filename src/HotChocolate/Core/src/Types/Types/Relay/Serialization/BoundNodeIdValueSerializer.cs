@@ -3,16 +3,16 @@ using System;
 
 namespace HotChocolate.Types.Relay;
 
-public sealed class NodeIdSerializerEntry(
+internal sealed class BoundNodeIdValueSerializer(
     string typeName,
     INodeIdValueSerializer serializer)
-    : IEquatable<NodeIdSerializerEntry>
+    : IEquatable<BoundNodeIdValueSerializer>
 {
     public string TypeName { get; } = typeName;
 
     public INodeIdValueSerializer Serializer { get; } = serializer;
 
-    public bool Equals(NodeIdSerializerEntry? other)
+    public bool Equals(BoundNodeIdValueSerializer? other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -29,14 +29,14 @@ public sealed class NodeIdSerializerEntry(
     }
 
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) || obj is NodeIdSerializerEntry other && Equals(other);
+        => ReferenceEquals(this, obj) || obj is BoundNodeIdValueSerializer other && Equals(other);
 
     public override int GetHashCode()
         => HashCode.Combine(TypeName, Serializer);
 
-    public static bool operator ==(NodeIdSerializerEntry? left, NodeIdSerializerEntry? right)
+    public static bool operator ==(BoundNodeIdValueSerializer? left, BoundNodeIdValueSerializer? right)
         => Equals(left, right);
 
-    public static bool operator !=(NodeIdSerializerEntry? left, NodeIdSerializerEntry? right)
+    public static bool operator !=(BoundNodeIdValueSerializer? left, BoundNodeIdValueSerializer? right)
         => !Equals(left, right);
 }
