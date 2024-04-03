@@ -17,7 +17,7 @@ query($id: ID!, $first: Int!) {
 {
   "data": {
     "productById": {
-      "id": "UHJvZHVjdAppMQ==",
+      "id": "UHJvZHVjdDox",
       "repeat": 1
     }
   }

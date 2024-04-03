@@ -93,7 +93,7 @@ public class ErrorTests(ITestOutputHelper output)
         var request = Parse(
             """
             {
-              reviewById(id: "UmV2aWV3Cmkx") {
+              reviewById(id: "UmV2aWV3OjE=") {
                 body
                 author {
                   username
@@ -143,7 +143,7 @@ public class ErrorTests(ITestOutputHelper output)
         var request = Parse(
             """
             {
-              userById(id: "VXNlcgppMQ==") {
+              userById(id: "VXNlcjox") {
                 account1: birthdate
                 account2: birthdate
                 username
