@@ -4,9 +4,12 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.Data.Filters;
 
 internal class FilterGlobalIdInputValueFormatter(
-    INodeIdSerializerAccessor serializerAccessor)
+    INodeIdSerializerAccessor serializerAccessor,
+    Type namedType)
     : IInputValueFormatter
 {
+    private INodeIdSerializer? _serializer;
+
     public object? Format(object? runtimeValue)
     {
         if (runtimeValue is null)
@@ -19,11 +22,13 @@ internal class FilterGlobalIdInputValueFormatter(
             return id.InternalId;
         }
 
+        _serializer ??= serializerAccessor.Serializer;
+
         if (runtimeValue is string s)
         {
             try
             {
-                return serializerAccessor.Serializer.Parse(s).InternalId;
+                return _serializer.Parse(s, namedType).InternalId;
             }
             catch (Exception ex) when (ex is not GraphQLException)
             {
@@ -78,7 +83,7 @@ internal class FilterGlobalIdInputValueFormatter(
                         continue;
                     }
 
-                    id = serializerAccessor.Serializer.Parse(sv);
+                    id = _serializer.Parse(sv, namedType);
                     list.Add(id.InternalId);
                 }
 

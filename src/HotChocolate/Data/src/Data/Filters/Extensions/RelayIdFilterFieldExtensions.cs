@@ -1,8 +1,10 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
@@ -36,14 +38,18 @@ public static class RelayIdFilterFieldExtensions
             .Extend()
             .OnBeforeCompletion((c, d) =>
             {
-                d.Formatters.Push(CreateSerializer(c));
+                var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
+                var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
+                d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
             });
 
         return descriptor;
     }
 
     private static IInputValueFormatter CreateSerializer(
-        ITypeCompletionContext completionContext)
+        ITypeCompletionContext completionContext,
+        Type namedType)
         => new FilterGlobalIdInputValueFormatter(
-            completionContext.DescriptorContext.NodeIdSerializerAccessor);
+            completionContext.DescriptorContext.NodeIdSerializerAccessor,
+            namedType);
 }

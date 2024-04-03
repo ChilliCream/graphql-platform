@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeConstants;
 using static HotChocolate.WellKnownContextData;
 
@@ -39,7 +40,10 @@ internal sealed class NodeIdSerializerTypeInterceptor : TypeInterceptor
                 // we tread cautious as final validation of the schema is not yet run.
                 if (entityType.Fields.TryGetField(Id, out var idField))
                 {
-                    RelayIdFieldHelpers.SetSerializerInfos(context, entityType.Name, idField.RuntimeType);
+                    RelayIdFieldHelpers.SetSerializerInfos(
+                        context,
+                        entityType.Name,
+                        idField.Member?.GetReturnType() ?? idField.RuntimeType);
                 }
             }
         }
