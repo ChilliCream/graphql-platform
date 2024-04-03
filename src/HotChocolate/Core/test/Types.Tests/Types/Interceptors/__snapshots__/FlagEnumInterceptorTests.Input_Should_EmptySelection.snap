@@ -1,7 +1,16 @@
 ﻿{
   "errors": [
     {
-      "message": "Flags need to have at least one selection. Type: FlagsEnumFlagsInput"
+      "message": "Flags need to have at least one selection. Type: FlagsEnumFlagsInput",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "test"
+      ]
     }
   ],
   "data": {

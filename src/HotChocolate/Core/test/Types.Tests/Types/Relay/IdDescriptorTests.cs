@@ -19,20 +19,21 @@ public class IdDescriptorTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var intId = idSerializer.Format("Query", 1);
-        var stringId = idSerializer.Format("Query", "abc");
-        var guidId = idSerializer.Format("Query", Guid.Empty);
+        var intId = Convert.ToBase64String("Query:1"u8);
+        var stringId = Convert.ToBase64String("Query:abc"u8);
+        var guidId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
-                            intId(id: $intId)
-                            stringId(id: $stringId)
-                            guidId(id: $guidId)
-                        }")
+                    """
+                    query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
+                        intId(id: $intId)
+                        stringId(id: $stringId)
+                        guidId(id: $guidId)
+                    }
+                    """)
                 .SetVariableValue("intId", intId)
                 .SetVariableValue("stringId", stringId)
                 .SetVariableValue("guidId", guidId)
@@ -53,8 +54,7 @@ public class IdDescriptorTests
             .AddGlobalObjectIdentification(false)
             .BuildRequestExecutorAsync();
 
-        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var someId = idSerializer.Format("Some", 1);
+        var someId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -85,6 +85,14 @@ public class IdDescriptorTests
             .Create()
             .ToString()
             .MatchSnapshot();
+    }
+
+    private static byte[] Combine(ReadOnlySpan<byte> s1, ReadOnlySpan<byte> s2)
+    {
+        var buffer = new byte[s1.Length + s2.Length];
+        s1.CopyTo(buffer);
+        s2.CopyTo(buffer.AsSpan()[s1.Length..]);
+        return buffer;
     }
 
     public class QueryType : ObjectType<Query>

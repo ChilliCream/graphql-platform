@@ -27,7 +27,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -80,7 +80,7 @@ public class AnnotationBasedAuthorizationTests
         await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -89,7 +89,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -128,7 +128,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -171,10 +171,10 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
-              person2(id: "UGVyc29uCmRhYmM=") {
+              person2(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -576,7 +576,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              node(id: "UGVyc29uCmRhYmM=") {
+              node(id: "UGVyc29uOmFiYw==") {
                 __typename
               }
             }
@@ -624,8 +624,7 @@ public class AnnotationBasedAuthorizationTests
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
-        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var id = idSerializer.Format("Street", 1);
+        var id = Convert.ToBase64String("Street:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -684,8 +683,7 @@ public class AnnotationBasedAuthorizationTests
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
-        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
-        var id = idSerializer.Format("Street", 1);
+        var id = Convert.ToBase64String("Street:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -890,7 +888,16 @@ public class AnnotationBasedAuthorizationTests
                 {
                   "errors": [
                     {
-                      "message": "Unable to decode the id string.",
+                      "message": "The node ID string has an invalid format.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "nodes"
+                      ],
                       "extensions": {
                         "originalValue": "abc"
                       }

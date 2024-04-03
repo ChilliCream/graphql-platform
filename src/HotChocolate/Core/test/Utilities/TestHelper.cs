@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,17 @@ namespace HotChocolate.Tests;
 
 public static class TestHelper
 {
+    public static string EncodeId(string typeName, Guid id)
+    {
+        var nameBuffer = Encoding.UTF8.GetBytes(typeName);
+        var idBuffer = id.ToByteArray();
+        var buffer = new byte[nameBuffer.Length + 1 + idBuffer.Length];
+        Buffer.BlockCopy(nameBuffer, 0, buffer, 0, nameBuffer.Length);
+        buffer[nameBuffer.Length] = (byte)':';
+        Buffer.BlockCopy(idBuffer, 0, buffer, nameBuffer.Length + 1, idBuffer.Length);
+        return Convert.ToBase64String(buffer);
+    }
+
     public static Task<IExecutionResult> ExpectValid(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
@@ -23,8 +35,8 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                ConfigureRequest = request, 
-                Configure = configure, 
+                ConfigureRequest = request,
+                Configure = configure,
                 Services = requestServices,
             });
     }
@@ -75,8 +87,8 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                Configure = configure, 
-                ConfigureRequest = request, 
+                Configure = configure,
+                ConfigureRequest = request,
                 Services = requestServices,
             },
             elementInspectors);

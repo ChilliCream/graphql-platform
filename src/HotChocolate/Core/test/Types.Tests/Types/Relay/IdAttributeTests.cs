@@ -215,19 +215,21 @@ public class IdAttributeTests
             .ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        @"query foo($someId: ID! $someIntId: ID!) {
-                                foo(input: {
-                                    someId: $someId
-                                    someIds: [$someIntId]
-                                    interceptedId: 1
-                                    interceptedIds: [1, 2] })
-                                {
-                                    someId
-                                    someIds
-                                    interceptedId
-                                    interceptedIds
-                                }
-                            }")
+                        """
+                        query foo($someId: ID! $someIntId: ID!) {
+                            foo(input: {
+                                someId: $someId
+                                someIds: [$someIntId]
+                                interceptedId: 1
+                                interceptedIds: [1, 2] })
+                            {
+                                someId
+                                someIds
+                                interceptedId
+                                interceptedIds
+                            }
+                        }
+                        """)
                     .SetVariableValue("someId", someId)
                     .SetVariableValue("someIntId", someIntId)
                     .Create());
@@ -253,14 +255,16 @@ public class IdAttributeTests
         var result = await executor.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"query foo ($someId: ID!) {
-                            foo(input: { someId: $someId someIds: [$someId] }) {
-                                someId
-                                ... on FooPayload {
-                                    someIds
-                                }
+                    """
+                    query foo ($someId: ID!) {
+                        foo(input: { someId: $someId someIds: [$someId] }) {
+                            someId
+                            ... on FooPayload {
+                                someIds
                             }
-                        }")
+                        }
+                    }
+                    """)
                 .SetVariableValue("someId", someId)
                 .Create());
 
@@ -365,9 +369,9 @@ public class IdAttributeTests
         public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
-        public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
+        public string InterceptedId([InterceptedID("Query")] [ID] int id) => id.ToString();
 
-        public string InterceptedIds([InterceptedID] [ID] int[] id) =>
+        public string InterceptedIds([InterceptedID("Query")] [ID] int[] id) =>
             string.Join(", ", id.Select(t => t.ToString()));
 
         public IFooPayload Foo(FooInput input) =>
@@ -406,10 +410,10 @@ public class IdAttributeTests
 
         [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
-        [ID, InterceptedID,]
+        [ID, InterceptedID("FooInput")]
         public int? InterceptedId { get; }
 
-        [ID, InterceptedID,]
+        [ID, InterceptedID("FooInput")]
         public IReadOnlyList<int>? InterceptedIds { get; }
     }
 
@@ -473,8 +477,10 @@ public class IdAttributeTests
         AttributeTargets.Parameter |
         AttributeTargets.Property |
         AttributeTargets.Method)]
-    public class InterceptedIDAttribute : DescriptorAttribute
+    public class InterceptedIDAttribute(string typeName) : DescriptorAttribute
     {
+        public string TypeName { get; } = typeName;
+
         protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
@@ -491,17 +497,19 @@ public class IdAttributeTests
             }
         }
 
-        private static void AddInterceptingSerializer(ArgumentDefinition definition) =>
-            definition.Formatters.Insert(0, new InterceptingFormatter());
+        private void AddInterceptingSerializer(ArgumentDefinition definition)
+            => definition.Formatters.Insert(0, new InterceptingFormatter(TypeName));
 
-        private sealed class InterceptingFormatter : IInputValueFormatter
+        private sealed class InterceptingFormatter(string typeName) : IInputValueFormatter
         {
-            public object? Format(object? runtimeValue) =>
-                runtimeValue is IEnumerable<string> list
-                    ? list
-                        .Select(x => new NodeId("y", int.Parse(x)))
-                        .ToArray()
-                    : new NodeId("y", int.Parse((string)runtimeValue!));
+            public object Format(object? runtimeValue)
+            {
+                return runtimeValue switch
+                {
+                    IEnumerable<string> list => list.Select(x => new NodeId(typeName, int.Parse(x))).ToArray(),
+                    _ => new NodeId(typeName, int.Parse((string)runtimeValue!)),
+                };
+            }
         }
     }
 
