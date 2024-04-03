@@ -176,6 +176,8 @@ internal static class RelayIdFieldHelpers
                 completionContext.Type);
         }
 
+        typeName ??= completionContext.Type.Name;
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType.Source);
         definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
     }
 
@@ -205,7 +207,9 @@ internal static class RelayIdFieldHelpers
 
         var serializerAccessor = completionContext.DescriptorContext.NodeIdSerializerAccessor;
         var index = definition.FormatterDefinitions.IndexOf(placeholder);
+
         typeName ??= completionContext.Type.Name;
+        SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType.Source);
 
         definition.FormatterDefinitions[index] =
             CreateResultFormatter(typeName, resultType, serializerAccessor);
@@ -256,4 +260,28 @@ internal static class RelayIdFieldHelpers
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
             resultType,
             typeName is not null);
+
+    internal static void SetSerializerInfos(IDescriptorContext context, string typeName, Type runtimeType)
+    {
+        if (runtimeType == typeof(object))
+        {
+            return;
+        }
+
+        if(!context.ContextData.TryGetValue(SerializerTypes, out var obj))
+        {
+            obj = new Dictionary<string, Type>();
+            context.ContextData[SerializerTypes] = obj;
+        }
+
+        var mappings = (Dictionary<string, Type>)obj!;
+#if NET6_0_OR_GREATER
+        mappings.TryAdd(typeName, runtimeType);
+#else
+        if (!mappings.ContainsKey(typeName))
+        {
+            mappings.Add(typeName, runtimeType);
+        }
+#endif
+    }
 }

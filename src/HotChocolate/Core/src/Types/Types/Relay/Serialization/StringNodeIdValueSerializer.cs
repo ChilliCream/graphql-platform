@@ -10,6 +10,8 @@ public sealed class StringNodeIdValueSerializer : INodeIdValueSerializer
 {
     private readonly Encoding _utf8 = Encoding.UTF8;
 
+    public bool IsSupported(Type type) => type == typeof(string);
+
     public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
     {
         if (value is string s)

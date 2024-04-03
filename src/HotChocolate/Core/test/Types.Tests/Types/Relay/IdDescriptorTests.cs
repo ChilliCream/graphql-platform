@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Relay;
@@ -11,31 +12,31 @@ public class IdDescriptorTests
     public async Task Id_On_Arguments()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var intId = idSerializer.Serialize("Query", 1);
-        var stringId = idSerializer.Serialize("Query", "abc");
-        var guidId = idSerializer.Serialize("Query", Guid.Empty);
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>()
+            .AddType<FooPayloadType>()
+            .AddGlobalObjectIdentification(false)
+            .BuildRequestExecutorAsync();
+
+        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var intId = idSerializer.Format("Query", 1);
+        var stringId = idSerializer.Format("Query", "abc");
+        var guidId = idSerializer.Format("Query", Guid.Empty);
 
         // act
-        var result =
-            await SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddType<FooPayloadType>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
-                                    intId(id: $intId)
-                                    stringId(id: $stringId)
-                                    guidId(id: $guidId)
-                                }")
-                        .SetVariableValue("intId", intId)
-                        .SetVariableValue("stringId", stringId)
-                        .SetVariableValue("guidId", guidId)
-                        .Create());
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
+                            intId(id: $intId)
+                            stringId(id: $stringId)
+                            guidId(id: $guidId)
+                        }")
+                .SetVariableValue("intId", intId)
+                .SetVariableValue("stringId", stringId)
+                .SetVariableValue("guidId", guidId)
+                .Create());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -45,27 +46,27 @@ public class IdDescriptorTests
     public async Task Id_On_Objects()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var someId = idSerializer.Serialize("Some", 1);
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>()
+            .AddType<FooPayloadType>()
+            .AddGlobalObjectIdentification(false)
+            .BuildRequestExecutorAsync();
+
+        var idSerializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var someId = idSerializer.Format("Some", 1);
 
         // act
-        var result =
-            await SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddType<FooPayloadType>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo ($someId: ID!) {
-                                foo(input: { someId: $someId }) {
-                                    someId
-                                }
-                            }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo ($someId: ID!) {
+                        foo(input: { someId: $someId }) {
+                            someId
+                        }
+                    }")
+                .SetVariableValue("someId", someId)
+                .Create());
 
         // assert
         new

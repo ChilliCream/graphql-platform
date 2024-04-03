@@ -83,8 +83,13 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
         span = span.Slice(0, written);
 
         var index = span.IndexOf(_delimiter);
-        var typeName = span.Slice(0, index);
+        if(index == -1)
+        {
+            Clear(rentedBuffer);
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
 
+        var typeName = span.Slice(0, index);
         if (!_spanSerializerMap.TryGetValue(typeName, out var serializer))
         {
             string typeNameString;
@@ -97,7 +102,14 @@ public class DefaultNodeIdSerializer : INodeIdSerializer
             throw new NodeIdMissingSerializerException(typeNameString);
         }
 
-        var value = serializer.Parse(span.Slice(index + 1));
+        var valueSpan = span.Slice(index + 1);
+        if(valueSpan.IsEmpty)
+        {
+            Clear(rentedBuffer);
+            throw new NodeIdInvalidFormatException(formattedId);
+        }
+
+        var value = serializer.Parse(valueSpan);
         Clear(rentedBuffer);
         return value;
 

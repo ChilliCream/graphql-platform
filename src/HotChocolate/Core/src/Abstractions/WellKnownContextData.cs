@@ -180,6 +180,11 @@ public static class WellKnownContextData
     public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
 
     /// <summary>
+    /// The key to get the serializer types.
+    /// </summary>
+    public const string SerializerTypes = "HotChocolate.Relay.SerializerTypes";
+
+    /// <summary>
     /// The key to get the node id from the context data.
     /// </summary>
     public const string NodeId = "HotChocolate.Relay.Node.Id";

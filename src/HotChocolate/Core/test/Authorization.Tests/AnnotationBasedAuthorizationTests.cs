@@ -892,7 +892,6 @@ public class AnnotationBasedAuthorizationTests
                     {
                       "message": "Unable to decode the id string.",
                       "extensions": {
-                        "operationStatus": "InvalidData",
                         "originalValue": "abc"
                       }
                     }

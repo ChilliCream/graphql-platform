@@ -11,8 +11,10 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
 
@@ -47,7 +49,7 @@ public partial class SchemaBuilder
                 {
                     builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
                 }
-                
+
                 if(context.Options.RemoveUnusedTypeSystemDirectives &&
                     !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
                 {
@@ -84,7 +86,7 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             LazySchema lazySchema)
         {
-            var services = builder._services ?? EmptyServiceProvider.Instance;
+            var services = builder._services ?? CreateDefaultServiceProvider(lazySchema);
 
             var typeInterceptor = new AggregateTypeInterceptor();
 
@@ -99,7 +101,14 @@ public partial class SchemaBuilder
             return context;
         }
 
-        private static IReadOnlyList<TypeReference> CreateTypeReferences(
+        private static IServiceProvider CreateDefaultServiceProvider(LazySchema lazySchema)
+        {
+            var services = new ServiceCollection();
+            AddCoreSchemaServices(services, lazySchema);
+            return services.BuildServiceProvider();
+        }
+
+        private static List<TypeReference> CreateTypeReferences(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
@@ -367,8 +376,8 @@ public partial class SchemaBuilder
 
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
-            lazySchema.Schema = schema;
             context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);
+            lazySchema.Schema = schema;
             return schema;
         }
 
@@ -425,6 +434,7 @@ public partial class SchemaBuilder
                 schemaDef.MutationType = GetOperationType(OperationType.Mutation);
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
+            return;
 
             ObjectType? GetObjectType(string typeName)
             {
@@ -485,5 +495,51 @@ public partial class SchemaBuilder
 
             return typeRegistry.Types.Select(t => t.Type).ToArray();
         }
+    }
+
+    internal static void AddCoreSchemaServices(IServiceCollection services, LazySchema lazySchema)
+    {
+        services.TryAddSingleton(lazySchema);
+        services.TryAddSingleton(static sp => sp.GetRequiredService<LazySchema>().Schema);
+
+        services.AddSingleton<INodeIdValueSerializer, StringNodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, Int16NodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, GuidNodeIdValueSerializer>();
+
+        services.TryAddSingleton<INodeIdSerializer>(static sp =>
+        {
+            var schema = sp.GetRequiredService<ISchema>();
+            var entries = new List<NodeIdSerializerEntry>();
+
+            if (schema.ContextData.TryGetValue(WellKnownContextData.SerializerTypes, out var value))
+            {
+                var serializerTypes = (Dictionary<string, Type>)value!;
+
+                foreach (var item in serializerTypes)
+                {
+                    foreach (var serializer in sp.GetServices<INodeIdValueSerializer>())
+                    {
+                        if (serializer.IsSupported(item.Value))
+                        {
+                            entries.Add(new NodeIdSerializerEntry(item.Key, serializer));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return new DefaultNodeIdSerializer(entries);
+        });
+
+        services.TryAddSingleton<INodeIdSerializerAccessor>(
+            static sp =>
+            {
+                var lazy = sp.GetRequiredService<LazySchema>();
+                var accessor = new NodeIdSerializerAccessor();
+                lazy.OnSchemaCreated(accessor.OnSchemaCreated);
+                return accessor;
+            });
     }
 }

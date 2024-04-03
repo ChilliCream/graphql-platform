@@ -140,6 +140,6 @@ public class DefaultNodeIdSerializerTests
 
         var id = serializer.Format("Foo", Guid.Empty);
 
-        Assert.Equal("Rm9vOgAAAAAAAAAAAAAAAAAAAAA=", id);
+        Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
     }
 }

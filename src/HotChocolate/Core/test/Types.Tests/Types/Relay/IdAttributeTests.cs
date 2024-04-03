@@ -9,6 +9,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
 #nullable enable
@@ -21,51 +22,51 @@ public class IdAttributeTests
     public async Task Id_On_Arguments()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var intId = idSerializer.Serialize("Query", 1);
-        var stringId = idSerializer.Serialize("Query", "abc");
-        var guidId = idSerializer.Serialize(
-            "Query",
-            new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<FooPayload>()
+            .AddGlobalObjectIdentification(false)
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var intId = serializer.Format("Query", 1);
+        var stringId = serializer.Format("Query", "abc");
+        var guidId = serializer.Format("Query", new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
 
         // act
-        var result =
-            await SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(@"query foo (
-                                $intId: ID!
-                                $nullIntId: ID = null
-                                $stringId: ID!
-                                $nullStringId: ID = null
-                                $guidId: ID!
-                                $nullGuidId: ID = null)
-                            {
-                                intId(id: $intId)
-                                nullableIntId(id: $intId)
-                                nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
-                                intIdList(id: [$intId])
-                                nullableIntIdList(id: [$intId, $nullIntId])
-                                stringId(id: $stringId)
-                                nullableStringId(id: $stringId)
-                                nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
-                                stringIdList(id: [$stringId])
-                                nullableStringIdList(id: [$stringId, $nullStringId])
-                                guidId(id: $guidId)
-                                nullableGuidId(id: $guidId)
-                                nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
-                                guidIdList(id: [$guidId $guidId])
-                                nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                            }")
-                        .SetVariableValue("intId", intId)
-                        .SetVariableValue("stringId", stringId)
-                        .SetVariableValue("guidId", guidId)
-                        .Create());
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    """
+                    query foo (
+                      $intId: ID!
+                      $nullIntId: ID = null
+                      $stringId: ID!
+                      $nullStringId: ID = null
+                      $guidId: ID!
+                      $nullGuidId: ID = null) {
+                      intId(id: $intId)
+                      nullableIntId(id: $intId)
+                      nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                      intIdList(id: [$intId])
+                      nullableIntIdList(id: [$intId, $nullIntId])
+                      stringId(id: $stringId)
+                      nullableStringId(id: $stringId)
+                      nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
+                      stringIdList(id: [$stringId])
+                      nullableStringIdList(id: [$stringId, $nullStringId])
+                      guidId(id: $guidId)
+                      nullableGuidId(id: $guidId)
+                      nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
+                      guidIdList(id: [$guidId $guidId])
+                      nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
+                    }
+                    """)
+                    .SetVariableValue("intId", intId)
+                    .SetVariableValue("stringId", stringId)
+                    .SetVariableValue("guidId", guidId)
+                    .Create());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -99,39 +100,39 @@ public class IdAttributeTests
     public async Task Id_On_Objects()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var someId = idSerializer.Serialize("Some", "1");
-        var someIntId = idSerializer.Serialize("Some", 1);
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<FooPayload>()
+            .AddGlobalObjectIdentification(false)
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var someId = serializer.Format("Some", "1");
+        var someIntId = serializer.Format("Some", 1);
 
         // act
-        var result =
-            await SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo ($someId: ID! $someIntId: ID!) {
-                                foo(input: {
-                                    someId: $someId someIds: [$someIntId]
-                                    someNullableId: $someId someNullableIds: [$someIntId] })
-                                {
-                                    someId
-                                    someNullableId
-                                    ... on FooPayload {
-                                        someIds
-                                        someNullableIds
-                                    }
-                                }
-                            }")
-                        .SetVariableValue("someId", someId)
-                        .SetVariableValue("someNullableId", null)
-                        .SetVariableValue("someIntId", someIntId)
-                        .SetVariableValue("someNullableIntId", null)
-                        .Create());
+        var result = await executor.ExecuteAsync(
+        QueryRequestBuilder.New()
+            .SetQuery(
+                @"query foo ($someId: ID! $someIntId: ID!) {
+                    foo(input: {
+                        someId: $someId someIds: [$someIntId]
+                        someNullableId: $someId someNullableIds: [$someIntId] })
+                    {
+                        someId
+                        someNullableId
+                        ... on FooPayload {
+                            someIds
+                            someNullableIds
+                        }
+                    }
+                }")
+            .SetVariableValue("someId", someId)
+            .SetVariableValue("someNullableId", null)
+            .SetVariableValue("someIntId", someIntId)
+            .SetVariableValue("someNullableIntId", null)
+            .Create());
 
         // assert
         new
@@ -146,43 +147,43 @@ public class IdAttributeTests
     public async Task Id_On_Objects_Given_Nulls()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var someId = idSerializer.Serialize("Some", "1");
-        var someIntId = idSerializer.Serialize("Some", 1);
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<FooPayload>()
+            .AddGlobalObjectIdentification(false)
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var someId = serializer.Format("Some", "1");
+        var someIntId = serializer.Format("Some", 1);
 
         // act
-        var result =
-            await SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo (
-                                $someId: ID! $someIntId: ID!
-                                $someNullableId: ID
-                                $someNullableIntId: ID) {
-                                foo(input: {
-                                    someId: $someId someIds: [$someIntId]
-                                    someNullableId: $someNullableId
-                                    someNullableIds: [$someNullableIntId, $someIntId] })
-                                {
-                                    someId
-                                    someNullableId
-                                    ... on FooPayload {
-                                        someIds
-                                        someNullableIds
-                                    }
-                                }
-                            }")
-                        .SetVariableValue("someId", someId)
-                        .SetVariableValue("someNullableId", null)
-                        .SetVariableValue("someIntId", someIntId)
-                        .SetVariableValue("someNullableIntId", null)
-                        .Create());
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo (
+                        $someId: ID! $someIntId: ID!
+                        $someNullableId: ID
+                        $someNullableIntId: ID) {
+                        foo(input: {
+                            someId: $someId someIds: [$someIntId]
+                            someNullableId: $someNullableId
+                            someNullableIds: [$someNullableIntId, $someIntId] })
+                        {
+                            someId
+                            someNullableId
+                            ... on FooPayload {
+                                someIds
+                                someNullableIds
+                            }
+                        }
+                    }")
+                .SetVariableValue("someId", someId)
+                .SetVariableValue("someNullableId", null)
+                .SetVariableValue("someIntId", someIntId)
+                .SetVariableValue("someNullableIntId", null)
+                .Create());
 
         // assert
         new
@@ -197,16 +198,16 @@ public class IdAttributeTests
     public async Task InterceptedId_On_Objects()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var someId = idSerializer.Serialize("Some", "1");
-        var someIntId = idSerializer.Serialize("Some", 1);
-
-        var executor = SchemaBuilder.New()
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddType<FooPayload>()
             .AddGlobalObjectIdentification(false)
-            .Create()
-            .MakeExecutable();
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var someId = serializer.Format("Some", "1");
+        var someIntId = serializer.Format("Some", 1);
 
         // act
         var result = await executor
@@ -238,30 +239,30 @@ public class IdAttributeTests
     public async Task Id_On_Objects_InvalidType()
     {
         // arrange
-        var idSerializer = new IdSerializer();
-        var someId = idSerializer.Serialize("Some", Guid.Empty);
+        var executor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<FooPayload>()
+            .AddGlobalObjectIdentification(false)
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var someId = serializer.Format("Some", Guid.Empty);
 
         // act
-        var result =
-            await SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddType<FooPayload>()
-                .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
-                                    }
-                                }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+        var result = await executor.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query foo ($someId: ID!) {
+                            foo(input: { someId: $someId someIds: [$someId] }) {
+                                someId
+                                ... on FooPayload {
+                                    someIds
+                                }
+                            }
+                        }")
+                .SetVariableValue("someId", someId)
+                .Create());
 
         // assert
         new
@@ -498,9 +499,9 @@ public class IdAttributeTests
             public object? Format(object? runtimeValue) =>
                 runtimeValue is IEnumerable<string> list
                     ? list
-                        .Select(x => new IdValue("x", "y", int.Parse(x)))
+                        .Select(x => new NodeId("y", int.Parse(x)))
                         .ToArray()
-                    : new IdValue("x", "y", int.Parse((string)runtimeValue!));
+                    : new NodeId("y", int.Parse((string)runtimeValue!));
         }
     }
 

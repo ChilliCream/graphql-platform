@@ -10,6 +10,17 @@ namespace HotChocolate.Types.Relay;
 public interface INodeIdValueSerializer
 {
     /// <summary>
+    /// Defines if the serializer supports formatting and parsing the specified type.
+    /// </summary>
+    /// <param name="type">
+    /// The type that shall be checked.
+    /// </param>
+    /// <returns>
+    /// Returns true if the serializer supports the specified type.
+    /// </returns>
+    bool IsSupported(Type type);
+
+    /// <summary>
     /// Formats the node id value into a byte buffer.
     /// </summary>
     /// <param name="buffer">

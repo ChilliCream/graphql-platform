@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Relay;
 
 public sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdValueSerializer
 {
+    public bool IsSupported(Type type) => type == typeof(Guid) || type == typeof(Guid?);
+
     public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
     {
         if (value is Guid g)

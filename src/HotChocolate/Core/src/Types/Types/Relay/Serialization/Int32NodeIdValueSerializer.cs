@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Relay;
 
 public sealed class Int32NodeIdValueSerializer : INodeIdValueSerializer
 {
+    public bool IsSupported(Type type) => type == typeof(int) || type == typeof(int?);
+
     public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
     {
         if (value is int i)

@@ -56,10 +56,6 @@ public sealed partial class DescriptorContext : IDescriptorContext
         TypeConverter = _serviceHelper.GetTypeConverter();
         InputFormatter = _serviceHelper.GetInputFormatter(TypeConverter);
         InputParser = _serviceHelper.GetInputParser(TypeConverter);
-
-        var nodeIdSerializerAccessor = new NodeIdSerializerAccessor();
-        NodeIdSerializerAccessor = nodeIdSerializerAccessor;
-        OnSchemaCreated(nodeIdSerializerAccessor.OnSchemaCreated);
     }
 
     internal SchemaBuilder.LazySchema Schema { get; }
@@ -126,7 +122,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
     public IList<IDescriptor> Descriptors { get; } = new List<IDescriptor>();
 
     /// <inheritdoc />
-    public INodeIdSerializerAccessor NodeIdSerializerAccessor { get; }
+    public INodeIdSerializerAccessor NodeIdSerializerAccessor
+        => _schemaServices.GetRequiredService<INodeIdSerializerAccessor>();
 
     /// <inheritdoc />
     public IDictionary<string, object?> ContextData { get; }
@@ -296,7 +293,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
     internal static DescriptorContext Create(
         Func<IReadOnlySchemaOptions> options,
-        IServiceProvider? services = null,
+        IServiceProvider services,
         IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
         IDictionary<string, object?>? contextData = null,
         SchemaBuilder.LazySchema? schema = null,
@@ -304,7 +301,7 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => new DescriptorContext(
             options,
             conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
-            services ?? EmptyServiceProvider.Instance,
+            services,
             contextData ?? new Dictionary<string, object?>(),
             schema ?? new SchemaBuilder.LazySchema(),
             typeInterceptor ?? new AggregateTypeInterceptor());
