@@ -753,8 +753,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("User", 1);
+        var id = Convert.ToBase64String("User:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -854,8 +853,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Review", 1);
+        var id = Convert.ToBase64String("Review:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -907,8 +905,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Unknown", 1);
+        var id = Convert.ToBase64String("Unknown:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -961,8 +958,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("User", 1);
+        var id = Convert.ToBase64String("User:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
