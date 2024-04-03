@@ -166,6 +166,7 @@ internal sealed class ObjectIdNodeIdValueSerializer(bool compress = true) : INod
         return true;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool TryParseHexChar(byte c, out int value)
     {
         if (c >= '0' && c <= '9')

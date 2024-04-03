@@ -16,7 +16,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
-public class DefaultNodeIdSerializer : INodeIdSerializer
+internal sealed class DefaultNodeIdSerializer : INodeIdSerializer
 {
     private const byte _delimiter = (byte)':';
     private const int _stackallocThreshold = 256;
