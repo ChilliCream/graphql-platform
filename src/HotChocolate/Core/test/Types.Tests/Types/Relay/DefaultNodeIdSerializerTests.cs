@@ -133,10 +133,67 @@ public class DefaultNodeIdSerializerTests
         Assert.Equal("Rm9vOjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAw", id);
     }
 
+    [Fact]
+    public void Format_CompositeId()
+    {
+        var serializer = CreateSerializer("Foo", new CompositeIdNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
+
+        Assert.Equal("Rm9vOmZvbzo0MjoAAAAAAAAAAAAAAAAAAAAAOjE=", id);
+    }
+
+    [Fact]
+    public void Parse_CompositeId()
+    {
+        var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
+        var serializer = CreateSerializer("Foo", new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id);
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
     private static DefaultNodeIdSerializer CreateSerializer(string typeName, INodeIdValueSerializer serializer)
     {
         return new DefaultNodeIdSerializer(
             [new BoundNodeIdValueSerializer(typeName, serializer)],
             [serializer]);
     }
+
+    private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerialize<CompositeId>
+    {
+        protected override NodeIdFormatterResult Format(Span<byte> buffer, CompositeId value, out int written)
+        {
+            if (TryFormatIdPart(buffer, value.A, out var a) &&
+                TryFormatIdPart(buffer.Slice(a), value.B, out var b) &&
+                TryFormatIdPart(buffer.Slice(a + b), value.C, out var c) &&
+                TryFormatIdPart(buffer.Slice(a + b + c), value.D, out var d))
+            {
+                written = a + b + c + d;
+                return NodeIdFormatterResult.Success;
+            }
+
+            written = 0;
+            return NodeIdFormatterResult.BufferTooSmall;
+        }
+
+        protected override bool TryParse(ReadOnlySpan<byte> buffer, out CompositeId value)
+        {
+            if(TryParseIdPart(buffer, out string a, out var ac) &&
+                TryParseIdPart(buffer.Slice(ac), out int? b, out var bc) &&
+                TryParseIdPart(buffer.Slice(ac + bc), out Guid? c, out var cc) &&
+                TryParseIdPart(buffer.Slice(ac + bc + cc), out bool? d, out _))
+            {
+                value = new CompositeId(a, b.Value, c.Value, d.Value);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+    }
+
+    private readonly record struct CompositeId(string A, int B, Guid C, bool D);
 }

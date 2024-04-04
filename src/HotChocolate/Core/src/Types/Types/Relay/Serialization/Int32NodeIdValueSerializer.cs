@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types.Relay;
 
-public sealed class Int32NodeIdValueSerializer : INodeIdValueSerializer
+internal sealed class Int32NodeIdValueSerializer : INodeIdValueSerializer
 {
     public bool IsSupported(Type type) => type == typeof(int) || type == typeof(int?);
 

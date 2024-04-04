@@ -6,7 +6,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
-public sealed class StringNodeIdValueSerializer : INodeIdValueSerializer
+internal sealed class StringNodeIdValueSerializer : INodeIdValueSerializer
 {
     private readonly Encoding _utf8 = Encoding.UTF8;
 

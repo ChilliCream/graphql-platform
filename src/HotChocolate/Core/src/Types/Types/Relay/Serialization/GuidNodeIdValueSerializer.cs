@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace HotChocolate.Types.Relay;
 
-public sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdValueSerializer
+internal sealed class GuidNodeIdValueSerializer(bool compress = true) : INodeIdValueSerializer
 {
     public bool IsSupported(Type type) => type == typeof(Guid) || type == typeof(Guid?);
 
