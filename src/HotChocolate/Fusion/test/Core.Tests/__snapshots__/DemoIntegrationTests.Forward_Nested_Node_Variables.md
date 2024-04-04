@@ -19,7 +19,7 @@ query ProductReviews($id: ID!, $first: Int!) {
 {
   "data": {
     "node": {
-      "id": "UHJvZHVjdAppMQ==",
+      "id": "UHJvZHVjdDox",
       "repeat": 1
     }
   }

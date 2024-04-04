@@ -80,10 +80,7 @@ public partial class Schema
     {
         base.OnCompleteType(context, definition);
 
-        Directives = DirectiveCollection.CreateAndComplete(
-            context,
-            this,
-            definition.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
         Services = context.Services;
     }
 

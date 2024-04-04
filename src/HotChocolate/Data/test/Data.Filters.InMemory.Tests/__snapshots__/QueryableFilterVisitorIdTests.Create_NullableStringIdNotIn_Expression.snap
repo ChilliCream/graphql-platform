@@ -17,7 +17,7 @@ testbtestAndNull
   "data": {
     "root": [
       {
-        "bar": "Rm9vTnVsbGFibGUKZHRlc3RhdGVzdA=="
+        "bar": "Rm9vTnVsbGFibGU6dGVzdGF0ZXN0"
       }
     ]
   }
@@ -30,7 +30,7 @@ testatest
   "data": {
     "root": [
       {
-        "bar": "Rm9vTnVsbGFibGUKZHRlc3RidGVzdA=="
+        "bar": "Rm9vTnVsbGFibGU6dGVzdGJ0ZXN0"
       },
       {
         "bar": null

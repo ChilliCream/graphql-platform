@@ -4,7 +4,7 @@
 
 ```graphql
 {
-  userById(id: "VXNlcgppMQ==") {
+  userById(id: "VXNlcjox") {
     account1: birthdate
     account2: birthdate
     username
@@ -68,14 +68,14 @@
 
 ```json
 {
-  "document": "{ userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username reviews { body errorField } } }",
+  "document": "{ userById(id: \u0022VXNlcjox\u0022) { account1: birthdate account2: birthdate username reviews { body errorField } } }",
   "rootNode": {
     "type": "Sequence",
     "nodes": [
       {
         "type": "Resolve",
         "subgraph": "Accounts",
-        "document": "query fetch_userById_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { account1: birthdate account2: birthdate username __fusion_exports__1: id } }",
+        "document": "query fetch_userById_1 { userById(id: \u0022VXNlcjox\u0022) { account1: birthdate account2: birthdate username __fusion_exports__1: id } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -120,7 +120,7 @@
 ## QueryPlan Hash
 
 ```text
-7D3257F87D5E3FD2EA9D743001D2F7487EF312F7
+D2A76543F95E65F1ADD5BD9E8ADB7A4A506757E9
 ```
 
 ## Fusion Graph

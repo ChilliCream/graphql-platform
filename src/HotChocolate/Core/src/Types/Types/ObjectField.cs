@@ -110,13 +110,6 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// Gets the associated resolver expression.
     /// This expression can be <c>null</c>.
     /// </summary>
-    [Obsolete("Use resolver expression.")]
-    public Expression? Expression => ResolverExpression;
-
-    /// <summary>
-    /// Gets the associated resolver expression.
-    /// This expression can be <c>null</c>.
-    /// </summary>
     public Expression? ResolverExpression { get; }
 
     protected override void OnCompleteField(
@@ -127,7 +120,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         base.OnCompleteField(context, declaringMember, definition);
         CompleteResolver(context, (ObjectFieldDefinition)definition);
     }
-    
+
     private void CompleteResolver(
         ITypeCompletionContext context,
         ObjectFieldDefinition definition)

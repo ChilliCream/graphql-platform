@@ -21,11 +21,11 @@ query($id: ID!, $first: Int!) {
 {
   "data": {
     "a": {
-      "id": "UHJvZHVjdAppMQ==",
+      "id": "UHJvZHVjdDox",
       "repeat": 1
     },
     "b": {
-      "id": "UHJvZHVjdAppMQ==",
+      "id": "UHJvZHVjdDox",
       "repeat": 1
     }
   }

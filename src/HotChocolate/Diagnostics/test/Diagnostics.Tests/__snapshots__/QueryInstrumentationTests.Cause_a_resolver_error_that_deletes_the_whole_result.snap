@@ -139,7 +139,9 @@
                 {
                   "Name": "Error",
                   "Tags": {
-                    "graphql.error.message": "fail"
+                    "graphql.error.message": "fail",
+                    "graphql.error.location.column": 27,
+                    "graphql.error.location.line": 1
                   }
                 }
               ]
