@@ -3,6 +3,7 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
@@ -19,7 +20,9 @@ internal sealed class DistributedOperationExecutionMiddleware(
     [SchemaService] INodeIdSerializer nodeIdSerializer,
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
-    [SchemaService] NodeIdParser nodeIdParser)
+    [SchemaService] NodeIdParser nodeIdParser,
+    [SchemaService] FusionOptions options,
+    [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -37,6 +40,10 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
+    private readonly FusionOptions _fusionOptionsAccessor = options
+        ?? throw new ArgumentNullException(nameof(options));
+    private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
+        ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -66,13 +73,18 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     operationContextOwner,
                     _clientFactory,
                     _nodeIdSerializer,
-                    _nodeIdParser);
+                    _nodeIdParser,
+                    _fusionOptionsAccessor,
+                    diagnosticEvents);
 
-            context.Result =
-                await FederatedQueryExecutor.ExecuteAsync(
-                    federatedQueryContext,
-                    context.RequestAborted)
-                    .ConfigureAwait(false);
+            using (federatedQueryContext.DiagnosticEvents.ExecuteFederatedQuery(context))
+            {
+                context.Result =
+                    await FederatedQueryExecutor.ExecuteAsync(
+                            federatedQueryContext,
+                            context.RequestAborted)
+                        .ConfigureAwait(false);
+            }
 
             await _next(context).ConfigureAwait(false);
         }
@@ -102,13 +114,17 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
             var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
+            var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<FusionOptions>();
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
                 contextFactory,
                 idSerializer,
                 serviceConfig,
                 clientFactory,
-                nodeIdParser);
+                nodeIdParser,
+                fusionOptionsAccessor,
+                diagnosticEvents);
             return async context =>
             {
                 var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();

@@ -6,11 +6,11 @@ namespace HotChocolate.Fusion.Composition;
 public sealed record GatewayInfo(
     string Name,
     string Path,
-    FusionOptions Options,
+    FusionCompositionOptions CompositionOptions,
     ImmutableArray<SubgraphInfo> Subgraphs)
     : IResourceAnnotation
 {
-    public static GatewayInfo Create<TProject>(string name, FusionOptions options, params SubgraphInfo[] projects)
+    public static GatewayInfo Create<TProject>(string name, FusionCompositionOptions compositionOptions, params SubgraphInfo[] projects)
         where TProject : IProjectMetadata, new()
-        => new(name, new TProject().ProjectPath, options, ImmutableArray<SubgraphInfo>.Empty.AddRange(projects));
+        => new(name, new TProject().ProjectPath, compositionOptions, ImmutableArray<SubgraphInfo>.Empty.AddRange(projects));
 }

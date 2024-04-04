@@ -11,7 +11,7 @@ public static class FusionExtensions
         string name)
         where TProject : IProjectMetadata, new()
     {
-        var gateway = GatewayInfo.Create<TProject>(name, new FusionOptions());
+        var gateway = GatewayInfo.Create<TProject>(name, new FusionCompositionOptions());
         var project = builder.AddProject<TProject>(name).WithAnnotation(gateway);
         return new FusionGatewayResourceBuilder(project);
     }
@@ -46,10 +46,10 @@ public static class FusionExtensions
 
     public static IResourceBuilder<FusionGatewayResource> WithOptions(
         this IResourceBuilder<FusionGatewayResource> builder,
-        FusionOptions options)
+        FusionCompositionOptions compositionOptions)
     {
         var gateway = builder.GetFusionGatewayMetadata();
-        builder.SetFusionGatewayMetadata(gateway with { Options = options });
+        builder.SetFusionGatewayMetadata(gateway with { CompositionOptions = compositionOptions });
         return builder;
     }
 

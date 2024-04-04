@@ -48,4 +48,7 @@
   <data name="ThrowHelper_InvalidIndexCursor_Message" xml:space="preserve">
     <value>The cursor specified in `{0}` has an invalid format.</value>
   </data>
+  <data name="ThrowHelper_PagingHandler_MinPageSize" xml:space="preserve">
+    <value>The requested number of values per page must be at least 0.</value>
+  </data>
 </root>
