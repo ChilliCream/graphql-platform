@@ -62,6 +62,12 @@ public static class FilterExpressionBuilder
     private static readonly Expression _false = (Expression)_createAndConvert
         .MakeGenericMethod(typeof(bool)).Invoke(null, [false])!;
 
+    private static readonly Expression _nullableTrue = (Expression)_createAndConvert
+        .MakeGenericMethod(typeof(bool?)).Invoke(null, [true])!;
+
+    private static readonly Expression _nullableFalse = (Expression)_createAndConvert
+        .MakeGenericMethod(typeof(bool?)).Invoke(null, [false])!;
+
     public static Expression Not(Expression expression)
         => Expression.Not(expression);
 
@@ -214,7 +220,12 @@ public static class FilterExpressionBuilder
 
         if (value is bool boolean)
         {
-            return boolean ? _true : _false;
+            if (type == typeof(bool))
+            {
+                return boolean ? _true : _false;
+            }
+
+            return boolean ? _nullableTrue : _nullableFalse;
         }
 
         var expressionDelegate = _cachedDelegates.GetOrAdd(type, static type =>
