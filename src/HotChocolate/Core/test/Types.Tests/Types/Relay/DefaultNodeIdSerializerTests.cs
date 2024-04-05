@@ -162,7 +162,7 @@ public class DefaultNodeIdSerializerTests
             [serializer]);
     }
 
-    private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerialize<CompositeId>
+    private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerializer<CompositeId>
     {
         protected override NodeIdFormatterResult Format(Span<byte> buffer, CompositeId value, out int written)
         {

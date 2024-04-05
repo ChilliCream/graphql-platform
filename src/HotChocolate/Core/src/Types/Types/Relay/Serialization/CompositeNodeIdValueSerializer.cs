@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Relay;
 /// <typeparam name="T">
 /// The type of the value that is being serialized.
 /// </typeparam>
-public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
+public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 {
     private const byte _partSeparator = (byte)':';
     private static readonly Encoding _utf8 = Encoding.UTF8;
