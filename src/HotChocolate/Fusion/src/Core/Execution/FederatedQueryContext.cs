@@ -14,9 +14,8 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 internal sealed class FusionExecutionContext : IDisposable
 {
-    private readonly string _schemaName;
     private readonly GraphQLClientFactory _clientFactory;
-    private readonly IIdSerializer _idSerializer;
+    private readonly INodeIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
     private readonly NodeIdParser _nodeIdParser;
     private readonly FusionOptions _options;
@@ -26,7 +25,7 @@ internal sealed class FusionExecutionContext : IDisposable
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
-        IIdSerializer idSerializer,
+        INodeIdSerializer idSerializer,
         NodeIdParser nodeIdParser,
         FusionOptions options,
         IFusionDiagnosticEvents diagnosticEvents)
@@ -47,7 +46,6 @@ internal sealed class FusionExecutionContext : IDisposable
             throw new ArgumentNullException(nameof(nodeIdParser));
         _options = options ??
             throw new ArgumentNullException(nameof(options));
-        _schemaName = Schema.Name;
     }
 
     /// <summary>
@@ -112,11 +110,11 @@ internal sealed class FusionExecutionContext : IDisposable
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodesFor(selectionSet);
 
-    public string? ReformatId(string formattedId, string subgraphName)
+    public string ReformatId(string formattedId, string subgraphName)
     {
-        var id = _idSerializer.Deserialize(formattedId);
+        var id = _idSerializer.Parse(formattedId);
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
-        return _idSerializer.Serialize(_schemaName, typeName, id.Value);
+        return _idSerializer.Format(typeName, id.InternalId);
     }
 
     public string ParseTypeNameFromId(string id)

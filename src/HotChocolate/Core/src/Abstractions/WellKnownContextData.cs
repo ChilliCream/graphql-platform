@@ -180,6 +180,11 @@ public static class WellKnownContextData
     public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
 
     /// <summary>
+    /// The key to get the serializer types.
+    /// </summary>
+    public const string SerializerTypes = "HotChocolate.Relay.SerializerTypes";
+
+    /// <summary>
     /// The key to get the node id from the context data.
     /// </summary>
     public const string NodeId = "HotChocolate.Relay.Node.Id";
@@ -299,4 +304,9 @@ public static class WellKnownContextData
     /// Type key to access the object type configuration hooks in the schema builder context data.
     /// </summary>
     public const string ObjectTypeConfigurations = "HotChocolate.Types.ObjectTypeConfigurations";
+
+    /// <summary>
+    /// Type key to access the node id result formatter on the descriptor context.
+    /// </summary>
+    public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
 }

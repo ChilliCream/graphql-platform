@@ -20,10 +20,10 @@ query AfterNull($after: String) {
     "appointments": {
       "nodes": [
         {
-          "id": "QXBwb2ludG1lbnQKaTE="
+          "id": "QXBwb2ludG1lbnQ6MQ=="
         },
         {
-          "id": "QXBwb2ludG1lbnQKaTI="
+          "id": "QXBwb2ludG1lbnQ6Mg=="
         }
       ]
     }

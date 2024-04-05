@@ -24,7 +24,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -47,7 +47,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: \"QmFyCmQxMjM=\") { id } }");
+            "{ nodes(ids: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -71,7 +71,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -94,7 +94,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+            "{ nodes(ids: [\"QmFyOjEyMw==\", \"QmFyOjEyMw==\"]) { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -141,7 +141,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -160,7 +160,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -179,7 +179,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -198,7 +198,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -217,7 +217,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -236,7 +236,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -255,7 +255,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -274,7 +274,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -293,7 +293,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();
@@ -312,7 +312,7 @@ public class NodeFieldSupportTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+            "{ node(id: \"QmFyOjEyMw==\") { id } }");
 
         // assert
         result.MatchSnapshot();

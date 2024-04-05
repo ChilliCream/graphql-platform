@@ -24,10 +24,10 @@ internal static class NodeFieldResolvers
     /// </summary>
     public static async ValueTask ResolveSingleNodeAsync(
         IMiddlewareContext context,
-        IIdSerializer serializer)
+        INodeIdSerializer serializer)
     {
         var nodeId = context.ArgumentLiteral<StringValueNode>(Id);
-        var deserializedId = serializer.Deserialize(nodeId.Value);
+        var deserializedId = serializer.Parse(nodeId.Value);
         var typeName = deserializedId.TypeName;
 
         // if the type has a registered node resolver we will execute it.
@@ -57,7 +57,7 @@ internal static class NodeFieldResolvers
     /// </summary>
     public static async ValueTask ResolveManyNodeAsync(
         IMiddlewareContext context,
-        IIdSerializer serializer,
+        INodeIdSerializer serializer,
         int maxAllowedNodes)
     {
         var schema = context.Schema;
@@ -86,7 +86,7 @@ internal static class NodeFieldResolvers
                 ct.ThrowIfCancellationRequested();
 
                 var nodeId = (StringValueNode)list.Items[i];
-                var deserializedId = serializer.Deserialize(nodeId.Value);
+                var deserializedId = serializer.Parse(nodeId.Value);
                 var typeName = deserializedId.TypeName;
 
                 // if the type has a registered node resolver we will execute it.
@@ -152,7 +152,7 @@ internal static class NodeFieldResolvers
         {
             var result = new object?[1];
             var nodeId = context.ArgumentLiteral<StringValueNode>(Ids);
-            var deserializedId = serializer.Deserialize(nodeId.Value);
+            var deserializedId = serializer.Parse(nodeId.Value);
             var typeName = deserializedId.TypeName;
 
             // if the type has a registered node resolver we will execute it.
@@ -194,14 +194,14 @@ internal static class NodeFieldResolvers
     private static void SetLocalContext(
         IMiddlewareContext context,
         StringValueNode nodeId,
-        IdValue deserializedId,
+        NodeId deserializedId,
         ObjectType type)
     {
-        context.SetLocalState(NodeId, nodeId.Value);
-        context.SetLocalState(InternalId, deserializedId.Value);
+        context.SetLocalState(WellKnownContextData.NodeId, nodeId.Value);
+        context.SetLocalState(InternalId, deserializedId.InternalId);
         context.SetLocalState(InternalType, type);
         context.SetLocalState(InternalTypeName, type.Name);
-        context.SetLocalState(WellKnownContextData.IdValue, deserializedId);
+        context.SetLocalState(IdValue, deserializedId);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -147,14 +147,14 @@ public class IntegrationTests
 
         var result = await executor.ExecuteAsync(
             """
-            { 
-              node(id: "Rm9vCmRB") { 
+            {
+              node(id: "Rm9vOkE=") {
                 id
                 __typename
                 ... on Baz { fieldOfBaz }
                 ... on Foo { fieldOfFoo }
                 ... on Bar { fieldOfBar }
-              } 
+              }
             }
             """);
 
@@ -177,7 +177,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    node(id: "Rm9vCmRB") {
+                    node(id: "Rm9vOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -205,7 +205,7 @@ public class IntegrationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              node(id: "QmFyCmRB") {
+              node(id: "QmFyOkE=") {
                 id
                 __typename
                 ... on Baz { fieldOfBaz }
@@ -231,7 +231,7 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vCmRB"") { id __typename } }");
+        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vOkE="") { id __typename } }");
 
         result.MatchSnapshot();
     }
@@ -252,7 +252,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    nodes(ids: "Rm9vCmRB") {
+                    nodes(ids: "Rm9vOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -280,7 +280,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    nodes(ids: "QmFyCmRB") {
+                    nodes(ids: "QmFyOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -452,7 +452,7 @@ public class IntegrationTests
                         }
                     }
                     query {
-                        node(id: "QmFyCmRB") {
+                        node(id: "QmFyOkE=") {
                             id
                             __typename
                             ... on Baz { fieldOfBaz }

@@ -12,21 +12,25 @@ namespace HotChocolate.Types.Relay;
 
 internal class GlobalIdInputValueFormatter : IInputValueFormatter
 {
+    private readonly INodeIdSerializerAccessor _serializerAccessor;
     private readonly string _typeName;
-    private readonly IIdSerializer _idSerializer;
     private readonly bool _validateType;
     private readonly Func<IList> _createList;
+    private readonly Type _namedRuntimeType;
+    private INodeIdSerializer? _serializer;
 
     public GlobalIdInputValueFormatter(
         string typeName,
-        IIdSerializer idSerializer,
+        INodeIdSerializerAccessor serializerAccessor,
         IExtendedType resultType,
+        Type namedRuntimeType,
         bool validateType)
     {
         _typeName = typeName;
-        _idSerializer = idSerializer;
+        _serializerAccessor = serializerAccessor;
         _validateType = validateType;
         _createList = CreateListFactory(resultType);
+        _namedRuntimeType = namedRuntimeType;
     }
 
     public object? Format(object? runtimeValue)
@@ -36,38 +40,41 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
             return null;
         }
 
-        if (runtimeValue is IdValue id &&
+        _serializer ??= _serializerAccessor.Serializer;
+
+        if (runtimeValue is NodeId id &&
             (!_validateType || _typeName.EqualsOrdinal(id.TypeName)))
         {
-            return id.Value;
+            return id.InternalId;
         }
 
         if (runtimeValue is string s)
         {
             try
             {
-                id = _idSerializer.Deserialize(s);
-
+                id = _serializer.Parse(s, _namedRuntimeType);
                 if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
                 {
-                    return id.Value;
+                    return id.InternalId;
                 }
             }
-            catch
+            catch(Exception ex) when (ex is not GraphQLException)
             {
+                // todo : resources
                 throw new GraphQLException(
                     ErrorBuilder.New()
                         .SetMessage("The ID `{0}` has an invalid format.", s)
                         .Build());
             }
 
+            // todo : resources
             throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, _typeName)
                     .Build());
         }
 
-        if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
+        if (runtimeValue is IEnumerable<NodeId?> nullableIdEnumerable)
         {
             var list = _createList();
 
@@ -81,14 +88,14 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
 
                 if (!_validateType || _typeName.EqualsOrdinal(idv.Value.TypeName))
                 {
-                    list.Add(idv.Value.Value);
+                    list.Add(idv.Value.InternalId);
                 }
             }
 
             return list;
         }
 
-        if (runtimeValue is IEnumerable<IdValue> idEnumerable)
+        if (runtimeValue is IEnumerable<NodeId> idEnumerable)
         {
             var list = _createList();
 
@@ -96,7 +103,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
             {
                 if (!_validateType || _typeName.EqualsOrdinal(idv.TypeName))
                 {
-                    list.Add(idv.Value);
+                    list.Add(idv.InternalId);
                 }
             }
 
@@ -117,17 +124,17 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
                         continue;
                     }
 
-                    id = _idSerializer.Deserialize(sv);
+                    id = _serializer.Parse(sv, _namedRuntimeType);
 
                     if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
                     {
-                        list.Add(id.Value);
+                        list.Add(id.InternalId);
                     }
                 }
 
                 return list;
             }
-            catch
+            catch(Exception ex) when (ex is not GraphQLException)
             {
                 throw new GraphQLException(
                     ErrorBuilder.New()
@@ -144,6 +151,7 @@ internal class GlobalIdInputValueFormatter : IInputValueFormatter
                 .Build());
     }
 
+    // TODO : AOT once we have the new serializer in we should be able to get rid of this.
     private static Func<IList> CreateListFactory(IExtendedType resultType)
     {
         if (resultType.IsArrayOrList)
