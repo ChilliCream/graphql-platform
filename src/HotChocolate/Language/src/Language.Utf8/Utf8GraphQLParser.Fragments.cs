@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language;
 
 // Implements the parsing rules in the Fragments section.

@@ -1,38 +1,33 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination;
 
-public class MockExecutable<T> : IExecutable<T>
+public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
 {
-    private readonly IQueryable<T> _source;
-
-    public MockExecutable(IQueryable<T> source)
-    {
-        _source = source;
-    }
-
-    public object Source => _source;
+    public object Source => source;
 
     public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
-    {
-        return new(_source.ToList());
-    }
+        => new(source.ToList());
+
+    ValueTask<List<T>> IExecutable<T>.ToListAsync(CancellationToken cancellationToken)
+        => new(source.ToList());
 
     public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-    {
-        return new(_source.FirstOrDefault());
-    }
+        => new(source.FirstOrDefault());
+
+    ValueTask<T> IExecutable<T>.FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => new(source.FirstOrDefault());
 
     public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-    {
-        return new(_source.SingleOrDefault());
-    }
+        => new(source.SingleOrDefault());
+
+    ValueTask<T> IExecutable<T>.SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => new(source.SingleOrDefault());
 
     public string Print()
-    {
-        return _source.ToString()!;
-    }
+        => source.ToString()!;
 }

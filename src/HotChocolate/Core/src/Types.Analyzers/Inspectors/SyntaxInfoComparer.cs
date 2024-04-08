@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 internal sealed class SyntaxInfoComparer : IEqualityComparer<ISyntaxInfo>
