@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Threading;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;

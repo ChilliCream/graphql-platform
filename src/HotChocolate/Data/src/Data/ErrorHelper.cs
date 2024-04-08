@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;

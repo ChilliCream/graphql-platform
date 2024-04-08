@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using static HotChocolate.Language.Properties.Resources;
 
 namespace HotChocolate.Language.Utilities;

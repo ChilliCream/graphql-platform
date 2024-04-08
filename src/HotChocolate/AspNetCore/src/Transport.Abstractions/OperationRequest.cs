@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
-using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
 
 namespace HotChocolate.Transport;
 

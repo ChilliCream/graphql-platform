@@ -1,11 +1,7 @@
-using System;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters;
 

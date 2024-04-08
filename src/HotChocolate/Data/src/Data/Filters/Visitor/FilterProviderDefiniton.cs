@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Filters;
 
 public class FilterProviderDefinition

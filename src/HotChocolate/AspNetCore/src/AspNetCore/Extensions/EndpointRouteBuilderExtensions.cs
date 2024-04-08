@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Routing.Patterns;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
 using BananaCakePop.Middleware;
-using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.AspNetCore.Serialization;
 using static HotChocolate.AspNetCore.MiddlewareRoutingType;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 

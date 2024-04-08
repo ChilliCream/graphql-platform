@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 namespace HotChocolate.Language;
 
 public interface ISyntaxNodeVisitor<T>

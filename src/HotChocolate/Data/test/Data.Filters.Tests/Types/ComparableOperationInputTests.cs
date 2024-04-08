@@ -1,4 +1,3 @@
-using System;
 using CookieCrumble;
 using HotChocolate.Types;
 

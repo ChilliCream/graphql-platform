@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Utilities.ThrowHelper;
