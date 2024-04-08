@@ -3,26 +3,29 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
-public class MockExecutable<T> : IExecutable<T>
+public class MockExecutable<T>(IQueryable<T> set) : IExecutable<T>
     where T : class
 {
-    private readonly DbSet<T> _dbSet;
+    public object Source => set;
 
-    public MockExecutable(DbSet<T> dbSet)
-    {
-        _dbSet = dbSet;
-    }
+    async ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+        => await set.ToListAsync(cancellationToken);
 
-    public object Source => _dbSet;
+    public async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+        => await set.ToListAsync(cancellationToken);
 
-    public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
-        await _dbSet.ToListAsync(cancellationToken);
+    async ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.FirstOrDefaultAsync(cancellationToken);
 
-    public async ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken) =>
-        await _dbSet.FirstOrDefaultAsync(cancellationToken);
+    public async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.FirstOrDefaultAsync(cancellationToken);
 
-    public async ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken) =>
-        await _dbSet.SingleOrDefaultAsync(cancellationToken);
+    async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.SingleOrDefaultAsync(cancellationToken);
 
-    public string Print() => _dbSet.ToString()!;
+    public async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.SingleOrDefaultAsync(cancellationToken);
+
+
+    public string Print() => set.ToString()!;
 }
