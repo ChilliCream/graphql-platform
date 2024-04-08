@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 

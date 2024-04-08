@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Relay;
 /// <typeparam name="T">
 /// The type of the value that is being serialized.
 /// </typeparam>
-public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
+public abstract class CompositeNodeIdValueSerializer<T> : INodeIdValueSerializer
 {
     private const byte _partSeparator = (byte)':';
     private static readonly Encoding _utf8 = Encoding.UTF8;
@@ -376,7 +376,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryParseIdPart(
         ReadOnlySpan<byte> buffer,
-        [NotNullWhen(true)] out Guid? value,
+        out Guid value,
         out int consumed,
         bool compress = true)
     {
@@ -387,7 +387,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
         {
             if (valueSpan.Length != 16)
             {
-                value = null;
+                value = default;
                 consumed = 0;
                 return false;
             }
@@ -408,7 +408,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = null;
+        value = default;
         consumed = 0;
         return false;
     }
@@ -430,7 +430,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryParseIdPart(
         ReadOnlySpan<byte> buffer,
-        [NotNullWhen(true)] out short? value,
+        out short value,
         out int consumed)
     {
         var index = buffer.IndexOf(_partSeparator);
@@ -443,7 +443,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = null;
+        value = default;
         consumed = 0;
         return false;
     }
@@ -465,7 +465,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryParseIdPart(
         ReadOnlySpan<byte> buffer,
-        [NotNullWhen(true)] out int? value,
+        out int value,
         out int consumed)
     {
         var index = buffer.IndexOf(_partSeparator);
@@ -478,7 +478,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = null;
+        value = default;
         consumed = 0;
         return false;
     }
@@ -500,7 +500,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryParseIdPart(
         ReadOnlySpan<byte> buffer,
-        [NotNullWhen(true)] out long? value,
+        out long value,
         out int consumed)
     {
         var index = buffer.IndexOf(_partSeparator);
@@ -513,7 +513,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = null;
+        value = default;
         consumed = 0;
         return false;
     }
@@ -535,7 +535,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
     /// </returns>
     protected static bool TryParseIdPart(
         ReadOnlySpan<byte> buffer,
-        [NotNullWhen(true)] out bool? value,
+        out bool value,
         out int consumed)
     {
         var index = buffer.IndexOf(_partSeparator);
@@ -548,7 +548,7 @@ public abstract class CompositeNodeIdValueSerialize<T> : INodeIdValueSerializer
             return true;
         }
 
-        value = null;
+        value = default;
         consumed = 0;
         return false;
     }

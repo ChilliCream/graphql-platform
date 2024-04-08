@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
@@ -11,11 +8,9 @@ namespace HotChocolate.Data.Filters.Expressions;
 
 public static class FilterExpressionBuilder
 {
-    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates =
-        new();
+    private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedDelegates = new();
     private static readonly ConcurrentDictionary<Type, Expression> _cachedNullExpressions = new();
-    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)>
-        _cachedEnumerableDelegates = new();
+    private static readonly ConcurrentDictionary<Type, (MethodInfo, Func<object?, Expression>)> _cachedEnumerableDelegates = new();
 
     private static readonly MethodInfo _enumerableContains = typeof(Enumerable)
         .GetMethods(Public | Static)

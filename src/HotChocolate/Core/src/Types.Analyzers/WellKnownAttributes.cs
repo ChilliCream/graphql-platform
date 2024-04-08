@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownAttributes

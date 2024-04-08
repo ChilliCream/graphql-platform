@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 

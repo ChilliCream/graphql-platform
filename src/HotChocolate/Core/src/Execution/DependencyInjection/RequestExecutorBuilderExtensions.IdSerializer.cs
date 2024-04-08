@@ -68,6 +68,35 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Adds the legacy node id serializer to the schema.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder.
+    /// </param>
+    /// <param name="maxIdLength">
+    /// The maximum allowed length of a node id.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor builder.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <see langword="null"/>.
+    /// </exception>
+    public static IRequestExecutorBuilder AddLegacyNodeIdSerializer(
+        this IRequestExecutorBuilder builder,
+        int maxIdLength = 1024)
+    {
+        if (builder == null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.ConfigureSchemaServices(
+            services => services.TryAddSingleton<INodeIdSerializer, LegacyNodeIdSerializer>());
+        return builder;
+    }
+
+    /// <summary>
     /// Adds a custom node id value serializer to the schema.
     /// A value serializer is used to format a runtime value into a node id.
     /// </summary>

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Projections;
 using HotChocolate.Types.Descriptors;

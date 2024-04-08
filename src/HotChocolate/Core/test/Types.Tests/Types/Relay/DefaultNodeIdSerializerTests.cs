@@ -162,7 +162,7 @@ public class DefaultNodeIdSerializerTests
             [serializer]);
     }
 
-    private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerialize<CompositeId>
+    private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerializer<CompositeId>
     {
         protected override NodeIdFormatterResult Format(Span<byte> buffer, CompositeId value, out int written)
         {
@@ -182,11 +182,11 @@ public class DefaultNodeIdSerializerTests
         protected override bool TryParse(ReadOnlySpan<byte> buffer, out CompositeId value)
         {
             if(TryParseIdPart(buffer, out string a, out var ac) &&
-                TryParseIdPart(buffer.Slice(ac), out int? b, out var bc) &&
-                TryParseIdPart(buffer.Slice(ac + bc), out Guid? c, out var cc) &&
-                TryParseIdPart(buffer.Slice(ac + bc + cc), out bool? d, out _))
+                TryParseIdPart(buffer.Slice(ac), out int b, out var bc) &&
+                TryParseIdPart(buffer.Slice(ac + bc), out Guid c, out var cc) &&
+                TryParseIdPart(buffer.Slice(ac + bc + cc), out bool d, out _))
             {
-                value = new CompositeId(a, b.Value, c.Value, d.Value);
+                value = new CompositeId(a, b, c, d);
                 return true;
             }
 
