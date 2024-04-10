@@ -59,18 +59,6 @@ const SupportPage: FC = () => {
       checklist: ["Public Slack channel"],
     },
     {
-      title: "Starter",
-      price: "$2,500",
-      billed: "/year",
-      description: "For small teams experimenting on non-critical projects.",
-      action: {
-        message: "Contact Sales",
-        url: "mailto:contact@chillicream.com?subject=Starter Support",
-      },
-      scope: "Everything in Community, plus",
-      checklist: ["Up to 2 critical incidents", "Private Slack channel"],
-    },
-    {
       title: "Professional",
       price: "$5,000",
       billed: "/year",
