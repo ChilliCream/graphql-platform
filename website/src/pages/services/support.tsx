@@ -72,7 +72,6 @@ const SupportPage: FC = () => {
       checklist: [
         "Up to 5 critical incidents",
         "Up to 2 non-critical incidents",
-        "Private issue tracking board",
       ],
     },
     {
