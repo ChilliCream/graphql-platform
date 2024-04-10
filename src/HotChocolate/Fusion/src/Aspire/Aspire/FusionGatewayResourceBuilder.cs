@@ -1,3 +1,6 @@
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+
 namespace HotChocolate.Fusion.Aspire;
 
 public sealed class FusionGatewayResourceBuilder(
@@ -6,7 +9,7 @@ public sealed class FusionGatewayResourceBuilder(
 {
     public IResourceBuilder<FusionGatewayResource> WithAnnotation<TAnnotation>(
         TAnnotation annotation,
-        ResourceAnnotationMutationBehavior behavior = ResourceAnnotationMutationBehavior.Append) 
+        ResourceAnnotationMutationBehavior behavior = ResourceAnnotationMutationBehavior.Append)
         where TAnnotation : IResourceAnnotation
     {
         projectResourceBuilder.WithAnnotation(annotation, behavior);

@@ -27,7 +27,7 @@ public class Program
 
         var rabbitMq = builder
             .AddRabbitMQ("event-bus")
-            .WithEndpoint(containerPort: 58812, name: "management");
+            .WithEndpoint(port: 58812, name: "management");
 
         var catalogDb = postgres.AddDatabase("CatalogDB");
         var identityDb = postgres.AddDatabase("IdentityDB");
@@ -35,9 +35,8 @@ public class Program
 
         // APIs
         var identityApi = builder
-            .AddProject<Projects.eShop_Identity_API>("identity-api")
-            .WithReference(identityDb)
-            .WithLaunchProfile("https");
+            .AddProject<Projects.eShop_Identity_API>("identity-api", launchProfileName: "https")
+            .WithReference(identityDb);
 
         var identityHttpsEndpoint = identityApi.GetEndpoint("https");
 

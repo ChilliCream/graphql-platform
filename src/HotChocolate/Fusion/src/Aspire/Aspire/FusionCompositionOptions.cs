@@ -1,3 +1,5 @@
+using Aspire.Hosting.ApplicationModel;
+
 namespace HotChocolate.Fusion.Aspire;
 
 /// <summary>

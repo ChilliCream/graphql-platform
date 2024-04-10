@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire;
 
 namespace HotChocolate.Fusion.Composition;
