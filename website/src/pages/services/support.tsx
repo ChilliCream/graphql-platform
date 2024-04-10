@@ -171,9 +171,6 @@ const SupportPage: FC = () => {
                 <strong>Community</strong>
               </dd>
               <dd>
-                <strong>Starter</strong>
-              </dd>
-              <dd>
                 <strong>Professional</strong>
               </dd>
               <dd>
@@ -189,10 +186,6 @@ const SupportPage: FC = () => {
               </dt>
               <dd>
                 <NoneIcon />
-              </dd>
-              <dd>
-                <p>2</p>
-                <small>next business day</small>
               </dd>
               <dd>
                 <p>5</p>
@@ -211,9 +204,6 @@ const SupportPage: FC = () => {
               <dt>
                 <p>Non-critical incidents</p>
               </dt>
-              <dd>
-                <NoneIcon />
-              </dd>
               <dd>
                 <NoneIcon />
               </dd>
@@ -246,9 +236,6 @@ const SupportPage: FC = () => {
               <dd>
                 <CheckIcon />
               </dd>
-              <dd>
-                <CheckIcon />
-              </dd>
             </dl>
             <dl>
               <dt>
@@ -256,9 +243,6 @@ const SupportPage: FC = () => {
               </dt>
               <dd>
                 <NoneIcon />
-              </dd>
-              <dd>
-                <CheckIcon />
               </dd>
               <dd>
                 <CheckIcon />
@@ -286,17 +270,11 @@ const SupportPage: FC = () => {
               <dd>
                 <CheckIcon />
               </dd>
-              <dd>
-                <CheckIcon />
-              </dd>
             </dl>
             <dl>
               <dt>
                 <p>Email support</p>
               </dt>
-              <dd>
-                <NoneIcon />
-              </dd>
               <dd>
                 <NoneIcon />
               </dd>
@@ -324,9 +302,6 @@ const SupportPage: FC = () => {
                 <NoneIcon />
               </dd>
               <dd>
-                <NoneIcon />
-              </dd>
-              <dd>
                 <CheckIcon />
               </dd>
             </dl>
@@ -344,9 +319,6 @@ const SupportPage: FC = () => {
                 <NoneIcon />
               </dd>
               <dd>
-                <NoneIcon />
-              </dd>
-              <dd>
                 <CheckIcon />
               </dd>
             </dl>
@@ -354,9 +326,6 @@ const SupportPage: FC = () => {
               <dt>
                 <p>Status reviews</p>
               </dt>
-              <dd>
-                <NoneIcon />
-              </dd>
               <dd>
                 <NoneIcon />
               </dd>
