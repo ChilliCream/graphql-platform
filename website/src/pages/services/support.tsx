@@ -439,14 +439,14 @@ const FeatureMatrix = styled.div`
     align-self: center;
 
     & dl {
-      grid-template-columns: 20% repeat(5, 1fr);
+      grid-template-columns: 25% repeat(4, 1fr);
     }
   }
 
   & dl {
     margin: 0 -0.5em;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     min-width: 960px;
     min-height: 2.5em;
     background-color: ${THEME_COLORS.background};
