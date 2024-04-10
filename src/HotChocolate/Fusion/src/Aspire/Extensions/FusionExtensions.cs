@@ -1,3 +1,4 @@
+using Aspire.Hosting.ApplicationModel;
 using HotChocolate.Fusion.Aspire;
 using HotChocolate.Fusion.Composition;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,7 @@ public static class FusionExtensions
         this IResourceBuilder<FusionGatewayResource> builder,
         EndpointReference subgraphEndpoint)
     {
-        if (subgraphEndpoint.Owner is ProjectResource subgraphProject)
+        if (subgraphEndpoint.Resource is ProjectResource subgraphProject)
         {
             var subgraph = new SubgraphInfo(
                 subgraphProject.Name,

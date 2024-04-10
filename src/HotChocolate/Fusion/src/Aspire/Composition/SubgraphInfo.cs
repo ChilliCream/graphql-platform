@@ -1,3 +1,5 @@
+using Aspire.Hosting;
+
 namespace HotChocolate.Fusion.Composition;
 
 public sealed class SubgraphInfo(string name, string path)

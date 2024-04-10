@@ -1,3 +1,6 @@
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+
 namespace HotChocolate.Fusion.Aspire;
 
 public sealed class FusionGatewayResource(ProjectResource projectResource)
