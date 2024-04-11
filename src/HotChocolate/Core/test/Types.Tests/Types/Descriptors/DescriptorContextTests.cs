@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
-using Xunit;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -57,7 +56,7 @@ public class DescriptorContextTests
         // act
         var context = DescriptorContext.Create(
             options,
-            new EmptyServiceProvider(),
+            EmptyServiceProvider.Instance,
             conventions,
             new Dictionary<string, object>(),
             new SchemaBuilder.LazySchema(),
@@ -106,10 +105,5 @@ public class DescriptorContextTests
         Assert.NotNull(context.Options);
         Assert.NotNull(context.Naming);
         Assert.NotNull(context.TypeInspector);
-    }
-
-    private sealed class Convention : Descriptors.Convention
-    {
-        public static Convention Default { get; } = new();
     }
 }

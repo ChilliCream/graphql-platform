@@ -14,16 +14,6 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
     /// </summary>
-    public UtcOffsetType()
-        : this(
-            WellKnownScalarTypes.UtcOffset,
-            ScalarResources.UtcOffsetType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
-    /// </summary>
     public UtcOffsetType(
         string name,
         string? description = null,
@@ -31,6 +21,17 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UtcOffsetType()
+        : this(
+            WellKnownScalarTypes.UtcOffset,
+            ScalarResources.UtcOffsetType_Description)
+    {
     }
 
     /// <inheritdoc />

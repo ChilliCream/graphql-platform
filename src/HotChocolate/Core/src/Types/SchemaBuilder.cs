@@ -7,8 +7,10 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -385,7 +387,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(services));
         }
 
-        _services = _services is null ? services : _services.Include(services);
+        _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
         return this;
     }
@@ -451,4 +453,24 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// Returns a new instance of <see cref="SchemaBuilder"/>.
     /// </returns>
     public static SchemaBuilder New() => new();
+
+    private sealed class CopyOptions : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+        {
+            if (definition is SchemaTypeDefinition schemaDef)
+            {
+                var key = typeof(PagingOptions).FullName!;
+
+                if (completionContext.DescriptorContext.ContextData.TryGetValue(key, out var value))
+                {
+                    schemaDef.ContextData[key] = value;
+                }
+                else
+                {
+                    schemaDef.ContextData[key] = new PagingOptions();
+                }
+            }
+        }
+    }
 }

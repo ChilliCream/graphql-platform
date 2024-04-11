@@ -5,7 +5,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Readers;
 using static HotChocolate.OpenApi.Properties.OpenApiResources;
 using IField = HotChocolate.Skimmed.IField;

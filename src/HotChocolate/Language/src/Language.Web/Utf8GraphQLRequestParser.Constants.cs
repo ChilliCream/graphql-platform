@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLRequestParser

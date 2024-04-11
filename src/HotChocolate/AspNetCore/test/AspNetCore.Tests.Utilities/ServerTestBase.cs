@@ -1,5 +1,4 @@
 using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
@@ -96,6 +95,10 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .UseEndpoints(
                     endpoints =>
                     {
+#if NET8_0_OR_GREATER
+                        endpoints.MapGraphQLPersistedOperations();
+#endif
+                        
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions
                             {

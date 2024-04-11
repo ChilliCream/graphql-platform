@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -9,7 +8,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
-using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 
@@ -46,7 +44,6 @@ public static class FieldInitHelper
                     argumentCoordinate)
                 .SetCode(ErrorCodes.Schema.MissingType)
                 .SetTypeSystemObject(context.Type)
-                .AddSyntaxNode(argumentDefinition.SyntaxNode)
                 .SetException(ex)
                 .Build());
             return NullValueNode.Default;
@@ -58,7 +55,7 @@ public static class FieldInitHelper
         ITypeSystemMember declaringMember,
         IReadOnlyList<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory)
-        where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
+        where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
         if (context is null)
@@ -95,7 +92,7 @@ public static class FieldInitHelper
         IEnumerable<TFieldDefinition> fieldDefs,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int maxFieldCount)
-        where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
+        where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
         if (context is null)
@@ -115,7 +112,7 @@ public static class FieldInitHelper
 
         if (fieldFactory is null)
         {
-            throw new ArgumentNullException(nameof(fieldDefs));
+            throw new ArgumentNullException(nameof(fieldFactory));
         }
 
         if (maxFieldCount < 1)
@@ -164,7 +161,7 @@ public static class FieldInitHelper
         IEnumerable<TFieldDefinition> fieldDefinitions,
         Func<TFieldDefinition, int, TField> fieldFactory,
         int fieldCount)
-        where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
+        where TFieldDefinition : FieldDefinitionBase
         where TField : class, IField
     {
         var fieldDefs = fieldDefinitions.Where(t => !t.Ignore);

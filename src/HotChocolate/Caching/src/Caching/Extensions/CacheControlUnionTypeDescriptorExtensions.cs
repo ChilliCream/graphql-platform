@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Caching;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types;
 

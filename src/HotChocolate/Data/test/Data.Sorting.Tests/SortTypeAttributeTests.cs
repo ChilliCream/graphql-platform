@@ -1,8 +1,6 @@
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 using static HotChocolate.Data.Sorting.SortTypeAttributeTests.GenericTypeSortAttribute;
 
 namespace HotChocolate.Data.Sorting;

@@ -144,7 +144,13 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = new ByteArrayContent(Array.Empty<byte>())
             {
-                Headers = { ContentType = new("application/json") { CharSet = "utf-8", }, },
+                Headers =
+                {
+                    ContentType = new("application/json")
+                    {
+                        CharSet = "utf-8",
+                    },
+                },
             },
         };
         AddAcceptHeader(request, acceptHeader);
@@ -162,7 +168,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: {expectedStatusCode}
                 -------------------------->
                 " +
-                @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0012""}}]}");
+                @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
     }
 
     [Theory]

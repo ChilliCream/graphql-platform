@@ -1,4 +1,3 @@
-using System.Linq;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -13,15 +12,13 @@ namespace HotChocolate.Types;
 
 internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 {
-    private readonly HashSet<Type> _handled = [];
-    private readonly List<ErrorDefinition> _tempErrors = [];
+    private readonly ErrorTypeHelper _errorTypeHelper = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
     private ITypeCompletionContext _completionContext = default!;
-    private ExtendedTypeReference? _errorInterfaceTypeRef;
     private ObjectTypeDefinition? _mutationTypeDef;
     private FieldMiddlewareDefinition? _errorNullMiddleware;
     private TypeInterceptor[] _siblings = Array.Empty<TypeInterceptor>();
@@ -37,6 +34,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         _typeInitializer = typeInitializer;
         _typeRegistry = typeRegistry;
         _typeLookup = typeLookup;
+        _errorTypeHelper.InitializerErrorTypeInterface(_context);
     }
 
     internal override bool IsMutationAggregator(IDescriptorContext context) => true;
@@ -66,13 +64,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         DefinitionBase definition)
     {
-        // first we need to get a handle on the error interface.
-        _errorInterfaceTypeRef ??= CreateErrorTypeRef(discoveryContext);
-
         // we will use the error interface and implement it with each error type.
         if (definition is ObjectTypeDefinition objectTypeDef)
         {
-            TryAddErrorInterface(objectTypeDef, _errorInterfaceTypeRef);
+            TryAddErrorInterface(objectTypeDef, _errorTypeHelper.ErrorTypeInterfaceRef);
         }
     }
 
@@ -155,7 +150,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 await next(context).ConfigureAwait(false);
 
-                if (context.Result is IMutationResult result)
+                if (context.Result is IFieldResult result)
                 {
                     // by checking if it is not an error we can accept the default
                     // value of the struct as null.
@@ -166,13 +161,13 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     else
                     {
                         context.SetScopedState(Errors, result.Value);
-                        context.Result = MarkerObjects.ErrorObject;
+                        context.Result = ErrorMarker.Instance;
                     }
                 }
 
                 // we will replace null with our null marker object so
                 // that
-                context.Result ??= MarkerObjects.Null;
+                context.Result ??= NullMarker.Instance;
             },
             isRepeatable: false,
             key: MutationResult);
@@ -182,7 +177,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private void TryApplyInputConvention(
         IResolverCompiler resolverCompiler,
-        ObjectFieldDefinition mutation, 
+        ObjectFieldDefinition mutation,
         Options options)
     {
         if (mutation.Arguments.Count is 0)
@@ -208,7 +203,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     mutation.SourceType,
                     mutation.ResolverType,
                     argumentNameMap);
-            
+
             TypeMemHelper.Return(argumentNameMap);
         }
 
@@ -250,7 +245,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                         argumentType,
                         Path.Root);
             }
-            
+
             resolverArguments.Add(
                 new ResolverArgument(
                     argument.Name,
@@ -291,36 +286,38 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         // before starting to build the payload type we first will look for error definitions
         // an the mutation.
-        var errorDefinitions = GetErrorDefinitions(mutation);
+        var errorDefinitions = _errorTypeHelper.GetErrorDefinitions(mutation);
         FieldDef? errorField = null;
         var errorInterfaceIsRegistered = false;
+        var errorInterfaceTypeRef = _errorTypeHelper.ErrorTypeInterfaceRef;
 
         foreach (var errorDef in errorDefinitions)
         {
             var obj = TryRegisterType(errorDef.SchemaType);
             if (obj is not null)
             {
+                var errorTypeRef = Create(obj.Type);
                 _typeRegistry.Register(obj);
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.SchemaType),
-                    Create(obj.Type));
+                    errorTypeRef);
                 _typeRegistry.TryRegister(
                     _context.TypeInspector.GetOutputTypeRef(errorDef.RuntimeType),
-                    Create(obj.Type));
-                ((ObjectType)obj.Type).Definition!.Interfaces.Add(_errorInterfaceTypeRef!);
+                    errorTypeRef);
+                ((ObjectType)obj.Type).Definition!.Interfaces.Add(errorInterfaceTypeRef);
             }
 
-            if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(_errorInterfaceTypeRef!, out _))
+            if (!errorInterfaceIsRegistered && _typeRegistry.TryGetTypeRef(errorInterfaceTypeRef, out _))
             {
                 continue;
             }
 
-            var err = TryRegisterType(_errorInterfaceTypeRef!.Type.Type);
+            var err = TryRegisterType(errorInterfaceTypeRef.Type.Type);
             if (err is not null)
             {
-                err.References.Add(_errorInterfaceTypeRef);
+                err.References.Add(errorInterfaceTypeRef);
                 _typeRegistry.Register(err);
-                _typeRegistry.TryRegister(_errorInterfaceTypeRef!, Create(err.Type));
+                _typeRegistry.TryRegister(errorInterfaceTypeRef, Create(err.Type));
             }
             errorInterfaceIsRegistered = true;
         }
@@ -499,8 +496,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 var parent = ctx.Parent<object?>();
 
-                if (ReferenceEquals(MarkerObjects.ErrorObject, parent) ||
-                    ReferenceEquals(MarkerObjects.Null, parent))
+                if (ReferenceEquals(ErrorMarker.Instance, parent) ||
+                    ReferenceEquals(NullMarker.Instance, parent))
                 {
                     return null;
                 }
@@ -542,25 +539,6 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         return UnionType.CreateUnsafe(unionDef);
     }
 
-    private static ExtendedTypeReference CreateErrorTypeRef(ITypeDiscoveryContext context)
-        => CreateErrorTypeRef(context.DescriptorContext);
-
-    private static ExtendedTypeReference CreateErrorTypeRef(IDescriptorContext context)
-    {
-        var errorInterfaceType =
-            context.ContextData.TryGetValue(ErrorType, out var value) &&
-            value is Type type
-                ? type
-                : typeof(ErrorInterfaceType);
-
-        if (!context.TypeInspector.IsSchemaType(errorInterfaceType))
-        {
-            errorInterfaceType = typeof(InterfaceType<>).MakeGenericType(errorInterfaceType);
-        }
-
-        return context.TypeInspector.GetOutputTypeRef(errorInterfaceType);
-    }
-
     private static void TryAddErrorInterface(
         ObjectTypeDefinition objectTypeDef,
         TypeReference errorInterfaceTypeRef)
@@ -571,115 +549,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
     }
 
-    private IReadOnlyList<ErrorDefinition> GetErrorDefinitions(
-        ObjectFieldDefinition mutation)
-    {
-        var errorTypes = GetErrorResultTypes(mutation);
-
-        if (mutation.ContextData.TryGetValue(ErrorDefinitions, out var value) &&
-            value is IReadOnlyList<ErrorDefinition> errorDefs)
-        {
-            if (errorTypes.Length == 0)
-            {
-                return errorDefs;
-            }
-
-            _handled.Clear();
-            _tempErrors.Clear();
-
-            foreach (var errorDef in errorDefs)
-            {
-                _handled.Add(errorDef.RuntimeType);
-                _tempErrors.Add(errorDef);
-            }
-
-            CreateErrorDefinitions(errorTypes, _handled, _tempErrors);
-
-            return _tempErrors.ToArray();
-        }
-
-        if (errorTypes.Length > 0)
-        {
-            _handled.Clear();
-            _tempErrors.Clear();
-
-            CreateErrorDefinitions(errorTypes, _handled, _tempErrors);
-
-            return _tempErrors.ToArray();
-        }
-
-        return Array.Empty<ErrorDefinition>();
-
-        // ReSharper disable once VariableHidesOuterVariable
-        static void CreateErrorDefinitions(
-            Type[] errorTypes,
-            HashSet<Type> handled,
-            List<ErrorDefinition> tempErrors)
-        {
-            foreach (var errorType in errorTypes)
-            {
-                if (handled.Add(errorType))
-                {
-                    if (typeof(Exception).IsAssignableFrom(errorType))
-                    {
-                        var schemaType = typeof(ExceptionObjectType<>).MakeGenericType(errorType);
-                        var definition = new ErrorDefinition(
-                            errorType,
-                            schemaType,
-                            ex => ex.GetType() == errorType
-                                ? ex
-                                : null);
-                        tempErrors.Add(definition);
-                    }
-                    else
-                    {
-                        var schemaType = typeof(ErrorObjectType<>).MakeGenericType(errorType);
-                        var definition = new ErrorDefinition(
-                            errorType,
-                            schemaType,
-                            obj => obj);
-                        tempErrors.Add(definition);
-                    }
-                }
-            }
-        }
-    }
-
-    private static Type[] GetErrorResultTypes(ObjectFieldDefinition mutation)
-    {
-        var resultType = mutation.ResultType;
-
-        if (resultType?.IsGenericType ?? false)
-        {
-            var typeDefinition = resultType.GetGenericTypeDefinition();
-
-            if (typeDefinition == typeof(Task<>) || typeDefinition == typeof(ValueTask<>))
-            {
-                resultType = resultType.GenericTypeArguments[0];
-            }
-        }
-
-
-        if (resultType is { IsValueType: true, IsGenericType: true, } &&
-            typeof(IMutationResult).IsAssignableFrom(resultType))
-        {
-            var types = resultType.GenericTypeArguments;
-
-            if (types.Length > 1)
-            {
-                var errorTypes = new Type[types.Length - 1];
-
-                for (var i = 1; i < types.Length; i++)
-                {
-                    errorTypes[i - 1] = types[i];
-                }
-
-                return errorTypes;
-            }
-        }
-
-        return Array.Empty<Type>();
-    }
+    
 
     private static Options CreateOptions(
         IDictionary<string, object?> contextData)
@@ -838,7 +708,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private static TypeReference NormalizeTypeRef(TypeReference typeRef)
     {
         if (typeRef is ExtendedTypeReference { Type.IsGeneric: true, } extendedTypeRef &&
-            typeof(IMutationResult).IsAssignableFrom(extendedTypeRef.Type.Type))
+            typeof(IFieldResult).IsAssignableFrom(extendedTypeRef.Type.Type))
         {
             return extendedTypeRef.WithType(extendedTypeRef.Type.TypeArguments[0]);
         }

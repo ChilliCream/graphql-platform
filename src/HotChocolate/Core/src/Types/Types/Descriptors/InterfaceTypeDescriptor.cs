@@ -58,6 +58,8 @@ public class InterfaceTypeDescriptor
     protected override void OnCreateDefinition(
         InterfaceTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -82,19 +84,14 @@ public class InterfaceTypeDescriptor
         Definition.Fields.AddRange(fields.Values);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteFields(
         IDictionary<string, InterfaceFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     {
-    }
-
-    public IInterfaceTypeDescriptor SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition)
-    {
-        Definition.SyntaxNode = interfaceTypeDefinition;
-        return this;
     }
 
     public IInterfaceTypeDescriptor Name(string value)

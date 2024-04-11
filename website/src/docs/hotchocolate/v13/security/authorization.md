@@ -339,6 +339,7 @@ public class MinimumAgeHandler
     }
 }
 ```
+
 # Allow Anonymous Access
 
 In some scenarios, you may want to allow anonymous access to certain fields or actions in your GraphQL schema, bypassing any authentication or authorization that may be in place. This is achieved using the `AllowAnonymous` attribute. This attribute effectively ignores any other authorization attributes present on the field, allowing unauthenticated or anonymous access.

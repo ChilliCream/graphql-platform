@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using static HotChocolate.Types.Spatial.GeoJsonGeometryType;
 using static HotChocolate.Types.Spatial.ThrowHelper;

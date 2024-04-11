@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-
 namespace StrawberryShake.Tools;
 
 public interface IHttpClientFactory

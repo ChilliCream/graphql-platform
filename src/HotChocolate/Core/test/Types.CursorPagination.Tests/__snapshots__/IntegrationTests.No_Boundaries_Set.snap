@@ -1,7 +1,13 @@
 ﻿{
   "errors": [
     {
-      "message": "You must provide a \u0060first\u0060 or \u0060last\u0060 value to properly paginate the \u0060LettersConnection\u0060.",
+      "message": "You must provide a `first` or `last` value to properly paginate the `LettersConnection`.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 21
+        }
+      ],
       "path": [
         "letters"
       ],

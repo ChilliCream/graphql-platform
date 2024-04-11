@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;

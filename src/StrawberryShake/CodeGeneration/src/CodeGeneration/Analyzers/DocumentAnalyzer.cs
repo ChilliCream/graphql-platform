@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
-using StrawberryShake.CodeGeneration.Utilities;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;

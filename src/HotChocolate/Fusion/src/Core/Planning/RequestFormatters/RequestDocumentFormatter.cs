@@ -576,7 +576,7 @@ internal abstract class RequestDocumentFormatter
         }
     }
 
-    private class VariableVisitorContext : ISyntaxVisitorContext
+    private sealed class VariableVisitorContext
     {
         public HashSet<VariableNode> VariableNodes { get; } = new(SyntaxComparer.BySyntax);
     }

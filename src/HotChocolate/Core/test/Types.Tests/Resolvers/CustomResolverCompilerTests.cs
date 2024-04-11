@@ -5,9 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
-using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -15,83 +13,6 @@ namespace HotChocolate.Resolvers;
 
 public class CustomResolverCompilerTests
 {
-    [Fact]
-    public async Task AddDefaultService()
-    {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddSingleton<SayHelloService>()
-            .AddGraphQL()
-            .AddQueryType<QueryWellKnownService>()
-            .RegisterService<SayHelloService>()
-            .ExecuteRequestAsync("{ sayHello }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AddPooledService()
-    {
-        Snapshot.FullName();
-
-        var pooledService = new SayHelloServicePool();
-
-        await new ServiceCollection()
-            .AddSingleton<ObjectPool<SayHelloService>>(pooledService)
-            .AddGraphQL()
-            .AddQueryType<QueryWellKnownService>()
-            .RegisterService<SayHelloService>(ServiceKind.Pooled)
-            .ExecuteRequestAsync("{ sayHello }")
-            .MatchSnapshotAsync();
-
-        Assert.True(pooledService.GetService);
-        Assert.True(pooledService.ReturnService);
-    }
-
-    [Fact]
-    public async Task AddSynchronizedService()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton<SayHelloService>()
-                .AddGraphQL()
-                .AddQueryType<QueryWellKnownService>()
-                .RegisterService<SayHelloService>(ServiceKind.Synchronized)
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
-
-        Assert.False(executor.Schema.QueryType.Fields["sayHello"].IsParallelExecutable);
-
-        await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AddResolverService()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton<SayHelloService>()
-                .AddGraphQL()
-                .AddQueryType<QueryWellKnownService>()
-                .RegisterService<SayHelloService>(ServiceKind.Resolver)
-                .MapField(
-                    new FieldReference("Query", "sayHello"),
-                    next => async context =>
-                    {
-                        await next(context);
-                        Assert.True(
-                            context.LocalContextData.ContainsKey(
-                                WellKnownMiddleware.ResolverServiceScope));
-                    })
-                .BuildRequestExecutorAsync();
-
-        await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
-    }
-
     [Fact]
     public async Task AddWellKnownState_New()
     {
@@ -130,14 +51,9 @@ public class CustomResolverCompilerTests
             => service.SayHello();
     }
 
-    public class SayHelloState
+    public class SayHelloState(string greetings)
     {
-        public SayHelloState(string greetings)
-        {
-            Greetings = greetings;
-        }
-
-        public string Greetings { get; }
+        public string Greetings { get; } = greetings;
     }
 
     public class QueryWellKnownState

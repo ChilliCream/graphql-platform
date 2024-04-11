@@ -17,6 +17,8 @@ type Query {
   authorById(id: ID!): Author
     @variable(subgraph: "Reviews", name: "id", argument: "id")
     @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
   productById(id: ID!): Product
     @variable(subgraph: "Reviews", name: "id", argument: "id")
     @resolver(subgraph: "Reviews", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -175,8 +177,10 @@ type UploadProductPicturePayload {
 type User implements Node
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
+    @source(subgraph: "Accounts")
+  errorField: String
     @source(subgraph: "Accounts")
   id: ID!
     @source(subgraph: "Accounts")

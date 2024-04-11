@@ -31,25 +31,21 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-public sealed class ProvidesAttribute : ObjectFieldDescriptorAttribute
+/// <remarks>
+/// Initializes a new instance of <see cref="ProvidesAttribute"/>.
+/// </remarks>
+/// <param name="fieldSet">
+/// Gets the fields that is guaranteed to be selectable by the gateway.
+/// Grammatically, a field set is a selection set minus the braces.
+/// </param>
+public sealed class ProvidesAttribute(string fieldSet) : ObjectFieldDescriptorAttribute
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="ProvidesAttribute"/>.
-    /// </summary>
-    /// <param name="fieldSet">
-    /// Gets the fields that is guaranteed to be selectable by the gateway.
-    /// Grammatically, a field set is a selection set minus the braces.
-    /// </param>
-    public ProvidesAttribute(string fieldSet)
-    {
-        FieldSet = fieldSet;
-    }
 
     /// <summary>
     /// Gets the fields that are guaranteed to be selectable by the gateway.
     /// Grammatically, a field set is a selection set minus the braces.
     /// </summary>
-    public string FieldSet { get; }
+    public string FieldSet { get; } = fieldSet;
 
     protected override void OnConfigure(
         IDescriptorContext context,

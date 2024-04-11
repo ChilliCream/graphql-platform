@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Language;
 
 public partial class SyntaxVisitor<TStart, TContext>

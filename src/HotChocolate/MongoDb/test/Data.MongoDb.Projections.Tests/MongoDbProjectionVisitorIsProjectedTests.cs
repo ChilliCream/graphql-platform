@@ -5,27 +5,30 @@ using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 
-public class MongoDbProjectionVisitorIsProjectedTests
+public class MongoDbProjectionVisitorIsProjectedTests(MongoResource resource) 
     : IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
-        new() { IsProjectedTrue = true, IsProjectedFalse = false, },
+        new Foo
+        {
+            IsProjectedTrue = true, 
+            IsProjectedFalse = false,
+        },
+        new Foo
+        {
+            IsProjectedTrue = true, 
+            IsProjectedFalse = false,
+        },
     ];
 
     private static readonly Bar[] _barEntities =
     [
-        new() { IsProjectedFalse = false, },
-        new() { IsProjectedFalse = false, },
+        new Bar { IsProjectedFalse = false, },
+        new Bar { IsProjectedFalse = false, },
     ];
 
-    private readonly SchemaCache _cache;
-
-    public MongoDbProjectionVisitorIsProjectedTests(MongoResource resource)
-    {
-        _cache = new SchemaCache(resource);
-    }
+    private readonly SchemaCache _cache = new(resource);
 
     [Fact]
     public async Task IsProjected_Should_NotBeProjectedWhenSelected_When_FalseWithOneProps()
@@ -92,14 +95,18 @@ public class MongoDbProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            """
+            {
+              root {
+                isProjectedFalse 
+              }
+            }
+            """);
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(res1)
             .MatchAsync();
     }
 

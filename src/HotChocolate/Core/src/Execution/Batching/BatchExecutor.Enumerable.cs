@@ -18,7 +18,7 @@ internal partial class BatchExecutor
     private sealed class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
     {
         private readonly IReadOnlyList<IQueryRequest> _requestBatch;
-        private readonly IRequestExecutor _requestExecutor;
+        private readonly RequestExecutor _requestExecutor;
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConverter _typeConverter;
         private readonly InputFormatter _inputFormatter;
@@ -30,7 +30,7 @@ internal partial class BatchExecutor
 
         public BatchExecutorEnumerable(
             IReadOnlyList<IQueryRequest> requestBatch,
-            IRequestExecutor requestExecutor,
+            RequestExecutor requestExecutor,
             IErrorHandler errorHandler,
             ITypeConverter typeConverter,
             InputFormatter inputFormatter)
@@ -86,16 +86,12 @@ internal partial class BatchExecutor
                     _visitationMap.Initialize(_fragments);
                 }
 
-                operation.Accept(
-                    _visitor,
-                    _visitationMap,
-                    _ => VisitorAction.Continue);
+                operation.Accept(_visitor, _visitationMap, _ => VisitorAction.Continue);
 
                 _previous = document;
                 document = RewriteDocument(operation);
                 operation = (OperationDefinitionNode)document.Definitions[0];
-                var variableValues =
-                    MergeVariables(request.VariableValues, operation);
+                var variableValues = MergeVariables(request.VariableValues, operation);
 
                 request = QueryRequestBuilder.From(request)
                     .SetQuery(document)
@@ -105,9 +101,10 @@ internal partial class BatchExecutor
                     .SetQueryHash(null)
                     .Create();
 
-                return (IQueryResult)await _requestExecutor.ExecuteAsync(
-                    request, cancellationToken)
+                var result = await _requestExecutor
+                    .ExecuteAsync(request, false, cancellationToken)
                     .ConfigureAwait(false);
+                return result.ExpectQueryResult();
             }
             catch (GraphQLException ex)
             {

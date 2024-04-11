@@ -1,17 +1,10 @@
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections;
 
-internal sealed class ProjectionOptimizer : ISelectionSetOptimizer
+internal sealed class ProjectionOptimizer(IProjectionProvider provider) 
+    : ISelectionSetOptimizer
 {
-    private readonly IProjectionProvider _provider;
-
-    public ProjectionOptimizer(IProjectionProvider provider)
-    {
-        _provider = provider;
-    }
-
     public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
     {
         var processedSelections = new HashSet<string>();
@@ -22,7 +15,7 @@ internal sealed class ProjectionOptimizer : ISelectionSetOptimizer
             foreach (var responseName in selectionToProcess)
             {
                 var rewrittenSelection =
-                    _provider.RewriteSelection(
+                    provider.RewriteSelection(
                         context,
                         context.Selections[responseName]);
 

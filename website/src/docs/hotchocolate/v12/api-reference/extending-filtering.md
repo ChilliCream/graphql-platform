@@ -93,7 +93,7 @@ conventionDescriptor
     .Name("equals")
     .Description("Compares the value of the input to the value of the field");
 ```
-  
+
 With this configuration, all equals operations are now no longer names `eq` but `equals` and have a description.
 
 If you want to create your own operations, you have to choose an identifier.
@@ -147,7 +147,7 @@ conventionDescriptor.Provider<CustomProvider>();
 ## Custom Conventions
 
 Most of the time the descriptor API should satisfy your needs.
-It is recommended to build extensions based on the descriptor API rather than creating a custom convention. 
+It is recommended to build extensions based on the descriptor API rather than creating a custom convention.
 However, if you want to have full control over naming and type creation, you can also override the methods
 you need on the `FilterConvention`.
 
@@ -346,7 +346,7 @@ The following example creates a `StringOperationHandler` that supports case inse
 ```csharp
 // The QueryableStringOperationHandler already has an implementation of CanHandle
 // It checks if the field is declared in a string operation type and also checks if
-// the operation of this field uses the `Operation` specified in the override property 
+// the operation of this field uses the `Operation` specified in the override property
 // further below
 public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHandler
 {

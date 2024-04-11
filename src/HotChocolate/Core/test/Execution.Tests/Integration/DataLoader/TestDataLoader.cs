@@ -1,18 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using GreenDonut;
+﻿using GreenDonut;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 
-public class TestDataLoader : BatchDataLoader<string, string>, ITestDataLoader
+public class TestDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+    : BatchDataLoader<string, string>(batchScheduler, options), ITestDataLoader
 {
-    public TestDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
-        : base(batchScheduler, options)
-    {
-    }
-
     public List<IReadOnlyList<string>> Loads { get; } = [];
 
     protected override async Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(

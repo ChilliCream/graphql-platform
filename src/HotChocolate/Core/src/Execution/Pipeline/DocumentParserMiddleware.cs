@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -12,9 +13,8 @@ internal sealed class DocumentParserMiddleware
     private readonly IDocumentHashProvider _documentHashProvider;
     private readonly ParserOptions _parserOptions;
 
-    public DocumentParserMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
+    private DocumentParserMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         IDocumentHashProvider documentHashProvider,
         ParserOptions parserOptions)
     {
@@ -96,4 +96,21 @@ internal sealed class DocumentParserMiddleware
     {
         return documentHash ?? queryHash ?? _documentHashProvider.ComputeHash(query.AsSpan());
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+            var parserOptions = core.Services.GetRequiredService<ParserOptions>();
+            var middleware = Create(next, diagnosticEvents, documentHashProvider, parserOptions);
+            return context => middleware.InvokeAsync(context);
+        };
+
+    internal static DocumentParserMiddleware Create(
+        RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentHashProvider documentHashProvider,
+        ParserOptions parserOptions)
+        => new(next, diagnosticEvents, documentHashProvider, parserOptions);
 }

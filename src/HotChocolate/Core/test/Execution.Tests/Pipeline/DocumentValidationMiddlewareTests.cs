@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Validation;
@@ -26,7 +22,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
@@ -68,7 +64,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
@@ -111,7 +107,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
@@ -155,7 +151,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(validationResult));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => throw new Exception("Should not be called."),
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
@@ -198,7 +194,7 @@ public class DocumentValidationMiddlewareTests
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => throw new Exception("Should not be called."),
             new NoopExecutionDiagnosticEvents(),
             validator.Object);

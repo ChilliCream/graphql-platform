@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;

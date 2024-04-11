@@ -36,6 +36,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0'">
     <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
+    <ProjectReference Include="..\..\..\HotChocolate\Skimmed\src\Skimmed\Skimmed.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate;
 
 public class OptionalTests
@@ -188,5 +186,17 @@ public class OptionalTests
 
         Assert.False(fromEmptyOptional.HasValue);
         Assert.True(fromEmptyOptional.IsEmpty);
+    }
+
+    [Fact]
+    public void Optional_From_DefaultValueAttribute_Provided()
+    {
+        const int defaultValue = 500;
+        Optional<int> a = Optional<int>.Empty(defaultValue);
+        var b = Optional<int>.From(a);
+
+        Assert.False(a.HasValue);
+        Assert.False(b.HasValue);
+        Assert.Equal(defaultValue, b.Value);
     }
 }

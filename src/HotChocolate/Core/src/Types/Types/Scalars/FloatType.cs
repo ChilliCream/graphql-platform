@@ -19,15 +19,6 @@ public class FloatType : FloatTypeBase<double>
     /// <summary>
     /// Initializes a new instance of the <see cref="FloatType"/> class.
     /// </summary>
-    public FloatType()
-        : this(double.MinValue, double.MaxValue)
-    {
-
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="FloatType"/> class.
-    /// </summary>
     public FloatType(double min, double max)
         : this(
             ScalarNames.Float,
@@ -50,6 +41,16 @@ public class FloatType : FloatTypeBase<double>
         : base(name, min, max, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FloatType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public FloatType()
+        : this(double.MinValue, double.MaxValue)
+    {
+
     }
 
     protected override double ParseLiteral(IFloatValueLiteral valueSyntax) =>

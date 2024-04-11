@@ -5,7 +5,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 

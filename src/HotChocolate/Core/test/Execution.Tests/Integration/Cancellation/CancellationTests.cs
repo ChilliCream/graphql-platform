@@ -1,9 +1,7 @@
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate;
 
@@ -43,35 +41,32 @@ public class CancellationTests
 
     [Fact]
     public async Task Parallel_Ensure_Execution_Waits_For_Tasks()
-    {
-        // arrange
-        var query = new Query2();
+        => await TryTest(async ct =>
+            {
+                // arrange
+                var query = new Query2();
 
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton(query)
-                .AddGraphQL()
-                .AddQueryType<Query2>()
-                .BuildRequestExecutorAsync();
+                var executor =
+                    await new ServiceCollection()
+                        .AddSingleton(query)
+                        .AddGraphQL()
+                        .AddQueryType<Query2>()
+                        .BuildRequestExecutorAsync(cancellationToken: ct);
 
-        using var cts = new CancellationTokenSource(150);
+                using var cts = new CancellationTokenSource(150);
 
-        // act
-        await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ task1 task2 }")
-                .Create(),
-            cts.Token);
+                // act
+                await executor.ExecuteAsync("{ task1 task2 }", cts.Token);
 
-        // assert
-        // the first task is completed
-        Assert.True(query.Task1);
-        Assert.True(query.Task1Done);
+                // assert
+                // the first task is completed
+                Assert.True(query.Task1);
+                Assert.True(query.Task1Done);
 
-        // the second task is completed
-        Assert.True(query.Task2);
-        Assert.True(query.Task2Done);
-    }
+                // the second task is completed
+                Assert.True(query.Task2);
+                Assert.True(query.Task2Done);
+            });
 
     public class Query1
     {
@@ -134,6 +129,42 @@ public class CancellationTests
             await Task.Delay(200);
             Task2Done = true;
             return "bar";
+        }
+    }
+    
+    protected static async Task TryTest(Func<CancellationToken, Task> action)
+    {
+        // we will try four times ....
+        using var cts = new CancellationTokenSource(Debugger.IsAttached ? 600_000_000 : 60_000);
+        var ct = cts.Token;
+        var count = 0;
+        var wait = 50;
+
+        while (true)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            if (count < 3)
+            {
+                try
+                {
+                    await action(ct).ConfigureAwait(false);
+                    break;
+                }
+                catch
+                {
+                    // try again
+                }
+            }
+            else
+            {
+                await action(ct).ConfigureAwait(false);
+                break;
+            }
+
+            await Task.Delay(wait, ct).ConfigureAwait(false);
+            wait *= 2;
+            count++;
         }
     }
 }

@@ -174,7 +174,7 @@ result.MatchSnapshot(o =>
 
 For more information about how snapshooter works head over to their repository:
 
-https://github.com/SwissLife-OSS/snapshooter
+<https://github.com/SwissLife-OSS/snapshooter>
 
 ## Schema Tests
 

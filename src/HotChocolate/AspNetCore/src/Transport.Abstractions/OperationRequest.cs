@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Serialization;
-using static HotChocolate.Transport.Properties.TransportAbstractionResoucrces;
 
 namespace HotChocolate.Transport;
 
@@ -40,13 +39,6 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
         ObjectValueNode? variables,
         ObjectValueNode? extensions)
     {
-        if (string.IsNullOrWhiteSpace(query) && id is null && extensions is null)
-        {
-            throw new ArgumentException(
-                OperationRequest_QueryOrPersistedQueryId,
-                nameof(query));
-        }
-
         Query = query;
         Id = id;
         OperationName = operationName;
@@ -82,19 +74,17 @@ public readonly struct OperationRequest : IEquatable<OperationRequest>
         IReadOnlyDictionary<string, object?>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
-        if (string.IsNullOrWhiteSpace(query) && id is null && extensions is null)
-        {
-            throw new ArgumentException(
-                OperationRequest_QueryOrPersistedQueryId,
-                nameof(query));
-        }
-
         Query = query;
         Id = id;
         OperationName = operationName;
         Variables = variables;
         Extensions = extensions;
     }
+
+    /// <summary>
+    /// Empty Operation Request.
+    /// </summary>
+    public static OperationRequest Empty { get; } = new();
 
     /// <summary>
     /// Gets the ID of a previously persisted query that should be executed.

@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-internal sealed class ReformatVariableRewriter : SyntaxRewriter<ReformatVariableRewriter>, ISyntaxVisitorContext
+internal sealed class ReformatVariableRewriter : SyntaxRewriter<ReformatVariableRewriter>
 {
     private static readonly ReformatVariableRewriter _instance = new();
 

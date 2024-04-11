@@ -183,13 +183,6 @@ jobs:
             7.x
             8.x
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
       - name: Run Build
         id: run-build
         run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
@@ -282,11 +275,7 @@ jobs:
           path: |
             **/__mismatch__/*
 
-      - name: Fail if tests failed or were cancelled
-        run: exit 1
-        if: |
-          steps.run-tests.outcome == 'failure' ||
-          steps.run-tests.outcome == 'cancelled'
+
 
   codeql:
     name: CodeQL
@@ -310,13 +299,6 @@ jobs:
           6.x
           7.x
           8.x
-
-    - uses: actions/cache@v3
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
 
     - name: Restore
       run: ./build.sh restore
@@ -349,14 +331,6 @@ jobs:
           6.x
           7.x
           8.x
-
-    - uses: actions/cache@v3
-      if: ${{ !cancelled() }}
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
 
     - name: Create All.sln
       if: ${{ !cancelled() }}

@@ -28,28 +28,24 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-public sealed class RequiresAttribute : ObjectFieldDescriptorAttribute
+/// <remarks>
+/// Initializes a new instance of <see cref="RequiresAttribute"/>.
+/// </remarks>
+/// <param name="fieldSet">
+/// The <paramref name="fieldSet"/> describes which fields may
+/// not be needed by the client, but are required by
+/// this service as additional information from other services.
+/// Grammatically, a field set is a selection set minus the braces.
+/// </param>
+public sealed class RequiresAttribute(string fieldSet) : ObjectFieldDescriptorAttribute
 {
-    /// <summary>
-    /// Initializes a new instance of <see cref="RequiresAttribute"/>.
-    /// </summary>
-    /// <param name="fieldSet">
-    /// The <paramref name="fieldSet"/> describes which fields may
-    /// not be needed by the client, but are required by
-    /// this service as additional information from other services.
-    /// Grammatically, a field set is a selection set minus the braces.
-    /// </param>
-    public RequiresAttribute(string fieldSet)
-    {
-        FieldSet = fieldSet;
-    }
 
     /// <summary>
     /// Gets the fieldset which describes fields that may not be needed by the client,
     /// but are required by this service as additional information from other services.
     /// Grammatically, a field set is a selection set minus the braces.
     /// </summary>
-    public string FieldSet { get; }
+    public string FieldSet { get; } = fieldSet;
 
     protected override void OnConfigure(
         IDescriptorContext context,

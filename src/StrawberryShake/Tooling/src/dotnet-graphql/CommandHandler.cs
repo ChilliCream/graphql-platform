@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using System.Threading;
-
 namespace StrawberryShake.Tools;
 
 public abstract class CommandHandler<T>

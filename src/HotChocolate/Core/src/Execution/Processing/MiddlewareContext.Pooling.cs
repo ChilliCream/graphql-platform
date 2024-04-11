@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 

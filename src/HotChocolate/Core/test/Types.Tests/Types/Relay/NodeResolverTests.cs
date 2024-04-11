@@ -5,7 +5,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -25,7 +24,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -52,7 +51,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -79,7 +78,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -116,7 +115,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -153,7 +152,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -223,13 +222,15 @@ public class NodeResolverTests
             .AddTypeExtension<EntityExtension>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
-                @"{
-                    node(id: ""RW50aXR5CmRhYmM="") {
+                """
+                {
+                    node(id: "RW50aXR5OmFiYw==") {
                         ... on Entity {
                             name
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -240,8 +241,7 @@ public class NodeResolverTests
         public Entity2 GetEntity2(string name) => new Entity2 { Name = name, };
     }
 
-    public class EntityType
-        : ObjectType<Entity>
+    public class EntityType : ObjectType<Entity>
     {
         protected override void Configure(
             IObjectTypeDescriptor<Entity> descriptor)

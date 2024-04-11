@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field or directive argument.
 /// </summary>
-public class Argument : FieldBase<ArgumentDefinition>, IInputField
+public class Argument : FieldBase, IInputField
 {
     private Type _runtimeType = default!;
 
@@ -50,12 +50,6 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
     }
 
     /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    public new InputValueDefinitionNode? SyntaxNode
-        => (InputValueDefinitionNode?)base.SyntaxNode;
-
-    /// <summary>
     /// Gets the type system member that declares this argument.
     /// </summary>
     public ITypeSystemMember DeclaringMember { get; private set; } = default!;
@@ -83,7 +77,13 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
     /// </summary>
     internal bool IsOptional { get; private set; }
 
-    protected override void OnCompleteField(
+    protected sealed override void OnCompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember,
+        FieldDefinitionBase definition)
+        => OnCompleteField(context, declaringMember, (ArgumentDefinition)definition);
+    
+    protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
         ArgumentDefinition definition)

@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -63,7 +64,7 @@ internal sealed class ComposeCommand : Command
 
     [RequiresUnreferencedCode(
         "Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
-    private static async Task ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         IConsole console,
         FileInfo packageFile,
         List<string>? subgraphPackageFiles,
@@ -125,7 +126,7 @@ internal sealed class ComposeCommand : Command
         if (settings is null)
         {
             console.WriteLine("Fusion graph settings are invalid.");
-            return;
+            return 1;
         }
 
         if (enableNodes.HasValue && enableNodes.Value)
@@ -145,7 +146,7 @@ internal sealed class ComposeCommand : Command
         if (fusionGraph is null)
         {
             console.WriteLine("Fusion graph composition failed.");
-            return;
+            return 1;
         }
 
         var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
@@ -164,6 +165,8 @@ internal sealed class ComposeCommand : Command
         }
 
         console.WriteLine("Fusion graph composed.");
+
+        return 0;
     }
 
     private static FusionFeatureCollection CreateFeatures(
@@ -280,15 +283,8 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private sealed class ConsoleLog : ICompositionLog
+    private sealed class ConsoleLog(IConsole console) : ICompositionLog
     {
-        private readonly IConsole _console;
-
-        public ConsoleLog(IConsole console)
-        {
-            _console = console;
-        }
-
         public bool HasErrors { get; private set; }
 
         public void Write(LogEntry e)
@@ -298,17 +294,23 @@ internal sealed class ComposeCommand : Command
                 HasErrors = true;
             }
 
+            var writer = console.Out;
+            if (e.Severity == LogSeverity.Error)
+            {
+                writer = console.Error;
+            }
+
             if (e.Code is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Message}");
             }
             else if (e.Coordinate is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
             }
             else
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
             }
         }
     }

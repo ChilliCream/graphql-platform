@@ -15,16 +15,6 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     /// <summary>
     /// Initializes a new instance of <see cref="LatitudeType"/>
     /// </summary>
-    public LatitudeType()
-        : this(
-            WellKnownScalarTypes.Latitude,
-            ScalarResources.LatitudeType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="LatitudeType"/>
-    /// </summary>
     public LatitudeType(
         string name,
         string? description = null,
@@ -32,6 +22,17 @@ public class LatitudeType : ScalarType<double, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="LatitudeType"/>
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LatitudeType()
+        : this(
+            WellKnownScalarTypes.Latitude,
+            ScalarResources.LatitudeType_Description)
+    {
     }
 
     /// <inheritdoc />

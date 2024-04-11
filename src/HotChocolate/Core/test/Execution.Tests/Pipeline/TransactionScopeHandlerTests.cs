@@ -1,10 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 

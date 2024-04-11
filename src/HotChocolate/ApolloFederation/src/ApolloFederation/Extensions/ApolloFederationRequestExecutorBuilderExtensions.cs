@@ -1,5 +1,4 @@
 using HotChocolate.ApolloFederation;
-using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution.Configuration;
 using FederationVersion = HotChocolate.ApolloFederation.FederationVersion;
 
@@ -27,7 +26,7 @@ public static class ApolloFederationRequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddApolloFederation(
         this IRequestExecutorBuilder builder,
-        FederationVersion version = FederationVersion.Latest)
+        FederationVersion version = FederationVersion.Default)
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.SetContextData(FederationContextData.FederationVersion, version);

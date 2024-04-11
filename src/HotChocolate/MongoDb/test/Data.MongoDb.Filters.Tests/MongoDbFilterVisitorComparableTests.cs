@@ -13,17 +13,17 @@ public class MongoDbFilterVisitorComparableTests
 {
     private static readonly Foo[] _fooEntities =
     [
-        new()
+        new Foo
         {
             BarShort = 12,
             BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
         },
-        new()
+        new Foo
         {
             BarShort = 14,
             BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
         },
-        new()
+        new Foo
         {
             BarShort = 13,
             BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
@@ -32,18 +32,22 @@ public class MongoDbFilterVisitorComparableTests
 
     private static readonly FooNullable[] _fooNullableEntities =
     [
-        new()
+        new FooNullable
         {
             BarShort = 12,
             BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc),
         },
-        new() { BarShort = null, BarDateTime = null, },
-        new()
+        new FooNullable
+        {
+            BarShort = null, 
+            BarDateTime = null,
+        },
+        new FooNullable
         {
             BarShort = 14,
             BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc),
         },
-        new()
+        new FooNullable
         {
             BarShort = 13,
             BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc),
@@ -80,11 +84,11 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -114,11 +118,11 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -130,36 +134,48 @@ public class MongoDbFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
-                .Create());
+            """
+            {
+              root(where: { barShort: { eq: 12 } }) {
+                barShort
+              }
+            }
+            """);
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
-                .Create());
+            """
+            { 
+              root(where: { barShort: { eq: 13 } }) {
+                barShort
+              }
+            }
+            """);
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
-                .Create());
+            """
+            { 
+              root(where: { barShort: { eq: null } }) { 
+                barShort
+              }
+            }
+            """);
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
     [Fact]
     public async Task Create_ShortNotEqual_Expression()
     {
+        // arrange
         var tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
         // act
-        // assert
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
@@ -176,11 +192,11 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
 
     }
@@ -213,12 +229,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -250,12 +266,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -288,12 +304,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -325,12 +341,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -362,12 +378,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -399,12 +415,8 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create().AddResult(res1, "12").AddResult(res2, "13").AddResult(res3, "14").AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -437,12 +449,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -474,12 +486,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -506,11 +518,8 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
+        await Snapshot
+            .Create().AddResult(res1, "12and13").AddResult(res2, "13and14").AddResult(res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -537,11 +546,11 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "nullAnd14")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "nullAnd14")
             .MatchAsync();
     }
 
@@ -569,11 +578,11 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -600,15 +609,14 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12"), res2, "13"), res3, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
-
-
+    
     [Fact]
     public async Task Create_ShortNullableGreaterThan_Expression()
     {
@@ -637,12 +645,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -673,12 +681,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -710,12 +718,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -747,12 +755,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -784,12 +792,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -821,12 +829,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -859,12 +867,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -896,12 +904,12 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        SnapshotExtensions.AddResult(
-                            Snapshot
-                                .Create(), res1, "12"), res2, "13"), res3, "14"), res4, "null")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12")
+            .AddResult(res2, "13")
+            .AddResult(res3, "14")
+            .AddResult(res4, "null")
             .MatchAsync();
     }
 
@@ -928,11 +936,11 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "12and13")
+            .AddResult(res2, "13and14")
+            .AddResult(res3, "13andNull")
             .MatchAsync();
     }
 
@@ -959,11 +967,8 @@ public class MongoDbFilterVisitorComparableTests
                 .Create());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    SnapshotExtensions.AddResult(
-                        Snapshot
-                            .Create(), res1, "12and13"), res2, "13and14"), res3, "13andNull")
+        await Snapshot
+            .Create().AddResult(res1, "12and13").AddResult(res2, "13and14").AddResult(res3, "13andNull")
             .MatchAsync();
     }
 
@@ -1037,13 +1042,7 @@ public class MongoDbFilterVisitorComparableTests
         public DateTime? BarDateTime { get; set; }
     }
 
-    public class FooFilterType
-        : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterType : FilterInputType<Foo>;
 
-    public class FooNullableFilterType
-        : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterType : FilterInputType<FooNullable>;
 }

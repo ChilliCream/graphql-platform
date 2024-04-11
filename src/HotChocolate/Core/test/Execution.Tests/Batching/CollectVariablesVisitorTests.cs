@@ -1,10 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Batching;
 

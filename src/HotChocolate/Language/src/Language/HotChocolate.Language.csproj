@@ -12,12 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="AST\**" />
-    <EmbeddedResource Remove="AST\**" />
-    <None Remove="AST\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
     <ProjectReference Include="..\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
     <ProjectReference Include="..\Language.Web\HotChocolate.Language.Web.csproj" />

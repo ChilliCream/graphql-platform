@@ -662,6 +662,19 @@ public class HttpGetMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
+        var result = await server.GetActivePersistedQueryAsync("md5Hash", "60ddx_GGk4FDObSa6eK0sg");
+
+        // assert
+        result.MatchSnapshot();
+    }
+    
+    [Fact]
+    public async Task Get_ActivePersistedQuery_Invalid_Id_Format()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
         var result =
             await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
 
@@ -676,8 +689,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         // act
-        var result =
-            await server.GetActivePersistedQueryAsync("md5Hash", "abc");
+        var result = await server.GetActivePersistedQueryAsync("md5Hash", "abc");
 
         // assert
         result.MatchSnapshot();
@@ -702,8 +714,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
                 "md5Hash",
                 hash);
 
-        var resultB =
-            await server.GetActivePersistedQueryAsync("md5Hash", hash);
+        var resultB = await server.GetActivePersistedQueryAsync("md5Hash", hash);
 
         // assert
         new[]
@@ -719,7 +730,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         // arrange
         var server = CreateStarWarsServer();
 
-        var query = "{__typename}";
+        const string query = "{__typename}";
 
         var hashProvider = new MD5DocumentHashProvider(HashFormat.Hex);
         var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
@@ -750,12 +761,14 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetAsync(
                 new ClientQueryRequest
                 {
-                    Query = @"
-                    {
-                        hero {
-                            name
+                    Query = 
+                        """
+                        {
+                            hero {
+                                name
+                            }
                         }
-                    }",
+                        """,
                 });
 
         // assert

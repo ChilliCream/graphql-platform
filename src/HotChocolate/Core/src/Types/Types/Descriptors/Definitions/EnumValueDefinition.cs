@@ -1,5 +1,4 @@
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -10,7 +9,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// Defines the properties of a GraphQL enum value.
 /// </summary>
 public class EnumValueDefinition
-    : TypeDefinitionBase<EnumValueDefinitionNode>
+    : TypeDefinitionBase
     , ICanBeDeprecated
     , IHasIgnore
 {

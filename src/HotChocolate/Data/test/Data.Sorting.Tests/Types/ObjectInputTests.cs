@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using CookieCrumble;
 using HotChocolate.Types;
-
-using Xunit;
 
 namespace HotChocolate.Data.Sorting;
 

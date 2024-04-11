@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -153,6 +152,6 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         }
 
         temp.Clear();
-        errors.Add(OneofInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
+        errors.Add(OneOfInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
     }
 }

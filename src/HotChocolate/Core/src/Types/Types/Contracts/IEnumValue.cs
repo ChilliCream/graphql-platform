@@ -1,5 +1,3 @@
-using HotChocolate.Language;
-
 #nullable enable
 
 namespace HotChocolate.Types;
@@ -12,11 +10,6 @@ public interface IEnumValue
     , IHasReadOnlyContextData
     , ITypeSystemMember
 {
-    /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    EnumValueDefinitionNode? SyntaxNode { get; }
-
     /// <summary>
     /// The GraphQL name of this enum value.
     /// </summary>

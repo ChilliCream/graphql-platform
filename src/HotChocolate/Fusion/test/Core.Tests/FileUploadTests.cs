@@ -1,15 +1,10 @@
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Composition.Features;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
@@ -44,9 +39,7 @@ public class FileUploadTests
             });
 
         // assert
-        SchemaFormatter
-            .FormatAsString(fusionGraph)
-            .MatchSnapshot(extension: ".graphql");
+        fusionGraph.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -98,7 +91,7 @@ public class FileUploadTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -154,7 +147,7 @@ public class FileUploadTests
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

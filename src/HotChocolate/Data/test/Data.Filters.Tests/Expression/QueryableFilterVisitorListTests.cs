@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 

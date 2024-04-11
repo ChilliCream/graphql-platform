@@ -164,9 +164,9 @@ public readonly struct Optional<T>
     /// </summary>
     public static Optional<T> From(IOptional optional)
     {
-        if (optional.HasValue)
+        if (optional.HasValue || optional.Value != default)
         {
-            return new Optional<T>((T?)optional.Value);
+            return new Optional<T>((T?)optional.Value, optional.HasValue);
         }
 
         return new Optional<T>();

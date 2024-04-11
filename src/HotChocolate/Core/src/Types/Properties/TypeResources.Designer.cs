@@ -1983,12 +1983,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string MutationConvention_ShouldBeEnabled_WhenAddingErrorType {
-            get {
-                return ResourceManager.GetString("MutationConvention_ShouldBeEnabled_WhenAddingErrorType", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_DuplicateFieldName_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_DuplicateFieldName_Message", resourceCulture);
@@ -2013,9 +2007,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_PooledServicesNotAllowed {
+        internal static string ResolverContextExtensions_IsSelected_FieldNameEmpty {
             get {
-                return ResourceManager.GetString("ThrowHelper_PooledServicesNotAllowed", resourceCulture);
+                return ResourceManager.GetString("ResolverContextExtensions_IsSelected_FieldNameEmpty", resourceCulture);
             }
         }
     }

@@ -4,28 +4,28 @@ title: Stage Management
 
 The `barista stage` command provides a set of subcommands that allow you to manage stages.
 
-# Edit Stages of an API 
+# Edit Stages of an API
 
-The `barista stage edit` command  provides an interactive user interface for managing the stages of an API. The screen you see allows you to add new stages, save changes, edit existing stages, and delete stages.
+The `barista stage edit` command provides an interactive user interface for managing the stages of an API. The screen you see allows you to add new stages, save changes, edit existing stages, and delete stages.
 
 ```shell
-barista stage edit \ 
+barista stage edit \
     --api-id QXBpCmdiOGRiYzk5NmRiNTI0OWRlYWIyM2ExNGRiYjdhMTIzNA== # optional
 ```
 
 ```shell
-                                                                                                                        
-  Edit the stages of api QX... in your/Workspace                         
-                                                                                                                        
-      ┌─────────┬─────────────┬─────────┐                                                      
-      │ Name    │ DisplayName │ After   │                                                      
-      ├─────────┼─────────────┼─────────┤                                                      
-      │ dev     │ Development │         │                                                      
-      │ prod    │ Production  │ dev     │                                                      
-      └─────────┴─────────────┴─────────┘                                                      
-                (a)dd new stage                                                                
-                (s)ave changes                                                                
-    press (e) to edit / press (d) to delete                                                    
+
+  Edit the stages of api QX... in your/Workspace
+
+      ┌─────────┬─────────────┬─────────┐
+      │ Name    │ DisplayName │ After   │
+      ├─────────┼─────────────┼─────────┤
+      │ dev     │ Development │         │
+      │ prod    │ Production  │ dev     │
+      └─────────┴─────────────┴─────────┘
+                (a)dd new stage
+                (s)ave changes
+    press (e) to edit / press (d) to delete
 ```
 
 The Console UI displays a table with the following columns:

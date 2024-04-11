@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -12,15 +11,16 @@ public class UnionType<T> : UnionType
 {
     private Action<IUnionTypeDescriptor>? _configure;
 
-    public UnionType()
-    {
-        _configure = Configure;
-    }
-
     public UnionType(Action<IUnionTypeDescriptor> configure)
     {
         _configure = configure
             ?? throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public UnionType()
+    {
+        _configure = Configure;
     }
 
     protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
