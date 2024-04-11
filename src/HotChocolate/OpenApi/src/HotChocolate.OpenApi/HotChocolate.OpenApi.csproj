@@ -18,8 +18,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.OpenApi" Version="1.6.10" />
-      <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.10" />
+      <PackageReference Include="Microsoft.OpenApi" Version="1.6.14" />
+      <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
