@@ -20,6 +20,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     {
         descriptor
             .Name(Names.Authorize)
+            .Description("The authorize directive.")
             .Location(DirectiveLocation.Object)
             .Location(DirectiveLocation.FieldDefinition)
             .Repeatable()
