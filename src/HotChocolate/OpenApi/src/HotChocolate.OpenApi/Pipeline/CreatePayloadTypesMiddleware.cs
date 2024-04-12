@@ -42,6 +42,7 @@ internal sealed class CreatePayloadTypesMiddleware : IOpenApiWrapperMiddleware
         else
         {
             var payloadType = ObjectTypeFactory.ParseType(context, typeName, schema);
+            payloadType.Description = operation.Response?.Description;
             context.OperationPayloadTypeLookup[operation.OperationId] = payloadType;
         }
     }

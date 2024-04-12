@@ -38,6 +38,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
             var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
             {
+                Description = operation.Value.Description,
                 Type = type,
             };
 
@@ -47,7 +48,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
             AddArguments(context, operation, outputField);
 
-            outputField.ContextData[OpenApiResources.ContextResolverParameter] = 
+            outputField.ContextData[OpenApiResources.ContextResolverParameter] =
                 OperationResolverHelper.CreateResolverFunc(context.ClientName, operation.Value);
         }
 
@@ -57,14 +58,18 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
 
     private static void AddArguments(
-        OpenApiWrapperContext context, 
-        KeyValuePair<string, Operation> operation, 
+        OpenApiWrapperContext context,
+        KeyValuePair<string, Operation> operation,
         OutputField outputField)
     {
         foreach (var parameter in operation.Value.Parameters)
         {
             var typeInfo = context.GetSchemaTypeInfo(parameter.Schema);
-            outputField.Arguments.Add(new InputField(parameter.Name, typeInfo.GetGraphQLTypeNode(false)));
+            outputField.Arguments.Add(
+                new InputField(parameter.Name, typeInfo.GetGraphQLTypeNode(false))
+                {
+                    Description = parameter.Description,
+                });
         }
 
         if (operation.Value.RequestBody is { } requestBody &&

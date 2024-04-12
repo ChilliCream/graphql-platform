@@ -24,16 +24,16 @@ public static class RequestExecutorBuilderExtension
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrEmpty(clientName);
         ArgumentException.ThrowIfNullOrEmpty(openApi);
-        
+
         var documentReader = new OpenApiStringReader();
         var wrapper = new OpenApiWrapper();
-        
+
         var document = documentReader.Read(openApi, out _);
         var schema = wrapper.Wrap(clientName, document);
-        
+
         builder.AddJsonSupport();
         builder.InitializeSchema(schema);
-        
+
         return builder;
     }
 
@@ -76,7 +76,9 @@ public static class RequestExecutorBuilderExtension
                 {
                     fieldDescriptor.Argument(
                         fieldArgument.Name,
-                        descriptor => descriptor.Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name)));
+                        descriptor => descriptor
+                            .Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name))
+                            .Description(fieldArgument.Description));
                 }
 
                 if (field.ContextData.TryGetValue(ContextResolverParameter, out var res) &&
@@ -99,11 +101,11 @@ public static class RequestExecutorBuilderExtension
         ITypeNode baseType = field.Type.Kind == TypeKind.NonNull
             ? new NonNullTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
             : new NamedTypeNode(field.Type.NamedType().Name);
-        
+
         var fieldDescriptor = desc.Field(field.Name)
             .Description(field.Description)
             .Type(field.Type.Kind == TypeKind.List ? new ListTypeNode(baseType) : baseType);
-        
+
         return fieldDescriptor;
     }
 
