@@ -22,101 +22,48 @@ query GetUser($skip: Boolean!) {
 
 ```json
 {
-  "errors": [
-    {
-      "message": "The following variables were not declared: skip.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 1
-        }
-      ],
-      "extensions": {
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
+  "data": {
+    "users": [
+      {
+        "name": "Ada Lovelace",
+        "reviews": [
+          {
+            "body": "Love it!",
+            "author": {
+              "name": "@ada",
+              "birthdate": "1815-12-10"
+            }
+          },
+          {
+            "body": "Could be better.",
+            "author": {
+              "name": "@ada",
+              "birthdate": "1815-12-10"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Alan Turing",
+        "reviews": [
+          {
+            "body": "Too expensive.",
+            "author": {
+              "name": "@alan",
+              "birthdate": "1912-06-23"
+            }
+          },
+          {
+            "body": "Prefer something else.",
+            "author": {
+              "name": "@alan",
+              "birthdate": "1912-06-23"
+            }
+          }
+        ]
       }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 8,
-          "column": 17
-        }
-      ],
-      "path": [
-        "users",
-        1,
-        "reviews",
-        1,
-        "author",
-        "birthdate"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 8,
-          "column": 17
-        }
-      ],
-      "path": [
-        "users",
-        1,
-        "reviews",
-        0,
-        "author",
-        "birthdate"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 8,
-          "column": 17
-        }
-      ],
-      "path": [
-        "users",
-        0,
-        "reviews",
-        1,
-        "author",
-        "birthdate"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 8,
-          "column": 17
-        }
-      ],
-      "path": [
-        "users",
-        0,
-        "reviews",
-        0,
-        "author",
-        "birthdate"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    }
-  ],
-  "data": null
+    ]
+  }
 }
 ```
 
@@ -174,7 +121,7 @@ query GetUser($skip: Boolean!) {
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Accounts",
-        "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { usersById(ids: $__fusion_exports__2) { birthdate errorField @skip(if: $skip) __fusion_exports__2: id } }",
+        "document": "query GetUser_3($__fusion_exports__2: [ID!]!, $skip: Boolean!) { usersById(ids: $__fusion_exports__2) { birthdate errorField @skip(if: $skip) __fusion_exports__2: id } }",
         "selectionSetId": 3,
         "path": [
           "usersById"
@@ -182,6 +129,11 @@ query GetUser($skip: Boolean!) {
         "requires": [
           {
             "variable": "__fusion_exports__2"
+          }
+        ],
+        "forwardedVariables": [
+          {
+            "variable": "skip"
           }
         ]
       },
@@ -203,7 +155,7 @@ query GetUser($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-AD2BB4F6AE4FABD4DF926AB9D4461C7B0F579040
+D0E7D1201A7F70F2FE96F5DCD47EFD344C05E88F
 ```
 
 ## Fusion Graph

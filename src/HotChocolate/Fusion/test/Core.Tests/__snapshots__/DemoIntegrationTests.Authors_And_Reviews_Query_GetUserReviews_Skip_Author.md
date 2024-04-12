@@ -79,7 +79,7 @@ query GetUser($skip: Boolean!) {
       {
         "type": "ResolveByKeyBatch",
         "subgraph": "Reviews2",
-        "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name __fusion_exports__2: id } } __fusion_exports__1: id } } }",
+        "document": "query GetUser_2($__fusion_exports__1: [ID!]!, $skip: Boolean!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author @skip(if: $skip) { name __fusion_exports__2: id } } __fusion_exports__1: id } } }",
         "selectionSetId": 1,
         "path": [
           "nodes"
@@ -92,6 +92,11 @@ query GetUser($skip: Boolean!) {
         "provides": [
           {
             "variable": "__fusion_exports__2"
+          }
+        ],
+        "forwardedVariables": [
+          {
+            "variable": "skip"
           }
         ]
       },
@@ -133,7 +138,7 @@ query GetUser($skip: Boolean!) {
 ## QueryPlan Hash
 
 ```text
-70F33A387C99549F79F601D4A6310020A6FA8E7F
+B1F750EE35FB23347DEC15FF5A9391D5EF5DB5EE
 ```
 
 ## Fusion Graph

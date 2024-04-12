@@ -5,21 +5,13 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections;
 
-public class SelectionVisitorContext : ISelectionVisitorContext
+public class SelectionVisitorContext(IResolverContext context) : ISelectionVisitorContext
 {
-    public SelectionVisitorContext(IResolverContext context)
-    {
-        Selection = new Stack<ISelection>();
-        SelectionSetNodes = new Stack<SelectionSetNode?>();
-        ResolvedType = new Stack<INamedType?>();
-        ResolverContext = context;
-    }
+    public Stack<ISelection> Selection { get; } = new();
 
-    public Stack<ISelection> Selection { get; }
+    public Stack<SelectionSetNode?> SelectionSetNodes { get; } = new();
 
-    public Stack<SelectionSetNode?> SelectionSetNodes { get; }
+    public Stack<INamedType?> ResolvedType { get; } = new();
 
-    public Stack<INamedType?> ResolvedType { get; }
-
-    public IResolverContext ResolverContext { get; }
+    public IResolverContext ResolverContext { get; } = context;
 }

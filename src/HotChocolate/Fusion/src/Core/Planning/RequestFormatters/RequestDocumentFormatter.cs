@@ -216,6 +216,24 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
         // we need to rework the operation compiler for a proper fix.
         foreach (var node in selection.SyntaxNodes)
         {
+            if(node.Directives.Count > 0)
+            {
+                foreach (var directive in node.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
             selectionNodes.Add(
                 new FieldNode(
                     null,
@@ -275,16 +293,18 @@ internal abstract class RequestDocumentFormatter(FusionGraphConfiguration config
                 }
             }
 
-            if (!single)
+            if (single)
             {
-                if (needsTypeNameField)
-                {
-                    selectionNodes.Add(TypeNameField);
-                    needsTypeNameField = false;
-                }
-
-                AddInlineFragment(possibleType);
+                continue;
             }
+
+            if (needsTypeNameField)
+            {
+                selectionNodes.Add(TypeNameField);
+                needsTypeNameField = false;
+            }
+
+            AddInlineFragment(possibleType);
         }
 
         return new SelectionSetNode(selectionNodes);
