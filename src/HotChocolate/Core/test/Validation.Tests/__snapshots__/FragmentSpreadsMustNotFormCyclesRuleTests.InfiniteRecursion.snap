@@ -32,26 +32,6 @@
       "fragment": "dogFragment",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "FragmentSpread",
-      "Location": {
-        "Start": 432,
-        "End": 468,
-        "Line": 18,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 435,
-          "End": 468,
-          "Line": 18,
-          "Column": 28
-        },
-        "Value": "dogFragment"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

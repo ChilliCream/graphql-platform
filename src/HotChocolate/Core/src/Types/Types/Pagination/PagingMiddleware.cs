@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -27,7 +28,7 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
             {
                 return;
             }
-            
+
             context.Result = fieldResult.Value;
         }
 
@@ -47,8 +48,7 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
                 {
                     errors[i] = ErrorBuilder
                         .FromError(ex.Errors[i])
-                        .AddLocation(context.Selection.SyntaxNode)
-                        .SetSyntaxNode(context.Selection.SyntaxNode)
+                        .AddLocation(context.Selection.SyntaxNodes)
                         .SetPath(context.Path)
                         .Build();
                 }

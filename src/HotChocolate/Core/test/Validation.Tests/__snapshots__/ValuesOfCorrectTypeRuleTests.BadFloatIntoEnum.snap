@@ -29,17 +29,6 @@
       "locationType": "DogCommand",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "FloatValue",
-      "Location": {
-        "Start": 97,
-        "End": 101,
-        "Line": 4,
-        "Column": 47
-      },
-      "Format": "FixedPoint",
-      "Value": "1.0"
-    }
+    "Exception": null
   }
 ]

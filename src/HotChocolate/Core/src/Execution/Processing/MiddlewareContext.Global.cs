@@ -59,7 +59,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation(_selection.SyntaxNode)
+                .AddLocation([_selection.SyntaxNode])
                 .Build());
     }
 
@@ -70,9 +70,9 @@ internal partial class MiddlewareContext : IMiddlewareContext
             throw new ArgumentNullException(nameof(exception));
         }
 
-        if (exception is GraphQLException graphQLException)
+        if (exception is GraphQLException ex)
         {
-            foreach (var error in graphQLException.Errors)
+            foreach (var error in ex.Errors)
             {
                 ReportError(error);
             }
@@ -89,7 +89,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .AddLocation(_selection.SyntaxNode);
+                .AddLocation([_selection.SyntaxNode]);
 
             configure?.Invoke(errorBuilder);
 

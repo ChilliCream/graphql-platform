@@ -7,14 +7,9 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class SelectionParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IPureResolverContext, object>
+internal sealed class SelectionParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<IPureResolverContext, object>(ctx => ctx.Selection)
 {
-    public SelectionParameterExpressionBuilder()
-        : base(ctx => ctx.Selection)
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.Selection;
 
     public override bool CanHandle(ParameterInfo parameter)

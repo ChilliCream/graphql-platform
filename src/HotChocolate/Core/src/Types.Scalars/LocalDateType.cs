@@ -51,7 +51,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
 
     protected override DateTime ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out DateTime? value))
+        if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
             return value.Value;
         }
@@ -90,7 +90,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
             case null:
                 runtimeValue = null;
                 return true;
-            case string s when TryDeserializeFromString(s, out DateTime? d):
+            case string s when TryDeserializeFromString(s, out var d):
                 runtimeValue = d;
                 return true;
             case DateTimeOffset d:
@@ -119,7 +119,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
                 serialized,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
-                out DateTime dt))
+                out var dt))
         {
             value = dt;
             return true;

@@ -43,7 +43,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult result = _testExecutor.Execute("query { test: one }");
+            var result = _testExecutor.Execute("query { test: one }");
 
             Assert.Equal("2020-02-07T17:42:59.000001234", result.ExpectQueryResult().Data!["test"]);
         }
@@ -51,7 +51,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult result = _testExecutor
+            var result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-21T17:42:59.000001234")
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult result = _testExecutor
+            var result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-20T17:42:59.000001234Z")
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult result = _testExecutor
+            var result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234\") }")
                     .Create());
@@ -87,7 +87,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult result = _testExecutor
+            var result = _testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
                     .Create());

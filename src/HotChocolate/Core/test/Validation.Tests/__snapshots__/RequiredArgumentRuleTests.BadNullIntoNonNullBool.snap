@@ -24,35 +24,6 @@
       "argument": "nonNullBooleanArg",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 98,
-        "End": 122,
-        "Line": 4,
-        "Column": 48
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 98,
-          "End": 116,
-          "Line": 4,
-          "Column": 48
-        },
-        "Value": "nonNullBooleanArg"
-      },
-      "Value": {
-        "Kind": "NullValue",
-        "Location": {
-          "Start": 117,
-          "End": 122,
-          "Line": 4,
-          "Column": 67
-        },
-        "Value": null
-      }
-    }
+    "Exception": null
   }
 ]

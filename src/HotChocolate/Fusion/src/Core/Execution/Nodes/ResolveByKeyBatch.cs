@@ -5,7 +5,7 @@ using System.Text.Json;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Language;
-using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.ExecutionUtils;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -58,6 +58,11 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
         RequestState state,
         CancellationToken cancellationToken)
     {
+        if (CanBeSkipped(context))
+        {
+            return;
+        }
+
         if (!state.TryGetState(SelectionSet, out var executionState))
         {
             return;

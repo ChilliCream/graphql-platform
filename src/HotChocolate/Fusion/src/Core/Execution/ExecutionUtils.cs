@@ -14,7 +14,7 @@ using ObjectType = HotChocolate.Types.ObjectType;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal static class ExecutorUtils
+internal static class ExecutionUtils
 {
     private const CustomOptionsFlags _reEncodeIdFlag =
         (CustomOptionsFlags)ObjectFieldFlags.ReEncodeId;
@@ -43,6 +43,7 @@ internal static class ExecutorUtils
             return;
         }
 
+        var includeFlags = context.OperationContext.IncludeFlags;
         var count = selectionSet.Selections.Count;
         ref var selection = ref selectionSet.GetSelectionsReference();
         ref var result = ref selectionSetResult.GetReference();
@@ -55,6 +56,11 @@ internal static class ExecutorUtils
             var selectionType = selection.Type;
             var responseName = selection.ResponseName;
             var field = selection.Field;
+
+            if (selection.IsConditional && !selection.IsIncluded(includeFlags))
+            {
+                goto NEXT_SELECTION;
+            }
 
             if (!field.IsIntrospectionField)
             {
@@ -166,6 +172,7 @@ internal static class ExecutorUtils
             responseIndex++;
 
             // move our pointers
+            NEXT_SELECTION:
             selection = ref Unsafe.Add(ref selection, 1)!;
             result = ref Unsafe.Add(ref result, 1)!;
             data = ref Unsafe.Add(ref data, 1);
