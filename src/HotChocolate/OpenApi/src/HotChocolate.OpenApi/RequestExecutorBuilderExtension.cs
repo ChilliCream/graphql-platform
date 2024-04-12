@@ -74,10 +74,14 @@ public static class RequestExecutorBuilderExtension
 
                 foreach (var fieldArgument in field.Arguments)
                 {
+                    ITypeNode baseType = new NamedTypeNode(fieldArgument.Type.NamedType().Name);
+
                     fieldDescriptor.Argument(
                         fieldArgument.Name,
                         descriptor => descriptor
-                            .Type(new NamedTypeNode(fieldArgument.Type.NamedType().Name))
+                            .Type(fieldArgument.Type.Kind == TypeKind.List
+                                ? new ListTypeNode(baseType)
+                                : baseType)
                             .Description(fieldArgument.Description));
                 }
 
