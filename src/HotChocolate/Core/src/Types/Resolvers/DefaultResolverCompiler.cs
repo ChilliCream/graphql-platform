@@ -52,7 +52,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     {
         var appServiceProvider = schemaServiceProvider.GetService<IApplicationServiceProvider>();
         var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
-        
+
         var custom = customParameterExpressionBuilders is not null
             ? [..customParameterExpressionBuilders,]
             : new List<IParameterExpressionBuilder>();

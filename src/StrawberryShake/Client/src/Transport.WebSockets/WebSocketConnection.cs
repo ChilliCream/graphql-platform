@@ -53,10 +53,10 @@ public class WebSocketConnection : IWebSocketConnection
         public async IAsyncEnumerator<Response<JsonDocument>> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
-            await using ISession session =
+            await using var session =
                 await _sessionFactory(cancellationToken).ConfigureAwait(false);
 
-            await using ISocketOperation operation =
+            await using var operation =
                 await session.StartOperationAsync(_request, cancellationToken)
                     .ConfigureAwait(false);
 

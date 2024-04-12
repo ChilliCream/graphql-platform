@@ -12,7 +12,7 @@ using ThrowHelper = HotChocolate.Fusion.Utilities.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
-internal abstract class RequestDocumentFormatter
+internal abstract class RequestDocumentFormatter(FusionGraphConfiguration configuration)
 {
     protected static readonly FieldNode TypeNameField = new(
         null,
@@ -23,12 +23,8 @@ internal abstract class RequestDocumentFormatter
         Array.Empty<ArgumentNode>(),
         null);
 
-    private readonly FusionGraphConfiguration _config;
-
-    protected RequestDocumentFormatter(FusionGraphConfiguration configuration)
-    {
-        _config = configuration ?? throw new ArgumentNullException(nameof(configuration));
-    }
+    private readonly FusionGraphConfiguration _config = configuration ??
+        throw new ArgumentNullException(nameof(configuration));
 
     protected FusionGraphConfiguration Configuration => _config;
 
@@ -109,6 +105,7 @@ internal abstract class RequestDocumentFormatter
         SelectionExecutionStep executionStep)
     {
         var selectionNodes = new List<ISelectionNode>();
+        var rootNodes = new List<ISelectionNode>();
         var selectionSet = context.Operation.GetSelectionSet(executionStep);
         var selectionSetType = executionStep.SelectionSetTypeMetadata;
         Debug.Assert(selectionSet is not null);
@@ -121,12 +118,9 @@ internal abstract class RequestDocumentFormatter
 
             if (rootSelection.Resolver is null)
             {
-                selectionNode =
-                    CreateSelectionNode(
-                        context,
-                        executionStep,
-                        rootSelection.Selection,
-                        field);
+                rootNodes.Clear();
+                AddSelectionNode(context, executionStep, rootSelection.Selection, field, rootNodes);
+                selectionNode = rootNodes[0];
 
                 if (!rootSelection.Selection.Arguments.IsFullyCoercedNoErrors)
                 {
@@ -194,11 +188,12 @@ internal abstract class RequestDocumentFormatter
         return new SelectionSetNode(selectionNodes);
     }
 
-    protected virtual ISelectionNode CreateSelectionNode(
+    protected virtual void AddSelectionNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
         ISelection selection,
-        ObjectFieldInfo fieldInfo)
+        ObjectFieldInfo fieldInfo,
+        List<ISelectionNode> selectionNodes)
     {
         SelectionSetNode? selectionSetNode = null;
 
@@ -217,14 +212,38 @@ internal abstract class RequestDocumentFormatter
             ? new NameNode(selection.ResponseName)
             : null;
 
-        return new FieldNode(
-            null,
-            new(binding.Name),
-            alias,
-            selection.SyntaxNode.Required,
-            Array.Empty<DirectiveNode>(), // todo : not sure if we should pass down directives.
-            selection.SyntaxNode.Arguments,
-            selectionSetNode);
+        // TODO: this is not good but will fix the include issue ...
+        // we need to rework the operation compiler for a proper fix.
+        foreach (var node in selection.SyntaxNodes)
+        {
+            if(node.Directives.Count > 0)
+            {
+                foreach (var directive in node.Directives)
+                {
+                    foreach (var argument in directive.Arguments)
+                    {
+                        if (argument.Value is not VariableNode variable)
+                        {
+                            continue;
+                        }
+
+                        var originalVarDef = context.Operation.Definition.VariableDefinitions
+                            .First(t => t.Variable.Equals(variable, SyntaxComparison.Syntax));
+                        context.ForwardedVariables.Add(originalVarDef);
+                    }
+                }
+            }
+
+            selectionNodes.Add(
+                new FieldNode(
+                    null,
+                    new(binding.Name),
+                    alias,
+                    node.Required,
+                    node.Directives,
+                    node.Arguments,
+                    selectionSetNode));
+        }
     }
 
     protected virtual SelectionSetNode CreateSelectionSetNode(
@@ -274,16 +293,18 @@ internal abstract class RequestDocumentFormatter
                 }
             }
 
-            if (!single)
+            if (single)
             {
-                if (needsTypeNameField)
-                {
-                    selectionNodes.Add(TypeNameField);
-                    needsTypeNameField = false;
-                }
-
-                AddInlineFragment(possibleType);
+                continue;
             }
+
+            if (needsTypeNameField)
+            {
+                selectionNodes.Add(TypeNameField);
+                needsTypeNameField = false;
+            }
+
+            AddInlineFragment(possibleType);
         }
 
         return new SelectionSetNode(selectionNodes);
@@ -331,12 +352,12 @@ internal abstract class RequestDocumentFormatter
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {

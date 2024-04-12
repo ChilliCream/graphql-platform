@@ -256,7 +256,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
@@ -325,7 +325,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Friends != null)
                 {
@@ -395,7 +395,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Friends != null)
                 {
@@ -468,7 +468,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
@@ -540,7 +540,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -602,7 +602,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -733,7 +733,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * OnReview.GetHashCode();
                 return hash;
             }
@@ -804,7 +804,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 hash ^= 397 * Stars.GetHashCode();
                 if (Commentary != null)
@@ -899,7 +899,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * CreateReview.GetHashCode();
                 return hash;
             }
@@ -964,7 +964,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Stars.GetHashCode();
                 if (Commentary != null)
                 {
@@ -1105,7 +1105,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Stars.GetHashCode();
                 if (Commentary != null)
                 {
@@ -2315,7 +2315,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
             }
@@ -2396,7 +2396,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>();
-            foreach (global::StrawberryShake.EntityId? child in list)
+            foreach (var child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
             }
@@ -2475,7 +2475,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Droid" => ParseDroidEntityId(obj, __typename),

@@ -21,7 +21,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: one }");
+            var result = testExecutor.Execute("query { test: one }");
             
             Assert.Equal("5780-05-25 (Hebrew Civil)", result.ExpectQueryResult().Data!["test"]);
         }
@@ -29,7 +29,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-21 (Hebrew Civil)")
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: LocalDate!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-20T17:42:59 (Hebrew Civil)")
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20 (Hebrew Civil)\") }")
                     .Create());
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59 (Hebrew Civil)\") }")
                     .Create());

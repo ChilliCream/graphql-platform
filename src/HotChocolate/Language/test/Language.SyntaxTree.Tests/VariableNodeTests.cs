@@ -120,7 +120,7 @@ public class VariableNodeTests
     {
         // arrange
         var name = new NameNode("foo");
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
 
         // act
         var node = new VariableNode(location, name);
@@ -145,7 +145,7 @@ public class VariableNodeTests
     public void Create_Name_LocationNull_ArgumentNullException()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
 
         // act
         VariableNode Action() => new(location, null!);
@@ -175,7 +175,7 @@ public class VariableNodeTests
         // arrange
         var foo = new NameNode("foo");
         var node = new VariableNode(foo);
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
 
         // act
         node = node.WithLocation(location);

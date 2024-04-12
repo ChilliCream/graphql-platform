@@ -131,7 +131,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
             string serialized,
             [NotNullWhen(true)] out double? value)
         {
-            MatchCollection coords = _validationPattern.Matches(serialized);
+            var coords = _validationPattern.Matches(serialized);
             if (coords.Count > 0)
             {
                 var minute = double.TryParse(coords[0].Groups[2].Value, out var min)
@@ -174,7 +174,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
                 var seconds =
                     Round(minutesDecimal * 60, _maxPrecision, MidpointRounding.AwayFromZero);
 
-                string serializedLatitude = degree switch
+                var serializedLatitude = degree switch
                 {
                     >= 0 and < _max => $"{degree}° {minutes}' {seconds}\" N",
                     < 0 and > _min => $"{Abs(degree)}° {Abs(minutes)}' {Abs(seconds)}\" S",

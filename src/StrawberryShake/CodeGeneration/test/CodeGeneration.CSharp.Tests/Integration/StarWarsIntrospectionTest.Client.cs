@@ -161,7 +161,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * __schema.GetHashCode();
                 return hash;
             }
@@ -253,7 +253,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * QueryType.GetHashCode();
                 if (MutationType != null)
                 {
@@ -340,7 +340,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
@@ -411,7 +411,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
@@ -482,7 +482,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
@@ -574,7 +574,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -706,7 +706,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -799,7 +799,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -893,7 +893,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -977,7 +977,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1061,7 +1061,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -1145,7 +1145,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1232,7 +1232,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -1320,7 +1320,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Description != null)
                 {
@@ -1404,7 +1404,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1487,7 +1487,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1570,7 +1570,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1653,7 +1653,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1736,7 +1736,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1819,7 +1819,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1902,7 +1902,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -1985,7 +1985,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -2068,7 +2068,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -2148,7 +2148,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {
             unchecked
             {
-                int hash = 5;
+                var hash = 5;
                 hash ^= 397 * Kind.GetHashCode();
                 if (Name != null)
                 {
@@ -4648,7 +4648,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
+            var __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};
