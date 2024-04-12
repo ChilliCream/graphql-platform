@@ -36,9 +36,16 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
             var typeInfo = context.GetSchemaTypeInfo(schema);
             var type = typeInfo.GetGraphQLTypeNode(false);
 
+            var description = operation.Value.Description;
+
+            if (operation.Value.Response?.Description is { } responseDescription)
+            {
+                description += $"\n\nReturns: {responseDescription}";
+            }
+
             var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
             {
-                Description = operation.Value.Description,
+                Description = description,
                 Type = type,
             };
 

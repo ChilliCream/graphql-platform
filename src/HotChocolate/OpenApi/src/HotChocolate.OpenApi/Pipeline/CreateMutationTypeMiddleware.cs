@@ -30,9 +30,16 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
 
         foreach (var operation in operations)
         {
+            var description = operation.Value.Description;
+
+            if (operation.Value.Response?.Description is { } responseDescription)
+            {
+                description += $"\n\nReturns: {responseDescription}";
+            }
+
             var outputField = new OutputField(GetFieldName(operation.Value.OperationId))
             {
-                Description = operation.Value.Description,
+                Description = description,
                 Type = context.OperationPayloadTypeLookup[operation.Value.OperationId],
             };
 
