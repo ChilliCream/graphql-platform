@@ -16,10 +16,6 @@
     <None Update="__resources__\PetStore.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <Content Remove="__resources__\Uber.json" />
-    <None Include="__resources__\Uber.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
