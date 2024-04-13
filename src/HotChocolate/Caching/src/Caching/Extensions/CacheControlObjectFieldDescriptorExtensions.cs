@@ -12,7 +12,7 @@ public static class CacheControlObjectFieldDescriptorExtensions
     /// The <see cref="IObjectFieldDescriptor"/>.
     /// </param>
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, fields of this
+    /// The maximum time, in seconds, fields of this
     /// type should be cached.
     /// </param>
     /// <param name="scope">
