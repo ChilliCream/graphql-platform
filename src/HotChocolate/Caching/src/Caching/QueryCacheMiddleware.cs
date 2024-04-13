@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -30,8 +31,8 @@ internal sealed class QueryCacheMiddleware
         }
 
         if (context.Operation?.ContextData is null ||
-            !context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var value) ||
-            value is not string cacheControlHeaderValue)
+            !context.Operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value) ||
+            value is not CacheControlHeaderValue cacheControlHeaderValue)
         {
             return;
         }
@@ -45,7 +46,7 @@ internal sealed class QueryCacheMiddleware
                     ? new ExtensionData(queryResult.ContextData)
                     : new ExtensionData();
 
-            contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
+            contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
 
             context.Result = new QueryResult(
                 data: queryResult.Data,
