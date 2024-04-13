@@ -82,7 +82,7 @@ public class Argument : FieldBase, IInputField
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
         => OnCompleteField(context, declaringMember, (ArgumentDefinition)definition);
-    
+
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
@@ -103,6 +103,12 @@ public class Argument : FieldBase, IInputField
 
         Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
         _runtimeType = definition.RuntimeType ?? definition.Parameter?.ParameterType!;
+
+        if (definition is DirectiveArgumentDefinition { Property.PropertyType: {} propertyType })
+        {
+            _runtimeType = propertyType;
+        }
+
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;
