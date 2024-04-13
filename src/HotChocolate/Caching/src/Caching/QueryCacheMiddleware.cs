@@ -9,7 +9,7 @@ internal sealed class QueryCacheMiddleware
 {
     private readonly ICacheControlOptions _options;
     private readonly RequestDelegate _next;
-    
+
     private QueryCacheMiddleware(
         RequestDelegate next,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
@@ -48,15 +48,18 @@ internal sealed class QueryCacheMiddleware
             contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
 
             context.Result = new QueryResult(
-                queryResult.Data,
-                queryResult.Errors,
-                queryResult.Extensions,
-                contextData,
-                queryResult.Items,
-                queryResult.Incremental,
-                queryResult.Label,
-                queryResult.Path,
-                queryResult.HasNext);
+                data: queryResult.Data,
+                errors: queryResult.Errors,
+                extension: queryResult.Extensions,
+                contextData: contextData,
+                items: queryResult.Items,
+                incremental: queryResult.Incremental,
+                label: queryResult.Label,
+                path: queryResult.Path,
+                hasNext: queryResult.HasNext,
+                // TODO: This is probably problematic
+                cleanupTasks: [],
+                isDataSet: queryResult.IsDataSet);
         }
     }
 
