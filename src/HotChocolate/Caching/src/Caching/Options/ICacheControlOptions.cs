@@ -11,7 +11,7 @@ public interface ICacheControlOptions
     bool Enable { get; }
 
     /// <summary>
-    /// The <c>MaxAge</c> that should be applied to fields,
+    /// The <c>MaxAge</c>, in seconds, that should be applied to fields,
     /// if <see cref="ApplyDefaults"/> is <c>true</c>.
     /// Defaults to <c>0</c>.
     /// </summary>
