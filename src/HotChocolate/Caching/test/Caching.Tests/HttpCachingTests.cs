@@ -61,6 +61,68 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Just_Defaults_Should_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task No_Applied_Defaults_Should_Not_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Default_Max_Age_Should_Apply_And_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.DefaultMaxAge = 1000)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task JustScope_Should_Not_Cache()
     {
         var server = CreateServer(services =>
