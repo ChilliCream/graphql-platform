@@ -123,6 +123,27 @@ public class HttpCachingTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Default_Scope_Should_Apply_And_Cache()
+    {
+        var server = CreateServer(services =>
+        {
+            services.AddGraphQLServer()
+                .UseQueryCachePipeline()
+                .AddCacheControl()
+                .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
+                .AddQueryType(d =>
+                    d.Name("Query")
+                        .Field("field")
+                        .Resolve(""));
+        });
+
+        var client = server.CreateClient();
+        var result = await client.PostQueryAsync("{ field }");
+
+        result.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task JustScope_Should_Not_Cache()
     {
         var server = CreateServer(services =>
