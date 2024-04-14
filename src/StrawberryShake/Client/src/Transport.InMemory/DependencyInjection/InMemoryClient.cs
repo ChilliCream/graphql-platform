@@ -77,7 +77,7 @@ public class InMemoryClient : IInMemoryClient
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
         requestBuilder.InitializeGlobalState(request.GetContextDataOrNull());
 
-        IServiceProvider applicationService = Executor.Services.GetApplicationServices();
+        var applicationService = Executor.Services.GetApplicationServices();
         foreach (var interceptor in RequestInterceptors)
         {
             await interceptor
@@ -97,7 +97,7 @@ public class InMemoryClient : IInMemoryClient
             var unflattened = MapFilesToLookup(request.Files);
             var response = new Dictionary<string, object?>();
 
-            foreach (KeyValuePair<string, object?> pair in variables)
+            foreach (var pair in variables)
             {
                 unflattened.TryGetValue(pair.Key, out var fileValue);
                 response[pair.Key] = CreateVariableValue(pair.Value, fileValue);
@@ -175,7 +175,7 @@ public class InMemoryClient : IInMemoryClient
             {
                 var segment = path[i];
 
-                string? nextSegment = i + 1 == path.Length ? null : path[i + 1];
+                var nextSegment = i + 1 == path.Length ? null : path[i + 1];
 
                 if (char.IsDigit(segment[0]))
                 {

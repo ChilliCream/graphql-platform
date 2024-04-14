@@ -5,8 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public class ErrorBuilder : IErrorBuilder
@@ -19,7 +17,6 @@ public class ErrorBuilder : IErrorBuilder
     private List<Location>? _locations;
     private bool _dirtyLocation;
     private bool _dirtyExtensions;
-    private ISyntaxNode? _syntaxNode;
 
     public ErrorBuilder()
     {
@@ -37,12 +34,12 @@ public class ErrorBuilder : IErrorBuilder
         _path = error.Path;
         _exception = error.Exception;
 
-        if (error.Extensions is { } && error.Extensions.Count > 0)
+        if (error.Extensions is { Count: > 0 })
         {
             _extensions = new OrderedDictionary<string, object?>(error.Extensions);
         }
 
-        if (error.Locations is { } && error.Locations.Count > 0)
+        if (error.Locations is { Count: > 0 })
         {
             _locations = [..error.Locations,];
         }
@@ -100,7 +97,7 @@ public class ErrorBuilder : IErrorBuilder
 
     public IErrorBuilder AddLocation(Location location)
     {
-        if (_dirtyLocation && _locations is { })
+        if (_dirtyLocation && _locations is not null)
         {
             _locations = [.._locations,];
             _dirtyLocation = false;
@@ -113,9 +110,23 @@ public class ErrorBuilder : IErrorBuilder
     public IErrorBuilder AddLocation(int line, int column) =>
         AddLocation(new Location(line, column));
 
-    public IErrorBuilder SetSyntaxNode(ISyntaxNode? syntaxNode)
+    public IErrorBuilder AddLocation<T>(IReadOnlyList<T>? syntaxNodes) where T : ISyntaxNode
     {
-        _syntaxNode = syntaxNode;
+        if (syntaxNodes is null)
+        {
+            _locations = null;
+            _dirtyLocation = false;
+            return this;
+        }
+
+        foreach (var syntaxNode in syntaxNodes)
+        {
+            if (syntaxNode.Location is { } location)
+            {
+                AddLocation(location.Line, location.Column);
+            }
+        }
+
         return this;
     }
 
@@ -203,8 +214,7 @@ public class ErrorBuilder : IErrorBuilder
             _path,
             _locations,
             _extensions,
-            _exception,
-            _syntaxNode);
+            _exception);
     }
 
     public static ErrorBuilder New() => new();

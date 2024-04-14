@@ -14,7 +14,7 @@ public class InlineCacheDataLoaderTests
     public async Task LoadWithDifferentDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -32,7 +32,7 @@ public class InlineCacheDataLoaderTests
     public async Task LoadWithDifferentDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -50,7 +50,7 @@ public class InlineCacheDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -68,7 +68,7 @@ public class InlineCacheDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -86,7 +86,7 @@ public class InlineCacheDataLoaderTests
     public async Task CacheOnce()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query3>()

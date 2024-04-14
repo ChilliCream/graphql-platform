@@ -46,7 +46,7 @@ internal static class NodeFieldResolvers
                 ErrorHelper.Relay_NoNodeResolver(
                     typeName,
                     context.Path,
-                    context.Selection.SyntaxNode));
+                    context.Selection.SyntaxNodes));
 
             context.Result = null;
         }
@@ -70,7 +70,7 @@ internal static class NodeFieldResolvers
             {
                 context.ReportError(
                     ErrorHelper.FetchedToManyNodesAtOnce(
-                        context.Selection.SyntaxNode,
+                        context.Selection.SyntaxNodes,
                         context.Path,
                         maxAllowedNodes,
                         list.Items.Count));
@@ -109,7 +109,7 @@ internal static class NodeFieldResolvers
                         ErrorHelper.Relay_NoNodeResolver(
                             typeName,
                             context.Path,
-                            context.Selection.SyntaxNode));
+                            context.Selection.SyntaxNodes));
                 }
             }
 
@@ -175,11 +175,12 @@ internal static class NodeFieldResolvers
                     ErrorHelper.Relay_NoNodeResolver(
                         typeName,
                         context.Path,
-                        context.Selection.SyntaxNode));
+                        context.Selection.SyntaxNodes));
             }
 
             context.Result = result;
         }
+        return;
 
         static async Task<object?> ExecutePipelineAsync(
             IMiddlewareContext nodeResolverContext,

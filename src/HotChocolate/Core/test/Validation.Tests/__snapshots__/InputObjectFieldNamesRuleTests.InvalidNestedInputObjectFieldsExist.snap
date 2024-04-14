@@ -22,36 +22,6 @@
       "field": "favoriteCookieFlavor",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 67,
-        "End": 98,
-        "Line": 3,
-        "Column": 49
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 67,
-          "End": 88,
-          "Line": 3,
-          "Column": 49
-        },
-        "Value": "favoriteCookieFlavor"
-      },
-      "Value": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 89,
-          "End": 98,
-          "Line": 3,
-          "Column": 71
-        },
-        "Value": "Bacon",
-        "Block": false
-      }
-    }
+    "Exception": null
   }
 ]

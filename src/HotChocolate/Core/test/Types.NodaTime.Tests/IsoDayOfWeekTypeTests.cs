@@ -42,7 +42,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsMonday()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: monday }");
+            var result = testExecutor.Execute("query { test: monday }");
             
             Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
         }
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsSunday()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: sunday }");
+            var result = testExecutor.Execute("query { test: sunday }");
             
             Assert.Equal(7, result.ExpectQueryResult().Data!["test"]);
         }
@@ -58,7 +58,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsFriday()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: friday }");
+            var result = testExecutor.Execute("query { test: friday }");
             
             Assert.Equal(5, result.ExpectQueryResult().Data!["test"]);
         }
@@ -66,7 +66,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryDoesntReturnNone()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: none }");
+            var result = testExecutor.Execute("query { test: none }");
             
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.NotEmpty(result.ExpectQueryResult().Errors);
@@ -75,7 +75,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationParsesMonday()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 1)
@@ -87,7 +87,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationParsesSunday()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 7)
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationDoesntParseZero()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 0)
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationDoesntParseEight()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", 8)
@@ -125,7 +125,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationDoesntParseNegativeNumbers()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValue("arg", -2)
