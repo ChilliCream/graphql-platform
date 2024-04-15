@@ -23,29 +23,5 @@
     "responseName": "nickname",
     "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
   },
-  "Exception": null,
-  "SyntaxNode": {
-    "Kind": "Field",
-    "Alias": null,
-    "Arguments": [],
-    "Required": null,
-    "SelectionSet": null,
-    "Location": {
-      "Start": 248,
-      "End": 274,
-      "Line": 9,
-      "Column": 21
-    },
-    "Name": {
-      "Kind": "Name",
-      "Location": {
-        "Start": 248,
-        "End": 274,
-        "Line": 9,
-        "Column": 21
-      },
-      "Value": "nickname"
-    },
-    "Directives": []
-  }
+  "Exception": null
 }

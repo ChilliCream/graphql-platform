@@ -29,7 +29,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
     /// <inheritdoc />
     protected override TRuntimeType ParseLiteral(IntValueNode literal)
     {
-        if (TryDeserialize(literal.ToInt32(), out TRuntimeType? value))
+        if (TryDeserialize(literal.ToInt32(), out var value))
         {
             return value.Value;
         }
@@ -124,7 +124,7 @@ public abstract class IntToStructBaseType<TRuntimeType>
             return true;
         }
 
-        if (resultValue is int i && TryDeserialize(i, out TRuntimeType? val))
+        if (resultValue is int i && TryDeserialize(i, out var val))
         {
             runtimeValue = val;
             return true;

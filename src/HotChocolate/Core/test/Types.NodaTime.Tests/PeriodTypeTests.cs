@@ -37,14 +37,14 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: one }");
+            var result = testExecutor.Execute("query { test: one }");
             Assert.Equal("P-3W3DT139t", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "P-3W15DT139t")
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "-3W3DT-10M139t")
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"P-3W15DT139t\") }")
                     .Create());
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"-3W3DT-10M139t\") }")
                     .Create());

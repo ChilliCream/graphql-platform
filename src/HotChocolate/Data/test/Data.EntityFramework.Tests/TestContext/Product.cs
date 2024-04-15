@@ -83,7 +83,7 @@ public class Product
     /// </summary>
     public int AddStock(int quantity)
     {
-        int original = AvailableStock;
+        var original = AvailableStock;
 
         // The quantity that the client is trying to add to stock is greater than what can be physically accommodated in the Warehouse
         if ((AvailableStock + quantity) > MaxStockThreshold)

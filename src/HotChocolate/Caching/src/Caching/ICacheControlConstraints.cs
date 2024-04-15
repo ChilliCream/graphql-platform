@@ -10,7 +10,7 @@ public interface ICacheConstraints
 {
     /// <summary>
     /// The maximum time the query result shall be cached,
-    /// in Milliseconds.
+    /// in seconds.
     /// </summary>
     int MaxAge { get; }
 

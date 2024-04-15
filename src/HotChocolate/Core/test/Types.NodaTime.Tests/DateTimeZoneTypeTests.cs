@@ -39,28 +39,28 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsUtc()
         {
-            IExecutionResult result =  testExecutor.Execute("query { test: utc }");
+            var result =  testExecutor.Execute("query { test: utc }");
             Assert.Equal("UTC", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsRome()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: rome }");
+            var result = testExecutor.Execute("query { test: rome }");
             Assert.Equal("Europe/Rome", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsChihuahua()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: chihuahua }");
+            var result = testExecutor.Execute("query { test: chihuahua }");
             Assert.Equal("America/Chihuahua", Assert.IsType<QueryResult>(result).Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "Europe/Amsterdam")
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "Europe/Hamster")
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"Europe/Amsterdam\") }")
                     .Create());
@@ -93,7 +93,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"Europe/Hamster\") }")
                     .Create());

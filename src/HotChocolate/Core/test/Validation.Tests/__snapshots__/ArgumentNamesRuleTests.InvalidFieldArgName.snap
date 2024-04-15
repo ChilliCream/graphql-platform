@@ -24,36 +24,7 @@
       "argument": "command",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 220,
-        "End": 244,
-        "Line": 9,
-        "Column": 37
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 220,
-          "End": 228,
-          "Line": 9,
-          "Column": 37
-        },
-        "Value": "command"
-      },
-      "Value": {
-        "Kind": "EnumValue",
-        "Location": {
-          "Start": 229,
-          "End": 244,
-          "Line": 9,
-          "Column": 46
-        },
-        "Value": "CLEAN_UP_HOUSE"
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "The argument `dogCommand` is required.",
@@ -80,60 +51,6 @@
       "argument": "dogCommand",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 220,
-            "End": 244,
-            "Line": 9,
-            "Column": 37
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 220,
-              "End": 228,
-              "Line": 9,
-              "Column": 37
-            },
-            "Value": "command"
-          },
-          "Value": {
-            "Kind": "EnumValue",
-            "Location": {
-              "Start": 229,
-              "End": 244,
-              "Line": 9,
-              "Column": 46
-            },
-            "Value": "CLEAN_UP_HOUSE"
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 204,
-        "End": 262,
-        "Line": 9,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 204,
-          "End": 220,
-          "Line": 9,
-          "Column": 21
-        },
-        "Value": "doesKnowCommand"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

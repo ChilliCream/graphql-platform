@@ -192,7 +192,7 @@ public class OptionalTests
     public void Optional_From_DefaultValueAttribute_Provided()
     {
         const int defaultValue = 500;
-        Optional<int> a = Optional<int>.Empty(defaultValue);
+        var a = Optional<int>.Empty(defaultValue);
         var b = Optional<int>.From(a);
 
         Assert.False(a.HasValue);
