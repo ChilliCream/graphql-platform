@@ -27,9 +27,9 @@ internal sealed class SelectionCollection(
 
     public ISelection this[int index] => _selections[index];
 
-    public ISelectionCollection Select(string fieldName, INamedType? typeContext = default)
+    public ISelectionCollection Select(string fieldName)
     {
-        if (!CollectSelections(fieldName, typeContext, out var buffer, out var size))
+        if (!CollectSelections(fieldName, out var buffer, out var size))
         {
             return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
         }
@@ -40,9 +40,22 @@ internal sealed class SelectionCollection(
         return new SelectionCollection(_schema, _operation, selections, includeFlags);
     }
 
-    public ISelectionCollection Select(ReadOnlySpan<string> fieldNames, INamedType? typeContext = default)
+    public ISelectionCollection Select(ReadOnlySpan<string> fieldNames)
     {
-        if (!CollectSelections(fieldNames, typeContext, out var buffer, out var size))
+        if (!CollectSelections(fieldNames, out var buffer, out var size))
+        {
+            return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
+        }
+
+        var selections = new ISelection[size];
+        buffer.AsSpan().Slice(0, size).CopyTo(selections);
+        ArrayPool<ISelection>.Shared.Return(buffer);
+        return new SelectionCollection(_schema, _operation, selections, includeFlags);
+    }
+
+    public ISelectionCollection Select(INamedType typeContext)
+    {
+        if (!CollectSelections(typeContext, out var buffer, out var size))
         {
             return new SelectionCollection(_schema, _operation, Array.Empty<ISelection>(), includeFlags);
         }
@@ -392,7 +405,6 @@ internal sealed class SelectionCollection(
 
     private bool CollectSelections(
         string fieldName,
-        INamedType? typeContext,
         out ISelection[] buffer,
         out int size)
     {
@@ -400,19 +412,16 @@ internal sealed class SelectionCollection(
         var fieldNamesSpan = fieldNames.AsSpan().Slice(0, 1);
         fieldNamesSpan[0] = fieldName;
 
-        var result = CollectSelections(fieldNamesSpan, typeContext, out buffer, out size);
+        var result = CollectSelections(fieldNamesSpan, out buffer, out size);
         ArrayPool<string>.Shared.Return(fieldNames);
         return result;
     }
 
     private bool CollectSelections(
         ReadOnlySpan<string> fieldNames,
-        INamedType? typeContext,
         out ISelection[] buffer,
         out int size)
     {
-        typeContext ??= Any.Instance;
-
         buffer = ArrayPool<ISelection>.Shared.Rent(4);
         size = 0;
 
@@ -432,11 +441,6 @@ internal sealed class SelectionCollection(
             {
                 foreach (var possibleType in _schema.GetPossibleTypes(namedType))
                 {
-                    if (!typeContext.IsAssignableFrom(possibleType))
-                    {
-                        continue;
-                    }
-
                     var selectionSet = _operation.GetSelectionSet(start, possibleType);
                     CollectFields(fieldNames, includeFlags, ref buffer, selectionSet, size, out var written);
                     size += written;
@@ -444,11 +448,6 @@ internal sealed class SelectionCollection(
             }
             else
             {
-                if (!typeContext.IsAssignableFrom(namedType))
-                {
-                    break;
-                }
-
                 var selectionSet = _operation.GetSelectionSet(start, (ObjectType)namedType);
                 CollectFields(fieldNames, includeFlags, ref buffer, selectionSet, size, out var written);
                 size += written;
@@ -456,6 +455,34 @@ internal sealed class SelectionCollection(
 
             NEXT:
             start = ref Unsafe.Add(ref start, 1)!;
+        }
+
+        if (size == 0)
+        {
+            ArrayPool<ISelection>.Shared.Return(buffer);
+            buffer = Array.Empty<ISelection>();
+        }
+
+        return size > 0;
+    }
+
+    private bool CollectSelections(
+        INamedType typeContext,
+        out ISelection[] buffer,
+        out int size)
+    {
+        buffer = ArrayPool<ISelection>.Shared.Rent(_selections.Length);
+        size = 0;
+
+        ref var start = ref MemoryMarshal.GetReference(_selections.AsSpan());
+        ref var end = ref Unsafe.Add(ref start, _selections.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (typeContext.IsAssignableFrom(start.DeclaringType))
+            {
+                buffer[size++] = start;
+            }
         }
 
         if (size == 0)

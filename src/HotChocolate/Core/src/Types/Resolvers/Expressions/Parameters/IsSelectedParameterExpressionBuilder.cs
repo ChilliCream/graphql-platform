@@ -9,6 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -37,6 +38,22 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
 
         if (attribute.Fields is not null)
         {
+            var definition = descriptor.Extend().Definition;
+            definition.Configurations.Add(
+                new CompleteConfiguration((ctx, def) =>
+                {
+                    if(!ctx.DescriptorContext.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks, out var value))
+                    {
+                        value = new List<IsSelectedPattern>();
+                        ctx.DescriptorContext.ContextData[WellKnownContextData.PatternValidationTasks] = value;
+                    }
+
+                    var patterns = (List<IsSelectedPattern>)value!;
+                    patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
+                },
+                definition,
+                ApplyConfigurationOn.AfterCompletion));
+
             descriptor.Use(
                 next => async ctx =>
                 {
@@ -119,7 +136,7 @@ internal sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
         var selections = context.Selections.Peek();
         var typeContext = context.TypeContext.Peek();
 
-        if(!selections.IsSelected(node.Alias?.Value ?? node.Name.Value))
+        if (!selections.IsSelected(node.Alias?.Value ?? node.Name.Value))
         {
             context.AllSelected = false;
             return Break;
@@ -127,14 +144,14 @@ internal sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
 
 
         context.TypeContext.Push(null);
-        context.Selections.Push(selections.Select(node.Alias?.Value ?? node.Name.Value, typeContext));
+        // context.Selections.Push();
 
         return base.Enter(node, context);
     }
 
     protected override ISyntaxVisitorAction Leave(FieldNode node, IsSelectedContext context)
     {
-        if(context.AllSelected)
+        if (context.AllSelected)
         {
             context.TypeContext.Pop();
             context.Selections.Pop();
@@ -178,4 +195,97 @@ internal sealed class IsSelectedContext
     public Stack<INamedType?> TypeContext { get; } = new();
 
     public bool AllSelected { get; set; } = true;
+}
+
+internal sealed class ValidateIsSelectedPatternVisitor : SyntaxWalker<ValidateIsSelectedPatternContext>
+{
+    protected override ISyntaxVisitorAction Enter(FieldNode node, ValidateIsSelectedPatternContext context)
+    {
+        var field = context.Field.Peek();
+        var typeContext = context.TypeContext.Peek() ?? field.Type.NamedType();
+
+        if (typeContext is IComplexOutputType complexOutputType)
+        {
+            if (complexOutputType.Fields.TryGetField(node.Name.Value, out var objectField))
+            {
+                context.TypeContext.Push(null);
+                context.Field.Push(objectField);
+            }
+            else
+            {
+                context.Error = SchemaErrorBuilder.New().SetMessage("Broken").Build();
+                return Break;
+            }
+        }
+        else
+        {
+            context.Error = SchemaErrorBuilder.New().SetMessage("Broken").Build();
+            return Break;
+        }
+
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Leave(FieldNode node, ValidateIsSelectedPatternContext context)
+    {
+        context.TypeContext.Pop();
+        return base.Leave(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, ValidateIsSelectedPatternContext context)
+    {
+        if (node.TypeCondition is not null)
+        {
+            var type = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+            var field = context.Field.Peek();
+
+            if (!type.IsAssignableFrom(field.Type.NamedType()))
+            {
+                context.Error = SchemaErrorBuilder.New().SetMessage("Broken").Build();
+                return Break;
+            }
+
+            context.TypeContext.Push(type);
+        }
+
+        return base.Enter(node, context);
+    }
+
+
+    protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, ValidateIsSelectedPatternContext context)
+    {
+        if (node.TypeCondition is not null)
+        {
+            context.TypeContext.Pop();
+        }
+
+        return base.Leave(node, context);
+    }
+
+    public static ValidateIsSelectedPatternVisitor Instance { get; } = new();
+}
+
+internal sealed class ValidateIsSelectedPatternContext
+{
+    public ValidateIsSelectedPatternContext(ISchema schema, IObjectField field)
+    {
+        Schema = schema;
+        Field.Push(field);
+        TypeContext.Push(null);
+    }
+
+    public ISchema Schema { get; }
+
+    public Stack<IOutputField> Field { get; } = new();
+
+    public Stack<INamedType?> TypeContext { get; } = new();
+
+    public ISchemaError? Error { get; set; }
+}
+
+internal sealed class IsSelectedPattern(ObjectType type, string fieldName, SelectionSetNode pattern)
+{
+    public ObjectType Type { get; } = type;
+    public string FieldName { get; } = fieldName;
+    public SelectionSetNode Pattern { get; } = pattern;
 }

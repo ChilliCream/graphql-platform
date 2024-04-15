@@ -1,15 +1,14 @@
 #nullable enable
 
-using System;
 using System.Collections.Generic;
-using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration.Validation;
 
 internal interface ISchemaValidationRule
 {
     void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchema schema,
         ICollection<ISchemaError> errors);
 }

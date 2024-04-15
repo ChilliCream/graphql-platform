@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -50,7 +51,7 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
                 }
 
-                if(context.Options.RemoveUnusedTypeSystemDirectives &&
+                if (context.Options.RemoveUnusedTypeSystemDirectives &&
                     !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
                 {
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
@@ -169,9 +170,7 @@ public partial class SchemaBuilder
                 var directives =
                     visitorContext.Directives ?? Array.Empty<DirectiveNode>();
 
-                if (builder._schema is null
-                    && (directives.Count > 0
-                    || visitorContext.Description != null))
+                if (builder._schema is null && (directives.Count > 0 || visitorContext.Description != null))
                 {
                     builder.SetSchema(new Schema(d =>
                     {
@@ -192,8 +191,7 @@ public partial class SchemaBuilder
             OperationType operation,
             string? typeName)
         {
-            if (!builder._operations.ContainsKey(operation)
-                && !string.IsNullOrEmpty(typeName))
+            if (!builder._operations.ContainsKey(operation) && !string.IsNullOrEmpty(typeName))
             {
                 builder._operations.Add(
                     operation,
@@ -287,28 +285,28 @@ public partial class SchemaBuilder
             if (type is ObjectType objectType)
             {
                 if (IsOperationType(
-                    objectType,
-                    OperationType.Query,
-                    typeInspector,
-                    operations))
+                        objectType,
+                        OperationType.Query,
+                        typeInspector,
+                        operations))
                 {
                     return RootTypeKind.Query;
                 }
 
                 if (IsOperationType(
-                    objectType,
-                    OperationType.Mutation,
-                    typeInspector,
-                    operations))
+                        objectType,
+                        OperationType.Mutation,
+                        typeInspector,
+                        operations))
                 {
                     return RootTypeKind.Mutation;
                 }
 
                 if (IsOperationType(
-                    objectType,
-                    OperationType.Subscription,
-                    typeInspector,
-                    operations))
+                        objectType,
+                        OperationType.Subscription,
+                        typeInspector,
+                        operations))
                 {
                     return RootTypeKind.Subscription;
                 }
@@ -332,8 +330,8 @@ public partial class SchemaBuilder
 
                 if (typeRef is ExtendedTypeReference cr)
                 {
-                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType()))
-                        || cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
+                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType())) ||
+                        cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
                 }
 
                 if (typeRef is SyntaxTypeReference str)
@@ -376,8 +374,15 @@ public partial class SchemaBuilder
 
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
+
+            if (SchemaValidator.Validate(context, schema) is { Count: > 0 } errors)
+            {
+                throw new SchemaException(errors);
+            }
+
             context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);
             lazySchema.Schema = schema;
+
             return schema;
         }
 
@@ -434,6 +439,7 @@ public partial class SchemaBuilder
                 schemaDef.MutationType = GetOperationType(OperationType.Mutation);
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
+
             return;
 
             ObjectType? GetObjectType(string typeName)

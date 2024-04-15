@@ -19,14 +19,11 @@ public interface ISelectionCollection : IReadOnlyList<ISelection>
     /// <param name="fieldName">
     /// The field name to select.
     /// </param>
-    /// <param name="typeContext">
-    /// The type from which the fields shall be selected.
-    /// </param>
     /// <returns>
     /// Returns a <see cref="ISelectionCollection"/> containing
     /// the selections that match the given field name.
     /// </returns>
-    ISelectionCollection Select(string fieldName, INamedType? typeContext = default);
+    ISelectionCollection Select(string fieldName);
 
     /// <summary>
     /// Selects all child fields that match the given field names and
@@ -36,14 +33,23 @@ public interface ISelectionCollection : IReadOnlyList<ISelection>
     /// <param name="fieldNames">
     /// The field names to select.
     /// </param>
-    /// <param name="typeContext">
-    /// The type from which the fields shall be selected.
-    /// </param>
     /// <returns>
     /// Returns a <see cref="ISelectionCollection"/> containing
     /// the selections that match the given field name.
     /// </returns>
-    ISelectionCollection Select(ReadOnlySpan<string> fieldNames, INamedType? typeContext = default);
+    ISelectionCollection Select(ReadOnlySpan<string> fieldNames);
+
+    /// <summary>
+    /// Selects all selections where the typeContext is assignable from the field`s declaring type.
+    /// </summary>
+    /// <param name="typeContext">
+    /// The type context to select.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="ISelectionCollection"/> containing
+    /// the selections where the typeContext is assignable from the field`s declaring type.
+    /// </returns>
+    ISelectionCollection Select(INamedType typeContext);
 
     /// <summary>
     /// Specifies if a child field with the given field name is selected.
