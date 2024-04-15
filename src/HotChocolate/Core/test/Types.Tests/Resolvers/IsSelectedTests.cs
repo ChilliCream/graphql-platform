@@ -286,6 +286,98 @@ public class IsSelectedTests
     }
 
     [Fact]
+    public async Task IsSelected_Attribute_5_Selected()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user_Attribute_5 {
+                            email
+                            category {
+                                next {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task IsSelected_Attribute_5_Not_Selected()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user_Attribute_5 {
+                            email
+                            category {
+                                name
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task IsSelected_Attribute_6_Selected()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user_Attribute_6 {
+                            email
+                            category {
+                                next {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task IsSelected_Attribute_6_Not_Selected()
+    {
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user_Attribute_6 {
+                            email
+                            category {
+                                name
+                            }
+                        }
+                    }
+                    """);
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task IsSelected_Context_1_Selected()
     {
         var result =
@@ -677,6 +769,23 @@ public class IsSelectedTests
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
             return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
         }
+
+        public User GetUser_Attribute_5(
+            [IsSelected("email category { next { name } }")] bool isSelected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
+            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+        }
+
+        public User GetUser_Attribute_6(
+            [IsSelected("email category { ... on Category { next { name } } }")] bool isSelected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
+            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+        }
+
 
         public User GetUser_Context_1(IResolverContext context)
         {

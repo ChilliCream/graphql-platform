@@ -1,9 +1,12 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -31,7 +34,20 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
         var attribute = parameter.GetCustomAttribute<IsSelectedAttribute>()!;
-        
+
+        if (attribute.Fields is not null)
+        {
+            descriptor.Use(
+                next => async ctx =>
+                {
+                    var selectionContext = new IsSelectedContext(ctx.Schema, ctx.Select());
+                    IsSelectedVisitor.Instance.Visit(attribute.Fields, selectionContext);
+                    ctx.SetLocalState($"isSelected.{parameter.Name}", selectionContext.AllSelected);
+                    await next(ctx);
+                });
+            return;
+        }
+
         switch (attribute.FieldNames.Length)
         {
             case 1:
@@ -94,4 +110,72 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
             }
         }
     }
+}
+
+internal sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
+{
+    protected override ISyntaxVisitorAction Enter(FieldNode node, IsSelectedContext context)
+    {
+        var selections = context.Selections.Peek();
+        var typeContext = context.TypeContext.Peek();
+
+        if(!selections.IsSelected(node.Alias?.Value ?? node.Name.Value))
+        {
+            context.AllSelected = false;
+            return Break;
+        }
+
+
+        context.TypeContext.Push(null);
+        context.Selections.Push(selections.Select(node.Alias?.Value ?? node.Name.Value, typeContext));
+
+        return base.Enter(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Leave(FieldNode node, IsSelectedContext context)
+    {
+        if(context.AllSelected)
+        {
+            context.TypeContext.Pop();
+            context.Selections.Pop();
+        }
+
+        return base.Leave(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, IsSelectedContext context)
+    {
+        context.TypeContext.Push(
+            node.TypeCondition is not null
+                ? context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value)
+                : null);
+        return base.Enter(node, context);
+    }
+
+
+    protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
+    {
+        context.TypeContext.Pop();
+        return base.Leave(node, context);
+    }
+
+    public static IsSelectedVisitor Instance { get; } = new();
+}
+
+internal sealed class IsSelectedContext
+{
+    public IsSelectedContext(ISchema schema, ISelectionCollection selections)
+    {
+        Schema = schema;
+        Selections.Push(selections);
+        TypeContext.Push(null);
+    }
+
+    public ISchema Schema { get; }
+
+    public Stack<ISelectionCollection> Selections { get; } = new();
+
+    public Stack<INamedType?> TypeContext { get; } = new();
+
+    public bool AllSelected { get; set; } = true;
 }

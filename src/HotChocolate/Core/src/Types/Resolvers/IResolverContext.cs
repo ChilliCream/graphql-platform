@@ -129,6 +129,16 @@ public interface IResolverContext : IPureResolverContext
         bool allowInternals = false);
 
     /// <summary>
+    /// Selects the current field and returns a <see cref="ISelectionCollection"/> containing
+    /// this selection.
+    /// </summary>
+    /// <returns>
+    /// Returns a <see cref="ISelectionCollection"/> containing
+    /// the selections that match the given field name.
+    /// </returns>
+    ISelectionCollection Select();
+
+    /// <summary>
     /// Selects all child fields that match the given field name and
     /// returns a <see cref="ISelectionCollection"/> containing
     /// these selections.
@@ -138,7 +148,7 @@ public interface IResolverContext : IPureResolverContext
     /// </param>
     /// <returns>
     /// Returns a <see cref="ISelectionCollection"/> containing
-    /// the selections that match the given field name. 
+    /// the selections that match the given field name.
     /// </returns>
     ISelectionCollection Select(string fieldName);
 
