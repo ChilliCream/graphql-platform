@@ -34,7 +34,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
             }
 
             var typeInfo = context.GetSchemaTypeInfo(schema);
-            var type = typeInfo.GetGraphQLTypeNode(false);
+            var type = typeInfo.GetGraphQLTypeNode();
 
             var description = operation.Value.Description;
 
@@ -73,7 +73,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
         {
             var typeInfo = context.GetSchemaTypeInfo(parameter.Schema);
             outputField.Arguments.Add(
-                new InputField(parameter.Name, typeInfo.GetGraphQLTypeNode(false))
+                new InputField(parameter.Name, typeInfo.GetGraphQLTypeNode(parameter.Required))
                 {
                     Description = parameter.Description,
                 });
@@ -83,7 +83,8 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
             requestBody.Content.FirstOrDefault().Value.Schema is {} schema)
         {
             var typeInfo = context.GetSchemaTypeInfo(schema);
-            outputField.Arguments.Add(new InputField("value", typeInfo.GetGraphQLTypeNode(false)));
+            outputField.Arguments.Add(
+                new InputField("value", typeInfo.GetGraphQLTypeNode(requestBody.Required)));
         }
     }
 }

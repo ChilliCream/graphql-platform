@@ -1,6 +1,5 @@
 using System.Text.Json;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Skimmed;
 using HotChocolate.Types;
@@ -10,7 +9,6 @@ using static HotChocolate.OpenApi.Properties.OpenApiResources;
 using IField = HotChocolate.Skimmed.IField;
 using InputObjectType = HotChocolate.Skimmed.InputObjectType;
 using ObjectType = HotChocolate.Skimmed.ObjectType;
-using TypeKind = HotChocolate.Skimmed.TypeKind;
 
 namespace HotChocolate.OpenApi;
 
@@ -74,14 +72,10 @@ public static class RequestExecutorBuilderExtension
 
                 foreach (var fieldArgument in field.Arguments)
                 {
-                    ITypeNode baseType = new NamedTypeNode(fieldArgument.Type.NamedType().Name);
-
                     fieldDescriptor.Argument(
                         fieldArgument.Name,
                         descriptor => descriptor
-                            .Type(fieldArgument.Type.Kind == TypeKind.List
-                                ? new ListTypeNode(baseType)
-                                : baseType)
+                            .Type(fieldArgument.Type.ToTypeNode())
                             .Description(fieldArgument.Description));
                 }
 
@@ -102,13 +96,9 @@ public static class RequestExecutorBuilderExtension
 
     private static IObjectFieldDescriptor CreateFieldDescriptor(IField field, IObjectTypeDescriptor desc)
     {
-        ITypeNode baseType = field.Type.Kind == TypeKind.NonNull
-            ? new NonNullTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
-            : new NamedTypeNode(field.Type.NamedType().Name);
-
         var fieldDescriptor = desc.Field(field.Name)
             .Description(field.Description)
-            .Type(field.Type.Kind == TypeKind.List ? new ListTypeNode(baseType) : baseType);
+            .Type(field.Type.ToTypeNode());
 
         return fieldDescriptor;
     }
@@ -121,15 +111,9 @@ public static class RequestExecutorBuilderExtension
 
             foreach (var field in skimmedType.Fields)
             {
-                ITypeNode baseType = field.Type.Kind == TypeKind.NonNull
-                    ? new NonNullTypeNode(new NamedTypeNode(field.Type.NamedType().Name))
-                    : new NamedTypeNode(field.Type.NamedType().Name);
-
                 desc.Field(field.Name)
                     .Description(field.Description)
-                    .Type(field.Type.Kind == TypeKind.List
-                        ? new ListTypeNode(baseType)
-                        : baseType);
+                    .Type(field.Type.ToTypeNode());
             }
         };
 }
