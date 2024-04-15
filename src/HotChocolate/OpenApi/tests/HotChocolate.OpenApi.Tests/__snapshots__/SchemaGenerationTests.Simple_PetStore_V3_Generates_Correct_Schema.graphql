@@ -50,7 +50,7 @@ type Query {
   
   Returns: pet response
   """
-  findPets("maximum number of results to return" limit: Int "tags to filter by" tags: String): [Pet]
+  findPets("maximum number of results to return" limit: Int "tags to filter by" tags: [String]): [Pet]
 }
 
 input AddPetInput {
