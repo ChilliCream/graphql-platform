@@ -19,6 +19,7 @@ namespace HotChocolate.Types.Relay;
 internal sealed class DefaultNodeIdSerializer : INodeIdSerializer
 {
     private const byte _delimiter = (byte)':';
+    private const byte _legacyDelimiter = (byte)'\n';
     private const int _stackallocThreshold = 256;
     private static readonly Encoding _utf8 = Encoding.UTF8;
 
@@ -99,6 +100,12 @@ internal sealed class DefaultNodeIdSerializer : INodeIdSerializer
         var index = span.IndexOf(_delimiter);
         if (index == -1)
         {
+            if (TryParseLegacyFormat(span, out var nodeId))
+            {
+                Clear(rentedBuffer);
+                return nodeId;
+            }
+
             Clear(rentedBuffer);
             throw new NodeIdInvalidFormatException(formattedId);
         }
@@ -121,6 +128,29 @@ internal sealed class DefaultNodeIdSerializer : INodeIdSerializer
         var value = serializer.Parse(valueSpan);
         Clear(rentedBuffer);
         return value;
+    }
+
+    private bool TryParseLegacyFormat(ReadOnlySpan<byte> span, out NodeId nodeId)
+    {
+        var index = span.IndexOf(_legacyDelimiter);
+        if (index > -1 && _spanSerializerMap.TryGetValue(span.Slice(0, index), out var serializer))
+        {
+            var legacyFormattedIdValue = span.Slice(index + 1);
+            if (legacyFormattedIdValue[0] is
+                LegacyNodeIdSerializer.Default or
+                LegacyNodeIdSerializer.Guid or
+                LegacyNodeIdSerializer.Int or
+                LegacyNodeIdSerializer.Long or
+                LegacyNodeIdSerializer.Short)
+            {
+                var internalId = LegacyNodeIdSerializer.ParseValueInternal(legacyFormattedIdValue);
+                nodeId = new NodeId(serializer.TypeName, internalId);
+                return true;
+            }
+        }
+
+        nodeId = default;
+        return false;
     }
 
     public unsafe NodeId Parse(string formattedId, Type runtimeType)
@@ -386,10 +416,11 @@ internal sealed class DefaultNodeIdSerializer : INodeIdSerializer
                 // we will only resize the bucket if we have not found a spot and we will only add one additional
                 // spot to the bucket. This is to reduce memory overhead, even as there is a memory overhead
                 // when we have to resize the bucket.
-                var newBucket = new Entry[bucket.Length + 1];
+                var requiredCapacity = bucket.Length + 1;
+                var newBucket = new Entry[requiredCapacity];
                 _buckets[bucketIndex] = newBucket;
                 Array.Copy(bucket, newBucket, bucket.Length);
-                insertAt = _buckets.Length;
+                insertAt = bucket.Length;
                 bucket = newBucket;
             }
 
