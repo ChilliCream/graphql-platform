@@ -179,7 +179,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
-        
+
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Projection);
     }
@@ -198,7 +198,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
             {
                 return selection;
             }
-            
+
             selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
@@ -209,7 +209,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
     private sealed class ProjectionQueryBuilder(IQueryBuilder innerBuilder) : IQueryBuilder
     {
         private const string _mockContext = "HotChocolate.Data.Projections.ProxyContext";
-        
+
         public void Prepare(IMiddlewareContext context)
         {
             // in case we are being called from the node/nodes field we need to enrich
@@ -222,10 +222,10 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 var selection = CreateProxySelection(context.Selection, fieldProxy);
                 context = new MiddlewareContextProxy(context, selection, objectType);
             }
-            
+
             //for use case when projection is used with Mutation Conventions
-            else if (context.Operation.Type is OperationType.Mutation && 
-                context.Selection.Type.NamedType() is ObjectType mutationPayloadType && 
+            else if (context.Operation.Type is OperationType.Mutation &&
+                context.Selection.Type.NamedType() is ObjectType mutationPayloadType &&
                 mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null)
                     is string dataFieldName)
             {
@@ -234,7 +234,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                 var selection = UnwrapMutationPayloadSelection(payloadSelectionSet, dataField);
                 context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
             }
-            
+
             context.SetLocalState(_mockContext, context);
             innerBuilder.Prepare(context);
         }
@@ -323,7 +323,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public ValueKind ArgumentKind(string name) => _context.ArgumentKind(name);
 
         public T Service<T>() where T : notnull => _context.Service<T>();
-        
+
     #if NET8_0_OR_GREATER
         public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
     #endif
@@ -344,6 +344,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
             ISelection? selection = null,
             bool allowInternals = false)
             => _context.GetSelections(typeContext, selection, allowInternals);
+
+        public ISelectionCollection Select()
+            => _context.Select();
 
         public ISelectionCollection Select(string fieldName)
             => _context.Select(fieldName);

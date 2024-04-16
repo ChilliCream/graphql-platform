@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
@@ -17,17 +17,17 @@ namespace HotChocolate.Configuration.Validation;
 internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchema schema,
         ICollection<ISchemaError> errors)
     {
         NodeType? nodeType = null;
 
-        if (options.StrictValidation)
+        if (context.Options.StrictValidation)
         {
-            if (options.EnsureAllNodesCanBeResolved)
+            if (context.Options.EnsureAllNodesCanBeResolved)
             {
-                foreach (var type in typeSystemObjects)
+                foreach (var type in schema.Types)
                 {
                     if (type is NodeType nt)
                     {
@@ -37,7 +37,7 @@ internal sealed class ObjectTypeValidationRule : ISchemaValidationRule
                 }
             }
 
-            foreach (var type in typeSystemObjects)
+            foreach (var type in schema.Types)
             {
                 if (type is ObjectType objectType)
                 {

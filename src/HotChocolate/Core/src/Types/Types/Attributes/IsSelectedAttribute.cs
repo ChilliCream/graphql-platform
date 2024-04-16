@@ -1,5 +1,7 @@
+#nullable enable
+
 using System;
-using HotChocolate.Resolvers.Expressions.Parameters;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -22,8 +24,6 @@ namespace HotChocolate.Types;
     AllowMultiple = true)]
 public class IsSelectedAttribute : Attribute
 {
-    private static readonly IsSelectedParameterExpressionBuilder _builder = new();
-    
     /// <summary>
     /// Adds a middleware that checks if the specified fields are selected.
     /// This middleware adds a local state called `isSelected`.
@@ -42,9 +42,29 @@ public class IsSelectedAttribute : Attribute
     /// </param>
     public IsSelectedAttribute(string fieldName)
     {
-        FieldNames = [fieldName,];
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException(
+                "The field name must not be null or empty.",
+                nameof(fieldName));
+        }
+
+        fieldName = $"{{ {fieldName} }}";
+
+        var selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(fieldName);
+
+        if (selectionSet.Selections.Count == 1 &&
+            selectionSet.Selections[0] is FieldNode { SelectionSet: null } field)
+        {
+            FieldNames = [field.Name.Value];
+        }
+        else
+        {
+            Fields = selectionSet;
+            FieldNames = Array.Empty<string>();
+        }
     }
-    
+
     /// <summary>
     /// Adds a middleware that checks if the specified fields are selected.
     /// This middleware adds a local state called `isSelected`.
@@ -68,7 +88,7 @@ public class IsSelectedAttribute : Attribute
     {
         FieldNames = [fieldName1, fieldName2,];
     }
-    
+
     /// <summary>
     /// Adds a middleware that checks if the specified fields are selected.
     /// This middleware adds a local state called `isSelected`.
@@ -95,7 +115,7 @@ public class IsSelectedAttribute : Attribute
     {
         FieldNames = [fieldName1, fieldName2, fieldName3,];
     }
-    
+
     /// <summary>
     /// Adds a middleware that checks if the specified fields are selected.
     /// This middleware adds a local state called `isSelected`.
@@ -116,9 +136,14 @@ public class IsSelectedAttribute : Attribute
     {
         FieldNames = fieldNames;
     }
-    
+
     /// <summary>
     /// Gets the field names we check for.
     /// </summary>
     public string[] FieldNames { get; }
+
+    /// <summary>
+    /// Gets the selection set that we check for field selections.
+    /// </summary>
+    public SelectionSetNode? Fields { get; }
 }
