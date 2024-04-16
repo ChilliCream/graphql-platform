@@ -37,19 +37,26 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
                 description += $"\n\nReturns: {responseDescription}";
             }
 
+            var payloadType = context.OperationPayloadTypeLookup[operation.Value.OperationId];
+
             var outputField = new OutputField(GetFieldName(operation.Value.OperationId))
             {
                 Description = description,
-                Type = context.OperationPayloadTypeLookup[operation.Value.OperationId],
+                Type = IsPayloadTypeNullable(operation.Value)
+                    ? payloadType
+                    : new NonNullType(payloadType),
             };
 
             if (operation.Value.Parameters.Count > 0 || operation.Value.RequestBody is not null)
             {
-                var inputField = new InputField(
-                    OpenApiResources.InputField,
-                    context.OperationInputTypeLookup[operation.Value.OperationId])
+                var inputType = context.OperationInputTypeLookup[operation.Value.OperationId];
+
+                var inputField = new InputField(OpenApiResources.InputField)
                 {
                     Description = operation.Value.RequestBody?.Description,
+                    Type = IsInputTypeNullable(operation.Value)
+                        ? inputType
+                        : new NonNullType(inputType),
                 };
                 outputField.Arguments.Add(inputField);
             }
@@ -60,5 +67,17 @@ internal sealed class CreateMutationTypeMiddleware : IOpenApiWrapperMiddleware
         }
 
         context.MutableSchema.MutationType = mutationType;
+    }
+
+    private static bool IsPayloadTypeNullable(Operation operation)
+    {
+        return operation.Response?.Content.Values.FirstOrDefault()?.Schema.Nullable == true;
+    }
+
+    private static bool IsInputTypeNullable(Operation operation)
+    {
+        return
+            operation.Parameters.Count == 0 &&
+            operation.RequestBody?.Content.Values.FirstOrDefault()?.Schema.Nullable == true;
     }
 }

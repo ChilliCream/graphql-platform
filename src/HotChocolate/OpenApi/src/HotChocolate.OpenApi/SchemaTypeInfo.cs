@@ -27,7 +27,7 @@ public class SchemaTypeInfo
         GraphQLTypeName = GetGraphQLTypeName(TypeName, Format);
         IsScalar = Scalars.IsBuiltIn(GraphQLTypeName);
     }
-    
+
     /// <summary>
     /// The schema the information is based on
     /// </summary>
@@ -69,16 +69,24 @@ public class SchemaTypeInfo
     /// </summary>
     /// <param name="required"></param>
     /// <returns></returns>
-    public IType GetGraphQLTypeNode(bool required)
+    public IType GetGraphQLTypeNode(bool required = true)
     {
         var unwrappedType = new ObjectType(GraphQLTypeName);
-        IType baseType = required
-            ? new NonNullType(unwrappedType)
-            : unwrappedType;
 
-        return IsListType
-            ? new ListType(baseType)
-            : baseType;
+        if (!IsListType)
+        {
+            return required && !Schema.Nullable
+                ? new NonNullType(unwrappedType)
+                : unwrappedType;
+        }
+
+        IType elementType = Schema.Items.Nullable
+            ? unwrappedType
+            : new NonNullType(unwrappedType);
+
+        return required && !Schema.Nullable
+            ? new NonNullType(new ListType(elementType))
+            : new ListType(elementType);
     }
 
     private static string GetGraphQLTypeName(string openApiSchemaTypeName, string? format)

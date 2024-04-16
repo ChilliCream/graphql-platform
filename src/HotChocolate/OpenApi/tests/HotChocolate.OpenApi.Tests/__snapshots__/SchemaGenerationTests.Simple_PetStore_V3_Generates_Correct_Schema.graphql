@@ -19,13 +19,13 @@ type Mutation {
   
   Returns: pet response
   """
-  addPet("Pet to add to the store" input: AddPetInput): AddPetPayload
+  addPet("Pet to add to the store" input: AddPetInput!): AddPetPayload!
   """
   deletes a single pet based on the ID supplied
   
   Returns: pet deleted
   """
-  deletePet(input: DeletePetInput): DeletePetPayload
+  deletePet(input: DeletePetInput!): DeletePetPayload!
 }
 
 type Pet {
@@ -40,7 +40,7 @@ type Query {
   
   Returns: pet response
   """
-  findPetById("ID of pet to fetch" id: Long): Pet
+  findPetById("ID of pet to fetch" id: Long!): Pet!
   """
   Returns all pets from the system that the user has access to
   Nam sed condimentum est. Maecenas tempor sagittis sapien, nec rhoncus sem sagittis sit amet. Aenean at gravida augue, ac iaculis sem. Curabitur odio lorem, ornare eget elementum nec, cursus id lectus. Duis mi turpis, pulvinar ac eros ac, tincidunt varius justo. In hac habitasse platea dictumst. Integer at adipiscing ante, a sagittis ligula. Aenean pharetra tempor ante molestie imperdiet. Vivamus id aliquam diam. Cras quis velit non tortor eleifend sagittis. Praesent at enim pharetra urna volutpat venenatis eget eget mauris. In eleifend fermentum facilisis. Praesent enim enim, gravida ac sodales sed, placerat id erat. Suspendisse lacus dolor, consectetur non augue vel, vehicula interdum libero. Morbi euismod sagittis libero sed lacinia.
@@ -50,7 +50,7 @@ type Query {
   
   Returns: pet response
   """
-  findPets("maximum number of results to return" limit: Int "tags to filter by" tags: String): [Pet]
+  findPets("maximum number of results to return" limit: Int "tags to filter by" tags: [String!]): [Pet!]!
 }
 
 input AddPetInput {
