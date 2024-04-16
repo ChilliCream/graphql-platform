@@ -364,20 +364,20 @@ public partial class SchemaBuilder
             var definition = CreateSchemaDefinition(builder, context, typeRegistry);
             context.TypeInterceptor.OnBeforeRegisterSchemaTypes(context, definition);
 
-            if (definition.QueryType is null && builder._options.StrictValidation)
-            {
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(TypeResources.SchemaBuilder_NoQueryType)
-                        .Build());
-            }
-
             var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
 
             if (SchemaValidator.Validate(context, schema) is { Count: > 0 } errors)
             {
                 throw new SchemaException(errors);
+            }
+
+            if (definition.QueryType is null && builder._options.StrictValidation)
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(TypeResources.SchemaBuilder_NoQueryType)
+                        .Build());
             }
 
             context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);

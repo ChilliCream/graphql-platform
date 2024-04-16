@@ -479,10 +479,12 @@ internal sealed class SelectionCollection(
 
         while (Unsafe.IsAddressLessThan(ref start, ref end))
         {
-            if (typeContext.IsAssignableFrom(start.DeclaringType))
+            if (typeContext.IsAssignableFrom(start.Type.NamedType()))
             {
                 buffer[size++] = start;
             }
+
+            start = ref Unsafe.Add(ref start, 1)!;
         }
 
         if (size == 0)

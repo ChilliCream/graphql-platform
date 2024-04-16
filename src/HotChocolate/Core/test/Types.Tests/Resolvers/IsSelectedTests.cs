@@ -378,6 +378,37 @@ public class IsSelectedTests
     }
 
     [Fact]
+    public async Task IsSelected_Pattern_Is_Invalid()
+    {
+        var snapshot = new Snapshot();
+
+        async Task Broken() =>
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BrokenQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    query {
+                        user_Attribute_6 {
+                            email
+                            category {
+                                name
+                            }
+                        }
+                    }
+                    """);
+
+        var ex = await Assert.ThrowsAsync<SchemaException>(Broken);
+
+        foreach (var error in ex.Errors)
+        {
+            snapshot.Add(error.Message);
+        }
+
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task IsSelected_Context_1_Selected()
     {
         var result =
@@ -745,52 +776,112 @@ public class IsSelectedTests
         public User GetUser_Attribute_1([IsSelected("email")] bool isSelected, IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Attribute_2([IsSelected("email", "password")] bool isSelected, IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Attribute_3(
-            [IsSelected("email", "password", "phoneNumber")] bool isSelected,
+            [IsSelected("email", "password", "phoneNumber")]
+            bool isSelected,
             IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Attribute_4(
-            [IsSelected("email", "password", "phoneNumber", "address")] bool isSelected,
+            [IsSelected("email", "password", "phoneNumber", "address")]
+            bool isSelected,
             IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Attribute_5(
-            [IsSelected("email category { next { name } }")] bool isSelected,
+            [IsSelected("email category { next { name } }")]
+            bool isSelected,
             IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Attribute_6(
-            [IsSelected("email category { ... on Category { next { name } } }")] bool isSelected,
+            [IsSelected("email category { ... on Category { next { name } } }")]
+            bool isSelected,
             IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
 
         public User GetUser_Context_1(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", context.IsSelected("email"));
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Context_2(IResolverContext context)
@@ -798,7 +889,15 @@ public class IsSelectedTests
             ((IMiddlewareContext)context).OperationResult.SetExtension(
                 "isSelected",
                 context.IsSelected("email", "password"));
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Context_3(IResolverContext context)
@@ -806,15 +905,82 @@ public class IsSelectedTests
             ((IMiddlewareContext)context).OperationResult.SetExtension(
                 "isSelected",
                 context.IsSelected("email", "password", "phoneNumber"));
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
 
         public User GetUser_Context_4(IResolverContext context)
         {
             ((IMiddlewareContext)context).OperationResult.SetExtension(
                 "isSelected",
-                context.IsSelected(new HashSet<string> { "email", "password", "phoneNumber", "address", }));
-            return new User { Name = "a", Email = "b", Password = "c", PhoneNumber = "d", Address = "e", City = "f", };
+                context.IsSelected(new HashSet<string>
+                {
+                    "email", "password", "phoneNumber", "address",
+                }));
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
+        }
+    }
+
+    public class BrokenQuery
+    {
+        public static User DummyUser { get; } =
+            new()
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
+
+        public User GetUser_1(
+            [IsSelected("email category { next { bar } }")]
+            bool isSelected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
+        }
+
+        public User GetUser_2(
+            [IsSelected("email category { ... on String { next { name } } }")]
+            bool isSelected,
+            IResolverContext context)
+        {
+            ((IMiddlewareContext)context).OperationResult.SetExtension("isSelected", isSelected);
+            return new User
+            {
+                Name = "a",
+                Email = "b",
+                Password = "c",
+                PhoneNumber = "d",
+                Address = "e",
+                City = "f",
+            };
         }
     }
 

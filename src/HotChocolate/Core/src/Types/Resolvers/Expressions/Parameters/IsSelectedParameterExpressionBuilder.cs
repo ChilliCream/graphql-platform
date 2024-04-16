@@ -8,6 +8,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -127,165 +128,76 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
             }
         }
     }
-}
 
-internal sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
-{
-    protected override ISyntaxVisitorAction Enter(FieldNode node, IsSelectedContext context)
+    private sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
     {
-        var selections = context.Selections.Peek();
-        var typeContext = context.TypeContext.Peek();
-
-        if (!selections.IsSelected(node.Alias?.Value ?? node.Name.Value))
+        protected override ISyntaxVisitorAction Enter(FieldNode node, IsSelectedContext context)
         {
-            context.AllSelected = false;
-            return Break;
-        }
+            var selections = context.Selections.Peek();
+            var responseName = node.Alias?.Value ?? node.Name.Value;
 
-
-        context.TypeContext.Push(null);
-        // context.Selections.Push();
-
-        return base.Enter(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Leave(FieldNode node, IsSelectedContext context)
-    {
-        if (context.AllSelected)
-        {
-            context.TypeContext.Pop();
-            context.Selections.Pop();
-        }
-
-        return base.Leave(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, IsSelectedContext context)
-    {
-        context.TypeContext.Push(
-            node.TypeCondition is not null
-                ? context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value)
-                : null);
-        return base.Enter(node, context);
-    }
-
-
-    protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
-    {
-        context.TypeContext.Pop();
-        return base.Leave(node, context);
-    }
-
-    public static IsSelectedVisitor Instance { get; } = new();
-}
-
-internal sealed class IsSelectedContext
-{
-    public IsSelectedContext(ISchema schema, ISelectionCollection selections)
-    {
-        Schema = schema;
-        Selections.Push(selections);
-        TypeContext.Push(null);
-    }
-
-    public ISchema Schema { get; }
-
-    public Stack<ISelectionCollection> Selections { get; } = new();
-
-    public Stack<INamedType?> TypeContext { get; } = new();
-
-    public bool AllSelected { get; set; } = true;
-}
-
-internal sealed class ValidateIsSelectedPatternVisitor : SyntaxWalker<ValidateIsSelectedPatternContext>
-{
-    protected override ISyntaxVisitorAction Enter(FieldNode node, ValidateIsSelectedPatternContext context)
-    {
-        var field = context.Field.Peek();
-        var typeContext = context.TypeContext.Peek() ?? field.Type.NamedType();
-
-        if (typeContext is IComplexOutputType complexOutputType)
-        {
-            if (complexOutputType.Fields.TryGetField(node.Name.Value, out var objectField))
+            if (!selections.IsSelected(responseName))
             {
-                context.TypeContext.Push(null);
-                context.Field.Push(objectField);
-            }
-            else
-            {
-                context.Error = SchemaErrorBuilder.New().SetMessage("Broken").Build();
-                return Break;
-            }
-        }
-        else
-        {
-            context.Error = SchemaErrorBuilder.New().SetMessage("Broken").Build();
-            return Break;
-        }
-
-        return base.Enter(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Leave(FieldNode node, ValidateIsSelectedPatternContext context)
-    {
-        context.TypeContext.Pop();
-        return base.Leave(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, ValidateIsSelectedPatternContext context)
-    {
-        if (node.TypeCondition is not null)
-        {
-            var type = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
-            var field = context.Field.Peek();
-
-            if (!type.IsAssignableFrom(field.Type.NamedType()))
-            {
-                context.Error = SchemaErrorBuilder.New().SetMessage("Broken").Build();
+                context.AllSelected = false;
                 return Break;
             }
 
-            context.TypeContext.Push(type);
+            if (node.SelectionSet is not null)
+            {
+                context.Selections.Push(selections.Select(responseName));
+            }
+
+            return base.Enter(node, context);
         }
 
-        return base.Enter(node, context);
-    }
-
-
-    protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, ValidateIsSelectedPatternContext context)
-    {
-        if (node.TypeCondition is not null)
+        protected override ISyntaxVisitorAction Leave(FieldNode node, IsSelectedContext context)
         {
-            context.TypeContext.Pop();
+            if (node.SelectionSet is not null)
+            {
+                context.Selections.Pop();
+            }
+
+            return base.Leave(node, context);
         }
 
-        return base.Leave(node, context);
+        protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, IsSelectedContext context)
+        {
+            if (node.TypeCondition is not null)
+            {
+                var typeContext = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+                var selections = context.Selections.Peek();
+                context.Selections.Push(selections.Select(typeContext));
+            }
+
+            return base.Enter(node, context);
+        }
+
+
+        protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
+        {
+            if (node.TypeCondition is not null)
+            {
+                context.Selections.Pop();
+            }
+
+            return base.Leave(node, context);
+        }
+
+        public static IsSelectedVisitor Instance { get; } = new();
     }
 
-    public static ValidateIsSelectedPatternVisitor Instance { get; } = new();
-}
-
-internal sealed class ValidateIsSelectedPatternContext
-{
-    public ValidateIsSelectedPatternContext(ISchema schema, IObjectField field)
+    private sealed class IsSelectedContext
     {
-        Schema = schema;
-        Field.Push(field);
-        TypeContext.Push(null);
+        public IsSelectedContext(ISchema schema, ISelectionCollection selections)
+        {
+            Schema = schema;
+            Selections.Push(selections);
+        }
+
+        public ISchema Schema { get; }
+
+        public Stack<ISelectionCollection> Selections { get; } = new();
+
+        public bool AllSelected { get; set; } = true;
     }
-
-    public ISchema Schema { get; }
-
-    public Stack<IOutputField> Field { get; } = new();
-
-    public Stack<INamedType?> TypeContext { get; } = new();
-
-    public ISchemaError? Error { get; set; }
-}
-
-internal sealed class IsSelectedPattern(ObjectType type, string fieldName, SelectionSetNode pattern)
-{
-    public ObjectType Type { get; } = type;
-    public string FieldName { get; } = fieldName;
-    public SelectionSetNode Pattern { get; } = pattern;
 }
