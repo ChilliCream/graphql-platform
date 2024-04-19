@@ -7,7 +7,7 @@ public class FeatureCollectionTests
     [Fact]
     public void AddedInterfaceIsReturned()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var thing = new Thing();
 
         interfaces[typeof(IThing)] = thing;
@@ -19,7 +19,7 @@ public class FeatureCollectionTests
     [Fact]
     public void IndexerAlsoAddsItems()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var thing = new Thing();
 
         interfaces[typeof(IThing)] = thing;
@@ -30,7 +30,7 @@ public class FeatureCollectionTests
     [Fact]
     public void SetNullValueRemoves()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var thing = new Thing();
 
         interfaces[typeof(IThing)] = thing;
@@ -45,17 +45,20 @@ public class FeatureCollectionTests
     [Fact]
     public void GetMissingStructFeatureThrows()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
 
         // Regression test: Used to throw NullReferenceException because it tried to unbox a null object to a struct
         var ex = Assert.Throws<InvalidOperationException>(() => interfaces.Get<int>());
-        Assert.Equal("System.Int32 does not exist in the feature collection and because it is a struct the method can't return null. Use 'featureCollection[typeof(System.Int32)] is not null' to check if the feature exists.", ex.Message);
+        Assert.Equal(
+            "System.Int32 does not exist in the feature collection and because it is " +
+            "a struct the method can't return null. Use 'featureCollection[typeof(System.Int32)] " +
+            "is not null' to check if the feature exists.", ex.Message);
     }
 
     [Fact]
     public void GetMissingFeatureReturnsNull()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
 
         Assert.Null(interfaces.Get<Thing>());
     }
@@ -63,7 +66,7 @@ public class FeatureCollectionTests
     [Fact]
     public void GetStructFeature()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var value = 20;
         interfaces.Set(value);
 
@@ -73,7 +76,7 @@ public class FeatureCollectionTests
     [Fact]
     public void GetNullableStructFeatureWhenSetWithNonNullableStruct()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var value = 20;
         interfaces.Set(value);
 
@@ -83,7 +86,7 @@ public class FeatureCollectionTests
     [Fact]
     public void GetNullableStructFeatureWhenSetWithNullableStruct()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var value = 20;
         interfaces.Set<int?>(value);
 
@@ -93,7 +96,7 @@ public class FeatureCollectionTests
     [Fact]
     public void GetFeature()
     {
-        var interfaces = new Microsoft.AspNetCore.Http.Features.FeatureCollection();
+        var interfaces = new FeatureCollection();
         var thing = new Thing();
         interfaces.Set(thing);
 
