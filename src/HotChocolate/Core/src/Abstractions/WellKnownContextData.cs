@@ -309,4 +309,9 @@ public static class WellKnownContextData
     /// Type key to access the node id result formatter on the descriptor context.
     /// </summary>
     public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
+
+    /// <summary>
+    /// Type key to access the pattern validation tasks.
+    /// </summary>
+    public const string PatternValidationTasks = "HotChocolate.Validation.PatternValidationTasks";
 }

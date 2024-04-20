@@ -64,7 +64,13 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 
         foreach (var parameter in operation.Parameters)
         {
-            AddInputField(parameter.Name, parameter.Required, context, parameter.Schema, inputType);
+            AddInputField(
+                parameter.Name,
+                parameter.Description,
+                parameter.Required,
+                context,
+                parameter.Schema,
+                inputType);
         }
 
         if (operation.RequestBody is { } requestBody &&
@@ -89,6 +95,7 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
 
     private static void AddInputField(
         string fieldName,
+        string fieldDescription,
         bool required,
         OpenApiWrapperContext context,
         OpenApiSchema schema,
@@ -102,9 +109,12 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
             : CreateInputType(context, schema);
         type = required ? new NonNullType(type) : type;
 
-        inputType.Fields.Add(new InputField(graphQLName, type));
+        inputType.Fields.Add(new InputField(graphQLName, type)
+        {
+            Description = fieldDescription,
+        });
     }
-    
+
     private static InputObjectType CreateInputType(OpenApiWrapperContext context, OpenApiSchema schema)
     {
         var inputType = new InputObjectType(OpenApiNamingHelper.GetInputTypeName(schema.Reference.Id));
@@ -115,14 +125,15 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
     }
 
     private static void AddFieldsToInputType(
-        OpenApiWrapperContext context, 
-        OpenApiSchema schema, 
+        OpenApiWrapperContext context,
+        OpenApiSchema schema,
         InputObjectType inputType)
     {
         foreach (var schemaProperty in schema.Properties)
         {
             AddInputField(
                 schemaProperty.Key,
+                schemaProperty.Value.Description,
                 schema.Required.Contains(schemaProperty.Key),
                 context,
                 schemaProperty.Value,
@@ -135,6 +146,7 @@ internal sealed class CreateInputTypesMiddleware : IOpenApiWrapperMiddleware
             {
                 AddInputField(
                     allOfProperty.Key,
+                    allOfProperty.Value.Description,
                     allOf.Required.Contains(allOfProperty.Key),
                     context,
                     allOfProperty.Value,

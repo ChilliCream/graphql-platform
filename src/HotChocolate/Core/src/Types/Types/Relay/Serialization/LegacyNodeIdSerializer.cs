@@ -13,11 +13,11 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 {
     private const int _stackallocThreshold = 256;
     private const byte _separator = (byte)'\n';
-    private const byte _guid = (byte)'g';
-    private const byte _short = (byte)'s';
-    private const byte _int = (byte)'i';
-    private const byte _long = (byte)'l';
-    private const byte _default = (byte)'d';
+    internal const byte Guid = (byte)'g';
+    internal const byte Short = (byte)'s';
+    internal const byte Int = (byte)'i';
+    internal const byte Long = (byte)'l';
+    internal const byte Default = (byte)'d';
 
     private static readonly Encoding _utf8 = Encoding.UTF8;
 
@@ -38,7 +38,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
         switch (internalId)
         {
-            case Guid:
+            case System.Guid:
             case short:
             case int:
             case long:
@@ -80,31 +80,31 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             switch (internalId)
             {
                 case Guid g:
-                    serialized[position++] = _guid;
+                    serialized[position++] = Guid;
                     Utf8Formatter.TryFormat(g, value, out bytesWritten, 'N');
                     position += idSize;
                     break;
 
                 case short s:
-                    serialized[position++] = _short;
+                    serialized[position++] = Short;
                     Utf8Formatter.TryFormat(s, value, out bytesWritten);
                     position += bytesWritten;
                     break;
 
                 case int i:
-                    serialized[position++] = _int;
+                    serialized[position++] = Int;
                     Utf8Formatter.TryFormat(i, value, out bytesWritten);
                     position += bytesWritten;
                     break;
 
                 case long l:
-                    serialized[position++] = _long;
+                    serialized[position++] = Long;
                     Utf8Formatter.TryFormat(l, value, out bytesWritten);
                     position += bytesWritten;
                     break;
 
                 default:
-                    serialized[position++] = _default;
+                    serialized[position++] = Default;
                     position += CopyString(idString!, value);
                     break;
             }
@@ -168,31 +168,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
             var typeName = CreateString(decoded.Slice(0, nextSeparator));
             decoded = decoded.Slice(nextSeparator + 1);
 
-            object value;
-
-            switch (decoded[0])
-            {
-                case _guid:
-                    TryParse(decoded.Slice(1), out Guid g, out _, 'N');
-                    value = g;
-                    break;
-                case _short:
-                    TryParse(decoded.Slice(1), out short s, out _);
-                    value = s;
-                    break;
-                case _int:
-                    TryParse(decoded.Slice(1), out int i, out _);
-                    value = i;
-                    break;
-                case _long:
-                    TryParse(decoded.Slice(1), out long l, out _);
-                    value = l;
-                    break;
-                default:
-                    value = CreateString(decoded.Slice(1));
-                    break;
-            }
-
+            var value = ParseValueInternal(decoded);
             return new NodeId(typeName, value);
         }
         finally
@@ -205,11 +181,41 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         }
     }
 
+    internal static object ParseValueInternal(ReadOnlySpan<byte> formattedId)
+    {
+        object value;
+
+        switch (formattedId[0])
+        {
+            case Guid:
+                TryParse(formattedId.Slice(1), out Guid g, out _, 'N');
+                value = g;
+                break;
+            case Short:
+                TryParse(formattedId.Slice(1), out short s, out _);
+                value = s;
+                break;
+            case Int:
+                TryParse(formattedId.Slice(1), out int i, out _);
+                value = i;
+                break;
+            case Long:
+                TryParse(formattedId.Slice(1), out long l, out _);
+                value = l;
+                break;
+            default:
+                value = CreateString(formattedId.Slice(1));
+                break;
+        }
+
+        return value;
+    }
+
     public NodeId Parse(string formattedId, Type runtimeType)
     {
-       // the older implementation had no way to convert ...
-       // so we just call the standard parse.
-       return Parse(formattedId);
+        // the older implementation had no way to convert ...
+        // so we just call the standard parse.
+        return Parse(formattedId);
     }
 
     private static unsafe int CopyString(string value, Span<byte> serialized)
@@ -225,7 +231,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         }
     }
 
-    private static unsafe string CreateString(Span<byte> serialized)
+    private static unsafe string CreateString(ReadOnlySpan<byte> serialized)
     {
         fixed (byte* bytePtr = serialized)
         {
@@ -237,7 +243,7 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
     {
         return value switch
         {
-            Guid => 32,
+            System.Guid => 32,
             short => 6,
             int => 11,
             long => 20,

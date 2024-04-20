@@ -34,10 +34,18 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
             }
 
             var typeInfo = context.GetSchemaTypeInfo(schema);
-            var type = typeInfo.GetGraphQLTypeNode(false);
+            var type = typeInfo.GetGraphQLTypeNode();
+
+            var description = operation.Value.Description;
+
+            if (operation.Value.Response?.Description is { } responseDescription)
+            {
+                description += $"\n\nReturns: {responseDescription}";
+            }
 
             var outputField = new OutputField(OpenApiNamingHelper.GetFieldName(operation.Value.OperationId))
             {
+                Description = description,
                 Type = type,
             };
 
@@ -47,7 +55,7 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
             AddArguments(context, operation, outputField);
 
-            outputField.ContextData[OpenApiResources.ContextResolverParameter] = 
+            outputField.ContextData[OpenApiResources.ContextResolverParameter] =
                 OperationResolverHelper.CreateResolverFunc(context.ClientName, operation.Value);
         }
 
@@ -57,21 +65,26 @@ internal sealed class CreateQueryTypeMiddleware : IOpenApiWrapperMiddleware
 
 
     private static void AddArguments(
-        OpenApiWrapperContext context, 
-        KeyValuePair<string, Operation> operation, 
+        OpenApiWrapperContext context,
+        KeyValuePair<string, Operation> operation,
         OutputField outputField)
     {
         foreach (var parameter in operation.Value.Parameters)
         {
             var typeInfo = context.GetSchemaTypeInfo(parameter.Schema);
-            outputField.Arguments.Add(new InputField(parameter.Name, typeInfo.GetGraphQLTypeNode(false)));
+            outputField.Arguments.Add(
+                new InputField(parameter.Name, typeInfo.GetGraphQLTypeNode(parameter.Required))
+                {
+                    Description = parameter.Description,
+                });
         }
 
         if (operation.Value.RequestBody is { } requestBody &&
             requestBody.Content.FirstOrDefault().Value.Schema is {} schema)
         {
             var typeInfo = context.GetSchemaTypeInfo(schema);
-            outputField.Arguments.Add(new InputField("value", typeInfo.GetGraphQLTypeNode(false)));
+            outputField.Arguments.Add(
+                new InputField("value", typeInfo.GetGraphQLTypeNode(requestBody.Required)));
         }
     }
 }

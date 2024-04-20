@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration.Validation;
@@ -8,11 +8,11 @@ namespace HotChocolate.Configuration.Validation;
 internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidationRule
 {
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchema schema,
         ICollection<ISchemaError> errors)
     {
-        if (!options.StrictValidation)
+        if (!context.Options.StrictValidation)
         {
             return;
         }
@@ -23,9 +23,9 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
         // first we get all interface types and add them to the interface type list.
         // we will strike from this list all the items that we find being implemented by
         // object types.
-        for (var i = 0; i < typeSystemObjects.Length; i++)
+        foreach(var type in schema.Types)
         {
-            if (typeSystemObjects[i] is InterfaceType interfaceType)
+            if (type is InterfaceType interfaceType)
             {
                 interfaceTypes.Add(interfaceType);
             }
@@ -33,9 +33,9 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
 
         // next we go through all the object types and strike the interfaces from the interface
         // list that we find being implemented.
-        for (var i = 0; i < typeSystemObjects.Length; i++)
+        foreach(var type in schema.Types)
         {
-            if (typeSystemObjects[i] is ObjectType objectType)
+            if (type is ObjectType objectType)
             {
                 // we strike the interfaces that are being implemented.
                 foreach (var interfaceType in objectType.Implements)
@@ -49,9 +49,9 @@ internal sealed class InterfaceHasAtLeastOneImplementationRule : ISchemaValidati
                 // these.
                 foreach (var field in objectType.Fields)
                 {
-                    if (field.Type.NamedType() is { Kind: TypeKind.Interface, } type)
+                    if (field.Type.NamedType() is { Kind: TypeKind.Interface, } namedType)
                     {
-                        fieldTypes.Add(type);
+                        fieldTypes.Add(namedType);
                     }
                 }
             }

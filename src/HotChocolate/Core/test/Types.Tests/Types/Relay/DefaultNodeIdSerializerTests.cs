@@ -1,4 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using CookieCrumble;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
@@ -20,6 +26,17 @@ public class DefaultNodeIdSerializerTests
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
 
         var id = serializer.Parse("Rm9vOmFiYw==");
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Small_Legacy_StringId()
+    {
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmRhYmM=");
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
@@ -153,6 +170,92 @@ public class DefaultNodeIdSerializerTests
         var parsed = serializer.Parse(id);
 
         Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Ensure_Lookup_Works_With_HashCollision()
+    {
+        // arrange
+        const string namesString =
+            "Error,Node,Attribute,AttributeNotFoundError,AttributeProduct,AttributeProductValue," +
+            "AttributeValue,AttributesConnection,AttributesEdge,CategoriesConnection,CategoriesEdge," +
+            "Category,CategoryNotFoundError,Channel,ChannelNotFoundError,ChannelsConnection,ChannelsEdge," +
+            "Collection,CreateAttributePayload,CreateCategoryPayload,CreateChannelPayload,CreateProductPayload," +
+            "CreateVariantPayload,CreateVariantPricePayload,Currency,CurrencyChannel,DeleteAttributePayload," +
+            "DeleteCategoryPayload,DeleteChannelPayload,DeleteProductPayload,DeleteVariantPayload," +
+            "DeleteVariantPricePayload,EntitySaveError,InventoryEntry,Media,MediasConnection," +
+            "MediasEdge,MetadataBooleanValue,MetadataCollection,MetadataCollectionsConnection," +
+            "MetadataCollectionsEdge,MetadataDateValue,MetadataDefinition,MetadataNumberValue," +
+            "MetadataTextValue,MetadataValue,Mutation,PageInfo,Product,ProductCategorySortOrder," +
+            "ProductChannel,ProductCollection,ProductNotFoundError,ProductType,ProductTypesConnection," +
+            "ProductTypesEdge,ProductVendor,ProductVendorsConnection,ProductVendorsEdge,ProductsConnection," +
+            "ProductsEdge,Query,StorageProviderPayload,SubCategoriesConnection,SubCategoriesEdge,Tag," +
+            "TagsConnection,TagsEdge,UpdateAttributePayload,UpdateCategoryPayload,UpdateChannelPayload," +
+            "UpdateProductChannelAvailabilityPayload,UpdateProductPayload,UpdateVariantChannelAvailabilityPayload," +
+            "UpdateVariantPayload,UpdateVariantPricePayload,UploadMediaPayload,Variant,VariantChannel,VariantMedia," +
+            "VariantPrice,VariantsConnection,VariantsEdge,Warehouse,WarehouseChannel,CreateAttributeError," +
+            "CreateCategoryError,CreateChannelError,CreateProductError,CreateVariantError,CreateVariantPriceError," +
+            "DeleteAttributeError,DeleteCategoryError,DeleteChannelError,DeleteProductError,DeleteVariantError," +
+            "DeleteVariantPriceError,MetadataTypedValue,StorageProviderError,UpdateAttributeError," +
+            "UpdateCategoryError,UpdateChannelError,UpdateProductChannelAvailabilityError,UpdateProductError," +
+            "UpdateVariantChannelAvailabilityError,UpdateVariantError,UpdateVariantPriceError,UploadMediaError," +
+            "AttributeFilterInput,AttributeProductInput,AttributeProductValueUpdateInput,AttributeSortInput," +
+            "AttributeValueFilterInput,BooleanOperationFilterInput,CategoryFilterInput,CategorySortInput," +
+            "ChannelFilterInput,ChannelSortInput,CollectionFilterInput,CreateAttributeInput,CreateCategoryInput," +
+            "CreateChannelInput,CreateProductInput,CreateVariantInput,CreateVariantPriceInput," +
+            "CurrencyChannelFilterInput,CurrencyFilterInput,DateTimeOperationFilterInput,DeleteAttributeInput," +
+            "DeleteCategoryInput,DeleteChannelInput,DeleteProductInput,DeleteVariantInput,DeleteVariantPriceInput," +
+            "GeneralMetadataInput,IMetadataTypedValueFilterInput,IdOperationFilterInput,IntOperationFilterInput," +
+            "InventoryEntryFilterInput,ListAttributeFilterInputWithSearchFilterInput," +
+            "ListFilterInputTypeOfAttributeValueFilterInput,ListFilterInputTypeOfCurrencyChannelFilterInput," +
+            "ListFilterInputTypeOfInventoryEntryFilterInput,ListFilterInputTypeOfMetadataDefinitionFilterInput," +
+            "ListFilterInputTypeOfMetadataValueFilterInput,ListFilterInputTypeOfProductCategorySortOrderFilterInput," +
+            "ListFilterInputTypeOfProductChannelFilterInput,ListFilterInputTypeOfProductCollectionFilterInput," +
+            "ListFilterInputTypeOfVariantChannelFilterInput,ListFilterInputTypeOfVariantMediaFilterInput," +
+            "ListFilterInputTypeOfVariantPriceFilterInput,ListFilterInputTypeOfWarehouseChannelFilterInput," +
+            "ListProductFilterInputWithSearchFilterInput,ListTagFilterInputWithSearchFilterInput," +
+            "ListVariantFilterInputWithSearchFilterInput,LongOperationFilterInput,MediaFilterInput," +
+            "MediaSortInput,MetadataCollectionFilterInput,MetadataCollectionSortInput,MetadataDefinitionFilterInput," +
+            "MetadataTypeOperationFilterInput,MetadataValueFilterInput,ProductCategorySortOrderFilterInput," +
+            "ProductChannelAvailabilityUpdateInput,ProductChannelFilterInput,ProductCollectionFilterInput," +
+            "ProductFilterInput,ProductSortInput,ProductTypeFilterInput,ProductTypeSortInput," +
+            "ProductVendorFilterInput,ProductVendorSortInput,StorageProviderInput,StringOperationFilterInput," +
+            "TagFilterInput,TagSortInput,UpdateAttributeInput,UpdateCategoryInput,UpdateChannelInput," +
+            "UpdateProductChannelAvailabilityInput,UpdateProductInput,UpdateVariantChannelAvailabilityInput," +
+            "UpdateVariantInput,UpdateVariantPriceInput,UploadMediaInput,UuidOperationFilterInput," +
+            "VariantChannelAvailabilityUpdateInput,VariantChannelFilterInput,VariantFilterInput," +
+            "VariantMediaFilterInput,VariantPriceFilterInput,VariantSortInput,WarehouseChannelFilterInput," +
+            "WarehouseFilterInput,ApplyPolicy,MediaStorageProvider,MetadataType,SortEnumType,DateTime,Long," +
+            "UUID,Upload";
+
+        var names = new HashSet<string>(namesString.Split(','));
+        var stringValueSerializer = new StringNodeIdValueSerializer();
+        var mappings = names.Select(name => new BoundNodeIdValueSerializer(name, stringValueSerializer)).ToList();
+        var nodeIdSerializer = new DefaultNodeIdSerializer(mappings, [stringValueSerializer]);
+        var snapshot = new Snapshot();
+        var sb = new StringBuilder();
+
+        // act
+        var formattedId = nodeIdSerializer.Format("VariantsEdge", "abc");
+        var internalId = nodeIdSerializer.Parse(formattedId);
+
+        foreach (var name in names)
+        {
+            var a = nodeIdSerializer.Format(name, "abc");
+            var b = nodeIdSerializer.Parse(a);
+
+            sb.Clear();
+            sb.AppendLine(a);
+            sb.Append($"{b.TypeName}:{b.InternalId}");
+            snapshot.Add(sb.ToString(), name);
+        }
+
+        // assert
+        Assert.Equal("VariantsEdge", internalId.TypeName);
+        Assert.Equal("abc", internalId.InternalId);
+        Assert.Equal("VmFyaWFudHNFZGdlOmFiYw==", formattedId);
+
+        snapshot.MatchMarkdownSnapshot();
     }
 
     private static DefaultNodeIdSerializer CreateSerializer(string typeName, INodeIdValueSerializer serializer)
