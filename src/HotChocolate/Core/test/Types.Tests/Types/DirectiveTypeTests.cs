@@ -345,6 +345,59 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
+    public async Task Use_DoesTakeArguments()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                descriptor =>
+                {
+                    descriptor
+                        .Name("Query");
+
+                    descriptor
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar");
+
+                    descriptor
+                        .Field("foo1")
+                        .Type<IntType>()
+                        .Resolve(1);
+                })
+            .AddDirectiveType(
+                new DirectiveType(
+                    descriptor =>
+                    {
+                        descriptor.Name("middleware");
+                        descriptor.Location(DirectiveLocation.Field);
+                        descriptor.Argument("baz").Type<StringType>();
+                        descriptor.Argument("qux").Type<NonNullType<IntType>>();
+                        descriptor.Use<DirectiveMiddleware2>();
+                    }))
+            .Create();
+
+        // assert
+        var directive = schema.GetDirectiveType("middleware");
+        Assert.NotNull(directive.Middleware);
+
+        var inlineArgumentResult = await schema
+            .MakeExecutable()
+            .ExecuteAsync("""{ foo @middleware(baz: "argument", qux: 2) }""");
+
+        inlineArgumentResult.MatchSnapshot(postFix: "inline");
+
+
+        var queryVariables = new Dictionary<string, object> { { "baz", "argument" }, { "qux", 2 } };
+        var queryParameterArguments = await schema
+            .MakeExecutable()
+            .ExecuteAsync("""query TestQuery($baz: String, $qux: Int!){ foo @middleware(baz: $baz, qux: $qux) }""", queryVariables);
+
+        queryParameterArguments.MatchSnapshot(postFix: "query-arg");
+    }
+
+    [Fact]
     public void Use_ClassMiddleware()
     {
         // arrange
@@ -930,6 +983,19 @@ public class DirectiveTypeTests : TypeTestBase
             await _next(context);
             context.OperationResult.SetExtension("_" + _count, _count);
         }
+    }
+
+    public class DirectiveMiddleware2
+    {
+        private readonly FieldDelegate _next;
+
+        public DirectiveMiddleware2(FieldDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(IMiddlewareContext context) =>
+            await _next(context);
     }
 
     public class Deprecated2Directive
