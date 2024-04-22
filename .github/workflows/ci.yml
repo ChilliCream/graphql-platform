@@ -216,7 +216,7 @@ jobs:
         if: steps.run-tests.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: test-output
+          name: test-output-${{ matrix.name }}
           path: test_output.txt
 
       - name: Post test results to PR
