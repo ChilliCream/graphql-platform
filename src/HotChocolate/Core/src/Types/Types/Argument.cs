@@ -82,7 +82,7 @@ public class Argument : FieldBase, IInputField
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
         => OnCompleteField(context, declaringMember, (ArgumentDefinition)definition);
-    
+
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
@@ -94,7 +94,7 @@ public class Argument : FieldBase, IInputField
                 .SetMessage(TypeResources.Argument_TypeIsNull, definition.Name)
                 .SetTypeSystemObject(context.Type)
                 .SetExtension("declaringMember", declaringMember)
-                .SetExtension("name", definition.Name.ToString())
+                .SetExtension("name", definition.Name)
                 .Build());
             return;
         }
@@ -102,7 +102,7 @@ public class Argument : FieldBase, IInputField
         base.OnCompleteField(context, declaringMember, definition);
 
         Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
-        _runtimeType = definition.RuntimeType ?? definition.Parameter?.ParameterType!;
+        _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;

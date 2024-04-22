@@ -18,9 +18,17 @@ public interface ICacheControlOptions
     int DefaultMaxAge { get; }
 
     /// <summary>
-    /// Denotes whether the <see cref="DefaultMaxAge"/> should be applied to all
-    /// fields that do not already specify a <see cref="CacheControlDirective"/>,
-    /// are fields on the Query root type or are responsible for fetching data.
+    /// The <c>Scope</c> that should be applied to fields,
+    /// if <see cref="ApplyDefaults"/> is <c>true</c>.
+    /// Defaults to <c>Public</c>.
+    /// </summary>
+    CacheControlScope DefaultScope { get; }
+
+    /// <summary>
+    /// Denotes whether the <see cref="DefaultMaxAge"/> and <see cref="DefaultScope"/>
+    /// should be applied to all fields that do not already specify a
+    /// <see cref="CacheControlDirective"/>, are fields on the Query root type
+    /// or are responsible for fetching data.
     /// </summary>
     bool ApplyDefaults { get; }
 }
