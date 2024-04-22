@@ -94,7 +94,7 @@ public class Argument : FieldBase, IInputField
                 .SetMessage(TypeResources.Argument_TypeIsNull, definition.Name)
                 .SetTypeSystemObject(context.Type)
                 .SetExtension("declaringMember", declaringMember)
-                .SetExtension("name", definition.Name.ToString())
+                .SetExtension("name", definition.Name)
                 .Build());
             return;
         }
@@ -102,13 +102,7 @@ public class Argument : FieldBase, IInputField
         base.OnCompleteField(context, declaringMember, definition);
 
         Type = context.GetType<IInputType>(definition.Type!).EnsureInputType();
-        _runtimeType = definition.RuntimeType ?? definition.Parameter?.ParameterType!;
-
-        if (definition is DirectiveArgumentDefinition { Property.PropertyType: {} propertyType })
-        {
-            _runtimeType = propertyType;
-        }
-
+        _runtimeType = definition.GetRuntimeType()!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;
