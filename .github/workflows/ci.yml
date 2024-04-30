@@ -194,7 +194,7 @@ jobs:
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q --property WarningLevel=0
         timeout-minutes: 5
 
       - name: Create directory for test results
@@ -205,7 +205,7 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: |
-          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**" 2>&1 | tee test_output.txt
+          dotnet test ${{ matrix.path }} --no-build --framework net8.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**" 2>&1 | tee test_output.txt
           if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             exit 1
           fi
