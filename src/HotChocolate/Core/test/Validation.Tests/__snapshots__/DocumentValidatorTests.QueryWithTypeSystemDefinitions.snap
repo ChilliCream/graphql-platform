@@ -12,71 +12,7 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Executable-Definitions"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectTypeExtension",
-      "Interfaces": [],
-      "Fields": [
-        {
-          "Kind": "FieldDefinition",
-          "Description": null,
-          "Arguments": [],
-          "Type": {
-            "Kind": "NamedType",
-            "Location": {
-              "Start": 94,
-              "End": 102,
-              "Line": 9,
-              "Column": 12
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 94,
-                "End": 102,
-                "Line": 9,
-                "Column": 12
-              },
-              "Value": "String"
-            }
-          },
-          "Location": {
-            "Start": 87,
-            "End": 102,
-            "Line": 9,
-            "Column": 5
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 87,
-              "End": 93,
-              "Line": 9,
-              "Column": 5
-            },
-            "Value": "color"
-          },
-          "Directives": []
-        }
-      ],
-      "Location": {
-        "Start": 65,
-        "End": 102,
-        "Line": 8,
-        "Column": 1
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 77,
-          "End": 82,
-          "Line": 8,
-          "Column": 13
-        },
-        "Value": "Dog"
-      },
-      "Directives": []
-    }
+    "Exception": null
   },
   {
     "Message": "The field `color` does not exist on the type `Dog`.",
@@ -103,34 +39,6 @@
       "responseName": "color",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-<<<<<<< HEAD
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 50,
-        "End": 61,
-        "Line": 4,
-        "Column": 9
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 50,
-          "End": 61,
-          "Line": 4,
-          "Column": 9
-        },
-        "Value": "color"
-      },
-      "Directives": []
-    }
-=======
     "Exception": null
->>>>>>> main
   }
 ]
