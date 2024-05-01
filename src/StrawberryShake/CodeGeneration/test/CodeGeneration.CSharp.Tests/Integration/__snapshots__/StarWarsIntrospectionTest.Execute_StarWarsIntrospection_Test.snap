@@ -2365,25 +2365,6 @@
           "OnOperation": false,
           "OnFragment": true,
           "OnField": true
-        },
-        {
-          "Name": "export",
-          "Description": null,
-          "Args": [
-            {
-              "Name": "as",
-              "Description": null,
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
-          "OnField": true
         }
       ]
     }
@@ -6512,34 +6493,6 @@
           ],
           "OnOperation": false,
           "OnFragment": true,
-          "OnField": true
-        },
-        {
-          "__typename": "__Directive",
-          "Name": "export",
-          "Description": null,
-          "Args": [
-            {
-              "__typename": "__InputValue",
-              "Name": "as",
-              "Description": null,
-              "Type": {
-                "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
-              },
-              "DefaultValue": null
-            }
-          ],
-          "OnOperation": false,
-          "OnFragment": false,
           "OnField": true
         }
       ]

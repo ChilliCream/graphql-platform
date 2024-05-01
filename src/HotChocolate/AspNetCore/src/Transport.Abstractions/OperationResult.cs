@@ -52,12 +52,12 @@ public sealed class OperationResult : IDisposable
         RequestIndex = requestIndex;
         VariableIndex = variableIndex;
     }
-    
+
     /// <summary>
     /// Gets the request index of this result. This is only set if the result is part of a batched operation.
     /// </summary>
     public int? RequestIndex { get; }
-    
+
     /// <summary>
     /// Gets the variable index of this result. This is only set if the result is part of a variable batch operation.
     /// </summary>
@@ -101,8 +101,8 @@ public sealed class OperationResult : IDisposable
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
-            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : default,
-            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : default);
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
     }
 
     public static OperationResult Parse(ReadOnlySpan<byte> span)
@@ -122,8 +122,8 @@ public sealed class OperationResult : IDisposable
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
             root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
-            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : default,
-            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : default);
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
     }
 }
 

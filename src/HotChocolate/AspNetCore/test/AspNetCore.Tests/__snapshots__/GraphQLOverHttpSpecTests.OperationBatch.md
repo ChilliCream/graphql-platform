@@ -4,7 +4,6 @@
 
 ```text
 RequestIndex: 0
-VariableIndex: 0
 Data: {"hero":{"name":"R2-D2"}}
 ```
 
@@ -12,7 +11,6 @@ Data: {"hero":{"name":"R2-D2"}}
 
 ```text
 RequestIndex: 1
-VariableIndex: 0
 Data: {"hero":{"name":"Luke Skywalker"}}
 ```
 
