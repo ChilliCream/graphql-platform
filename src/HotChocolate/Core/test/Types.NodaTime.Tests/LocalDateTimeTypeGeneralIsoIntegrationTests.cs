@@ -6,7 +6,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class LocalDateTimeTypeGeneralIsoIntegrationTests
     {
-        private readonly IRequestExecutor _testExecutor = 
+        private readonly IRequestExecutor _testExecutor =
             SchemaBuilder.New()
                 .AddQueryType<LocalDateTimeTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<LocalDateTimeTypeIntegrationTests.Schema.Mutation>()

@@ -64,3 +64,4 @@ public class ObjectType<T> : ObjectType
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
         => throw new NotSupportedException();
 }
+

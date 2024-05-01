@@ -5,9 +5,7 @@ namespace HotChocolate.Data.MongoDb;
 /// <summary>
 /// Is the base class for a executable for the MongoDb.
 /// </summary>
-public abstract class MongoDbExecutable<T>
-    : IExecutable<T>
-    , IMongoDbExecutable
+public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
 {
     /// <summary>
     /// The filter definition that was set by <see cref="WithFiltering"/>
@@ -49,14 +47,25 @@ public abstract class MongoDbExecutable<T>
     public abstract object Source { get; }
 
     /// <inheritdoc />
-    public abstract ValueTask<IList> ToListAsync(CancellationToken cancellationToken);
+    async ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+        => await ToListAsync(cancellationToken);
 
     /// <inheritdoc />
-    public abstract ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken);
+    public abstract ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken);
 
     /// <inheritdoc />
-    public abstract ValueTask<object?> SingleOrDefaultAsync(
-        CancellationToken cancellationToken);
+    async ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await FirstOrDefaultAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public abstract ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken);
+
+    /// <inheritdoc />
+    async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await SingleOrDefaultAsync(cancellationToken);
+
+    /// <inheritdoc />
+    public abstract ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken);
 
     /// <inheritdoc />
     public abstract string Print();

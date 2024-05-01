@@ -23,12 +23,12 @@ query Appointments {
       "nodes": [
         {
           "patient": {
-            "id": "UGF0aWVudDEKaTE="
+            "id": "UGF0aWVudDE6MQ=="
           }
         },
         {
           "patient": {
-            "id": "UGF0aWVudDIKaTI="
+            "id": "UGF0aWVudDI6Mg=="
           }
         }
       ]

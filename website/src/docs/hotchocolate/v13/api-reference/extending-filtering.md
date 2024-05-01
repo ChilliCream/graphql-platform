@@ -156,7 +156,7 @@ public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
-        desciptor.AddDefaults();
+        descriptor.AddDefaults();
     }
 
     public override NameString GetTypeName(Type runtimeType) =>

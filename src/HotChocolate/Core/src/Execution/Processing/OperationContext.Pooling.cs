@@ -6,6 +6,7 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ internal sealed partial class OperationContext
     private readonly WorkScheduler _workScheduler;
     private readonly DeferredWorkScheduler _deferredWorkScheduler;
     private readonly ResultBuilder _resultBuilder;
+    private readonly AggregateServiceScopeInitializer _serviceScopeInitializer;
     private IRequestContext _requestContext = default!;
     private ISchema _schema = default!;
     private IErrorHandler _errorHandler = default!;
@@ -39,12 +41,14 @@ internal sealed partial class OperationContext
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
         ResultBuilder resultBuilder,
-        ITypeConverter typeConverter)
+        ITypeConverter typeConverter, 
+        AggregateServiceScopeInitializer serviceScopeInitializer)
     {
         _resolverTaskFactory = resolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _deferredWorkScheduler = new DeferredWorkScheduler();
         _resultBuilder = resultBuilder;
+        _serviceScopeInitializer = serviceScopeInitializer;
         Converter = typeConverter;
     }
 

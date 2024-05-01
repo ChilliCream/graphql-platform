@@ -553,36 +553,30 @@ public class CodeFirstTests
         }
     }
 
-    public class MockExecutable<T> : IExecutable<T>
+    public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     {
-        private readonly IQueryable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IQueryable<T> source)
-        {
-            _source = source;
-        }
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
 
-        public object Source => _source;
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
 
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<IList>(_source.ToList());
-        }
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.FirstOrDefault());
-        }
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.SingleOrDefault());
-        }
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
+
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
         public string Print()
-        {
-            return _source.ToString()!;
-        }
+            => source.ToString()!;
     }
 
     public class QueryPrivateConstructor

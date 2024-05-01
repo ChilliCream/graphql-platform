@@ -21,7 +21,7 @@ query ProductReviews($id: ID!, $first: Int!) {
 {
   "data": {
     "productById": {
-      "id": "UHJvZHVjdAppMQ==",
+      "id": "UHJvZHVjdDox",
       "repeatData": {
         "data": {
           "num": 1

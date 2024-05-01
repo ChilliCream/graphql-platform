@@ -14,7 +14,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                     }
                 }
@@ -33,7 +33,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                         ... @defer {
                             name
@@ -55,7 +55,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer(label: ""abc"") {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                     }
                 }
@@ -74,7 +74,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer(if: false) {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                     }
                 }
@@ -96,7 +96,7 @@ public class DeferTests
                 .SetDocument(
                     @"query($defer: Boolean!) {
                         ... @defer(if: $defer) {
-                            person(id: ""UGVyc29uCmkx"") {
+                            person(id: ""UGVyc29uOjE="") {
                                 id
                             }
                         }
@@ -120,7 +120,7 @@ public class DeferTests
             }
 
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: ""UGVyc29uOjE="") {
                     id
                 }
             }");
@@ -142,7 +142,7 @@ public class DeferTests
             }
 
             fragment Foo on Query {
-                person(id: "UGVyc29uCmkx") {
+                person(id: "UGVyc29uOjE=") {
                     id
                     ... @defer {
                         name
@@ -167,7 +167,7 @@ public class DeferTests
             }
 
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: ""UGVyc29uOjE="") {
                     id
                 }
             }");
@@ -188,7 +188,7 @@ public class DeferTests
             }
 
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: ""UGVyc29uOjE="") {
                     id
                 }
             }");
@@ -212,7 +212,7 @@ public class DeferTests
                     }
 
                     fragment Foo on Query {
-                        person(id: ""UGVyc29uCmkx"") {
+                        person(id: ""UGVyc29uOjE="") {
                             id
                         }
                     }")

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Validation;

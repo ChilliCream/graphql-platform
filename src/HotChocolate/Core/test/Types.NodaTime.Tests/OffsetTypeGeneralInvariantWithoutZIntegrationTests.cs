@@ -6,7 +6,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class OffsetTypeGeneralInvariantWithoutZIntegrationTests
     {
-        private readonly IRequestExecutor _testExecutor = 
+        private readonly IRequestExecutor _testExecutor =
             SchemaBuilder.New()
                 .AddQueryType<OffsetTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<OffsetTypeIntegrationTests.Schema.Mutation>()

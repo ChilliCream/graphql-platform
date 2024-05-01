@@ -48,7 +48,7 @@ public abstract class DocumentHashProviderBase : IDocumentHashProvider
         {
             HashFormat.Base64 => ToBase64UrlSafeString(hash),
             HashFormat.Hex => ToHexString(hash),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
+            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported),
         };
 
     protected static string ToHexString(ReadOnlySpan<byte> hash)

@@ -7,7 +7,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class InstantTypeGeneralIntegrationTests
     {
-        private readonly IRequestExecutor _testExecutor = 
+        private readonly IRequestExecutor _testExecutor =
             SchemaBuilder.New()
                 .AddQueryType<InstantTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<InstantTypeIntegrationTests.Schema.Mutation>()

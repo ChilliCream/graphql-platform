@@ -18,7 +18,7 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
-            .AddLocation(argument)
+            .AddLocation([argument])
             .SetExtension("responseName", responseName)
             .SetExtension("errorPath", validationResult.Path)
             .Build();
@@ -30,7 +30,7 @@ internal static class ErrorHelper
         GraphQLException exception)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation(argument)
+            .AddLocation([argument])
             .SetExtension("responseName", responseName)
             .Build();
     }
@@ -50,7 +50,7 @@ internal static class ErrorHelper
         Path path)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -64,7 +64,7 @@ internal static class ErrorHelper
     {
         return errorHandler
             .CreateUnexpectedError(exception)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -77,7 +77,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();
@@ -91,7 +91,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .SetException(exception)
@@ -105,7 +105,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName!)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -117,7 +117,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnexpectedValueCompletionError_Message)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -161,7 +161,7 @@ internal static class ErrorHelper
                 result.GetType().FullName ?? result.GetType().Name,
                 field.Name)
             .SetPath(path)
-            .AddLocation(field)
+            .AddLocation([field])
             .Build();
 
     public static IOperationResult StateInvalidForDocumentValidation() =>
@@ -180,7 +180,7 @@ internal static class ErrorHelper
             {
                 { WellKnownContextData.OperationNotAllowed, null },
             });
-    
+
     public static IOperationResult RequestTypeNotAllowed() =>
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
@@ -237,7 +237,7 @@ internal static class ErrorHelper
             .SetMessage("Cannot return null for non-nullable field.")
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path)
-            .AddLocation(selection)
+            .AddLocation([selection])
             .Build();
 
     public static IError PersistedQueryNotFound(OperationDocumentId requestedKey)
@@ -264,15 +264,7 @@ internal static class ErrorHelper
         ArgumentNode argument)
     {
         var errorBuilder = ErrorBuilder.New();
-
-        if (argument.Value.Location is not null)
-        {
-            errorBuilder.AddLocation(
-                argument.Value.Location.Line,
-                argument.Value.Location.Column);
-        }
-
-        errorBuilder.SetSyntaxNode(argument.Value);
+        errorBuilder.AddLocation([argument.Value]);
         errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
 
         return errorBuilder.Build();

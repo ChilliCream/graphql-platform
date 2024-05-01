@@ -1,6 +1,8 @@
 using System;
 using System.Buffers.Text;
 
+#nullable enable
+
 namespace HotChocolate.Types.Pagination;
 
 public sealed class IndexEdge<T> : Edge<T>

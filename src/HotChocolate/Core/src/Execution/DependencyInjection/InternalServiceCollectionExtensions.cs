@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.DependencyInjection;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
@@ -14,7 +12,6 @@ using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -108,7 +105,7 @@ internal static class InternalServiceCollectionExtensions
 
         return services;
     }
-    
+
     internal static IServiceCollection TryAddTypeConverter(
         this IServiceCollection services)
     {
@@ -178,13 +175,6 @@ internal static class InternalServiceCollectionExtensions
         services.TryAddScoped<IDataLoaderScopeFactory, ExecutionDataLoaderScopeFactory>();
         services.TryAddScoped<IDataLoaderScope>(
             sp => sp.GetRequiredService<DataLoaderScopeHolder>().GetOrCreateScope(sp));
-        return services;
-    }
-
-    internal static IServiceCollection TryAddIdSerializer(
-        this IServiceCollection services)
-    {
-        services.TryAddSingleton<IIdSerializer, IdSerializer>();
         return services;
     }
 

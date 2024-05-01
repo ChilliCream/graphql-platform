@@ -6,7 +6,7 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class OffsetDateTimeTypeRfc3339IntegrationTests
     {
-        private readonly IRequestExecutor _testExecutor = 
+        private readonly IRequestExecutor _testExecutor =
             SchemaBuilder.New()
                 .AddQueryType<OffsetDateTimeTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<OffsetDateTimeTypeIntegrationTests.Schema.Mutation>()

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 public partial class SyntaxWalker<TContext>

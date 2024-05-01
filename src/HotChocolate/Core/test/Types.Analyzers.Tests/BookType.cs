@@ -11,4 +11,17 @@ public class BookType : ObjectType<Book>
 public class Book
 {
     public string? Title { get; set; }
+
+    public Author? Author => null;
+}
+
+public class Author
+{
+    public string Name { get; set; } = default!;
+}
+
+[ObjectType<Author>]
+public static partial class AuthorNode
+{
+    public static string Address([Parent] Author author) => "something";
 }

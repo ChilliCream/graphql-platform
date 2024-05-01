@@ -1,4 +1,3 @@
-using System;
 using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;

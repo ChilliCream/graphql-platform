@@ -2,7 +2,6 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
-using HotChocolate.Skimmed.Serialization;
 
 namespace HotChocolate.Fusion;
 

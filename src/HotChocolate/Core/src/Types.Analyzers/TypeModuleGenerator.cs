@@ -22,6 +22,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new DataLoaderInspector(),
         new DataLoaderDefaultsInspector(),
         new OperationInspector(),
+        new ObjectTypeExtensionInfoInspector(),
     ];
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -146,29 +147,40 @@ public class TypeModuleGenerator : IIncrementalGenerator
                         generator.WriteRegisterDataLoader(dataLoader.Name);
                     }
                     break;
-                
+
                 case DataLoaderInfo dataLoader:
                     if ((module.Options & ModuleOptions.RegisterDataLoader) ==
                         ModuleOptions.RegisterDataLoader)
                     {
                         var typeName = $"{dataLoader.Namespace}.{dataLoader.Name}";
                         var interfaceTypeName = $"{dataLoader.Namespace}.{dataLoader.InterfaceName}";
-                        
+
                         generator.WriteRegisterDataLoader(typeName, interfaceTypeName);
                     }
                     break;
-                
+
                 case OperationRegistrationInfo operation:
                     if ((module.Options & ModuleOptions.RegisterTypes) ==
                         ModuleOptions.RegisterTypes)
                     {
                         generator.WriteRegisterTypeExtension(operation.TypeName, false);
-                        
+
                         if (operation.Type is not OperationType.No &&
                             (operations & operation.Type) != operation.Type)
                         {
                             operations |= operation.Type;
                         }
+                    }
+                    break;
+
+                case ObjectTypeExtensionInfo objectTypeExtension:
+                    if ((module.Options & ModuleOptions.RegisterTypes) ==
+                        ModuleOptions.RegisterTypes &&
+                        objectTypeExtension.Diagnostics.Length == 0)
+                    {
+                        generator.WriteRegisterObjectTypeExtension(
+                            objectTypeExtension.RuntimeType.ToFullyQualified(),
+                            objectTypeExtension.Type.ToFullyQualified());
                     }
                     break;
             }
@@ -235,14 +247,14 @@ public class TypeModuleGenerator : IIncrementalGenerator
 
             dataLoaders.Add(dataLoader);
         }
-        
+
         using var generator = new DataLoaderSyntaxGenerator();
         generator.WriterHeader();
 
         foreach (var group in dataLoaders.GroupBy(t => t.Namespace))
         {
             generator.WriteBeginNamespace(group.Key);
-            
+
             foreach (var dataLoader in group)
             {
                 var keyArg = dataLoader.MethodSymbol.Parameters[0];
@@ -289,10 +301,10 @@ public class TypeModuleGenerator : IIncrementalGenerator
                     cancellationTokenIndex,
                     serviceMap);
             }
-            
+
             generator.WriteEndNamespace();
         }
-        
+
         context.AddSource(DataLoaderFile, generator.ToSourceText());
     }
 
@@ -307,7 +319,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         {
             if (syntaxInfo is OperationInfo operation)
             {
-                operations.Add(operation);    
+                operations.Add(operation);
             }
         }
 
@@ -323,7 +335,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         foreach (var group in operations.GroupBy(t => t.Type))
         {
             var typeName = $"{module.ModuleName}{group.Key}Type";
-            
+
             generator.WriteBeginClass(typeName);
             generator.WriteConfigureMethod(group.Key, group);
             generator.WriteEndClass();
@@ -332,9 +344,9 @@ public class TypeModuleGenerator : IIncrementalGenerator
                 group.Key,
                 $"Microsoft.Extensions.DependencyInjection.{typeName}"));
         }
-        
+
         generator.WriteEndNamespace();
-        
+
         context.AddSource(RootTypesFile, generator.ToSourceText());
     }
 
@@ -352,7 +364,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         var isScoped = dataLoader.IsScoped ?? defaults.Scoped ?? false;
         var isPublic = dataLoader.IsPublic ?? defaults.IsPublic ?? true;
         var isInterfacePublic = dataLoader.IsInterfacePublic ?? defaults.IsInterfacePublic ?? true;
-        
+
         generator.WriteDataLoaderInterface(dataLoader.InterfaceName, isInterfacePublic, kind, keyType, valueType);
 
         generator.WriteBeginDataLoaderClass(

@@ -103,6 +103,7 @@
       "responseName": "color",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
+<<<<<<< HEAD
     "Exception": null,
     "SyntaxNode": {
       "Kind": "Field",
@@ -128,5 +129,8 @@
       },
       "Directives": []
     }
+=======
+    "Exception": null
+>>>>>>> main
   }
 ]

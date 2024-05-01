@@ -26,13 +26,13 @@ query Appointments {
       "nodes": [
         {
           "patient": {
-            "id": "UGF0aWVudDEKaTE=",
+            "id": "UGF0aWVudDE6MQ==",
             "name": "Karl Kokoloko"
           }
         },
         {
           "patient": {
-            "id": "UGF0aWVudDIKaTI="
+            "id": "UGF0aWVudDI6Mg=="
           }
         }
       ]

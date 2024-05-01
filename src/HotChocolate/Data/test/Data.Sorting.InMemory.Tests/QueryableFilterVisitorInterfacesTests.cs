@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;

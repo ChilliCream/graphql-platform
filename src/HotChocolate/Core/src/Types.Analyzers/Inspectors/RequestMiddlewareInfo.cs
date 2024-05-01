@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class RequestMiddlewareInfo(

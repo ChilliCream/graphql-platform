@@ -1,11 +1,16 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Attributes;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -31,7 +36,36 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
         var attribute = parameter.GetCustomAttribute<IsSelectedAttribute>()!;
-        
+
+        if (attribute.Fields is not null)
+        {
+            var definition = descriptor.Extend().Definition;
+            definition.Configurations.Add(
+                new CompleteConfiguration((ctx, def) =>
+                {
+                    if(!ctx.DescriptorContext.ContextData.TryGetValue(WellKnownContextData.PatternValidationTasks, out var value))
+                    {
+                        value = new List<IsSelectedPattern>();
+                        ctx.DescriptorContext.ContextData[WellKnownContextData.PatternValidationTasks] = value;
+                    }
+
+                    var patterns = (List<IsSelectedPattern>)value!;
+                    patterns.Add(new IsSelectedPattern((ObjectType)ctx.Type, def.Name, attribute.Fields));
+                },
+                definition,
+                ApplyConfigurationOn.AfterCompletion));
+
+            descriptor.Use(
+                next => async ctx =>
+                {
+                    var selectionContext = new IsSelectedContext(ctx.Schema, ctx.Select());
+                    IsSelectedVisitor.Instance.Visit(attribute.Fields, selectionContext);
+                    ctx.SetLocalState($"isSelected.{parameter.Name}", selectionContext.AllSelected);
+                    await next(ctx);
+                });
+            return;
+        }
+
         switch (attribute.FieldNames.Length)
         {
             case 1:
@@ -93,5 +127,77 @@ internal sealed class IsSelectedParameterExpressionBuilder : IParameterExpressio
                 break;
             }
         }
+    }
+
+    private sealed class IsSelectedVisitor : SyntaxWalker<IsSelectedContext>
+    {
+        protected override ISyntaxVisitorAction Enter(FieldNode node, IsSelectedContext context)
+        {
+            var selections = context.Selections.Peek();
+            var responseName = node.Alias?.Value ?? node.Name.Value;
+
+            if (!selections.IsSelected(responseName))
+            {
+                context.AllSelected = false;
+                return Break;
+            }
+
+            if (node.SelectionSet is not null)
+            {
+                context.Selections.Push(selections.Select(responseName));
+            }
+
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Leave(FieldNode node, IsSelectedContext context)
+        {
+            if (node.SelectionSet is not null)
+            {
+                context.Selections.Pop();
+            }
+
+            return base.Leave(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, IsSelectedContext context)
+        {
+            if (node.TypeCondition is not null)
+            {
+                var typeContext = context.Schema.GetType<INamedType>(node.TypeCondition.Name.Value);
+                var selections = context.Selections.Peek();
+                context.Selections.Push(selections.Select(typeContext));
+            }
+
+            return base.Enter(node, context);
+        }
+
+
+        protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, IsSelectedContext context)
+        {
+            if (node.TypeCondition is not null)
+            {
+                context.Selections.Pop();
+            }
+
+            return base.Leave(node, context);
+        }
+
+        public static IsSelectedVisitor Instance { get; } = new();
+    }
+
+    private sealed class IsSelectedContext
+    {
+        public IsSelectedContext(ISchema schema, ISelectionCollection selections)
+        {
+            Schema = schema;
+            Selections.Push(selections);
+        }
+
+        public ISchema Schema { get; }
+
+        public Stack<ISelectionCollection> Selections { get; } = new();
+
+        public bool AllSelected { get; set; } = true;
     }
 }

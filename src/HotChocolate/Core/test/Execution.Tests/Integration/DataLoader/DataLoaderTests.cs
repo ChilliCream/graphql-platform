@@ -491,7 +491,6 @@ public class DataLoaderTests
                 .AddScoped<CounterService>()
                 .AddGraphQLServer()
                 .AddQueryType<CounterQuery>()
-                .RegisterService<CounterService>(ServiceKind.Resolver)
                 .AddDataLoader<CounterDataLoader>()
                 .BuildRequestExecutorAsync(cancellationToken: ct);
 

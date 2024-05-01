@@ -100,7 +100,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ fooById(id: \"Rm9vCmRhYmM=\") { id clearTextId } }")
+            .ExecuteRequestAsync("{ fooById(id: \"Rm9vOmFiYw==\") { id clearTextId } }")
             .MatchSnapshotAsync();
     }
 
@@ -111,7 +111,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ node(id: \"Rm9vCmRhYmM=\") { id __typename } }")
+            .ExecuteRequestAsync("{ node(id: \"Rm9vOmFiYw==\") { id __typename } }")
             .MatchSnapshotAsync();
     }
 
@@ -122,7 +122,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ node(id: \"Rm9vCmRhYmM=\") { id __typename } }")
+            .ExecuteRequestAsync("{ node(id: \"Rm9vOmFiYw==\") { id __typename } }")
             .MatchSnapshotAsync();
     }
 
@@ -133,7 +133,7 @@ public class NodeTypeTests : TypeTestBase
             .AddGraphQL()
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("{ nodes(ids: \"Rm9vCmRhYmM=\") { id __typename } }")
+            .ExecuteRequestAsync("{ nodes(ids: \"Rm9vOmFiYw==\") { id __typename } }")
             .MatchSnapshotAsync();
     }
 
@@ -145,21 +145,23 @@ public class NodeTypeTests : TypeTestBase
             .AddQueryType<Query2>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
-                "{ nodes(ids: [\"Rm9vCmRhYmM=\", \"Rm9vCmRhYmM=\"]) { id __typename } }")
+                "{ nodes(ids: [\"Rm9vOmFiYw==\", \"Rm9vOmFiYw==\"]) { id __typename } }")
             .MatchSnapshotAsync();
     }
 
     [Fact]
     public async Task Infer_Node_From_Query_Field_Resolve_Node_With_Int_Id()
     {
-        var serializer = new IdSerializer();
-        var id = serializer.Serialize("Bar", 123);
-
-        await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query3>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync(
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var id = serializer.Format("Bar", 123);
+
+        await executor.ExecuteAsync(
                 OperationRequestBuilder.Create()
                     .SetDocument(
                         @"query ($id: ID!) {
@@ -205,15 +207,17 @@ public class NodeTypeTests : TypeTestBase
     [Fact]
     public async Task Node_Attribute_Does_Not_Throw_Execute_Query()
     {
-        var serializer = new IdSerializer();
-        var id = serializer.Serialize("Foo1", 123);
-
-        await new ServiceCollection()
+        var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query8>()
             .AddTypeExtension<Foo2>()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync(
+            .BuildRequestExecutorAsync();
+
+        var serializer = executor.Schema.Services.GetRequiredService<INodeIdSerializer>();
+        var id = serializer.Format("Foo1", "123");
+
+        await executor.ExecuteAsync(
                 OperationRequestBuilder.Create()
                     .SetDocument(
                         @"query ($id: ID!) {

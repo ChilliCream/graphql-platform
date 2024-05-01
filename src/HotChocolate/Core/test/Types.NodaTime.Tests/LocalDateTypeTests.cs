@@ -26,7 +26,7 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor _testExecutor = 
+        private readonly IRequestExecutor _testExecutor =
             SchemaBuilder.New()
                 .AddQueryType<Schema.Query>()
                 .AddMutationType<Schema.Mutation>()

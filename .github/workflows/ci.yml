@@ -20,9 +20,10 @@ jobs:
       src_changes: ${{ steps.check-src.outputs.src_changes }}
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 2
+        show-progress: false
 
     - name: Check for changes in website directory
       id: check-website
@@ -61,9 +62,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/labeler@v3
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: actions/labeler@v5
 
   spellcheck:
     name: "Spellcheck Documentation"
@@ -71,11 +70,13 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.website_changes == 'true'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       name: Check out the code
+      with:
+        show-progress: false
 
     - name: Install Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'yarn'
@@ -92,6 +93,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         name: Check out the code
+        with:
+          show-progress: false
       - uses: actions/setup-node@v4
         name: Setup node
         with:
@@ -107,17 +110,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
         node-version: '14.x'
         cache: 'yarn'
         cache-dependency-path: 'website/yarn.lock'
 
     - name: Cache Yarn Packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           website/.yarn/cache
@@ -145,10 +150,12 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             7.x
@@ -173,10 +180,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             6.x
@@ -185,7 +194,7 @@ jobs:
 
       - name: Run Build
         id: run-build
-        run: dotnet build ${{ matrix.path }} --framework net7.0 --verbosity q --property WarningLevel=0
+        run: dotnet build ${{ matrix.path }} --framework net8.0 --verbosity q --property WarningLevel=0
         timeout-minutes: 5
 
       - name: Create directory for test results
@@ -196,7 +205,7 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
         run: |
-          dotnet test ${{ matrix.path }} --no-build --framework net7.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**" 2>&1 | tee test_output.txt
+          dotnet test ${{ matrix.path }} --no-build --framework net8.0 --verbosity q /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./.coverage/${{ matrix.name }}.xml --logger "trx;LogFileName=./.test-results/${{ matrix.name }}.trx" /p:ExcludeByFile="**/test/**" 2>&1 | tee test_output.txt
           if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
             exit 1
           fi
@@ -205,9 +214,9 @@ jobs:
 
       - name: Upload test_output.txt for debugging
         if: steps.run-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test-output
+          name: test-output-${{ matrix.name }}
           path: test_output.txt
 
       - name: Post test results to PR
@@ -255,21 +264,21 @@ jobs:
 
       - name: Upload Test Results as Artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
           path: ./output/test-results/*.trx
 
       - name: Upload Coverage Files as Artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.name }}
           path: ./output/coverage/*.xml
 
       - name: Upload mismatch files as Artifacts
         if: steps.run-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mismatch-files-${{ matrix.name }}
           path: |
@@ -290,10 +299,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           6.x
@@ -304,7 +315,7 @@ jobs:
       run: ./build.sh restore
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: csharp
 
@@ -312,7 +323,7 @@ jobs:
       run: dotnet build ./src/All.sln --no-restore
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
 
   merge-coverage:
     name: Merge and Upload Coverage
@@ -321,11 +332,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install .NET
       if: ${{ !cancelled() }}
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           6.x
@@ -342,7 +355,7 @@ jobs:
 
     - name: Download all coverage artifacts
       if: ${{ !cancelled() }}
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: ./output/download
 
@@ -357,7 +370,7 @@ jobs:
 
     - name: Upload Combined Coverage to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
       timeout-minutes: 10
       with:
         file: ./output/coverage/merged/OpenCover.xml

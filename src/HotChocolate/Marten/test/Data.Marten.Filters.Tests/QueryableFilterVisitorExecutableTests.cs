@@ -96,7 +96,10 @@ public class QueryableFilterVisitorExecutableTests
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 

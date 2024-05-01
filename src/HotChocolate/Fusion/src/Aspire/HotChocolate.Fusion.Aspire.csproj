@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+
+    <AssemblyName>HotChocolate.Fusion.Aspire</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Aspire.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Aspire.targets" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.5.24201.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Composition\HotChocolate.Fusion.Composition.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -20,7 +20,8 @@ public readonly record struct PagingArguments
     /// <param name="before">
     /// The cursor before which entities shall be taken.
     /// </param>
-    public PagingArguments(int? first = null,
+    public PagingArguments(
+        int? first = null,
         string? after = null,
         int? last = null,
         string? before = null)

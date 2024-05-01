@@ -16,7 +16,10 @@ query GetUser {
 {
   "errors": [
     {
-      "message": "The ID `1` has an invalid format."
+      "message": "The node ID string has an invalid format.",
+      "extensions": {
+        "originalValue": "1"
+      }
     }
   ],
   "data": {

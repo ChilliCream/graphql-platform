@@ -23,7 +23,6 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddSingleton(contextFactory.Object)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .RegisterDbContext<BookContext>(DbContextKind.Pooled)
             .ExecuteRequestAsync("{ books { title } }");
 
         result.MatchSnapshot();
@@ -38,7 +37,6 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .RegisterDbContext<BookContext>(DbContextKind.Synchronized)
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .Services
             .BuildServiceProvider()
@@ -62,7 +60,6 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .RegisterDbContext<BookContext>(DbContextKind.Resolver)
             .Services
             .BuildServiceProvider();
 
@@ -84,7 +81,6 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .AutoRegisterDbContext()
             .Services
             .BuildServiceProvider();
 

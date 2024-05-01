@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;

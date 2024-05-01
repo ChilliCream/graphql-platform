@@ -4,7 +4,7 @@
 
 ```graphql
 query GetUser {
-  userById(id: "VXNlcgppMQ==") {
+  userById(id: "VXNlcjox") {
     id
   }
 }
@@ -16,7 +16,7 @@ query GetUser {
 {
   "data": {
     "userById": {
-      "id": "VXNlcgppMQ=="
+      "id": "VXNlcjox"
     }
   }
 }
@@ -26,7 +26,7 @@ query GetUser {
 
 ```json
 {
-  "document": "query GetUser { userById(id: \u0022VXNlcgppMQ==\u0022) { id } }",
+  "document": "query GetUser { userById(id: \u0022VXNlcjox\u0022) { id } }",
   "operation": "GetUser",
   "rootNode": {
     "type": "Sequence",
@@ -34,7 +34,7 @@ query GetUser {
       {
         "type": "Resolve",
         "subgraph": "Accounts",
-        "document": "query GetUser_1 { userById(id: \u0022VXNlcgppMQ==\u0022) { id } }",
+        "document": "query GetUser_1 { userById(id: \u0022VXNlcjox\u0022) { id } }",
         "selectionSetId": 0
       },
       {
@@ -51,7 +51,7 @@ query GetUser {
 ## QueryPlan Hash
 
 ```text
-09961F039AB8E9A5FDD54304FF938C9277EF0562
+0F600106AE3E1472843632868459BD7535AA7659
 ```
 
 ## Fusion Graph
