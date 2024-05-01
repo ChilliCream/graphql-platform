@@ -205,7 +205,7 @@ public sealed class OperationRequestBuilder
         _readOnlyExtensions = extensions;
         return this;
     }
-    
+
     /// <summary>
     /// Sets the initial global request state.
     /// </summary>

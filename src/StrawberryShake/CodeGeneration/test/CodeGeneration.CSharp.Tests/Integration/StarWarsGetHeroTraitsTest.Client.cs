@@ -160,7 +160,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
@@ -229,7 +229,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Traits != null)
                 {
@@ -299,7 +299,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (Traits != null)
                 {
@@ -759,7 +759,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroTrait
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Droid" => ParseDroidEntityId(obj, __typename),

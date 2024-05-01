@@ -159,7 +159,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Foo != null)
                 {
                     foreach (var Foo_elm in Foo)
@@ -231,7 +231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Id != null)
                 {
                     hash ^= 397 * Id.GetHashCode();
@@ -297,7 +297,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
@@ -363,7 +363,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Id != null)
                 {
                     hash ^= 397 * Id.GetHashCode();
@@ -429,7 +429,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
@@ -726,7 +726,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             }
 
             var bars = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.EntityIdOrData? child in list)
             {
                 bars.Add(MapIGetFoo_Foo(child, snapshot));
             }
@@ -1044,7 +1044,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Baz" => ParseBazEntityId(obj, __typename),
