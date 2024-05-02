@@ -40,7 +40,9 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         foreach (var field in def.Fields)
         {
             if (field is FilterFieldDefinition filterField &&
-                filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
+                filterField.Member is { } member &&
+                (member.GetCustomAttribute(typeof(IDAttribute)) is { } ||
+                 member.GetCustomAttribute(typeof(IDAttribute<>)) is { }))
             {
                 filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
                     typeof(IdOperationFilterInputType),
