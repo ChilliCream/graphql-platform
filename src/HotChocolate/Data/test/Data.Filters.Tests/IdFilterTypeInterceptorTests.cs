@@ -37,7 +37,7 @@ public class IdFilterTypeInterceptorTests
     }
 
     [Fact]
-    public async Task Filtering_Should_InfereType_When_AnnotatedGeneric()
+    public async Task Filtering_Should_InferType_When_AnnotatedGeneric()
     {
         var schema = await new ServiceCollection()
             .AddGraphQL()
