@@ -61,7 +61,6 @@ public class IdMiddlewareTests
 
     public class Mutation
     {
-        [UseMutationConvention]
         public string Do([ID] string id) => id;
     }
 }
