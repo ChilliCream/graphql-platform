@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "The ID `RXhhbXBsZTp0ZXN0` is not an ID of `DoInput`.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 9
+        }
+      ],
+      "path": [
+        "do"
+      ]
+    }
+  ],
+  "data": null
+}
