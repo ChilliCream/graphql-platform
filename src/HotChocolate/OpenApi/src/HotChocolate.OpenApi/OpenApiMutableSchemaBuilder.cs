@@ -81,11 +81,14 @@ internal sealed class OpenApiMutableSchemaBuilder
                 // Ensure that parameter schemas have a title.
                 foreach (var parameter in operation.Parameters)
                 {
-                    var parameterName = parameter.Name.FirstCharacterToUpper();
-                    var operationId = operation.OperationId.FirstCharacterToUpper();
+                    if (parameter.Schema is not null)
+                    {
+                        var parameterName = parameter.Name.FirstCharacterToUpper();
+                        var operationId = operation.OperationId.FirstCharacterToUpper();
 
-                    parameter.Schema.Title ??= GraphQLNamingHelper.CreateName(
-                        $"{operationId}Parameter{parameterName}");
+                        parameter.Schema.Title ??= GraphQLNamingHelper.CreateName(
+                            $"{operationId}Parameter{parameterName}");
+                    }
                 }
 
                 // Ensure that request body schemas have a title.
@@ -336,18 +339,21 @@ internal sealed class OpenApiMutableSchemaBuilder
         // Parameters
         foreach (var parameter in openApiOperation.Parameters)
         {
-            var parameterName = GraphQLNamingHelper.CreateName(parameter.Name);
-
-            outputField.Arguments.Add(new Skimmed.InputField(parameterName)
+            if (parameter.Schema is not null)
             {
-                DefaultValue = CreateValueNodeFromOpenApiAny(parameter.Schema.Default),
-                Description = parameter.Description,
-                IsDeprecated = parameter.Deprecated,
-                Type = CreateGraphQLTypeFromOpenApiSchema(
-                    parameter.Schema,
-                    isInput: true,
-                    required: parameter.Required),
-            });
+                var parameterName = GraphQLNamingHelper.CreateName(parameter.Name);
+
+                outputField.Arguments.Add(new Skimmed.InputField(parameterName)
+                {
+                    DefaultValue = CreateValueNodeFromOpenApiAny(parameter.Schema.Default),
+                    Description = parameter.Description,
+                    IsDeprecated = parameter.Deprecated,
+                    Type = CreateGraphQLTypeFromOpenApiSchema(
+                        parameter.Schema,
+                        isInput: true,
+                        required: parameter.Required),
+                });
+            }
         }
 
         // Request body
