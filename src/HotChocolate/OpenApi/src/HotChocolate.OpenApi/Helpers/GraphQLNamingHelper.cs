@@ -91,4 +91,9 @@ internal static class GraphQLNamingHelper
             "{MutationName}",
             mutationFieldName.FirstCharacterToUpper());
     }
+
+    public static string CreateTypeName(string name)
+    {
+        return CreateName(name).FirstCharacterToUpper();
+    }
 }

@@ -86,8 +86,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                         var parameterName = parameter.Name.FirstCharacterToUpper();
                         var operationId = operation.OperationId.FirstCharacterToUpper();
 
-                        parameter.Schema.Title ??= GraphQLNamingHelper.CreateName(
-                            $"{operationId}Parameter{parameterName}");
+                        parameter.Schema.Title ??= $"{operationId} parameter {parameterName}";
                     }
                 }
 
@@ -99,8 +98,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
                     if (mediaTypeObject?.Schema is not null)
                     {
-                        mediaTypeObject.Schema.Title ??=
-                            GraphQLNamingHelper.CreateName($"{operation.OperationId}Input");
+                        mediaTypeObject.Schema.Title ??= $"{operation.OperationId} input";
                     }
                 }
 
@@ -113,8 +111,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                     if (mediaTypeObject?.Schema is not null)
                     {
                         mediaTypeObject.Schema.Title ??=
-                            GraphQLNamingHelper.CreateName(
-                                $"{operation.OperationId}Response{httpStatusCode}");
+                            $"{operation.OperationId} response {httpStatusCode}";
                     }
                 }
             }
@@ -569,7 +566,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             JsonSchemaTypes.Integer when openApiSchema.Format is "int64" => ScalarNames.Long,
             JsonSchemaTypes.Integer => ScalarNames.Int,
             JsonSchemaTypes.Number => ScalarNames.Float,
-            JsonSchemaTypes.Object => openApiSchema.Title,
+            JsonSchemaTypes.Object => GraphQLNamingHelper.CreateTypeName(openApiSchema.Title),
             JsonSchemaTypes.String when openApiSchema.Format is "date" => ScalarNames.Date,
             JsonSchemaTypes.String when openApiSchema.Format is "date-time" => ScalarNames.DateTime,
             JsonSchemaTypes.String => ScalarNames.String,
