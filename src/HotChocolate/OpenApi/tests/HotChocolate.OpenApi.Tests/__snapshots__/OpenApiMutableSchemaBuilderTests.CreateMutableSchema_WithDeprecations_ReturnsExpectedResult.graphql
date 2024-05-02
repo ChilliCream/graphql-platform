@@ -1,0 +1,19 @@
+schema {
+  mutation: Mutation
+}
+
+type Mutation {
+  Post(boolean: Boolean
+    @deprecated postInput: PostInput): PostResponse200!
+    @deprecated
+}
+
+type PostResponse200 {
+  example: Boolean
+    @deprecated
+}
+
+input PostInput {
+  example: Boolean
+    @deprecated
+}

@@ -13,7 +13,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="__resources__\PetStore.yaml">
+    <None Update="__resources__\petstore-expanded.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\synthetic-with-default-values.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\synthetic-with-deprecations.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="__resources__\synthetic-with-tags.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
