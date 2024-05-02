@@ -28,9 +28,11 @@ internal static class OpenApiResolverFactory
                 .GetRequiredService<IHttpClientFactory>()
                 .CreateClient(httpClientName);
 
-            var request = CreateRequest(resolverContext, path, operationType, operation);
+            using var request = CreateRequest(resolverContext, path, operationType, operation);
 
-            var response = await httpClient.SendAsync(request, resolverContext.RequestAborted);
+            using var response = await httpClient.SendAsync(
+                request,
+                resolverContext.RequestAborted);
 
             // Store the HTTP status code in resolver context data.
             resolverContext.ContextData.Add(
