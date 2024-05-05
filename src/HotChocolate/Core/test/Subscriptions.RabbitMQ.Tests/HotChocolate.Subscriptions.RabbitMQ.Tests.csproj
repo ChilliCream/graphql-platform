@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Subscriptions.RabbitMQ.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.RabbitMQ</RootNamespace>
-    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
