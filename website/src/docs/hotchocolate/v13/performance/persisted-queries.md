@@ -68,7 +68,7 @@ more information.
 
 Hot Chocolate supports two query storages for regular persisted queries.
 
-### Filesystem
+## Filesystem
 
 To load persisted queries from the filesystem, we have to add the following package.
 

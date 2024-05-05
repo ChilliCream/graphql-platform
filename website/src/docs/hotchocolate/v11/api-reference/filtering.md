@@ -1871,7 +1871,7 @@ Hot Chocolate can translate incoming filters requests directly onto collections 
 
 Filter conventions make it easier to change how an expression should be generated. There are three different extension points you can use to change the behavior of the expression visitor. You do not have to worry about the visiting of the input object itself.
 
-##### Describe the Expression Visitor
+#### Describe the Expression Visitor
 
 The expression visitor descriptor is accessible through the filter convention. By calling `UseExpressionVisitor` on the convention descriptor you gain access. The expression visitor has the default set of expressions pre-configured.
 
