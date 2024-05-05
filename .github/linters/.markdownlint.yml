@@ -18,7 +18,7 @@
 ###############
 # Rules by id #
 ###############
-MD013: false
+MD013: false # Rationale: Hard line breaks are unnecessary (use soft wrapping instead).
 MD024: false
 MD025: false
 MD026: false
