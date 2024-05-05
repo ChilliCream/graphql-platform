@@ -19,7 +19,8 @@
 # Rules by id #
 ###############
 MD013: false # Rationale: Hard line breaks are unnecessary (use soft wrapping instead).
-MD024: false
+MD024:
+  siblings_only: true
 MD025: false
 MD026: false
 MD028: false
