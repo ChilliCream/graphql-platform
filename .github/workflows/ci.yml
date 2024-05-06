@@ -216,8 +216,8 @@ jobs:
         run: |
           mkdir -p ./output/coverage
           mkdir -p ./output/test-results
-          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
-          cp "${{ matrix.directoryPath }}/.test-results/${{ matrix.name }}.net7.0.xml" ./output/test-results/
+          cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net8.0.xml" ./output/coverage/
+          cp "${{ matrix.directoryPath }}/.test-results/${{ matrix.name }}.net8.0.xml" ./output/test-results/
 
       - name: Upload Test Results as Artifacts
         if: always()
