@@ -455,7 +455,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             case JsonSchemaTypes.Array:
                 var elementType = CreateGraphQLTypeFromOpenApiSchema(
                     openApiSchema.Items,
-                    openApiSchema.Items.Title ?? $"{schemaTitle} items",
+                    openApiSchema.Items.Title ?? $"{schemaTitle} item",
                     required: true);
 
                 type = new Skimmed.ListType(elementType);
