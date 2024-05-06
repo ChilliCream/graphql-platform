@@ -176,9 +176,11 @@ internal static class RelayIdFieldHelpers
                 completionContext.Type);
         }
 
+        var validateType = typeName is not null;
         typeName ??= completionContext.Type.Name;
         SetSerializerInfos(completionContext.DescriptorContext, typeName, resultType);
-        definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
+        var serializer = CreateSerializer(completionContext, resultType, typeName, validateType);
+        definition.Formatters.Add(serializer);
     }
 
     private static void AddSerializerToObjectField(
@@ -254,16 +256,18 @@ internal static class RelayIdFieldHelpers
     private static IInputValueFormatter CreateSerializer(
         ITypeCompletionContext completionContext,
         IExtendedType resultType,
-        string? typeName)
+        string? typeName,
+        bool validateType)
     {
-        var resultTypeInfo = completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
+        var resultTypeInfo =
+            completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
 
         return new GlobalIdInputValueFormatter(
             typeName ?? completionContext.Type.Name,
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
             resultType,
             resultTypeInfo.NamedType,
-            typeName is not null);
+            validateType);
     }
 
     internal static void SetSerializerInfos(IDescriptorContext context, string typeName, Type runtimeType)
@@ -284,7 +288,7 @@ internal static class RelayIdFieldHelpers
             return;
         }
 
-        if(!context.ContextData.TryGetValue(SerializerTypes, out var obj))
+        if (!context.ContextData.TryGetValue(SerializerTypes, out var obj))
         {
             obj = new Dictionary<string, Type>();
             context.ContextData[SerializerTypes] = obj;
