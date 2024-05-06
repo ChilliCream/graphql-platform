@@ -241,6 +241,40 @@ jobs:
           path: |
             **/__mismatch__/*
 
+  library-tests-2:
+    name: Run Tests no Coverage
+    runs-on: ubuntu-latest
+    needs: [check-changes]
+    if: needs.check-changes.outputs.library_changes == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.x
+            7.x
+            8.x
+
+      - name: Init
+        run: ./build.sh restore
+        timeout-minutes: 5
+
+      - name: Run Build
+        run: dotnet build src --framework net8.0 --verbosity q --property WarningLevel=0
+        timeout-minutes: 5
+
+      - name: Run tests
+        id: run-tests
+        timeout-minutes: 15
+        continue-on-error: false
+        run: dotnet test src/All.sln --no-build --no-restore --framework net8.0
+
   merge-coverage:
     name: Merge and Upload Coverage
     needs: library-tests
