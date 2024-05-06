@@ -1,25 +1,18 @@
 12
 ---------------
 {
-  "errors": [
-    {
-      "message": "The node ID string has an invalid format.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "originalValue": "Rm9vOjEy=="
-      }
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "barShort": null
+      },
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZToxNA=="
+      },
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZToxMw=="
+      }
+    ]
   }
 }
 ---------------
@@ -27,25 +20,18 @@
 13
 ---------------
 {
-  "errors": [
-    {
-      "message": "The node ID string has an invalid format.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ],
-      "extensions": {
-        "originalValue": "Rm9vOjEz=="
-      }
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZToxMg=="
+      },
+      {
+        "barShort": null
+      },
+      {
+        "barShort": "Rm9vU2hvcnROdWxsYWJsZToxNA=="
+      }
+    ]
   }
 }
 ---------------

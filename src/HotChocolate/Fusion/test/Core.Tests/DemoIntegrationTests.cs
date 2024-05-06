@@ -1240,7 +1240,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             OperationRequestBuilder
                 .Create()
                 .SetDocument(request)
-                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdAppMQ==" }, { "first", 1 }, })
+                .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
 
         // assert
