@@ -8,7 +8,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using OperationType = Microsoft.OpenApi.Models.OperationType;
 
 namespace HotChocolate.OpenApi;
 
@@ -18,9 +17,7 @@ internal static class OpenApiResolverFactory
 
     public static Func<IResolverContext, Task<JsonElement>> CreateResolver(
         string httpClientName,
-        OperationType operationType,
-        string path,
-        OpenApiOperation operation)
+        OpenApiOperationWrapper operationWrapper)
     {
         return async resolverContext =>
         {
@@ -28,7 +25,7 @@ internal static class OpenApiResolverFactory
                 .GetRequiredService<IHttpClientFactory>()
                 .CreateClient(httpClientName);
 
-            using var request = CreateRequest(resolverContext, path, operationType, operation);
+            using var request = CreateRequest(resolverContext, operationWrapper);
 
             using var response = await httpClient.SendAsync(
                 request,
@@ -57,11 +54,10 @@ internal static class OpenApiResolverFactory
 
     private static HttpRequestMessage CreateRequest(
         IPureResolverContext resolverContext,
-        string path,
-        OperationType operationType,
-        OpenApiOperation operation)
+        OpenApiOperationWrapper operationWrapper)
     {
-        var pathStringBuilder = new StringBuilder(path);
+        var operation = operationWrapper.Operation;
+        var pathStringBuilder = new StringBuilder(operationWrapper.Path);
         var queryStringBuilder = new StringBuilder();
 
         foreach (var parameter in operation.Parameters)
@@ -127,7 +123,7 @@ internal static class OpenApiResolverFactory
             pathStringBuilder,
             queryStringBuilder.ToString().TrimEnd('&')).TrimEnd('?');
 
-        return new HttpRequestMessage(new HttpMethod(operationType.ToString()), requestUri)
+        return new HttpRequestMessage(new HttpMethod(operationWrapper.Type.ToString()), requestUri)
         {
             Content = content,
         };

@@ -18,6 +18,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     private static readonly Skimmed.ScalarType JsonType = new(ScalarNames.JSON);
 
     private readonly Skimmed.Schema _skimmedSchema = new();
+    private readonly Dictionary<string, OpenApiOperationWrapper> _wrappedOperations = [];
 
     private readonly OpenApiDocument _openApiDocument;
     private readonly string _httpClientName;
@@ -48,8 +49,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
     public Skimmed.Schema Build()
     {
-        // Add missing information to the OpenAPI document.
-        EnrichOpenApiDocument();
+        WrapOperations();
 
         _skimmedSchema.QueryType = CreateQueryType();
         _skimmedSchema.MutationType = CreateMutationType();
@@ -69,51 +69,15 @@ internal sealed class OpenApiMutableSchemaBuilder
         return _skimmedSchema;
     }
 
-    private void EnrichOpenApiDocument()
+    private void WrapOperations()
     {
         foreach (var (path, pathItem) in _openApiDocument.Paths)
         {
             foreach (var (operationType, operation) in pathItem.Operations)
             {
-                // Ensure that operations have an ID.
-                operation.OperationId ??= $"{operationType} {path}";
+                var operationWrapper = new OpenApiOperationWrapper(operation, operationType, path);
 
-                // Ensure that parameter schemas have a title.
-                foreach (var parameter in operation.Parameters)
-                {
-                    if (parameter.Schema is not null)
-                    {
-                        var parameterName = parameter.Name.FirstCharacterToUpper();
-                        var operationId = operation.OperationId.FirstCharacterToUpper();
-
-                        parameter.Schema.Title ??= $"{operationId} parameter {parameterName}";
-                    }
-                }
-
-                // Ensure that request body schemas have a title.
-                if (operation.RequestBody is not null)
-                {
-                    var mediaTypeObject = operation.RequestBody.Content.SingleOrDefault(
-                        c => c.Key is MediaTypeNames.Application.Json).Value;
-
-                    if (mediaTypeObject?.Schema is not null)
-                    {
-                        mediaTypeObject.Schema.Title ??= $"{operation.OperationId} input";
-                    }
-                }
-
-                // Ensure response schemas have a title.
-                foreach (var (httpStatusCode, response) in operation.Responses)
-                {
-                    var mediaTypeObject = response.Content.SingleOrDefault(
-                        c => c.Key is MediaTypeNames.Application.Json).Value;
-
-                    if (mediaTypeObject?.Schema is not null)
-                    {
-                        mediaTypeObject.Schema.Title ??=
-                            $"{operation.OperationId} response {httpStatusCode}";
-                    }
-                }
+                _wrappedOperations.Add(operationWrapper.OperationId, operationWrapper);
             }
         }
     }
@@ -122,42 +86,40 @@ internal sealed class OpenApiMutableSchemaBuilder
     {
         var queryType = new Skimmed.ObjectType(OperationTypeNames.Query);
 
-        foreach (var (path, pathItem) in _openApiDocument.Paths)
+        foreach (var (operationId, operationWrapper) in _wrappedOperations)
         {
-            foreach (var (operationType, operation) in pathItem.Operations)
+            if (operationWrapper.Type is not OperationType.Get)
             {
-                if (operationType is not OperationType.Get)
-                {
-                    continue;
-                }
-
-                var operationName = GraphQLNamingHelper.CreateName(operation.OperationId);
-
-                var queryField = new Skimmed.OutputField(operationName.FirstCharacterToLower())
-                {
-                    Description = operation.Description ?? operation.Summary,
-                    IsDeprecated = operation.Deprecated,
-                    Type = CreateGraphQLTypeFromOpenApiOperation(operation, operationName),
-                };
-
-                AddArguments(queryField, operation);
-                AddResolver(queryField, operationType, path, operation);
-                AddTagDirectives(queryField, operation.Tags);
-
-                queryType.Fields.Add(queryField);
+                continue;
             }
+
+            var operation = operationWrapper.Operation;
+            var operationName = GraphQLNamingHelper.CreateName(operationId);
+
+            var queryField = new Skimmed.OutputField(operationName.FirstCharacterToLower())
+            {
+                Description = operation.Description ?? operation.Summary,
+                IsDeprecated = operation.Deprecated,
+                Type = CreateGraphQLTypeFromOpenApiOperation(operationWrapper, operationName),
+            };
+
+            AddArguments(queryField, operationWrapper);
+            AddResolver(queryField, operationWrapper);
+            AddTagDirectives(queryField, operation.Tags);
+
+            queryType.Fields.Add(queryField);
         }
 
         return queryType;
     }
 
     private Skimmed.IType CreateGraphQLTypeFromOpenApiOperation(
-        OpenApiOperation operation,
+        OpenApiOperationWrapper operationWrapper,
         string? operationName = null)
     {
-        var typeMap = GetGraphQLTypesFromOpenApiOperation(operation);
+        var typeMap = GetGraphQLTypesFromOpenApiOperation(operationWrapper);
 
-        operationName ??= GraphQLNamingHelper.CreateName(operation.OperationId);
+        operationName ??= GraphQLNamingHelper.CreateName(operationWrapper.OperationId);
 
         return GetSingleType(
             typeMap,
@@ -168,40 +130,38 @@ internal sealed class OpenApiMutableSchemaBuilder
     {
         var mutationType = new Skimmed.ObjectType(OperationTypeNames.Mutation);
 
-        foreach (var (path, pathItem) in _openApiDocument.Paths)
+        foreach (var (operationId, operationWrapper) in _wrappedOperations)
         {
-            foreach (var (operationType, operation) in pathItem.Operations)
+            if (operationWrapper.Type is OperationType.Get)
             {
-                if (operationType is OperationType.Get)
-                {
-                    continue;
-                }
-
-                var operationName = GraphQLNamingHelper.CreateName(operation.OperationId);
-
-                var mutationField = new Skimmed.OutputField(operationName)
-                {
-                    Description = operation.Description ?? operation.Summary,
-                    IsDeprecated = operation.Deprecated,
-                    Type = CreateMutationFieldType(operation, operationName),
-                };
-
-                AddArguments(mutationField, operation);
-                AddResolver(mutationField, operationType, path, operation);
-                AddTagDirectives(mutationField, operation.Tags);
-
-                mutationType.Fields.Add(mutationField);
+                continue;
             }
+
+            var operation = operationWrapper.Operation;
+            var operationName = GraphQLNamingHelper.CreateName(operationId);
+
+            var mutationField = new Skimmed.OutputField(operationName)
+            {
+                Description = operation.Description ?? operation.Summary,
+                IsDeprecated = operation.Deprecated,
+                Type = CreateMutationFieldType(operationWrapper, operationName),
+            };
+
+            AddArguments(mutationField, operationWrapper);
+            AddResolver(mutationField, operationWrapper);
+            AddTagDirectives(mutationField, operation.Tags);
+
+            mutationType.Fields.Add(mutationField);
         }
 
         return mutationType;
     }
 
     private Skimmed.IType CreateMutationFieldType(
-        OpenApiOperation operation,
+        OpenApiOperationWrapper operationWrapper,
         string operationName)
     {
-        var typeMap = GetGraphQLTypesFromOpenApiOperation(operation);
+        var typeMap = GetGraphQLTypesFromOpenApiOperation(operationWrapper);
 
         return _mutationConventionsEnabled
             ? CreatePayloadType(operationName, typeMap)
@@ -331,10 +291,12 @@ internal sealed class OpenApiMutableSchemaBuilder
 
     private void AddArguments(
         Skimmed.OutputField outputField,
-        OpenApiOperation openApiOperation)
+        OpenApiOperationWrapper operationWrapper)
     {
+        var operation = operationWrapper.Operation;
+
         // Parameters
-        foreach (var parameter in openApiOperation.Parameters)
+        foreach (var parameter in operation.Parameters)
         {
             if (parameter.Schema is not null)
             {
@@ -347,6 +309,8 @@ internal sealed class OpenApiMutableSchemaBuilder
                     IsDeprecated = parameter.Deprecated,
                     Type = CreateGraphQLTypeFromOpenApiSchema(
                         parameter.Schema,
+                        parameter.Schema.Title ??
+                            $"{operationWrapper.OperationId} parameter {parameterName}",
                         isInput: true,
                         required: parameter.Required),
                 });
@@ -354,9 +318,9 @@ internal sealed class OpenApiMutableSchemaBuilder
         }
 
         // Request body
-        if (openApiOperation.RequestBody is not null)
+        if (operation.RequestBody is not null)
         {
-            var openApiMediaTypeObject = openApiOperation.RequestBody.Content.SingleOrDefault(
+            var openApiMediaTypeObject = operation.RequestBody.Content.SingleOrDefault(
                 c => c.Key is MediaTypeNames.Application.Json).Value;
 
             if (openApiMediaTypeObject is null)
@@ -372,8 +336,9 @@ internal sealed class OpenApiMutableSchemaBuilder
 
             var inputType = CreateGraphQLTypeFromOpenApiSchema(
                 openApiMediaTypeObject.Schema,
+                openApiMediaTypeObject.Schema.Title ?? $"{operationWrapper.OperationId} input",
                 typeName: inputTypeName,
-                required: openApiOperation.RequestBody.Required,
+                required: operation.RequestBody.Required,
                 isInput: true);
 
             var inputArgumentName = _mutationConventionOptions.InputArgumentName ??
@@ -385,7 +350,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
             var inputField = new Skimmed.InputField(inputFieldName)
             {
-                Description = openApiOperation.RequestBody.Description,
+                Description = operation.RequestBody.Description,
                 Type = inputType,
             };
 
@@ -395,14 +360,10 @@ internal sealed class OpenApiMutableSchemaBuilder
         }
     }
 
-    private void AddResolver(
-        IHasContextData field,
-        OperationType operationType,
-        string path,
-        OpenApiOperation operation)
+    private void AddResolver(IHasContextData field, OpenApiOperationWrapper operationWrapper)
     {
         field.ContextData[WellKnownContextData.OpenApiResolver] =
-            OpenApiResolverFactory.CreateResolver(_httpClientName, operationType, path, operation);
+            OpenApiResolverFactory.CreateResolver(_httpClientName, operationWrapper);
     }
 
     private static void AddTagDirectives(
@@ -436,11 +397,11 @@ internal sealed class OpenApiMutableSchemaBuilder
     }
 
     private Dictionary<string, Skimmed.IType> GetGraphQLTypesFromOpenApiOperation(
-        OpenApiOperation openApiOperation)
+        OpenApiOperationWrapper operationWrapper)
     {
         var typeMap = new Dictionary<string, Skimmed.IType>();
 
-        foreach (var (httpStatusCode, response) in openApiOperation.Responses)
+        foreach (var (httpStatusCode, response) in operationWrapper.Operation.Responses)
         {
             if (response.Content.Count is 0)
             {
@@ -455,7 +416,10 @@ internal sealed class OpenApiMutableSchemaBuilder
                     {
                         typeMap.Add(
                             httpStatusCode,
-                            CreateGraphQLTypeFromOpenApiSchema(mediaTypeObject.Schema));
+                            CreateGraphQLTypeFromOpenApiSchema(
+                                mediaTypeObject.Schema,
+                                mediaTypeObject.Schema.Title ??
+                                    $"{operationWrapper.OperationId} response {httpStatusCode}"));
                     }
                 }
             }
@@ -466,6 +430,7 @@ internal sealed class OpenApiMutableSchemaBuilder
 
     private Skimmed.IType CreateGraphQLTypeFromOpenApiSchema(
         OpenApiSchema openApiSchema,
+        string schemaTitle,
         string? typeName = null,
         bool isInput = false,
         bool required = true)
@@ -475,7 +440,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             openApiSchema = MergeAllOf(openApiSchema);
         }
 
-        typeName ??= GetGraphQLTypeName(openApiSchema);
+        typeName ??= GetGraphQLTypeName(openApiSchema, schemaTitle);
 
         // Return existing type when available.
         if (_skimmedSchema.Types.TryGetType(typeName, out var existingType))
@@ -490,6 +455,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             case JsonSchemaTypes.Array:
                 var elementType = CreateGraphQLTypeFromOpenApiSchema(
                     openApiSchema.Items,
+                    openApiSchema.Items.Title ?? $"{schemaTitle} items",
                     required: true);
 
                 type = new Skimmed.ListType(elementType);
@@ -517,6 +483,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 {
                     inputObjectType.Fields.Add(
                         CreateInputField(
+                            schemaTitle,
                             propertyName,
                             propertySchema,
                             required: openApiSchema.Required.Contains(propertyName)));
@@ -537,6 +504,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 {
                     objectType.Fields.Add(
                         CreateOutputField(
+                            schemaTitle,
                             propertyName,
                             propertySchema,
                             required: openApiSchema.Required.Contains(propertyName)));
@@ -556,7 +524,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             : type;
     }
 
-    private static string GetGraphQLTypeName(OpenApiSchema openApiSchema)
+    private static string GetGraphQLTypeName(OpenApiSchema openApiSchema, string schemaTitle)
     {
         var typeName = openApiSchema.Reference?.Id ?? openApiSchema.Type;
 
@@ -566,7 +534,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             JsonSchemaTypes.Integer when openApiSchema.Format is "int64" => ScalarNames.Long,
             JsonSchemaTypes.Integer => ScalarNames.Int,
             JsonSchemaTypes.Number => ScalarNames.Float,
-            JsonSchemaTypes.Object => GraphQLNamingHelper.CreateTypeName(openApiSchema.Title),
+            JsonSchemaTypes.Object => GraphQLNamingHelper.CreateTypeName(schemaTitle),
             JsonSchemaTypes.String when openApiSchema.Format is "date" => ScalarNames.Date,
             JsonSchemaTypes.String when openApiSchema.Format is "date-time" => ScalarNames.DateTime,
             JsonSchemaTypes.String => ScalarNames.String,
@@ -601,6 +569,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     }
 
     private Skimmed.InputField CreateInputField(
+        string schemaTitle,
         string propertyName,
         OpenApiSchema propertySchema,
         bool required = false)
@@ -614,11 +583,15 @@ internal sealed class OpenApiMutableSchemaBuilder
             DefaultValue = CreateValueNodeFromOpenApiAny(propertySchema.Default),
             Description = propertySchema.Description,
             IsDeprecated = propertySchema.Deprecated,
-            Type = CreateGraphQLTypeFromOpenApiSchema(propertySchema, required: required),
+            Type = CreateGraphQLTypeFromOpenApiSchema(
+                propertySchema,
+                propertySchema.Title ?? $"{schemaTitle} property {propertyName}",
+                required: required),
         };
     }
 
     private Skimmed.OutputField CreateOutputField(
+        string schemaTitle,
         string propertyName,
         OpenApiSchema propertySchema,
         bool required = false)
@@ -631,7 +604,10 @@ internal sealed class OpenApiMutableSchemaBuilder
             },
             Description = propertySchema.Description,
             IsDeprecated = propertySchema.Deprecated,
-            Type = CreateGraphQLTypeFromOpenApiSchema(propertySchema, required: required),
+            Type = CreateGraphQLTypeFromOpenApiSchema(
+                propertySchema,
+                propertySchema.Title ?? $"{schemaTitle} property {propertyName}",
+                required: required),
         };
     }
 }
