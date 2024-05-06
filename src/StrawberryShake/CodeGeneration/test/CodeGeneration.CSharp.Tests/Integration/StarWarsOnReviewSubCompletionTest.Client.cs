@@ -205,7 +205,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * OnReview.GetHashCode();
                 return hash;
             }
@@ -276,7 +276,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 hash ^= 397 * Stars.GetHashCode();
                 if (Commentary != null)
@@ -645,7 +645,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};

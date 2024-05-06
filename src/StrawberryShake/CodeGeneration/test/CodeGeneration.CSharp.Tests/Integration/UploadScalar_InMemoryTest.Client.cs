@@ -161,7 +161,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Upload != null)
                 {
                     hash ^= 397 * Upload.GetHashCode();
@@ -274,7 +274,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Bar != null)
                 {
                     hash ^= 397 * Bar.GetHashCode();
@@ -394,7 +394,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Baz != null)
                 {
                     hash ^= 397 * Baz.GetHashCode();
@@ -514,7 +514,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (File != null)
                 {
                     hash ^= 397 * File.GetHashCode();
@@ -1089,7 +1089,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar_InMemor
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()};
