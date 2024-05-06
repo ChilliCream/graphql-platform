@@ -37,19 +37,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         discoveryContext.RegisterDependencies(extensionDefinition);
 
-        foreach (var field in def.Fields)
-        {
-            if (field is FilterFieldDefinition filterField &&
-                filterField.Member is { } member &&
-                (member.GetCustomAttribute(typeof(IDAttribute)) is { } ||
-                 member.GetCustomAttribute(typeof(IDAttribute<>)) is { }))
-            {
-                filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
-                    typeof(IdOperationFilterInputType),
-                    TypeContext.Input,
-                    discoveryContext.Scope);
-            }
-        }
+        ApplyIdAttributesToFields(discoveryContext, def);
     }
 
     public override void OnBeforeCompleteName(
@@ -149,5 +137,49 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
                 field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
         }
+    }
+
+    private static void ApplyIdAttributesToFields(
+        ITypeDiscoveryContext discoveryContext,
+        FilterInputTypeDefinition def)
+    {
+        foreach (var field in def.Fields)
+        {
+            if (field.HasIdAttribute())
+            {
+                field.Type = discoveryContext.TypeInspector.GetTypeRef(
+                    typeof(IdOperationFilterInputType),
+                    TypeContext.Input,
+                    discoveryContext.Scope);
+            }
+        }
+    }
+}
+
+file static class Extensions
+{
+    public static bool HasIdAttribute(this InputFieldDefinition? definiton)
+    {
+        if (definiton is not FilterFieldDefinition { Member: { } member })
+        {
+            return false;
+        }
+
+        var attributes = member.GetCustomAttributesData();
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeType == typeof(IDAttribute))
+            {
+                return true;
+            }
+
+            if (attribute.AttributeType.IsGenericType &&
+                attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
