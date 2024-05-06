@@ -8,6 +8,8 @@ namespace HotChocolate.OpenApi.Tests;
 [Collection("Open api integration tests")]
 public class IntegrationTests
 {
+    private readonly string _petStoreYaml = FileResource.Open("PetStore.yaml");
+
     [Theory]
     [InlineData("findAnyPets", "query { findPets { name } }")]
     [InlineData("findSinglePet", "query { findPetById(id: 1) { name } }")]
@@ -40,12 +42,11 @@ public class IntegrationTests
             });
 
         await openApiServer.Host.StartAsync();
-        var apiDocument  = FileResource.Open("PetStore.yaml");
 
         var schema = await new ServiceCollection()
             .AddSingleton(httpClientFactoryMock.Object)
             .AddGraphQL()
-            .AddOpenApi("PetStore", apiDocument)
+            .AddOpenApi("PetStore", _petStoreYaml)
             .BuildRequestExecutorAsync();
 
         // Act
