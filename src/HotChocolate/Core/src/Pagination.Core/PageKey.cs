@@ -1,4 +1,4 @@
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 /// <summary>
 /// The paging key can be used when offloading paging logic to a DataLoader.

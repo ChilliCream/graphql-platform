@@ -1,4 +1,5 @@
 using HotChocolate.Types.Pagination;
+using HotChocolate.Pagination;
 
 namespace HotChocolate.Data;
 
@@ -24,7 +25,7 @@ public static class PagingResultExtensions
         var result = await resultPromise;
         return CreateConnection(result);
     }
-    
+
     /// <summary>
     /// Converts a <see cref="Page{T}"/> to a <see cref="Connection{T}"/>.
     /// </summary>
