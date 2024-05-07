@@ -1,3 +1,67 @@
+# UploadFile_Multiple_In_List
+
+## User Request
+
+```graphql
+mutation UploadMultiple($input: UploadMultipleProductPicturesInput!) {
+  uploadMultipleProductPictures(input: $input) {
+    boolean
+  }
+}
+```
+
+## Result
+
+```json
+{
+  "data": {
+    "uploadMultipleProductPictures": {
+      "boolean": true
+    }
+  }
+}
+```
+
+## QueryPlan
+
+```json
+{
+  "document": "mutation UploadMultiple($input: UploadMultipleProductPicturesInput!) { uploadMultipleProductPictures(input: $input) { boolean } }",
+  "operation": "UploadMultiple",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Products",
+        "document": "mutation UploadMultiple_1($input: UploadMultipleProductPicturesInput!) { uploadMultipleProductPictures(input: $input) { boolean } }",
+        "selectionSetId": 0,
+        "forwardedVariables": [
+          {
+            "variable": "input"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+```
+
+## QueryPlan Hash
+
+```text
+EECC36ABA7A36C87BBC6C16A429568EAF4DC5583
+```
+
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
   @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
@@ -257,3 +321,5 @@ scalar Date
 
 "The `Upload` scalar type represents a file upload."
 scalar Upload
+```
+
