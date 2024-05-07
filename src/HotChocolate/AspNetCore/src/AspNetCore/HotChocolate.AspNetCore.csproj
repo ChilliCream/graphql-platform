@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" Version="10.0.7" />
+    <PackageReference Include="BananaCakePop.Middleware" Version="16.0.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
@@ -54,5 +54,5 @@
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.props" Pack="true" PackagePath="build/HotChocolate.AspNetCore.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.targets" Pack="true" PackagePath="build/HotChocolate.AspNetCore.targets" Visible="false" />
   </ItemGroup>
-  
+
 </Project>
