@@ -163,7 +163,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
@@ -229,7 +229,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
@@ -298,7 +298,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (FriendsListLabel != null)
                 {
@@ -374,7 +374,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 if (FriendsListLabel != null)
                 {
@@ -453,7 +453,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
@@ -525,7 +525,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -587,7 +587,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {
             unchecked
             {
-                var hash = 5;
+                int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
                 return hash;
             }
@@ -1271,7 +1271,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferred.IGetHero_Hero_Friends_Nodes?>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.EntityId? child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
             }
@@ -1385,7 +1385,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
             }
 
             var characters = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDeferred.IGetHero_Hero_Friends_Nodes?>();
-            foreach (var child in list)
+            foreach (global::StrawberryShake.EntityId? child in list)
             {
                 characters.Add(MapIGetHero_Hero_Friends_Nodes(child, snapshot));
             }
@@ -1464,7 +1464,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsDe
         {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            var __typename = obj.GetProperty("__typename").GetString()!;
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
                 "Character" => ParseCharacterEntityId(obj, __typename),

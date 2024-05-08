@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 /// <summary>
 /// Represents a page of a result set.
@@ -24,34 +24,34 @@ public readonly struct Page<T>(
     IReadOnlyList<T> items,
     bool hasNextPage,
     bool hasPreviousPage,
-    Func<T, string> createCursor) 
+    Func<T, string> createCursor)
     : IEnumerable<T>
 {
     /// <summary>
     /// Gets the items of this page.
     /// </summary>
     public IReadOnlyList<T> Items => items;
-    
+
     /// <summary>
     /// Gets the first item of this page.
     /// </summary>
     public T? First => items.Count > 0 ? items[0] : default;
-    
+
     /// <summary>
     /// Gets the last item of this page.
     /// </summary>
     public T? Last => items.Count > 0 ? items[^1] : default;
-    
+
     /// <summary>
     /// Defines if there is a next page.
     /// </summary>
     public bool HasNextPage => hasNextPage;
-    
+
     /// <summary>
     /// Defines if there is a previous page.
     /// </summary>
     public bool HasPreviousPage => hasPreviousPage;
-    
+
     /// <summary>
     /// Creates a cursor for an item of this page.
     /// </summary>
@@ -62,7 +62,7 @@ public readonly struct Page<T>(
     /// Returns a cursor for the item.
     /// </returns>
     public string CreateCursor(T item) => createCursor(item);
-    
+
     /// <summary>
     /// An empty page.
     /// </summary>
@@ -74,7 +74,7 @@ public readonly struct Page<T>(
     /// <returns></returns>
     public IEnumerator<T> GetEnumerator()
         => items.GetEnumerator();
-    
+
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
 }

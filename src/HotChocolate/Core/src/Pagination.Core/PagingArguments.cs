@@ -1,4 +1,4 @@
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 /// <summary>
 /// The paging arguments are used to specify the paging behavior.
