@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" Version="16.0.0" />
+    <PackageReference Include="BananaCakePop.Middleware" Version="16.0.1" />
   </ItemGroup>
 
   <ItemGroup>
