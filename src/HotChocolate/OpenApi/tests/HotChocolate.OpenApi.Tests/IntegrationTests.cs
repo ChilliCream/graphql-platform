@@ -62,6 +62,34 @@ public sealed class IntegrationTests
         Snapshot.Match(result, postFix: caseName, extension: ".json");
     }
 
+    [Theory]
+    [MemberData(nameof(OperationsWithLinks))]
+    public async Task ExecuteQuery_SyntheticWithLinks_ReturnsExpectedResult(
+        string caseName,
+        string query)
+    {
+        // Arrange
+        var openApiServer = CreateOpenApiServer();
+        var httpClientFactoryMock = CreateHttpClientFactoryMock(openApiServer);
+
+        await openApiServer.Host.StartAsync();
+        var openApiDocument = FileResource.Open("synthetic-with-links.yaml");
+
+        var schema = await new ServiceCollection()
+            .AddSingleton(httpClientFactoryMock.Object)
+            .AddGraphQL()
+            .AddOpenApi("SyntheticWithLinks", openApiDocument, enableMutationConventions: true)
+            .BuildRequestExecutorAsync();
+
+        // Act
+        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
+
+        // Assert
+        httpClientFactoryMock.Verify(f => f.CreateClient(It.IsAny<string>()), Times.Exactly(2));
+        Assert.NotNull(result);
+        Snapshot.Match(result, postFix: caseName, extension: ".json");
+    }
+
     private static TestServer CreateOpenApiServer()
     {
         var builder = new WebHostBuilder();
@@ -269,6 +297,49 @@ public sealed class IntegrationTests
                         errors {
                             ... on Error { code, message }
                         }
+                    }
+                }
+                """
+            },
+        };
+    }
+
+    private static TheoryData<string, string> OperationsWithLinks()
+    {
+        return new TheoryData<string, string>
+        {
+            {
+                "getArticles",
+                """
+                query {
+                    a: getArticles {
+                        id
+                        title
+                        author { id, username } # Link
+                    }
+
+                    b: getArticles {
+                        id
+                        title
+                        author { id, username } # Link
+                    }
+                }
+                """
+            },
+            {
+                "getArticleById",
+                """
+                query {
+                    a: getArticleById(id: 1) {
+                        id
+                        title
+                        author { id, username } # Link
+                    }
+
+                    b: getArticleById(id: 1) {
+                        id
+                        title
+                        author { id, username } # Link
                     }
                 }
                 """

@@ -22,6 +22,9 @@
     <None Update="__resources__\synthetic-with-deprecations.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="__resources__\synthetic-with-links.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="__resources__\synthetic-with-tags.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -75,6 +75,23 @@ public sealed class OpenApiMutableSchemaBuilderTests
     }
 
     [Fact]
+    public async void CreateMutableSchema_WithLinks_ReturnsExpectedResult()
+    {
+        // Arrange
+        var input = await File.ReadAllTextAsync("__resources__/synthetic-with-links.yaml");
+        var openApiDocument = new OpenApiStringReader().Read(input, out _);
+
+        // Act
+        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+            openApiDocument,
+            httpClientName: "SyntheticWithLinks").Build();
+
+        // Assert
+        var sdl = SchemaFormatter.FormatAsString(mutableSchema);
+        Snapshot.Match(sdl, extension: ".graphql");
+    }
+
+    [Fact]
     public async void CreateMutableSchema_WithTags_ReturnsExpectedResult()
     {
         // Arrange

@@ -423,6 +423,8 @@ internal sealed class OpenApiMutableSchemaBuilder
                     }
                 }
             }
+
+            AddLinks(response, typeMap);
         }
 
         return typeMap;
@@ -524,24 +526,6 @@ internal sealed class OpenApiMutableSchemaBuilder
             : type;
     }
 
-    private static string GetGraphQLTypeName(OpenApiSchema openApiSchema, string schemaTitle)
-    {
-        var typeName = openApiSchema.Reference?.Id ?? openApiSchema.Type;
-
-        return typeName switch
-        {
-            JsonSchemaTypes.Boolean => ScalarNames.Boolean,
-            JsonSchemaTypes.Integer when openApiSchema.Format is "int64" => ScalarNames.Long,
-            JsonSchemaTypes.Integer => ScalarNames.Int,
-            JsonSchemaTypes.Number => ScalarNames.Float,
-            JsonSchemaTypes.Object => GraphQLNamingHelper.CreateTypeName(schemaTitle),
-            JsonSchemaTypes.String when openApiSchema.Format is "date" => ScalarNames.Date,
-            JsonSchemaTypes.String when openApiSchema.Format is "date-time" => ScalarNames.DateTime,
-            JsonSchemaTypes.String => ScalarNames.String,
-            _ => GraphQLNamingHelper.CreateName(typeName),
-        };
-    }
-
     private static OpenApiSchema MergeAllOf(OpenApiSchema openApiSchema)
     {
         var mergedSchema = new OpenApiSchema(openApiSchema)
@@ -566,6 +550,21 @@ internal sealed class OpenApiMutableSchemaBuilder
         }
 
         return mergedSchema;
+    }
+
+    private static string GetGraphQLTypeName(OpenApiSchema openApiSchema, string schemaTitle)
+    {
+        return openApiSchema.Type switch
+        {
+            JsonSchemaTypes.Boolean => ScalarNames.Boolean,
+            JsonSchemaTypes.Integer when openApiSchema.Format is "int64" => ScalarNames.Long,
+            JsonSchemaTypes.Integer => ScalarNames.Int,
+            JsonSchemaTypes.Number => ScalarNames.Float,
+            JsonSchemaTypes.String when openApiSchema.Format is "date" => ScalarNames.Date,
+            JsonSchemaTypes.String when openApiSchema.Format is "date-time" => ScalarNames.DateTime,
+            JsonSchemaTypes.String => ScalarNames.String,
+            _ => GraphQLNamingHelper.CreateTypeName(openApiSchema.Reference?.Id ?? schemaTitle),
+        };
     }
 
     private Skimmed.InputField CreateInputField(
@@ -609,5 +608,55 @@ internal sealed class OpenApiMutableSchemaBuilder
                 propertySchema.Title ?? $"{schemaTitle} property {propertyName}",
                 required: required),
         };
+    }
+
+    private void AddLinks(OpenApiResponse response, Dictionary<string, Skimmed.IType> typeMap)
+    {
+        foreach (var (linkName, openApiLink) in response.Links)
+        {
+            if (openApiLink.OperationId is null ||
+                !_wrappedOperations.TryGetValue(
+                    openApiLink.OperationId,
+                    out var linkedOperationWrapper))
+            {
+                continue;
+            }
+
+            var graphQLType = CreateGraphQLTypeFromOpenApiOperation(linkedOperationWrapper);
+
+            foreach (var type in typeMap.Values)
+            {
+                var innerType = Skimmed.TypeExtensions.InnerType(type);
+
+                List<Skimmed.ObjectType> objectTypes = [];
+
+                switch (innerType)
+                {
+                    case Skimmed.ObjectType objectType:
+                        objectTypes.Add(objectType);
+                        break;
+
+                    case Skimmed.ListType listType
+                        when Skimmed.TypeExtensions.InnerType(listType.ElementType) is
+                            Skimmed.ObjectType objectType:
+
+                        objectTypes.Add(objectType);
+                        break;
+                }
+
+                foreach (var objectType in objectTypes)
+                {
+                    var linkField = new Skimmed.OutputField(linkName)
+                    {
+                        Description = openApiLink.Description,
+                        Type = graphQLType,
+                    };
+
+                    AddResolver(linkField, linkedOperationWrapper);
+
+                    objectType.Fields.Add(linkField);
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,8 @@
 using HotChocolate.Configuration;
+using HotChocolate.OpenApi.Exceptions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.OpenApi.OpenApiResources;
 
 namespace HotChocolate.OpenApi.TypeInterceptors;
 
@@ -42,13 +44,18 @@ internal sealed class AbstractResolverTypeInterceptor : TypeInterceptor
             }
 
             if (fieldType.ContextData.TryGetValue(
-                    WellKnownContextData.OpenApiTypeMap, out var typeMapValue) &&
+                    WellKnownContextData.OpenApiTypeMap,
+                    out var typeMapValue) &&
                 typeMapValue is Dictionary<string, string> typeMap &&
                 context.ContextData.TryGetValue(
-                    WellKnownContextData.OpenApiHttpStatusCode, out var httpStatusCodeValue) &&
-                httpStatusCodeValue is string httpStatusCode)
+                    WellKnownContextData.OpenApiHttpStatusCode,
+                    out var httpStatusCodeValue) &&
+                httpStatusCodeValue is string httpStatusCode &&
+                types.TryGetValue(
+                    GetTypeNameByHttpStatusCode(typeMap, httpStatusCode),
+                    out var type))
             {
-                return types[GetTypeNameByHttpStatusCode(typeMap, httpStatusCode)];
+                return type;
             }
 
             throw new InvalidOperationException();
@@ -77,7 +84,9 @@ internal sealed class AbstractResolverTypeInterceptor : TypeInterceptor
             return typeName3;
         }
 
-        throw new InvalidOperationException(
-            $"Unable to get type name for status code '{httpStatusCode}'.");
+        throw new AbstractResolverException(
+            string.Format(
+                AbstractResolverTypeInterceptor_UnableToGetTypeNameForStatusCode,
+                httpStatusCode));
     }
 }
