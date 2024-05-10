@@ -3,7 +3,7 @@ schema {
 }
 
 type Mutation {
-  Post(boolean: Boolean
+  post(boolean: Boolean
     @deprecated postInput: PostInput): PostResponse200!
     @deprecated
 }

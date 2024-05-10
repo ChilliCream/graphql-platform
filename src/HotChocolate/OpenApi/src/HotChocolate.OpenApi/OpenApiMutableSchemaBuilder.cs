@@ -140,7 +140,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             var operation = operationWrapper.Operation;
             var operationName = GraphQLNamingHelper.CreateName(operationId);
 
-            var mutationField = new Skimmed.OutputField(operationName)
+            var mutationField = new Skimmed.OutputField(operationName.FirstCharacterToLower())
             {
                 Description = operation.Description ?? operation.Summary,
                 IsDeprecated = operation.Deprecated,
