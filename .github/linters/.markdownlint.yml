@@ -26,7 +26,21 @@ MD026:
   punctuation: ".,;:"
 MD028: false # Rationale: Used for displaying separate notes or warnings in the documentation.
 MD029: false # Rationale: The documentation currently misuses list formatting for other purposes.
-MD033: false
+MD033:
+  allowed_elements:
+    - a
+    - Annotation
+    - ApiChoiceTabs
+    - br
+    - Code
+    - ExampleTabs
+    - img
+    - InputChoiceTabs
+    - PackageInstallation
+    - Schema
+    - strong
+    - u
+    - Video
 MD036: false
 MD037: false
 MD040: false
