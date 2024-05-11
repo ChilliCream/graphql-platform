@@ -24,7 +24,7 @@ MD024:
 MD025: false # Rationale: The documentation ToC generator is designed to work with multiple top-level headings.
 MD026:
   punctuation: ".,;:"
-MD028: false
+MD028: false # Rationale: Used for displaying separate notes or warnings in the documentation.
 MD029: false
 MD033: false
 MD036: false
