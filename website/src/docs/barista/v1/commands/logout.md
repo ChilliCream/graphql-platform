@@ -6,7 +6,7 @@ The `barista logout` command is used to log out of your user account on Barista.
 
 To use the `barista logout` command, type it into your terminal as shown below:
 
-```
+```shell
 barista logout
 ```
 
