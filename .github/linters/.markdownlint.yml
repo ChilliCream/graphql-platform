@@ -42,5 +42,4 @@ MD033:
     - u
     - Video
 MD036: false # Rationale: Possibly too strict, used frequently in documentation.
-MD045: false
 MD053: false

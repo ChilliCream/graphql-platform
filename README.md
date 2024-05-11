@@ -75,6 +75,7 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 
 [Become a sponsor](https://opencollective.com/chillicream#contribute) and get your logo on our README on Github with a link to your site.
 
+<!-- markdownlint-disable MD045 -->
 <a href="https://opencollective.com/chillicream/sponsor/0/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/0/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/1/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/1/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/2/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/2/avatar.svg?requireActive=false"></a>
@@ -95,11 +96,13 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 <a href="https://opencollective.com/chillicream/sponsor/17/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/17/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/18/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/18/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/sponsor/19/website?requireActive=false" target="_blank" rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/sponsor/19/avatar.svg?requireActive=false"></a>
+<!-- markdownlint-enable MD045 -->
 
 ### Backer
 
 [Become a backer](https://opencollective.com/chillicream#contribute) and get your image on our README on Github with a link to your site.
 
+<!-- markdownlint-disable MD045 -->
 <a href="https://opencollective.com/chillicream/backer/0/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/0/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/1/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/1/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/2/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/2/avatar.svg?requireActive=false"></a>
@@ -120,3 +123,4 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 <a href="https://opencollective.com/chillicream/backer/17/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/17/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/18/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/18/avatar.svg?requireActive=false"></a>
 <a href="https://opencollective.com/chillicream/backer/19/website?requireActive=false" target="_blank"  rel="noreferrer noopener"><img src="https://opencollective.com/chillicream/backer/19/avatar.svg?requireActive=false"></a>
+<!-- markdownlint-enable MD045 -->
