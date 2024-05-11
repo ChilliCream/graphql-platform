@@ -1,6 +1,6 @@
-## Barista Logout
-
-**Description**
+---
+title: Logout
+---
 
 The `barista logout` command is used to log out of your user account on Barista.
 

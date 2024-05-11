@@ -1,3 +1,4 @@
+<!-- markdownlint-disable-next-line MD041 -->
 ![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-banner.svg)
 
 [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/)
