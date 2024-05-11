@@ -22,7 +22,8 @@ MD013: false # Rationale: Hard line breaks are unnecessary (use soft wrapping in
 MD024:
   siblings_only: true
 MD025: false # Rationale: The documentation ToC generator is designed to work with multiple top-level headings.
-MD026: false
+MD026:
+  punctuation: ".,;:"
 MD028: false
 MD029: false
 MD033: false
