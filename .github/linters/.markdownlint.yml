@@ -25,7 +25,7 @@ MD025: false # Rationale: The documentation ToC generator is designed to work wi
 MD026:
   punctuation: ".,;:"
 MD028: false # Rationale: Used for displaying separate notes or warnings in the documentation.
-MD029: false
+MD029: false # Rationale: The documentation currently misuses list formatting for other purposes.
 MD033: false
 MD036: false
 MD037: false
