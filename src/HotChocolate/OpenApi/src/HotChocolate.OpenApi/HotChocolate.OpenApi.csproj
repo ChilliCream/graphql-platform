@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="JsonPointer.Net" Version="5.0.0" />
       <PackageReference Include="Microsoft.OpenApi" Version="1.6.14" />
       <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
     </ItemGroup>
@@ -33,7 +34,7 @@
     <ItemGroup>
       <EmbeddedResource Update="Properties\OpenApiResources.resx">
         <Generator>ResXFileCodeGenerator</Generator>
-        <LastGenOutput>OpenApi.Designer.cs</LastGenOutput>
+        <LastGenOutput>OpenApiResources.Designer.cs</LastGenOutput>
       </EmbeddedResource>
     </ItemGroup>
 

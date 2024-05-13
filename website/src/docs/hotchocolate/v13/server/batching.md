@@ -30,7 +30,7 @@ You probably already know that you can send a GraphQL request document with mult
 
 With operation batching you can specify a list of operation names you wish to execute in a sequence:
 
-```
+```text
 POST /graphql?batchOperations=[Operation2,Operation1]
 {
   "query": "query Operation1 { stories { id } } query Operation2 { me { name } }"

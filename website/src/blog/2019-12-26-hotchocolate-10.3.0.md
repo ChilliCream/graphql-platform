@@ -577,6 +577,3 @@ I hope you will enjoy 10.3.0 as much as I already do and join the Hot Chocolate 
 BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/PureCodeFirst).
 
 If you want to get into contact with us head over to our slack channel and join our community.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

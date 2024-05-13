@@ -307,6 +307,3 @@ services.AddGraphQL(Schema.Create(c =>
 ```
 
 I hope this little post will help when you start writing tests for your schema. If you run into any issues or if you have further questions/suggestions head over to our slack channel and we will be happy to help you.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform
