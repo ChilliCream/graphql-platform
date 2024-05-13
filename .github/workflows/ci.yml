@@ -102,7 +102,7 @@ jobs:
           node-version: "20"
       - run: npm install -g markdownlint-cli2
         name: Install markdownlint-cli2
-      - run: markdownlint-cli2 --config ".github/linters/.markdownlint.yml" "website/src/**/*.md"
+      - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
         name: run Markdownlint
 
   website-tests:

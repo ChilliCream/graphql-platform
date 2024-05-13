@@ -6,7 +6,7 @@ The `barista login` command is used to log into your user account on Barista. On
 
 To use the `barista login` command, type it into your terminal as shown below:
 
-```
+```shell
 barista login
 ```
 
