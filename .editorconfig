@@ -109,7 +109,6 @@ resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
 
 # ReSharper inspection severities
-resharper_arrange_trailing_comma_in_multiline_lists_highlighting = error
 resharper_enforce_do_while_statement_braces_highlighting = error
 resharper_enforce_fixed_statement_braces_highlighting = error
 resharper_enforce_foreach_statement_braces_highlighting = error
