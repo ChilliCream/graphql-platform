@@ -6,6 +6,6 @@ The `barista launch` command is used to launch Banana Cake Pop, the GraphQL IDE,
 
 To use the `barista launch` command, simply type it in your terminal:
 
-```
+```shell
 barista launch
 ```
