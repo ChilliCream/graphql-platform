@@ -1,42 +1,101 @@
+# UploadFile_Multiple_In_List
+
+## User Request
+
+```graphql
+mutation UploadMultiple($input: UploadMultipleProductPicturesInput!) {
+  uploadMultipleProductPictures(input: $input) {
+    boolean
+  }
+}
+```
+
+## Result
+
+```json
+{
+  "data": {
+    "uploadMultipleProductPictures": {
+      "boolean": true
+    }
+  }
+}
+```
+
+## QueryPlan
+
+```json
+{
+  "document": "mutation UploadMultiple($input: UploadMultipleProductPicturesInput!) { uploadMultipleProductPictures(input: $input) { boolean } }",
+  "operation": "UploadMultiple",
+  "rootNode": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolve",
+        "subgraph": "Products",
+        "document": "mutation UploadMultiple_1($input: UploadMultipleProductPicturesInput!) { uploadMultipleProductPictures(input: $input) { boolean } }",
+        "selectionSetId": 0,
+        "forwardedVariables": [
+          {
+            "variable": "input"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
+          0
+        ]
+      }
+    ]
+  }
+}
+```
+
+## QueryPlan Hash
+
+```text
+EECC36ABA7A36C87BBC6C16A429568EAF4DC5583
+```
+
+## Fusion Graph
+
+```graphql
 schema
   @fusion(version: 1)
+  @transport(subgraph: "Reviews2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
   @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
-  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
-  @transport(subgraph: "Reviews", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
-  @transport(subgraph: "Reviews", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
   @transport(subgraph: "Products", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
-  @transport(subgraph: "Products", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
-  @transport(subgraph: "Shipping", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
-  @transport(subgraph: "Shipping", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
+  @transport(subgraph: "Shipping", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP") {
   query: Query
   mutation: Mutation
   subscription: Subscription
 }
 
 type Query {
-  authorById(id: ID!): Author
-    @variable(subgraph: "Reviews", name: "id", argument: "id")
-    @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   errorField: String
     @resolver(subgraph: "Accounts", select: "{ errorField }")
   productById(id: ID!): Product
-    @variable(subgraph: "Reviews", name: "id", argument: "id")
-    @resolver(subgraph: "Reviews", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+    @variable(subgraph: "Reviews2", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Products", name: "id", argument: "id")
     @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Shipping", name: "id", argument: "id")
     @resolver(subgraph: "Shipping", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewById(id: ID!): Review
-    @variable(subgraph: "Reviews", name: "id", argument: "id")
-    @resolver(subgraph: "Reviews", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+    @variable(subgraph: "Reviews2", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   reviewOrAuthor: ReviewOrAuthor!
-    @resolver(subgraph: "Reviews", select: "{ reviewOrAuthor }")
+    @resolver(subgraph: "Reviews2", select: "{ reviewOrAuthor }")
   reviews: [Review!]!
-    @resolver(subgraph: "Reviews", select: "{ reviews }")
+    @resolver(subgraph: "Reviews2", select: "{ reviews }")
   topProducts(first: Int!): [Product!]!
     @variable(subgraph: "Products", name: "first", argument: "first")
     @resolver(subgraph: "Products", select: "{ topProducts(first: $first) }", arguments: [ { name: "first", type: "Int!" } ])
   userById(id: ID!): User
+    @variable(subgraph: "Reviews2", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews2", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Accounts", name: "id", argument: "id")
     @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   users: [User!]!
@@ -45,13 +104,14 @@ type Query {
     @variable(subgraph: "Accounts", name: "ids", argument: "ids")
     @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
   viewer: Viewer!
+    @resolver(subgraph: "Reviews2", select: "{ viewer }")
     @resolver(subgraph: "Accounts", select: "{ viewer }")
 }
 
 type Mutation {
   addReview(input: AddReviewInput!): AddReviewPayload!
-    @variable(subgraph: "Reviews", name: "input", argument: "input")
-    @resolver(subgraph: "Reviews", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+    @variable(subgraph: "Reviews2", name: "input", argument: "input")
+    @resolver(subgraph: "Reviews2", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
   addUser(input: AddUserInput!): AddUserPayload!
     @variable(subgraph: "Accounts", name: "input", argument: "input")
     @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
@@ -65,29 +125,17 @@ type Mutation {
 
 type Subscription {
   onNewReview: Review!
-    @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIBE")
+    @resolver(subgraph: "Reviews2", select: "{ onNewReview }", kind: "SUBSCRIBE")
 }
 
 type AddReviewPayload {
   review: Review
-    @source(subgraph: "Reviews")
+    @source(subgraph: "Reviews2")
 }
 
 type AddUserPayload {
   user: User
     @source(subgraph: "Accounts")
-}
-
-type Author implements Node
-  @variable(subgraph: "Reviews", name: "Author_id", select: "id")
-  @resolver(subgraph: "Reviews", select: "{ authorById(id: $Author_id) }", arguments: [ { name: "Author_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Author_id) { ... on Author { ... Author } } }", arguments: [ { name: "Author_id", type: "[ID!]!" } ], kind: "BATCH") {
-  id: ID!
-    @source(subgraph: "Reviews")
-  name: String!
-    @source(subgraph: "Reviews")
-  reviews: [Review!]!
-    @source(subgraph: "Reviews")
 }
 
 type DeliveryEstimate {
@@ -98,12 +146,12 @@ type DeliveryEstimate {
 }
 
 type Product implements Node
-  @variable(subgraph: "Reviews", name: "Product_id", select: "id")
+  @variable(subgraph: "Reviews2", name: "Product_id", select: "id")
   @variable(subgraph: "Products", name: "Product_id", select: "id")
   @variable(subgraph: "Shipping", name: "Product_id", select: "id")
+  @resolver(subgraph: "Reviews2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Shipping", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
   @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH") {
   deliveryEstimate(zip: String!): DeliveryEstimate!
     @source(subgraph: "Shipping")
@@ -114,7 +162,7 @@ type Product implements Node
   dimension: ProductDimension!
     @source(subgraph: "Products")
   id: ID!
-    @source(subgraph: "Reviews")
+    @source(subgraph: "Reviews2")
     @source(subgraph: "Products")
     @source(subgraph: "Shipping")
   name: String!
@@ -128,7 +176,7 @@ type Product implements Node
     @source(subgraph: "Products")
     @variable(subgraph: "Products", name: "data", argument: "data")
   reviews: [Review!]!
-    @source(subgraph: "Reviews")
+    @source(subgraph: "Reviews2")
   weight: Int!
     @source(subgraph: "Products")
 }
@@ -148,17 +196,19 @@ type ProductNotFoundError implements Error {
 }
 
 type Review implements Node
-  @variable(subgraph: "Reviews", name: "Review_id", select: "id")
-  @resolver(subgraph: "Reviews", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
-  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
-  author: Author!
-    @source(subgraph: "Reviews")
+  @variable(subgraph: "Reviews2", name: "Review_id", select: "id")
+  @resolver(subgraph: "Reviews2", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
+  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
+  author: User!
+    @source(subgraph: "Reviews2")
   body: String!
-    @source(subgraph: "Reviews")
+    @source(subgraph: "Reviews2")
+  errorField: String
+    @source(subgraph: "Reviews2")
   id: ID!
-    @source(subgraph: "Reviews")
+    @source(subgraph: "Reviews2")
   product: Product!
-    @source(subgraph: "Reviews")
+    @source(subgraph: "Reviews2")
 }
 
 type SomeData {
@@ -168,6 +218,8 @@ type SomeData {
     @source(subgraph: "Products")
   num: Int
     @source(subgraph: "Products")
+  reviewsValue: String!
+    @source(subgraph: "Reviews2")
 }
 
 type UploadMultipleProductPicturesPayload {
@@ -184,25 +236,36 @@ type UploadProductPicturePayload {
     @source(subgraph: "Products")
 }
 
+"The user who wrote the review."
 type User implements Node
+  @variable(subgraph: "Reviews2", name: "User_id", select: "id")
   @variable(subgraph: "Accounts", name: "User_id", select: "id")
+  @resolver(subgraph: "Reviews2", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
-  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
+  @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
     @source(subgraph: "Accounts")
   errorField: String
     @source(subgraph: "Accounts")
   id: ID!
+    @source(subgraph: "Reviews2")
     @source(subgraph: "Accounts")
   name: String!
+    @source(subgraph: "Reviews2")
     @source(subgraph: "Accounts")
+  reviews: [Review!]!
+    @source(subgraph: "Reviews2")
   username: String!
     @source(subgraph: "Accounts")
 }
 
 type Viewer {
   data: SomeData!
+    @source(subgraph: "Reviews2")
     @source(subgraph: "Accounts")
+  latestReview: Review
+    @source(subgraph: "Reviews2")
   user: User
     @source(subgraph: "Accounts")
 }
@@ -216,7 +279,7 @@ interface Node {
   id: ID!
 }
 
-union ReviewOrAuthor = Author | Review
+union ReviewOrAuthor = User | Review
 
 union UploadMultipleProductPicturesError = ProductNotFoundError
 
@@ -258,3 +321,5 @@ scalar Date
 
 "The `Upload` scalar type represents a file upload."
 scalar Upload
+```
+

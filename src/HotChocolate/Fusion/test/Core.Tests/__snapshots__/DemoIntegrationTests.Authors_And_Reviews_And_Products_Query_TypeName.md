@@ -182,6 +182,9 @@ type Mutation {
   addUser(input: AddUserInput!): AddUserPayload!
     @variable(subgraph: "Accounts", name: "input", argument: "input")
     @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+  uploadMultipleProductPictures(input: UploadMultipleProductPicturesInput!): UploadMultipleProductPicturesPayload!
+    @variable(subgraph: "Products", name: "input", argument: "input")
+    @resolver(subgraph: "Products", select: "{ uploadMultipleProductPictures(input: $input) }", arguments: [ { name: "input", type: "UploadMultipleProductPicturesInput!" } ])
   uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
     @variable(subgraph: "Products", name: "input", argument: "input")
     @resolver(subgraph: "Products", select: "{ uploadProductPicture(input: $input) }", arguments: [ { name: "input", type: "UploadProductPictureInput!" } ])
@@ -270,6 +273,13 @@ type SomeData {
     @source(subgraph: "Reviews2")
 }
 
+type UploadMultipleProductPicturesPayload {
+  boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadMultipleProductPicturesError!]
+    @source(subgraph: "Products")
+}
+
 type UploadProductPicturePayload {
   boolean: Boolean
     @source(subgraph: "Products")
@@ -322,6 +332,8 @@ interface Node {
 
 union ReviewOrAuthor = User | Review
 
+union UploadMultipleProductPicturesError = ProductNotFoundError
+
 union UploadProductPictureError = ProductNotFoundError
 
 input AddReviewInput {
@@ -336,9 +348,18 @@ input AddUserInput {
   username: String!
 }
 
+input ProductIdWithUploadInput {
+  file: Upload!
+  productId: Int!
+}
+
 input SomeDataInput {
   data: SomeDataInput
   num: Int
+}
+
+input UploadMultipleProductPicturesInput {
+  products: [ProductIdWithUploadInput!]!
 }
 
 input UploadProductPictureInput {
