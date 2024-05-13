@@ -225,7 +225,7 @@ The following conventions are applied when transforming C# method and property n
 
 With the name cleaned of unnecessary information, we also change the casing at the start of the name:
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> ipAddress
 PLZ --> plz

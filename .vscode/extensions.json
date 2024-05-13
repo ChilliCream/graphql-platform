@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "davidanson.vscode-markdownlint",
     "ms-dotnettools.csharp",
     "EditorConfig.EditorConfig",
     "k--kato.docomment",
