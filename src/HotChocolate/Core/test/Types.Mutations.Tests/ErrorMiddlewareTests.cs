@@ -306,6 +306,34 @@ public class ErrorMiddlewareTests
         return builder.BuildRequestExecutorAsync();
     }
 
+    [Fact]
+    public async Task Throw_Unexpected_Exception()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AddMutationType<Mutation>()
+                .AddMutationConventions()
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            mutation {
+              createSomething(input: { success: false }) {
+                book {
+                  title
+                }
+                errors {
+                    __typename
+                }
+              }
+            }
+            """);
+
+        result.MatchSnapshot();
+    }
+
     public class CustomNullRef
     {
         public CustomNullRef(NullReferenceException exception)
@@ -431,5 +459,20 @@ public class ErrorMiddlewareTests
     public class Payload
     {
         public string Foo() => "Bar";
+    }
+
+    public class Mutation
+    {
+        public MutationResult<Book, SomeError>  CreateSomething(bool success)
+        {
+            throw new Exception("Broken");
+        }
+    }
+
+    public record Book(string Title);
+
+    public class SomeError
+    {
+        public string Message => "Some error message";
     }
 }

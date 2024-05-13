@@ -182,7 +182,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private void TryApplyInputConvention(
         IResolverCompiler resolverCompiler,
-        ObjectFieldDefinition mutation, 
+        ObjectFieldDefinition mutation,
         Options options)
     {
         if (mutation.Arguments.Count is 0)
@@ -208,7 +208,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                     mutation.SourceType,
                     mutation.ResolverType,
                     argumentNameMap);
-            
+
             TypeMemHelper.Return(argumentNameMap);
         }
 
@@ -250,7 +250,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                         argumentType,
                         Path.Root);
             }
-            
+
             resolverArguments.Add(
                 new ResolverArgument(
                     argument.Name,
@@ -637,7 +637,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                         var definition = new ErrorDefinition(
                             errorType,
                             schemaType,
-                            obj => obj);
+                            _ => null);
                         tempErrors.Add(definition);
                     }
                 }
@@ -734,7 +734,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
 
-        if (registeredType.Type is ObjectType errorObject && 
+        if (registeredType.Type is ObjectType errorObject &&
             errorObject.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
@@ -757,7 +757,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 }
             }
         }
-        else if (registeredType.Type is ObjectType errorInterface && 
+        else if (registeredType.Type is ObjectType errorInterface &&
             errorInterface.RuntimeType != typeof(object))
         {
             foreach (var possibleInterface in _typeRegistry.Types)
