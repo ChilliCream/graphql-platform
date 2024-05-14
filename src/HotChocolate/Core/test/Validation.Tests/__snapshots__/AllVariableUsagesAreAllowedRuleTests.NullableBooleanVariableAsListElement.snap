@@ -29,25 +29,6 @@
       "locationType": "Boolean!",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Variable",
-      "Location": {
-        "Start": 179,
-        "End": 196,
-        "Line": 4,
-        "Column": 69
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 180,
-          "End": 196,
-          "Line": 4,
-          "Column": 70
-        },
-        "Value": "nullableBoolean"
-      }
-    }
+    "Exception": null
   }
 ]

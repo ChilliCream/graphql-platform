@@ -124,7 +124,7 @@ public class PostgresChannelTests
 
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (i, _) =>
             {
                 using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
@@ -158,7 +158,7 @@ public class PostgresChannelTests
 
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (i, _) =>
             {
                 var messageId = i.ToString();
@@ -211,7 +211,7 @@ public class PostgresChannelTests
         // Act
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (_, ct) =>
             {
                 var message = PostgresMessageEnvelope

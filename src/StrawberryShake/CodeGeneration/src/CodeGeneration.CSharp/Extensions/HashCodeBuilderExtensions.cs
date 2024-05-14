@@ -53,7 +53,7 @@ internal static class HashCodeBuilderExtensions
                     .New()
                     .SetLoopHeader($"var {variableName}_elm in {variableName}")
                     .AddCode(BuildPropertyInternal(d.InnerType, variableName + "_elm", true)),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(),
             };
 
             if (isNullable && currentType is not NonNullTypeDescriptor)

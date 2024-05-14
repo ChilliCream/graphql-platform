@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Language;
 
 public static partial class VisitorExtensions
@@ -179,7 +176,7 @@ public static partial class VisitorExtensions
                 }
                 else if (action == VisitorAction.Skip)
                 {
-                    level.Push(new List<SyntaxNodeInfo>());
+                    level.Push([]);
                 }
 
                 parent = current;

@@ -391,7 +391,7 @@ public class CodeFirstTests
 
         public IExecutable<string> GetQuery()
         {
-            return new MockExecutable<string>(new[] { "foo", "bar" }.AsQueryable());
+            return new MockExecutable<string>(new[] { "foo", "bar", }.AsQueryable());
         }
 
         public string TestProp => "Hello World!";
@@ -431,7 +431,7 @@ public class CodeFirstTests
                 .Resolve(c => "bar");
             descriptor.Field("fooOrBar")
                 .Type<NonNullType<ListType<NonNullType<FooBarUnionType>>>>()
-                .Resolve(() => new object[] { "foo", "bar" });
+                .Resolve(() => new object[] { "foo", "bar", });
             descriptor.Field("tea")
                 .Type<TeaType>()
                 .Resolve(() => "tea");
@@ -537,7 +537,7 @@ public class CodeFirstTests
 
         public Task<IEnumerable<string>> GetNames()
         {
-            return Task.FromResult<IEnumerable<string>>(new[] { "a", "b" });
+            return Task.FromResult<IEnumerable<string>>(new[] { "a", "b", });
         }
     }
 
@@ -553,36 +553,30 @@ public class CodeFirstTests
         }
     }
 
-    public class MockExecutable<T> : IExecutable<T>
+    public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     {
-        private readonly IQueryable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IQueryable<T> source)
-        {
-            _source = source;
-        }
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
 
-        public object Source => _source;
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
 
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<IList>(_source.ToList());
-        }
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.FirstOrDefault());
-        }
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.SingleOrDefault());
-        }
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
+
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
         public string Print()
-        {
-            return _source.ToString()!;
-        }
+            => source.ToString()!;
     }
 
     public class QueryPrivateConstructor

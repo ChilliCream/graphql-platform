@@ -3,7 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 

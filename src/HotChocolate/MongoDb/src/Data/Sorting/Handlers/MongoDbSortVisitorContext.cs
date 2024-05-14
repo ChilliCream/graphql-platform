@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Sorting;
 
 namespace HotChocolate.Data.MongoDb.Sorting;

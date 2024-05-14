@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -56,7 +52,7 @@ public class SortingInfo : SortingValueNode, ISortingInfo
                     var value = CreateValueInfo(fieldValue.Value, field.Type);
                     if (field is SortField fieldInfo)
                     {
-                        fieldInfos ??= new();
+                        fieldInfos ??= [];
                         fieldInfos.Add(new SortingFieldInfo(fieldInfo, value));
                     }
                 }

@@ -30,13 +30,13 @@ internal sealed class SessionPool
 
         try
         {
-            if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
+            if (_sessions.TryGetValue(name, out var sessionInfo))
             {
                 sessionInfo.Rentals++;
             }
             else
             {
-                ISocketClient client = _socketClientFactory.CreateClient(name);
+                var client = _socketClientFactory.CreateClient(name);
 
                 sessionInfo = SessionInfo.From(client, this);
                 _sessions.Add(name, sessionInfo);
@@ -50,7 +50,7 @@ internal sealed class SessionPool
         }
         catch
         {
-            if (_sessions.TryGetValue(name, out SessionInfo? sessionInfo))
+            if (_sessions.TryGetValue(name, out var sessionInfo))
             {
                 await RemoveAndDisposeAsync(
                         sessionInfo.Session,
@@ -70,7 +70,7 @@ internal sealed class SessionPool
     {
         if (!_disposed)
         {
-            foreach (SessionInfo connection in _sessions.Values)
+            foreach (var connection in _sessions.Values)
             {
                 await connection.Session.DisposeAsync();
             }
@@ -93,7 +93,7 @@ internal sealed class SessionPool
 
         try
         {
-            if (_sessions.TryGetValue(session.Name, out SessionInfo? connectionInfo))
+            if (_sessions.TryGetValue(session.Name, out var connectionInfo))
             {
                 connectionInfo.Rentals--;
             }

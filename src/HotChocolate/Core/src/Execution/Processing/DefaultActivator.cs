@@ -1,88 +1,43 @@
 using System;
 using System.Collections.Concurrent;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
 
-internal sealed class DefaultActivator : IActivator
+internal sealed class ResolverProvider : IDisposable
 {
-    private readonly ConcurrentDictionary<Type, Service> _instances = new();
+    private readonly ConcurrentDictionary<Type, object> _instances = new();
+    private bool _disposed;
 
-    public T CreateInstance<T>(IServiceProvider services) =>
-        ActivatorHelper.CompileFactory<T>()(services);
+    public T GetResolver<T>(IServiceProvider services)
+    {
+        var service = services.GetService<T>();
 
-    public object? CreateInstance(Type type, IServiceProvider services) =>
-        ActivatorHelper.CompileFactory(type)(services);
+        if (service is not null)
+        {
+            return service;
+        }
 
-    public T GetOrCreate<T>(IServiceProvider services) =>
-        (T)GetOrCreate(typeof(T), services)!;
-
-    public object? GetOrCreate(Type type, IServiceProvider services) =>
-        _instances.GetOrAdd(type, _ => new Service(this, type)).GetOrCreateService(services);
+        return (T)_instances.GetOrAdd(typeof(T), CreateResolver);
+        
+        object CreateResolver(Type key)
+            => ActivatorUtilities.CreateInstance(services, key);
+    }
 
     public void Dispose()
     {
-        if (_instances.Count > 0)
+        if (_disposed)
         {
-            foreach (var service in _instances.Values)
-            {
-                service.Dispose();
-            }
-            _instances.Clear();
+            return;
         }
-    }
-
-    private sealed class Service : IDisposable
-    {
-        private readonly DefaultActivator _activator;
-        private readonly Type _type;
-        private object? _value;
-        private bool _disposed;
-
-        public Service(DefaultActivator activator, Type type)
+        
+        foreach (var instance in _instances.Values)
         {
-            _activator = activator;
-            _type = type;
-        }
-
-        public object? GetOrCreateService(IServiceProvider services)
-        {
-            if (_disposed)
+            if (instance is IDisposable d)
             {
-                throw new ObjectDisposedException(typeof(Service).FullName);
-            }
-
-            if (_value is not null)
-            {
-                return _value;
-            }
-
-            if (_type != typeof(object))
-            {
-                services.TryGetService(_type, out var value);
-
-                if (value is null && !_type.IsAbstract && !_type.IsInterface)
-                {
-                    value = _activator.CreateInstance(_type, services);
-                    _value = value;
-                }
-
-                return value;
-            }
-
-            return null;
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                if (_value is IDisposable d)
-                {
-                    d.Dispose();
-                }
-                _disposed = true;
+                d.Dispose();
             }
         }
+        _disposed = true;
     }
 }

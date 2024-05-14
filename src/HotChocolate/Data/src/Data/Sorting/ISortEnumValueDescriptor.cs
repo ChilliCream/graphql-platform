@@ -4,8 +4,6 @@ namespace HotChocolate.Data.Sorting;
 
 public interface ISortEnumValueDescriptor
 {
-    ISortEnumValueDescriptor SyntaxNode(EnumValueDefinitionNode enumValueDefinition);
-
     ISortEnumValueDescriptor Name(string value);
 
     ISortEnumValueDescriptor Description(string value);

@@ -3,6 +3,7 @@ title: Command Line
 ---
 
 # Overview
+
 The `HotChocolate.AspNetCore.CommandLine` package extends the `IHostBuilder` interface, offering a command-line interface for managing GraphQL schemas.
 This extension provides a seamless experience for developers, allowing them to export their schemas directly from the command line, which can be beneficial for CI/CD.
 

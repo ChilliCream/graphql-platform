@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using MongoDB.Driver;
@@ -37,7 +36,7 @@ internal class MongoDbCursorPagingHandler<TEntity> : CursorPagingHandler
                 CreatePagingContainer(mae.BuildPipeline()),
             MongoDbFindFluentExecutable<TEntity> mfe =>
                 CreatePagingContainer(mfe.BuildPipeline()),
-            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
+            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
         };
     }
 }

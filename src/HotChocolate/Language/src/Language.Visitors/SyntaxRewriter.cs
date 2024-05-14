@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 /// <summary>
@@ -7,16 +5,15 @@ namespace HotChocolate.Language.Visitors;
 /// </summary>
 public static class SyntaxRewriter
 {
-    public static ISyntaxRewriter<ISyntaxVisitorContext> Create(
+    public static ISyntaxRewriter<object?> Create(
         Func<ISyntaxNode, ISyntaxNode> rewrite)
-        => new DelegateSyntaxRewriter<ISyntaxVisitorContext>(
+        => new DelegateSyntaxRewriter<object?>(
             rewrite: (node, _) => rewrite(node));
 
     public static ISyntaxRewriter<TContext> Create<TContext>(
         RewriteSyntaxNode<TContext>? rewrite = null,
         Func<ISyntaxNode, TContext, TContext>? enter = null,
         Action<ISyntaxNode?, TContext>? leave = null)
-        where TContext : ISyntaxVisitorContext
         => new DelegateSyntaxRewriter<TContext>(rewrite, enter, leave);
 
     public static ISyntaxRewriter<NavigatorContext> CreateWithNavigator(

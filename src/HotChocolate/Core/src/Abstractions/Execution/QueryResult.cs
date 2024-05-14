@@ -22,7 +22,8 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         string? label,
         Path? path,
         bool? hasNext,
-        Func<ValueTask>[] cleanupTasks)
+        Func<ValueTask>[] cleanupTasks,
+        bool isDataSet)
         : base(cleanupTasks)
     {
         if (data is null &&
@@ -45,6 +46,7 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
         Label = label;
         Path = path;
         HasNext = hasNext;
+        IsDataSet = isDataSet;
     }
 
     /// <summary>
@@ -112,6 +114,9 @@ public sealed class QueryResult : ExecutionResult, IQueryResult
 
     /// <inheritdoc />
     public bool? HasNext { get; }
+
+    /// <inheritdoc />
+    public bool IsDataSet { get; }
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ToDictionary()

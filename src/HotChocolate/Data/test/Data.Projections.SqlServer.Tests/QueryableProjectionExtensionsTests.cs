@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
@@ -14,9 +12,9 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionExtensionsTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" },
-    };
+    [
+        new Foo { Bar = true, Baz = "a", }, new Foo { Bar = false, Baz = "b", },
+    ];
 
     [Fact]
     public async Task Extensions_Should_ProjectQuery()

@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Data.Filters.Spatial;

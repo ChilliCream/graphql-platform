@@ -12,12 +12,12 @@ public sealed class GraphQLNonNullTypeAttribute : Attribute
 {
     public GraphQLNonNullTypeAttribute()
     {
-        Nullable = new[] { false };
+        Nullable = [false,];
     }
 
     public GraphQLNonNullTypeAttribute(params bool[] nullable)
     {
-        Nullable = nullable.Length == 0 ? new[] { false } : nullable;
+        Nullable = nullable.Length == 0 ? [false,] : nullable;
     }
 
     internal bool[] Nullable { get; }

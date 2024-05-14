@@ -11,16 +11,16 @@ public class ClassBaseClassInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
-        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, TypeParameterList: null } possibleType)
+        if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, TypeParameterList: null, } possibleType)
         {
             var model = context.SemanticModel.GetDeclaredSymbol(possibleType);
-            if (model is { IsAbstract: false } type)
+            if (model is { IsAbstract: false, })
             {
-                var typeDisplayString = type.ToDisplayString();
+                var typeDisplayString = model.ToDisplayString();
                 var processing = new Queue<INamedTypeSymbol>();
-                processing.Enqueue(type);
+                processing.Enqueue(model);
 
-                var current = type.BaseType;
+                var current = model.BaseType;
 
                 while (current is not null)
                 {

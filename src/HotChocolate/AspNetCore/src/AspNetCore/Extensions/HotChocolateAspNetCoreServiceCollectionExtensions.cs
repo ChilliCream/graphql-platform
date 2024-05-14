@@ -46,7 +46,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             DefaultHttpResponseFormatter.Create(
                 new HttpResponseFormatterOptions
                 {
-                    HttpTransportVersion = HttpTransportVersion.Latest
+                    HttpTransportVersion = HttpTransportVersion.Latest,
                 }));
         services.TryAddSingleton<IHttpRequestParser>(
             sp => new DefaultHttpRequestParser(
@@ -61,7 +61,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             {
                 0 => new NoopServerDiagnosticEventListener(),
                 1 => listeners[0],
-                _ => new AggregateServerDiagnosticEventListener(listeners)
+                _ => new AggregateServerDiagnosticEventListener(listeners),
             };
         });
 

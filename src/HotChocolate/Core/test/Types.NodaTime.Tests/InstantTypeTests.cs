@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -40,7 +39,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsUtc()
         {
-            IExecutionResult result = testExecutor.Execute("query { test: one }");
+            var result = testExecutor.Execute("query { test: one }");
 
             Assert.Equal(
                 "2020-02-20T17:42:59.000001234Z", 
@@ -50,7 +49,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: Instant!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-21T17:42:59.000001234Z")
@@ -64,7 +63,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation($arg: Instant!) { test(arg: $arg) }")
                     .SetVariableValue("arg", "2020-02-20T17:42:59")
@@ -77,7 +76,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
                     .Create());
@@ -90,7 +89,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult result = testExecutor
+            var result = testExecutor
                 .Execute(QueryRequestBuilder.New()
                     .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                     .Create());

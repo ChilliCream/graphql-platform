@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -12,23 +13,20 @@ namespace HotChocolate.Configuration.Validation;
 /// </summary>
 internal sealed class DirectiveValidationRule : ISchemaValidationRule
 {
-    private const char _underscore = '_';
+    private const char _prefixCharacter = '_';
 
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchema schema,
         ICollection<ISchemaError> errors)
     {
-        if (options.StrictValidation)
+        if (context.Options.StrictValidation)
         {
-            foreach (var type in typeSystemObjects)
+            foreach (var directiveType in schema.DirectiveTypes)
             {
-                if (type is DirectiveType directiveType)
-                {
-                    EnsureDirectiveNameIsValid(directiveType, errors);
-                    EnsureArgumentNamesAreValid(directiveType, errors);
-                    EnsureArgumentDeprecationIsValid(directiveType, errors);
-                }
+                EnsureDirectiveNameIsValid(directiveType, errors);
+                EnsureArgumentNamesAreValid(directiveType, errors);
+                EnsureArgumentDeprecationIsValid(directiveType, errors);
             }
         }
     }
@@ -41,8 +39,8 @@ internal sealed class DirectiveValidationRule : ISchemaValidationRule
         {
             var firstTwoLetters = type.Name.AsSpan().Slice(0, 2);
 
-            if (firstTwoLetters[0] == _underscore &&
-                firstTwoLetters[1] == _underscore)
+            if (firstTwoLetters[0] == _prefixCharacter &&
+                firstTwoLetters[1] == _prefixCharacter)
             {
                 errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
             }

@@ -5,8 +5,7 @@ namespace HotChocolate.Utilities;
 /// <summary>
 /// Represents cache entry event args.
 /// </summary>
-public sealed class CacheEntryEventArgs<TValue>
-    : EventArgs
+public sealed class CacheEntryEventArgs<TValue> : EventArgs
 {
     /// <summary>
     /// Initializes a new instance of the

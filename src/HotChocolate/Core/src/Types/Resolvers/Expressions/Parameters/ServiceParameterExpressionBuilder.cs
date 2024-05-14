@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
@@ -20,29 +19,20 @@ internal sealed class ServiceParameterExpressionBuilder
     public bool IsPure => true;
 
     public bool IsDefaultHandler => false;
-    
+
     public bool CanHandle(ParameterInfo parameter)
-        => ServiceExpressionHelper.TryGetServiceKind(parameter, out var kind) &&
-           kind is ServiceKind.Default;
+        => parameter.IsDefined(typeof(ServiceAttribute), false);
 
     public Expression Build(ParameterExpressionBuilderContext context)
     {
 #if NET8_0_OR_GREATER
-        return ServiceExpressionHelper.TryGetServiceKey(context.Parameter, out var key)
-            ? ServiceExpressionHelper.Build(
-                context.Parameter,
-                context.ResolverContext,
-                ServiceKind.Default,
-                key)
-            : ServiceExpressionHelper.Build(
-                context.Parameter,
-                context.ResolverContext,
-                ServiceKind.Default);
-#else
-        return ServiceExpressionHelper.Build(
-            context.Parameter,
-            context.ResolverContext,
-            ServiceKind.Default);
+        var attribute = context.Parameter.GetCustomAttribute<ServiceAttribute>()!;
+        if (!string.IsNullOrEmpty(attribute.Key))
+        {
+            return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.Key);
+        }
+
 #endif
+        return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext);
     }
 }

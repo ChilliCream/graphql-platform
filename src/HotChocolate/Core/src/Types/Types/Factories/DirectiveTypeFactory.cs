@@ -9,8 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Factories;
 
-internal sealed class DirectiveTypeFactory
-    : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
+internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
 {
     private static readonly Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
         new()
@@ -91,8 +90,6 @@ internal sealed class DirectiveTypeFactory
 
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
-
         var typeDefinition = new DirectiveTypeDefinition(
             node.Name.Value,
             node.Description?.Value,
@@ -103,12 +100,7 @@ internal sealed class DirectiveTypeFactory
             typeDefinition.IsPublic = true;
         }
 
-        if (preserveSyntaxNodes)
-        {
-            typeDefinition.SyntaxNode = node;
-        }
-
-        DeclareArguments(typeDefinition, node.Arguments, preserveSyntaxNodes);
+        DeclareArguments(typeDefinition, node.Arguments);
         DeclareLocations(typeDefinition, node);
 
         return DirectiveType.CreateUnsafe(typeDefinition);
@@ -116,8 +108,7 @@ internal sealed class DirectiveTypeFactory
 
     private static void DeclareArguments(
         DirectiveTypeDefinition parent,
-        IReadOnlyCollection<InputValueDefinitionNode> arguments,
-        bool preserveSyntaxNodes)
+        IReadOnlyCollection<InputValueDefinitionNode> arguments)
     {
         foreach (var argument in arguments)
         {
@@ -127,12 +118,7 @@ internal sealed class DirectiveTypeFactory
                 TypeReference.Create(argument.Type),
                 argument.DefaultValue);
 
-            if (preserveSyntaxNodes)
-            {
-                argumentDefinition.SyntaxNode = argument;
-            }
-
-            if (argument.DeprecationReason() is { Length: > 0 } reason)
+            if (argument.DeprecationReason() is { Length: > 0, } reason)
             {
                 argumentDefinition.DeprecationReason = reason;
             }

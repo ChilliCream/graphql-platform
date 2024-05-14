@@ -1,20 +1,11 @@
 using CookieCrumble;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
-using static HotChocolate.Language.Utf8GraphQLParser;
-using static HotChocolate.Fusion.TestHelper;
 using HttpClientConfiguration = HotChocolate.Fusion.Metadata.HttpClientConfiguration;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Fusion;
 
@@ -50,7 +41,7 @@ public class ConfigurationRewriterTests
         var snapshot = new Snapshot();
         snapshot.Add(configuration, "Original:");
         snapshot.Add(rewritten, "Rewritten:");
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         // this should not throw
         var reader = new FusionGraphConfigurationReader();
@@ -65,7 +56,7 @@ public class ConfigurationRewriterTests
             CancellationToken cancellationToken)
         {
             return base.RewriteAsync(
-                configuration with { EndpointUri = new Uri("http://client") },
+                configuration with { EndpointUri = new Uri("http://client"), },
                 cancellationToken);
         }
     }

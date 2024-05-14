@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<DirectiveNode> _emptyDirectives = new();
+    private static readonly List<DirectiveNode> _emptyDirectives = [];
 
     private DirectiveDefinitionNode ParseDirectiveDefinition()
     {

@@ -56,8 +56,8 @@ internal sealed class FragmentRewriter : SyntaxRewriter<FragmentRewriter.Context
         return rewriter.RewriteDocument(document, context)!;
     }
 
-    internal sealed class Context : ISyntaxVisitorContext
+    internal sealed class Context
     {
-        public HashSet<string> Deferred { get; } = new();
+        public HashSet<string> Deferred { get; } = [];
     }
 }

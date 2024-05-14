@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using ChilliCream.Testing;
-using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Utilities.Introspection.IntrospectionClient;

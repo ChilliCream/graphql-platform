@@ -11,7 +11,7 @@ public class MongoDbSortVisitorObjectTests
       IClassFixture<MongoResource>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -20,11 +20,11 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 12, BarString = "a" } }
-                }
-            }
+                ObjectArray =
+                [
+                    new() { Foo = new Foo { BarShort = 12, BarString = "a", }, },
+                ],
+            },
         },
         new()
         {
@@ -34,11 +34,11 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = true,
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
-                ObjectArray = new List<Bar>
-                {
-                    new() { Foo = new Foo { BarShort = 14, BarString = "d" } }
-                }
-            }
+                ObjectArray =
+                [
+                    new() { Foo = new Foo { BarShort = 14, BarString = "d", }, },
+                ],
+            },
         },
         new()
         {
@@ -49,12 +49,12 @@ public class MongoDbSortVisitorObjectTests
                 BarEnum = BarEnum.FOO,
                 BarString = "testctest",
                 ObjectArray = null!,
-            }
-        }
-    };
+            },
+        },
+    ];
 
     private static readonly BarNullable?[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -65,9 +65,9 @@ public class MongoDbSortVisitorObjectTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = 12 } }
-                }
-            }
+                    new() { Foo = new FooNullable { BarShort = 12, }, },
+                },
+            },
         },
         new()
         {
@@ -79,9 +79,9 @@ public class MongoDbSortVisitorObjectTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = null } }
-                }
-            }
+                    new() { Foo = new FooNullable { BarShort = null, }, },
+                },
+            },
         },
         new()
         {
@@ -93,9 +93,9 @@ public class MongoDbSortVisitorObjectTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullable>
                 {
-                    new() { Foo = new FooNullable { BarShort = 14 } }
-                }
-            }
+                    new() { Foo = new FooNullable { BarShort = 14, }, },
+                },
+            },
         },
         new()
         {
@@ -105,11 +105,11 @@ public class MongoDbSortVisitorObjectTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null
-            }
+                ObjectArray = null,
+            },
         },
-        new() { Foo = null }
-    };
+        new() { Foo = null, },
+    ];
 
     public MongoDbSortVisitorObjectTests(MongoResource resource)
     {
@@ -368,7 +368,7 @@ public class MongoDbSortVisitorObjectTests
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar> ObjectArray { get; set; } = new List<Bar>();
+        public List<Bar> ObjectArray { get; set; } = [];
     }
 
     public class FooNullable
@@ -419,6 +419,6 @@ public class MongoDbSortVisitorObjectTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

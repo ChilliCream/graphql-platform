@@ -16,31 +16,7 @@
       "responseName": "field",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 61,
-        "End": 84,
-        "Line": 3,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 61,
-          "End": 84,
-          "Line": 3,
-          "Column": 21
-        },
-        "Value": "field"
-      },
-      "Directives": []
-    }
+    "Exception": null
   },
   {
     "Message": "The specified directive is not valid the current location.",
@@ -55,66 +31,7 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-In-Valid-Locations"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 23,
-        "End": 40,
-        "Line": 2,
-        "Column": 23
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 24,
-          "End": 29,
-          "Line": 2,
-          "Column": 24
-        },
-        "Value": "skip"
-      },
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 29,
-            "End": 38,
-            "Line": 2,
-            "Column": 29
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 29,
-              "End": 32,
-              "Line": 2,
-              "Column": 29
-            },
-            "Value": "if"
-          },
-          "Value": {
-            "Kind": "Variable",
-            "Location": {
-              "Start": 33,
-              "End": 38,
-              "Line": 2,
-              "Column": 33
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 34,
-                "End": 38,
-                "Line": 2,
-                "Column": 34
-              },
-              "Value": "foo"
-            }
-          }
-        }
-      ]
-    }
+    "Exception": null
   },
   {
     "Message": "The following variables were not declared: foo.",
@@ -129,114 +46,6 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 17,
-        "End": 97,
-        "Line": 2,
-        "Column": 17
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [
-        {
-          "Kind": "Directive",
-          "Location": {
-            "Start": 23,
-            "End": 40,
-            "Line": 2,
-            "Column": 23
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 24,
-              "End": 29,
-              "Line": 2,
-              "Column": 24
-            },
-            "Value": "skip"
-          },
-          "Arguments": [
-            {
-              "Kind": "Argument",
-              "Location": {
-                "Start": 29,
-                "End": 38,
-                "Line": 2,
-                "Column": 29
-              },
-              "Name": {
-                "Kind": "Name",
-                "Location": {
-                  "Start": 29,
-                  "End": 32,
-                  "Line": 2,
-                  "Column": 29
-                },
-                "Value": "if"
-              },
-              "Value": {
-                "Kind": "Variable",
-                "Location": {
-                  "Start": 33,
-                  "End": 38,
-                  "Line": 2,
-                  "Column": 33
-                },
-                "Name": {
-                  "Kind": "Name",
-                  "Location": {
-                    "Start": 34,
-                    "End": 38,
-                    "Line": 2,
-                    "Column": 34
-                  },
-                  "Value": "foo"
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 39,
-          "End": 97,
-          "Line": 2,
-          "Column": 39
-        },
-        "Selections": [
-          {
-            "Kind": "Field",
-            "Alias": null,
-            "Arguments": [],
-            "Required": null,
-            "SelectionSet": null,
-            "Location": {
-              "Start": 61,
-              "End": 84,
-              "Line": 3,
-              "Column": 21
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 61,
-                "End": 84,
-                "Line": 3,
-                "Column": 21
-              },
-              "Value": "field"
-            },
-            "Directives": []
-          }
-        ]
-      }
-    }
+    "Exception": null
   }
 ]

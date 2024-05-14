@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
-using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -476,7 +475,8 @@ public static class TypeExtensions
             return (INamedType) current;
         }
 
-        for (var i = 0; i < 6; i++)
+        const int maxDepth = 6;
+        for (var i = 0; i < maxDepth; i++)
         {
             current = current.InnerType();
 
@@ -548,7 +548,7 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
-        if (type is IHasRuntimeType { RuntimeType: { } } t)
+        if (type is IHasRuntimeType { RuntimeType: { }, } t)
         {
             return t.RuntimeType;
         }

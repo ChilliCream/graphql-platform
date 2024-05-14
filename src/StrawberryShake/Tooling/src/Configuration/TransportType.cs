@@ -6,5 +6,5 @@ public enum TransportType
     WebSocket = 1,
     InMemory = 2,
     SignalR = 3,
-    Grpc = 4
+    Grpc = 4,
 }

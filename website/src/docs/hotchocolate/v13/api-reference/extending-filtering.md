@@ -156,7 +156,7 @@ public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
-        desciptor.AddDefaults();
+        descriptor.AddDefaults();
     }
 
     public override NameString GetTypeName(Type runtimeType) =>
@@ -349,7 +349,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
     public QueryableStringInvariantContainsHandler(InputParser inputParser) : base(inputParser)
     {
     }
-   
+
     // For creating a expression tree we need the `MethodInfo` of the `ToLower` method of string
     private static readonly MethodInfo _toLower = typeof(string)
         .GetMethods()

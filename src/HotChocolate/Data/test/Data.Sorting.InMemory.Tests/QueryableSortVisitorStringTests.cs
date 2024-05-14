@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -7,17 +6,17 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortVisitorStringTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-        new() { Bar = null },
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+        new() { Bar = null, },
+    ];
 
     private readonly SchemaCache _cache;
 

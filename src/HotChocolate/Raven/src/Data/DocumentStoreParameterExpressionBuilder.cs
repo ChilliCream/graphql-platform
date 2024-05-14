@@ -5,7 +5,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
@@ -27,7 +26,7 @@ internal sealed class DocumentStoreParameterExpressionBuilder
 
     public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
-        if (descriptor.Extend().Definition is { ResultType: { } resultType } definition &&
+        if (descriptor.Extend().Definition is { ResultType: { } resultType, } definition &&
             TryExtractEntityType(resultType, out var entityType))
         {
             var middleware = new FieldMiddlewareDefinition(

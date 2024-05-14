@@ -105,7 +105,6 @@ resharper_braces_for_ifelse = required
 resharper_braces_for_while = required
 
 # ReSharper inspection severities
-resharper_arrange_trailing_comma_in_multiline_lists_highlighting = error
 resharper_enforce_do_while_statement_braces_highlighting = error
 resharper_enforce_fixed_statement_braces_highlighting = error
 resharper_enforce_foreach_statement_braces_highlighting = error
@@ -117,7 +116,15 @@ resharper_enforce_while_statement_braces_highlighting = error
 
 # ReSharper properties
 resharper_align_multiline_binary_expressions_chain = false
-resharper_trailing_comma_in_multiline_lists = true
 resharper_wrap_before_binary_pattern_op = false
 resharper_wrap_chained_binary_expressions = chop_if_long
 resharper_wrap_chained_binary_patterns = chop_if_long
+
+# Require braces on all control statements
+resharper_csharp_braces_for_ifelse = required
+resharper_csharp_braces_for_for = required
+resharper_csharp_braces_for_foreach = required
+resharper_csharp_braces_for_while = required
+resharper_csharp_braces_for_using = required
+resharper_csharp_braces_for_lock = required
+resharper_csharp_braces_for_fixed = required

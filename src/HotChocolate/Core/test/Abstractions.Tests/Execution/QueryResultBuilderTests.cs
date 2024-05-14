@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -25,7 +24,7 @@ public class QueryResultBuilderTests
         var builder = new QueryResultBuilder();
 
         // act
-        builder.SetData(new Dictionary<string, object> { { "a", "b" } });
+        builder.SetData(new Dictionary<string, object> { { "a", "b" }, });
 
         // assert
         builder.Create().MatchSnapshot();
@@ -38,7 +37,7 @@ public class QueryResultBuilderTests
         var builder = new QueryResultBuilder();
 
         // act
-        builder.SetItems(new List<object> { 1 });
+        builder.SetItems(new List<object> { 1, });
 
         // assert
         builder.Create().MatchSnapshot();
@@ -49,7 +48,7 @@ public class QueryResultBuilderTests
     {
         // arrange
         IExecutionResult result = QueryResultBuilder.New()
-            .SetData(new Dictionary<string, object> { { "a", "b" } })
+            .SetData(new Dictionary<string, object> { { "a", "b" }, })
             .Create();
 
         // act
@@ -64,7 +63,7 @@ public class QueryResultBuilderTests
     {
         // arrange
         IExecutionResult result = QueryResultBuilder.New()
-            .SetData(new Dictionary<string, object> { { "a", "b" } })
+            .SetData(new Dictionary<string, object> { { "a", "b" }, })
             .Create();
 
         // act

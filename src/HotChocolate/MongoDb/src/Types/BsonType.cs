@@ -1,11 +1,9 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.MongoDb.Resources;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 
 namespace HotChocolate.Types.MongoDb;
@@ -20,17 +18,6 @@ public class BsonType : ScalarType
     /// <summary>
     /// Initializes a new instance of the <see cref="BsonType"/> class.
     /// </summary>
-    public BsonType()
-        : this(
-            MongoDbScalarNames.Bson,
-            MongoDbTypesResources.Bson_Type_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BsonType"/> class.
-    /// </summary>
     public BsonType(
         string name,
         string? description = null,
@@ -39,6 +26,18 @@ public class BsonType : ScalarType
     {
         SpecifiedBy = new Uri("https://bsonspec.org/spec.html");
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BsonType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public BsonType()
+        : this(
+            MongoDbScalarNames.Bson,
+            MongoDbTypesResources.Bson_Type_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     /// <inheritdoc />
@@ -176,7 +175,7 @@ public class BsonType : ScalarType
 
         if (value is BsonDocument doc)
         {
-            List<ObjectFieldNode> fields = new();
+            List<ObjectFieldNode> fields = [];
             foreach (var field in doc)
             {
                 fields.Add(new ObjectFieldNode(field.Name, ParseValue(field.Value)));
@@ -187,7 +186,7 @@ public class BsonType : ScalarType
 
         if (value is BsonArray arr)
         {
-            List<IValueNode> valueList = new();
+            List<IValueNode> valueList = [];
             foreach (var element in arr)
             {
                 valueList.Add(ParseValue(element));

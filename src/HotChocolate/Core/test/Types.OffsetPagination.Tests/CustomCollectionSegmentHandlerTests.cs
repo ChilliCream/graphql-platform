@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination
 {
@@ -46,7 +45,7 @@ namespace HotChocolate.Types.Pagination
             public CollectionSegment<string> GetItems(int skip, int take)
             {
                 return new CollectionSegment<string>(
-                    new[] { "hello", "abc" },
+                    new[] { "hello", "abc", },
                     new CollectionSegmentInfo(false, false),
                     ct => throw new NotImplementedException());
             }

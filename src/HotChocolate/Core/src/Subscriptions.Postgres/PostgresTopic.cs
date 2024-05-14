@@ -1,5 +1,4 @@
 using HotChocolate.Subscriptions.Diagnostics;
-using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
 namespace HotChocolate.Subscriptions.Postgres;
 

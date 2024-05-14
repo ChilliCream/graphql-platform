@@ -10,7 +10,7 @@ public class SynchronizedMessageWriterTests
     public async Task WriteObject_EmptyBuffer_Object()
     {
         // arrange
-        var socketClient = new SocketClientStub() { IsClosed = false };
+        var socketClient = new SocketClientStub() { IsClosed = false, };
         await using var writer = new SynchronizedMessageWriter(socketClient);
 
         // act
@@ -30,11 +30,11 @@ public class SynchronizedMessageWriterTests
     public async Task WriteObject_EmptyBuffer_ObjectParallel()
     {
         // arrange
-        var socketClient = new SocketClientStub() { IsClosed = false };
+        var socketClient = new SocketClientStub() { IsClosed = false, };
         await using var writer = new SynchronizedMessageWriter(socketClient);
 
         // act
-        List<Task> tasks = new();
+        List<Task> tasks = [];
         for (var i = 0; i < 10; i++)
         {
             tasks.Add(Task.Run(async () =>

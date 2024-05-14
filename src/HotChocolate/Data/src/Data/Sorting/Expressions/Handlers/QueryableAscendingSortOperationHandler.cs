@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Sorting.Expressions;
@@ -30,7 +29,7 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.OrderBy),
-                new[] { ParameterExpression.Type, Selector.Type },
+                [ParameterExpression.Type, Selector.Type,],
                 expression,
                 Expression.Lambda(Selector, ParameterExpression));
         }
@@ -40,7 +39,7 @@ public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerB
             return Expression.Call(
                 expression.GetEnumerableKind(),
                 nameof(Queryable.ThenBy),
-                new[] { ParameterExpression.Type, Selector.Type },
+                [ParameterExpression.Type, Selector.Type,],
                 expression,
                 Expression.Lambda(Selector, ParameterExpression));
         }

@@ -1,0 +1,19 @@
+{
+  "errors": [
+    {
+      "message": "query error 10",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "error10"
+      ]
+    }
+  ],
+  "data": {
+    "error10": null
+  }
+}

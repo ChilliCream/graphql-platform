@@ -136,6 +136,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
+            executionStep.ParentSelection,
             selectionSet,
             context.Exports.GetExportKeys(executionStep),
             executionStep.Variables.Values,
@@ -169,7 +170,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
 
             if (_schema.TryGetType<InputObjectType>(typeName, out var inputObjectType))
             {
-                processed ??= new HashSet<InputObjectType>();
+                processed ??= [];
                 next ??= new Stack<InputObjectType>();
 
                 processed.Add(inputObjectType);
@@ -215,6 +216,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SelectEntityStep.SubgraphName,
             requestDocument,
+            executionStep.ParentSelection,
             selectionSet,
             context.Exports.GetExportKeys(executionStep),
             executionStep.SelectEntityStep.Variables.Values,
@@ -257,6 +259,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
+            executionStep.ParentSelection,
             selectionSet,
             context.Exports.GetExportKeys(executionStep),
             executionStep.Variables.Values,
@@ -283,6 +286,7 @@ internal sealed class ExecutionNodeBuilderMiddleware : IQueryPlanMiddleware
         var config = new ResolverNodeBase.Config(
             executionStep.SubgraphName,
             request.Document,
+            executionStep.ParentSelection,
             selectionSet,
             context.Exports.GetExportKeys(executionStep),
             executionStep.Variables.Values,

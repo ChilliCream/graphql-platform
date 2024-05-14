@@ -19,14 +19,14 @@ internal class CollectVariablesVisitor
 {
     private readonly Dictionary<string, VariableDefinitionNode> _variables =
         new Dictionary<string, VariableDefinitionNode>();
-    private readonly HashSet<string> _declared = new HashSet<string>();
+    private readonly HashSet<string> _declared = [];
     private readonly Stack<IType> _type = new Stack<IType>();
     private readonly Stack<IOutputField> _field =
         new Stack<IOutputField>();
     private readonly Stack<VisitorAction> _action =
         new Stack<VisitorAction>();
     private readonly HashSet<string> _touchedFragments =
-        new HashSet<string>();
+        [];
     private readonly ISchema _schema;
 
     public CollectVariablesVisitor(ISchema schema)

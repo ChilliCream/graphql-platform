@@ -13,30 +13,7 @@
       "operations": 25000,
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 49998,
-        "End": 50001,
-        "Line": 1,
-        "Column": 49999
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 49998,
-          "End": 50001,
-          "Line": 1,
-          "Column": 49999
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "Operation `Unnamed` has a empty selection set. Root types without subfields are disallowed.",
@@ -53,30 +30,7 @@
       "type": "Query",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 0,
-        "End": 3,
-        "Line": 1,
-        "Column": 1
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 0,
-          "End": 3,
-          "Line": 1,
-          "Column": 1
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "Operation `Unnamed` has a empty selection set. Root types without subfields are disallowed.",
@@ -93,30 +47,7 @@
       "type": "Query",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 2,
-        "End": 5,
-        "Line": 1,
-        "Column": 3
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 2,
-          "End": 5,
-          "Line": 1,
-          "Column": 3
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "Operation `Unnamed` has a empty selection set. Root types without subfields are disallowed.",
@@ -133,30 +64,7 @@
       "type": "Query",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 4,
-        "End": 7,
-        "Line": 1,
-        "Column": 5
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 4,
-          "End": 7,
-          "Line": 1,
-          "Column": 5
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "Operation `Unnamed` has a empty selection set. Root types without subfields are disallowed.",
@@ -173,29 +81,6 @@
       "type": "Query",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 6,
-        "End": 9,
-        "Line": 1,
-        "Column": 7
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 6,
-          "End": 9,
-          "Line": 1,
-          "Column": 7
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   }
 ]

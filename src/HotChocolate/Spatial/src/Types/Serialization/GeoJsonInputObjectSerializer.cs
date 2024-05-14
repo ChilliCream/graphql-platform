@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -59,7 +56,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                             GeoJsonTypeSerializer.Default.Serialize(type, _geometryType) ??
                             throw Serializer_CouldNotSerialize(type)
                         },
-                        { CrsFieldName, g.SRID }
+                        { CrsFieldName, g.SRID },
                     };
 
                 return true;
@@ -151,7 +148,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                 {
                     new ObjectFieldNode(
                         TypeFieldName,
-                        GeoJsonTypeSerializer.Default.ParseResult(type, _geometryType))
+                        GeoJsonTypeSerializer.Default.ParseResult(type, _geometryType)),
                 };
 
             if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
@@ -211,7 +208,7 @@ internal abstract class GeoJsonInputObjectSerializer<T>
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID))
+                        new IntValueNode(geometry.SRID)),
                 };
 
             return new ObjectValueNode(list);

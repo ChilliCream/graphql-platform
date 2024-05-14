@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -8,7 +6,7 @@ namespace HotChocolate.Data.Filters.Expressions;
 public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -62,10 +60,10 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
                 ObjectArray = null,
             },
         },
-    };
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -141,7 +139,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
         {
             Foo = null,
         },
-    };
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -705,7 +703,7 @@ public class QueryableFilterVisitorObjectTests : IClassFixture<SchemaCache>
 
         public bool BarBool { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new();
+        public List<Bar>? ObjectArray { get; set; } = [];
     }
 
     public class FooNullable

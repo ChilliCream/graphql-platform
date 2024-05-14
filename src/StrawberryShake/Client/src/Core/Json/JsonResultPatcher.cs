@@ -74,7 +74,7 @@ public class JsonResultPatcher : IResultPatcher<JsonDocument>
                         JsonValueKind.String => current[path[i].GetString()!]!,
                         JsonValueKind.Number => current[path[i].GetInt32()]!,
                         _ => throw new NotSupportedException(
-                            JsonResultPatcher_PathSegmentMustBeStringOrInt)
+                            JsonResultPatcher_PathSegmentMustBeStringOrInt),
                     };
                 }
             }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -12,7 +11,7 @@ namespace HotChocolate.Caching;
 
 internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 {
-    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = new();
+    private readonly List<(RegisteredType Type, ObjectTypeDefinition TypeDef)> _types = [];
     private readonly ICacheControlOptions _cacheControlOptions;
     private TypeDependency? _cacheControlDependency;
 
@@ -95,7 +94,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             {
                 // Each field on the query type or data resolver fields
                 // are treated as fields that need to be explicitly cached.
-                ApplyCacheControlWithDefaultMaxAge(field);
+                ApplyCacheControlWithDefaults(field);
                 appliedDefaults = true;
             }
         }
@@ -106,16 +105,28 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
         }
     }
 
-    private void ApplyCacheControlWithDefaultMaxAge(
+    private void ApplyCacheControlWithDefaults(
         OutputFieldDefinitionBase field)
     {
+        var isNotDefaultScope = _cacheControlOptions.DefaultScope != CacheControlDefaults.Scope;
+
+        var arguments = new ArgumentNode[isNotDefaultScope ? 2 : 1];
+        arguments[0] = new ArgumentNode(
+            CacheControlDirectiveType.Names.MaxAgeArgName,
+            _cacheControlOptions.DefaultMaxAge);
+
+        if (isNotDefaultScope)
+        {
+            arguments[1] = new ArgumentNode(
+                CacheControlDirectiveType.Names.ScopeArgName,
+                new EnumValueNode(_cacheControlOptions.DefaultScope));
+        }
+
         field.Directives.Add(
             new DirectiveDefinition(
                 new DirectiveNode(
                     CacheControlDirectiveType.Names.DirectiveName,
-                    new ArgumentNode(
-                        CacheControlDirectiveType.Names.MaxAgeArgName,
-                        _cacheControlOptions.DefaultMaxAge))));
+                    arguments)));
     }
 
     private static bool HasCacheControlDirective(ObjectFieldDefinition field)
@@ -129,7 +140,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
             return true;
         }
 
-        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type } &&
+        if (directive.Type is ExtendedTypeDirectiveReference { Type.Type: { } type, } &&
             type == typeof(CacheControlDirective))
         {
             return true;

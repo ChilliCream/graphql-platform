@@ -695,7 +695,7 @@ static file class SchemaParserExtensions
 
                 if (SpecScalarTypes.IsSpecScalar(namedTypeRef.Name.Value))
                 {
-                    var scalar = new ScalarType(namedTypeRef.Name.Value) { IsSpecScalar = true };
+                    var scalar = new ScalarType(namedTypeRef.Name.Value) { IsSpecScalar = true, };
                     types.Add(scalar);
                     return scalar;
                 }

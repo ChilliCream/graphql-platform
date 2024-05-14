@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Interceptors;
 
 public class FlagsEnumInterceptor : TypeInterceptor
 {
-    private const string FlagNameAddition = "Flags";
+    private const string _flagNameAddition = "Flags";
 
     private readonly Dictionary<Type, string> _outputTypeCache = new();
     private readonly Dictionary<Type, RegisteredInputType> _inputTypeCache = new();
@@ -92,7 +92,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
     {
         foreach (var field in fields)
         {
-            if (IsFlagsEnum(field.Type, out Type? t))
+            if (IsFlagsEnum(field.Type, out var t))
             {
                 var type = CreateInputObjectType(t);
                 field.Type = CreateTypeReference(field.Type, type.Name);
@@ -113,7 +113,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return outputType;
         }
 
-        var typeName = _namingConventions.GetTypeName(type) + FlagNameAddition;
+        var typeName = _namingConventions.GetTypeName(type) + _flagNameAddition;
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new ObjectTypeDefinition(typeName, desc)
         {
@@ -144,7 +144,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
             return result;
         }
 
-        var typeName = $"{_namingConventions.GetTypeName(type)}{FlagNameAddition}Input";
+        var typeName = $"{_namingConventions.GetTypeName(type)}{_flagNameAddition}Input";
         var desc = _namingConventions.GetTypeDescription(type, TypeKind.Enum);
         var objectTypeDefinition = new InputObjectTypeDefinition(typeName, desc)
         {
@@ -303,27 +303,27 @@ public class FlagsEnumInterceptor : TypeInterceptor
             {
                 // byte, sbyte
                 case 1:
-                    byte b =
+                    var b =
                         (byte)(Unsafe.As<T, byte>(ref e) | Unsafe.As<T, byte>(ref flag));
 
                     return Unsafe.As<byte, T>(ref b);
 
                 //short, ushort
                 case 2:
-                    short s =
+                    var s =
                         (short)(Unsafe.As<T, short>(ref e) | Unsafe.As<T, short>(ref flag));
 
                     return Unsafe.As<short, T>(ref s);
 
                 //int, uint
                 case 4:
-                    uint i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
+                    var i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
 
                     return Unsafe.As<uint, T>(ref i);
 
                 //long , ulong
                 case 8:
-                    ulong l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
+                    var l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
 
                     return Unsafe.As<ulong, T>(ref l);
 

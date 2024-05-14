@@ -25,7 +25,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_bar as d order by CAST(d.data -> 'Foo' ->> 'BarBool' as boolean)
+select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_bar as d order by CAST(d.data -> 'Foo' ->> 'BarBool' as boolean);
 ---------------
 
 DESC Result:
@@ -55,5 +55,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_bar as d order by CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) desc
+select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_bar as d order by CAST(d.data -> 'Foo' ->> 'BarBool' as boolean) desc;
 ---------------

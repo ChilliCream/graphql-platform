@@ -1,8 +1,6 @@
 using ChilliCream.Testing;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
@@ -21,7 +19,7 @@ public class SchemaHelperTests
                 new GraphQLFile[]
                 {
                     new("GitHub.graphql", Utf8GraphQLParser.Parse(schemaSdl)),
-                    new("GitHub.extensions.graphql", Utf8GraphQLParser.Parse(extensionsSdl))
+                    new("GitHub.extensions.graphql", Utf8GraphQLParser.Parse(extensionsSdl)),
                 });
 
         // assert

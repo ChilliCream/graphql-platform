@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Utilities;
 
 internal static class ExtensionHelpers

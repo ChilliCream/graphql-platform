@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,13 +8,23 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Tests;
 
 public static class TestHelper
 {
+    public static string EncodeId(string typeName, Guid id)
+    {
+        var nameBuffer = Encoding.UTF8.GetBytes(typeName);
+        var idBuffer = id.ToByteArray();
+        var buffer = new byte[nameBuffer.Length + 1 + idBuffer.Length];
+        Buffer.BlockCopy(nameBuffer, 0, buffer, 0, nameBuffer.Length);
+        buffer[nameBuffer.Length] = (byte)':';
+        Buffer.BlockCopy(idBuffer, 0, buffer, nameBuffer.Length + 1, idBuffer.Length);
+        return Convert.ToBase64String(buffer);
+    }
+
     public static Task<IExecutionResult> ExpectValid(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
@@ -24,7 +35,9 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                ConfigureRequest = request, Configure = configure, Services = requestServices,
+                ConfigureRequest = request,
+                Configure = configure,
+                Services = requestServices,
             });
     }
 
@@ -74,7 +87,9 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                Configure = configure, ConfigureRequest = request, Services = requestServices,
+                Configure = configure,
+                ConfigureRequest = request,
+                Services = requestServices,
             },
             elementInspectors);
     }
@@ -148,7 +163,7 @@ public static class TestHelper
         Action<IRequestExecutorBuilder>? configure = null,
         ITestOutputHelper? output = null)
     {
-        var configuration = new TestConfiguration { Configure = configure };
+        var configuration = new TestConfiguration { Configure = configure, };
 
         return await CreateExecutorAsync(configuration, output);
     }
@@ -209,52 +224,5 @@ public static class TestHelper
             .AddInMemorySubscriptions()
             .Services
             .AddStarWarsRepositories();
-    }
-
-    public static async Task TryTest(
-        Func<CancellationToken, Task> action,
-        int allowedRetries = 3,
-        int timeout = 30_000)
-    {
-        // we will try four times ....
-        var attempt = 0;
-        var wait = 250;
-
-        while (true)
-        {
-            attempt++;
-
-            var success = await ExecuteAsync(attempt).ConfigureAwait(false);
-
-            if (success)
-            {
-                break;
-            }
-
-            await Task.Delay(wait).ConfigureAwait(false);
-            wait *= 2;
-        }
-
-        // ReSharper disable once VariableHidesOuterVariable
-        async Task<bool> ExecuteAsync(int attempt)
-        {
-            using var cts = new CancellationTokenSource(timeout);
-
-            if (attempt < allowedRetries)
-            {
-                try
-                {
-                    await action(cts.Token).ConfigureAwait(false);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            await action(cts.Token).ConfigureAwait(false);
-            return true;
-        }
     }
 }

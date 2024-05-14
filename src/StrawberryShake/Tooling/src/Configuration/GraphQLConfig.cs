@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -25,7 +24,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket
+                    Subscription = TransportType.WebSocket,
                 });
         }
 
@@ -56,7 +55,7 @@ public class GraphQLConfig
                 new StrawberryShakeSettingsTransportProfile
                 {
                     Default = TransportType.Http,
-                    Subscription = TransportType.WebSocket
+                    Subscription = TransportType.WebSocket,
                 });
         }
 

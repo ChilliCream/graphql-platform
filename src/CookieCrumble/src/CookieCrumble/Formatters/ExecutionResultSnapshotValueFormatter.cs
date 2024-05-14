@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate;
@@ -20,6 +19,26 @@ internal sealed class ExecutionResultSnapshotValueFormatter
         {
             FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
         }
+    }
+    
+    protected override void FormatMarkdown(IBufferWriter<byte> snapshot, IExecutionResult value)
+    {
+        if (value.Kind is ExecutionResultKind.SingleResult)
+        {
+            snapshot.Append("```json");
+            snapshot.AppendLine();
+            snapshot.Append(value.ToJson());
+        }
+        else
+        {
+            snapshot.Append("```text");
+            snapshot.AppendLine();
+            FormatStreamAsync(snapshot, (IResponseStream)value).Wait();
+        }
+        
+        snapshot.AppendLine();
+        snapshot.Append("```");
+        snapshot.AppendLine();
     }
 
     private static async Task FormatStreamAsync(
@@ -79,7 +98,7 @@ internal sealed class ExecutionResultSnapshotValueFormatter
     }
 }
 
-internal class JsonResultPatcher
+internal sealed class JsonResultPatcher
 {
     private const string _data = "data";
     private const string _items = "items";
@@ -105,7 +124,7 @@ internal class JsonResultPatcher
                 "You must first set the initial response before you can apply patches.");
         }
 
-        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true });
+        using var writer = new Utf8JsonWriter(snapshot, new JsonWriterOptions { Indented = true, });
 
         _json.Remove("hasNext");
 

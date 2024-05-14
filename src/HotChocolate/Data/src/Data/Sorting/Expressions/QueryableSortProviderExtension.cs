@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Data.Sorting.Expressions;
 
 public class QueryableSortProviderExtension

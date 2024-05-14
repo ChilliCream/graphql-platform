@@ -10,7 +10,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -76,7 +75,7 @@ public class ResolverContextStateExtensionTests
     [Fact]
     public void GetGlobalStateOrDefault_KeyExists_WrongType()
     {
-        var dict = new Dictionary<string, object?> { { "key", "value" } };
+        var dict = new Dictionary<string, object?> { { "key", "value" }, };
 
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
@@ -91,7 +90,7 @@ public class ResolverContextStateExtensionTests
     [Fact]
     public void GetGlobalState_KeyExists_WrongType()
     {
-        var dict = new Dictionary<string, object?> { { "key", "value" } };
+        var dict = new Dictionary<string, object?> { { "key", "value" }, };
 
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
@@ -105,7 +104,7 @@ public class ResolverContextStateExtensionTests
     [Fact]
     public void GetGlobalStateOrDefault_KeyExists_CorrectType()
     {
-        var dict = new Dictionary<string, object?> { { "key", 1 } };
+        var dict = new Dictionary<string, object?> { { "key", 1 }, };
 
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);
@@ -120,7 +119,7 @@ public class ResolverContextStateExtensionTests
     [Fact]
     public void GetGlobalState_KeyExists_CorrectType()
     {
-        var dict = new Dictionary<string, object?> { { "key", 1 } };
+        var dict = new Dictionary<string, object?> { { "key", 1 }, };
 
         var mock = new Mock<IResolverContext>();
         mock.SetupGet(c => c.ContextData).Returns(dict);

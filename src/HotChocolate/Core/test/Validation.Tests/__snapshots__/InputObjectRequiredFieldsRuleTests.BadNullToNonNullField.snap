@@ -27,35 +27,6 @@
       "field": "nonNullField",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Required-Fields"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 182,
-        "End": 227,
-        "Line": 6,
-        "Column": 29
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 182,
-          "End": 195,
-          "Line": 6,
-          "Column": 29
-        },
-        "Value": "nonNullField"
-      },
-      "Value": {
-        "Kind": "NullValue",
-        "Location": {
-          "Start": 196,
-          "End": 227,
-          "Line": 6,
-          "Column": 43
-        },
-        "Value": null
-      }
-    }
+    "Exception": null
   }
 ]

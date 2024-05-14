@@ -196,7 +196,7 @@ Previously only the first character in a property or method name was lowercased 
 
 **Before**
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> iPAddress
 PLZ --> pLZ
@@ -204,7 +204,7 @@ PLZ --> pLZ
 
 **After**
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> ipAddress
 PLZ --> plz

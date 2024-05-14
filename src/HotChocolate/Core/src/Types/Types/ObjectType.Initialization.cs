@@ -60,7 +60,6 @@ public partial class ObjectType
         if (ValidateFields(context, definition))
         {
             _isOfType = definition.IsOfType;
-            SyntaxNode = definition.SyntaxNode;
             Fields = OnCompleteFields(context, definition);
             _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
             CompleteTypeResolver(context);
@@ -89,21 +88,23 @@ public partial class ObjectType
 
     private void CompleteTypeResolver(ITypeCompletionContext context)
     {
-        if (_isOfType is null)
+        if (_isOfType is not null)
         {
-            if (context.IsOfType is not null)
-            {
-                var isOfType = context.IsOfType;
-                _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
-            }
-            else if (RuntimeType == typeof(object))
-            {
-                _isOfType = IsOfTypeWithName;
-            }
-            else
-            {
-                _isOfType = IsOfTypeWithRuntimeType;
-            }
+            return;
+        }
+
+        if (context.IsOfType is not null)
+        {
+            var isOfType = context.IsOfType;
+            _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
+        }
+        else if (RuntimeType == typeof(object))
+        {
+            _isOfType = IsOfTypeWithName;
+        }
+        else
+        {
+            _isOfType = IsOfTypeWithRuntimeType;
         }
     }
 

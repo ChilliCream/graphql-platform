@@ -71,7 +71,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         }
     }
 
-    protected override async ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+    protected override async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
         HttpRequest httpRequest,
         CancellationToken cancellationToken)
     {
@@ -89,7 +89,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
-        var requests = RequestParser.ReadOperationsRequest(
+        var requests = RequestParser.ParseRequest(
             multipartRequest.Operations);
 
         foreach (var graphQLRequest in requests)
@@ -163,7 +163,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
             }
 
-            var file = filename is { Length: > 0 }
+            var file = filename is { Length: > 0, }
                 ? files.GetFile(filename)
                 : null;
 

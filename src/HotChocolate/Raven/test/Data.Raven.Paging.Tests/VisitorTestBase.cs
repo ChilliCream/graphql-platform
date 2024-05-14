@@ -1,5 +1,4 @@
 using HotChocolate.Data.Filters;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;

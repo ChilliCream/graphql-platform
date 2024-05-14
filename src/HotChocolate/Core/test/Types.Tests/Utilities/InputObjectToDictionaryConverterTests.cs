@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -18,13 +17,13 @@ public class InputObjectToDictionaryConverterTests
 
         var type = schema.GetType<InputObjectType>("FooInput");
 
-        var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
-        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
-        var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
+        var bar1 = new Bar { Number = 1, Baz = Baz.Bar, };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar, };
+        var bar3 = new Bar { Number = 3, Baz = Baz.Foo, };
         var foo = new Foo
         {
             Bar = bar1,
-            Bars = new List<Bar> { bar2, bar3 },
+            Bars = [bar2, bar3,],
         };
 
         // act
@@ -47,12 +46,12 @@ public class InputObjectToDictionaryConverterTests
 
         var type = schema.GetType<InputObjectType>("FooInput");
 
-        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
-        var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar, };
+        var bar3 = new Bar { Number = 3, Baz = Baz.Foo, };
         var foo = new Foo
         {
             Bar = null,
-            Bars = new List<Bar> { bar2, bar3 },
+            Bars = [bar2, bar3,],
         };
 
         // act
@@ -75,12 +74,12 @@ public class InputObjectToDictionaryConverterTests
 
         var type = schema.GetType<InputObjectType>("FooInput");
 
-        var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
-        var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
+        var bar1 = new Bar { Number = 1, Baz = Baz.Bar, };
+        var bar2 = new Bar { Number = 2, Baz = Baz.Bar, };
         var foo = new Foo
         {
             Bar = bar1,
-            Bars = new List<Bar> { bar2, null },
+            Bars = [bar2, null,],
         };
 
         // act

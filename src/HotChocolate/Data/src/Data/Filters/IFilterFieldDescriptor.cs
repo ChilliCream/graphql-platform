@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,9 +7,6 @@ public interface IFilterFieldDescriptor
     : IDescriptor<FilterFieldDefinition>
     , IFluent
 {
-    IFilterFieldDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinitionNode);
-
     IFilterFieldDescriptor Name(string value);
 
     IFilterFieldDescriptor Description(string value);

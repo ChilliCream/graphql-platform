@@ -13,7 +13,7 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
-        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
+        if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
         {
             foreach (var attributeListSyntax in possibleType.AttributeLists)
             {
@@ -40,7 +40,8 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (TypeAttributes.Contains(fullName) &&
+                    if (attributeContainingTypeSymbol.TypeArguments.Length == 0 &&
+                        TypeAttributes.Contains(fullName) &&
                         context.SemanticModel.GetDeclaredSymbol(possibleType) is { } type)
                     {
                         if (fullName.Equals(QueryTypeAttribute))

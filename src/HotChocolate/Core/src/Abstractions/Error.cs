@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate;
@@ -22,8 +21,7 @@ public class Error : IError
         Path? path = null,
         IReadOnlyList<Location>? locations = null,
         IReadOnlyDictionary<string, object?>? extensions = null,
-        Exception? exception = null,
-        ISyntaxNode? syntaxNode = null)
+        Exception? exception = null)
     {
         if (string.IsNullOrEmpty(message))
         {
@@ -38,17 +36,16 @@ public class Error : IError
         Locations = locations;
         Extensions = extensions;
         Exception = exception;
-        SyntaxNode = syntaxNode;
 
         if (code is not null)
         {
             if (Extensions is null)
             {
-                Extensions = new OrderedDictionary<string, object?> { { _code, code } };
+                Extensions = new OrderedDictionary<string, object?> { { _code, code }, };
             }
             else if (!Extensions.TryGetValue(_code, out var value) || !ReferenceEquals(value, code))
             {
-                Extensions = new OrderedDictionary<string, object?>(Extensions) { { _code, code } };
+                Extensions = new OrderedDictionary<string, object?>(Extensions) { { _code, code }, };
             }
         }
     }
@@ -70,11 +67,6 @@ public class Error : IError
 
     /// <inheritdoc />
     public Exception? Exception { get; }
-    
-    /// <summary>
-    /// Gets the syntax node that caused the error.
-    /// </summary>
-    public ISyntaxNode? SyntaxNode { get; }
 
     /// <inheritdoc />
     public IError WithMessage(string message)
@@ -98,8 +90,8 @@ public class Error : IError
         }
 
         var extensions = Extensions is null
-            ? new OrderedDictionary<string, object?> { [_code] = code }
-            : new OrderedDictionary<string, object?>(Extensions) { [_code] = code };
+            ? new OrderedDictionary<string, object?> { [_code] = code, }
+            : new OrderedDictionary<string, object?>(Extensions) { [_code] = code, };
         return new Error(Message, code, Path, Locations, extensions, Exception);
     }
 
@@ -205,5 +197,5 @@ public class Error : IError
 
     /// <inheritdoc />
     public IError RemoveException()
-        => new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
+        => new Error(Message, Code, Path, Locations, Extensions);
 }

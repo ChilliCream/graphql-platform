@@ -413,6 +413,3 @@ As you can see version 9 will bring quite a few improvements, so stay tuned for 
 With Hot Chocolate we are building a GraphQL server for the community, so join and help us along.
 
 We value any kind of contribution, whether you give us a star, a feedback, find a bug, a typo, or whether you contribute code. Every bit matters and makes our project better.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

@@ -1,9 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data;
@@ -39,25 +34,27 @@ public class QueryableExecutable<T> : IExecutable<T>
         return new QueryableExecutable<T>(source);
     }
 
-    public virtual async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+    public virtual async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
     {
-        if (Source is IAsyncEnumerable<T> ae)
+        if (Source is not IAsyncEnumerable<T> ae)
         {
-            var result = new List<T>();
-            await foreach (var element in ae.WithCancellation(cancellationToken)
-                .ConfigureAwait(false))
-            {
-                result.Add(element);
-            }
-
-            return result;
+            return Source.ToList();
         }
 
-        return Source.ToList();
+        var result = new List<T>();
+
+        await foreach (var element in ae.WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            result.Add(element);
+        }
+
+        return result;
     }
 
-    public virtual async ValueTask<object?> FirstOrDefaultAsync(
-        CancellationToken cancellationToken)
+    async ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+        => await ToListAsync(cancellationToken);
+
+    public virtual async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
     {
         if (Source is IAsyncEnumerable<T> ae)
         {
@@ -69,33 +66,35 @@ public class QueryableExecutable<T> : IExecutable<T>
                 return enumerator.Current;
             }
 
-            return default(T)!;
+            return default!;
         }
 
         return Source.FirstOrDefault();
     }
 
-    public virtual async ValueTask<object?> SingleOrDefaultAsync(
+    async ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await FirstOrDefaultAsync(cancellationToken);
+
+    public virtual async ValueTask<T?> SingleOrDefaultAsync(
         CancellationToken cancellationToken)
     {
         if (Source is IAsyncEnumerable<T> ae)
         {
-            await using var enumerator =
-                ae.GetAsyncEnumerator(cancellationToken);
+            await using var enumerator = ae.GetAsyncEnumerator(cancellationToken);
 
-            object? result;
+            T? result;
             if (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 result = enumerator.Current;
             }
             else
             {
-                result = default(T)!;
+                result = default;
             }
 
             if (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                result = ProjectionProvider_CreateMoreThanOneError();
+                throw new GraphQLException( ProjectionProvider_CreateMoreThanOneError());
             }
 
             return result;
@@ -107,9 +106,12 @@ public class QueryableExecutable<T> : IExecutable<T>
         }
         catch (InvalidOperationException)
         {
-            return ProjectionProvider_CreateMoreThanOneError();
+            throw new GraphQLException(ProjectionProvider_CreateMoreThanOneError());
         }
     }
+
+    async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await SingleOrDefaultAsync(cancellationToken);
 
     public virtual string Print()
     {

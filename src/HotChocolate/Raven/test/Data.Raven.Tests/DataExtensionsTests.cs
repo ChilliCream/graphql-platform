@@ -1,5 +1,4 @@
 using CookieCrumble;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -122,9 +121,9 @@ public class DataExtensionsTests : IClassFixture<RavenDBResource<CustomRavenDBDe
 
         using var session = documentStore.OpenSession();
 
-        session.Store(new Car { Name = "Subaru", Engine = new Engine() { CylinderCount = 6 } });
-        session.Store(new Car { Name = "Toyota", Engine = new Engine() { CylinderCount = 4 } });
-        session.Store(new Car { Name = "Telsa", Engine = new Engine() { CylinderCount = 0 } });
+        session.Store(new Car { Name = "Subaru", Engine = new Engine() { CylinderCount = 6, }, });
+        session.Store(new Car { Name = "Toyota", Engine = new Engine() { CylinderCount = 4, }, });
+        session.Store(new Car { Name = "Telsa", Engine = new Engine() { CylinderCount = 0, }, });
 
         session.SaveChanges();
 

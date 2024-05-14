@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,12 +26,11 @@ internal static class CSharpCompiler
     private static readonly CSharpCompilationOptions _options =
         new(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug);
 
-    private static readonly HashSet<string> _excludedCodes = new()
-    {
-        // warning CS1702: Assuming assembly reference is of different version
+    private static readonly HashSet<string> _excludedCodes =
+    [
         "CS1702",
-        "CS1701"
-    };
+        "CS1701",
+    ];
 
     public static IReadOnlyList<Diagnostic> GetDiagnosticErrors(params string[] sourceText)
     {

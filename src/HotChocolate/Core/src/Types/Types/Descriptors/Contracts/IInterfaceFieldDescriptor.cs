@@ -8,9 +8,6 @@ public interface IInterfaceFieldDescriptor
     : IDescriptor<InterfaceFieldDefinition>
     , IFluent
 {
-    IInterfaceFieldDescriptor SyntaxNode(
-        FieldDefinitionNode fieldDefinition);
-
     IInterfaceFieldDescriptor Name(string value);
 
     IInterfaceFieldDescriptor Description(string value);

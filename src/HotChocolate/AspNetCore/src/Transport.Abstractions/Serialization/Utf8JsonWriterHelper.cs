@@ -115,7 +115,7 @@ internal static class Utf8JsonWriterHelper
             case Dictionary<string, object?> dict:
                 WriteDictionary(writer, dict);
                 break;
-            
+
             case byte[] bytes:
                 writer.WriteBase64StringValue(bytes);
                 break;
@@ -405,7 +405,7 @@ internal static class Utf8JsonWriterHelper
             }
 
             var current = path.Append(i);
-            CollectFiles(item.Value, current, ref files);
+            CollectFiles(item, current, ref files);
         }
     }
 
@@ -423,7 +423,7 @@ internal static class Utf8JsonWriterHelper
         }
         else
         {
-            list = new[] { path };
+            list = [path,];
             files.Add(file, list);
         }
     }

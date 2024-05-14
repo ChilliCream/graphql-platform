@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -49,13 +48,6 @@ public class DirectiveTypeDescriptor<T>
         }
 
         base.OnCompleteArguments(arguments, handledProperties);
-    }
-
-    public new IDirectiveTypeDescriptor<T> SyntaxNode(
-        DirectiveDefinitionNode directiveDefinitionNode)
-    {
-        base.SyntaxNode(directiveDefinitionNode);
-        return this;
     }
 
     public new IDirectiveTypeDescriptor<T> Name(string value)

@@ -6,11 +6,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate;
 
-public partial class SchemaErrorBuilder : ISchemaErrorBuilder
+public partial class SchemaErrorBuilder
 {
     private readonly Error _error = new();
 
-    public ISchemaErrorBuilder SetMessage(string message)
+    public SchemaErrorBuilder SetMessage(string message)
     {
         if (string.IsNullOrEmpty(message))
         {
@@ -23,32 +23,32 @@ public partial class SchemaErrorBuilder : ISchemaErrorBuilder
         return this;
     }
 
-    public ISchemaErrorBuilder SetCode(string code)
+    public SchemaErrorBuilder SetCode(string code)
     {
         _error.Code = code;
         return this;
     }
 
-    public ISchemaErrorBuilder SetPath(IReadOnlyCollection<object> path)
+    public SchemaErrorBuilder SetPath(IReadOnlyCollection<object> path)
     {
         _error.Path = path;
         return this;
     }
 
-    public ISchemaErrorBuilder SetPath(Path path)
+    public SchemaErrorBuilder SetPath(Path path)
     {
         _error.Path = path.ToList();
         return this;
     }
 
-    public ISchemaErrorBuilder SetTypeSystemObject(
+    public SchemaErrorBuilder SetTypeSystemObject(
        ITypeSystemObject typeSystemObject)
     {
         _error.TypeSystemObject = typeSystemObject;
         return this;
     }
 
-    public ISchemaErrorBuilder AddSyntaxNode(ISyntaxNode syntaxNode)
+    public SchemaErrorBuilder AddSyntaxNode(ISyntaxNode syntaxNode)
     {
         if (syntaxNode != null)
         {
@@ -57,13 +57,13 @@ public partial class SchemaErrorBuilder : ISchemaErrorBuilder
         return this;
     }
 
-    public ISchemaErrorBuilder SetExtension(string key, object value)
+    public SchemaErrorBuilder SetExtension(string key, object value)
     {
         _error.Extensions = _error.Extensions.SetItem(key, value);
         return this;
     }
 
-    public ISchemaErrorBuilder SetException(Exception exception)
+    public SchemaErrorBuilder SetException(Exception exception)
     {
         _error.Exception = exception;
         if (_error.Message is null)
@@ -82,6 +82,9 @@ public partial class SchemaErrorBuilder : ISchemaErrorBuilder
 
         return _error.Clone();
     }
+
+    public SchemaException BuildException()
+        => new(Build());
 
     public static SchemaErrorBuilder New() => new();
 }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
@@ -8,7 +5,6 @@ using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 
@@ -385,7 +381,7 @@ public class VariableCoercionHelperTests
 
         var variableValues = new Dictionary<string, object>
         {
-            {"abc", new Dictionary<string, object> { {"stars", 5} }},
+            {"abc", new Dictionary<string, object> { {"stars", 5}, }},
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -423,7 +419,7 @@ public class VariableCoercionHelperTests
 
         var variableValues = new Dictionary<string, object>
         {
-            { "abc", new Review { Stars = 5 } },
+            { "abc", new Review { Stars = 5, } },
         };
 
         var coercedValues = new Dictionary<string, VariableValueOrLiteral>();

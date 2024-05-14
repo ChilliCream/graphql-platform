@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language;
@@ -47,7 +45,7 @@ public sealed class ListValueNode : IValueNode<IReadOnlyList<IValueNode>>
         }
 
         Location = location;
-        Items = new IValueNode[] { item };
+        Items = new IValueNode[] { item, };
     }
 
     /// <summary>

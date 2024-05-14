@@ -12,7 +12,7 @@ namespace StrawberryShake.Razor;
 /// </typeparam>
 public abstract class DataComponent<TClientOrOperation> : ComponentBase, IDisposable
 {
-    private readonly List<IDisposable> _subscriptions = new();
+    private readonly List<IDisposable> _subscriptions = [];
     private bool _disposed;
 
     /// <summary>
@@ -71,7 +71,7 @@ public abstract class DataComponent<TClientOrOperation> : ComponentBase, IDispos
         {
             if (disposing)
             {
-                foreach (IDisposable subscription in _subscriptions)
+                foreach (var subscription in _subscriptions)
                 {
                     subscription.Dispose();
                 }

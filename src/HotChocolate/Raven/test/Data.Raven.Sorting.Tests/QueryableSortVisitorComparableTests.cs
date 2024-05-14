@@ -7,17 +7,17 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortVisitorComparableTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { BarShort = 12 }, new() { BarShort = 14 }, new() { BarShort = 13 }
-    };
+    [
+        new() { BarShort = 12, }, new() { BarShort = 14, }, new() { BarShort = 13, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { BarShort = 12 },
-        new() { BarShort = null },
-        new() { BarShort = 14 },
-        new() { BarShort = 13 }
-    };
+    [
+        new() { BarShort = 12, },
+        new() { BarShort = null, },
+        new() { BarShort = 14, },
+        new() { BarShort = 13, },
+    ];
 
     private readonly SchemaCache _cache;
 

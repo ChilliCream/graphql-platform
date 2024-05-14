@@ -1,5 +1,8 @@
 using System;
 using System.Collections;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -10,23 +13,35 @@ namespace HotChocolate.Types;
 
 public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IField
 {
+#if NET8_0_OR_GREATER
+    private readonly FrozenDictionary<string, T> _fieldsLookup;
+#else
     private readonly Dictionary<string, T> _fieldsLookup;
+#endif
     private readonly T[] _fields;
 
     internal FieldCollection(T[] fields)
     {
         _fields = fields ?? throw new ArgumentNullException(nameof(fields));
+#if NET8_0_OR_GREATER
+        _fieldsLookup = _fields.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+#else
         _fieldsLookup = new Dictionary<string, T>(_fields.Length, StringComparer.Ordinal);
 
         foreach (var field in _fields)
         {
             _fieldsLookup.Add(field.Name, field);
         }
+#endif
     }
 
     private FieldCollection(Dictionary<string, T> fieldsLookup, T[] fields)
     {
+#if NET8_0_OR_GREATER
+        _fieldsLookup = fieldsLookup.ToFrozenDictionary(StringComparer.Ordinal);
+#else
         _fieldsLookup = fieldsLookup;
+#endif
         _fields = fields;
     }
 
@@ -92,15 +107,15 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
 #if NET6_0_OR_GREATER
             if (!internalLookup.TryAdd(field.Name, field))
             {
-                (duplicates ??= new()).Add(field.Name);
+                (duplicates ??= []).Add(field.Name);
             }
 #else
             if (internalLookup.ContainsKey(field.Name))
             {
-                (duplicates ??= new()).Add(field.Name);
+                (duplicates ??= []).Add(field.Name);
                 continue;
             }
-            
+
             internalLookup.Add(field.Name, field);
 #endif
         }
@@ -115,15 +130,9 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
         return new FieldCollection<T>(internalLookup, fields);
     }
 
-    private sealed class FieldEnumerator : IEnumerator<T>
+    private sealed class FieldEnumerator(T[] fields) : IEnumerator<T>
     {
-        private readonly T[] _fields;
         private int _index = -1;
-
-        public FieldEnumerator(T[] fields)
-        {
-            _fields = fields;
-        }
 
         public T Current { get; private set; } = default!;
 
@@ -133,9 +142,9 @@ public sealed class FieldCollection<T> : IFieldCollection<T> where T : class, IF
         {
             _index++;
 
-            if (_index < _fields.Length)
+            if (_index < fields.Length)
             {
-                Current = _fields[_index];
+                Current = fields[_index];
                 return true;
             }
 

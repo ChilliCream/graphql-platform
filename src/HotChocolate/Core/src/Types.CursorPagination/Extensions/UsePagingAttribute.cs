@@ -115,44 +115,40 @@ public sealed class UsePagingAttribute : DescriptorAttribute
         IDescriptor descriptor,
         ICustomAttributeProvider element)
     {
-        if (element is MemberInfo)
+        if (element is not MemberInfo)
         {
-            if (descriptor is IObjectFieldDescriptor ofd)
+            return;
+        }
+
+        var connectionName =
+            string.IsNullOrEmpty(_connectionName)
+                ? default!
+                : _connectionName;
+        var options =
+            new PagingOptions
             {
-                ofd.UsePaging(
-                    Type,
-                    connectionName: string.IsNullOrEmpty(_connectionName)
-                        ? default!
-                        : _connectionName,
-                    options: new PagingOptions
-                    {
-                        DefaultPageSize = _defaultPageSize,
-                        MaxPageSize = _maxPageSize,
-                        IncludeTotalCount = _includeTotalCount,
-                        AllowBackwardPagination = _allowBackwardPagination,
-                        RequirePagingBoundaries = _requirePagingBoundaries,
-                        InferConnectionNameFromField = _inferConnectionNameFromField,
-                        ProviderName = ProviderName,
-                    });
-            }
-            else if (descriptor is IInterfaceFieldDescriptor ifd)
-            {
-                ifd.UsePaging(
-                    Type,
-                    connectionName: string.IsNullOrEmpty(_connectionName)
-                        ? default!
-                        : _connectionName,
-                    options: new()
-                    {
-                        DefaultPageSize = _defaultPageSize,
-                        MaxPageSize = _maxPageSize,
-                        IncludeTotalCount = _includeTotalCount,
-                        AllowBackwardPagination = _allowBackwardPagination,
-                        RequirePagingBoundaries = _requirePagingBoundaries,
-                        InferConnectionNameFromField = _inferConnectionNameFromField,
-                        ProviderName = ProviderName,
-                    });
-            }
+                DefaultPageSize = _defaultPageSize,
+                MaxPageSize = _maxPageSize,
+                IncludeTotalCount = _includeTotalCount,
+                AllowBackwardPagination = _allowBackwardPagination,
+                RequirePagingBoundaries = _requirePagingBoundaries,
+                InferConnectionNameFromField = _inferConnectionNameFromField,
+                ProviderName = ProviderName,
+            };
+
+        if (descriptor is IObjectFieldDescriptor ofd)
+        {
+            ofd.UsePaging(
+                Type,
+                connectionName: connectionName,
+                options: options);
+        }
+        else if (descriptor is IInterfaceFieldDescriptor ifd)
+        {
+            ifd.UsePaging(
+                Type,
+                connectionName: connectionName,
+                options: options);
         }
     }
 }

@@ -19,8 +19,8 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeInitializer
 {
-    private readonly List<FieldMiddleware> _globalComps = new();
-    private readonly List<ISchemaError> _errors = new();
+    private readonly List<FieldMiddleware> _globalComps = [];
+    private readonly List<ISchemaError> _errors = [];
     private readonly IDescriptorContext _context;
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
@@ -29,11 +29,11 @@ internal sealed class TypeInitializer
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
-    private readonly List<RegisteredType> _next = new();
-    private readonly List<RegisteredType> _temp = new();
-    private readonly List<TypeReference> _typeRefs = new();
-    private readonly HashSet<TypeReference> _typeRefSet = new();
-    private readonly List<RegisteredRootType> _rootTypes = new();
+    private readonly List<RegisteredType> _next = [];
+    private readonly List<RegisteredType> _temp = [];
+    private readonly List<TypeReference> _typeRefs = [];
+    private readonly HashSet<TypeReference> _typeRefSet = [];
+    private readonly List<RegisteredRootType> _rootTypes = [];
     private readonly TypeDiscoverer _typeDiscoverer;
 
     public TypeInitializer(
@@ -110,14 +110,6 @@ internal sealed class TypeInitializer
         FinalizeTypes();
 
         // if we do not have any errors we will validate the types for spec violations.
-        if (_errors.Count == 0)
-        {
-            _errors.AddRange(
-                SchemaValidator.Validate(
-                    _typeRegistry.Types.Select(t => t.Type),
-                    _options));
-        }
-
         if (_errors.Count > 0)
         {
             throw new SchemaException(_errors);
@@ -128,7 +120,7 @@ internal sealed class TypeInitializer
     {
         _interceptor.OnBeforeDiscoverTypes();
 
-        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0 } errors)
+        if (_typeDiscoverer.DiscoverTypes() is { Count: > 0, } errors)
         {
             throw new SchemaException(errors);
         }
@@ -663,25 +655,17 @@ internal sealed class TypeInitializer
         }
     }
 
-    private readonly struct RegisteredRootType
+    private readonly struct RegisteredRootType(
+        ITypeCompletionContext context,
+        RegisteredType type,
+        OperationType kind)
     {
-        public RegisteredRootType(
-            ITypeCompletionContext context,
-            RegisteredType type,
-            OperationType kind)
-        {
-            Context = context;
-            Type = type;
-            Kind = kind;
-            IsInitialized = true;
-        }
+        public ITypeCompletionContext Context { get; } = context;
 
-        public ITypeCompletionContext Context { get; }
+        public RegisteredType Type { get; } = type;
 
-        public RegisteredType Type { get; }
+        public OperationType Kind { get; } = kind;
 
-        public OperationType Kind { get; }
-
-        public bool IsInitialized { get; }
+        public bool IsInitialized { get; } = true;
     }
 }

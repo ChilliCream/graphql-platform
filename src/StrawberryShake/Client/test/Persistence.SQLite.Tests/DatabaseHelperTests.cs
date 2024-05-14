@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
-using Xunit;
 
 namespace StrawberryShake.Persistence.SQLite;
 
@@ -64,7 +63,7 @@ public class DatabaseHelperTests
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (EntityDto entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
         {
             entities.Add(entityDto);
         }
@@ -111,7 +110,7 @@ public class DatabaseHelperTests
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (EntityDto entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
         {
             entities.Add(entityDto);
         }
@@ -151,7 +150,7 @@ public class DatabaseHelperTests
 
         // assert
         var entities = new List<EntityDto>();
-        await foreach (EntityDto entityDto in helper.GetAllEntitiesAsync(connection))
+        await foreach (var entityDto in helper.GetAllEntitiesAsync(connection))
         {
             entities.Add(entityDto);
         }
@@ -184,7 +183,7 @@ public class DatabaseHelperTests
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (OperationDto operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
         {
             collections.Add(operationDto);
         }
@@ -234,7 +233,7 @@ public class DatabaseHelperTests
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (OperationDto operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
         {
             collections.Add(operationDto);
         }
@@ -276,7 +275,7 @@ public class DatabaseHelperTests
 
         // assert
         var collections = new List<OperationDto>();
-        await foreach (OperationDto operationDto in helper.GetAllOperationsAsync(connection))
+        await foreach (var operationDto in helper.GetAllOperationsAsync(connection))
         {
             collections.Add(operationDto);
         }

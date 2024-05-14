@@ -6,7 +6,6 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -67,7 +66,7 @@ public class ArgumentTests
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            IFieldCollection<IInputField> arguments = context.Selection.Field.Arguments;
+            var arguments = context.Selection.Field.Arguments;
             foreach (var argument in arguments)
             {
                 var value = context.ArgumentValue<object?>(argument.Name)!;

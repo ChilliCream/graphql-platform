@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -8,8 +6,8 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = new();
-    private static readonly List<ArgumentNode> _emptyArguments = new();
+    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = [];
+    private static readonly List<ArgumentNode> _emptyArguments = [];
 
     /// <summary>
     /// Parses an operation definition.

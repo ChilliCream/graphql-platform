@@ -45,8 +45,9 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
 
     /// <summary>
     /// Gets or sets a value indicating whether the <c>GraphQL</c> errors
-    /// should be extended with exception details. The default value is
-    /// <see cref="Debugger.IsAttached"/>.
+    /// should be extended with exception details.
+    ///
+    /// The default value is <see cref="Debugger.IsAttached"/>.
     /// </summary>
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 

@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -51,7 +50,7 @@ public class CustomCursorHandlerTests
             string? before = null)
         {
             return new(
-                new[] { new Edge<string>("hello", "abc") },
+                new[] { new Edge<string>("hello", "abc"), },
                 new ConnectionPageInfo(false, false, "abc", "abc"),
                 2000);
         }

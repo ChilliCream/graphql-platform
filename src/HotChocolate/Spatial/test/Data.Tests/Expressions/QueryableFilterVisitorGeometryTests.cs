@@ -34,23 +34,23 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(10, 20),
+                Bar = new LineString(
+                [
+                    new Coordinate(10, 20),
                         new Coordinate(20, 20),
-                        new Coordinate(30, 20)
-                    })
+                        new Coordinate(30, 20),
+                ]),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(10, 10),
+                Bar = new LineString(
+                [
+                    new Coordinate(10, 10),
                         new Coordinate(20, 10),
-                        new Coordinate(30, 10)
-                    })
+                        new Coordinate(30, 10),
+                ]),
             };
             Assert.False(func(b));
         }
@@ -80,28 +80,28 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(0, 6),
                         new Coordinate(6, 6),
                         new Coordinate(6, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.True(func(a), "polygon a does not contain the buffered point");
 
             var b = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(0, 6),
                         new Coordinate(6, 6),
                         new Coordinate(4, 4),
                         new Coordinate(6, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.False(func(b), "polygon c contains the buffered point");
         }
@@ -136,23 +136,23 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(2, 0),
+                Bar = new LineString(
+                [
+                    new Coordinate(2, 0),
                         new Coordinate(0, 0),
-                        new Coordinate(1, 0)
-                    })
+                        new Coordinate(1, 0),
+                ]),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(0.5, 0.5),
+                Bar = new LineString(
+                [
+                    new Coordinate(0.5, 0.5),
                         new Coordinate(0, 0),
-                        new Coordinate(1, 0)
-                    })
+                        new Coordinate(1, 0),
+                ]),
             };
             Assert.False(func(b));
         }
@@ -181,11 +181,11 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(0, 0),
-                        new Coordinate(1, 0)
-                    })
+                Bar = new LineString(
+                [
+                    new Coordinate(0, 0),
+                        new Coordinate(1, 0),
+                ]),
             };
             Assert.True(func(a));
         }
@@ -215,25 +215,25 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, 2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, -2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.False(func(b));
         }
@@ -260,25 +260,25 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, 2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, -2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.False(func(b));
         }
@@ -305,25 +305,25 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, 2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, -2),
                         new Coordinate(2, -1),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.False(func(b));
         }
@@ -353,23 +353,23 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new LineString(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, 2),
-                        new Coordinate(2, 0)
-                    })
+                        new Coordinate(2, 0),
+                ]),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new LineString(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new LineString(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, -2),
-                        new Coordinate(2, 0)
-                    })
+                        new Coordinate(2, 0),
+                ]),
             };
             Assert.False(func(b));
         }
@@ -396,25 +396,25 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, 2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(1, -2),
                         new Coordinate(2, -1),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.False(func(b));
         }
@@ -445,13 +445,13 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Point(20, 20)
+                Bar = new Point(20, 20),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new Point(20, 30)
+                Bar = new Point(20, 30),
             };
             Assert.False(func(b));
         }
@@ -481,28 +481,28 @@ public class QueryableFilterVisitorGeometryTests
             // assert
             var a = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(0, 2),
                         new Coordinate(2, 2),
                         new Coordinate(2, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.True(func(a));
 
             var b = new Foo
             {
-                Bar = new Polygon(new LinearRing(new[]
-                {
-                        new Coordinate(0, 0),
+                Bar = new Polygon(new LinearRing(
+                [
+                    new Coordinate(0, 0),
                         new Coordinate(0, 9),
                         new Coordinate(9, 9),
                         new Coordinate(3, 3),
                         new Coordinate(9, 0),
-                        new Coordinate(0, 0)
-                    }))
+                        new Coordinate(0, 0),
+                ])),
             };
             Assert.False(func(b));
         }

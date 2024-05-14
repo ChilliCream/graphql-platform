@@ -24,8 +24,8 @@ public static class FragmentHelper
             directive.Arguments.Count == 1 &&
             directive.Arguments[0] is
             {
-                Name: { Value: "fragment" },
-                Value: StringValueNode { Value: { Length: > 0 } } sv
+                Name: { Value: "fragment", },
+                Value: StringValueNode { Value: { Length: > 0, }, } sv,
             })
         {
             return sv.Value;
@@ -124,7 +124,7 @@ public static class FragmentHelper
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
-            new[] { @interface },
+            new[] { @interface, },
             AggregateDeferMap(@interface));
         context.RegisterModel(name, typeModel);
 
@@ -157,7 +157,7 @@ public static class FragmentHelper
             fragmentNode.Fragment.TypeCondition,
             fragmentNode.Fragment.SelectionSet,
             fields,
-            new[] { @interface },
+            new[] { @interface, },
             AggregateDeferMap(@interface));
         context.RegisterModel(name, typeModel);
 
@@ -172,7 +172,7 @@ public static class FragmentHelper
         bool isFragment = false)
     {
         var levels = new Stack<ISet<string>>();
-        var rootImplements = implements?.ToList() ?? new();
+        var rootImplements = implements?.ToList() ?? [];
         levels.Push(new HashSet<string>());
         return CreateInterface(context, fragmentNode, path, levels, rootImplements, isFragment);
     }
@@ -612,7 +612,7 @@ public static class FragmentHelper
         var argument = directive.Arguments.FirstOrDefault(
             t => t.Name.Value.EqualsOrdinal(WellKnownDirectives.LabelArgument));
 
-        if (argument?.Value is not StringValueNode { Value.Length: > 0 } sv)
+        if (argument?.Value is not StringValueNode { Value.Length: > 0, } sv)
         {
             throw new GraphQLException("A defer directive label must always expose a label.");
         }

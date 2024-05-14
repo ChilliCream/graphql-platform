@@ -71,7 +71,7 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             new NamedTypeNode(sourceType.Name),
             Array.Empty<DirectiveNode>(),
-            new SelectionSetNode(new[] { spread }));
+            new SelectionSetNode(new[] { spread, }));
 
         // Create a new FieldNode for the entity resolver
         var selection = new FieldNode(
@@ -81,10 +81,10 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             Array.Empty<DirectiveNode>(),
             arguments,
-            new SelectionSetNode(new[] { inlineFragment }));
+            new SelectionSetNode(new[] { inlineFragment, }));
 
         // Create a new SelectionSetNode for the entity resolver
-        var selectionSet = new SelectionSetNode(new[] { selection });
+        var selectionSet = new SelectionSetNode(new[] { selection, });
 
         // Create a new EntityResolver for the entity
         var resolver = new EntityResolver(
@@ -125,7 +125,7 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             new NamedTypeNode(sourceType.Name),
             Array.Empty<DirectiveNode>(),
-            new SelectionSetNode(new[] { spread }));
+            new SelectionSetNode(new[] { spread, }));
 
         // Create a new FieldNode for the entity resolver
         var selection = new FieldNode(
@@ -135,10 +135,10 @@ internal class NodeEntityEnricher : IEntityEnricher
             null,
             Array.Empty<DirectiveNode>(),
             arguments,
-            new SelectionSetNode(new[] { inlineFragment }));
+            new SelectionSetNode(new[] { inlineFragment, }));
 
         // Create a new SelectionSetNode for the entity resolver
-        var selectionSet = new SelectionSetNode(new[] { selection });
+        var selectionSet = new SelectionSetNode(new[] { selection, });
 
         // Create a new EntityResolver for the entity
         var resolver = new EntityResolver(

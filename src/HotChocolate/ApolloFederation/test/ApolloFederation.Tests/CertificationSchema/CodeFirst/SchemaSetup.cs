@@ -13,6 +13,5 @@ public static class SchemaSetup
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<QueryType>()
-            .RegisterService<Data>()
             .BuildRequestExecutorAsync();
 }

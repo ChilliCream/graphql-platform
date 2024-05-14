@@ -24,61 +24,7 @@
       "responseName": "isAtLocation",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 218,
-            "End": 223,
-            "Line": 9,
-            "Column": 34
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 218,
-              "End": 220,
-              "Line": 9,
-              "Column": 34
-            },
-            "Value": "x"
-          },
-          "Value": {
-            "Kind": "IntValue",
-            "Location": {
-              "Start": 221,
-              "End": 223,
-              "Line": 9,
-              "Column": 37
-            },
-            "Value": "0"
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 205,
-        "End": 256,
-        "Line": 9,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 205,
-          "End": 218,
-          "Line": 9,
-          "Column": 21
-        },
-        "Value": "isAtLocation"
-      },
-      "Directives": []
-    }
+    "Exception": null
   },
   {
     "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
@@ -105,60 +51,6 @@
       "responseName": "isAtLocation",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 257,
-            "End": 262,
-            "Line": 10,
-            "Column": 34
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 257,
-              "End": 259,
-              "Line": 10,
-              "Column": 34
-            },
-            "Value": "y"
-          },
-          "Value": {
-            "Kind": "IntValue",
-            "Location": {
-              "Start": 260,
-              "End": 262,
-              "Line": 10,
-              "Column": 37
-            },
-            "Value": "0"
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 244,
-        "End": 280,
-        "Line": 10,
-        "Column": 21
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 244,
-          "End": 257,
-          "Line": 10,
-          "Column": 21
-        },
-        "Value": "isAtLocation"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
@@ -8,32 +7,32 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = "testatest" },
-        new() { Bar = "testbtest" },
-        new() { Bar = null },
-    };
+    [
+        new() { Bar = "testatest", },
+        new() { Bar = "testbtest", },
+        new() { Bar = null, },
+    ];
 
     private static readonly FooShort[] _fooShortEntities =
-    {
-        new() { BarShort = 12 },
-        new() { BarShort = 14 },
-        new() { BarShort = 13 },
-    };
+    [
+        new() { BarShort = 12, },
+        new() { BarShort = 14, },
+        new() { BarShort = 13, },
+    ];
 
     private static readonly FooShortNullable[] _fooShortNullableEntities =
-    {
-        new() { BarShort = 12 },
-        new() { BarShort = null },
-        new() { BarShort = 14 },
-        new() { BarShort = 13 },
-    };
+    [
+        new() { BarShort = 12, },
+        new() { BarShort = null, },
+        new() { BarShort = 14, },
+        new() { BarShort = 13, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -53,12 +52,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { eq: \"Rm86dGVzdGF0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { eq: \"Rm86dGVzdGJ0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -86,12 +85,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { neq: \"Rm86dGVzdGF0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { neq: \"Rm86dGVzdGJ0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -122,7 +121,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                 .SetQuery(@"{
                             root(where: {
                                 bar: {
-                                    in: [ ""Rm8KZHRlc3RhdGVzdA==""  ""Rm8KZHRlc3RidGVzdA=="" ]
+                                    in: [ ""Rm86dGVzdGF0ZXN0""  ""Rm86dGVzdGJ0ZXN0"" ]
                                 }
                             }){
                                 bar
@@ -133,12 +132,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { bar: { in: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"Rm86dGVzdGJ0ZXN0\" null]}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { in: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { in: [ \"Rm86dGVzdGF0ZXN0\" ]}}){ bar}}")
                 .Create());
 
         // assert
@@ -162,26 +161,29 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery(@"{
-                            root(where: {
-                                bar: {
-                                    nin: [ ""Rm8KZHRlc3RhdGVzdA==""  ""Rm8KZHRlc3RidGVzdA=="" ]
-                                }
-                            }){
-                                bar
-                            }
-                        }")
+                .SetQuery(
+                    """
+                    {
+                      root(where: {
+                          bar: {
+                              nin: [ "Rm86dGVzdGF0ZXN0"  "Rm86dGVzdGJ0ZXN0" ]
+                          }
+                      }){
+                          bar
+                      }
+                    }
+                    """)
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { bar: { nin: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
+                    "{ root(where: { bar: { nin: [\"Rm86dGVzdGJ0ZXN0\" null]}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { nin: [ \"Rm86dGVzdGF0ZXN0\" ]}}){ bar}}")
                 .Create());
 
         // assert
@@ -204,12 +206,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { eq: \"Rm86dGVzdGF0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { eq: \"Rm86dGVzdGJ0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -237,12 +239,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RhdGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { neq: \"Rm86dGVzdGF0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"Rm8KZHRlc3RidGVzdA==\"}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { neq: \"Rm86dGVzdGJ0ZXN0\"}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -274,7 +276,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                 .SetQuery(@"{
                             root(where: {
                                 bar: {
-                                    in: [ ""Rm8KZHRlc3RhdGVzdA==""  ""Rm8KZHRlc3RidGVzdA=="" ]
+                                    in: [ ""Rm86dGVzdGF0ZXN0""  ""Rm86dGVzdGJ0ZXN0"" ]
                                 }
                             }){
                                 bar
@@ -285,12 +287,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { bar: { in: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
+                    "{ root(where: { bar: { in: [\"Rm86dGVzdGJ0ZXN0\" null]}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { in: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { in: [ \"Rm86dGVzdGF0ZXN0\" ]}}){ bar}}")
                 .Create());
 
         // assert
@@ -315,25 +317,27 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    @"{
+                    """
+                    {
                         root(where: {
                             bar: {
-                                nin: [ ""Rm8KZHRlc3RhdGVzdA==""  ""Rm8KZHRlc3RidGVzdA=="" ]
+                                nin: [ "Rm86dGVzdGF0ZXN0"  "Rm86dGVzdGJ0ZXN0" ]
                             }
                         }){
                             bar
                         }
-                    }")
+                    }
+                    """)
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [\"Rm8KZHRlc3RidGVzdA==\" null]}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { nin: [\"Rm86dGVzdGJ0ZXN0\" null]}}){ bar}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { nin: [ \"Rm8KZHRlc3RhdGVzdA==\" ]}}){ bar}}")
+                .SetQuery("{ root(where: { bar: { nin: [ \"Rm86dGVzdGF0ZXN0\" ]}}){ bar}}")
                 .Create());
 
         // assert
@@ -356,12 +360,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMg==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vOjEy\"}}){ barShort}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMw==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vOjEz\"}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -389,12 +393,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMg==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vOjEy\"}}){ barShort}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMw==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vOjEz\"}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -423,12 +427,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMg==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vOjEy\"}}){ barShort}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vCnMxMw==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { eq: \"Rm9vOjEz\"}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -457,12 +461,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMg==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vOjEy\"}}){ barShort}}")
                 .Create());
 
         var res2 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vCnMxMw==\"}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { neq: \"Rm9vOjEz\"}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
@@ -494,7 +498,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                in: [ ""Rm9vOjEy"", ""Rm9vOjEz""]
                             }
                         }){
                             barShort
@@ -508,7 +512,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                in: [ ""Rm9vOjEz"", ""Rm9vOjE0""]
                             }
                         }){
                             barShort
@@ -519,7 +523,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { barShort: { in: [ null, \"Rm9vCnMxNA==\"]}}){ barShort}}")
+                    "{ root(where: { barShort: { in: [ null, \"Rm9vOjE0\"]}}){ barShort}}")
                 .Create());
 
         // assert
@@ -546,7 +550,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                nin: [ ""Rm9vOjEy"", ""Rm9vOjEz""]
                             }
                         }){
                             barShort
@@ -558,13 +562,13 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
             QueryRequestBuilder.New()
                 .SetQuery(
                     "{ root(where: { barShort: { nin: " +
-                    "[ \"Rm9vCnMxMg==\", \"Rm9vCnMxNA==\"]}}){ barShort}}")
+                    "[ \"Rm9vOjEy\", \"Rm9vOjE0\"]}}){ barShort}}")
                 .Create());
 
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { barShort: { nin: [ null, \"Rm9vCnMxNA==\"]}}){ barShort}}")
+                    "{ root(where: { barShort: { nin: [ null, \"Rm9vOjE0\"]}}){ barShort}}")
                 .Create());
 
         // assert
@@ -592,7 +596,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                in: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                in: [ ""Rm9vOjEy"", ""Rm9vOjEz""]
                             }
                         }){
                             barShort
@@ -605,7 +609,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                 .SetQuery(
                     @"{ root(where: {
                             barShort: {
-                                in: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                in: [ ""Rm9vOjEz"", ""Rm9vOjE0""]
                             }
                         }){
                             barShort
@@ -616,7 +620,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         var res3 = await tester.ExecuteAsync(
             QueryRequestBuilder.New()
                 .SetQuery(
-                    "{ root(where: { barShort: { in: [ \"Rm9vCnMxMw==\", null ]}}){ barShort}}")
+                    "{ root(where: { barShort: { in: [ \"Rm9vOjEz\", null ]}}){ barShort}}")
                 .Create());
 
         // assert
@@ -644,7 +648,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                nin: [ ""Rm9vCnMxMg=="", ""Rm9vCnMxMw==""]
+                                nin: [ ""Rm9vOjEy"", ""Rm9vOjEz""]
                             }
                         }){
                             barShort
@@ -658,7 +662,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                nin: [ ""Rm9vCnMxMw=="", ""Rm9vCnMxNA==""]
+                                nin: [ ""Rm9vOjEz"", ""Rm9vOjE0""]
                             }
                         }){
                             barShort
@@ -672,7 +676,7 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
                     @"{
                         root(where: {
                             barShort: {
-                                nin: [ ""Rm9vCnMxMw=="", null ]
+                                nin: [ ""Rm9vOjEz"", null ]
                             }
                         }){
                             barShort

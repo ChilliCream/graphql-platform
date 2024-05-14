@@ -43,7 +43,7 @@ internal sealed class NodeRequestDocumentFormatter(
             rootSelectionSetNode);
 
         return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode }),
+            new DocumentNode(new[] { operationDefinitionNode, }),
             path);
     }
 
@@ -158,7 +158,7 @@ internal sealed class NodeRequestDocumentFormatter(
                 Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(typeSelectionNodes));
             selectionNodes.Add(inlineFragment);
-            typeSelectionNodes = new List<ISelectionNode>();
+            typeSelectionNodes = [];
         }
     }
 
@@ -188,12 +188,12 @@ internal sealed class NodeRequestDocumentFormatter(
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {

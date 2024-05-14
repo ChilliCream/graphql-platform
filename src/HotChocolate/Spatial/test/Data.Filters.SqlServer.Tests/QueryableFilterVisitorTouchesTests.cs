@@ -10,30 +10,30 @@ namespace HotChocolate.Data.Spatial.Filters;
 public class QueryableFilterVisitorTouchesTests : SchemaCache
 {
     private static readonly Polygon _truePolygon =
-        new(new LinearRing(new[]
-        {
+        new(new LinearRing(
+        [
             new Coordinate(140, 120),
             new Coordinate(160, 20),
             new Coordinate(20, 20),
             new Coordinate(20, 120),
-            new Coordinate(140, 120)
-        }));
+            new Coordinate(140, 120),
+        ]));
 
     private static readonly Polygon _falsePolygon =
-        new(new LinearRing(new[]
-        {
+        new(new LinearRing(
+        [
             new Coordinate(1000, 1000),
             new Coordinate(100000, 1000),
             new Coordinate(100000, 100000),
             new Coordinate(1000, 100000),
             new Coordinate(1000, 1000),
-        }));
+        ]));
 
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Id = 1, Bar = _truePolygon },
-        new() { Id = 2, Bar = _falsePolygon }
-    };
+    [
+        new() { Id = 1, Bar = _truePolygon, },
+        new() { Id = 2, Bar = _falsePolygon, },
+    ];
 
     public QueryableFilterVisitorTouchesTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)

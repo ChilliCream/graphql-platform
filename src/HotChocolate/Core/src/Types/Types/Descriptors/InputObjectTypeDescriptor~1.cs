@@ -38,13 +38,6 @@ public class InputObjectTypeDescriptor<T>
         base.OnCompleteFields(fields, handledMembers);
     }
 
-    public new IInputObjectTypeDescriptor<T> SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
-    {
-        base.SyntaxNode(inputObjectTypeDefinition);
-        return this;
-    }
-
     public new IInputObjectTypeDescriptor<T> Name(string value)
     {
         base.Name(value);

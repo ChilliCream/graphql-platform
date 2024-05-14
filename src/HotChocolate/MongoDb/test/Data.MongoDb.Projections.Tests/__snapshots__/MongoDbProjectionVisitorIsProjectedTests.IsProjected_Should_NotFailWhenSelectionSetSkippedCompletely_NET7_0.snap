@@ -1,5 +1,20 @@
+Result:
+---------------
 {
   "data": {
-    "root": []
+    "root": [
+      {
+        "isProjectedFalse": false
+      },
+      {
+        "isProjectedFalse": false
+      }
+    ]
   }
 }
+---------------
+
+Query:
+---------------
+find({ })
+---------------

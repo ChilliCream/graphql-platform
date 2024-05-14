@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -40,7 +39,7 @@ public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
                 new BsonDocument
                 {
                         { "$exists", true },
-                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
+                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value, } },
                 }),
             new NotMongoDbFilterDefinition(
                 new OrMongoDbFilterDefinition(negatedChilds)

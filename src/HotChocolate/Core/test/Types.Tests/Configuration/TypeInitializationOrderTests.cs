@@ -3,7 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 
@@ -42,7 +41,7 @@ public class TypeInitializationOrderTests
                 .Field("words")
                 .Type<ListType<ObjectType<Word>>>()
                 .Resolve(
-                    new Word[] { new() { Value = "Hello" }, new() { Value = "World" } })
+                    new Word[] { new() { Value = "Hello", }, new() { Value = "World", }, })
                 .Extend()
                 .OnBeforeCreate((c,d) =>
                 {

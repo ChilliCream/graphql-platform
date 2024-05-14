@@ -352,5 +352,15 @@ public static class ErrorCodes
         /// You must provide a `first` or `last` value to properly paginate the connection.
         /// </summary>
         public const string NoPagingBoundaries = "HC0052";
+
+        /// <summary>
+        /// The requested number of values per page must be at least 0.
+        /// </summary>
+        public const string MinPaginationItems = "HC0079";
+
+        /// <summary>
+        /// The cursor format is invalid.
+        /// </summary>
+        public const string InvalidCursor = "HC0078";
     }
 }

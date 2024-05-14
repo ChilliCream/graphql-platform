@@ -62,7 +62,9 @@ public class InputFieldDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(InputFieldDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Property is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, Property: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
@@ -72,15 +74,10 @@ public class InputFieldDescriptor
         }
 
         base.OnCreateDefinition(definition);
-    }
 
-    /// <inheritdoc />
-    public new IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
+        Context.Descriptors.Pop();
     }
-
+    
     /// <inheritdoc />
     public IInputFieldDescriptor Name(string value)
     {

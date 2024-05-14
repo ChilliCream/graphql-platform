@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 

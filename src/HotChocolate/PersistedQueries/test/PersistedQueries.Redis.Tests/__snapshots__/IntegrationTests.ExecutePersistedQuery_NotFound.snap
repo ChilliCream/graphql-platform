@@ -14,8 +14,7 @@
         "code": "HC0020",
         "requestedKey": "does_not_exist"
       },
-      "Exception": null,
-      "SyntaxNode": null
+      "Exception": null
     }
   ],
   "Extensions": null,
@@ -23,5 +22,6 @@
   "ContextData": {
     "HotChocolate.Execution.Transport.HttpStatusCode": 400
   },
-  "HasNext": null
+  "HasNext": null,
+  "IsDataSet": false
 }

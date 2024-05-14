@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -80,25 +76,8 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
         = new();
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-    {
-        var applySorting = CreateApplicatorAsync<TEntityType>(argumentName.EnsureGraphQLName());
-
-        return next => context => ExecuteAsync(next, context);
-
-        async ValueTask ExecuteAsync(
-            FieldDelegate next,
-            IMiddlewareContext context)
-        {
-            context.LocalContextData =
-                context.LocalContextData.SetItem(ContextApplySortingKey, applySorting);
-
-            // first we let the pipeline run and produce a result.
-            await next(context).ConfigureAwait(false);
-
-            context.Result = applySorting(context, context.Result);
-        }
-    }
+    public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+        => new QueryableQueryBuilder(CreateApplicatorAsync<TEntityType>(argumentName.EnsureGraphQLName()));
 
     /// <summary>
     /// Checks if the input has to be computed in memory. Null checks are only applied when the
@@ -113,7 +92,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory })
+        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory, })
         {
             return inMemory;
         }
@@ -188,21 +167,17 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
         };
 
     private ApplySorting CreateApplicatorAsync<TEntityType>(string argumentName)
-    {
-        return (context, input) =>
+        => (context, input) =>
         {
             // next we get the sort argument.
             var argument = context.Selection.Field.Arguments[argumentName];
             var sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
             // if no sort is defined we can stop here and yield back control.
-            var skipSorting =
-                context.LocalContextData.TryGetValue(SkipSortingKey, out var skip) &&
-                skip is true;
-
+            var skipSorting = context.GetLocalStateOrDefault<bool>(SkipSortingKey);
+            
             // ensure sorting is only applied once
-            context.LocalContextData =
-                context.LocalContextData.SetItem(SkipSortingKey, true);
+            context.SetLocalState(SkipSortingKey, true);
 
             if (sort.IsNull() || skipSorting)
             {
@@ -212,8 +187,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
             if (argument.Type is ListType lt &&
                 lt.ElementType is NonNullType nn &&
                 nn.NamedType() is ISortInputType sortInput &&
-                context.Selection.Field.ContextData
-                    .TryGetValue(ContextVisitSortArgumentKey, out var executorObj) &&
+                context.Selection.Field.ContextData.TryGetValue(ContextVisitSortArgumentKey, out var executorObj) &&
                 executorObj is VisitSortArgument executor)
             {
                 var inMemory = IsInMemoryQuery<TEntityType>(input);
@@ -221,7 +195,11 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
                 var visitorContext = executor(sort, sortInput, inMemory);
 
                 // compile expression tree
-                if (visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count == 0)
+                {
+                    input = ApplyToResult<TEntityType>(input, q => visitorContext.Sort(q));
+                }
+                else
                 {
                     input = Array.Empty<TEntityType>();
                     foreach (var error in visitorContext.Errors)
@@ -229,13 +207,17 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
                         context.ReportError(error.WithPath(context.Path));
                     }
                 }
-                else
-                {
-                    input = ApplyToResult<TEntityType>(input, q => visitorContext.Sort(q));
-                }
             }
 
             return input;
         };
+
+    private sealed class QueryableQueryBuilder(ApplySorting applicator) : IQueryBuilder
+    {
+        public void Prepare(IMiddlewareContext context)
+            => context.SetLocalState(ContextApplySortingKey, applicator);
+
+        public void Apply(IMiddlewareContext context)
+            => context.Result = applicator(context, context.Result);
     }
 }

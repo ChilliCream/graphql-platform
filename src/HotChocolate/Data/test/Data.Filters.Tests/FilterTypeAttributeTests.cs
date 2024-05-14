@@ -1,8 +1,6 @@
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Data.Filters;
 

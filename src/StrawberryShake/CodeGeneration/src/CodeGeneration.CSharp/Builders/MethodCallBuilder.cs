@@ -13,9 +13,9 @@ public class MethodCallBuilder : ICode
     private bool _setNew;
     private bool _setAwait;
     private string? _prefix;
-    private readonly List<ICode> _arguments = new();
-    private readonly List<ICode> _generics = new();
-    private readonly List<ICode> _chainedCode = new();
+    private readonly List<ICode> _arguments = [];
+    private readonly List<ICode> _generics = [];
+    private readonly List<ICode> _chainedCode = [];
 
     public static MethodCallBuilder New() => new();
 
@@ -29,10 +29,10 @@ public class MethodCallBuilder : ICode
 
     public MethodCallBuilder SetMethodName(string methodName)
     {
-        _methodName = new[]
-        {
-            methodName
-        };
+        _methodName =
+        [
+            methodName,
+        ];
         return this;
     }
 

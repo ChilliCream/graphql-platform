@@ -62,6 +62,12 @@ public interface IQueryResult : IExecutionResult
     /// </summary>
     /// <value></value>
     bool? HasNext { get; }
+    
+    /// <summary>
+    /// Specifies if data was explicitly set.
+    /// If <c>false</c> the data was not set (including null).
+    /// </summary>
+    bool IsDataSet { get; }
 
     /// <summary>
     /// Serializes this GraphQL result into a dictionary.

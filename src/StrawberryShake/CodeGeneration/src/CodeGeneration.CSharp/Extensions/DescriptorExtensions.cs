@@ -57,7 +57,7 @@ public static class DescriptorExtensions
             INamedTypeDescriptor named =>
                 actualBuilder.SetName(named.RuntimeType.ToString()),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeReferenceDescriptor)),
         };
     }
 
@@ -92,21 +92,21 @@ public static class DescriptorExtensions
             ILeafTypeDescriptor leaf =>
                 actualBuilder.SetName(leaf.RuntimeType.ToString()),
 
-            INamedTypeDescriptor { Kind: TypeKind.EntityOrData } =>
+            INamedTypeDescriptor { Kind: TypeKind.EntityOrData, } =>
                 actualBuilder.SetName(TypeNames.EntityIdOrData),
 
-            ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType } =>
+            ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType, } =>
                 actualBuilder.SetName(parentRuntimeType.ToString()),
 
-            INamedTypeDescriptor { Kind: TypeKind.Data } d =>
+            INamedTypeDescriptor { Kind: TypeKind.Data, } d =>
                 actualBuilder.SetName(d.RuntimeType.ToString()),
 
-            INamedTypeDescriptor { Kind: TypeKind.Entity } =>
+            INamedTypeDescriptor { Kind: TypeKind.Entity, } =>
                 actualBuilder.SetName(TypeNames.EntityId),
 
             INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.ToString()),
 
-            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(typeDescriptor)),
         };
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -10,7 +9,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL union type.
 /// </summary>
-public class UnionTypeDefinition : TypeDefinitionBase<UnionTypeDefinitionNode>
+public class UnionTypeDefinition : TypeDefinitionBase
 {
     /// <summary>
     /// Initializes a new instance of <see cref="UnionTypeDefinition"/>.

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -220,9 +217,7 @@ public class RequestExecutorBuilderExtensionsValidationTests
         Assert.Throws<ArgumentNullException>(Fail);
     }
 
-    public class MockVisitor : DocumentValidatorVisitor
-    {
-    }
+    public class MockVisitor : DocumentValidatorVisitor;
 
     public class MockRule : IDocumentValidatorRule
     {

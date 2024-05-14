@@ -1,5 +1,4 @@
 using HotChocolate;
-using HotChocolate.Execution;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
@@ -32,7 +31,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         IDocumentAnalyzerContext context,
         SelectionSetVariants selectionSetVariants)
     {
-        Path rootSelectionPath = Path.Root.Append(context.OperationName);
+        var rootSelectionPath = Path.Root.Append(context.OperationName);
 
         var returnTypeFragment =
             FragmentHelper.CreateFragmentNode(
@@ -92,7 +91,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
                     context,
                     returnTypeFragment,
                     fieldSelection.Path,
-                    new[] { returnType });
+                    new[] { returnType, });
 
             var @class =
                 FragmentHelper.CreateClass(
@@ -156,7 +155,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
                     context,
                     returnTypeFragment,
                     fieldSelection.Path,
-                    new[] { returnType });
+                    new[] { returnType, });
 
             var @class =
                 FragmentHelper.CreateClass(

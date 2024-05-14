@@ -38,7 +38,7 @@ internal static class ErrorHelper
                 code: ErrorCodes.Server.InvalidTypeName,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(typeName), typeName }
+                    { nameof(typeName), typeName },
                 }));
 
     public static IQueryResult TypeNotFound(string typeName)
@@ -48,7 +48,7 @@ internal static class ErrorHelper
                 code: ErrorCodes.Server.TypeDoesNotExist,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(typeName), typeName }
+                    { nameof(typeName), typeName },
                 }));
 
     public static IQueryResult InvalidAcceptMediaType(string headerValue)
@@ -58,7 +58,7 @@ internal static class ErrorHelper
                 code: ErrorCodes.Server.InvalidAcceptHeaderValue,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(headerValue), headerValue }
+                    { nameof(headerValue), headerValue },
                 }));
     
     public static IQueryResult MultiPartRequestPreflightRequired()
@@ -66,4 +66,10 @@ internal static class ErrorHelper
             new Error(
                 ErrorHelper_MultiPartRequestPreflightRequired,
                 code: ErrorCodes.Server.MultiPartPreflightRequired));
+    
+    public static GraphQLRequestException InvalidQueryIdFormat()
+        => new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage("Invalid query id format.")
+                .Build());
 }

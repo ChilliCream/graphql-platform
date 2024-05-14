@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -8,7 +6,7 @@ namespace HotChocolate.Data.Sorting.Expressions;
 public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -65,10 +63,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 ObjectArray = null,
             },
         },
-    };
+    ];
 
     private static readonly BarNullable?[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -147,8 +145,8 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 ObjectArray = null,
             },
         },
-        new() { Foo = null },
-    };
+        new() { Foo = null, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -514,14 +512,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string,object> { { "barShort", "ASC" } }
+                                    new Dictionary<string,object> { { "barShort", "ASC" }, }
                                 },
                             },
                             new()
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string,object> { { "barBool", "ASC" } }
+                                    new Dictionary<string,object> { { "barBool", "ASC" }, }
                                 },
                             },
                     })
@@ -576,14 +574,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string, object> { { "barShort", "DESC" } }
+                                    new Dictionary<string, object> { { "barShort", "DESC" }, }
                                 },
                             },
                             new()
                             {
                                 {
                                     "foo",
-                                    new Dictionary<string, object> { { "barBool", "DESC" } }
+                                    new Dictionary<string, object> { { "barBool", "DESC" }, }
                                 },
                             },
                     })
@@ -614,7 +612,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new();
+        public List<Bar>? ObjectArray { get; set; } = [];
     }
 
     public class FooNullable

@@ -6,9 +6,9 @@ namespace HotChocolate.Fusion.Composition;
 
 internal class EntityResolversCollection : ICollection<EntityResolver>
 {
-    private readonly List<EntityResolver> _resolvers = new();
+    private readonly List<EntityResolver> _resolvers = [];
     private readonly Dictionary<ResolverKey, EntityResolver> _map = new();
-    private readonly HashSet<ResolverSignatureKey> _signatureKeys = new();
+    private readonly HashSet<ResolverSignatureKey> _signatureKeys = [];
 
     public int Count => _resolvers.Count;
 

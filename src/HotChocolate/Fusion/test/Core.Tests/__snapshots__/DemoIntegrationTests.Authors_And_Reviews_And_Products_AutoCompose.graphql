@@ -12,6 +12,8 @@ schema
 }
 
 type Query {
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
   productById(id: ID!): Product
     @variable(subgraph: "Reviews2", name: "id", argument: "id")
     @resolver(subgraph: "Reviews2", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -49,6 +51,9 @@ type Mutation {
   addUser(input: AddUserInput!): AddUserPayload!
     @variable(subgraph: "Accounts", name: "input", argument: "input")
     @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+  uploadMultipleProductPictures(input: UploadMultipleProductPicturesInput!): UploadMultipleProductPicturesPayload!
+    @variable(subgraph: "Products", name: "input", argument: "input")
+    @resolver(subgraph: "Products", select: "{ uploadMultipleProductPictures(input: $input) }", arguments: [ { name: "input", type: "UploadMultipleProductPicturesInput!" } ])
   uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
     @variable(subgraph: "Products", name: "input", argument: "input")
     @resolver(subgraph: "Products", select: "{ uploadProductPicture(input: $input) }", arguments: [ { name: "input", type: "UploadProductPictureInput!" } ])
@@ -118,6 +123,8 @@ type Review implements Node
     @source(subgraph: "Reviews2")
   body: String!
     @source(subgraph: "Reviews2")
+  errorField: String
+    @source(subgraph: "Reviews2")
   id: ID!
     @source(subgraph: "Reviews2")
   product: Product!
@@ -133,6 +140,13 @@ type SomeData {
     @source(subgraph: "Products")
   reviewsValue: String!
     @source(subgraph: "Reviews2")
+}
+
+type UploadMultipleProductPicturesPayload {
+  boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadMultipleProductPicturesError!]
+    @source(subgraph: "Products")
 }
 
 type UploadProductPicturePayload {
@@ -151,6 +165,8 @@ type User implements Node
   @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH")
   @resolver(subgraph: "Reviews2", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
+    @source(subgraph: "Accounts")
+  errorField: String
     @source(subgraph: "Accounts")
   id: ID!
     @source(subgraph: "Reviews2")
@@ -185,6 +201,8 @@ interface Node {
 
 union ReviewOrAuthor = User | Review
 
+union UploadMultipleProductPicturesError = ProductNotFoundError
+
 union UploadProductPictureError = ProductNotFoundError
 
 input AddReviewInput {
@@ -199,9 +217,18 @@ input AddUserInput {
   username: String!
 }
 
+input ProductIdWithUploadInput {
+  file: Upload!
+  productId: Int!
+}
+
 input SomeDataInput {
   data: SomeDataInput
   num: Int
+}
+
+input UploadMultipleProductPicturesInput {
+  products: [ProductIdWithUploadInput!]!
 }
 
 input UploadProductPictureInput {

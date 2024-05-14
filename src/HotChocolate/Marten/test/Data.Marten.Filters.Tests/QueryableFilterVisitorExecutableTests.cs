@@ -8,17 +8,17 @@ namespace HotChocolate.Data;
 public class QueryableFilterVisitorExecutableTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = false }
-    };
+    [
+        new() { Bar = true, },
+        new() { Bar = false, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = null },
-        new() { Bar = false }
-    };
+    [
+        new() { Bar = true, },
+        new() { Bar = null, },
+        new() { Bar = false, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -96,7 +96,10 @@ public class QueryableFilterVisitorExecutableTests
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 

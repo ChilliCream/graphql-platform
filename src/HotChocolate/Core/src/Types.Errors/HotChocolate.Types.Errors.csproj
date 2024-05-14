@@ -1,0 +1,63 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Errors</PackageId>
+    <AssemblyName>HotChocolate.Types.Errors</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>This package provides shared error types for GraphQL query and mutation conventions.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="HotChocolate.Configuration" />
+    <Using Include="HotChocolate.Language" />
+    <Using Include="HotChocolate.Internal" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Descriptors" />
+    <Using Include="HotChocolate.Types.Descriptors.Definitions" />
+    <Using Include="HotChocolate.Resolvers" />
+    <Using Include="HotChocolate.Utilities" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Queries" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\MutationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MutationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\ErrorResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\MutationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MutationResources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\ErrorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ErrorResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

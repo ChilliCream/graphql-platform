@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Net.Sockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,7 +107,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
     {
         try
         {
-            GraphQLWebSocketMessage message = GraphQLWebSocketMessageParser.Parse(slice);
+            var message = GraphQLWebSocketMessageParser.Parse(slice);
 
             if (message.Id is { } id)
             {
@@ -140,7 +139,7 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
                     _ => CloseSocketOnProtocolError(
                         "Invalid message type received: " + message.Type,
-                        cancellationToken)
+                        cancellationToken),
                 };
             }
         }
@@ -156,8 +155,8 @@ public sealed class GraphQLWebSocketProtocol : SocketProtocolBase
 
     private static IClientError CreateError(JsonDocument error)
     {
-        if (error.RootElement.TryGetProperty("message", out JsonElement messageProp) &&
-            messageProp.GetString() is {  Length: > 0} message)
+        if (error.RootElement.TryGetProperty("message", out var messageProp) &&
+            messageProp.GetString() is {  Length: > 0, } message)
         {
             return new ClientError(message);
         }

@@ -23,6 +23,7 @@ type Query {
   users: [User!]!
   userById(id: ID!): User
   usersById(ids: [ID!]!): [User!]!
+  errorField: String
   viewer: Viewer!
 }
 
@@ -39,6 +40,7 @@ type Viewer {
 }
 
 type User implements Node {
+  errorField: String
   id: ID!
   name: String!
   birthdate: Date!

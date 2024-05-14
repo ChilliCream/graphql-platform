@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Instrumentation;
@@ -95,7 +91,7 @@ public class DiagnosticListenerTests
 
     private sealed class TestListener : ExecutionDiagnosticEventListener
     {
-        public List<object> Results { get; } = new();
+        public List<object> Results { get; } = [];
 
         public override bool EnableResolveFieldValue => true;
 

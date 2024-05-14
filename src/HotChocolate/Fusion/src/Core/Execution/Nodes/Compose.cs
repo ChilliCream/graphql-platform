@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
-using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.ExecutionUtils;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -27,7 +27,7 @@ internal sealed class Compose : QueryPlanNode
     /// The selection set for which the results shall be composed.
     /// </param>
     public Compose(int id, SelectionSet selectionSet)
-        : this(id, new[] { selectionSet }) { }
+        : this(id, new[] { selectionSet, }) { }
 
     /// <summary>
     /// Initializes a new instance of <see cref="Compose"/>.

@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
-using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
@@ -48,10 +47,14 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         new Dictionary<ParameterInfo, string>();
 
     public DefaultResolverCompiler(
+        IServiceProvider schemaServiceProvider,
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
+        var appServiceProvider = schemaServiceProvider.GetService<IApplicationServiceProvider>();
+        var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
+
         var custom = customParameterExpressionBuilders is not null
-            ? new List<IParameterExpressionBuilder>(customParameterExpressionBuilders)
+            ? [..customParameterExpressionBuilders,]
             : new List<IParameterExpressionBuilder>();
 
         // explicit internal expression builders will be added first.
@@ -63,9 +66,8 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             new GlobalStateParameterExpressionBuilder(),
             new ScopedStateParameterExpressionBuilder(),
             new LocalStateParameterExpressionBuilder(),
+            new IsSelectedParameterExpressionBuilder(),
             new EventMessageParameterExpressionBuilder(),
-            new ScopedServiceParameterExpressionBuilder(),
-            new LegacyScopedServiceParameterExpressionBuilder(),
         };
 
         if (customParameterExpressionBuilders is not null)
@@ -95,8 +97,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new FieldParameterExpressionBuilder());
         expressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
         expressionBuilders.Add(new PathParameterExpressionBuilder());
-        expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventReceiver>());
-        expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventSender>());
+
+        if (serviceInspector is not null)
+        {
+            expressionBuilders.Add(new InferredServiceParameterExpressionBuilder(serviceInspector));
+        }
 
         if (customParameterExpressionBuilders is not null)
         {
@@ -116,7 +121,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         }
         else
         {
-            _defaultParameterExpressionBuilders = new();
+            _defaultParameterExpressionBuilders = [];
         }
 
         _parameterExpressionBuilders = expressionBuilders;
@@ -215,11 +220,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         sourceType ??= member.ReflectedType ?? member.DeclaringType!;
         resolverType ??= sourceType;
 
-        if (member is MethodInfo { IsStatic: true } method)
+        if (member is MethodInfo { IsStatic: true, } method)
         {
             resolver = CompileStaticResolver(method, argumentNames, parameterExpressionBuilders);
         }
-        else if (member is PropertyInfo { GetMethod: { IsStatic: true } getMethod })
+        else if (member is PropertyInfo { GetMethod: { IsStatic: true, } getMethod, })
         {
             resolver = CompileStaticResolver(getMethod, argumentNames, parameterExpressionBuilders);
         }

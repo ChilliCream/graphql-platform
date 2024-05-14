@@ -73,7 +73,7 @@ internal static class OperationDocumentHelper
         {
             foreach (var definition in document.Definitions)
             {
-                if (definition is OperationDefinitionNode { Name: { } name } op)
+                if (definition is OperationDefinitionNode { Name: { } name, } op)
                 {
                     name = name.WithValue(GetClassName(name.Value));
                     op = op.WithName(name);
@@ -105,7 +105,7 @@ internal static class OperationDocumentHelper
                     throw new CodeGeneratorException(
                         ErrorBuilder.New()
                             .SetMessage("All operations must be named.")
-                            .AddLocation(op)
+                            .AddLocation([op])
                             .Build());
                 }
 
@@ -116,7 +116,7 @@ internal static class OperationDocumentHelper
                             .SetMessage(
                                 "The operation name `{0}` is not unique.",
                                 op.Name.Value)
-                            .AddLocation(op)
+                            .AddLocation([op])
                             .Build());
                 }
             }
@@ -130,7 +130,7 @@ internal static class OperationDocumentHelper
                             .SetMessage(
                                 "The fragment name `{0}` is not unique.",
                                 fd.Name.Value)
-                            .AddLocation(fd)
+                            .AddLocation([fd])
                             .Build());
                 }
             }
@@ -147,7 +147,7 @@ internal static class OperationDocumentHelper
         {
             visitor.Visit(context.Operation, context);
 
-            var definitions = new List<IDefinitionNode> { context.Operation };
+            var definitions = new List<IDefinitionNode> { context.Operation, };
             definitions.AddRange(context.ExportedFragments);
             var operationDoc = new DocumentNode(definitions);
             operationDocs.Add(context.Operation.Name!.Value, operationDoc);

@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Instrumentation;
 internal class ApolloTracingResultBuilder
 {
     private const int _apolloTracingVersion = 1;
-    private const long _ticksToNanosecondsMultiplicator = 100;
+    private const long _ticksToNanosecondsMultiplier = 100;
     private readonly ConcurrentQueue<ApolloTracingResolverRecord> _resolverRecords =
         new ConcurrentQueue<ApolloTracingResolverRecord>();
     private TimeSpan _duration;
@@ -76,7 +76,7 @@ internal class ApolloTracingResultBuilder
         details.SetValueUnsafe(0, ApolloTracingResultKeys.Version, _apolloTracingVersion);
         details.SetValueUnsafe(1, StartTime, _startTime.ToRfc3339DateTimeString());
         details.SetValueUnsafe(2, EndTime, _startTime.Add(_duration).ToRfc3339DateTimeString());
-        details.SetValueUnsafe(3, Duration, _duration.Ticks * _ticksToNanosecondsMultiplicator);
+        details.SetValueUnsafe(3, Duration, _duration.Ticks * _ticksToNanosecondsMultiplier);
         details.SetValueUnsafe(4, Parsing, _parsingResult);
         details.SetValueUnsafe(5, ApolloTracingResultKeys.Validation, _validationResult);
         details.SetValueUnsafe(6, ApolloTracingResultKeys.Execution, result);

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 
@@ -15,7 +14,7 @@ public class DictionaryToObjectConverterTests
 
         var bar = new Dictionary<string, object>();
         bar["State"] = "On";
-        bar["Bazs"] = new List<object> { baz };
+        bar["Bazs"] = new List<object> { baz, };
 
         var foo = new Dictionary<string, object>();
         foo["text"] = "abc";
@@ -39,9 +38,9 @@ public class DictionaryToObjectConverterTests
 
         var bar = new Dictionary<string, object>();
         bar["State"] = "On";
-        bar["Bazs"] = new List<object> { baz };
-        bar["BazArray"] = new List<object> { baz };
-        bar["StringArray"] = new List<object> { "a", 1, true };
+        bar["Bazs"] = new List<object> { baz, };
+        bar["BazArray"] = new List<object> { baz, };
+        bar["StringArray"] = new List<object> { "a", 1, true, };
 
         // assert
         var converter = new DictionaryToObjectConverter(
@@ -61,11 +60,11 @@ public class DictionaryToObjectConverterTests
 
         var bar = new Dictionary<string, object>();
         bar["State"] = "On";
-        bar["Bazs"] = new List<object> { baz };
-        bar["BazArray"] = new List<object> { baz };
-        bar["StringArray"] = new List<object> { "a", 1, true };
+        bar["Bazs"] = new List<object> { baz, };
+        bar["BazArray"] = new List<object> { baz, };
+        bar["StringArray"] = new List<object> { "a", 1, true, };
 
-        var list = new List<object> { bar };
+        var list = new List<object> { bar, };
 
         // assert
         var converter = new DictionaryToObjectConverter(

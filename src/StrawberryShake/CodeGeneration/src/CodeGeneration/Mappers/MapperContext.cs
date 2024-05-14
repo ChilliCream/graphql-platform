@@ -13,14 +13,14 @@ namespace StrawberryShake.CodeGeneration.Mappers;
 
 public class MapperContext : IMapperContext
 {
-    private readonly List<INamedTypeDescriptor> _types = new();
-    private readonly List<EntityTypeDescriptor> _entityTypes = new();
-    private readonly List<DataTypeDescriptor> _dataTypes = new();
-    private readonly List<ResultFromEntityDescriptor> _mappers = new();
+    private readonly List<INamedTypeDescriptor> _types = [];
+    private readonly List<EntityTypeDescriptor> _entityTypes = [];
+    private readonly List<DataTypeDescriptor> _dataTypes = [];
+    private readonly List<ResultFromEntityDescriptor> _mappers = [];
     private readonly Dictionary<string, OperationDescriptor> _operations = new(Ordinal);
     private readonly Dictionary<string, ResultBuilderDescriptor> _resultBuilder = new(Ordinal);
     private readonly Dictionary<(string, TypeKind), RuntimeTypeInfo> _runtimeTypes = new();
-    private readonly HashSet<string> _runtimeTypeNames = new();
+    private readonly HashSet<string> _runtimeTypeNames = [];
     private ClientDescriptor? _client;
     private EntityIdFactoryDescriptor? _entityIdFactory;
     private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;

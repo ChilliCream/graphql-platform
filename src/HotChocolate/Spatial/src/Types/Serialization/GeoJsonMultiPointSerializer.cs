@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -28,7 +25,7 @@ internal class GeoJsonMultiPointSerializer
 
         Point[]? geometries;
 
-        if (coordinates is IList { Count: > 0 } listObjects &&
+        if (coordinates is IList { Count: > 0, } listObjects &&
             listObjects.TryConvertToCoordinates(out var list))
         {
             geometries = new Point[list.Length];

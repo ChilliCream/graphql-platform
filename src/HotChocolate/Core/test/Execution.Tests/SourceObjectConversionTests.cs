@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -20,7 +18,7 @@ public class SourceObjectConversionTests
             .AddTypeConverter<Foo, Baz>(input =>
             {
                 conversionTriggered = true;
-                return new Baz { Qux = input.Bar };
+                return new Baz { Qux = input.Bar, };
             })
             .Services
             .BuildServiceProvider()
@@ -65,7 +63,7 @@ public class SourceObjectConversionTests
 
     public class Query
     {
-        public Foo Foo { get; } = new Foo { Bar = "bar" };
+        public Foo Foo { get; } = new Foo { Bar = "bar", };
     }
 
     public class QueryType : ObjectType<Query>

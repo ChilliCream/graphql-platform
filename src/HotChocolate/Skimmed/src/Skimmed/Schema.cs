@@ -14,11 +14,11 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
 
     public ObjectType? SubscriptionType { get; set; }
 
-    public TypeCollection Types { get; } = new();
+    public TypeCollection Types { get; } = [];
 
-    public DirectiveTypeCollection DirectiveTypes { get; } = new();
+    public DirectiveTypeCollection DirectiveTypes { get; } = [];
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
@@ -146,5 +146,5 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
         return false;
     }
 
-    public static Schema Create(string name) => new() { Name = name };
+    public static Schema Create(string name) => new() { Name = name, };
 }

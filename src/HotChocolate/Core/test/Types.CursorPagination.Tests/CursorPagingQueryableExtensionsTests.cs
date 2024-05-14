@@ -9,7 +9,6 @@ using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -116,10 +115,10 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo" },
-                new() { Name = "Bar" },
-                new() { Name = "Baz" },
-                new() { Name = "Qux" },
+                new() { Name = "Foo", },
+                new() { Name = "Bar", },
+                new() { Name = "Baz", },
+                new() { Name = "Qux", },
             };
 
             return await list.AsQueryable().ApplyCursorPaginationAsync(
@@ -139,10 +138,10 @@ public class CursorPagingQueryableExtensionsTests
         {
             var list = new Person[]
             {
-                new() { Name = "Foo" },
-                new() { Name = "Bar" },
-                new() { Name = "Baz" },
-                new() { Name = "Qux" },
+                new() { Name = "Foo", },
+                new() { Name = "Bar", },
+                new() { Name = "Baz", },
+                new() { Name = "Qux", },
             };
 
             return await list.ApplyCursorPaginationAsync(

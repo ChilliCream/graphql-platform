@@ -6,6 +6,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.WellKnownDirectives;
@@ -21,7 +22,7 @@ internal sealed class OperationResolverMiddleware
     private readonly VariableCoercionHelper _coercionHelper;
     private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
 
-    public OperationResolverMiddleware(
+    private OperationResolverMiddleware(
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
         IEnumerable<IOperationCompilerOptimizer> optimizers,
@@ -161,4 +162,19 @@ internal sealed class OperationResolverMiddleware
         var variables = CoerceVariables(context, _coercionHelper, operationDefinition.VariableDefinitions);
         return variables.GetVariable<bool>(variable.Name.Value);
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
+            var optimizers1 = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var optimizers2 = core.SchemaServices.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
+            var middleware = new OperationResolverMiddleware(
+                next,
+                operationCompilerPool,
+                optimizers1.Concat(optimizers2),
+                coercionHelper);
+            return context => middleware.InvokeAsync(context);
+        };
 }
