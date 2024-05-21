@@ -96,7 +96,7 @@ public sealed class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // Act
-        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
+        var result = await schema.ExecuteAsync(query);
 
         // Assert
         Assert.NotNull(result);
@@ -123,7 +123,7 @@ public sealed class IntegrationTests
             .BuildRequestExecutorAsync();
 
         // Act
-        var result = await schema.ExecuteAsync(QueryRequestBuilder.Create(query));
+        var result = await schema.ExecuteAsync(query);
 
         // Assert
         httpClientFactoryMock.Verify(f => f.CreateClient(It.IsAny<string>()), Times.Exactly(2));

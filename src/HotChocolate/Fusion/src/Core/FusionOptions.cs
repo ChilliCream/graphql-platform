@@ -6,7 +6,7 @@ public sealed class FusionOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the <c>Fusion</c> query plan
-    /// can be requested on a per request basis.
+    /// can be requested on a per-request basis.
     ///
     /// The default is <c>false</c>.
     /// </summary>
