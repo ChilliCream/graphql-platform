@@ -25,7 +25,6 @@ public static class BuiltInScalarNames
         "Guid",
         ScalarNames.DateTime,
         ScalarNames.Date,
-        ScalarNames.MultiplierPath,
         ScalarNames.Name,
         ScalarNames.ByteArray,
         ScalarNames.Any,

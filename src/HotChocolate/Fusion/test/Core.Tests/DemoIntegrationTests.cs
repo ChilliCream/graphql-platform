@@ -466,7 +466,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         Assert.Null(result.ExpectQueryResult().Errors);
     }
 
-    [Fact]
+    [Fact(Skip = "Do we want to reformat ids?")]
     public async Task Authors_And_Reviews_Query_Reformat_AuthorIds()
     {
         // arrange

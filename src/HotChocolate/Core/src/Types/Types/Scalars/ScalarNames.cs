@@ -18,7 +18,6 @@ public static class ScalarNames
     public const string DateTime = nameof(DateTime);
     public const string Date = nameof(Date);
     public const string TimeSpan = nameof(TimeSpan);
-    public const string MultiplierPath = nameof(MultiplierPath);
     public const string Name = nameof(Name);
     public const string PaginationAmount = nameof(PaginationAmount);
     public const string JSON = nameof(JSON);
