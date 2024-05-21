@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using HotChocolate.Execution.Processing;
-using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.ExecutionUtils;
 using static HotChocolate.Fusion.Utilities.Utf8QueryPlanPropertyNames;
 
 namespace HotChocolate.Fusion.Execution.Nodes;

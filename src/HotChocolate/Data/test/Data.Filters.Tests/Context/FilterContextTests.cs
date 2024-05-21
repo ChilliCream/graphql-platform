@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
@@ -53,6 +49,80 @@ public class FilterContextTests
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("eq", operation.Field.Name);
         Assert.Equal("test", Assert.IsType<FilterValue>(operation.Value).Value);
+    }
+    
+    [Fact]
+    public async Task When_Query_Is_Empty_IsDefined_Should_Be_False()
+    {
+        // arrange
+        IFilterContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseFiltering()
+                .Resolve(ctx =>
+                {
+                    context = ctx.GetFilterContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = 
+            """
+            {
+              test {
+                title
+              }
+            }
+            """;
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        Assert.False(context!.IsDefined);
+    }
+    
+    [Fact]
+    public async Task When_Query_Is_Set_IsDefined_Should_Be_False()
+    {
+        // arrange
+        IFilterContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(t => t
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseFiltering()
+                .Resolve(ctx =>
+                {
+                    context = ctx.GetFilterContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = 
+            """
+            {
+              test(where: { title: { eq: "test" } }) {
+                title
+              }
+            }
+            """;
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        Assert.True(context!.IsDefined);
     }
 
     [Fact]

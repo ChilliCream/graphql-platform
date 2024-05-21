@@ -85,11 +85,9 @@ internal partial class MiddlewareContext
         return selectionSet.Selections;
     }
 
+    public ISelectionCollection Select()
+        => new SelectionCollection(Schema, Operation, [Selection], _operationContext.IncludeFlags);
+
     public ISelectionCollection Select(string fieldName)
-        => new SelectionCollection(
-            Schema,
-            Operation,
-            [Selection,],
-            _operationContext.IncludeFlags)
-            .Select(fieldName);
+        => Select().Select(fieldName);
 }

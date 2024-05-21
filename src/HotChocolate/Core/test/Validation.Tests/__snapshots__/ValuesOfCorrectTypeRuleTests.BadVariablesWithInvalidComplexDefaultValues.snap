@@ -13,36 +13,7 @@
       "field": "requiredField",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 87,
-        "End": 115,
-        "Line": 3,
-        "Column": 46
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 87,
-          "End": 101,
-          "Line": 3,
-          "Column": 46
-        },
-        "Value": "requiredField"
-      },
-      "Value": {
-        "Kind": "IntValue",
-        "Location": {
-          "Start": 102,
-          "End": 115,
-          "Line": 3,
-          "Column": 61
-        },
-        "Value": "123"
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "The specified input object field `intField` does not exist.",
@@ -58,36 +29,6 @@
       "field": "intField",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 107,
-        "End": 124,
-        "Line": 3,
-        "Column": 66
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 107,
-          "End": 116,
-          "Line": 3,
-          "Column": 66
-        },
-        "Value": "intField"
-      },
-      "Value": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 117,
-          "End": 124,
-          "Line": 3,
-          "Column": 76
-        },
-        "Value": "abc",
-        "Block": false
-      }
-    }
+    "Exception": null
   }
 ]

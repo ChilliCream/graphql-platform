@@ -1,9 +1,7 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 
@@ -12,8 +10,6 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public static class RelayIdFilterFieldExtensions
 {
-    private static IdSerializer? _idSerializer;
-    
     /// <summary>
     /// Makes the operation field type an ID type.
     /// </summary>
@@ -38,19 +34,18 @@ public static class RelayIdFilterFieldExtensions
             .Extend()
             .OnBeforeCompletion((c, d) =>
             {
-                d.Formatters.Push(CreateSerializer(c));
+                var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
+                var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
+                d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
             });
 
         return descriptor;
     }
 
     private static IInputValueFormatter CreateSerializer(
-        ITypeCompletionContext completionContext)
-    {
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            (_idSerializer ??= new IdSerializer());
-
-        return new FilterGlobalIdInputValueFormatter(serializer);
-    }
+        ITypeCompletionContext completionContext,
+        Type namedType)
+        => new FilterGlobalIdInputValueFormatter(
+            completionContext.DescriptorContext.NodeIdSerializerAccessor,
+            namedType);
 }

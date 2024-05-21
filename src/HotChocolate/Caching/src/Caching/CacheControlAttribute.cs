@@ -24,7 +24,7 @@ public sealed class CacheControlAttribute : DescriptorAttribute
     }
 
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, the resource can be cached.
+    /// The maximum time, in seconds, the resource can be cached.
     /// </param>
     public CacheControlAttribute(int maxAge)
     {
@@ -54,16 +54,16 @@ public sealed class CacheControlAttribute : DescriptorAttribute
     }
 
     /// <summary>
-    /// The maximum time, in Milliseconds, this resource can be cached.
+    /// The maximum time, in seconds, this resource can be cached.
     /// </summary>
-    public int MaxAge { get => _maxAge ?? 0; set => _maxAge = value; }
+    public int MaxAge { get => _maxAge ?? CacheControlDefaults.MaxAge; set => _maxAge = value; }
 
     /// <summary>
     /// The scope of this resource.
     /// </summary>
     public CacheControlScope Scope
     {
-        get => _scope ?? CacheControlScope.Public;
+        get => _scope ?? CacheControlDefaults.Scope;
         set => _scope = value;
     }
 

@@ -33,6 +33,7 @@ public sealed class CostDirectiveType : DirectiveType<CostDirective>
         descriptor
             .Argument(t => t.DefaultMultiplier)
             .Name("defaultMultiplier")
+            .Description("Gets the default multiplier.")
             .Type<IntType>();
     }
 }

@@ -1,10 +1,9 @@
 using HotChocolate.Data.TestContext;
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using Microsoft.EntityFrameworkCore;
+using HotChocolate.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
@@ -23,7 +22,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource) : IClassF
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        
+
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
@@ -51,14 +50,14 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource) : IClassF
         // Assert
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task GetSecondPage_With_2_Items()
     {
         // Arrange
         var connectionString = CreateConnectionString();
         await SeedAsync(connectionString);
-        
+
         // Act
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
@@ -86,7 +85,7 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource) : IClassF
         // Assert
         result.MatchMarkdownSnapshot();
     }
-    
+
     private static async Task SeedAsync(string connectionString)
     {
         await using var context = new CatalogContext(connectionString);

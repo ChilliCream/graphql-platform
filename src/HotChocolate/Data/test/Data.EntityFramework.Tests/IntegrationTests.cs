@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -226,7 +224,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         // arrange
         // act
         var executor = await new ServiceCollection()
-            .AddPooledDbContextFactory<BookContext>(
+            .AddDbContextPool<BookContext>(
                 b => b.UseInMemoryDatabase("Data Source=EF.OffsetPagingExecutable.db"))
             .AddGraphQL()
             .AddFiltering()

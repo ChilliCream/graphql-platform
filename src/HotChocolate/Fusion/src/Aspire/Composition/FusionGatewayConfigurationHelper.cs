@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using HotChocolate.Fusion.Aspire;
 using HotChocolate.Fusion.Composition.Settings;
 using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
@@ -8,6 +9,10 @@ namespace HotChocolate.Fusion.Composition;
 
 public static class FusionGatewayConfigurationUtilities
 {
+    public static void Configure(
+        IReadOnlyList<GatewayInfo> gateways)
+        => ConfigureAsync(gateways).Wait();
+
     public static async Task ConfigureAsync(
         IReadOnlyList<GatewayInfo> gateways,
         CancellationToken cancellationToken = default)
@@ -30,7 +35,7 @@ public static class FusionGatewayConfigurationUtilities
                     continue;
                 }
 
-                Console.WriteLine("Expoorting schema document for subgraph {0} ...", subgraph.Name);
+                Console.WriteLine("Exporting schema document for subgraph {0} ...", subgraph.Name);
 
                 var workingDirectory = System.IO.Path.GetDirectoryName(subgraph.Path)!;
 
@@ -64,7 +69,7 @@ public static class FusionGatewayConfigurationUtilities
                     if (process.ExitCode != 0)
                     {
                         Console.WriteLine(
-                            "{0}(1,1): error HF1002: ; Failed to export schema document for subgraph {1} ...",
+                            "{0}(1,1): error HF1002: Failed to export schema document for subgraph {1} ...",
                             subgraph.Path,
                             subgraph.Name);
                         Environment.Exit(-255);
@@ -90,7 +95,9 @@ public static class FusionGatewayConfigurationUtilities
                     continue;
                 }
 
-                var config = new SubgraphConfigurationDto(project.Name);
+                var config = new SubgraphConfigurationDto(
+                    project.Name,
+                    [new HttpClientConfiguration(new Uri("http://localhost:5000/graphql"), "http"),]);
                 var configJson = PackageHelper.FormatSubgraphConfig(config);
                 await File.WriteAllTextAsync(configFile, configJson, ct);
             }
@@ -103,13 +110,14 @@ public static class FusionGatewayConfigurationUtilities
     {
         foreach (var gateway in gateways)
         {
-            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), ct);
+            await ComposeGatewayAsync(gateway.Path, gateway.Subgraphs.Select(t => t.Path), gateway.CompositionOptions, ct);
         }
     }
 
     private static async Task ComposeGatewayAsync(
         string gatewayProject,
         IEnumerable<string> subgraphProjects,
+        FusionCompositionOptions compositionOptions,
         CancellationToken ct)
     {
         var gatewayDirectory = System.IO.Path.GetDirectoryName(gatewayProject)!;
@@ -125,15 +133,20 @@ public static class FusionGatewayConfigurationUtilities
             Directory.CreateDirectory(gatewayDirectory);
         }
 
+        if (packageFile.Exists)
+        {
+            packageFile.Delete();
+        }
+
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
-        var subgraphConfigs =
-            (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
+        var subgraphConfigs = (await package.GetSubgraphConfigurationsAsync(ct)).ToDictionary(t => t.Name);
         await ResolveSubgraphPackagesAsync(subgraphDirectories, subgraphConfigs, ct);
 
         using var settingsJson = settingsFile.Exists
             ? JsonDocument.Parse(await File.ReadAllTextAsync(settingsFile.FullName, ct))
             : await package.GetFusionGraphSettingsAsync(ct);
         var settings = settingsJson.Deserialize<PackageSettings>() ?? new PackageSettings();
+        settings.NodeField.Enabled = compositionOptions.EnableGlobalObjectIdentification;
 
         var features = settings.CreateFeatures();
 

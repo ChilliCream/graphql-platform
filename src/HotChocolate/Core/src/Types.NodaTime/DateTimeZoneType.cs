@@ -29,7 +29,7 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
         string resultValue,
         [NotNullWhen(true)] out DateTimeZone? runtimeValue)
     {
-        DateTimeZone? result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
+        var result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
 
         if (result == null)
         {

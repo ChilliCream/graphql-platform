@@ -33,7 +33,7 @@ query Large {
   "data": {
     "users": [
       {
-        "id": "VXNlcgppMQ==",
+        "id": "VXNlcjox",
         "name": "Ada Lovelace",
         "birthdate": "1815-12-10",
         "reviews": [
@@ -44,7 +44,7 @@ query Large {
               "birthdate": "1815-12-10"
             },
             "product": {
-              "id": "UHJvZHVjdAppMQ==",
+              "id": "UHJvZHVjdDox",
               "name": "Table",
               "deliveryEstimate": {
                 "max": 800
@@ -58,7 +58,7 @@ query Large {
               "birthdate": "1815-12-10"
             },
             "product": {
-              "id": "UHJvZHVjdAppMw==",
+              "id": "UHJvZHVjdDoz",
               "name": "Chair",
               "deliveryEstimate": {
                 "max": 90
@@ -68,7 +68,7 @@ query Large {
         ]
       },
       {
-        "id": "VXNlcgppMg==",
+        "id": "VXNlcjoy",
         "name": "Alan Turing",
         "birthdate": "1912-06-23",
         "reviews": [
@@ -79,7 +79,7 @@ query Large {
               "birthdate": "1912-06-23"
             },
             "product": {
-              "id": "UHJvZHVjdAppMg==",
+              "id": "UHJvZHVjdDoy",
               "name": "Couch",
               "deliveryEstimate": {
                 "max": 5300
@@ -93,7 +93,7 @@ query Large {
               "birthdate": "1912-06-23"
             },
             "product": {
-              "id": "UHJvZHVjdAppMQ==",
+              "id": "UHJvZHVjdDox",
               "name": "Table",
               "deliveryEstimate": {
                 "max": 800
@@ -335,6 +335,9 @@ type Mutation {
   addUser(input: AddUserInput!): AddUserPayload!
     @variable(subgraph: "Accounts", name: "input", argument: "input")
     @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+  uploadMultipleProductPictures(input: UploadMultipleProductPicturesInput!): UploadMultipleProductPicturesPayload!
+    @variable(subgraph: "Products", name: "input", argument: "input")
+    @resolver(subgraph: "Products", select: "{ uploadMultipleProductPictures(input: $input) }", arguments: [ { name: "input", type: "UploadMultipleProductPicturesInput!" } ])
   uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
     @variable(subgraph: "Products", name: "input", argument: "input")
     @resolver(subgraph: "Products", select: "{ uploadProductPicture(input: $input) }", arguments: [ { name: "input", type: "UploadProductPictureInput!" } ])
@@ -439,6 +442,13 @@ type SomeData {
     @source(subgraph: "Reviews2")
 }
 
+type UploadMultipleProductPicturesPayload {
+  boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadMultipleProductPicturesError!]
+    @source(subgraph: "Products")
+}
+
 type UploadProductPicturePayload {
   boolean: Boolean
     @source(subgraph: "Products")
@@ -491,6 +501,8 @@ interface Node {
 
 union ReviewOrAuthor = User | Review
 
+union UploadMultipleProductPicturesError = ProductNotFoundError
+
 union UploadProductPictureError = ProductNotFoundError
 
 input AddReviewInput {
@@ -505,9 +517,18 @@ input AddUserInput {
   username: String!
 }
 
+input ProductIdWithUploadInput {
+  file: Upload!
+  productId: Int!
+}
+
 input SomeDataInput {
   data: SomeDataInput
   num: Int
+}
+
+input UploadMultipleProductPicturesInput {
+  products: [ProductIdWithUploadInput!]!
 }
 
 input UploadProductPictureInput {

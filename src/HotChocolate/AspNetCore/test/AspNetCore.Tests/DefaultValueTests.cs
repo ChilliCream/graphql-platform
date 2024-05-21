@@ -2,7 +2,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using Xunit;
 
 namespace HotChocolate.AspNetCore;
 
@@ -42,12 +41,12 @@ public class DefaultValueTests
             .AddQueryType<Queries>()
             .AddMutationType<Mutations>();
 
-        ServiceProvider serviceProvider = services.BuildServiceProvider();
-        IRequestExecutorResolver executorResolver = serviceProvider.GetRequiredService<IRequestExecutorResolver>();
-        IRequestExecutor executor = executorResolver.GetRequestExecutorAsync().Result;
+        var serviceProvider = services.BuildServiceProvider();
+        var executorResolver = serviceProvider.GetRequiredService<IRequestExecutorResolver>();
+        var executor = executorResolver.GetRequestExecutorAsync().Result;
 
         // Act
-        IExecutionResult result = executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }").Result;
+        var result = executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }").Result;
 
         // Extract the data from the result
         var jsonResult = result.ToJson();

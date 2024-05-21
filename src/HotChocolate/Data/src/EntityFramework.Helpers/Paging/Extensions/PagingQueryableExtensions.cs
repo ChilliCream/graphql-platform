@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query;
+using HotChocolate.Pagination;
 
 namespace HotChocolate.Data;
 
@@ -13,7 +14,7 @@ public static class PagingQueryableExtensions
     private static readonly MethodInfo _createAndConvert = typeof(PagingQueryableExtensions)
         .GetMethod(nameof(CreateAndConvertParameter), BindingFlags.NonPublic | BindingFlags.Static)!;
     private static readonly ConcurrentDictionary<Type, Func<object?, Expression>> _cachedConverters = new();
-    
+
     /// <summary>
     /// Executes a query with paging and returns the selected page.
     /// </summary>
@@ -37,27 +38,27 @@ public static class PagingQueryableExtensions
     /// </exception>
     public static async ValueTask<Page<T>> ToPageAsync<T>(
         this IQueryable<T> source,
-        PagingArguments arguments, 
+        PagingArguments arguments,
         CancellationToken cancellationToken = default)
     {
         var keys = ParseDataSetKeys(source);
-        
+
         if(keys.Length == 0)
         {
             throw new ArgumentException(
                 "In order to use cursor pagination, you must specify at least on key using the `OrderBy` method.",
                 nameof(source));
         }
-        
+
         if(arguments.Last is not null && arguments.First is not null)
         {
             throw new ArgumentException(
                 "You can specify either `first` or `last`, but not both as this can lead to unpredictable results.",
                 nameof(arguments));
         }
-        
+
         var forward = arguments.Last is null;
-        
+
         if (arguments.After is not null)
         {
             var cursor = CursorParser.Parse(arguments.After, keys);
@@ -69,7 +70,7 @@ public static class PagingQueryableExtensions
             var cursor = CursorParser.Parse(arguments.Before, keys);
             source = source.Where(BuildWhereExpression<T>(keys, cursor, forward));
         }
-        
+
         if (arguments.First is not null)
         {
             source = source.Take(arguments.First.Value);
@@ -81,7 +82,7 @@ public static class PagingQueryableExtensions
         }
 
         var result = await source.ToListAsync(cancellationToken);
-        
+
         if(result.Count == 0)
         {
             return Page<T>.Empty;
@@ -91,7 +92,7 @@ public static class PagingQueryableExtensions
         {
             result.Reverse();
         }
-        
+
         return CreatePage(result, arguments, keys);
     }
 
@@ -129,7 +130,7 @@ public static class PagingQueryableExtensions
         this IIncludableQueryable<T, IOrderedEnumerable<TProperty>> source,
         Func<T, TKey> keySelector,
         PagingArguments arguments,
-        CancellationToken cancellationToken = default) 
+        CancellationToken cancellationToken = default)
         where TKey : notnull
     {
         var rewriter = new BatchQueryRewriter<TProperty>(arguments);
@@ -146,11 +147,11 @@ public static class PagingQueryableExtensions
                 case IReadOnlyList<TProperty> resultList:
                     result.Add(key, CreatePage(resultList, arguments, rewriter.Keys));
                     break;
-                    
+
                 case IEnumerable<TProperty> resultEnumerable:
                     result.Add(key, CreatePage(resultEnumerable.ToArray(), arguments, rewriter.Keys));
                     break;
-                
+
                 default:
                     throw new InvalidOperationException(
                         "The result must be a list or an enumerable.");
@@ -162,11 +163,11 @@ public static class PagingQueryableExtensions
 
     private static Page<T> CreatePage<T>(IReadOnlyList<T> items, PagingArguments arguments, DataSetKey[] keys)
     {
-        var hasPrevious = arguments.First is not null && items.Count > 0 || 
+        var hasPrevious = arguments.First is not null && items.Count > 0 ||
             arguments.Last is not null && items.Count > arguments.Last;
-        var hasNext = arguments.First is not null && items.Count > arguments.First || 
+        var hasNext = arguments.First is not null && items.Count > arguments.First ||
             arguments.Last is not null && items.Count > 0;
-        
+
         return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys));
     }
 
@@ -176,7 +177,7 @@ public static class PagingQueryableExtensions
         parser.Visit(source.Expression);
         return parser.Keys.ToArray();
     }
-    
+
     internal static Expression<Func<T, bool>> BuildWhereExpression<T>(
         DataSetKey[] keys,
         object[] cursor,
@@ -223,7 +224,7 @@ public static class PagingQueryableExtensions
             for (var j = 0; j < handled.Count; j++)
             {
                 var handledKey = handled[j];
-                
+
                 keyExpr =
                     Expression.Equal(
                         Expression.Call(
@@ -280,7 +281,7 @@ public static class PagingQueryableExtensions
 
         return converter(value);
     }
-    
+
     private static Expression CreateAndConvertParameter<T>(object value)
     {
         Expression<Func<T>> lambda = () => (T)value;

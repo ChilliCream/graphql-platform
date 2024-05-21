@@ -1,7 +1,19 @@
 {
   "errors": [
     {
-      "message": "ERROR"
+      "message": "ERROR",
+      "locations": [
+        {
+          "line": 1,
+          "column": 40
+        }
+      ],
+      "path": [
+        "foo",
+        "nonnull_list_nonnull_element",
+        0,
+        "c"
+      ]
     }
   ],
   "data": {

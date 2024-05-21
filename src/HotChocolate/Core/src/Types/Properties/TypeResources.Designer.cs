@@ -2007,12 +2007,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_PooledServicesNotAllowed {
-            get {
-                return ResourceManager.GetString("ThrowHelper_PooledServicesNotAllowed", resourceCulture);
-            }
-        }
-        
         internal static string ResolverContextExtensions_IsSelected_FieldNameEmpty {
             get {
                 return ResourceManager.GetString("ResolverContextExtensions_IsSelected_FieldNameEmpty", resourceCulture);

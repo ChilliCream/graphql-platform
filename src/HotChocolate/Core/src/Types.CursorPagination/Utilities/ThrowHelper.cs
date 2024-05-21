@@ -6,6 +6,19 @@ namespace HotChocolate.Utilities;
 
 internal static class ThrowHelper
 {
+    public static GraphQLException PagingHandler_MinPageSize(
+        int requestedItems,
+        IObjectField field,
+        Path path)
+        => new GraphQLException(
+            ErrorBuilder.New()
+                .SetMessage(ThrowHelper_PagingHandler_MinPageSize)
+                .SetCode(ErrorCodes.Paging.MinPaginationItems)
+                .SetPath(path)
+                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .SetExtension(nameof(requestedItems), requestedItems)
+                .Build());
+
     public static GraphQLException PagingHandler_MaxPageSize(
         int requestedItems,
         int maxAllowedItems,

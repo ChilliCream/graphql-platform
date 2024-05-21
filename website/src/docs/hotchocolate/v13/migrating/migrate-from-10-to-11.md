@@ -146,7 +146,7 @@ Another variant here is to use our scoped service feature that scopes services f
 
 # Schema / Resolvers
 
-### Field ordering
+## Field ordering
 
 Hot Chocolate 11 follows the spec and returns the fields in the order they were defined. This feature
 makes migrations harder because the schema snapshot looks different compared to version 11. You can change this behavior with the following setting.

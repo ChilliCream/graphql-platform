@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
+    <DisableFusionAnalyzerBuild>true</DisableFusionAnalyzerBuild>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="8.0.0-preview.5.24201.12" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="8.0.0-preview.5.24201.12" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="8.0.0-preview.5.24201.12" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="8.0.0-preview.5.24201.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Aspire\HotChocolate.Fusion.Aspire.csproj" />
+  </ItemGroup>
+
+</Project>

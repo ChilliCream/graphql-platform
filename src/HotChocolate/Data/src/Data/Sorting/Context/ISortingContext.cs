@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Sorting;
 
 /// <summary>
@@ -14,6 +12,11 @@ public interface ISortingContext
     /// </summary>
     /// <param name="isHandled">If false, sorting is applied on the result of the resolver</param>
     void Handled(bool isHandled);
+
+    /// <summary>
+    /// Specifies if sorting was defined.
+    /// </summary>
+    bool IsDefined { get; }
 
     /// <summary>
     /// Serializes the input object to a dictionary

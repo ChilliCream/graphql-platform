@@ -8,9 +8,9 @@ internal sealed class ServiceDiscoveryConfigurationRewriter : ConfigurationRewri
     {
         var x = configuration with
         {
-            EndpointUri = new Uri($"http://{configuration.SubgraphName}/graphql")
+            EndpointUri = new Uri($"http://{configuration.SubgraphName}/graphql"),
         };
-        
+
         return new ValueTask<HttpClientConfiguration>(x);
     }
 }

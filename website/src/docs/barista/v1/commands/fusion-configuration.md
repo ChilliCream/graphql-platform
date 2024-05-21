@@ -3,6 +3,7 @@ title: Fusion Configuration Management
 ---
 
 # Fusion Configuration Publish
+
 The `barista fusion-configuration publish` command provides a set of subcommands that allow you to begin, start, validate, cancel, and commit a fusion configuration publish, facilitating the management and deployment of fusion configurations.
 
 ## Begin a Configuration Publish

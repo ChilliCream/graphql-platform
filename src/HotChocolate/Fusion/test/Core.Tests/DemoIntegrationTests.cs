@@ -4,7 +4,6 @@ using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
@@ -106,6 +105,113 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Authors_And_Reviews_Query_GetUserReviews_Skip_Author()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser($skip: Boolean!) {
+                users {
+                    name
+                    reviews {
+                        body
+                        author @skip(if: $skip) {
+                            name
+                            birthdate
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetVariableValue("skip", true)
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Query_GetUserReviews_Skip_Author_ErrorField()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+            });
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query GetUser($skip: Boolean!) {
+                users {
+                    name
+                    reviews {
+                        body
+                        author {
+                            name
+                            birthdate
+                            errorField @skip(if: $skip)
+                        }
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetVariableValue("skip", true)
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
     public async Task Authors_And_Reviews_Query_GetUserById()
     {
         // arrange
@@ -129,7 +235,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var request = Parse(
             """
             query GetUser {
-              userById(id: "VXNlcgppMQ==") {
+              userById(id: "VXNlcjox") {
                 id
               }
             }
@@ -340,56 +446,6 @@ public class DemoIntegrationTests(ITestOutputHelper output)
                         author {
                             name
                         }
-                    }
-                }
-            }
-            """);
-
-        // act
-        await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
-
-        // assert
-        var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchMarkdownAsync();
-
-        Assert.Null(result.ExpectQueryResult().Errors);
-    }
-
-    [Fact]
-    public async Task Authors_And_Reviews_Query_Reformat_AuthorIds()
-    {
-        // arrange
-        using var demoProject = await DemoProject.CreateAsync();
-
-        // act
-        var fusionGraph =
-            await new FusionGraphComposer(logFactory: _logFactory)
-                .ComposeAsync(
-                    new[]
-                    {
-                        demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                    },
-                    new FusionFeatureCollection(FusionFeatures.NodeField));
-
-        var executor = await new ServiceCollection()
-            .AddSingleton(demoProject.HttpClientFactory)
-            .AddSingleton(demoProject.WebSocketConnectionFactory)
-            .AddFusionGatewayServer()
-            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
-            .BuildRequestExecutorAsync();
-
-        var request = Parse(
-            """
-            query ReformatIds {
-                reviews {
-                    author {
-                        id
                     }
                 }
             }
@@ -753,8 +809,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("User", 1);
+        var id = Convert.ToBase64String("User:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -854,8 +909,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Review", 1);
+        var id = Convert.ToBase64String("Review:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -907,8 +961,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Unknown", 1);
+        var id = Convert.ToBase64String("Unknown:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -961,8 +1014,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             }
             """);
 
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("User", 1);
+        var id = Convert.ToBase64String("User:1"u8);
 
         // act
         await using var result = await executor.ExecuteAsync(
@@ -1138,7 +1190,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1191,7 +1243,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1248,7 +1300,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1303,7 +1355,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1360,7 +1412,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1421,7 +1473,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1481,7 +1533,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1547,7 +1599,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 
@@ -1651,7 +1703,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
             QueryRequestBuilder
                 .New()
                 .SetQuery(request)
-                .SetVariableValue("id", "UHJvZHVjdAppMQ==")
+                .SetVariableValue("id", "UHJvZHVjdDox")
                 .SetVariableValue("first", 1)
                 .Create());
 

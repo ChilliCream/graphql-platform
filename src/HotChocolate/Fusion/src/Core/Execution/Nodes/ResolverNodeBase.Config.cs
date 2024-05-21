@@ -15,7 +15,7 @@ internal abstract partial class ResolverNodeBase
     internal readonly ref struct Config
     {
         private readonly bool _isInitialized;
-        
+
         /// <summary>
         /// Initializes a new instance of <see cref="Config"/>.
         /// </summary>
@@ -24,6 +24,9 @@ internal abstract partial class ResolverNodeBase
         /// </param>
         /// <param name="document">
         /// The GraphQL request document.
+        /// </param>
+        /// <param name="parent">
+        /// The selection from which the selection set was composed.
         /// </param>
         /// <param name="selectionSet">
         /// The selection set for which this request provides a patch.
@@ -46,6 +49,7 @@ internal abstract partial class ResolverNodeBase
         public Config(
             string subgraphName,
             DocumentNode document,
+            ISelection? parent,
             ISelectionSet selectionSet,
             IEnumerable<string> provides,
             IEnumerable<string> requires,
@@ -58,6 +62,7 @@ internal abstract partial class ResolverNodeBase
 
             SubgraphName = subgraphName;
             Document = document.ToString(false);
+            Parent = parent;
             SelectionSet = Unsafe.As<SelectionSet>(selectionSet);
             Provides = CollectionUtils.CopyToArray(provides, ref buffer, ref usedCapacity);
             Requires = CollectionUtils.CopyToArray(requires, ref buffer, ref usedCapacity);
@@ -83,6 +88,11 @@ internal abstract partial class ResolverNodeBase
         /// Gets the GraphQL request document.
         /// </summary>
         public string Document { get; }
+
+        /// <summary>
+        /// Gets the parent selection from which the selection set was composed.
+        /// </summary>
+        public ISelection? Parent { get; }
 
         /// <summary>
         /// Gets the selection set for which this request provides a patch.

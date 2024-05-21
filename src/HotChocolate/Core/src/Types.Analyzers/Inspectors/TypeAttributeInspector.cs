@@ -40,7 +40,8 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
                         return true;
                     }
 
-                    if (TypeAttributes.Contains(fullName) &&
+                    if (attributeContainingTypeSymbol.TypeArguments.Length == 0 &&
+                        TypeAttributes.Contains(fullName) &&
                         context.SemanticModel.GetDeclaredSymbol(possibleType) is { } type)
                     {
                         if (fullName.Equals(QueryTypeAttribute))

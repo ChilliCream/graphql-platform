@@ -59,8 +59,8 @@ internal static class MessageProcessor
         {
             while (true)
             {
-                ReadResult result = await reader.ReadAsync(ct).ConfigureAwait(false);
-                ReadOnlySequence<byte> buffer = result.Buffer;
+                var result = await reader.ReadAsync(ct).ConfigureAwait(false);
+                var buffer = result.Buffer;
                 SequencePosition? position;
 
                 do

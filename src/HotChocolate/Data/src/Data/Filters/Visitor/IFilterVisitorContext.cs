@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;

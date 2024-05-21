@@ -56,9 +56,9 @@ public class RequestWriter
     {
         if (_capacity < neededCapacity)
         {
-            byte[] buffer = _buffer;
+            var buffer = _buffer;
 
-            int newSize = buffer.Length * 2;
+            var newSize = buffer.Length * 2;
             if (neededCapacity > buffer.Length)
             {
                 newSize += neededCapacity;

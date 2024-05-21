@@ -1,6 +1,8 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers;
 
@@ -19,9 +21,35 @@ public interface ISelectionCollection : IReadOnlyList<ISelection>
     /// </param>
     /// <returns>
     /// Returns a <see cref="ISelectionCollection"/> containing
-    /// the selections that match the given field name. 
+    /// the selections that match the given field name.
     /// </returns>
     ISelectionCollection Select(string fieldName);
+
+    /// <summary>
+    /// Selects all child fields that match the given field names and
+    /// returns a <see cref="ISelectionCollection"/> containing
+    /// these selections.
+    /// </summary>
+    /// <param name="fieldNames">
+    /// The field names to select.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="ISelectionCollection"/> containing
+    /// the selections that match the given field name.
+    /// </returns>
+    ISelectionCollection Select(ReadOnlySpan<string> fieldNames);
+
+    /// <summary>
+    /// Selects all selections where the typeContext is assignable from the field`s declaring type.
+    /// </summary>
+    /// <param name="typeContext">
+    /// The type context to select.
+    /// </param>
+    /// <returns>
+    /// Returns a <see cref="ISelectionCollection"/> containing
+    /// the selections where the typeContext is assignable from the field`s declaring type.
+    /// </returns>
+    ISelectionCollection Select(INamedType typeContext);
 
     /// <summary>
     /// Specifies if a child field with the given field name is selected.

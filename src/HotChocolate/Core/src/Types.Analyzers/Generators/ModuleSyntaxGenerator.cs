@@ -1,8 +1,5 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 
 namespace HotChocolate.Types.Analyzers.Generators;
@@ -80,6 +77,67 @@ public sealed class ModuleSyntaxGenerator : IDisposable
                 ? "builder.AddTypeExtension(typeof(global::{0}));"
                 : "builder.AddTypeExtension<global::{0}>();",
             typeName);
+
+    public void WriteRegisterObjectTypeExtension(string runtimeTypeName, string extensionType)
+    {
+        _writer.WriteIndentedLine("builder.ConfigureSchema(sb =>", runtimeTypeName);
+        _writer.WriteIndentedLine("{");
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine("const string typeKey = \"8734371_Type_ObjectType<{0}>\";", runtimeTypeName);
+            _writer.WriteIndentedLine("const string hooksKey = \"8734371_Hooks_ObjectType<{0}>\";", runtimeTypeName);
+            _writer.WriteLine();
+            _writer.WriteIndentedLine("if (!sb.ContextData.ContainsKey(typeKey))");
+            _writer.WriteIndentedLine("{");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("sb.AddObjectType<{0}>(", runtimeTypeName);
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine("descriptor =>");
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine(
+                            "var hooks = (global::System.Collections.Generic.List<Action<IObjectTypeDescriptor" +
+                            "<{0}>>>)descriptor.Extend().Context.ContextData[hooksKey]!;",
+                            runtimeTypeName);
+                        _writer.WriteIndentedLine("foreach (var configure in hooks)");
+                        _writer.WriteIndentedLine("{");
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine("configure(descriptor);");
+                        }
+                        _writer.WriteIndentedLine("};");
+                    }
+                    _writer.WriteIndentedLine("});");
+                }
+                _writer.WriteLine();
+                _writer.WriteIndentedLine("sb.ContextData.Add(typeKey, null);");
+            }
+            _writer.WriteIndentedLine("}");
+
+            _writer.WriteLine();
+            _writer.WriteIndentedLine("if (!sb.ContextData.TryGetValue(hooksKey, out var value))");
+            _writer.WriteIndentedLine("{");
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine(
+                    "value = new System.Collections.Generic.List<Action<IObjectTypeDescriptor<{0}>>>();",
+                    runtimeTypeName);
+                _writer.WriteIndentedLine("sb.ContextData.Add(hooksKey, value);");
+            }
+
+            _writer.WriteIndentedLine("}");
+            _writer.WriteLine();
+            _writer.WriteIndentedLine(
+                "((System.Collections.Generic.List<Action<IObjectTypeDescriptor<{0}>>>)value!)" +
+                ".Add({1}.Initialize);",
+                runtimeTypeName,
+                extensionType);
+        }
+        _writer.WriteIndentedLine("});");
+    }
 
     public void WriteRegisterDataLoader(string typeName)
         => _writer.WriteIndentedLine("builder.AddDataLoader<global::{0}>();", typeName);

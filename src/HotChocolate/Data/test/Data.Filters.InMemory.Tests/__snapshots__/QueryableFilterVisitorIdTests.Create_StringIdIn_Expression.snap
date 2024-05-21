@@ -4,10 +4,10 @@ testatestAndtestb
   "data": {
     "root": [
       {
-        "bar": "Rm9vCmR0ZXN0YXRlc3Q="
+        "bar": "Rm9vOnRlc3RhdGVzdA=="
       },
       {
-        "bar": "Rm9vCmR0ZXN0YnRlc3Q="
+        "bar": "Rm9vOnRlc3RidGVzdA=="
       }
     ]
   }
@@ -48,7 +48,7 @@ testatest
   "data": {
     "root": [
       {
-        "bar": "Rm9vCmR0ZXN0YXRlc3Q="
+        "bar": "Rm9vOnRlc3RhdGVzdA=="
       }
     ]
   }

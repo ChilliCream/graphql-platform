@@ -209,7 +209,7 @@ public static class GenerateCommand
         {
             if (relayFormat)
             {
-                var map = new Dictionary<string, string>();
+                var map = new SortedDictionary<string, string>();
 
                 foreach (var doc in result.Documents)
                 {

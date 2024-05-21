@@ -15,6 +15,7 @@ public static class WellKnownAttributes
     public const string QueryAttribute = "HotChocolate.QueryAttribute";
     public const string MutationAttribute = "HotChocolate.MutationAttribute";
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";
+    public const string NodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
 
     public static HashSet<string> TypeAttributes { get; } =
     [

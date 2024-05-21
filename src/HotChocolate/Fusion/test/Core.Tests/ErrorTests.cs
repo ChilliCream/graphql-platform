@@ -39,6 +39,7 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .ModifyFusionOptions(options => options.IncludeDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -88,12 +89,13 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .ModifyFusionOptions(options => options.IncludeDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
             """
             {
-              reviewById(id: "UmV2aWV3Cmkx") {
+              reviewById(id: "UmV2aWV3OjE=") {
                 body
                 author {
                   username
@@ -138,12 +140,13 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .ModifyFusionOptions(options => options.IncludeDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
             """
             {
-              userById(id: "VXNlcgppMQ==") {
+              userById(id: "VXNlcjox") {
                 account1: birthdate
                 account2: birthdate
                 username
@@ -190,6 +193,7 @@ public class ErrorTests(ITestOutputHelper output)
             .AddSingleton(demoProject.WebSocketConnectionFactory)
             .AddFusionGatewayServer()
             .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .ModifyFusionOptions(options => options.IncludeDebugInfo = true)
             .BuildRequestExecutorAsync();
 
         var request = Parse(
@@ -394,7 +398,6 @@ public class ErrorTests(ITestOutputHelper output)
                         @resolver(subgraph: "a", select: "{ a }")
                     }
                     """))
-            .CoreBuilder
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .BuildRequestExecutorAsync();
 

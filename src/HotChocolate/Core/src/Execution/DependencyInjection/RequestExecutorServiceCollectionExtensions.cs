@@ -10,6 +10,7 @@ using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -36,6 +37,7 @@ public static class RequestExecutorServiceCollectionExtensions
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
+        services.TryAddSingleton<AggregateServiceScopeInitializer>();
 
         services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
@@ -54,7 +56,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher()
             .TryAddDefaultDataLoaderRegistry()
-            .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
             .AddSingleton<ResolverProvider>();
 

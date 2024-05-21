@@ -1,0 +1,8 @@
+{
+  "data": {
+    "deletePet": {
+      "code": 404,
+      "message": "Pet with ID '100' not found."
+    }
+  }
+}

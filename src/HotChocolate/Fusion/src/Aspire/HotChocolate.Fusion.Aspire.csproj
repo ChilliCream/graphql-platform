@@ -8,10 +8,16 @@
     <RootNamespace>HotChocolate.Fusion</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.4.24156.9" />
+    <None Include="$(MSBuildThisFileDirectory)HotChocolate.Fusion.Aspire.targets" Pack="true" PackagePath="build/HotChocolate.Fusion.Aspire.targets" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" Version="8.0.0-preview.5.24201.12" />
   </ItemGroup>
 
   <ItemGroup>
