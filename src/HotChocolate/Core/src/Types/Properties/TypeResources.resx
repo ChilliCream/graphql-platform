@@ -224,9 +224,6 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="LongType_Description" xml:space="preserve">
     <value>The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1.</value>
   </data>
-  <data name="MultiplierPathType_Description" xml:space="preserve">
-    <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
-  </data>
   <data name="NameType_Description" xml:space="preserve">
     <value>The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types.</value>
   </data>
@@ -626,12 +623,6 @@ Type: `{0}`</value>
   </data>
   <data name="SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddInputObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL input object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
-  </data>
-  <data name="CostDirective_ComplexityCannotBeBelowOne" xml:space="preserve">
-    <value>The complexity cannot be below one.</value>
-  </data>
-  <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
-    <value>Default multiplier cannot be below two.</value>
   </data>
   <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
     <value>The event message parameter can only be used in a subscription context.</value>

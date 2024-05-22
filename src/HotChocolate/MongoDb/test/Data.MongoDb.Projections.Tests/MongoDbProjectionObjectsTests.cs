@@ -27,7 +27,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
         {
             Number = 2, Foo = new FooNullable
             {
-                BarEnum = BarEnum.FOO, 
+                BarEnum = BarEnum.FOO,
                 BarShort = 14,
             },
         },
@@ -73,8 +73,8 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             number
@@ -83,7 +83,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -100,8 +100,8 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             number
@@ -115,7 +115,7 @@ public class MongoDbProjectionObjectTests(MongoResource resource) : IClassFixtur
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

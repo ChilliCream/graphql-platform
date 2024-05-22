@@ -33,14 +33,14 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -58,14 +58,14 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -85,19 +85,19 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -117,19 +117,19 @@ public class QueryableFilterVisitorExecutableTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot

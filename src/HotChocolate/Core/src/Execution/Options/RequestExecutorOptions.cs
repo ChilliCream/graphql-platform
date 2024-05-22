@@ -52,11 +52,6 @@ public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     public bool IncludeExceptionDetails { get; set; } = Debugger.IsAttached;
 
     /// <summary>
-    /// Gets the complexity analyzer settings.
-    /// </summary>
-    public ComplexityAnalyzerSettings Complexity { get; } = new();
-
-    /// <summary>
     /// Specifies if only persisted queries are allowed when using
     /// the persisted query pipeline.
     ///

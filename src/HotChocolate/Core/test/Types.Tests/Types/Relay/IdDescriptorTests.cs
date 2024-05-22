@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,20 +25,29 @@ public class IdDescriptorTests
         var guidId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    """
-                    query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
-                        intId(id: $intId)
-                        stringId(id: $stringId)
-                        guidId(id: $guidId)
-                    }
-                    """)
-                .SetVariableValue("intId", intId)
-                .SetVariableValue("stringId", stringId)
-                .SetVariableValue("guidId", guidId)
-                .Create());
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddType<FooPayloadType>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
+                            @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
+                                    intId(id: $intId)
+                                    stringId(id: $stringId)
+                                    guidId(id: $guidId)
+                                }")
+                        .SetVariableValues(
+                            new Dictionary<string, object>
+                            {
+                                { "intId", intId },
+                                { "stringId", stringId },
+                                { "guidId", guidId },
+                            })
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -57,16 +67,23 @@ public class IdDescriptorTests
         var someId = Convert.ToBase64String("Some:1"u8);
 
         // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"query foo ($someId: ID!) {
-                        foo(input: { someId: $someId }) {
-                            someId
-                        }
-                    }")
-                .SetVariableValue("someId", someId)
-                .Create());
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddType<FooPayloadType>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
+                            @"query foo ($someId: ID!) {
+                                foo(input: { someId: $someId }) {
+                                    someId
+                                }
+                            }")
+                        .SetVariableValues(new Dictionary<string, object> { { "someId", someId }, })
+                        .Build());
 
         // assert
         new

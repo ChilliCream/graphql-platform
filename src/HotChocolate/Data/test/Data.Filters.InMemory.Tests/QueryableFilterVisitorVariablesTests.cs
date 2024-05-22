@@ -3,41 +3,34 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters;
 
-public class QueryableFilterVisitorVariablesTests : IClassFixture<SchemaCache>
+public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
     [
-        new() { Bar = true, },
-        new() { Bar = false, },
+        new Foo { Bar = true, },
+        new Foo { Bar = false, },
     ];
-
-    private readonly SchemaCache _cache;
-
-    public QueryableFilterVisitorVariablesTests(SchemaCache cache)
-    {
-        _cache = cache;
-    }
 
     [Fact]
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
         const string query =
             "query Test($where: Boolean){ root(where: {bar: { eq: $where}}){ bar}}";
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("where", true)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "where", true }, })
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("where", false)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "where", false }, })
+                .Build());
 
         // assert
         await Snapshot
@@ -51,22 +44,22 @@ public class QueryableFilterVisitorVariablesTests : IClassFixture<SchemaCache>
     public async Task Create_BooleanEqual_Expression_NonNull()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
         const string query =
             "query Test($where: Boolean!){ root(where: {bar: { eq: $where}}){ bar}}";
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("where", true)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "where", true}, })
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("where", false)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "where", false}, })
+                .Build());
 
         // assert
         await Snapshot
@@ -90,11 +83,7 @@ public class QueryableFilterVisitorVariablesTests : IClassFixture<SchemaCache>
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

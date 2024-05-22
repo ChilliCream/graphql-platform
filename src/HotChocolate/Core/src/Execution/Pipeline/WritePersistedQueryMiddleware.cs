@@ -16,18 +16,18 @@ internal sealed class WritePersistedQueryMiddleware
     private const string _expectedFormat = "expectedHashFormat";
     private readonly RequestDelegate _next;
     private readonly IDocumentHashProvider _hashProvider;
-    private readonly IWriteStoredQueries _persistedQueryStore;
+    private readonly IOperationDocumentStorage _operationDocumentStorage;
 
     private WritePersistedQueryMiddleware(RequestDelegate next,
         IDocumentHashProvider documentHashProvider,
-        [SchemaService] IWriteStoredQueries persistedQueryStore)
+        [SchemaService] IOperationDocumentStorage operationDocumentStorage)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _hashProvider = documentHashProvider ??
             throw new ArgumentNullException(nameof(documentHashProvider));
-        _persistedQueryStore = persistedQueryStore ??
-            throw new ArgumentNullException(nameof(persistedQueryStore));
+        _operationDocumentStorage = operationDocumentStorage ??
+            throw new ArgumentNullException(nameof(operationDocumentStorage));
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -35,25 +35,25 @@ internal sealed class WritePersistedQueryMiddleware
         await _next(context).ConfigureAwait(false);
 
         if (!context.IsCachedDocument &&
-            context.Document is { } &&
+            context.Document is not null &&
             context.DocumentId is { } documentId &&
-            context.Request.Query is { } query &&
-            context.Result is IQueryResult result &&
+            context.Request.Document is { } document &&
+            context.Result is IOperationResult result &&
             context.IsValidDocument &&
-            context.Request.Extensions is { } &&
+            context.Request.Extensions is not null &&
             context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
             s is IReadOnlyDictionary<string, object> settings)
         {
-            IQueryResultBuilder builder = QueryResultBuilder.FromResult(result);
+            var resultBuilder = OperationResultBuilder.FromResult(result);
 
             // hash is found and matches the query key -> store the query
             if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
             {
                 // save the query
-                await _persistedQueryStore.WriteQueryAsync(documentId, query).ConfigureAwait(false);
+                await _operationDocumentStorage.SaveAsync(documentId, document).ConfigureAwait(false);
 
                 // add persistence receipt to the result
-                builder.SetExtension(
+                resultBuilder.SetExtension(
                     _persistedQuery,
                     new Dictionary<string, object>
                     {
@@ -65,7 +65,7 @@ internal sealed class WritePersistedQueryMiddleware
             }
             else
             {
-                builder.SetExtension(
+                resultBuilder.SetExtension(
                     _persistedQuery,
                     new Dictionary<string, object?>
                     {
@@ -77,13 +77,13 @@ internal sealed class WritePersistedQueryMiddleware
                     });
             }
 
-            context.Result = builder.Create();
+            context.Result = resultBuilder.Build();
         }
     }
 
     private static bool DoHashesMatch(
         IReadOnlyDictionary<string, object> settings,
-        string? expectedHash,
+        OperationDocumentId expectedHash,
         string hashName,
         [NotNullWhen(true)] out string? userHash)
     {
@@ -91,18 +91,18 @@ internal sealed class WritePersistedQueryMiddleware
             h is string hash)
         {
             userHash = hash;
-            return hash.Equals(expectedHash, StringComparison.Ordinal);
+            return hash.Equals(expectedHash.Value, StringComparison.Ordinal);
         }
 
         userHash = null;
         return false;
     }
-    
+
     public static RequestCoreMiddleware Create()
         => (core, next) =>
         {
             var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
-            var persistedQueryStore = core.SchemaServices.GetRequiredService<IWriteStoredQueries>();
+            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
             var middleware = new WritePersistedQueryMiddleware(next, documentHashProvider, persistedQueryStore);
             return context => middleware.InvokeAsync(context);
         };

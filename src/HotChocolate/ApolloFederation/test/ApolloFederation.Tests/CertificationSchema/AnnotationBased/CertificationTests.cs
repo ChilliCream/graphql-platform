@@ -33,7 +33,7 @@ public class CertificationTests
         // assert
         Assert.IsType<ObjectResult>(
             Assert.IsType<ObjectResult>(
-                Assert.IsType<QueryResult>(result).Data)
+                Assert.IsType<OperationResult>(result).Data)
                     .GetValueOrDefault("_service"))
                         .GetValueOrDefault("sdl")
                             .MatchSnapshot();

@@ -25,7 +25,7 @@ public class PersistedQueryTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -51,7 +51,7 @@ public class PersistedQueryTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -79,7 +79,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -106,7 +106,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -132,7 +132,7 @@ public class PersistedQueryTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -158,7 +158,7 @@ public class PersistedQueryTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -186,7 +186,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddSha1DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -213,7 +213,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -238,7 +238,7 @@ public class PersistedQueryTests : ServerTestBase
         var server = CreateStarWarsServer(
             configureServices: s => s
                 .AddGraphQL("StarWars")
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -262,7 +262,7 @@ public class PersistedQueryTests : ServerTestBase
             configureServices: s => s
                 .AddGraphQL("StarWars")
                 .ModifyRequestOptions(o => o.OnlyAllowPersistedQueries = true)
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -293,7 +293,7 @@ public class PersistedQueryTests : ServerTestBase
                             .SetMessage("Not allowed!")
                             .Build();
                 })
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline());
 
         var query = "{ __typename }";
@@ -320,7 +320,7 @@ public class PersistedQueryTests : ServerTestBase
                 {
                     o.OnlyAllowPersistedQueries = true;
                 })
-                .ConfigureSchemaServices(c => c.AddSingleton<IReadStoredQueries>(storage))
+                .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage))
                 .UsePersistedQueryPipeline()
                 .AddHttpRequestInterceptor<AllowPersistedQueryInterceptor>());
 
@@ -348,22 +348,28 @@ public class PersistedQueryTests : ServerTestBase
             },
         };
 
-    private sealed class QueryStorage : IReadStoredQueries
+    private sealed class QueryStorage : IOperationDocumentStorage
     {
-        private readonly Dictionary<string, Task<QueryDocument?>> _cache =
+        private readonly Dictionary<string, OperationDocument> _cache =
             new(StringComparer.Ordinal);
 
-        public Task<QueryDocument?> TryReadQueryAsync(
-            string queryId,
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId, 
             CancellationToken cancellationToken = default)
-            => _cache.TryGetValue(queryId, out var value)
-                ? value
-                : Task.FromResult<QueryDocument?>(null);
+            => _cache.TryGetValue(documentId.Value, out var value)
+                ? new ValueTask<IOperationDocument?>(value)
+                : new ValueTask<IOperationDocument?>(default(IOperationDocument));
 
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
+        
         public void AddQuery(string key, string query)
         {
-            var doc = new QueryDocument(Utf8GraphQLParser.Parse(query));
-            _cache.Add(key, Task.FromResult<QueryDocument?>(doc));
+            var doc = new OperationDocument(Utf8GraphQLParser.Parse(query));
+            _cache.Add(key, doc);
         }
     }
 
@@ -372,7 +378,7 @@ public class PersistedQueryTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             requestBuilder.AllowNonPersistedQuery();

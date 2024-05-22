@@ -42,7 +42,6 @@ public static class QueryCacheRequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseOperationExecution();

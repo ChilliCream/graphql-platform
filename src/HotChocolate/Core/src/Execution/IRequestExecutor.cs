@@ -39,19 +39,19 @@ public interface IRequestExecutor
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IQueryResult" />.
+    /// <see cref="IOperationResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
-    /// that the <see cref="IResponseStream" /> yields is a <see cref="IQueryResult" />.
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="IOperationResult" />.
     ///
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IQueryResult" />.
+    /// <see cref="IOperationResult" />.
     /// </returns>
     Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -67,6 +67,6 @@ public interface IRequestExecutor
     /// Returns a stream of query results.
     /// </returns>
     Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IQueryRequest> requestBatch,
+        OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default);
 }

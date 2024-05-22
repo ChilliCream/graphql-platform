@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime.Text;
 
@@ -5,23 +6,19 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class OffsetTimeTypeExtendedIntegrationTests
     {
-        private readonly IRequestExecutor testExecutor;
-
-        public OffsetTimeTypeExtendedIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<OffsetTimeTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<OffsetTimeTypeIntegrationTests.Schema.Mutation>()
                 .AddNodaTime(typeof(OffsetTimeType))
                 .AddType(new OffsetTimeType(OffsetTimePattern.ExtendedIso))
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturns()
         {
-            var result = testExecutor.Execute("query { test: hours }");
+            var result = _testExecutor.Execute("query { test: hours }");
 
             Assert.Equal("18:30:13.010011234+02", result.ExpectQueryResult().Data!["test"]);
         }
@@ -29,7 +26,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void QueryReturnsWithMinutes()
         {
-            var result = testExecutor.Execute("query { test: hoursAndMinutes }");
+            var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
 
             Assert.Equal("18:30:13.010011234+02:35", result.ExpectQueryResult().Data!["test"]);
         }
@@ -37,11 +34,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13.010011234+02")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02" }, })
+                    .Build());
 
             Assert.Equal("18:30:13.010011234+02", result.ExpectQueryResult().Data!["test"]);
         }
@@ -49,11 +46,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariableWithMinutes()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13.010011234+02:35")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234+02:35" }, })
+                    .Build());
 
             Assert.Equal("18:30:13.010011234+02:35", result.ExpectQueryResult().Data!["test"]);
         }
@@ -61,11 +58,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: OffsetTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13.010011234")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: OffsetTime!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13.010011234" }, })
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -74,10 +71,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13.010011234+02\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"18:30:13.010011234+02\") }")
+                    .Build());
 
             Assert.Equal("18:30:13.010011234+02", result.ExpectQueryResult().Data!["test"]);
         }
@@ -85,10 +82,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteralWithMinutes()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13.010011234+02:35\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"18:30:13.010011234+02:35\") }")
+                    .Build());
 
             Assert.Equal("18:30:13.010011234+02:35", result.ExpectQueryResult().Data!["test"]);
         }
@@ -96,10 +93,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13.010011234\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"18:30:13.010011234\") }")
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);

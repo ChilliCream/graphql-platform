@@ -19,7 +19,7 @@ public interface IDocumentValidatorContext
     /// <summary>
     /// Gets the unique document identifier.
     /// </summary>
-    string DocumentId { get; }
+    OperationDocumentId DocumentId { get; }
 
     /// <summary>
     /// Gets the current operation type.

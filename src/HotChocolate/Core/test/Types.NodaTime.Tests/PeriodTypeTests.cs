@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -22,44 +23,40 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
-
-        public PeriodTypeIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<Schema.Query>()
                 .AddMutationType<Schema.Mutation>()
                 .AddNodaTime()
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturns()
         {
-            var result = testExecutor.Execute("query { test: one }");
+            var result = _testExecutor.Execute("query { test: one }");
             Assert.Equal("P-3W3DT139t", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "P-3W15DT139t")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "P-3W15DT139t" }, })
+                    .Build());
             Assert.Equal("P-3W15DT-10M139t", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Period!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "-3W3DT-10M139t")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "-3W3DT-10M139t" }, })
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
@@ -67,20 +64,20 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"P-3W15DT139t\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"P-3W15DT139t\") }")
+                    .Build());
             Assert.Equal("P-3W15DT-10M139t", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"-3W3DT-10M139t\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"-3W3DT-10M139t\") }")
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);
@@ -90,7 +87,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         [Fact]
-        public void PatternEmpty_ThrowSchemaException()
+        public void PatternEmptyThrowSchemaException()
         {
             static object Call() => new PeriodType(Array.Empty<IPattern<Period>>());
             Assert.Throws<SchemaException>(Call);

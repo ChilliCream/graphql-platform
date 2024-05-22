@@ -47,7 +47,7 @@ internal sealed class QueryCacheMiddleware
 
             contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
 
-            context.Result = new QueryResult(
+            context.Result = new OperationResult(
                 queryResult.Data,
                 queryResult.Errors,
                 queryResult.Extensions,

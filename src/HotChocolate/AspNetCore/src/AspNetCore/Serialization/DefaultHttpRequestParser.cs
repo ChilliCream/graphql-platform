@@ -1,8 +1,6 @@
 // ReSharper disable RedundantSuppressNullableWarningExpression
 
 using System.Buffers;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -138,12 +136,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 document = result.Document;
             }
 
-            IReadOnlyDictionary<string, object?>? variables = null;
-
-            // if we find variables we do need to parse them
+            IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
             if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
             {
-                variables = ParseVariables(sv);
+                variableSet = ParseVariables(sv);
             }
 
             if (extensions is null &&
@@ -157,7 +153,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 queryId,
                 queryHash,
                 operationName,
-                variables,
+                variableSet,
                 extensions);
         }
         catch (SyntaxException ex)
@@ -177,10 +173,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         
         try
         {
-            IReadOnlyDictionary<string, object?>? variables = null;
+            IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
             if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
             {
-                variables = ParseVariables(sv);
+                variableSet = ParseVariables(sv);
             }
             
             IReadOnlyDictionary<string, object?>? extensions = null;
@@ -195,7 +191,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 operationId,
                 null,
                 operationName,
-                variables,
+                variableSet,
                 extensions);
         }
         catch (SyntaxException ex)
@@ -329,32 +325,9 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     private static void EnsureValidQueryId(string queryId)
     {
-        var span = queryId.AsSpan();
-        ref var start = ref MemoryMarshal.GetReference(span);
-        ref var end = ref Unsafe.Add(ref start, span.Length);
-
-        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        if (!OperationDocumentId.IsValidId(queryId))
         {
-            if (!IsLetterOrDigitOrUnderscoreOrHyphen((byte)start))
-            {
-                throw ErrorHelper.InvalidQueryIdFormat();
-            }
-            start = ref Unsafe.Add(ref start, 1)!;
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsLetterOrDigitOrUnderscoreOrHyphen(byte c)
-    {
-        switch (c)
-        {
-            case > 96 and < 123 or > 64 and < 91:
-            case > 47 and < 58:
-            case 45 or 95:
-                return true;
-
-            default:
-                return false;
+            throw ErrorHelper.InvalidQueryIdFormat();
         }
     }
 }

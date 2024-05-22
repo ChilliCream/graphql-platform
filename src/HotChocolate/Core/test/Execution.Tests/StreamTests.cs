@@ -116,7 +116,7 @@ public class StreamTests
             }
             """);
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [LocalFact]
@@ -127,9 +127,9 @@ public class StreamTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     """
                     query ($stream: Boolean!) {
                         persons @stream(if: $stream) {
@@ -137,10 +137,10 @@ public class StreamTests
                         }
                     }
                     """)
-                .SetVariableValue("stream", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object> { {"stream", false},})
+                .Build());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [LocalFact]
@@ -151,9 +151,9 @@ public class StreamTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     """
                     {
                         persons {
@@ -161,8 +161,8 @@ public class StreamTests
                         }
                     }
                     """)
-                .Create());
+                .Build());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 }

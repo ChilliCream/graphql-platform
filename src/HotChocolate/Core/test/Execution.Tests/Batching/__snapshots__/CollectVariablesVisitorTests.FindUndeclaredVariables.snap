@@ -1,5 +1,0 @@
-﻿query getHero($ep: Episode!) {
-  hero(episode: $ep) {
-    name
-  }
-}

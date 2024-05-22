@@ -30,7 +30,7 @@ internal sealed class DocumentValidationMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.Document is null || context.DocumentId is null)
+        if (context.Document is null || OperationDocumentId.IsNullOrEmpty(context.DocumentId))
         {
             context.Result = StateInvalidForDocumentValidation();
         }
@@ -45,7 +45,7 @@ internal sealed class DocumentValidationMiddleware
                             .ValidateAsync(
                                 context.Schema,
                                 context.Document,
-                                context.DocumentId,
+                                context.DocumentId.Value,
                                 context.ContextData,
                                 context.ValidationResult is not null,
                                 context.RequestAborted)
@@ -73,7 +73,7 @@ internal sealed class DocumentValidationMiddleware
                             resultContextData.Add(HttpStatusCode, value);
                         }
 
-                        context.Result = QueryResultBuilder.CreateError(
+                        context.Result = OperationResultBuilder.CreateError(
                             validationResult.Errors,
                             resultContextData);
 

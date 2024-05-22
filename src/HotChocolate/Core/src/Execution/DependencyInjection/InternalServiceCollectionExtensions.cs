@@ -146,8 +146,6 @@ internal static class InternalServiceCollectionExtensions
             _ => new DefaultDocumentCache());
         services.TryAddSingleton<IPreparedOperationCache>(
             _ => new DefaultPreparedOperationCache());
-        services.TryAddSingleton<IComplexityAnalyzerCache>(
-            _ => new DefaultComplexityAnalyzerCache());
         return services;
     }
 

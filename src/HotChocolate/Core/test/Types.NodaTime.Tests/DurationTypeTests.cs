@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -32,17 +33,12 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor _testExecutor;
-
-        public DurationTypeIntegrationTests()
-        {
-            _testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
-                .Create()
-                .MakeExecutable();
-        }
+        private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
+            .AddQueryType<Schema.Query>()
+            .AddMutationType<Schema.Mutation>()
+            .AddNodaTime()
+            .Create()
+            .MakeExecutable();
 
         [Fact]
         public void QueryReturnsSerializedDataWithDecimals()
@@ -90,10 +86,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithDecimals()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Duration!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "09:22:01:00.019")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00.019" }, })
+                    .Build());
             Assert.Equal("9:22:11:00.019", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -101,10 +97,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithoutDecimals()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Duration!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "09:22:01:00")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00" }, })
+                    .Build());
             Assert.Equal("9:22:11:00", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -112,10 +108,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithoutLeadingZero()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Duration!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "9:22:01:00")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:22:01:00" }, })
+                    .Build());
             Assert.Equal("9:22:11:00", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -123,10 +119,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithNegativeValue()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Duration!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "-9:22:01:00")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "-9:22:01:00" }, })
+                    .Build());
             Assert.Equal("-9:21:51:00", result.ExpectQueryResult().Data!["test"]);
         }
 
@@ -134,10 +130,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseInputWithPlusSign()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Duration!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "+09:22:01:00")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" }, })
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
@@ -146,10 +142,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseInputWithOverflownHours()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Duration!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "9:26:01:00")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:26:01:00" }, })
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
@@ -158,9 +154,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithDecimals()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"09:22:01:00.019\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"09:22:01:00.019\") }")
+                    .Build());
 
             Assert.Equal("9:22:11:00.019", result.ExpectQueryResult().Data!["test"]);
         }
@@ -169,9 +165,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithoutDecimals()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"09:22:01:00\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
+                    .Build());
 
             Assert.Equal("9:22:11:00", result.ExpectQueryResult().Data!["test"]);
         }
@@ -180,9 +176,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithoutLeadingZero()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"09:22:01:00\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
+                    .Build());
 
             Assert.Equal("9:22:11:00", result.ExpectQueryResult().Data!["test"]);
         }
@@ -191,9 +187,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithNegativeValue()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"-9:22:01:00\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"-9:22:01:00\") }")
+                    .Build());
 
             Assert.Equal("-9:21:51:00", result.ExpectQueryResult().Data!["test"]);
         }
@@ -202,9 +198,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseLiteralWithPlusSign()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"+09:22:01:00\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"+09:22:01:00\") }")
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -214,9 +210,9 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseLiteralWithOverflownHours()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"9:26:01:00\") }")
-                    .Create());
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"9:26:01:00\") }")
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);

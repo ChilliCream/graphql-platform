@@ -61,21 +61,21 @@ public class InMemoryClient : IInMemoryClient
             throw ThrowHelper.InMemoryClient_NoExecutorConfigured(_name);
         }
 
-        var requestBuilder = new QueryRequestBuilder();
+        var requestBuilder = new OperationRequestBuilder();
 
         if (request.Document.Body.Length > 0)
         {
-            requestBuilder.SetQuery(Utf8GraphQLParser.Parse(request.Document.Body));
+            requestBuilder.SetDocument(Utf8GraphQLParser.Parse(request.Document.Body));
         }
         else
         {
-            requestBuilder.SetQueryId(request.Id);
+            requestBuilder.SetDocumentId(request.Id);
         }
 
-        requestBuilder.SetOperation(request.Name);
+        requestBuilder.SetOperationName(request.Name);
         requestBuilder.SetVariableValues(CreateVariables(request));
         requestBuilder.SetExtensions(request.GetExtensionsOrNull());
-        requestBuilder.InitializeGlobalState(request.GetContextDataOrNull());
+        requestBuilder.SetGlobalState(request.GetContextDataOrNull());
 
         var applicationService = Executor.Services.GetApplicationServices();
         foreach (var interceptor in RequestInterceptors)
@@ -86,7 +86,7 @@ public class InMemoryClient : IInMemoryClient
         }
 
         return await Executor
-            .ExecuteAsync(requestBuilder.Create(), cancellationToken)
+            .ExecuteAsync(requestBuilder.Build(), cancellationToken)
             .ConfigureAwait(false);
     }
 

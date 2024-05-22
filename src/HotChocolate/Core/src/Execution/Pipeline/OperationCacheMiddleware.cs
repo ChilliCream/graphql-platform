@@ -26,7 +26,7 @@ internal sealed class OperationCacheMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.DocumentId is null)
+        if (OperationDocumentId.IsNullOrEmpty(context.DocumentId))
         {
             await _next(context).ConfigureAwait(false);
         }
@@ -37,7 +37,7 @@ internal sealed class OperationCacheMiddleware
 
             if (operationId is null)
             {
-                operationId = context.CreateCacheId(context.DocumentId, context.Request.OperationName);
+                operationId = context.CreateCacheId(context.DocumentId.Value.Value, context.Request.OperationName);
                 context.OperationId = operationId;
             }
 
@@ -52,7 +52,7 @@ internal sealed class OperationCacheMiddleware
 
             if (addToCache &&
                 context.Operation is not null &&
-                context.DocumentId is not null &&
+                !OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
                 context.Document is not null &&
                 context.IsValidDocument)
             {

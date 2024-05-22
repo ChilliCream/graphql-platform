@@ -412,10 +412,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureSchemaField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -466,10 +463,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureTypeField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -520,10 +514,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -628,8 +619,8 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     query($id: ID!) {
                       node(id: $id) {
@@ -637,8 +628,8 @@ public class AnnotationBasedAuthorizationTests
                       }
                     }
                     """)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         Snapshot
@@ -687,8 +678,8 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     query($id: ID!) {
                       node(id: $id) {
@@ -696,8 +687,8 @@ public class AnnotationBasedAuthorizationTests
                       }
                     }
                     """)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         Snapshot
@@ -744,10 +735,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -798,10 +786,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -857,10 +842,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE");
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE"); };
             });
 
         var executor = await services.GetRequestExecutorAsync();
@@ -869,7 +851,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             builder =>
                 builder
-                    .SetQuery(
+                    .SetDocument(
                         """
                         {
                           nodes(ids: "abc") {
@@ -928,7 +910,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             builder =>
                 builder
-                    .SetQuery(
+                    .SetDocument(
                         """
                         {
                           null

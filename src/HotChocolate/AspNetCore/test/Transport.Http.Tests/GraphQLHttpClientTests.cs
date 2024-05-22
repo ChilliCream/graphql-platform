@@ -37,8 +37,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -68,8 +67,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -100,8 +98,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -137,8 +134,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -174,8 +170,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -211,8 +206,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"heroByTraits":{"name":"Luke Skywalker"}}
+            Data: {"heroByTraits":{"name":"Luke Skywalker"}}
             """);
     }
 
@@ -247,8 +241,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -290,8 +283,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"B":"R2-D2"}}
+            Data: {"hero":{"B":"R2-D2"}}
             """);
     }
 
@@ -321,8 +313,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -352,8 +343,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -384,8 +374,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -421,8 +410,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -458,8 +446,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -494,8 +481,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -537,8 +523,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"B":"R2-D2"}}
+            Data: {"hero":{"B":"R2-D2"}}
             """);
     }
 
@@ -593,8 +578,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         {
             result.MatchInlineSnapshot(
                 """
-                Data:
-                {"onReview":{"stars":5}}
+                Data: {"onReview":{"stars":5}}
                 """);
             cts.Cancel();
         }
@@ -651,8 +635,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         {
             result.MatchInlineSnapshot(
                 """
-                Data:
-                {"onReview":{"stars":5}}
+                Data: {"onReview":{"stars":5}}
                 """);
             cts.Cancel();
         }
@@ -695,8 +678,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"singleUpload":"abc"}
+            Data: {"singleUpload":"abc"}
             """);
     }
 
@@ -740,8 +722,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"singleUpload":"abc"}
+            Data: {"singleUpload":"abc"}
             """);
     }
 }
