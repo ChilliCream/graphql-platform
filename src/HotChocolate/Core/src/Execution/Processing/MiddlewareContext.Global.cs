@@ -3,6 +3,7 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
@@ -34,6 +35,10 @@ internal partial class MiddlewareContext : IMiddlewareContext
     public IDictionary<string, object?> ContextData => _operationContext.ContextData;
 
     public IVariableValueCollection Variables => _operationContext.Variables;
+
+    public InputParser Parser => _parser;
+
+    public ITypeConverter Converter => _operationContext.Converter;
 
     public CancellationToken RequestAborted { get; private set; }
 
