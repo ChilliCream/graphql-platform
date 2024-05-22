@@ -51,7 +51,7 @@ public override ValueTask OnCreateAsync(HttpContext context,
 
 Most of the configuration will be done through the `OperationRequestBuilder`, injected as argument to this method.
 
-[Learn more about the OperationRequestBuilder](#OperationRequestBuilder)
+[Learn more about the OperationRequestBuilder](#operationrequestbuilder)
 
 If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
 
@@ -149,7 +149,7 @@ public override ValueTask OnRequestAsync(ISocketConnection connection,
 
 Most of the configuration will be done through the `OperationRequestBuilder`, injected as argument to this method.
 
-[Learn more about the OperationRequestBuilder](#OperationRequestBuilder)
+[Learn more about the OperationRequestBuilder](#operationrequestbuilder)
 
 If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
 
