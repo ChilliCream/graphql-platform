@@ -28,7 +28,7 @@ Try out the Operation Builder today and transform the way you work with GraphQL!
 # 📊 Telemetry
 
 ![Telemetry](img2.png)
-We’re excited to put a spotlight on our Telemetry integration. Why did we build this? The answer is simple. Understanding your application’s performance shouldn't be a guessing game and GraphQL Telemetry is difficult. With our telemetry integration, you can have complete visibility into your GraphQL server.
+We’re want to put a spotlight on our Telemetry integration. Why did we build this? The answer is simple. Understanding your application’s performance shouldn't be a guessing game and GraphQL Telemetry is difficult. With our telemetry integration, you can have complete visibility into your GraphQL server.
 
 ![Telemetry](img3.png)
 - **Trace Visualization:** See every trace in detail. This helps you pinpoint precisely where your system can be improved.
