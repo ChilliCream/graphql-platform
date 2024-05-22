@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -181,31 +183,120 @@ internal sealed class RequestExecutor : IRequestExecutor
             ? requestBatch.Services!
             : scope.ServiceProvider;
 
-        // we ensure that at the begin of each execution there is a fresh batching scope.
+        // we ensure that at the start of each execution there is a fresh batching scope.
         services.InitializeDataLoaderScope();
 
         var requests = requestBatch.Requests;
         var requestCount = requests.Count;
-        var tasks = new Task<IExecutionResult>[requestCount];
+        var tasks = new List<Task>(requestCount);
+
+        var completed = new ConcurrentStack<IOperationResult>();
 
         for (var i = 0; i < requestCount; i++)
         {
-            tasks[i] = ExecuteAsync(requests[i], false, i, cancellationToken);
+            tasks.Add(ExecuteBatchItemAsync(requests[i], i, completed, cancellationToken));
         }
 
-        for (var i = 0; i < requestCount; i++)
-        {
-            var task = tasks[i];
+        var buffer = new IOperationResult[8];
+        int bufferCount;
 
-            if (task.Status is TaskStatus.RanToCompletion)
+        do
+        {
+            bufferCount = completed.TryPopRange(buffer);
+
+            for (var i = 0; i < bufferCount; i++)
             {
-                yield return task.Result.ExpectQueryResult();
+                yield return buffer[i];
             }
-            else
+
+            if (bufferCount == 0)
             {
-                var result = await task.ConfigureAwait(false);
-                yield return result.ExpectQueryResult();
+                if(tasks.Any(t => !t.IsCompleted))
+                {
+                    var task = await Task.WhenAny(tasks);
+
+                    if (task.Status is not TaskStatus.RanToCompletion)
+                    {
+                        // we await to throw if its not successful.
+                        await task;
+                    }
+
+                    tasks.Remove(task);
+                }
+                else
+                {
+                    foreach (var task in tasks)
+                    {
+                        if (task.Status is not TaskStatus.RanToCompletion)
+                        {
+                            // we await to throw if it's not successful.
+                            await task;
+                        }
+                    }
+
+                    tasks.Clear();
+                }
             }
+        }
+        while (tasks.Count > 0 || bufferCount > 0);
+    }
+
+    private async Task ExecuteBatchItemAsync(
+        IOperationRequest request,
+        int requestIndex,
+        ConcurrentStack<IOperationResult> completed,
+        CancellationToken cancellationToken)
+    {
+        var result = await ExecuteAsync(request, false, requestIndex, cancellationToken).ConfigureAwait(false);
+        await UnwrapBatchItemResultAsync(result, completed, cancellationToken);
+    }
+
+    private static async Task UnwrapBatchItemResultAsync(
+        IExecutionResult result,
+        ConcurrentStack<IOperationResult> completed,
+        CancellationToken cancellationToken)
+    {
+        switch (result)
+        {
+            case OperationResult singleResult:
+                completed.Push(singleResult);
+                break;
+
+            case IResponseStream stream:
+            {
+                await foreach (var item in stream.ReadResultsAsync().WithCancellation(cancellationToken))
+                {
+                    completed.Push(item);
+                }
+
+                break;
+            }
+
+            case OperationResultBatch resultBatch:
+            {
+                List<Task>? tasks = null;
+                foreach (var item in resultBatch.Results)
+                {
+                    if (item is OperationResult singleItem)
+                    {
+                        completed.Push(singleItem);
+                    }
+                    else
+                    {
+                        (tasks ??= []).Add(UnwrapBatchItemResultAsync(item, completed, cancellationToken));
+                    }
+                }
+
+                if (tasks is not null)
+                {
+                    await Task.WhenAll(tasks);
+                }
+
+                break;
+            }
+
+            default:
+                throw new InvalidOperationException();
         }
     }
 

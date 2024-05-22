@@ -119,7 +119,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         Uri requestUri)
     {
         var method = request.Method;
-        
+
         if(method == GraphQLHttpMethod.Get)
         {
             if (request.Body is not OperationRequest)
@@ -263,7 +263,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             throw new InvalidOperationException(
                 HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
         }
-        
+
         var sb = new StringBuilder();
         var appendAmpersand = false;
 
@@ -295,8 +295,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(
-                Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.VariablesNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.VariablesNode)));
         }
         else if (or.Variables is not null)
         {
@@ -309,8 +308,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(
-                Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.ExtensionsNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.ExtensionsNode)));
         }
         else if (or.Extensions is not null)
         {
