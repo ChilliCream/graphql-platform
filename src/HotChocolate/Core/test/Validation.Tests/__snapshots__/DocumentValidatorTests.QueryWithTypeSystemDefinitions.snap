@@ -5,8 +5,8 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 9,
-        "Column": 17
+        "Line": 8,
+        "Column": 1
       }
     ],
     "Extensions": {
@@ -29,8 +29,8 @@
     },
     "Locations": [
       {
-        "Line": 5,
-        "Column": 25
+        "Line": 4,
+        "Column": 9
       }
     ],
     "Extensions": {

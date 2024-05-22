@@ -27,16 +27,16 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("order", "ASC")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("order", "DESC")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .Build());
 
         // assert
         await Snapshot
@@ -56,16 +56,16 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("order", "ASC")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "ASC" }, })
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .AddVariableValue("order", "DESC")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .SetVariableValues(new Dictionary<string, object?> { { "order", "DESC" }, })
+                .Build());
 
         // assert
         await Snapshot
@@ -130,28 +130,29 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         where T : SortInputType<TEntity>
     {
         var builder = new WebHostBuilder()
-            .ConfigureServices((_, services) =>
-            {
-                services.AddRouting();
-                services.AddGraphQLServer()
-                    .AddSorting()
-                    .AddQueryType(
-                        c =>
-                        {
-                            c
-                                .Name("Query")
-                                .Field("root")
-                                .Resolve(entities)
-                                .UseSorting<T>();
+            .ConfigureServices(
+                (_, services) =>
+                {
+                    services.AddRouting();
+                    services.AddGraphQLServer()
+                        .AddSorting()
+                        .AddQueryType(
+                            c =>
+                            {
+                                c
+                                    .Name("Query")
+                                    .Field("root")
+                                    .Resolve(entities)
+                                    .UseSorting<T>();
 
-                            c
-                                .Name("Query")
-                                .Field("rootExecutable")
-                                .Resolve(entities.AsExecutable())
-                                .UseSorting<T>();
-                        })
-                    .BuildRequestExecutorAsync();
-            })
+                                c
+                                    .Name("Query")
+                                    .Field("rootExecutable")
+                                    .Resolve(entities.AsExecutable())
+                                    .UseSorting<T>();
+                            })
+                        .BuildRequestExecutorAsync();
+                })
             .Configure(x => x.UseRouting().UseEndpoints(c => c.MapGraphQL()));
         return new TestServer(builder);
     }
@@ -188,7 +189,5 @@ public class QueryableSortVisitorVariablesTests : IClassFixture<SchemaCache>
         public bool Bar { get; set; }
     }
 
-    public class FooSortType : SortInputType<Foo>
-    {
-    }
+    public class FooSortType : SortInputType<Foo> { }
 }

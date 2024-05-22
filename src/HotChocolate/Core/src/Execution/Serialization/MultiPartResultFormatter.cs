@@ -1,10 +1,10 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ExecutionResultKind;
-using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Serialization;
 
@@ -12,9 +12,9 @@ namespace HotChocolate.Execution.Serialization;
 /// The default MultiPart formatter for <see cref="IExecutionResult"/>.
 /// https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
 /// </summary>
-public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
+public sealed class MultiPartResultFormatter : IExecutionResultFormatter
 {
-    private readonly IQueryResultFormatter _payloadFormatter;
+    private readonly IOperationResultFormatter _payloadFormatter;
 
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
@@ -30,112 +30,159 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResultFormatter" />.
     /// </summary>
-    /// <param name="queryResultFormatter">
+    /// <param name="operationResultFormatter">
     /// The serializer that shall be used to serialize query results.
     /// </param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="queryResultFormatter"/> is <c>null</c>.
+    /// <paramref name="operationResultFormatter"/> is <c>null</c>.
     /// </exception>
-    public MultiPartResultFormatter(IQueryResultFormatter queryResultFormatter)
+    public MultiPartResultFormatter(IOperationResultFormatter operationResultFormatter)
     {
-        _payloadFormatter = queryResultFormatter ??
-            throw new ArgumentNullException(nameof(queryResultFormatter));
+        _payloadFormatter = operationResultFormatter ??
+            throw new ArgumentNullException(nameof(operationResultFormatter));
     }
 
-    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync"/>
+    /// <summary>
+    /// Formats an <see cref="IExecutionResult"/> into a multipart stream.
+    /// </summary>
+    /// <param name="result">
+    /// The result that shall be formatted.
+    /// </param>
+    /// <param name="outputStream">
+    /// The stream to which the result shall be written.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// A task representing the asynchronous operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="result"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="NotSupportedException">
+    /// The formatter does not support the specified result.
+    /// </exception>
     public ValueTask FormatAsync(
         IExecutionResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result is null)
+        if (result == null)
         {
             throw new ArgumentNullException(nameof(result));
         }
 
-        if (outputStream is null)
+        if (outputStream == null)
         {
             throw new ArgumentNullException(nameof(outputStream));
         }
 
-        return result.Kind switch
+        if (result.Kind == SubscriptionResult)
         {
-            SingleResult =>
-                WriteSingleResponseAsync(
-                    (IQueryResult)result,
-                    outputStream,
-                    cancellationToken),
-            DeferredResult or BatchResult or SubscriptionResult
-                => WriteManyResponsesAsync(
-                    (IResponseStream)result,
-                    outputStream,
-                    cancellationToken),
-            _ => throw MultiPartFormatter_ResultNotSupported(
-                nameof(MultiPartResultFormatter)),
+            throw new NotSupportedException(
+                "Subscriptions are not supported by this formatter.");
+        }
+
+        return result switch
+        {
+            IOperationResult operationResult
+                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+            OperationResultBatch resultBatch
+                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+            IResponseStream responseStream
+                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+            _ => throw new NotSupportedException()
         };
     }
 
-    /// <summary>
-    /// Formats a response stream and writes the formatted result to
-    /// the given <paramref name="outputStream"/>.
-    /// </summary>
-    /// <param name="responseStream">
-    /// The response stream that shall be formatted.
-    /// </param>
-    /// <param name="outputStream">
-    /// The stream to which the formatted <paramref name="responseStream"/> shall be written to.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public ValueTask FormatAsync(
-        IResponseStream responseStream,
+    private async ValueTask FormatOperationResultAsync(
+        IOperationResult result,
         Stream outputStream,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
-        if (responseStream is null)
-        {
-            throw new ArgumentNullException(nameof(responseStream));
-        }
+        using var buffer = new ArrayWriter();
+        MessageHelper.WriteNext(buffer);
 
-        if (outputStream is null)
-        {
-            throw new ArgumentNullException(nameof(outputStream));
-        }
+        // First we write the header of the part.
+        MessageHelper.WriteResultHeader(buffer);
 
-        return WriteManyResponsesAsync(responseStream, outputStream, cancellationToken);
+        // Next we write the payload of the part.
+        MessageHelper.WritePayload(buffer, result, _payloadFormatter);
+
+        // Last we write the end of the part.
+        MessageHelper.WriteEnd(buffer);
+
+        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private async ValueTask WriteManyResponsesAsync(
+    private async ValueTask FormatResultBatchAsync(
+        OperationResultBatch resultBatch,
+        Stream outputStream,
+        CancellationToken ct = default)
+    {
+        ArrayWriter? buffer = null;
+        foreach (var result in resultBatch.Results)
+        {
+            switch (result)
+            {
+                case IOperationResult operationResult:
+                    buffer ??= new ArrayWriter();
+                    MessageHelper.WriteNext(buffer);
+                    MessageHelper.WriteResultHeader(buffer);
+                    MessageHelper.WritePayload(buffer, operationResult, _payloadFormatter);
+                    MessageHelper.WriteEnd(buffer);
+                    await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+                    await outputStream.FlushAsync(ct).ConfigureAwait(false);
+                    break;
+
+                case IResponseStream responseStream:
+                    await FormatResponseStreamAsync(responseStream, outputStream, ct).ConfigureAwait(false);
+                    break;
+            }
+        }
+
+        buffer?.Dispose();
+    }
+
+    private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken ct = default)
     {
         // first we create the iterator.
-        await using var enumerator =  responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
+        using var buffer = new ArrayWriter();
+        await using var enumerator = responseStream.ReadResultsAsync().GetAsyncEnumerator(ct);
         var first = true;
 
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             try
             {
+                buffer.Reset();
+
                 if (first || responseStream.Kind is not DeferredResult)
                 {
-                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                    MessageHelper.WriteNext(buffer);
                     first = false;
                 }
 
-                // Now we can write the header and body of the part.
-                await WriteResultAsync(enumerator.Current, outputStream, ct).ConfigureAwait(false);
+                // First we write the header of the part.
+                MessageHelper.WriteResultHeader(buffer);
+
+                // Next we write the payload of the part.
+                MessageHelper.WritePayload(buffer, enumerator.Current, _payloadFormatter);
 
                 if (responseStream.Kind is DeferredResult && (enumerator.Current.HasNext ?? false))
                 {
-                    await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+                    // If the result is a deferred result and has a next result we need to
+                    // write a new part so that the client knows that there is more to come.
+                    MessageHelper.WriteNext(buffer);
                 }
 
-                // we flush to make sure that the result is written to the network stream.
+                // Now we can write the part to the output stream and flush this chunk.
+                await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
                 await outputStream.FlushAsync(ct).ConfigureAwait(false);
             }
             finally
@@ -146,85 +193,50 @@ public sealed partial class MultiPartResultFormatter : IExecutionResultFormatter
             }
         }
 
-
-        await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
+        // After all parts have been written we need to write the final boundary.
+        buffer.Reset();
+        MessageHelper.WriteEnd(buffer);
+        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private async ValueTask WriteSingleResponseAsync(
-        IQueryResult queryResult,
-        Stream outputStream,
-        CancellationToken ct = default)
+    private static class MessageHelper
     {
-        // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF)
-        // is sent.
-        await WriteNextAsync(outputStream, ct).ConfigureAwait(false);
+        private static ReadOnlySpan<byte> ContentType => "Content-Type: application/json; charset=utf-8\r\n\r\n"u8;
+        private static ReadOnlySpan<byte> Start => "\r\n---\r\n"u8;
+        private static ReadOnlySpan<byte> End => "\r\n-----\r\n"u8;
+        private static ReadOnlySpan<byte> CrLf => "\r\n"u8;
 
-        try
+        public static void WriteNext(IBufferWriter<byte> writer)
         {
-            // Now we can write the header and body of the part.
-            await WriteResultAsync(queryResult, outputStream, ct).ConfigureAwait(false);
-        }
-        finally
-        {
-            // The result objects use pooled memory so we need to ensure that they
-            // return the memory by disposing them.
-            await queryResult.DisposeAsync().ConfigureAwait(false);
+            var span = writer.GetSpan(Start.Length);
+            Start.CopyTo(span);
+            writer.Advance(Start.Length);
         }
 
-        await WriteEndAsync(outputStream, ct).ConfigureAwait(false);
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
-    }
+        public static void WriteEnd(IBufferWriter<byte> writer)
+        {
+            var span = writer.GetSpan(End.Length);
+            End.CopyTo(span);
+            writer.Advance(End.Length);
+        }
 
-    private async ValueTask WriteResultAsync(
-        IQueryResult result,
-        Stream outputStream,
-        CancellationToken ct)
-    {
-        using var writer = new ArrayWriter();
-        _payloadFormatter.Format(result, writer);
+        public static void WritePayload(
+            IBufferWriter<byte> writer,
+            IOperationResult result,
+            IOperationResultFormatter payloadFormatter)
+            => payloadFormatter.Format(result, writer);
 
-        await WriteResultHeaderAsync(outputStream, ct).ConfigureAwait(false);
-
-        // The payload is sent, followed by a CRLF.
-        var buffer = writer.GetInternalBuffer();
-        await outputStream.WriteAsync(buffer, 0, writer.Length, ct).ConfigureAwait(false);
-    }
-
-    private static async ValueTask WriteResultHeaderAsync(
-        Stream outputStream,
-        CancellationToken ct)
-    {
-        // Each part of the multipart response must contain a Content-Type header.
-        // Similar to the GraphQL specification this specification does not require
-        // a specific serialization format. For consistency and ease of notation,
-        // examples of the response are given in JSON throughout the spec.
-        await outputStream.WriteAsync(ContentType, 0, ContentType.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
-
-        // After all headers, an additional CRLF is sent.
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
-    }
-
-    private static async ValueTask WriteNextAsync(
-        Stream outputStream,
-        CancellationToken ct)
-    {
-        // Before each part of the multi-part response, a boundary (CRLF, ---, CRLF)
-        // is sent.
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(Start, 0, Start.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
-    }
-
-    private static async ValueTask WriteEndAsync(
-        Stream outputStream,
-        CancellationToken ct)
-    {
-        // After the final payload, the terminating boundary of
-        // CRLF, ----- followed by CRLF is sent.
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(End, 0, End.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(CrLf, 0, CrLf.Length, ct).ConfigureAwait(false);
+        public static void WriteResultHeader(IBufferWriter<byte> writer)
+        {
+            // Each part of the multipart response must contain a Content-Type header.
+            // Similar to the GraphQL specification this specification does not require
+            // a specific serialization format. For consistency and ease of notation,
+            // examples of the response are given in JSON throughout the spec.
+            // After all headers, an additional CRLF is sent.
+            var span = writer.GetSpan(ContentType.Length);
+            ContentType.CopyTo(span);
+            writer.Advance(ContentType.Length);
+        }
     }
 }

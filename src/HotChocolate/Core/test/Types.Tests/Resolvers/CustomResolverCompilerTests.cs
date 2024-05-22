@@ -23,10 +23,10 @@ public class CustomResolverCompilerTests
             .AddQueryType<QueryWellKnownState>()
             .AddParameterExpressionBuilder(ctx => (SayHelloState)ctx.ContextData["someState"]!)
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ sayHello }")
+                OperationRequestBuilder.Create()
+                    .SetDocument("{ sayHello }")
                     .AddGlobalState("someState", new SayHelloState("Hello"))
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 

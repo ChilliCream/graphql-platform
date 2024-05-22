@@ -36,14 +36,14 @@ public class QueryableSortVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barShort: ASC}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barShort: ASC}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barShort: DESC}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barShort: DESC}){ barShort}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -62,14 +62,14 @@ public class QueryableSortVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barShort: ASC}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barShort: ASC}){ barShort}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barShort: DESC}){ barShort}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barShort: DESC}){ barShort}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

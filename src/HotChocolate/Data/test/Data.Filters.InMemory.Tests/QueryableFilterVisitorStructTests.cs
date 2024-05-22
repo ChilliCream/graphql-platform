@@ -57,19 +57,19 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { eq: 12}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { eq: 12}}}) { foo{ barShort}}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { eq: 13}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { eq: 13}}}) { foo{ barShort}}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { eq: null}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { eq: null}}}) { foo{ barShort}}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -89,19 +89,19 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { eq: 12}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { eq: 12}}}) { foo{ barShort}}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { eq: 13}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { eq: 13}}}) { foo{ barShort}}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { eq: null}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { eq: null}}}) { foo{ barShort}}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -121,17 +121,17 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: { barShort: { neq: 123}}}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: { barShort: { neq: 123}}}) { foo{ barShort}}}")
+                .Build());
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { foo: null}) { foo{ barShort}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { foo: null}) { foo{ barShort}}}")
+                .Build());
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { foo { barShort }}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { foo { barShort }}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -151,22 +151,22 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNullableList:{ some: { barShort: { eq: 12}}}}) { foo{ barShort}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNullableList:{ some: { barShort: { eq: 13}}}}) { foo{ barShort}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNullableList:{ some: { barShort: { eq: null}}}}) { foo{ barShort}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -186,22 +186,22 @@ public class QueryableFilterVisitorStructTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooList:{ some: { barShort: { eq: 12}}}}) { foo{ barShort}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooList:{ some: { barShort: { eq: 13}}}}) { foo{ barShort}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooList:{ some: { barShort: { eq: null}}}}) { foo{ barShort}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

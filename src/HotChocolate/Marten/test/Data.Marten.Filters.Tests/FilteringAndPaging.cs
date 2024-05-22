@@ -17,14 +17,14 @@ public class FilteringAndPaging(SchemaCache cache)
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
+                .Build());
 
         // assert
         await Snapshot

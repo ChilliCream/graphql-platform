@@ -22,24 +22,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ sayHelloAttribute }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Resolver_Service_Attribute_Default_Request_Scope()
     {
@@ -54,24 +54,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ sayHelloAttribute }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Resolver_Service_Inferred_Default_Scope()
     {
@@ -85,24 +85,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ sayHelloInferred }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloInferred }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Resolver_Service_Inferred_Scope_Overriden_On_Resolver()
     {
@@ -116,24 +116,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ sayHelloRequest }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloRequest }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Resolver_Service_Attribute_Copy_State()
     {
@@ -152,24 +152,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ sayHelloAttribute }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Mutation_Resolver_Service_Attribute_Default_Scope()
     {
@@ -184,24 +184,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("mutation { doSomethingAttribute }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Mutation_Resolver_Service_Attribute_Default_Resolver_Scope()
     {
@@ -217,24 +217,24 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("mutation { doSomethingAttribute }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingAttribute }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
-    
+
     [Fact]
     public async Task Mutation_Resolver_Service_Inferred_Default_Scope()
     {
@@ -249,21 +249,21 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("mutation { doSomethingInferred }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingInferred }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
 
@@ -281,21 +281,21 @@ public class ResolverServiceTests
                 .BuildServiceProvider();
 
         var executor = await services.GetRequestExecutorAsync();
-        
+
         // act
         IExecutionResult result;
         using (var requestScope = services.CreateScope())
         {
             requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
-            
+
             result = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("mutation { doSomethingResolver }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingResolver }")
                     .SetServices(requestScope.ServiceProvider)
-                    .Create());
+                    .Build());
         }
-        
+
         result.MatchMarkdownSnapshot();
     }
 
@@ -313,15 +313,15 @@ public class ResolverServiceTests
                 .BuildRequestExecutorAsync();
 
         var result = await executor.ExecuteAsync("{ foo }");
-        
+
         result.MatchMarkdownSnapshot();
     }
 #endif
-    
+
     public sealed class SayHelloService
     {
         public string Scope = "Resolver";
-        
+
         public string SayHello() => $"Hello {Scope}";
     }
 
@@ -329,10 +329,10 @@ public class ResolverServiceTests
     {
         public string SayHelloAttribute([Service] SayHelloService service)
             => service.SayHello();
-        
+
         public string SayHelloInferred(SayHelloService service)
             => service.SayHello();
-        
+
         [UseRequestScope]
         public string SayHelloRequest(SayHelloService service)
             => service.SayHello();
@@ -342,15 +342,15 @@ public class ResolverServiceTests
     {
         public string DoSomethingAttribute([Service] SayHelloService service)
             => service.SayHello();
-        
+
         public string DoSomethingInferred(SayHelloService service)
             => service.SayHello();
-        
+
         [UseResolverScope]
         public string DoSomethingResolver(SayHelloService service)
             => service.SayHello();
     }
-    
+
     public class SayHelloServicePool : ObjectPool<SayHelloService>
     {
         public bool GetService { get; private set; }
@@ -380,7 +380,7 @@ public class ResolverServiceTests
     {
         public string Key => key;
     }
-    
+
     public class AbcService() : ServiceAttribute("abc");
 #endif
 }

@@ -79,10 +79,10 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
-                    .Create())
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -96,10 +96,10 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AllowIntrospection(false)
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
-                    .Create())
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -113,10 +113,10 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AllowIntrospection(true)
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
-                    .Create())
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -130,11 +130,11 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AllowIntrospection(false)
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Bar")
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -148,11 +148,11 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage(() => "Bar")
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -166,11 +166,11 @@ public class RequestExecutorBuilderExtensionsValidationTests
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
             .AddIntrospectionAllowedRule()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
                     .SetIntrospectionNotAllowedMessage("Baz")
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -190,19 +190,19 @@ public class RequestExecutorBuilderExtensionsValidationTests
 
         var result =
             await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
                     .AllowIntrospection()
-                    .Create());
+                    .Build());
         results.Add(result.ToJson());
 
         result =
             await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ __schema { description } }")
-                    .Create());
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ __schema { description } }")
+                    .Build());
         results.Add(result.ToJson());
 
         results.MatchSnapshot();

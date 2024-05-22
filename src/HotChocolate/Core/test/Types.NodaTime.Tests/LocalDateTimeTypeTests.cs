@@ -1,5 +1,5 @@
-
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
@@ -14,9 +14,9 @@ namespace HotChocolate.Types.NodaTime.Tests
             {
                 public LocalDateTime One =>
                     LocalDateTime.FromDateTime(
-                        new DateTime(2020, 02, 20, 17, 42, 59))
-                            .PlusNanoseconds(1234)
-                            .WithCalendar(CalendarSystem.Julian);
+                            new DateTime(2020, 02, 20, 17, 42, 59))
+                        .PlusNanoseconds(1234)
+                        .WithCalendar(CalendarSystem.Julian);
             }
 
             public class Mutation
@@ -28,17 +28,13 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor _testExecutor;
-
-        public LocalDateTimeTypeIntegrationTests()
-        {
-            _testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<Schema.Query>()
                 .AddMutationType<Schema.Mutation>()
                 .AddNodaTime()
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturns()
@@ -52,10 +48,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-21T17:42:59.000001234")
-                    .Create());
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?> { { "arg", "2020-02-21T17:42:59.000001234" }, })
+                        .Build());
 
             Assert.Equal("2020-02-21T17:52:59.000001234", result.ExpectQueryResult().Data!["test"]);
         }
@@ -64,10 +62,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-20T17:42:59.000001234Z")
-                    .Create());
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation($arg: LocalDateTime!) { test(arg: $arg) }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59.000001234Z" }, })
+                        .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -77,9 +77,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234\") }")
-                    .Create());
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234\") }")
+                        .Build());
 
             Assert.Equal("2020-02-20T17:52:59.000001234", result.ExpectQueryResult().Data!["test"]);
         }
@@ -88,9 +89,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
-                    .Create());
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
+                        .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);

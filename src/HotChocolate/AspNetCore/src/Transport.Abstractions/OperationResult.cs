@@ -31,17 +31,37 @@ public sealed class OperationResult : IDisposable
     /// A <see cref="JsonElement"/> object representing any extensions returned by the
     /// operation.
     /// </param>
+    /// <param name="requestIndex">
+    /// The request index of this result. This is only set if the result is part of a batched operation.
+    /// </param>
+    /// <param name="variableIndex">
+    /// The variable index of this result. This is only set if the result is part of a variable batch operation.
+    /// </param>
     public OperationResult(
         IDisposable? memoryOwner = default,
         JsonElement data = default,
         JsonElement errors = default,
-        JsonElement extensions = default)
+        JsonElement extensions = default,
+        int? requestIndex = default,
+        int? variableIndex = default)
     {
         _memoryOwner = memoryOwner;
         Data = data;
         Errors = errors;
         Extensions = extensions;
+        RequestIndex = requestIndex;
+        VariableIndex = variableIndex;
     }
+
+    /// <summary>
+    /// Gets the request index of this result. This is only set if the result is part of a batched operation.
+    /// </summary>
+    public int? RequestIndex { get; }
+
+    /// <summary>
+    /// Gets the variable index of this result. This is only set if the result is part of a variable batch operation.
+    /// </summary>
+    public int? VariableIndex { get; }
 
     /// <summary>
     /// Gets the <see cref="JsonElement"/> object representing the data returned by
@@ -80,7 +100,9 @@ public sealed class OperationResult : IDisposable
             document,
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
-            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default);
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
     }
 
     public static OperationResult Parse(ReadOnlySpan<byte> span)
@@ -99,7 +121,9 @@ public sealed class OperationResult : IDisposable
             null,
             root.TryGetProperty(DataProp, out var data) ? data : default,
             root.TryGetProperty(ErrorsProp, out var errors) ? errors : default,
-            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default);
+            root.TryGetProperty(ExtensionsProp, out var extensions) ? extensions : default,
+            root.TryGetProperty(RequestIndexProp, out var requestIndex) ? requestIndex.GetInt32() : null,
+            root.TryGetProperty(VariableIndexProp, out var variableIndex) ? variableIndex.GetInt32() : null);
     }
 }
 

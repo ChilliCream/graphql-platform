@@ -7,9 +7,9 @@ using HotChocolate.Transport.Serialization;
 namespace HotChocolate.Transport;
 
 /// <summary>
-/// Represents a GraphQL operation request that can be sent over a WebSocket connection.
+/// Represents a GraphQL operation request that can be sent over a WebSocket or HTTP connection.
 /// </summary>
-public readonly struct OperationRequest : IEquatable<OperationRequest>
+public readonly struct OperationRequest : IEquatable<OperationRequest>, IOperationRequest
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="OperationRequest"/> struct.

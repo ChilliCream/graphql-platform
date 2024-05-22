@@ -28,7 +28,7 @@ public static class TestHelper
     public static Task<IExecutionResult> ExpectValid(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IQueryRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null)
     {
         return ExpectValid(
@@ -54,7 +54,7 @@ public static class TestHelper
         var result = await executor.ExecuteAsync(request, cancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         return result;
     }
 
@@ -62,7 +62,7 @@ public static class TestHelper
         string sdl,
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IQueryRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null,
         params Action<IError>[] elementInspectors) =>
         ExpectError(
@@ -79,7 +79,7 @@ public static class TestHelper
     public static Task ExpectError(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IQueryRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null,
         params Action<IError>[] elementInspectors)
     {
@@ -107,15 +107,15 @@ public static class TestHelper
         var result = await executor.ExecuteAsync(request);
 
         // assert
-        IQueryResult queryResult = Assert.IsType<QueryResult>(result);
-        Assert.NotNull(queryResult.Errors);
+        IOperationResult operationResult = Assert.IsType<OperationResult>(result);
+        Assert.NotNull(operationResult.Errors);
 
         if (elementInspectors.Length > 0)
         {
-            Assert.Collection(queryResult.Errors!, elementInspectors);
+            Assert.Collection(operationResult.Errors!, elementInspectors);
         }
 
-        await queryResult.MatchSnapshotAsync();
+        await operationResult.MatchSnapshotAsync();
     }
 
     public static async Task<T> CreateTypeAsync<T>()
@@ -189,13 +189,13 @@ public static class TestHelper
             .GetRequestExecutorAsync();
     }
 
-    public static IQueryRequest CreateRequest(
+    public static IOperationRequest CreateRequest(
         TestConfiguration? configuration,
         string query)
     {
         configuration ??= new TestConfiguration();
 
-        var builder = QueryRequestBuilder.New().SetQuery(query);
+        var builder = OperationRequestBuilder.Create().SetDocument(query);
 
         if (configuration.Services is { } services)
         {
@@ -207,7 +207,7 @@ public static class TestHelper
             configure(builder);
         }
 
-        return builder.Create();
+        return builder.Build();
     }
 
     public static void AddDefaultConfiguration(

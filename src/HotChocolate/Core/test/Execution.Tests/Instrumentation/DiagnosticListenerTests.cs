@@ -23,7 +23,7 @@ public class DiagnosticListenerTests
         var result = await executor.ExecuteAsync("{ hero { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
     }
 
@@ -63,7 +63,7 @@ public class DiagnosticListenerTests
         var result = await executor.ExecuteAsync("{ hero { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
         Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
     }

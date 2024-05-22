@@ -420,7 +420,6 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
@@ -445,7 +444,6 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
@@ -470,7 +468,6 @@ public static class FusionRequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseDistributedOperationExecution();
@@ -496,7 +493,6 @@ public static class FusionRequestExecutorBuilderExtensions
         pipeline.Add(DocumentParserMiddleware.Create());
         pipeline.Add(DocumentValidationMiddleware.Create());
         pipeline.Add(OperationCacheMiddleware.Create());
-        pipeline.Add(OperationComplexityMiddleware.Create());
         pipeline.Add(OperationResolverMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(DistributedOperationExecutionMiddleware.Create());

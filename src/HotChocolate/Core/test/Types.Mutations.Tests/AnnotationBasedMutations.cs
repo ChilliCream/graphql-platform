@@ -516,8 +516,9 @@ public class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument(
                             """
                             mutation($id: ID!) {
                                 doSomething(input: {
@@ -527,8 +528,8 @@ public class AnnotationBasedMutations
                                 }
                             }
                             """)
-                        .AddVariableValue("id", id)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
+                        .Build());
 
         SnapshotExtensions.MatchSnapshot(result);
     }

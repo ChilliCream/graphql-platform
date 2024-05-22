@@ -1,10 +1,12 @@
 using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.ExecutionResultKind;
 
 namespace HotChocolate.Execution.Serialization;
 
@@ -14,23 +16,14 @@ namespace HotChocolate.Execution.Serialization;
 /// </summary>
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
-    private static readonly TimeSpan _keepAliveTimeSpan = TimeSpan.FromSeconds(12);
-
-    private static readonly byte[] _eventField = "event: "u8.ToArray();
-    private static readonly byte[] _dataField = "data: "u8.ToArray();
-    private static readonly byte[] _nextEvent = "next"u8.ToArray();
-    private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
-    private static readonly byte[] _completeEvent = "complete"u8.ToArray();
-    private static readonly byte[] _newLine = "\n"u8.ToArray();
-
     private readonly JsonResultFormatter _payloadFormatter;
     private readonly JsonWriterOptions _options;
-
+    
     /// <summary>
-    /// Creates a new instance of <see cref="EventStreamResultFormatter" />.
+    /// Initializes a new instance of <see cref="EventStreamResultFormatter"/>.
     /// </summary>
     /// <param name="options">
-    /// The JSON result formatter options
+    /// The options to configure the JSON writer.
     /// </param>
     public EventStreamResultFormatter(JsonResultFormatterOptions options)
     {
@@ -38,195 +31,237 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         _payloadFormatter = new JsonResultFormatter(options);
     }
 
-    /// <inheritdoc cref="IExecutionResultFormatter.FormatAsync(IExecutionResult, Stream, CancellationToken)" />
+    /// <summary>
+    /// Formats an <see cref="IExecutionResult"/> into a SSE stream.
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="outputStream"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="NotSupportedException"></exception>
     public ValueTask FormatAsync(
         IExecutionResult result,
         Stream outputStream,
         CancellationToken cancellationToken = default)
     {
-        if (result is null)
+        if (result == null)
         {
             throw new ArgumentNullException(nameof(result));
         }
 
-        if (outputStream is null)
+        if (outputStream == null)
         {
             throw new ArgumentNullException(nameof(outputStream));
         }
-
-        return FormatInternalAsync(result, outputStream, cancellationToken);
+        
+        return result switch
+        {
+            IOperationResult operationResult 
+                => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
+            OperationResultBatch resultBatch 
+                => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
+            IResponseStream responseStream 
+                => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
+            _ => throw new NotSupportedException()
+        };
     }
 
-    private async ValueTask FormatInternalAsync(
-        IExecutionResult result,
+    private async ValueTask FormatOperationResultAsync(
+        IOperationResult operationResult,
         Stream outputStream,
         CancellationToken ct)
     {
-        if (result.Kind is SingleResult)
-        {
-            await WriteNextMessageAsync((IQueryResult)result, outputStream, ct).ConfigureAwait(false);
-            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
-            await WriteCompleteMessage(outputStream, ct).ConfigureAwait(false);
-            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
-        }
-        else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
-        {
-            var responseStream = (IResponseStream)result;
-
-            // synchronization of the output stream is required to ensure that the messages are not
-            // interleaved.
-            using var synchronization = new SemaphoreSlim(1, 1);
-
-            // we need to keep track if the stream is completed so that we can stop sending keep
-            // alive messages.
-            var completion = new TaskCompletionSource<bool>();
-
-            // we await all tasks so that we can catch all exceptions.
-            await Task.WhenAll(
-                ProcessResponseStreamAsync(synchronization, completion, responseStream, outputStream, ct),
-                SendKeepAliveMessagesAsync(synchronization, completion, outputStream, ct));
-        }
-
-        else
-        {
-            throw new NotSupportedException();
-        }
+        using var buffer = new ArrayWriter();
+        
+        MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+        MessageHelper.WriteCompleteMessage(buffer);
+        
+        await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
+        await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private static async Task SendKeepAliveMessagesAsync(
-        SemaphoreSlim synchronization,
-        TaskCompletionSource<bool> completion,
+    private async ValueTask FormatResultBatchAsync(
+        OperationResultBatch resultBatch,
         Stream outputStream,
         CancellationToken ct)
     {
-        while (true)
+        var writer = PipeWriter.Create(outputStream);
+        ArrayWriter? buffer = null;
+        KeepAliveJob? keepAlive = null;
+        List<Task>? streams = null;
+
+        try
         {
-            await Task.WhenAny(Task.Delay(_keepAliveTimeSpan, ct), completion.Task);
-
-            if (!ct.IsCancellationRequested && !completion.Task.IsCompleted)
+            foreach (var result in resultBatch.Results)
             {
-                // we do not need try-finally here because we dispose the semaphore in the parent
-                // method.
-                await synchronization.WaitAsync(ct);
+                switch (result)
+                {
+                    case IOperationResult operationResult:
+                        buffer ??= new ArrayWriter();
+                        MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
+                        writer.Write(buffer.GetWrittenSpan());
+                        await writer.FlushAsync(ct).ConfigureAwait(false);
+                        keepAlive?.Reset();
+                        buffer.Reset();
+                        break;
 
-                await WriteKeepAliveAndFlush(outputStream, ct);
+                    case IResponseStream responseStream:
+                        keepAlive ??= new KeepAliveJob(writer);
+                        streams ??= [];
+                        var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
+                        streams.Add(formatter.ProcessAsync(ct));
+                        break;
 
-                synchronization.Release();
-            }
-            else
-            {
-                break;
+                    default:
+                        throw new NotSupportedException(
+                            "The result batch contains an unsupported result type.");
+                }
             }
         }
+        finally
+        {
+            keepAlive?.Dispose();
+            buffer?.Dispose();
+        }
+        
+        MessageHelper.WriteCompleteMessage(writer);
+        await writer.FlushAsync(ct).ConfigureAwait(false);
     }
 
-    private async Task ProcessResponseStreamAsync(
-        SemaphoreSlim synchronization,
-        TaskCompletionSource<bool> completion,
+    private async ValueTask FormatResponseStreamAsync(
         IResponseStream responseStream,
         Stream outputStream,
         CancellationToken ct)
     {
-        await foreach (var queryResult in responseStream.ReadResultsAsync().WithCancellation(ct).ConfigureAwait(false))
+        var writer = PipeWriter.Create(outputStream);
+
+        using (var keepAlive = new KeepAliveJob(writer))
         {
-            // we do not need try-finally here because we dispose the semaphore in the parent
-            // method.
+            var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
+            await formatter.ProcessAsync(ct).ConfigureAwait(false);
+        }
+        
+        MessageHelper.WriteCompleteMessage(writer);
+        await writer.FlushAsync(ct).ConfigureAwait(false);
+    }
 
-            await synchronization.WaitAsync(ct);
+    private sealed class StreamFormatter(
+        JsonResultFormatter payloadFormatter,
+        KeepAliveJob keepAliveJob,
+        IResponseStream responseStream,
+        PipeWriter writer)
+    {
+        public async Task ProcessAsync(CancellationToken ct)
+        {
+            using var buffer = new ArrayWriter();
 
-            try
+            await foreach (var result in responseStream.ReadResultsAsync()
+                .WithCancellation(ct)
+                .ConfigureAwait(false))
             {
-                await WriteNextMessageAsync(queryResult, outputStream, ct).ConfigureAwait(false);
+                try
+                {
+                    MessageHelper.WriteNextMessage(payloadFormatter, result, buffer);
+                    writer.Write(buffer.GetWrittenSpan());
+                    await writer.FlushAsync(ct).ConfigureAwait(false);
+                    keepAliveJob.Reset();
+                    buffer.Reset();
+                }
+                finally
+                {
+                    await result.DisposeAsync().ConfigureAwait(false);
+                }
             }
-            finally
-            {
-                await queryResult.DisposeAsync().ConfigureAwait(false);
-            }
+        }
+    }
 
-            await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+    private sealed class KeepAliveJob : IDisposable
+    {
+        private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(12);
+        private static readonly TimeSpan _timeout1 = TimeSpan.FromSeconds(8);
+        private readonly PipeWriter _writer;
+        private readonly Timer _keepAliveTimer;
+        private DateTime _lastWriteTime = DateTime.UtcNow;
+        private bool _disposed;
 
-            synchronization.Release();
+        public KeepAliveJob(PipeWriter writer)
+        {
+            _writer = writer;
+            _keepAliveTimer = new Timer(_ => EnsureKeepAlive(), null, _timeout, _timeout);
         }
 
-        await synchronization.WaitAsync(ct);
+        public void Reset() => _lastWriteTime = DateTime.UtcNow;
 
-        await WriteCompleteMessage(outputStream, ct).ConfigureAwait(false);
-        await WriteNewLineAndFlushAsync(outputStream, ct).ConfigureAwait(false);
+        private void EnsureKeepAlive()
+        {
+            if (DateTime.UtcNow - _lastWriteTime >= _timeout1)
+            {
+                Task.Run(WriteKeepAliveAsync);
+            }
+            return;
 
-        synchronization.Release();
-        completion.SetResult(true);
+            async Task WriteKeepAliveAsync()
+            {
+                try
+                {
+                    _writer.Write(MessageHelper.KeepAlive());
+                    await _writer.FlushAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _keepAliveTimer.Dispose();
+        }
     }
 
-    private async ValueTask WriteNextMessageAsync(
-        IQueryResult result,
-        Stream outputStream,
-        CancellationToken ct)
+    private static class MessageHelper
     {
-#if NET6_0_OR_GREATER
-        await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_nextEvent, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
-#else
-        await outputStream.WriteAsync(_eventField, 0, _eventField.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_nextEvent, 0, _nextEvent.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
-#endif
+        private static readonly byte[] _nextEvent = "event: next\ndata: "u8.ToArray();
+        private static readonly byte[] _completeEvent = "event: complete\n\n"u8.ToArray();
+        private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
+        private static readonly byte[] _newLine = "\n"u8.ToArray();
+        private static readonly byte[] _newLine2 = "\n\n"u8.ToArray();
 
-        using var bufferWriter = new ArrayWriter();
-        FormatPayload(bufferWriter, result);
+        public static void WriteNextMessage(
+            JsonResultFormatter payloadFormatter,
+            IOperationResult result,
+            ArrayWriter writer)
+        {
+            // write the SSE event field
+            var span = writer.GetSpan(_nextEvent.Length);
+            _nextEvent.CopyTo(span);
+            writer.Advance(_nextEvent.Length);
 
-#if NET6_0_OR_GREATER
-        await outputStream.WriteAsync(_dataField, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(bufferWriter.GetWrittenMemory(), ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
-#else
-        var buffer = bufferWriter.GetInternalBuffer();
-        await outputStream.WriteAsync(_dataField, 0, _dataField.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(buffer, 0, bufferWriter.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
-#endif
-    }
+            // write the actual result data
+            payloadFormatter.Format(result, writer);
 
-    private void FormatPayload(ArrayWriter bufferWriter, IQueryResult result)
-    {
-        using var writer = new Utf8JsonWriter(bufferWriter, _options);
-        _payloadFormatter.Format(result, writer);
-    }
+            // write the new line
+            span = writer.GetSpan(_newLine2.Length);
+            _newLine2.CopyTo(span);
+            writer.Advance(_newLine2.Length);
+        }
 
-    private static async ValueTask WriteCompleteMessage(Stream outputStream, CancellationToken ct)
-    {
-#if NET6_0_OR_GREATER
-        await outputStream.WriteAsync(_eventField, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_completeEvent, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
-#else
-        await outputStream.WriteAsync(_eventField, 0, _eventField.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_completeEvent, 0, _completeEvent.Length, ct).ConfigureAwait(false);
-        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
-#endif
-    }
+        public static void WriteCompleteMessage(
+            IBufferWriter<byte> writer)
+        {
+            var span = writer.GetSpan(_completeEvent.Length);
+            _completeEvent.CopyTo(span);
+            writer.Advance(_completeEvent.Length);
+        }
 
-    private static async ValueTask WriteNewLineAndFlushAsync(
-        Stream outputStream,
-        CancellationToken ct)
-    {
-#if NET6_0_OR_GREATER
-        await outputStream.WriteAsync(_newLine, ct).ConfigureAwait(false);
-#else
-        await outputStream.WriteAsync(_newLine, 0, _newLine.Length, ct).ConfigureAwait(false);
-#endif
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
-    }
-
-    private static async ValueTask WriteKeepAliveAndFlush(
-        Stream outputStream,
-        CancellationToken ct)
-    {
-#if NET6_0_OR_GREATER
-        await outputStream.WriteAsync(_keepAlive, ct).ConfigureAwait(false);
-#else
-        await outputStream.WriteAsync(_keepAlive, 0, _keepAlive.Length, ct).ConfigureAwait(false);
-#endif
-        await outputStream.FlushAsync(ct).ConfigureAwait(false);
+        public static ReadOnlySpan<byte> KeepAlive() => _keepAlive;
     }
 }

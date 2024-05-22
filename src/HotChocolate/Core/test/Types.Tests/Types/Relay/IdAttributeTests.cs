@@ -36,38 +36,47 @@ public class IdAttributeTests
             Combine("Query:"u8, new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5").ToByteArray()));
 
         // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    """
-                    query foo (
-                      $intId: ID!
-                      $nullIntId: ID = null
-                      $stringId: ID!
-                      $nullStringId: ID = null
-                      $guidId: ID!
-                      $nullGuidId: ID = null) {
-                      intId(id: $intId)
-                      nullableIntId(id: $intId)
-                      nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
-                      intIdList(id: [$intId])
-                      nullableIntIdList(id: [$intId, $nullIntId])
-                      stringId(id: $stringId)
-                      nullableStringId(id: $stringId)
-                      nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
-                      stringIdList(id: [$stringId])
-                      nullableStringIdList(id: [$stringId, $nullStringId])
-                      guidId(id: $guidId)
-                      nullableGuidId(id: $guidId)
-                      nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
-                      guidIdList(id: [$guidId $guidId])
-                      nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                    }
-                    """)
-                    .SetVariableValue("intId", intId)
-                    .SetVariableValue("stringId", stringId)
-                    .SetVariableValue("guidId", guidId)
-                    .Create());
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(@"query foo (
+                                $intId: ID!
+                                $nullIntId: ID = null
+                                $stringId: ID!
+                                $nullStringId: ID = null
+                                $guidId: ID!
+                                $nullGuidId: ID = null)
+                            {
+                                intId(id: $intId)
+                                nullableIntId(id: $intId)
+                                nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                                intIdList(id: [$intId])
+                                nullableIntIdList(id: [$intId, $nullIntId])
+                                stringId(id: $stringId)
+                                nullableStringId(id: $stringId)
+                                nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
+                                stringIdList(id: [$stringId])
+                                nullableStringIdList(id: [$stringId, $nullStringId])
+                                guidId(id: $guidId)
+                                nullableGuidId(id: $guidId)
+                                nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
+                                guidIdList(id: [$guidId $guidId])
+                                nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
+                            }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                {"intId", intId },
+                                {"stringId", stringId },
+                                {"guidId", guidId },
+                            })
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -86,15 +95,12 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
-                            """
-                            query foo {
-                              interceptedId(id: 1)
-                              interceptedIds(id: [1, 2])
-                            }
-                            """)
-                        .Create());
+                    OperationRequestBuilder.Create()
+                        .SetDocument(@"query foo {
+                                interceptedId(id: 1)
+                                interceptedIds(id: [1, 2])
+                            }")
+                        .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -115,27 +121,38 @@ public class IdAttributeTests
         var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
-        var result = await executor.ExecuteAsync(
-        QueryRequestBuilder.New()
-            .SetQuery(
-                @"query foo ($someId: ID! $someIntId: ID!) {
-                    foo(input: {
-                        someId: $someId someIds: [$someIntId]
-                        someNullableId: $someId someNullableIds: [$someIntId] })
-                    {
-                        someId
-                        someNullableId
-                        ... on FooPayload {
-                            someIds
-                            someNullableIds
-                        }
-                    }
-                }")
-            .SetVariableValue("someId", someId)
-            .SetVariableValue("someNullableId", null)
-            .SetVariableValue("someIntId", someIntId)
-            .SetVariableValue("someNullableIntId", null)
-            .Create());
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
+                            @"query foo ($someId: ID! $someIntId: ID!) {
+                                foo(input: {
+                                    someId: $someId someIds: [$someIntId]
+                                    someNullableId: $someId someNullableIds: [$someIntId] })
+                                {
+                                    someId
+                                    someNullableId
+                                    ... on FooPayload {
+                                        someIds
+                                        someNullableIds
+                                    }
+                                }
+                            }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                {"someId", someId },
+                                {"someNullableId", null},
+                                {"someIntId", someIntId},
+                                {"someNullableIntId", null},
+                            })
+                        .Build());
 
         // assert
         new
@@ -161,31 +178,42 @@ public class IdAttributeTests
         var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    @"query foo (
-                        $someId: ID! $someIntId: ID!
-                        $someNullableId: ID
-                        $someNullableIntId: ID) {
-                        foo(input: {
-                            someId: $someId someIds: [$someIntId]
-                            someNullableId: $someNullableId
-                            someNullableIds: [$someNullableIntId, $someIntId] })
-                        {
-                            someId
-                            someNullableId
-                            ... on FooPayload {
-                                someIds
-                                someNullableIds
-                            }
-                        }
-                    }")
-                .SetVariableValue("someId", someId)
-                .SetVariableValue("someNullableId", null)
-                .SetVariableValue("someIntId", someIntId)
-                .SetVariableValue("someNullableIntId", null)
-                .Create());
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
+                            @"query foo (
+                                $someId: ID! $someIntId: ID!
+                                $someNullableId: ID
+                                $someNullableIntId: ID) {
+                                foo(input: {
+                                    someId: $someId someIds: [$someIntId]
+                                    someNullableId: $someNullableId
+                                    someNullableIds: [$someNullableIntId, $someIntId] })
+                                {
+                                    someId
+                                    someNullableId
+                                    ... on FooPayload {
+                                        someIds
+                                        someNullableIds
+                                    }
+                                }
+                            }")
+                        .SetVariableValues(
+                            new Dictionary<string, object?>
+                            {
+                                {"someId", someId},
+                                {"someNullableId", null},
+                                {"someIntId", someIntId},
+                                {"someNullableIntId", null},
+                            })
+                        .Build());
 
         // assert
         new
@@ -213,26 +241,28 @@ public class IdAttributeTests
         // act
         var result = await executor
             .ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        """
-                        query foo($someId: ID! $someIntId: ID!) {
-                            foo(input: {
-                                someId: $someId
-                                someIds: [$someIntId]
-                                interceptedId: 1
-                                interceptedIds: [1, 2] })
-                            {
-                                someId
-                                someIds
-                                interceptedId
-                                interceptedIds
-                            }
-                        }
-                        """)
-                    .SetVariableValue("someId", someId)
-                    .SetVariableValue("someIntId", someIntId)
-                    .Create());
+                OperationRequestBuilder.Create()
+                    .SetDocument(
+                        @"query foo($someId: ID! $someIntId: ID!) {
+                                foo(input: {
+                                    someId: $someId
+                                    someIds: [$someIntId]
+                                    interceptedId: 1
+                                    interceptedIds: [1, 2] })
+                                {
+                                    someId
+                                    someIds
+                                    interceptedId
+                                    interceptedIds
+                                }
+                            }")
+                    .SetVariableValues(
+                        new Dictionary<string, object?>
+                        {
+                            {"someId", someId },
+                            {"someIntId", someIntId},
+                        })
+                    .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -252,21 +282,26 @@ public class IdAttributeTests
         var someId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
-        var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    """
-                    query foo ($someId: ID!) {
-                        foo(input: { someId: $someId someIds: [$someId] }) {
-                            someId
-                            ... on FooPayload {
-                                someIds
-                            }
-                        }
-                    }
-                    """)
-                .SetVariableValue("someId", someId)
-                .Create());
+        var result =
+            await SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
+                            @"query foo ($someId: ID!) {
+                                    foo(input: { someId: $someId someIds: [$someId] }) {
+                                        someId
+                                        ... on FooPayload {
+                                            someIds
+                                        }
+                                    }
+                                }")
+                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId }, })
+                        .Build());
 
         // assert
         new
@@ -291,8 +326,8 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             @"query foo ($someId: ID!) {
                                     foo(input: { someId: $someId someIds: [$someId] }) {
                                         someId
@@ -301,8 +336,8 @@ public class IdAttributeTests
                                         }
                                     }
                                 }")
-                        .SetVariableValue("someId", someId)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object?> { {"someId", someId}, })
+                        .Build());
 
         // assert
         new

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
@@ -29,7 +30,8 @@ public class NodeTypeTests : TypeTestBase
             "a global unique identifier.",
             nodeInterface.Description);
 
-        Assert.Collection(nodeInterface.Fields,
+        Assert.Collection(
+            nodeInterface.Fields,
             t =>
             {
                 Assert.Equal("id", t.Name);
@@ -150,7 +152,6 @@ public class NodeTypeTests : TypeTestBase
     [Fact]
     public async Task Infer_Node_From_Query_Field_Resolve_Node_With_Int_Id()
     {
-
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query3>()
@@ -161,21 +162,19 @@ public class NodeTypeTests : TypeTestBase
         var id = serializer.Format("Bar", 123);
 
         await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    """
-                    query ($id: ID!) {
-                        node(id: $id) {
-                            id
-                            __typename
-                            ... on Bar {
-                                clearTextId
+                OperationRequestBuilder.Create()
+                    .SetDocument(
+                        @"query ($id: ID!) {
+                            node(id: $id) {
+                                id
+                                __typename
+                                ... on Bar {
+                                    clearTextId
+                                }
                             }
-                        }
-                    }
-                    """)
-                .SetVariableValue("id", id)
-                .Create())
+                        }")
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -219,21 +218,19 @@ public class NodeTypeTests : TypeTestBase
         var id = serializer.Format("Foo1", "123");
 
         await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
-                    """
-                    query ($id: ID!) {
-                        node(id: $id) {
-                            id
-                            __typename
-                            ... on Foo1 {
-                                clearTextId
+                OperationRequestBuilder.Create()
+                    .SetDocument(
+                        @"query ($id: ID!) {
+                            node(id: $id) {
+                                id
+                                __typename
+                                ... on Foo1 {
+                                    clearTextId
+                                }
                             }
-                        }
-                    }
-                    """)
-                .SetVariableValue("id", id)
-                .Create())
+                        }")
+                    .SetVariableValues(new Dictionary<string, object> { { "id", id }, })
+                    .Build())
             .MatchSnapshotAsync();
     }
 
@@ -255,22 +252,19 @@ public class NodeTypeTests : TypeTestBase
     public class Query
     {
         [NodeResolver]
-        public Foo GetFooById(string id)
-            => new Foo(id);
+        public Foo GetFooById(string id) => new(id);
     }
 
     public class Query2
     {
         [NodeResolver]
-        public Foo GetFooById(string abc)
-            => new Foo(abc);
+        public Foo GetFooById(string abc) => new(abc);
     }
 
     public class Query3
     {
         [NodeResolver]
-        public Bar GetBarById(int id)
-            => new Bar(id);
+        public Bar GetBarById(int id) => new(id);
     }
 
     public class Query4
@@ -289,42 +283,26 @@ public class NodeTypeTests : TypeTestBase
     public class Query6
     {
         [NodeResolver]
-        public Baz GetBarById(int id)
-            => new Baz(id);
+        public Baz GetBarById(int id) => new(id);
     }
 
-    public class Foo
+    public class Foo(string id)
     {
-        public Foo(string id)
-        {
-            Id = id;
-        }
-
-        public string Id { get; }
+        public string Id { get; } = id;
 
         public string ClearTextId => Id;
     }
 
-    public class Bar
+    public class Bar(int id)
     {
-        public Bar(int id)
-        {
-            Id = id;
-        }
-
-        public int Id { get; }
+        public int Id { get; } = id;
 
         public int ClearTextId => Id;
     }
 
-    public class Baz
+    public class Baz(int id)
     {
-        public Baz(int id)
-        {
-            Id1 = id;
-        }
-
-        public int Id1 { get; }
+        public int Id1 { get; } = id;
 
         public int ClearTextId => Id1;
     }
@@ -332,19 +310,13 @@ public class NodeTypeTests : TypeTestBase
     public class Query7
     {
         [NodeResolver]
-        public Qux GetBarById(string id)
-            => new Qux(id);
+        public Qux GetBarById(string id) => new(id);
     }
 
     [Node]
-    public class Qux
+    public class Qux(string id)
     {
-        public Qux(string id)
-        {
-            Id = id;
-        }
-
-        public string Id { get; }
+        public string Id { get; } = id;
 
         public string ClearTextId => Id;
     }
@@ -352,32 +324,22 @@ public class NodeTypeTests : TypeTestBase
     public class Query8
     {
         [NodeResolver]
-        public Foo1 GetBarById(string id)
-            => new Foo1(id);
+        public Foo1 GetBarById(string id) => new(id);
     }
 
-    public class Foo1
+    public class Foo1(string id)
     {
-        public Foo1(string id)
-        {
-            Id = id;
-        }
-
-        public string Id { get; }
+        public string Id { get; } = id;
 
         public string ClearTextId => Id;
     }
 
     [Node]
     [ExtendObjectType(typeof(Foo1))]
-    public class Foo2
-    {
-
-    }
+    public class Foo2;
 
     public class Query9
     {
-        public Qux GetBarById(string id)
-            => new Qux(id);
+        public Qux GetBarById(string id) => new(id);
     }
 }
