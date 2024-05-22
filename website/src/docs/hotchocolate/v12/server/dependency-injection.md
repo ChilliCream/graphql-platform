@@ -229,7 +229,7 @@ While Hot Chocolate's internals rely heavily on Microsoft's dependency injection
 
 You can switch out the service provider used for GraphQL requests, as long as your dependency injection container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface.
 
-To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v12/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v12/server/interceptors#OperationRequestBuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v12/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v12/server/interceptors#isocketsessioninterceptor).
+To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v12/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v12/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v12/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v12/server/interceptors#isocketsessioninterceptor).
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
