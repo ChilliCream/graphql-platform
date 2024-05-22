@@ -10,12 +10,11 @@ authorUrl: https://github.com/pascalsenn
 authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 ---
 
-
 In today's rapidly evolving technology landscape, staying ahead requires not only understanding the latest technologies but also how to implement them effectively. This two-day workshop is a hands-on journey designed to demystify advanced concepts by building from the ground up. We'll start with the basics and progressively build a fully functional distributed web shop using HotChocolate, Relay.js, Fusion, multiple subgraphs .NET Aspire and also concepts like domain driven design, CQRS and clean architecture.
 
 Book your seat now and learn more about the workshop [here](https://learn.chillicream.com/blog/2024-04-01/fullstack-workshop).
 
-![Full Stack GraphQL Workshop](img4.png)
+![Full Stack GraphQL Workshop](img1.png)
 
 Over two days, we'll cover everything from basic concepts to advanced techniques. We start by getting to know GraphQL, learning about its features and benefits compared to traditional methods. Later, we introduce Relay.js, focusing on how it works with GraphQL to improve data handling and application performance.
 
@@ -24,7 +23,6 @@ Over two days, we'll cover everything from basic concepts to advanced techniques
 **Day 2:** We explore deeper topics like how to change and improve your GraphQL setup, how to handle data updates smoothly, and how other advanced techniques fit into the GraphQL world. We end by learning about real-time data updates with subscriptions.
 
 For the next online workshop you [find more information here](https://learn.chillicream.com/blog/2024-04-01).
-
 
 This workshop can also be tailored to meet your company's specific needs. We offer the flexibility to customize the content and focus areas to best match your team's requirements and goals.
 

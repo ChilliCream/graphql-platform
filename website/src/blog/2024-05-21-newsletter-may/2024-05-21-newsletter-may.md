@@ -12,7 +12,6 @@ authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 
 We’re excited to bring you some significant updates from ChiliCream that can genuinely make a difference in your day-to-day development. This isn't just about new features—it's about making your workflow more effective and your projects more successful.
 
-
 # 🛠️ Operation Builder
 We’re excited to introduce the Operation Builder in Banana Cake Pop, a tool designed to make creating and managing your GraphQL operations a breeze.
 
@@ -57,11 +56,8 @@ We'll start with the basics and progressively build a fully functional distribut
 
 Learn more about the workshop here: [learn.chillicream.com](https://link.chillicream.com/2024/05/21/learn)
 
-
 ## We Want to Hear From You
 Your insights are invaluable to us. If you have questions, need more information, or want to discuss how our tools can fit into your projects, don’t hesitate to reach out on contact@chillicream.com or on [slack.chillicream.com](https://link.chillicream.com/2024/05/21/slack) 
 
 ## ❤️️ Thank You 
 We appreciate your engagement and are thrilled to support your projects with our evolving GraphQL solutions. Keep an eye out for HotChocolate 14, and let us help you take your projects to the next level.
-
-
