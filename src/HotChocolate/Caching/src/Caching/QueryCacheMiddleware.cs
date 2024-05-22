@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
@@ -9,7 +10,7 @@ internal sealed class QueryCacheMiddleware
 {
     private readonly ICacheControlOptions _options;
     private readonly RequestDelegate _next;
-    
+
     private QueryCacheMiddleware(
         RequestDelegate next,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
@@ -30,8 +31,8 @@ internal sealed class QueryCacheMiddleware
         }
 
         if (context.Operation?.ContextData is null ||
-            !context.Operation.ContextData.TryGetValue(CacheControlHeaderValue, out var value) ||
-            value is not string cacheControlHeaderValue)
+            !context.Operation.ContextData.TryGetValue(WellKnownContextData.CacheControlHeaderValue, out var value) ||
+            value is not CacheControlHeaderValue cacheControlHeaderValue)
         {
             return;
         }
@@ -45,18 +46,21 @@ internal sealed class QueryCacheMiddleware
                     ? new ExtensionData(queryResult.ContextData)
                     : new ExtensionData();
 
-            contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
+            contextData.Add(WellKnownContextData.CacheControlHeaderValue, cacheControlHeaderValue);
 
             context.Result = new QueryResult(
-                queryResult.Data,
-                queryResult.Errors,
-                queryResult.Extensions,
-                contextData,
-                queryResult.Items,
-                queryResult.Incremental,
-                queryResult.Label,
-                queryResult.Path,
-                queryResult.HasNext);
+                data: queryResult.Data,
+                errors: queryResult.Errors,
+                extension: queryResult.Extensions,
+                contextData: contextData,
+                items: queryResult.Items,
+                incremental: queryResult.Incremental,
+                label: queryResult.Label,
+                path: queryResult.Path,
+                hasNext: queryResult.HasNext,
+                // TODO: This is probably problematic
+                cleanupTasks: [],
+                isDataSet: queryResult.IsDataSet);
         }
     }
 
