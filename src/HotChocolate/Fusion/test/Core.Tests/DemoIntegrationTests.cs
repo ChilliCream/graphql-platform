@@ -1759,6 +1759,56 @@ public class DemoIntegrationTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public async Task Require_Data_In_Context_4()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query Requires {
+                # All requested fields are available in the Shipping subgraph
+                productById(id: "UHJvZHVjdDox") {
+                  deliveryEstimate(zip: "12345") {
+                    min
+                    max
+                  }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery(request)
+                .Create());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
     public async Task GetFirstPage_With_After_Null()
     {
         using var demoProject = await DemoProject.CreateAsync();
