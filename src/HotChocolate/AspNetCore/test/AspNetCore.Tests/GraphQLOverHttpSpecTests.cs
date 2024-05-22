@@ -501,7 +501,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
                 """);
     }
-    
+
     [Fact]
     public async Task OperationBatch()
     {
@@ -509,7 +509,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var server = CreateStarWarsServer();
         var client = new DefaultGraphQLHttpClient(server.CreateClient());
         var snapshot = new Snapshot();
-        
+
         // act
         var request = new GraphQLHttpRequest(
             new OperationBatchRequest(
@@ -530,22 +530,29 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                         }
                     }
                     """),
-            ]), 
+            ]),
             new Uri("http://localhost:5000/graphql"));
 
         using var response = await client.SendAsync(request);
-        
+
         // assert
         Assert.Equal(response.StatusCode, OK);
 
-        await foreach (OperationResult result in response.ReadAsResultStreamAsync())
+        var sortedResults = new SortedList<(int?, int?), OperationResult>();
+
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
+        }
+
+        foreach (var result in sortedResults.Values)
         {
             snapshot.Add(result);
         }
 
         await snapshot.MatchMarkdownAsync();
     }
-    
+
     [Fact]
     public async Task VariableBatch()
     {
@@ -553,7 +560,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         var server = CreateStarWarsServer();
         var client = new DefaultGraphQLHttpClient(server.CreateClient());
         var snapshot = new Snapshot();
-        
+
         // act
         var request = new GraphQLHttpRequest(
             new VariableBatchRequest(
@@ -568,11 +575,11 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 [
                     new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
                     new Dictionary<string, object?> { { "episode", "EMPIRE" }, },
-                ]), 
+                ]),
             new Uri("http://localhost:5000/graphql"));
 
         using var response = await client.SendAsync(request);
-        
+
         // assert
         Assert.Equal(response.StatusCode, OK);
 
