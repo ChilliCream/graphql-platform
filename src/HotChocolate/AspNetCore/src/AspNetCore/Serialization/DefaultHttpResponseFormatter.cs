@@ -184,13 +184,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             case OperationResultBatch resultBatch:
             {
                 var statusCode = (int)OnDetermineStatusCode(resultBatch, format, proposedStatusCode);
-                
+
                 response.ContentType = format.ContentType;
                 response.StatusCode = statusCode;
                 response.Headers.CacheControl = HttpHeaderValues.NoCache;
                 OnWriteResponseHeaders(resultBatch, format, response.Headers);
                 await response.Body.FlushAsync(cancellationToken);
-                
+
                 await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
                 break;
             }
@@ -284,7 +284,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
 
                 // next we check if the validation of the request failed.
-                // if that is the case we will we will return a BadRequest status code (400).
+                // if that is the case we will return a BadRequest status code (400).
                 if (contextData.ContainsKey(ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
@@ -296,22 +296,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            // if data is not null then we have a valid result. The result of executing
-            // a GraphQL operation may contain partial data as well as encountered errors.
-            // Errors that happen during execution of the GraphQL operation typically
-            // become part of the result, as long as the server is still able to produce
-            // a well-formed response.
-            if (result.Data is not null)
+            // if data is set then the execution as begun and has produced a result.
+            // The result of executing GraphQL operation may contain partial data as
+            // well as encountered errors. Errors that happen during execution of the
+            // GraphQL operation typically become part of the result, as long as the
+            // server is still able to produce a well-formed response.
+            // Even null represents a valid response, in this case of a non-null propagation
+            // that erased the result.
+            if (result.IsDataSet)
             {
                 return HttpStatusCode.OK;
             }
 
-            // if data is null we consider the result not valid and return a 500 if the user did
-            // not override the status code with a different status code.
-            // this is however at the moment a point of discussion as there are opposing views
-            // towards what constitutes a valid response.
-            // we will update this status code as the spec moves towards release.
-            return HttpStatusCode.InternalServerError;
+            // if data was never set the result not valid and execution has never started, and we return a 400
+            // if the user did not override the status code with a different status code.
+            return HttpStatusCode.BadRequest;
         }
 
         // we allow for users to implement alternative protocols or response content-type.
@@ -389,7 +388,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         IResponseStream responseStream,
         FormatInfo format,
         IHeaderDictionary headers) { }
-    
+
     /// <summary>
     /// Determines which status code shall be returned for a result batch.
     /// </summary>
@@ -626,9 +625,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         Subscription,
     }
 
-    private sealed class SealedDefaultHttpResponseFormatter : DefaultHttpResponseFormatter
-    {
-        public SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
-            : base(options) { }
-    }
+    private sealed class SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
+        : DefaultHttpResponseFormatter(options);
 }
