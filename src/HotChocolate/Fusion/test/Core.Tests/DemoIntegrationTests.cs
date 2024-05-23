@@ -1768,7 +1768,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
             new[]
             {
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+                demoProject.Products.ToConfiguration(),
                 demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
@@ -1783,7 +1783,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         var request = Parse(
             """
             query Requires {
-                # All requested fields are available in the Shipping subgraph
+                # All requested fields are available in the Shipping subgraph.
                 productById(id: "UHJvZHVjdDox") {
                   deliveryEstimate(zip: "12345") {
                     min
@@ -1795,14 +1795,67 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
+    [Fact]
+    public async Task Require_Data_In_Context_5()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Products.ToConfiguration(),
+                demoProject.Shipping.ToConfiguration(ShippingExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            query Requires {
+                productById(id: "UHJvZHVjdDox") {
+                  # This field and the requirements for deliveryEstimate
+                  # are coming from the Products subgraph,
+                  # while all other fields are coming from the Shipping subgraph.
+                  name
+                  deliveryEstimate(zip: "12345") {
+                    min
+                    max
+                  }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
