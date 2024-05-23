@@ -425,7 +425,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     }
 
     [Fact]
-    public async Task DefferedQuery_NoStreamableAcceptHeader()
+    public async Task DeferredQuery_NoStreamableAcceptHeader()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -589,6 +589,24 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         }
 
         await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task After_Execution_StatusCode_Is_200()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+
+        // act
+        var request = new GraphQLHttpRequest(
+            new OperationRequest("{ error }"),
+            new Uri("http://localhost:5000/notnull"));
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(response.StatusCode, OK);
     }
 
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
