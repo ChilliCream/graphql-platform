@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
-using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

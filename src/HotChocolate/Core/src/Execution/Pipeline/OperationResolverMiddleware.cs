@@ -5,11 +5,9 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ErrorHelper;
-using static HotChocolate.WellKnownDirectives;
-using static HotChocolate.Execution.Pipeline.PipelineTools;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Execution.Pipeline;
@@ -18,14 +16,12 @@ internal sealed class OperationResolverMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ObjectPool<OperationCompiler> _operationCompilerPool;
-    private readonly VariableCoercionHelper _coercionHelper;
-    private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers;
+    private readonly IOperationCompilerOptimizer[]? _optimizers;
 
-    public OperationResolverMiddleware(
+    private OperationResolverMiddleware(
         RequestDelegate next,
         ObjectPool<OperationCompiler> operationCompilerPool,
-        IEnumerable<IOperationCompilerOptimizer> optimizers,
-        VariableCoercionHelper coercionHelper)
+        IEnumerable<IOperationCompilerOptimizer> optimizers)
     {
         if (optimizers is null)
         {
@@ -36,9 +32,12 @@ internal sealed class OperationResolverMiddleware
             throw new ArgumentNullException(nameof(next));
         _operationCompilerPool = operationCompilerPool ??
             throw new ArgumentNullException(nameof(operationCompilerPool));
-        _coercionHelper = coercionHelper ??
-            throw new ArgumentNullException(nameof(coercionHelper));
         _optimizers = optimizers.ToArray();
+
+        if (_optimizers.Length == 0)
+        {
+            _optimizers = null;
+        }
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
@@ -90,7 +89,7 @@ internal sealed class OperationResolverMiddleware
             context.Document!,
             context.Schema,
             _optimizers,
-            IsNullBubblingEnabled(context, operationDefinition));
+            IsNullBubblingEnabled(context));
         _operationCompilerPool.Return(compiler);
         return operation;
     }
@@ -106,59 +105,18 @@ internal sealed class OperationResolverMiddleware
             _ => throw ThrowHelper.RootTypeNotSupported(operationType),
         };
 
-    private bool IsNullBubblingEnabled(IRequestContext context, OperationDefinitionNode operationDefinition)
-    {
-        if (!context.Schema.ContextData.ContainsKey(EnableTrueNullability) ||
-            operationDefinition.Directives.Count == 0)
+    private bool IsNullBubblingEnabled(IRequestContext context)
+        => !context.Schema.ContextData.ContainsKey(EnableTrueNullability) || 
+            !context.ContextData.ContainsKey(EnableTrueNullability);
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
         {
-            return true;
-        }
-
-        var enabled = true;
-
-        for (var i = 0; i < operationDefinition.Directives.Count; i++)
-        {
-            var directive = operationDefinition.Directives[i];
-
-            if (!directive.Name.Value.EqualsOrdinal(NullBubbling))
-            {
-                continue;
-            }
-
-            for (var j = 0; j < directive.Arguments.Count; j++)
-            {
-                var argument = directive.Arguments[j];
-
-                if (argument.Name.Value.EqualsOrdinal(Enable))
-                {
-                    if (argument.Value is BooleanValueNode b)
-                    {
-                        enabled = b.Value;
-                        break;
-                    }
-
-                    if (argument.Value is VariableNode v)
-                    {
-                        enabled = CoerceVariable(context, operationDefinition, v);
-                        break;
-                    }
-
-                    throw new GraphQLException(NoNullBubbling_ArgumentValue_NotAllowed(argument));
-                }
-            }
-
-            break;
-        }
-
-        return enabled;
-    }
-
-    private bool CoerceVariable(
-        IRequestContext context,
-        OperationDefinitionNode operationDefinition,
-        VariableNode variable)
-    {
-        var variables = CoerceVariables(context, _coercionHelper, operationDefinition.VariableDefinitions);
-        return variables.GetVariable<bool>(variable.Name.Value);
-    }
+            var operationCompilerPool = core.Services.GetRequiredService<ObjectPool<OperationCompiler>>();
+            var optimizers1 = core.Services.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            var optimizers2 = core.SchemaServices.GetRequiredService<IEnumerable<IOperationCompilerOptimizer>>();
+            optimizers1 = optimizers1.Concat(optimizers2);
+            var middleware = new OperationResolverMiddleware(next, operationCompilerPool, optimizers1);
+            return context => middleware.InvokeAsync(context);
+        };
 }

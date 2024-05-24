@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -13,9 +14,8 @@ internal sealed class DocumentCacheMiddleware
     private readonly IDocumentCache _documentCache;
     private readonly IDocumentHashProvider _documentHashProvider;
 
-    public DocumentCacheMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
+    private DocumentCacheMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         IDocumentCache documentCache,
         IDocumentHashProvider documentHashProvider)
     {
@@ -36,31 +36,29 @@ internal sealed class DocumentCacheMiddleware
 
         if (context.Document is null)
         {
-            if (request.QueryId != null &&
-                _documentCache.TryGetDocument(request.QueryId, out var document))
+            if (!OperationDocumentId.IsNullOrEmpty(request.DocumentId) &&
+                _documentCache.TryGetDocument(request.DocumentId.Value.Value, out var document))
             {
-                context.DocumentId = request.QueryId;
+                context.DocumentId = request.DocumentId;
                 context.Document = document;
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
                 addToCache = false;
                 _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
-            else if (request.QueryHash != null &&
-                _documentCache.TryGetDocument(request.QueryHash, out document))
+            else if (request.DocumentHash is not null &&
+                _documentCache.TryGetDocument(request.DocumentHash, out document))
             {
-                context.DocumentId = request.QueryHash;
+                context.DocumentId = request.DocumentHash;
                 context.Document = document;
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
                 addToCache = false;
                 _diagnosticEvents.RetrievedDocumentFromCache(context);
             }
-            else if (request.QueryHash is null && request.Query != null)
+            else if (request.DocumentHash is null && request.Document is not null)
             {
-                context.DocumentHash =
-                    _documentHashProvider.ComputeHash(request.Query.AsSpan());
-
+                context.DocumentHash = _documentHashProvider.ComputeHash(request.Document.AsSpan());
                 if (_documentCache.TryGetDocument(context.DocumentHash, out document))
                 {
                     context.DocumentId = context.DocumentHash;
@@ -76,12 +74,29 @@ internal sealed class DocumentCacheMiddleware
         await _next(context).ConfigureAwait(false);
 
         if (addToCache &&
-            context.DocumentId != null &&
+            !OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
             context.Document != null &&
             context.IsValidDocument)
         {
-            _documentCache.TryAddDocument(context.DocumentId, context.Document);
+            _documentCache.TryAddDocument(context.DocumentId.Value.Value, context.Document);
             _diagnosticEvents.AddedDocumentToCache(context);
         }
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var documentCache = core.Services.GetRequiredService<IDocumentCache>();
+            var documentHashProvider = core.Services.GetRequiredService<IDocumentHashProvider>();
+            var middleware = Create(next, diagnosticEvents, documentCache, documentHashProvider);
+            return context => middleware.InvokeAsync(context);
+        };
+
+    internal static DocumentCacheMiddleware Create(
+        RequestDelegate next,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentCache documentCache,
+        IDocumentHashProvider documentHashProvider)
+        => new(next, diagnosticEvents, documentCache, documentHashProvider);
 }

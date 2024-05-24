@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using HotChocolate.Language.Properties;
 using static HotChocolate.Language.Properties.LangUtf8Resources;

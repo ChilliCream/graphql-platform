@@ -25,14 +25,14 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Server.NoSupportedAcceptMediaType)
             .Build();
 
-    public static IQueryResult TypeNameIsEmpty()
-        => QueryResultBuilder.CreateError(
+    public static IOperationResult TypeNameIsEmpty()
+        => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_TypeNameIsEmpty,
                 code: ErrorCodes.Server.TypeParameterIsEmpty));
 
-    public static IQueryResult InvalidTypeName(string typeName)
-        => QueryResultBuilder.CreateError(
+    public static IOperationResult InvalidTypeName(string typeName)
+        => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_InvalidTypeName,
                 code: ErrorCodes.Server.InvalidTypeName,
@@ -41,8 +41,8 @@ internal static class ErrorHelper
                     { nameof(typeName), typeName },
                 }));
 
-    public static IQueryResult TypeNotFound(string typeName)
-        => QueryResultBuilder.CreateError(
+    public static IOperationResult TypeNotFound(string typeName)
+        => OperationResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_TypeNotFound, typeName),
                 code: ErrorCodes.Server.TypeDoesNotExist,
@@ -51,8 +51,8 @@ internal static class ErrorHelper
                     { nameof(typeName), typeName },
                 }));
 
-    public static IQueryResult InvalidAcceptMediaType(string headerValue)
-        => QueryResultBuilder.CreateError(
+    public static IOperationResult InvalidAcceptMediaType(string headerValue)
+        => OperationResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_InvalidAcceptMediaType, headerValue),
                 code: ErrorCodes.Server.InvalidAcceptHeaderValue,
@@ -61,9 +61,15 @@ internal static class ErrorHelper
                     { nameof(headerValue), headerValue },
                 }));
     
-    public static IQueryResult MultiPartRequestPreflightRequired()
-        => QueryResultBuilder.CreateError(
+    public static IOperationResult MultiPartRequestPreflightRequired()
+        => OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MultiPartRequestPreflightRequired,
                 code: ErrorCodes.Server.MultiPartPreflightRequired));
+    
+    public static GraphQLRequestException InvalidQueryIdFormat()
+        => new GraphQLRequestException(
+            ErrorBuilder.New()
+                .SetMessage("Invalid query id format.")
+                .Build());
 }

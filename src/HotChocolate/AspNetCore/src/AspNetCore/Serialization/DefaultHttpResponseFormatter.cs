@@ -159,44 +159,60 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             throw ThrowHelper.Formatter_InvalidAcceptMediaType();
         }
 
-        if (result.Kind is SingleResult)
+        switch (result)
         {
-            var queryResult = (IQueryResult)result;
-            var statusCode = (int)OnDetermineStatusCode(queryResult, format, proposedStatusCode);
-
-            response.ContentType = format.ContentType;
-            response.StatusCode = statusCode;
-
-            if (result.ContextData is not null &&
-                result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
-                value is string cacheControlHeaderValue)
+            case IOperationResult operationResult:
             {
-                response.Headers.CacheControl = cacheControlHeaderValue;
+                var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
+
+                response.ContentType = format.ContentType;
+                response.StatusCode = statusCode;
+
+                if (result.ContextData is not null &&
+                    result.ContextData.TryGetValue(CacheControlHeaderValue, out var value) &&
+                    value is string cacheControlHeaderValue)
+                {
+                    response.Headers.CacheControl = cacheControlHeaderValue;
+                }
+
+                OnWriteResponseHeaders(operationResult, format, response.Headers);
+
+                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                break;
             }
 
-            OnWriteResponseHeaders(queryResult, format, response.Headers);
+            case OperationResultBatch resultBatch:
+            {
+                var statusCode = (int)OnDetermineStatusCode(resultBatch, format, proposedStatusCode);
 
-            await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
-        }
-        else if (result.Kind is DeferredResult or BatchResult or SubscriptionResult)
-        {
-            var responseStream = (IResponseStream)result;
-            var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
+                response.ContentType = format.ContentType;
+                response.StatusCode = statusCode;
+                response.Headers.CacheControl = HttpHeaderValues.NoCache;
+                OnWriteResponseHeaders(resultBatch, format, response.Headers);
+                await response.Body.FlushAsync(cancellationToken);
 
-            response.ContentType = format.ContentType;
-            response.StatusCode = statusCode;
-            response.Headers.CacheControl = HttpHeaderValues.NoCache;
-            OnWriteResponseHeaders(responseStream, format, response.Headers);
+                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                break;
+            }
 
-            await response.Body.FlushAsync(cancellationToken);
+            case IResponseStream responseStream:
+            {
+                var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
 
-            await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
-        }
-        else
-        {
-            // we should not hit this point except in the case that we introduce a new
-            // ExecutionResultKind and forget to update this method.
-            throw ThrowHelper.Formatter_ResultKindNotSupported();
+                response.ContentType = format.ContentType;
+                response.StatusCode = statusCode;
+                response.Headers.CacheControl = HttpHeaderValues.NoCache;
+                OnWriteResponseHeaders(responseStream, format, response.Headers);
+                await response.Body.FlushAsync(cancellationToken);
+
+                await format.Formatter.FormatAsync(result, response.Body, cancellationToken);
+                break;
+            }
+
+            default:
+                // we should not hit this point except in the case that we introduce a new
+                // ExecutionResultKind and forget to update this method.
+                throw ThrowHelper.Formatter_ResultKindNotSupported();
         }
     }
 
@@ -204,7 +220,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Determines which status code shall be returned for this result.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IQueryResult"/>.
+    /// The <see cref="IOperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -216,7 +232,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
     /// </returns>
     protected virtual HttpStatusCode OnDetermineStatusCode(
-        IQueryResult result,
+        IOperationResult result,
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
@@ -268,7 +284,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
 
                 // next we check if the validation of the request failed.
-                // if that is the case we will we will return a BadRequest status code (400).
+                // if that is the case we will return a BadRequest status code (400).
                 if (contextData.ContainsKey(ValidationErrors))
                 {
                     return HttpStatusCode.BadRequest;
@@ -280,22 +296,21 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            // if data is not null then we have a valid result. The result of executing
-            // a GraphQL operation may contain partial data as well as encountered errors.
-            // Errors that happen during execution of the GraphQL operation typically
-            // become part of the result, as long as the server is still able to produce
-            // a well-formed response.
-            if (result.Data is not null)
+            // if data is set then the execution as begun and has produced a result.
+            // The result of executing GraphQL operation may contain partial data as
+            // well as encountered errors. Errors that happen during execution of the
+            // GraphQL operation typically become part of the result, as long as the
+            // server is still able to produce a well-formed response.
+            // Even null represents a valid response, in this case of a non-null propagation
+            // that erased the result.
+            if (result.IsDataSet)
             {
                 return HttpStatusCode.OK;
             }
 
-            // if data is null we consider the result not valid and return a 500 if the user did
-            // not override the status code with a different status code.
-            // this is however at the moment a point of discussion as there are opposing views
-            // towards what constitutes a valid response.
-            // we will update this status code as the spec moves towards release.
-            return HttpStatusCode.InternalServerError;
+            // if data was never set the result not valid and execution has never started, and we return a 400
+            // if the user did not override the status code with a different status code.
+            return HttpStatusCode.BadRequest;
         }
 
         // we allow for users to implement alternative protocols or response content-type.
@@ -309,7 +324,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// the the formatter starts writing the response body.
     /// </summary>
     /// <param name="result">
-    /// The <see cref="IQueryResult"/>.
+    /// The <see cref="IOperationResult"/>.
     /// </param>
     /// <param name="format">
     /// Provides information about the transport format that is applied.
@@ -318,7 +333,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// The header dictionary.
     /// </param>
     protected virtual void OnWriteResponseHeaders(
-        IQueryResult result,
+        IOperationResult result,
         FormatInfo format,
         IHeaderDictionary headers) { }
 
@@ -371,6 +386,45 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// </param>
     protected virtual void OnWriteResponseHeaders(
         IResponseStream responseStream,
+        FormatInfo format,
+        IHeaderDictionary headers) { }
+
+    /// <summary>
+    /// Determines which status code shall be returned for a result batch.
+    /// </summary>
+    /// <param name="resultBatch">
+    /// The <see cref="OperationResultBatch"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="proposedStatusCode">
+    /// The proposed status code of the middleware.
+    /// </param>
+    /// <returns>
+    /// Returns the <see cref="HttpStatusCode"/> that the formatter must use.
+    /// </returns>
+    protected virtual HttpStatusCode OnDetermineStatusCode(
+        OperationResultBatch resultBatch,
+        FormatInfo format,
+        HttpStatusCode? proposedStatusCode)
+        => HttpStatusCode.OK;
+
+    /// <summary>
+    /// Override to write response headers to the response message before
+    /// the the formatter starts writing the response body.
+    /// </summary>
+    /// <param name="resultBatch">
+    /// The <see cref="OperationResultBatch"/>.
+    /// </param>
+    /// <param name="format">
+    /// Provides information about the transport format that is applied.
+    /// </param>
+    /// <param name="headers">
+    /// The header dictionary.
+    /// </param>
+    protected virtual void OnWriteResponseHeaders(
+        OperationResultBatch resultBatch,
         FormatInfo format,
         IHeaderDictionary headers) { }
 
@@ -571,9 +625,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         Subscription,
     }
 
-    private sealed class SealedDefaultHttpResponseFormatter : DefaultHttpResponseFormatter
-    {
-        public SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
-            : base(options) { }
-    }
+    private sealed class SealedDefaultHttpResponseFormatter(HttpResponseFormatterOptions options)
+        : DefaultHttpResponseFormatter(options);
 }

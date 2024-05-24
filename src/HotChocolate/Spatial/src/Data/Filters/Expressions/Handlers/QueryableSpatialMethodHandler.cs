@@ -8,7 +8,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
 
 namespace HotChocolate.Data.Filters.Spatial;
 
@@ -64,7 +63,7 @@ public abstract class QueryableSpatialMethodHandler
                 context,
                 filterOperationField,
                 node,
-                out Expression? nestedProperty))
+                out var nestedProperty))
             {
                 context.ReportError(
                     ErrorHelper.CouldNotCreateFilterForOperation(field, node.Value, context));
@@ -97,7 +96,7 @@ public abstract class QueryableSpatialMethodHandler
         [NotNullWhen(true)] out ISyntaxVisitorAction? action)
     {
         // Dequeue last
-        Expression condition = context.GetLevel().Dequeue();
+        var condition = context.GetLevel().Dequeue();
 
         context.PopInstance();
         context.RuntimeTypes.Pop();

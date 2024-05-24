@@ -41,6 +41,8 @@ internal sealed partial class ResultBuilder
         _path = null;
         _label = null;
         _hasNext = null;
+        _requestIndex = null;
+        _variableIndex = null;
     }
 
     private void InitializeResult()

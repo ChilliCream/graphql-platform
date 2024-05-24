@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -59,6 +58,8 @@ public class InputObjectTypeDescriptor
     protected override void OnCreateDefinition(
         InputObjectTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -95,6 +96,8 @@ public class InputObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected void InferFieldsFromFieldBindingType(
@@ -138,13 +141,6 @@ public class InputObjectTypeDescriptor
         IDictionary<string, InputFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-
-    public IInputObjectTypeDescriptor SyntaxNode(
-        InputObjectTypeDefinitionNode inputObjectTypeDefinition)
-    {
-        Definition.SyntaxNode = inputObjectTypeDefinition;
-        return this;
-    }
 
     public IInputObjectTypeDescriptor Name(string value)
     {

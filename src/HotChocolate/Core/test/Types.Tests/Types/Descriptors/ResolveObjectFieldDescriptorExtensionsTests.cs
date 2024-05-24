@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Types;
 

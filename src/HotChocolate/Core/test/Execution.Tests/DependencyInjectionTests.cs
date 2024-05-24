@@ -1,10 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -55,11 +52,11 @@ public class DependencyInjectionTests
         {
             result[0] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -67,11 +64,11 @@ public class DependencyInjectionTests
         {
             result[1] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -121,11 +118,11 @@ public class DependencyInjectionTests
         {
             result[0] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -133,11 +130,11 @@ public class DependencyInjectionTests
         {
             result[1] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -164,11 +161,11 @@ public class DependencyInjectionTests
 
         await executor
             .ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ hello }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ hello }")
                     .SetServices(scope.ServiceProvider)
-                    .Create())
+                    .Build())
             .ToJsonAsync()
             .MatchSnapshotAsync();
     }

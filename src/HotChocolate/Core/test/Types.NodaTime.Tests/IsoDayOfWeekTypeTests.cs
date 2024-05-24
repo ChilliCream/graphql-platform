@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -28,47 +28,43 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
-
-        public IsoDayOfWeekTypeIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<Schema.Query>()
                 .AddMutationType<Schema.Mutation>()
                 .AddNodaTime()
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturnsMonday()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: monday }");
-            
+            var result = _testExecutor.Execute("query { test: monday }");
+
             Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsSunday()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: sunday }");
-            
+            var result = _testExecutor.Execute("query { test: sunday }");
+
             Assert.Equal(7, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsFriday()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: friday }");
-            
+            var result = _testExecutor.Execute("query { test: friday }");
+
             Assert.Equal(5, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryDoesntReturnNone()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: none }");
-            
+            var result = _testExecutor.Execute("query { test: none }");
+
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.NotEmpty(result.ExpectQueryResult().Errors);
         }
@@ -76,36 +72,36 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationParsesMonday()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", 1)
-                    .Create());
-            
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", 1 }, })
+                    .Build());
+
             Assert.Equal(2, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void MutationParsesSunday()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", 7)
-                    .Create());
-            
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", 7 }, })
+                    .Build());
+
             Assert.Equal(1, result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void MutationDoesntParseZero()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", 0)
-                    .Create());
-            
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", 0 }, })
+                    .Build());
+
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
@@ -113,12 +109,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationDoesntParseEight()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", 8)
-                    .Create());
-            
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", 8 }, })
+                    .Build());
+
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
@@ -126,12 +122,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void MutationDoesntParseNegativeNumbers()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", -2)
-                    .Create());
-            
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", -2 }, })
+                    .Build());
+
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }

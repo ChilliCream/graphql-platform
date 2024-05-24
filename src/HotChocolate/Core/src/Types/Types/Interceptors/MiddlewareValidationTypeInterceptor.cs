@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -33,7 +32,6 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     ValidatePipeline(
                         validationContext.Type,
                         new FieldCoordinate(validationContext.Type.Name, field.Name),
-                        field.SyntaxNode,
                         field.MiddlewareDefinitions);
                 }
             }
@@ -43,7 +41,6 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     private void ValidatePipeline(
         ITypeSystemObject type,
         FieldCoordinate field,
-        ISyntaxNode? syntaxNode,
         IList<FieldMiddlewareDefinition> middlewareDefinitions)
     {
         _names.Clear();
@@ -128,7 +125,6 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 ErrorHelper.DuplicateDataMiddlewareDetected(
                     field,
                     type,
-                    syntaxNode,
                     duplicates));
         }
 
@@ -138,7 +134,6 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 ErrorHelper.MiddlewareOrderInvalid(
                     field,
                     type,
-                    syntaxNode,
                     PrintPipeline(middlewareDefinitions)));
         }
     }

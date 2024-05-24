@@ -22,6 +22,12 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
+/// <remarks>
+/// Initializes new instance of <see cref="RequiresScopesAttribute"/>
+/// </remarks>
+/// <param name="scopes">
+/// Array of required JWT scopes.
+/// </param>
 [AttributeUsage(
     AttributeTargets.Class
     | AttributeTargets.Enum
@@ -31,23 +37,13 @@ namespace HotChocolate.ApolloFederation.Types;
     | AttributeTargets.Struct,
     AllowMultiple = true
 )]
-public sealed class RequiresScopesAttribute : DescriptorAttribute
+public sealed class RequiresScopesAttribute(string[] scopes) : DescriptorAttribute
 {
-    /// <summary>
-    /// Initializes new instance of <see cref="RequiresScopesAttribute"/>
-    /// </summary>
-    /// <param name="scopes">
-    /// Array of required JWT scopes.
-    /// </param>
-    public RequiresScopesAttribute(string[] scopes)
-    {
-        Scopes = scopes;
-    }
 
     /// <summary>
     /// Retrieves array of required JWT scopes.
     /// </summary>
-    public string[] Scopes { get; }
+    public string[] Scopes { get; } = scopes;
 
     protected internal override void TryConfigure(
         IDescriptorContext context,
@@ -59,19 +55,19 @@ public sealed class RequiresScopesAttribute : DescriptorAttribute
             case IEnumTypeDescriptor desc:
                 desc.RequiresScopes(Scopes);
                 break;
-            
+
             case IObjectTypeDescriptor desc:
                 desc.RequiresScopes(Scopes);
                 break;
-            
+
             case IObjectFieldDescriptor desc:
                 desc.RequiresScopes(Scopes);
                 break;
-            
+
             case IInterfaceTypeDescriptor desc:
                 desc.RequiresScopes(Scopes);
                 break;
-            
+
             case IInterfaceFieldDescriptor desc:
                 desc.RequiresScopes(Scopes);
                 break;

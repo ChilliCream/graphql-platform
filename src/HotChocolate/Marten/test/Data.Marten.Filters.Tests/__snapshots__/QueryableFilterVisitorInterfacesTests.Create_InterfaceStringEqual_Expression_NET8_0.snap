@@ -15,7 +15,7 @@ a Result:
 
 a SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorinterfacestests_barinterface as d where d.data -> 'Test' ->> 'Prop' = :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorinterfacestests_barinterface as d where d.data -> 'Test' ->> 'Prop' = :p0;
 ---------------
 
 ba Result:
@@ -35,7 +35,7 @@ ba Result:
 
 ba SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorinterfacestests_barinterface as d where d.data -> 'Test' ->> 'Prop' = :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorinterfacestests_barinterface as d where d.data -> 'Test' ->> 'Prop' = :p0;
 ---------------
 
 null

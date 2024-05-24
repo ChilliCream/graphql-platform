@@ -14,7 +14,7 @@ namespace HotChocolate.ApolloFederation.Types;
 ///
 /// <example>
 /// extend schema @composeDirective(name: "@custom")
-///   @link(url: "https://specs.apollo.dev/federation/v2.5", import: ["@composeDirective"])
+///   @link(url: "https://specs.apollo.dev/federation/v2.1", import: ["@composeDirective"])
 ///   @link(url: "https://myspecs.dev/custom/v1.0", import: ["@custom"])
 ///
 /// directive @custom on FIELD_DEFINITION
@@ -24,10 +24,10 @@ namespace HotChocolate.ApolloFederation.Types;
 /// }
 /// </example>
 /// </summary>
-[Package(Federation25)]
+[Package(Federation21)]
 [DirectiveType(ComposeDirective_Name, DirectiveLocation.Schema, IsRepeatable = true)]
 [GraphQLDescription(ComposeDirective_Description)]
 public sealed class ComposeDirective(string name)
-{    
+{
     public string Name { get; } = name;
 }

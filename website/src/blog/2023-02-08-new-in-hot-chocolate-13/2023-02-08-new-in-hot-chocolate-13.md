@@ -614,14 +614,18 @@ dotnet install HotChocolate.Data.Marten
 With version 12, we introduced the Azure Functions integration but only targeted in-process Azure Functions. Now, with Hot Chocolate 13, we have doubled down on Azure Functions and provided the ability to now run in the isolated process model, along with templates for both.
 
 1. Install the HotChocolate Templates.
+
    ```bash
    dotnet new install HotChocolate.templates
    ```
+
 2. Chose your template to install or take a spin with both.
+
    ```bash
    dotnet new graphql-azf --output .\hc-graphql-azf
    dotnet new graphql-azf-ip --output .\hc-graphql-azf-ip
    ```
+
    Or use Visual Studio.
    ![HotChocolate Azure Functions Project Templates](az-func-templates-vs.png)
 

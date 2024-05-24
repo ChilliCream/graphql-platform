@@ -71,17 +71,17 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -133,17 +133,17 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -192,17 +192,17 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     [Fact]
@@ -251,17 +251,17 @@ public class UnionTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .SetVariableValue("input", input)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .SetVariableValues(new Dictionary<string, object?> { {"input", input}, })
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
         CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync(cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

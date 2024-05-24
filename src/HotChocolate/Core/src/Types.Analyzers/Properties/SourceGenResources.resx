@@ -24,4 +24,13 @@
   <data name="DataLoader_InvalidAccessModifier" xml:space="preserve">
     <value>The DataLoader access modifier must be public or internal.</value>
   </data>
+  <data name="InterceptsAttribute" xml:space="preserve">
+    <value>#pragma warning disable CS9113 // Parameter is unread.
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    file sealed class InterceptsLocationAttribute(string filePath, int line, int column) : Attribute;
+}
+#pragma warning restore CS9113 // Parameter is unread.</value>
+  </data>
 </root>

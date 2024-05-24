@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -32,19 +28,19 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(where: { displayName: { eq: \"Sam Sampleman\"}}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(where: { displayName: { eq: \"NoMatch\"}}){ name lastName}}")
+            .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { displayName: { eq: null}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(where: { displayName: { eq: null}}){ name lastName}}")
+            .Build());
 
         // assert
         await Snapshot
@@ -88,19 +84,19 @@ public class QueryableFilterVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(where: { barLength: { eq: 1}}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(where: { barLength: { eq: 0}}){ name lastName}}")
+            .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(where: { barLength: { eq: null}}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(where: { barLength: { eq: null}}){ name lastName}}")
+            .Build());
 
         // assert
         await Snapshot

@@ -2,14 +2,10 @@ namespace HotChocolate.Language.Visitors;
 
 public static class SyntaxVisitorExtensions
 {
-    private static readonly EmptySyntaxVisitorContext _empty = new();
+    private static readonly object _empty = new();
 
     public static ISyntaxVisitorAction Visit(
-        this ISyntaxVisitor<ISyntaxVisitorContext> visitor,
+        this ISyntaxVisitor<object?> visitor,
         ISyntaxNode node)
         => visitor.Visit(node, _empty);
-
-    private sealed class EmptySyntaxVisitorContext : ISyntaxVisitorContext
-    {
-    }
 }

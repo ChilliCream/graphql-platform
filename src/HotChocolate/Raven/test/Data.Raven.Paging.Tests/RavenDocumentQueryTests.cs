@@ -1,6 +1,5 @@
 using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -428,10 +427,10 @@ public class RavenQueryableTests
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result = QueryResultBuilder
+                        context.Result = OperationResultBuilder
                             .FromResult(context.Result!.ExpectQueryResult())
                             .SetContextData("query", queryString)
-                            .Create();
+                            .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

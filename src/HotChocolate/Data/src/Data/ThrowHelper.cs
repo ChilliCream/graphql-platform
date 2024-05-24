@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
@@ -124,7 +121,7 @@ internal static class ThrowHelper
         new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(DataResources.FilterConvention_CouldNotConvertValue)
-                .AddLocation(node)
+                .AddLocation([node])
                 .Build());
 
     public static SchemaException FilterObjectFieldDescriptorExtensions_CannotInfer() =>

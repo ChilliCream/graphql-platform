@@ -18,7 +18,7 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
-            .AddLocation(argument)
+            .AddLocation([argument])
             .SetExtension("responseName", responseName)
             .SetExtension("errorPath", validationResult.Path)
             .Build();
@@ -30,7 +30,7 @@ internal static class ErrorHelper
         GraphQLException exception)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation(argument)
+            .AddLocation([argument])
             .SetExtension("responseName", responseName)
             .Build();
     }
@@ -50,7 +50,7 @@ internal static class ErrorHelper
         Path path)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -64,7 +64,7 @@ internal static class ErrorHelper
     {
         return errorHandler
             .CreateUnexpectedError(exception)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -77,7 +77,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();
@@ -91,7 +91,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .SetException(exception)
@@ -105,7 +105,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName!)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -117,14 +117,14 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnexpectedValueCompletionError_Message)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
     }
 
-    public static IQueryResult RootTypeNotFound(OperationType operationType) =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult RootTypeNotFound(OperationType operationType) =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
                 .Build(),
@@ -133,20 +133,20 @@ internal static class ErrorHelper
                 { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
             });
 
-    public static IQueryResult StateInvalidForOperationResolver() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForOperationResolver() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                 .Build());
 
-    public static IQueryResult StateInvalidForOperationVariableCoercion() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForOperationVariableCoercion() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationVariableCoercion_Message)
                 .Build());
 
-    public static IQueryResult StateInvalidForOperationExecution() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForOperationExecution() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForOperationExecution_Message)
                 .Build());
@@ -161,42 +161,52 @@ internal static class ErrorHelper
                 result.GetType().FullName ?? result.GetType().Name,
                 field.Name)
             .SetPath(path)
-            .AddLocation(field)
+            .AddLocation([field])
             .Build();
 
-    public static IQueryResult StateInvalidForDocumentValidation() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForDocumentValidation() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForDocumentValidation_Message)
                 .SetCode(ErrorCodes.Execution.QueryNotFound)
                 .Build());
 
-    public static IQueryResult OperationKindNotAllowed() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult OperationKindNotAllowed() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage("The specified operation kind is not allowed.")
                 .Build(),
             new Dictionary<string, object?>
             {
-                    { WellKnownContextData.OperationNotAllowed, null },
+                { WellKnownContextData.OperationNotAllowed, null },
             });
 
-    public static IQueryResult RequestTimeout(TimeSpan timeout) =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult RequestTypeNotAllowed() =>
+        OperationResultBuilder.CreateError(
+            ErrorBuilder.New()
+                .SetMessage("Variable batch requests are only allowed for mutations and subscriptions.")
+                .Build(),
+            new Dictionary<string, object?>
+            {
+                { WellKnownContextData.ValidationErrors, null },
+            });
+
+    public static IOperationResult RequestTimeout(TimeSpan timeout) =>
+        OperationResultBuilder.CreateError(
             new Error(
                 string.Format(ErrorHelper_RequestTimeout, timeout),
                 ErrorCodes.Execution.Timeout));
 
-    public static IQueryResult OperationCanceled() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult OperationCanceled() =>
+        OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_OperationCanceled_Message,
                 ErrorCodes.Execution.Canceled));
 
-    public static IQueryResult MaxComplexityReached(
+    public static IOperationResult MaxComplexityReached(
         int complexity,
         int allowedComplexity) =>
-        QueryResultBuilder.CreateError(
+        OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MaxComplexityReached,
                 ErrorCodes.Execution.ComplexityExceeded,
@@ -215,8 +225,8 @@ internal static class ErrorHelper
             ErrorHelper_MaxComplexityReached,
             ErrorCodes.Execution.ComplexityExceeded);
 
-    public static IQueryResult StateInvalidForComplexityAnalyzer() =>
-        QueryResultBuilder.CreateError(
+    public static IOperationResult StateInvalidForComplexityAnalyzer() =>
+        OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
                 .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
@@ -227,10 +237,10 @@ internal static class ErrorHelper
             .SetMessage("Cannot return null for non-nullable field.")
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path)
-            .AddLocation(selection)
+            .AddLocation([selection])
             .Build();
 
-    public static IError PersistedQueryNotFound(string requestedKey)
+    public static IError PersistedQueryNotFound(OperationDocumentId requestedKey)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_PersistedQueryNotFound)
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
@@ -254,15 +264,7 @@ internal static class ErrorHelper
         ArgumentNode argument)
     {
         var errorBuilder = ErrorBuilder.New();
-
-        if (argument.Value.Location is not null)
-        {
-            errorBuilder.AddLocation(
-                argument.Value.Location.Line,
-                argument.Value.Location.Column);
-        }
-
-        errorBuilder.SetSyntaxNode(argument.Value);
+        errorBuilder.AddLocation([argument.Value]);
         errorBuilder.SetMessage(ErrorHelper_NoNullBubbling_ArgumentValue_NotAllowed);
 
         return errorBuilder.Build();

@@ -20,13 +20,6 @@ public class AnyType : ScalarType
     /// <summary>
     /// Initializes a new instance of the <see cref="AnyType"/> class.
     /// </summary>
-    public AnyType() : this(ScalarNames.Any)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="AnyType"/> class.
-    /// </summary>
     public AnyType(
         string name,
         string? description = null,
@@ -34,6 +27,14 @@ public class AnyType : ScalarType
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AnyType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public AnyType() : this(ScalarNames.Any)
+    {
     }
 
     public override Type RuntimeType => typeof(object);

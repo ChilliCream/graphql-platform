@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Projections;
@@ -16,6 +12,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.OperationCompilerOptimizerHelper;
+using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types;
@@ -148,9 +145,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
                     if (selectionType is null)
                     {
                         if (definition.ResultType is null ||
-                            !context.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType,
-                                out var typeInfo))
+                            !context.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 UseProjection_CannotHandleType,
@@ -183,43 +178,14 @@ public static class ProjectionObjectFieldDescriptorExtensions
         definition.ContextData[ProjectionContextIdentifier] = true;
 
         var factory = _factoryTemplate.MakeGenericMethod(type);
-        var middleware = (FieldMiddleware)factory.Invoke(null, [convention,])!;
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
-            new(middleware, key: WellKnownMiddleware.Projection);
+        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Projection);
     }
 
-    private static FieldMiddleware CreateMiddleware<TEntity>(IProjectionConvention convention)
-    {
-        var executor = convention.CreateExecutor<TEntity>();
-        return next => context =>
-        {
-            // in case we are being called from the node/nodes field we need to enrich
-            // the projections context with the type that shall be resolved.
-            if (context.LocalContextData.TryGetValue(InternalType, out var value) &&
-                value is ObjectType objectType &&
-                objectType.RuntimeType != typeof(object))
-            {
-                var fieldProxy = new NodeFieldProxy(context.Selection.Field, objectType);
-                var selection = CreateProxySelection(context.Selection, fieldProxy);
-                context = new MiddlewareContextProxy(context, selection, objectType);
-            }
-            
-            //for use case when projection is used with Mutation Conventions
-            else if (context.Operation.Type is OperationType.Mutation && 
-                context.Selection.Type.NamedType() is ObjectType mutationPayloadType && 
-                mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null)
-                    is string dataFieldName)
-            {
-                var dataField = mutationPayloadType.Fields[dataFieldName];
-                var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
-                var selection = UnwrapMutationPayloadSelection(payloadSelectionSet, dataField);
-                context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
-            }
-            
-            return executor.Invoke(next).Invoke(context);
-        };
-    }
+    private static IQueryBuilder CreateMiddleware<TEntity>(IProjectionConvention convention)
+        => new ProjectionQueryBuilder(convention.CreateBuilder<TEntity>());
 
     private static Selection UnwrapMutationPayloadSelection(ISelectionSet selectionSet, ObjectField field)
     {
@@ -232,12 +198,52 @@ public static class ProjectionObjectFieldDescriptorExtensions
             {
                 return selection;
             }
-            
+
             selection = ref Unsafe.Add(ref selection, 1)!;
         }
 
         throw new InvalidOperationException(
             ProjectionObjectFieldDescriptorExtensions_UnwrapMutationPayloadSelect_Failed);
+    }
+
+    private sealed class ProjectionQueryBuilder(IQueryBuilder innerBuilder) : IQueryBuilder
+    {
+        private const string _mockContext = "HotChocolate.Data.Projections.ProxyContext";
+
+        public void Prepare(IMiddlewareContext context)
+        {
+            // in case we are being called from the node/nodes field we need to enrich
+            // the projections context with the type that shall be resolved.
+            if (context.LocalContextData.TryGetValue(InternalType, out var value) &&
+                value is ObjectType objectType &&
+                objectType.RuntimeType != typeof(object))
+            {
+                var fieldProxy = new NodeFieldProxy(context.Selection.Field, objectType);
+                var selection = CreateProxySelection(context.Selection, fieldProxy);
+                context = new MiddlewareContextProxy(context, selection, objectType);
+            }
+
+            //for use case when projection is used with Mutation Conventions
+            else if (context.Operation.Type is OperationType.Mutation &&
+                context.Selection.Type.NamedType() is ObjectType mutationPayloadType &&
+                mutationPayloadType.ContextData.GetValueOrDefault(MutationConventionDataField, null)
+                    is string dataFieldName)
+            {
+                var dataField = mutationPayloadType.Fields[dataFieldName];
+                var payloadSelectionSet = context.Operation.GetSelectionSet(context.Selection, mutationPayloadType);
+                var selection = UnwrapMutationPayloadSelection(payloadSelectionSet, dataField);
+                context = new MiddlewareContextProxy(context, selection, dataField.DeclaringType);
+            }
+
+            context.SetLocalState(_mockContext, context);
+            innerBuilder.Prepare(context);
+        }
+
+        public void Apply(IMiddlewareContext context)
+        {
+            context = context.GetLocalStateOrDefault<MiddlewareContextProxy>(_mockContext) ?? context;
+            innerBuilder.Apply(context);
+        }
     }
 
     private sealed class MiddlewareContextProxy : IMiddlewareContext
@@ -317,7 +323,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public ValueKind ArgumentKind(string name) => _context.ArgumentKind(name);
 
         public T Service<T>() where T : notnull => _context.Service<T>();
-        
+
     #if NET8_0_OR_GREATER
         public T? Service<T>(object key) where T : notnull => _context.Service<T>(key);
     #endif
@@ -338,6 +344,12 @@ public static class ProjectionObjectFieldDescriptorExtensions
             ISelection? selection = null,
             bool allowInternals = false)
             => _context.GetSelections(typeContext, selection, allowInternals);
+
+        public ISelectionCollection Select()
+            => _context.Select();
+
+        public ISelectionCollection Select(string fieldName)
+            => _context.Select(fieldName);
 
         public T GetQueryRoot<T>() => _context.GetQueryRoot<T>();
 
@@ -404,6 +416,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public bool IsParallelExecutable => _nodeField.IsParallelExecutable;
 
+        public DependencyInjectionScope DependencyInjectionScope => _nodeField.DependencyInjectionScope;
+
         public bool HasStreamResult => _nodeField.HasStreamResult;
 
         public FieldDelegate Middleware => _nodeField.Middleware;
@@ -429,8 +443,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
         public string? Description => _nodeField.Description;
 
         public IDirectiveCollection Directives => _nodeField.Directives;
-
-        public ISyntaxNode? SyntaxNode => _nodeField.SyntaxNode;
 
         public IReadOnlyDictionary<string, object?> ContextData => _nodeField.ContextData;
 

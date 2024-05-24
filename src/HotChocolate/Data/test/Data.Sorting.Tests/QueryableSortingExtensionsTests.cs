@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
@@ -31,10 +29,10 @@ public class QueryableSortingExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork(order: {bar: DESC}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
@@ -52,10 +50,10 @@ public class QueryableSortingExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ typeMissmatch(order: {bar: DESC}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ typeMissmatch(order: {bar: DESC}) { bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -76,10 +74,10 @@ public class QueryableSortingExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ missingMiddleware { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ missingMiddleware { bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

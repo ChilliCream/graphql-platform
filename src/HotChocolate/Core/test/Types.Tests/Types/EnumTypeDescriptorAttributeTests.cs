@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Types;
 

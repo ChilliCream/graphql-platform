@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
-public class QueryRequestBuilderTests
+public class OperationRequestBuilderTests
 {
     [Fact]
     public void BuildRequest_OnlyQueryIsSet_RequestHasOnlyQuery()
@@ -15,9 +14,9 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -31,26 +30,25 @@ public class QueryRequestBuilderTests
 
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .Build();
 
         // assert
         request.MatchSnapshot();
     }
 
     [Fact]
-    public void BuildRequest_Empty_QueryRequestBuilderException()
+    public void BuildRequest_Empty_OperationRequestBuilderException()
     {
         // arrange
         // act
         Action action = () =>
-            QueryRequestBuilder.New()
-                .Create();
+            OperationRequestBuilder.Create()
+                .Build();
 
         // assert
-        Assert.Throws<QueryRequestBuilderException>(action)
-            .Message.MatchSnapshot();
+        Assert.Throws<InvalidOperationException>(action).Message.MatchSnapshot();
     }
 
     [InlineData("")]
@@ -61,67 +59,14 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         void Action() =>
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .Build();
 
         // assert
-        Assert.Equal("sourceText",
+        Assert.Equal(
+            "sourceText",
             Assert.Throws<ArgumentException>(Action).ParamName);
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndAddVariables_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddVariableValue("one", "foo")
-                .AddVariableValue("two", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetVariables_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddVariableValue("one", "foo")
-                .AddVariableValue("two", "bar")
-                .SetVariableValues(new Dictionary<string, object>
-                {
-                    { "three", "baz" },
-                })
-                .Create();
-
-        // assert
-        // only three should be in the request
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetVariable_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddVariableValue("one", "foo")
-                .SetVariableValue("one", "bar")
-                .Create();
-
-        // assert
-        // one should be bar
-        request.MatchSnapshot();
     }
 
     [Fact]
@@ -130,10 +75,10 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .SetVariableValue("one", "bar")
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
+                .Build();
 
         // assert
         // one should be bar
@@ -146,12 +91,11 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddVariableValue("one", "foo")
-                .AddVariableValue("two", "bar")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
                 .SetVariableValues(null)
-                .Create();
+                .Build();
 
         // assert
         // no variable should be in the request
@@ -164,11 +108,11 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
-                .Create();
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -180,15 +124,16 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
-                .InitializeGlobalState(new Dictionary<string, object>
-                {
-                    { "three", "baz" },
-                })
-                .Create();
+                .SetGlobalState(
+                    new Dictionary<string, object>
+                    {
+                        { "three", "baz" },
+                    })
+                .Build();
 
         // assert
         // only three should exist
@@ -201,11 +146,11 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .SetGlobalState("one", "bar")
-                .Create();
+                .Build();
 
         // assert
         // one should be bar
@@ -218,10 +163,10 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .SetGlobalState("one", "bar")
-                .Create();
+                .Build();
 
         // assert
         // one should be bar
@@ -234,12 +179,12 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
-                .InitializeGlobalState(null)
-                .Create();
+                .SetGlobalState(null)
+                .Build();
 
         // assert
         // no property should be in the request
@@ -252,10 +197,10 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123", })
-                .Create();
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -267,10 +212,10 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .SetOperation("bar")
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .SetOperationName("bar")
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -282,11 +227,11 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .SetOperation("bar")
-                .SetOperation(null)
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .SetOperationName("bar")
+                .SetOperationName(null)
+                .Build();
 
         // assert
         // the operation should be null
@@ -301,11 +246,13 @@ public class QueryRequestBuilderTests
 
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .SetServices(new DictionaryServiceProvider(
-                    service.GetType(), service))
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .SetServices(
+                    new DictionaryServiceProvider(
+                        service.GetType(),
+                        service))
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -319,14 +266,13 @@ public class QueryRequestBuilderTests
 
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .SetOperation("bar")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
+                .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
-                .AddVariableValue("two", "bar")
-                .SetServices(new DictionaryServiceProvider(
-                    service.GetType(), service))
-                .Create();
+                .SetVariableValues(new Dictionary<string, object> { { "two", "bar" }, })
+                .SetServices(new DictionaryServiceProvider(service.GetType(), service))
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -338,10 +284,10 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .TryAddGlobalState("one", "bar")
-                .Create();
+                .Build();
 
         // assert
         request.MatchSnapshot();
@@ -353,227 +299,13 @@ public class QueryRequestBuilderTests
         // arrange
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .TryAddGlobalState("one", "bar")
-                .Create();
+                .Build();
 
         // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddVariable_VariableIsSet()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .TryAddVariableValue("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddVariable_VariableIsNotSet()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddVariableValue("one", "foo")
-                .TryAddVariableValue("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddExtension_ExtensionIsSet()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .TryAddExtension("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndTryAddExtension_ExtensionIsNotSet()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .TryAddExtension("one", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndAddExtension_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .Create();
-
-        // assert
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_1()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(new Dictionary<string, object>
-                {
-                    { "three", "baz" },
-                })
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_2()
-    {
-        // arrange
-        IReadOnlyDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_3()
-    {
-        // arrange
-        IReadOnlyDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .AddExtension("four", "bar")
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_4()
-    {
-        // arrange
-        IDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtensions_RequestIsCreated_5()
-    {
-        // arrange
-        IDictionary<string, object> ext =
-            new Dictionary<string, object>
-            {
-                { "three", "baz" },
-            };
-
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .AddExtension("two", "bar")
-                .SetExtensions(ext)
-                .AddExtension("four", "bar")
-                .Create();
-
-        // assert
-        // only three should exist
-        request.MatchSnapshot();
-    }
-
-    [Fact]
-    public void BuildRequest_QueryAndSetExtension_RequestIsCreated()
-    {
-        // arrange
-        // act
-        var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo }")
-                .AddExtension("one", "foo")
-                .SetExtension("one", "bar")
-                .Create();
-
-        // assert
-        // one should be bar
         request.MatchSnapshot();
     }
 }

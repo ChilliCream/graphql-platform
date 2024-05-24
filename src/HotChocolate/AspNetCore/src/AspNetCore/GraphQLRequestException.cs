@@ -1,5 +1,3 @@
-using System.Runtime.Serialization;
-
 namespace HotChocolate.AspNetCore;
 
 public class GraphQLRequestException : GraphQLException

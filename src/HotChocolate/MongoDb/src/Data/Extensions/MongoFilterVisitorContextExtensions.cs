@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 
 namespace HotChocolate.Data.MongoDb.Filters;
@@ -19,7 +18,5 @@ public static class MongoFilterVisitorContextExtensions
     /// <param name="context">the context</param>
     /// <returns>True in case the query has been build successfully, otherwise false</returns>
     public static MongoDbFilterDefinition CreateQuery(this MongoDbFilterVisitorContext context)
-    {
-        return context.GetMongoFilterScope().CreateQuery();
-    }
+        => context.GetMongoFilterScope().CreateQuery();
 }

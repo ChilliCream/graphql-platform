@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -84,10 +80,10 @@ public class ProjectionVisitorTestBase
                 if (context.ContextData.TryGetValue("sql", out var queryString))
                 {
                     context.Result =
-                        QueryResultBuilder
+                        OperationResultBuilder
                             .FromResult(context.Result!.ExpectQueryResult())
                             .SetContextData("sql", queryString)
-                            .Create();
+                            .Build();
                 }
             })
             .UseDefaultPipeline()

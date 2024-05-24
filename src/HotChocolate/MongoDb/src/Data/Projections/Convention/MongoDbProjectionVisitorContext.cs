@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Projections;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

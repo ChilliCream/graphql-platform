@@ -99,7 +99,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             statusCode = HttpStatusCode.NotAcceptable;
 
             var error = ErrorHelper.NoSupportedAcceptMediaType();
-            result = QueryResultBuilder.CreateError(error);
+            result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
             goto HANDLE_RESULT;
         }
@@ -111,7 +111,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             try
             {
-                requests = await GetRequestsFromBody(context.Request, context.RequestAborted);
+                requests = await ParseRequestsFromBodyAsync(context.Request, context.RequestAborted);
             }
             catch (GraphQLRequestException ex)
             {
@@ -120,7 +120,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
                 var errors = errorHandler.Handle(ex.Errors);
-                result = QueryResultBuilder.CreateError(errors);
+                result = OperationResultBuilder.CreateError(errors);
                 DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
@@ -128,7 +128,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
             {
                 statusCode = HttpStatusCode.InternalServerError;
                 var error = errorHandler.CreateUnexpectedError(ex).Build();
-                result = QueryResultBuilder.CreateError(error);
+                result = OperationResultBuilder.CreateError(error);
                 DiagnosticEvents.HttpRequestError(context, error);
                 goto HANDLE_RESULT;
             }
@@ -142,13 +142,13 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // if the HTTP request body contains no GraphQL request structure the
                 // whole request is invalid and we will create a GraphQL error response.
                 case 0:
-                    {
-                        statusCode = HttpStatusCode.BadRequest;
-                        var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
-                        result = QueryResultBuilder.CreateError(error);
-                        DiagnosticEvents.HttpRequestError(context, error);
-                        break;
-                    }
+                {
+                    statusCode = HttpStatusCode.BadRequest;
+                    var error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
+                    result = OperationResultBuilder.CreateError(error);
+                    DiagnosticEvents.HttpRequestError(context, error);
+                    break;
+                }
 
                 // if the HTTP request body contains a single GraphQL request and we do have
                 // the batch operations query parameter specified we need to execute an
@@ -158,32 +158,32 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // contains multiple operations. The batch operation query parameter
                 // defines the order in which the operations shall be executed.
                 case 1 when context.Request.Query.ContainsKey(_batchOperations):
+                {
+                    string? operationNames = context.Request.Query[_batchOperations];
+
+                    if (!string.IsNullOrEmpty(operationNames) &&
+                        TryParseOperations(operationNames, out var ops) &&
+                        GetOptions(context).EnableBatching)
                     {
-                        string? operationNames = context.Request.Query[_batchOperations];
-
-                        if (!string.IsNullOrEmpty(operationNames) &&
-                            TryParseOperations(operationNames, out var ops) &&
-                            GetOptions(context).EnableBatching)
-                        {
-                            result = await ExecuteOperationBatchAsync(
-                                context,
-                                requestExecutor,
-                                requestInterceptor,
-                                DiagnosticEvents,
-                                requests[0],
-                                requestFlags,
-                                ops);
-                        }
-                        else
-                        {
-                            var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
-                            statusCode = HttpStatusCode.BadRequest;
-                            result = QueryResultBuilder.CreateError(error);
-                            DiagnosticEvents.HttpRequestError(context, error);
-                        }
-
-                        break;
+                        result = await ExecuteOperationBatchAsync(
+                            context,
+                            requestExecutor,
+                            requestInterceptor,
+                            DiagnosticEvents,
+                            requests[0],
+                            requestFlags,
+                            ops);
                     }
+                    else
+                    {
+                        var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = OperationResultBuilder.CreateError(error);
+                        DiagnosticEvents.HttpRequestError(context, error);
+                    }
+
+                    break;
+                }
 
                 // if the HTTP request body contains a single GraphQL request and
                 // no batch query parameter is specified we need to execute a single
@@ -192,16 +192,16 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                 // Most GraphQL requests will be of this type where we want to execute
                 // a single GraphQL query or mutation.
                 case 1:
-                    {
-                        result = await ExecuteSingleAsync(
-                            context,
-                            requestExecutor,
-                            requestInterceptor,
-                            DiagnosticEvents,
-                            requests[0],
-                            requestFlags);
-                        break;
-                    }
+                {
+                    result = await ExecuteSingleAsync(
+                        context,
+                        requestExecutor,
+                        requestInterceptor,
+                        DiagnosticEvents,
+                        requests[0],
+                        requestFlags);
+                    break;
+                }
 
                 // if the HTTP request body contains more than one GraphQL request than
                 // we need to execute a request batch where we need to execute multiple
@@ -221,7 +221,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
                     {
                         var error = errorHandler.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
-                        result = QueryResultBuilder.CreateError(error);
+                        result = OperationResultBuilder.CreateError(error);
                         DiagnosticEvents.HttpRequestError(context, error);
                     }
                     break;
@@ -231,7 +231,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
             statusCode = null; // we let the serializer determine the status code.
-            result = QueryResultBuilder.CreateError(ex.Errors);
+            result = OperationResultBuilder.CreateError(ex.Errors);
 
             foreach (var error in ex.Errors)
             {
@@ -242,11 +242,11 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         {
             statusCode = HttpStatusCode.InternalServerError;
             var error = errorHandler.CreateUnexpectedError(ex).Build();
-            result = QueryResultBuilder.CreateError(error);
+            result = OperationResultBuilder.CreateError(error);
             DiagnosticEvents.HttpRequestError(context, error);
         }
 
-HANDLE_RESULT:
+        HANDLE_RESULT:
         IDisposable? formatScope = null;
 
         try
@@ -262,7 +262,7 @@ HANDLE_RESULT:
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
 
-            if (result is IQueryResult queryResult)
+            if (result is IOperationResult queryResult)
             {
                 formatScope = DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
@@ -283,10 +283,10 @@ HANDLE_RESULT:
         }
     }
 
-    protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+    protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
         HttpRequest request,
         CancellationToken cancellationToken)
-        => RequestParser.ReadJsonRequestAsync(request.Body, cancellationToken);
+        => RequestParser.ParseRequestAsync(request.Body, cancellationToken);
 
     private static bool TryParseOperations(
         string operationNameString,

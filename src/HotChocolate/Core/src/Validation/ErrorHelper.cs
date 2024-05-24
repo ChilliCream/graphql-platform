@@ -16,7 +16,7 @@ internal static class ErrorHelper
             .SetMessage(
                 "The following variables were not used: " +
                 $"{string.Join(", ", context.Unused)}.")
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variables-Used")
             .Build();
@@ -30,7 +30,7 @@ internal static class ErrorHelper
             .SetMessage(
                 "The following variables were not declared: " +
                 $"{string.Join(", ", context.Used)}.")
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-All-Variable-Uses-Defined")
             .Build();
@@ -47,7 +47,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_VariableIsNotCompatible,
                 variableName)
-            .AddLocation(variable)
+            .AddLocation([variable])
             .SetPath(context.CreateErrorPath())
             .SetExtension("variable", variableName)
             .SetExtension("variableType", variableDefinition.Type.ToString())
@@ -62,7 +62,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DirectiveNotValidInLocation)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-Directives-Are-In-Valid-Locations")
             .Build();
@@ -76,7 +76,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_DirectiveNotSupported,
                 node.Name.Value)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-Directives-Are-Defined")
             .Build();
@@ -87,7 +87,7 @@ internal static class ErrorHelper
         DirectiveNode node) =>
         ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DirectiveMustBeUniqueInLocation)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SpecifiedBy("sec-Directives-Are-Unique-Per-Location")
             .Build();
@@ -98,7 +98,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_TypeSystemDefinitionNotAllowed)
-            .AddLocation(node)
+            .AddLocation([node])
             .SpecifiedBy("sec-Executable-Definitions")
             .Build();
     }
@@ -110,7 +110,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_UnionFieldError)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("type", type.Name)
             .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
@@ -126,7 +126,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_FieldDoesNotExist,
                 node.Name.Value, outputType.Name)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("type", outputType.Name)
             .SetExtension("field", node.Name.Value)
@@ -145,7 +145,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_LeafFieldsCannotHaveSelections,
                 node.Name.Value, fieldType.IsScalarType() ? "a scalar" : "an enum")
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
             .SetExtension("field", node.Name.Value)
@@ -163,7 +163,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentValueIsNotCompatible)
-            .AddLocation(valueNode)
+            .AddLocation([valueNode])
             .SetPath(context.CreateErrorPath())
             .SetExtension("argument", node.Name.Value)
             .SetExtension("argumentValue", valueNode.ToString())
@@ -180,7 +180,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FieldValueIsNotCompatible, field.Name)
-            .AddLocation(valueNode)
+            .AddLocation([valueNode])
             .SetExtension("fieldName", field.Name)
             .SetExtension("fieldType", field.Type.Print())
             .SetExtension("locationType", locationType.Print())
@@ -199,7 +199,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_VariableDefaultValueIsNotCompatible,
                 node.Variable.Name.Value)
-            .AddLocation(valueNode)
+            .AddLocation([valueNode])
             .SetPath(context.CreateErrorPath())
             .SetExtension("variable", node.Variable.Name.Value)
             .SetExtension("variableType", node.Type.ToString())
@@ -218,7 +218,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_NoSelectionOnCompositeField,
                 node.Name.Value)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("declaringType", declaringType.Name)
             .SetExtension("field", node.Name.Value)
@@ -237,7 +237,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_NoSelectionOnRootType,
                 node.Name?.Value ?? "Unnamed")
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("operation", node.Name?.Value ?? "Unnamed")
             .SetExtension("type", fieldType.Print())
@@ -252,7 +252,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FieldIsRequiredButNull, fieldName)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("field", fieldName)
             .SpecifiedBy("sec-Input-Object-Required-Fields")
@@ -266,8 +266,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FieldsAreNotMergable)
-            .AddLocation(fieldA.Field)
-            .AddLocation(fieldB.Field)
+            .AddLocation([fieldA.Field, fieldB.Field])
             .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
             .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)
             .SetExtension("fieldA", fieldA.Field.Name.Value)
@@ -288,7 +287,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_FragmentNameNotUnique,
                 fragmentDefinition.Name.Value)
-            .AddLocation(fragmentDefinition)
+            .AddLocation([fragmentDefinition])
             .SetExtension("fragment", fragmentDefinition.Name.Value)
             .SpecifiedBy("sec-Fragment-Name-Uniqueness")
             .Build();
@@ -302,7 +301,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_FragmentNotUsed,
                 fragmentDefinition.Name.Value)
-            .AddLocation(fragmentDefinition)
+            .AddLocation([fragmentDefinition])
             .SetPath(context.CreateErrorPath())
             .SetExtension("fragment", fragmentDefinition.Name.Value)
             .SpecifiedBy("sec-Fragments-Must-Be-Used")
@@ -315,7 +314,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FragmentCycleDetected)
-            .AddLocation(fragmentSpread)
+            .AddLocation([fragmentSpread])
             .SetPath(context.CreateErrorPath())
             .SetExtension("fragment", fragmentSpread.Name.Value)
             .SpecifiedBy("sec-Fragment-spreads-must-not-form-cycles")
@@ -330,7 +329,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_FragmentDoesNotExist,
                 fragmentSpread.Name.Value)
-            .AddLocation(fragmentSpread)
+            .AddLocation([fragmentSpread])
             .SetPath(context.CreateErrorPath())
             .SetExtension("fragment", fragmentSpread.Name.Value)
             .SpecifiedBy("sec-Fragment-spread-target-defined")
@@ -345,7 +344,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FragmentNotPossible)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("typeCondition", typeCondition.Print())
             .SetExtension("selectionSetType", parentType.Print())
@@ -363,7 +362,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_FragmentTypeConditionUnknown,
                 typeCondition.Name.Value)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("typeCondition", typeCondition.Name.Value)
             .SetFragmentName(node)
@@ -378,7 +377,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FragmentOnlyCompositeType)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("typeCondition", type.Print())
             .SetFragmentName(node)
@@ -392,7 +391,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_InputFieldAmbiguous, field.Name.Value)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(context.CreateErrorPath())
             .SetExtension("field", field.Name.Value)
             .SpecifiedBy("sec-Input-Object-Field-Uniqueness")
@@ -407,7 +406,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_InputFieldDoesNotExist,
                 field.Name.Value)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetPath(context.CreateErrorPath())
             .SetExtension("field", field.Name.Value)
             .SpecifiedBy("sec-Input-Object-Field-Names")
@@ -421,7 +420,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_InputFieldRequired, fieldName)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("field", fieldName)
             .SpecifiedBy("sec-Input-Object-Required-Fields")
@@ -437,7 +436,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_OperationNameNotUnique,
                 operationName)
-            .AddLocation(operation)
+            .AddLocation([operation])
             .SetExtension("operation", operationName)
             .SpecifiedBy("sec-Operation-Name-Uniqueness")
             .Build();
@@ -450,7 +449,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_OperationAnonymousMoreThanOne)
-            .AddLocation(operation)
+            .AddLocation([operation])
             .SetExtension("operations", operations)
             .SpecifiedBy("sec-Lone-Anonymous-Operation")
             .Build();
@@ -463,7 +462,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_VariableNotInputType, variableName)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("variable", variableName)
             .SetExtension("variableType", node.Type.ToString())
@@ -478,7 +477,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_VariableNameNotUnique)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension("variable", variableName)
             .SetExtension("variableType", node.Type.ToString())
@@ -494,7 +493,7 @@ internal static class ErrorHelper
     {
         var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentNotUnique)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath());
 
         if (field is { })
@@ -524,7 +523,7 @@ internal static class ErrorHelper
     {
         var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentRequired, argumentName)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath());
 
         if (field is { })
@@ -553,7 +552,7 @@ internal static class ErrorHelper
     {
         var builder = ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_ArgumentDoesNotExist, node.Name.Value)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath());
 
         if (field is { })
@@ -580,7 +579,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_SubscriptionSingleRootField)
-            .AddLocation(operation)
+            .AddLocation([operation])
             .SpecifiedBy("sec-Single-root-field")
             .Build();
     }
@@ -591,7 +590,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_SubscriptionNoTopLevelIntrospectionField)
-            .AddLocation(operation)
+            .AddLocation([operation])
             .SpecifiedBy("sec-Single-root-field")
             .Build();
     }
@@ -606,7 +605,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_MaxOperationComplexity,
                 detectedComplexity, allowedComplexity)
-            .AddLocation(operation)
+            .AddLocation([operation])
             .SetExtension("allowedComplexity", allowedComplexity)
             .SetExtension("detectedComplexity", detectedComplexity)
             .Build();
@@ -622,7 +621,7 @@ internal static class ErrorHelper
             .SetMessage(
                 Resources.ErrorHelper_MaxExecutionDepth,
                 detectedExecutionDepth, allowedExecutionDepth)
-            .AddLocation(operation)
+            .AddLocation([operation])
             .SetExtension("allowedExecutionDepth", allowedExecutionDepth)
             .SetExtension("detectedExecutionDepth", detectedExecutionDepth)
             .Build();
@@ -649,7 +648,7 @@ internal static class ErrorHelper
 
         return ErrorBuilder.New()
             .SetMessage(message)
-            .AddLocation(field)
+            .AddLocation([field])
             .SetExtension(nameof(field), field.Name)
             .SetCode(ErrorCodes.Validation.IntrospectionNotAllowed)
             .Build();
@@ -661,7 +660,7 @@ internal static class ErrorHelper
         InputObjectType type)
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
@@ -678,7 +677,7 @@ internal static class ErrorHelper
                 variableName,
                 field.FieldName,
                 field.TypeName)
-            .AddLocation(node)
+            .AddLocation([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(field), field.ToString())
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
@@ -688,7 +687,7 @@ internal static class ErrorHelper
         ISelectionNode selection)
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot)
-            .AddLocation(selection)
+            .AddLocation([selection])
             .SpecifiedBy("sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field")
             .Build();
 
@@ -698,7 +697,7 @@ internal static class ErrorHelper
         string label)
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DeferAndStreamDuplicateLabel)
-            .AddLocation(selection)
+            .AddLocation([selection])
             .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
             .SetExtension(nameof(label), label)
             .SetPath(context.CreateErrorPath())
@@ -710,7 +709,7 @@ internal static class ErrorHelper
         string variable)
         => ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_DeferAndStreamLabelIsVariable)
-            .AddLocation(selection)
+            .AddLocation([selection])
             .SpecifiedBy("sec-Defer-And-Stream-Directive-Labels-Are-Unique")
             .SetExtension(nameof(variable),$"${variable}")
             .SetPath(context.CreateErrorPath())
@@ -721,7 +720,7 @@ internal static class ErrorHelper
         ISyntaxNode selection)
         => ErrorBuilder.New()
             .SetMessage("@stream directive is only valid on list fields.")
-            .AddLocation(selection)
+            .AddLocation([selection])
             .SpecifiedBy("sec-Stream-Directives-Are-Used-On-List-Fields")
             .SetPath(context.CreateErrorPath())
             .Build();

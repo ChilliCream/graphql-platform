@@ -3,32 +3,44 @@ using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Configuration;
 
-internal sealed partial class TypeRegistrar(
-    IDescriptorContext context,
-    TypeRegistry typeRegistry,
-    TypeLookup typeLookup,
-    TypeInterceptor typeInterceptor)
-    : ITypeRegistrar
+internal sealed partial class TypeRegistrar : ITypeRegistrar
 {
     private readonly HashSet<TypeReference> _unresolved = [];
     private readonly HashSet<RegisteredType> _handled = [];
-    private readonly TypeRegistry _typeRegistry = typeRegistry ??
-        throw new ArgumentNullException(nameof(typeRegistry));
-    private readonly TypeLookup _typeLookup = typeLookup ??
-        throw new ArgumentNullException(nameof(typeLookup));
-    private readonly IDescriptorContext _context = context ??
-        throw new ArgumentNullException(nameof(context));
-    private readonly TypeInterceptor _interceptor = typeInterceptor ?? 
-        throw new ArgumentNullException(nameof(typeInterceptor));
-    private readonly IServiceProvider _schemaServices = context.Services;
-    private readonly IServiceProvider? _applicationServices = 
-        context.Services.GetService<IApplicationServiceProvider>();
+    private readonly TypeRegistry _typeRegistry;
+    private readonly TypeLookup _typeLookup;
+    private readonly IDescriptorContext _context;
+    private readonly TypeInterceptor _interceptor;
+    private readonly IServiceProvider _schemaServices;
+    private readonly IServiceProvider? _applicationServices;
+    private readonly IServiceProvider _combinedServices;
+
+    public TypeRegistrar(IDescriptorContext context,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
+        TypeInterceptor typeInterceptor)
+    {
+        _typeRegistry = typeRegistry ??
+            throw new ArgumentNullException(nameof(typeRegistry));
+        _typeLookup = typeLookup ??
+            throw new ArgumentNullException(nameof(typeLookup));
+        _context = context ??
+            throw new ArgumentNullException(nameof(context));
+        _interceptor = typeInterceptor ?? 
+            throw new ArgumentNullException(nameof(typeInterceptor));
+        _schemaServices = context.Services;
+        _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
+
+        _combinedServices = _applicationServices is null
+            ? _schemaServices
+            : new CombinedServiceProvider(_schemaServices, _applicationServices);
+    }
 
     public void Register(
         TypeSystemObjectBase obj,

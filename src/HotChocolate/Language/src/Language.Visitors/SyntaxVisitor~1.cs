@@ -1,8 +1,6 @@
 namespace HotChocolate.Language.Visitors;
 
-public partial class SyntaxVisitor<TContext>
-    : ISyntaxVisitor<TContext>
-    where TContext : ISyntaxVisitorContext
+public partial class SyntaxVisitor<TContext> : ISyntaxVisitor<TContext>
 {
     private readonly SyntaxVisitorOptions _options;
 

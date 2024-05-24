@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Caching;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types;
 
@@ -13,7 +12,7 @@ public static class CacheControlUnionTypeDescriptorExtensions
     /// The <see cref="IUnionTypeDescriptor"/>.
     /// </param>
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, fields of this
+    /// The maximum time, in seconds, fields of this
     /// type should be cached.
     /// </param>
     /// <param name="scope">

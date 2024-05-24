@@ -1,10 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using MongoDB.Driver;
+using static HotChocolate.Data.MongoDb.MongoDbContextData;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
@@ -26,59 +24,71 @@ public class MongoDbSortProvider : SortProvider<MongoDbSortVisitorContext>
     /// <summary>
     /// The visitor thar will traverse a incoming query and execute the sorting handlers
     /// </summary>
-    protected virtual SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>
-        Visitor
-    { get; } = new();
+    protected virtual SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition> Visitor { get; } = new();
 
     /// <inheritdoc />
-    public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
-    {
-        return next => context => ExecuteAsync(next, context);
+    public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
+        => new MongoDbQueryBuilder(CreateSortDefinition(argumentName));
 
-        async ValueTask ExecuteAsync(
-            FieldDelegate next,
-            IMiddlewareContext context)
+    private Func<IMiddlewareContext, MongoDbSortDefinition?> CreateSortDefinition(string argumentName)
+        => context =>
         {
+            // next we get the sort argument.
             var argument = context.Selection.Field.Arguments[argumentName];
-            var filter = context.ArgumentLiteral<IValueNode>(argumentName);
+            var sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
-            if (filter is not NullValueNode &&
-                argument.Type is ListType listType &&
-                listType.ElementType is NonNullType nn &&
+            // if no sort is defined we can stop here and yield back control.
+            var skipSorting = context.GetLocalStateOrDefault<bool>(SkipSortingKey);
+
+            // ensure sorting is only applied once
+            context.SetLocalState(SkipSortingKey, true);
+
+            if (sort.IsNull() || skipSorting)
+            {
+                return null;
+            }
+
+            if (argument.Type is ListType { ElementType: NonNullType nn, } &&
                 nn.NamedType() is SortInputType sortInputType)
             {
                 var visitorContext = new MongoDbSortVisitorContext(sortInputType);
 
-                Visitor.Visit(filter, visitorContext);
+                Visitor.Visit(sort, visitorContext);
 
-                if (!visitorContext.TryCreateQuery(out var order) ||
-                    visitorContext.Errors.Count > 0)
+                if (visitorContext.Errors.Count == 0)
                 {
-                    context.Result = Array.Empty<TEntityType>();
-                    foreach (var error in visitorContext.Errors)
-                    {
-                        context.ReportError(error.WithPath(context.Path));
-                    }
+                    return visitorContext.TryCreateQuery(out var order) ? order : null;
                 }
-                else
-                {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem(
-                            nameof(SortDefinition<TEntityType>),
-                            order);
 
-                    await next(context).ConfigureAwait(false);
-
-                    if (context.Result is IMongoDbExecutable executable)
-                    {
-                        context.Result = executable.WithSorting(order);
-                    }
-                }
+                throw new GraphQLException(
+                    visitorContext.Errors.Select(e => e.WithPath(context.Path)).ToArray());
             }
-            else
+
+            return null;
+        };
+
+    private sealed class MongoDbQueryBuilder(Func<IMiddlewareContext, MongoDbSortDefinition?> createSortDefinition) : IQueryBuilder
+    {
+        public void Prepare(IMiddlewareContext context)
+        {
+            var sortDef = createSortDefinition(context);
+            context.SetLocalState(SortDefinitionKey, sortDef);
+        }
+
+        public void Apply(IMiddlewareContext context)
+        {
+            if (context.Result is not IMongoDbExecutable executable)
             {
-                await next(context).ConfigureAwait(false);
+                return;
             }
+
+            var sortDef = context.GetLocalState<MongoDbSortDefinition>(SortDefinitionKey);
+            if (sortDef is null)
+            {
+                return;
+            }
+
+            context.Result = executable.WithSorting(sortDef);
         }
     }
 }

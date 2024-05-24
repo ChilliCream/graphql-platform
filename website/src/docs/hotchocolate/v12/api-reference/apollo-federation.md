@@ -280,7 +280,7 @@ public class ProductType : ObjectType<Product>
 </Schema>
 </ExampleTabs>
 
-> #### A note about reference resolvers
+> ### A note about reference resolvers
 >
 > It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
 
@@ -711,6 +711,7 @@ query {
 ```
 
 ## C# Records
+
 Records can be decorated almost in the same way as classes to add Apollo Federation support.
 The above Product example as a positional record would look like this:
 

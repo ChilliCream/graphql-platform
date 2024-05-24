@@ -7,9 +7,8 @@ namespace HotChocolate.AspNetCore.Tests.Utilities;
 [ExtendObjectType("Query")]
 public class QueryExtension
 {
-    private readonly DateTime _time = DateTime.UtcNow;
-
-    public long Time() => _time.Ticks;
+    public long Time(Schema schema)
+        => schema.CreatedAt.Ticks;
 
     public bool Evict([FromServices] IRequestExecutorResolver executorResolver, ISchema schema)
     {

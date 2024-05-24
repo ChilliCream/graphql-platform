@@ -1,17 +1,14 @@
-using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Filters;
 
-internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
+internal class FilterGlobalIdInputValueFormatter(
+    INodeIdSerializerAccessor serializerAccessor,
+    Type namedType)
+    : IInputValueFormatter
 {
-    private readonly IIdSerializer _idSerializer;
-
-    public FilterGlobalIdInputValueFormatter(IIdSerializer idSerializer)
-    {
-        _idSerializer = idSerializer;
-    }
+    private INodeIdSerializer? _serializer;
 
     public object? Format(object? runtimeValue)
     {
@@ -20,18 +17,20 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
             return null;
         }
 
-        if (runtimeValue is IdValue id)
+        if (runtimeValue is NodeId id)
         {
-            return id.Value;
+            return id.InternalId;
         }
+
+        _serializer ??= serializerAccessor.Serializer;
 
         if (runtimeValue is string s)
         {
             try
             {
-                return _idSerializer.Deserialize(s).Value;
+                return _serializer.Parse(s, namedType).InternalId;
             }
-            catch
+            catch (Exception ex) when (ex is not GraphQLException)
             {
                 throw new GraphQLException(
                     ErrorBuilder.New()
@@ -40,7 +39,7 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
             }
         }
 
-        if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
+        if (runtimeValue is IEnumerable<NodeId?> nullableIdEnumerable)
         {
             List<object?> list = [];
             foreach (var idv in nullableIdEnumerable)
@@ -51,20 +50,20 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
                 }
                 else
                 {
-                    list.Add(idv.Value.Value);
+                    list.Add(idv.Value.InternalId);
                 }
             }
 
             return list;
         }
 
-        if (runtimeValue is IEnumerable<IdValue> idEnumerable)
+        if (runtimeValue is IEnumerable<NodeId> idEnumerable)
         {
             List<object?> list = [];
 
             foreach (var idv in idEnumerable)
             {
-                list.Add(idv.Value);
+                list.Add(idv.InternalId);
             }
 
             return list;
@@ -84,17 +83,15 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
                         continue;
                     }
 
-                    id = _idSerializer.Deserialize(sv);
-
-                    list.Add(id.Value);
+                    id = _serializer.Parse(sv, namedType);
+                    list.Add(id.InternalId);
                 }
 
                 return list;
             }
-            catch
+            catch (Exception ex) when (ex is not GraphQLException)
             {
-                throw ThrowHelper
-                    .GlobalIdInputValueFormatter_IdsHaveInvalidFormat(stringEnumerable);
+                throw ThrowHelper.GlobalIdInputValueFormatter_IdsHaveInvalidFormat(stringEnumerable);
             }
         }
 

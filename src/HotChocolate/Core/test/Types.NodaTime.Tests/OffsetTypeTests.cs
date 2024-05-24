@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -24,69 +24,64 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
-
-        public OffsetTypeIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
-                .AddQueryType<Schema.Query>()
-                .AddMutationType<Schema.Mutation>()
-                .AddNodaTime()
-                .Create()
-                .MakeExecutable();
-        }
+        private readonly IRequestExecutor _testExecutor = SchemaBuilder.New()
+            .AddQueryType<Schema.Query>()
+            .AddMutationType<Schema.Mutation>()
+            .AddNodaTime()
+            .Create()
+            .MakeExecutable();
 
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: hours }");
+            var result = _testExecutor.Execute("query { test: hours }");
             Assert.Equal("+02", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsWithMinutes()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: hoursAndMinutes }");
+            var result = _testExecutor.Execute("query { test: hoursAndMinutes }");
             Assert.Equal("+02:35", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void QueryReturnsWithZ()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: zOffset }");
+            var result = _testExecutor.Execute("query { test: zOffset }");
             Assert.Equal("Z", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Offset!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "+02")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02" }, })
+                    .Build());
             Assert.Equal("+03:05", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesVariableWithMinutes()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Offset!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "+02:35")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "+02:35" }, })
+                    .Build());
             Assert.Equal("+03:40", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Offset!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "18:30:13+02")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Offset!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "18:30:13+02" }, })
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
         }
@@ -94,50 +89,50 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"+02\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"+02\") }")
+                    .Build());
             Assert.Equal("+03:05", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesLiteralWithMinutes()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"+02:35\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"+02:35\") }")
+                    .Build());
             Assert.Equal("+03:40", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void ParsesLiteralWithZ()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"Z\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"Z\") }")
+                    .Build());
             Assert.Equal("+01:05", result.ExpectQueryResult().Data!["test"]);
         }
 
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"18:30:13+02\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"18:30:13+02\") }")
+                    .Build());
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);
             Assert.Equal(
-                "Unable to deserialize string to Offset", 
+                "Unable to deserialize string to Offset",
                 result.ExpectQueryResult().Errors![0].Message);
         }
 
         [Fact]
-        public void PatternEmpty_ThrowSchemaException()
+        public void PatternEmptyThrowSchemaException()
         {
             static object Call() => new OffsetType(Array.Empty<IPattern<Offset>>());
             Assert.Throws<SchemaException>(Call);

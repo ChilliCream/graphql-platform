@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Validation;
@@ -20,21 +16,21 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
@@ -62,21 +58,21 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         var validationResult = new DocumentValidatorResult(Array.Empty<IError>());
@@ -105,21 +101,21 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -149,21 +145,21 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(validationResult));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => throw new Exception("Should not be called."),
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -192,21 +188,21 @@ public class DocumentValidationMiddlewareTests
         validator.Setup(t => t.ValidateAsync(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<string>(),
+                It.IsAny<OperationDocumentId>(),
                 It.IsAny<IDictionary<string, object>>(),
                 It.Is<bool>(b => true),
                 It.IsAny<CancellationToken>()))
             .Returns(new ValueTask<DocumentValidatorResult>(DocumentValidatorResult.Ok));
 
-        var middleware = new DocumentValidationMiddleware(
+        var middleware = DocumentValidationMiddleware.Create(
             _ => throw new Exception("Should not be called."),
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);

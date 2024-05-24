@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
 #nullable enable
@@ -10,13 +10,13 @@ namespace HotChocolate.Configuration.Validation;
 internal sealed class InterfaceTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchema schema,
         ICollection<ISchemaError> errors)
     {
-        if (options.StrictValidation)
+        if (context.Options.StrictValidation)
         {
-            foreach (var type in typeSystemObjects)
+            foreach (var type in schema.Types)
             {
                 if (type is InterfaceType interfaceType)
                 {

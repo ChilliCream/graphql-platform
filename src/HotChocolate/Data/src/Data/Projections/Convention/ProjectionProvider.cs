@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Projections;
 
@@ -88,69 +86,70 @@ public abstract class ProjectionProvider
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
 
-        var services = new DictionaryServiceProvider(
-            (typeof(IConventionContext), context),
-            (typeof(IDescriptorContext), context.DescriptorContext),
-            (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
-            .Include(context.Services);
+        var services = new CombinedServiceProvider(
+            new DictionaryServiceProvider(
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+            context.Services);
 
-        foreach ((var type, var instance) in Definition.Handlers)
+        foreach (var (type, instance) in Definition.Handlers)
         {
-            switch (instance)
+            if (instance is not null)
             {
-                case null when services.TryGetOrCreateService(
-                    type,
-                    out IProjectionFieldHandler? service):
-                    _fieldHandlers.Add(service);
-                    break;
+                _fieldHandlers.Add(instance);
+                continue;
+            }
 
-                case null:
-                    throw new SchemaException(
-                        ProjectionConvention_UnableToCreateFieldHandler(this, type));
-
-                default:
-                    _fieldHandlers.Add(instance);
-                    break;
+            try
+            {
+                var field = (IProjectionFieldHandler)GetServiceOrCreateInstance(services, type);
+                _fieldHandlers.Add(field);
+            }
+            catch
+            {
+                throw new SchemaException(
+                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
             }
         }
 
-        foreach ((var type, var instance) in Definition.Interceptors)
+        foreach (var (type, instance) in Definition.Interceptors)
         {
-            switch (instance)
+            if (instance is not null)
             {
-                case null when services.TryGetOrCreateService(
-                    type,
-                    out IProjectionFieldInterceptor? service):
-                    _fieldInterceptors.Add(service);
-                    break;
+                _fieldInterceptors.Add(instance);
+                continue;
+            }
 
-                case null:
-                    throw new SchemaException(
-                        ProjectionConvention_UnableToCreateFieldHandler(this, type));
-
-                default:
-                    _fieldInterceptors.Add(instance);
-                    break;
+            try
+            {
+                var field = (IProjectionFieldInterceptor)GetServiceOrCreateInstance(services, type);
+                _fieldInterceptors.Add(field);
+            }
+            catch
+            {
+                throw new SchemaException(
+                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
             }
         }
 
-        foreach ((var type, var instance) in Definition.Optimizers)
+        foreach (var (type, instance) in Definition.Optimizers)
         {
-            switch (instance)
+            if (instance is not null)
             {
-                case null when services.TryGetOrCreateService(
-                    type,
-                    out IProjectionOptimizer? service):
-                    _optimizer.Add(service);
-                    break;
+                _optimizer.Add(instance);
+                continue;
+            }
 
-                case null:
-                    throw new SchemaException(
-                        ProjectionConvention_UnableToCreateFieldHandler(this, type));
-
-                default:
-                    _optimizer.Add(instance);
-                    break;
+            try
+            {
+                var optimizers = (IProjectionOptimizer)GetServiceOrCreateInstance(services, type);
+                _optimizer.Add(optimizers);
+            }
+            catch
+            {
+                throw new SchemaException(
+                    ProjectionConvention_UnableToCreateFieldHandler(this, type));
             }
         }
     }
@@ -191,19 +190,15 @@ public abstract class ProjectionProvider
     }
 
     void IProjectionProviderConvention.Initialize(IConventionContext context)
-    {
-        base.Initialize(context);
-    }
+        => Initialize(context);
 
     public new void Initialize(IConventionContext context)
-    {
-        base.Initialize(context);
-    }
+        => base.Initialize(context);
 
     /// <summary>
     /// Creates the executor that is attached to the middleware pipeline of the field
     /// </summary>
     /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
     /// <returns>A middleware</returns>
-    public abstract FieldMiddleware CreateExecutor<TEntityType>();
+    public abstract IQueryBuilder CreateBuilder<TEntityType>();
 }

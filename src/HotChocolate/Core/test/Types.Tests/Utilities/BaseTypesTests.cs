@@ -1,7 +1,6 @@
 ﻿using System;
 using HotChocolate.Internal;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Utilities;
 

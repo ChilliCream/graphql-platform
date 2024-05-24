@@ -1,11 +1,9 @@
-using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Fusion.CommandLine.Helpers;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using static HotChocolate.Fusion.CommandLine.Helpers.PackageHelper;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 

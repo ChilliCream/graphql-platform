@@ -27,4 +27,13 @@
     <data name="GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty" xml:space="preserve">
         <value>Query, ID, and extensions cannot all be null. At least one must be provided for a valid GraphQL request</value>
     </data>
+    <data name="GraphQLHttpRequest_RequiresOneOrMoreRequests" xml:space="preserve">
+        <value>The batch request must contain at least one request.</value>
+    </data>
+    <data name="DefaultGraphQLHttpClient_BatchNotAllowed" xml:space="preserve">
+        <value>The request body must be of type `OperationRequest` for HTTP GET requests.</value>
+    </data>
+    <data name="DefaultGraphQLHttpClient_FileUploadNotAllowed" xml:space="preserve">
+        <value>File uploads are not supported for HTTP GET requests.</value>
+    </data>
 </root>

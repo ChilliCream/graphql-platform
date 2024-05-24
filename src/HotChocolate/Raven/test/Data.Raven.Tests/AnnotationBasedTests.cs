@@ -1,5 +1,4 @@
 using CookieCrumble;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;

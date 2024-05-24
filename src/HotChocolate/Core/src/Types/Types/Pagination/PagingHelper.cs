@@ -74,30 +74,45 @@ public static class PagingHelper
         ObjectFieldDefinition definition,
         Type entityType)
     {
-        // if an explicit result type is defined we will type it since it expresses the
-        // intend.
-        if (definition.ResultType is not null)
+        var type = ResolveType();
+
+        if (typeof(IFieldResult).IsAssignableFrom(type.Type))
         {
-            return typeInspector.GetType(definition.ResultType);
+            return type.TypeArguments[0];
         }
 
-        // Otherwise we will look at specified members and extract the return type.
-        var member = definition.ResolverMember ?? definition.Member;
-        if (member is not null)
+        return type;
+        
+        IExtendedType ResolveType()
         {
-            return typeInspector.GetReturnType(member, true);
-        }
+            // if an explicit result type is defined we will type it since it expresses the
+            // intend.
+            if (definition.ResultType is not null)
+            {
+                return typeInspector.GetType(definition.ResultType);
+            }
 
-        // if we were not able to resolve the source type we will assume that it is
-        // an enumerable of the entity type.
-        return typeInspector.GetType(typeof(IEnumerable<>).MakeGenericType(entityType));
+            // Otherwise we will look at specified members and extract the return type.
+            var member = definition.ResolverMember ?? definition.Member;
+
+            if (member is not null)
+            {
+                return typeInspector.GetReturnType(member, true);
+            }
+
+            // if we were not able to resolve the source type we will assume that it is
+            // an enumerable of the entity type.
+            return typeInspector.GetType(typeof(IEnumerable<>).MakeGenericType(entityType));
+        }
     }
 
     private static FieldMiddleware CreateMiddleware(
-        IPagingHandler handler) =>
-        FieldClassMiddlewareFactory.Create(
-            typeof(PagingMiddleware),
-            (typeof(IPagingHandler), handler));
+        IPagingHandler handler)
+        => next =>
+        {
+            var middleware = new PagingMiddleware(next, handler);
+            return context => middleware.InvokeAsync(context);
+        };
 
     public static IExtendedType GetSchemaType(
         IDescriptorContext context,
@@ -114,7 +129,7 @@ public static class PagingHelper
             // if the member has already associated a schema type we will just take it.
             // Since we want the entity element we are going to take
             // the element type of the list or array as our entity type.
-            if (r.Type.IsSchemaType && r.Type.IsArrayOrList)
+            if (r.Type is { IsSchemaType: true, IsArrayOrList: true, })
             {
                 return r.Type.ElementType!;
             }
@@ -135,7 +150,7 @@ public static class PagingHelper
                 // nullability information.
                 var current = schemaTypeRef.Type.Type;
 
-                foreach (var component in typeInfo.Components.Reverse().Skip(1))
+                foreach (var component in typeInfo.Components.Reverse())
                 {
                     if (component.Kind == TypeComponentKind.NonNull)
                     {

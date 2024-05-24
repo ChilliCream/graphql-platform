@@ -1,12 +1,6 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
 {

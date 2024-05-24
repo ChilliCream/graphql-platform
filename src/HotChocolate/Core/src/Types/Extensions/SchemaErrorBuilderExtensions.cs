@@ -5,8 +5,8 @@ namespace HotChocolate;
 
 public static class SchemaErrorBuilderExtensions
 {
-    public static ISchemaErrorBuilder SetMessage(
-        this ISchemaErrorBuilder builder,
+    public static SchemaErrorBuilder SetMessage(
+        this SchemaErrorBuilder builder,
         string format,
         params object[] args)
     {
@@ -21,8 +21,8 @@ public static class SchemaErrorBuilderExtensions
             args));
     }
 
-    public static ISchemaErrorBuilder SpecifiedBy(
-        this ISchemaErrorBuilder errorBuilder,
+    public static SchemaErrorBuilder SpecifiedBy(
+        this SchemaErrorBuilder errorBuilder,
         string section,
         bool condition = true)
     {

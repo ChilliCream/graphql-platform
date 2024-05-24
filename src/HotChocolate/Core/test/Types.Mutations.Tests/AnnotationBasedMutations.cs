@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
+using SnapshotExtensions = CookieCrumble.SnapshotExtensions;
 
 namespace HotChocolate.Types;
 
@@ -83,7 +85,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -135,7 +137,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -190,7 +192,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -213,7 +215,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -249,7 +251,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -284,7 +286,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -340,7 +342,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -498,12 +500,14 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
     public async Task Allow_Id_Middleware()
     {
+        var id = TestHelper.EncodeId("Foo", new Guid("aaf5f036-948e-444d-ada5-36e6513d52cd"));
+
         var result =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -512,17 +516,22 @@ public class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
-                    """
-                    mutation {
-                        doSomething(input: {
-                            id: "Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA=="
-                        }) {
-                            user { name id }
-                        }
-                    }
-                    """);
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument(
+                            """
+                            mutation($id: ID!) {
+                                doSomething(input: {
+                                    id: $id
+                                }) {
+                                    user { name id }
+                                }
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
+                        .Build());
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -546,7 +555,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -571,7 +580,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -594,7 +603,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -632,7 +641,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -657,7 +666,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -681,7 +690,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -749,7 +758,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -773,7 +782,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -811,7 +820,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -835,7 +844,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -873,7 +882,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -896,7 +905,7 @@ public class AnnotationBasedMutations
                         }
                     }
                     """);
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -934,7 +943,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -958,7 +967,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -996,7 +1005,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -1020,7 +1029,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -1072,7 +1081,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -1096,7 +1105,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -1149,7 +1158,7 @@ public class AnnotationBasedMutations
                     }
                     """);
 
-        result.MatchSnapshot();
+        SnapshotExtensions.MatchSnapshot(result);
     }
 
     [Fact]
@@ -1214,7 +1223,7 @@ public class AnnotationBasedMutations
 
         result.Print().MatchSnapshot();
     }
-          
+
     [Fact]
     public async Task Mutation_With_MutationConventionsAndNamingConventions()
     {
@@ -1454,95 +1463,95 @@ public class AnnotationBasedMutations
     {
         [Error(typeof(CustomException))]
         [Error(typeof(Custom2Exception))]
-        public MutationResult<string> DoSomething(string something)
+        public FieldResult<string> DoSomething(string something)
             => new(new Custom2Exception());
     }
 
     public class MutationWithUnionResult2
     {
-        public MutationResult<string, Custom2Exception> DoSomething(string something)
+        public FieldResult<string, Custom2Exception> DoSomething(string something)
             => new Custom2Exception();
     }
 
     [ExtendObjectType(OperationTypeNames.Mutation)]
     public class MutationWithUnionResult2_Task
     {
-        public async Task<MutationResult<string, Custom2Exception>> DoSomething(string something)
+        public async Task<FieldResult<string, Custom2Exception>> DoSomething(string something)
             => await Task.FromResult(new Custom2Exception());
     }
 
     public class MutationWithUnionResult2_Success
     {
-        public MutationResult<string, Custom2Exception> DoSomething(string something)
+        public FieldResult<string, Custom2Exception> DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult3
     {
-        public MutationResult<string, CustomException, Custom2Exception> DoSomething(
+        public FieldResult<string, CustomException, Custom2Exception> DoSomething(
             string something)
             => new Custom2Exception();
     }
 
     public class MutationWithUnionResult3_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception> DoSomething(
+        public FieldResult<string, CustomException, Custom2Exception> DoSomething(
             string something)
             => something;
     }
 
     public class MutationWithUnionResult4
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom3Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom3Exception>
             DoSomething(string something)
             => new Custom2Exception();
     }
 
     public class MutationWithUnionResult4_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom3Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom3Exception>
             DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult5
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception>
             DoSomething(string something)
             => new Custom4Exception();
     }
 
     public class MutationWithUnionResult5_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception>
             DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult6
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
             DoSomething(string something)
             => new Custom5();
     }
 
     public class MutationWithUnionResult6_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5>
             DoSomething(string something)
             => something;
     }
 
     public class MutationWithUnionResult7
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
             Custom6> DoSomething(string something)
             => new Custom5();
     }
 
     public class MutationWithUnionResult7_Success
     {
-        public MutationResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
+        public FieldResult<string, CustomException, Custom2Exception, Custom4Exception, Custom5,
             Custom6> DoSomething(string something)
             => something;
     }
@@ -1610,7 +1619,7 @@ public class AnnotationBasedMutations
 
     public class MutationWithErrorCollision
     {
-        public MutationResult<string, FooError> Foo()
+        public FieldResult<string, FooError> Foo()
             => new FooError("some error");
     }
 
@@ -1657,7 +1666,7 @@ public class AnnotationBasedMutations
 
     public class ListReturnMutation
     {
-        public MutationResult<List<ResultItem>> AddItem(AddItemInput input)
+        public FieldResult<List<ResultItem>> AddItem(AddItemInput input)
             => new List<ResultItem>
             {
                 new(),
@@ -1689,7 +1698,7 @@ public class AnnotationBasedMutations
                 new(next => async ctx =>
                 {
                     await next(ctx);
-                    ctx.Result = new MutationError(new SomeNewError("This is my error."));
+                    ctx.Result = new FieldError(new SomeNewError("This is my error."));
                 }));
         }
     }

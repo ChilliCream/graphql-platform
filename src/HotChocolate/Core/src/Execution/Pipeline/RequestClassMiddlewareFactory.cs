@@ -14,7 +14,6 @@ namespace HotChocolate.Execution.Pipeline;
 internal static class RequestClassMiddlewareFactory
 {
     private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
-    private static readonly Type _requestOptions = typeof(IRequestExecutorOptionsAccessor);
 
     private static readonly PropertyInfo _getSchemaName =
         typeof(IRequestCoreMiddlewareContext)
@@ -83,14 +82,6 @@ internal static class RequestClassMiddlewareFactory
                 _createValidator,
                 schemaName);
 
-        Expression requestOptions =
-            Expression.Convert(
-                Expression.Call(
-                    schemaServices,
-                    _getService,
-                    Expression.Constant(_requestOptions)),
-                _requestOptions);
-
         var list = new List<IParameterHandler>
         {
             new TypeParameterHandler(typeof(IDocumentValidator), getValidator),
@@ -106,12 +97,10 @@ internal static class RequestClassMiddlewareFactory
                 AddService(list, schemaServices, parameter.ParameterType);
             }
         }
-
-        AddService<IActivator>(list, schemaServices);
+        
         AddService<IErrorHandler>(list, schemaServices);
         AddService<IExecutionDiagnosticEvents>(list, schemaServices);
-        AddService<IWriteStoredQueries>(list, schemaServices);
-        AddService<IReadStoredQueries>(list, schemaServices);
+        AddService<IOperationDocumentStorage>(list, schemaServices);
         AddService<QueryExecutor>(list, schemaServices);
         AddService<IEnumerable<IOperationCompilerOptimizer>>(list, schemaServices);
         AddService<SubscriptionExecutor>(list, schemaServices);
@@ -156,9 +145,6 @@ internal static class RequestClassMiddlewareFactory
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
             typeof(IRequestExecutorOptionsAccessor),
-            Expression.Constant(options)));
-        parameterHandlers.Add(new TypeParameterHandler(
-            typeof(IComplexityAnalyzerOptionsAccessor),
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
             typeof(IPersistedQueryOptionsAccessor),

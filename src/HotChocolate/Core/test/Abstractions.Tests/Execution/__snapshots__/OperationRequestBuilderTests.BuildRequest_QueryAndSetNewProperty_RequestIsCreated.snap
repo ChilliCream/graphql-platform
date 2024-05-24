@@ -1,0 +1,15 @@
+﻿{
+  "Document": {
+    "SourceText": "{ foo }"
+  },
+  "DocumentId": null,
+  "DocumentHash": null,
+  "OperationName": null,
+  "VariableValues": null,
+  "Extensions": null,
+  "ContextData": {
+    "one": "bar"
+  },
+  "Services": null,
+  "Flags": "AllowAll"
+}

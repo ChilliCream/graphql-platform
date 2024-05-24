@@ -1,11 +1,10 @@
 #nullable enable
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -14,11 +13,11 @@ namespace HotChocolate.Configuration.Validation;
 internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
-        ReadOnlySpan<ITypeSystemObject> typeSystemObjects,
-        IReadOnlySchemaOptions options,
+        IDescriptorContext context,
+        ISchema schema,
         ICollection<ISchemaError> errors)
     {
-        if (!options.StrictValidation)
+        if (!context.Options.StrictValidation)
         {
             return;
         }
@@ -27,12 +26,12 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         CycleValidationContext cycleValidationContext = new()
         {
             Visited = [],
-            CycleStartIndex = new(),
+            CycleStartIndex = new Dictionary<InputObjectType, int>(),
             Errors = errors,
             FieldPath = [],
         };
-        
-        foreach (var type in typeSystemObjects)
+
+        foreach (var type in schema.Types)
         {
             if (type is not InputObjectType inputType)
             {
@@ -49,7 +48,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         }
     }
 
-    private struct CycleValidationContext
+    private ref struct CycleValidationContext
     {
         public HashSet<InputObjectType> Visited { get; set; }
         public Dictionary<InputObjectType, int> CycleStartIndex { get; set; }
@@ -153,6 +152,6 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
         }
 
         temp.Clear();
-        errors.Add(OneofInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
+        errors.Add(OneOfInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -7,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Data.Filters.Expressions;

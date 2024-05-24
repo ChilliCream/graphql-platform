@@ -15,16 +15,6 @@ public class LatitudeType : ScalarType<double, StringValueNode>
     /// <summary>
     /// Initializes a new instance of <see cref="LatitudeType"/>
     /// </summary>
-    public LatitudeType()
-        : this(
-            WellKnownScalarTypes.Latitude,
-            ScalarResources.LatitudeType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="LatitudeType"/>
-    /// </summary>
     public LatitudeType(
         string name,
         string? description = null,
@@ -32,6 +22,17 @@ public class LatitudeType : ScalarType<double, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="LatitudeType"/>
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LatitudeType()
+        : this(
+            WellKnownScalarTypes.Latitude,
+            ScalarResources.LatitudeType_Description)
+    {
     }
 
     /// <inheritdoc />
@@ -130,7 +131,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
             string serialized,
             [NotNullWhen(true)] out double? value)
         {
-            MatchCollection coords = _validationPattern.Matches(serialized);
+            var coords = _validationPattern.Matches(serialized);
             if (coords.Count > 0)
             {
                 var minute = double.TryParse(coords[0].Groups[2].Value, out var min)
@@ -173,7 +174,7 @@ public class LatitudeType : ScalarType<double, StringValueNode>
                 var seconds =
                     Round(minutesDecimal * 60, _maxPrecision, MidpointRounding.AwayFromZero);
 
-                string serializedLatitude = degree switch
+                var serializedLatitude = degree switch
                 {
                     >= 0 and < _max => $"{degree}° {minutes}' {seconds}\" N",
                     < 0 and > _min => $"{Abs(degree)}° {Abs(minutes)}' {Abs(seconds)}\" S",

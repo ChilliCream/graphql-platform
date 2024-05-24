@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -145,7 +141,18 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(@"{ node(id: ""Rm9vCmRB"") { id __typename } }");
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "Rm9vOkE=") {
+                id
+                __typename
+                ... on Baz { fieldOfBaz }
+                ... on Foo { fieldOfFoo }
+                ... on Bar { fieldOfBar }
+              }
+            }
+            """);
 
         result.MatchSnapshot();
     }
@@ -166,7 +173,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    node(id: "Rm9vCmRB") {
+                    node(id: "Rm9vOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -191,18 +198,18 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor
-            .ExecuteAsync("""
-                {
-                    node(id: "QmFyCmRB") {
-                        id
-                        __typename
-                        ... on Baz { fieldOfBaz }
-                        ... on Foo { fieldOfFoo }
-                        ... on Bar { fieldOfBar }
-                    }
-                }
-                """);
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "QmFyOkE=") {
+                id
+                __typename
+                ... on Baz { fieldOfBaz }
+                ... on Foo { fieldOfFoo }
+                ... on Bar { fieldOfBar }
+              }
+            }
+            """);
 
         result.MatchSnapshot();
     }
@@ -220,7 +227,7 @@ public class IntegrationTests
             .AddProjections()
             .BuildRequestExecutorAsync();
 
-        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vCmRB"") { id __typename } }");
+        var result = await executor.ExecuteAsync(@"{ nodes(ids: ""Rm9vOkE="") { id __typename } }");
 
         result.MatchSnapshot();
     }
@@ -241,7 +248,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    nodes(ids: "Rm9vCmRB") {
+                    nodes(ids: "Rm9vOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -269,7 +276,7 @@ public class IntegrationTests
         var result = await executor
             .ExecuteAsync("""
                 {
-                    nodes(ids: "QmFyCmRB") {
+                    nodes(ids: "QmFyOkE=") {
                         id
                         __typename
                         ... on Baz { fieldOfBaz }
@@ -441,7 +448,7 @@ public class IntegrationTests
                         }
                     }
                     query {
-                        node(id: "QmFyCmRB") {
+                        node(id: "QmFyOkE=") {
                             id
                             __typename
                             ... on Baz { fieldOfBaz }
@@ -477,9 +484,7 @@ public class Mutation
     [UseSingleOrDefault]
     [UseProjection]
     public IQueryable<Foo> ModifySingleOrDefault()
-    {
-        return new Foo[] { new() { Bar = "A", }, }.AsQueryable();
-    }
+        => new Foo[] { new() { Bar = "A", }, }.AsQueryable();
 
     [Error<AnError>]
     [UseMutationConvention]

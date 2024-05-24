@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,7 +52,7 @@ internal static class OperationDocumentHelper
             var result = await validator.ValidateAsync(
                 schema,
                 mergedDocument,
-                "dummy",
+                new OperationDocumentId("dummy"),
                 new Dictionary<string, object?>(),
                 false);
 
@@ -105,7 +106,7 @@ internal static class OperationDocumentHelper
                     throw new CodeGeneratorException(
                         ErrorBuilder.New()
                             .SetMessage("All operations must be named.")
-                            .AddLocation(op)
+                            .AddLocation([op])
                             .Build());
                 }
 
@@ -116,7 +117,7 @@ internal static class OperationDocumentHelper
                             .SetMessage(
                                 "The operation name `{0}` is not unique.",
                                 op.Name.Value)
-                            .AddLocation(op)
+                            .AddLocation([op])
                             .Build());
                 }
             }
@@ -130,7 +131,7 @@ internal static class OperationDocumentHelper
                             .SetMessage(
                                 "The fragment name `{0}` is not unique.",
                                 fd.Name.Value)
-                            .AddLocation(fd)
+                            .AddLocation([fd])
                             .Build());
                 }
             }

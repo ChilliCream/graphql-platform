@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -20,13 +19,10 @@ public abstract class NamedTypeBase<TDefinition>
     , IHasRuntimeType
     , IHasTypeIdentity
     , IHasTypeDefinition
-    where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode, ITypeDefinition
+    where TDefinition : DefinitionBase, IHasDirectiveDefinition, ITypeDefinition
 {
     private IDirectiveCollection? _directives;
     private Type? _runtimeType;
-    private ISyntaxNode? _syntaxNode;
-
-    ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
 
     ITypeDefinition? IHasTypeDefinition.Definition => Definition;
 
@@ -99,8 +95,6 @@ public abstract class NamedTypeBase<TDefinition>
         base.OnCompleteType(context, definition);
 
         UpdateRuntimeType(definition);
-
-        _syntaxNode = definition.SyntaxNode;
 
         _directives ??= DirectiveCollection.CreateAndComplete(
             context, this, definition.GetDirectives());

@@ -453,12 +453,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string MultiplierPathType_Description {
-            get {
-                return ResourceManager.GetString("MultiplierPathType_Description", resourceCulture);
-            }
-        }
-        
         internal static string NameType_Description {
             get {
                 return ResourceManager.GetString("NameType_Description", resourceCulture);
@@ -1251,18 +1245,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string CostDirective_ComplexityCannotBeBelowOne {
-            get {
-                return ResourceManager.GetString("CostDirective_ComplexityCannotBeBelowOne", resourceCulture);
-            }
-        }
-        
-        internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
-            get {
-                return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
-            }
-        }
-        
         internal static string EventMessageParameterExpressionBuilder_MessageNotFound {
             get {
                 return ResourceManager.GetString("EventMessageParameterExpressionBuilder_MessageNotFound", resourceCulture);
@@ -1983,12 +1965,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string MutationConvention_ShouldBeEnabled_WhenAddingErrorType {
-            get {
-                return ResourceManager.GetString("MutationConvention_ShouldBeEnabled_WhenAddingErrorType", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_DuplicateFieldName_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_DuplicateFieldName_Message", resourceCulture);
@@ -2013,9 +1989,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string ThrowHelper_PooledServicesNotAllowed {
+        internal static string ResolverContextExtensions_IsSelected_FieldNameEmpty {
             get {
-                return ResourceManager.GetString("ThrowHelper_PooledServicesNotAllowed", resourceCulture);
+                return ResourceManager.GetString("ResolverContextExtensions_IsSelected_FieldNameEmpty", resourceCulture);
             }
         }
     }

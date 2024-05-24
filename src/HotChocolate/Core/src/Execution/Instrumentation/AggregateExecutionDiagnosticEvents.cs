@@ -267,7 +267,7 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result)
+    public void SubscriptionEventResult(SubscriptionEventContext context, IOperationResult result)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {

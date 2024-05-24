@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Types.Relay;
 
@@ -14,33 +14,38 @@ namespace HotChocolate.Fusion.Execution;
 /// </summary>
 internal sealed class FusionExecutionContext : IDisposable
 {
-    private readonly string _schemaName;
     private readonly GraphQLClientFactory _clientFactory;
-    private readonly IIdSerializer _idSerializer;
+    private readonly INodeIdSerializer _idSerializer;
     private readonly OperationContextOwner _operationContextOwner;
     private readonly NodeIdParser _nodeIdParser;
+    private readonly FusionOptions _options;
 
     public FusionExecutionContext(
         FusionGraphConfiguration configuration,
         QueryPlan queryPlan,
         OperationContextOwner operationContextOwner,
         GraphQLClientFactory clientFactory,
-        IIdSerializer idSerializer,
-        NodeIdParser nodeIdParser)
+        INodeIdSerializer idSerializer,
+        NodeIdParser nodeIdParser,
+        FusionOptions options,
+        IFusionDiagnosticEvents diagnosticEvents)
     {
         Configuration = configuration ??
             throw new ArgumentNullException(nameof(configuration));
         QueryPlan = queryPlan ??
             throw new ArgumentNullException(nameof(queryPlan));
+        DiagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
         _operationContextOwner = operationContextOwner ??
             throw new ArgumentNullException(nameof(operationContextOwner));
         _clientFactory = clientFactory ??
             throw new ArgumentNullException(nameof(clientFactory));
         _idSerializer = idSerializer ??
             throw new ArgumentNullException(nameof(idSerializer));
-        _nodeIdParser = nodeIdParser ?? 
+        _nodeIdParser = nodeIdParser ??
             throw new ArgumentNullException(nameof(nodeIdParser));
-        _schemaName = Schema.Name;
+        _options = options ??
+            throw new ArgumentNullException(nameof(options));
     }
 
     /// <summary>
@@ -57,6 +62,11 @@ internal sealed class FusionExecutionContext : IDisposable
     /// Gets the query plan that is being executed.
     /// </summary>
     public QueryPlan QueryPlan { get; }
+
+    /// <summary>
+    /// Gets the diagnostic event reporter.
+    /// </summary>
+    public IFusionDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Gets the execution state.
@@ -81,7 +91,12 @@ internal sealed class FusionExecutionContext : IDisposable
     /// <summary>
     /// Defines if query plan components should emit debug infos.
     /// </summary>
-    public bool ShowDebugInfo => true;
+    public bool ShowDebugInfo => _options.IncludeDebugInfo;
+
+    /// <summary>
+    /// Defines if the query plan should be included in the result.
+    /// </summary>
+    public bool AllowQueryPlan => _options.AllowQueryPlan;
 
     /// <summary>
     /// Determines if all data has been fetched for the specified selection set.
@@ -95,13 +110,13 @@ internal sealed class FusionExecutionContext : IDisposable
     public bool NeedsMoreData(ISelectionSet selectionSet)
         => QueryPlan.HasNodesFor(selectionSet);
 
-    public string? ReformatId(string formattedId, string subgraphName)
+    public string ReformatId(string formattedId, string subgraphName)
     {
-        var id = _idSerializer.Deserialize(formattedId);
+        var id = _idSerializer.Parse(formattedId);
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
-        return _idSerializer.Serialize(_schemaName, typeName, id.Value);
+        return _idSerializer.Format(typeName, id.InternalId);
     }
-    
+
     public string ParseTypeNameFromId(string id)
         => _nodeIdParser.ParseTypeName(id);
 
@@ -119,7 +134,7 @@ internal sealed class FusionExecutionContext : IDisposable
         IReadOnlyList<SubgraphGraphQLRequest> requests,
         CancellationToken cancellationToken)
     {
-        if(requests.Count == 1)
+        if (requests.Count == 1)
         {
             return [await ExecuteAsync(subgraphName, requests[0], cancellationToken),];
         }
@@ -143,7 +158,7 @@ internal sealed class FusionExecutionContext : IDisposable
         await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
 
         await foreach (var response in client.SubscribeAsync(request, cancellationToken)
-            .ConfigureAwait(false))
+                           .ConfigureAwait(false))
         {
             yield return response;
         }
@@ -161,5 +176,7 @@ internal sealed class FusionExecutionContext : IDisposable
             operationContextOwner,
             context._clientFactory,
             context._idSerializer,
-            context._nodeIdParser);
+            context._nodeIdParser,
+            context._options,
+            context.DiagnosticEvents);
 }

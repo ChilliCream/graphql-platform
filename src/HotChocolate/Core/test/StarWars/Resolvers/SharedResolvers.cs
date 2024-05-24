@@ -11,9 +11,9 @@ public class SharedResolvers
         [Parent] ICharacter character,
         [Service] CharacterRepository repository)
     {
-        foreach (string friendId in character.Friends)
+        foreach (var friendId in character.Friends)
         {
-            ICharacter friend = repository.GetCharacter(friendId);
+            var friend = repository.GetCharacter(friendId);
             if (friend != null)
             {
                 yield return friend;

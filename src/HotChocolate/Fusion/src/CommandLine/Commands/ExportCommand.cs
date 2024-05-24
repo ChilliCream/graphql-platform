@@ -15,5 +15,6 @@ internal sealed class ExportCommand : Command
         Description = "Export commands.";
 
         AddCommand(new ExportGraphCommand());
+        AddCommand(new ExportSchemaCommand());
     }
 }

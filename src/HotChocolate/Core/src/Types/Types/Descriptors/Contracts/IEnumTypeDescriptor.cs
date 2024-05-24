@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -12,16 +11,6 @@ public interface IEnumTypeDescriptor
     : IDescriptor<EnumTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the enum type with a syntax node
-    /// of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="enumTypeDefinition">
-    /// The the type definition node.
-    /// </param>
-    IEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition);
-
     /// <summary>
     /// Defines the name the enum type shall have.
     /// </summary>

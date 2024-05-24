@@ -10,7 +10,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -37,10 +36,10 @@ public class ResolverContextStateExtensionTests
                 d.Field("foo").Resolve(ctx => ctx.GetUser()?.Identity?.Name);
             })
             .ExecuteRequestAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo }")
+                OperationRequestBuilder.Create()
+                    .SetDocument("{ foo }")
                     .SetUser(user)
-                    .Create())
+                    .Build())
             .MatchSnapshotAsync();
     }
 

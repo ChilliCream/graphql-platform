@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
@@ -39,10 +37,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
@@ -60,10 +58,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
@@ -81,10 +79,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -105,10 +103,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ missingMiddleware { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ missingMiddleware { bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

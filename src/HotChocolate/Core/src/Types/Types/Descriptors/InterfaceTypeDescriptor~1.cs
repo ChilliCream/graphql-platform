@@ -47,13 +47,6 @@ public class InterfaceTypeDescriptor<T>
         base.OnCompleteFields(fields, handledMembers);
     }
 
-    public new IInterfaceTypeDescriptor<T> SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition)
-    {
-        base.SyntaxNode(interfaceTypeDefinition);
-        return this;
-    }
-
     public new IInterfaceTypeDescriptor<T> Name(string value)
     {
         base.Name(value);

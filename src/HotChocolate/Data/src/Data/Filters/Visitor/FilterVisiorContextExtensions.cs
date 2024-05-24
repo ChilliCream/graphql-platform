@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Filters;
 
 public static class FilterVisitorContextExtensions

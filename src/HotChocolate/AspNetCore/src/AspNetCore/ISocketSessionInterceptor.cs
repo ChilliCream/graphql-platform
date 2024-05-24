@@ -47,7 +47,7 @@ public interface ISocketSessionInterceptor
     ValueTask OnRequestAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -69,10 +69,10 @@ public interface ISocketSessionInterceptor
     /// <returns>
     /// Returns the result that shall be send to the client.
     /// </returns>
-    ValueTask<IQueryResult> OnResultAsync(
+    ValueTask<IOperationResult> OnResultAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryResult result,
+        IOperationResult result,
         CancellationToken cancellationToken = default);
 
     /// <summary>

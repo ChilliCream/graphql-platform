@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -265,7 +264,7 @@ public static partial class TypeDescriptorMapper
 
         if (kind == TypeKind.Result)
         {
-            string resultTypeName = CreateResultRootTypeName(outputType.Name);
+            var resultTypeName = CreateResultRootTypeName(outputType.Name);
             if (clientModel.OutputTypes.Any(t => t.Name.EqualsOrdinal(resultTypeName)))
             {
                 resultTypeName = CreateResultRootTypeName(outputType.Name, outputType.Type);

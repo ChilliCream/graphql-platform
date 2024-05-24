@@ -96,7 +96,7 @@ public async Task SayHello_HelloIsReturned()
     .MakeExecutable();
 
     IReadOnlyQueryRequest request =
-        QueryRequestBuilder.New()
+        OperationRequestBuilder.New()
             .SetQuery("{ sayHello }")
             .SetServices(serviceProvider)
             .AddProperty("Key", "value")
@@ -139,7 +139,7 @@ public async Task SayHello_HelloIsReturned()
     .MakeExecutable();
 
     IReadOnlyQueryRequest request =
-        QueryRequestBuilder.New()
+        OperationRequestBuilder.New()
             .SetQuery("{ sayHello }")
             .SetServices(serviceProvider)
             .AddProperty("Key", "value")
@@ -174,7 +174,7 @@ result.MatchSnapshot(o =>
 
 For more information about how snapshooter works head over to their repository:
 
-https://github.com/SwissLife-OSS/snapshooter
+<https://github.com/SwissLife-OSS/snapshooter>
 
 ## Schema Tests
 
@@ -307,6 +307,3 @@ services.AddGraphQL(Schema.Create(c =>
 ```
 
 I hope this little post will help when you start writing tests for your schema. If you run into any issues or if you have further questions/suggestions head over to our slack channel and we will be happy to help you.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

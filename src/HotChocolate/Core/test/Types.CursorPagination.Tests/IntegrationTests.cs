@@ -9,7 +9,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -179,6 +178,39 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task MinPageSizeReached_First()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters(first: -1) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task MaxPageSizeReached_First()
     {
         Snapshot.FullName();
@@ -196,6 +228,39 @@ public class IntegrationTests
             .ExecuteAsync(@"
                 {
                     letters(first: 3) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task MinPageSizeReached_Last()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters(last: -1) {
                         edges {
                             node
                             cursor
@@ -944,6 +1009,60 @@ public class IntegrationTests
 
         // assert
         result.ToJson().MatchSnapshot();
+    }
+    
+    [Fact]
+    public async Task Invalid_After_Index_Cursor()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 after: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+        
+        await result.MatchSnapshotAsync();
+    }
+    
+    [Fact]
+    public async Task Invalid_Before_Index_Cursor()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              letters(first: 2 before: "INVALID") {
+                  edges {
+                      cursor
+                  }
+              }
+            }
+            """);
+        
+        await result.MatchSnapshotAsync();
     }
 
     public class QueryType : ObjectType<Query>

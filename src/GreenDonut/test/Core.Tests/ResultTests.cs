@@ -129,15 +129,16 @@ public class ResultTests
         Assert.True(result);
     }
 
-    [Fact(DisplayName = "GetHashCode: Should return 0")]
+    [Fact(DisplayName = "GetHashCode: Should be consistent")]
     public void GetHashCodeEmpty()
     {
         // arrange
         // act
-        Result<string> result = default(string);
+        Result<string> result1 = default(string);
+        Result<string> result2 = default(string);
 
         // assert
-        Assert.Equal(0, result.GetHashCode());
+        Assert.Equal(result2.GetHashCode(), result1.GetHashCode());
     }
 
     [Fact(DisplayName = "GetHashCode: Should return a hash code for value")]
@@ -147,10 +148,11 @@ public class ResultTests
         var value = "Foo";
 
         // act
-        Result<string> result = value;
+        Result<string> result1 = value;
+        Result<string> result2 = value;
 
         // assert
-        Assert.Equal(value.GetHashCode(), result.GetHashCode());
+        Assert.Equal(result2.GetHashCode(), result1.GetHashCode());
     }
 
     [Fact(DisplayName = "GetHashCode: Should return a hash code for error")]
@@ -160,10 +162,11 @@ public class ResultTests
         var error = new Exception();
 
         // act
-        Result<string> result = error;
+        Result<string> result1 = error;
+        Result<string> result2 = error;
 
         // assert
-        Assert.Equal(error.GetHashCode(), result.GetHashCode());
+        Assert.Equal(result2.GetHashCode(), result1.GetHashCode());
     }
 
     [Fact(DisplayName = "ImplicitReject: Should return a resolved Result if error is null")]

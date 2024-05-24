@@ -14,7 +14,7 @@ public static class ExecutionRequestExecutorExtensions
 {
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        IQueryRequest request)
+        IOperationRequest request)
     {
         if (executor is null)
         {
@@ -52,7 +52,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New().SetQuery(query).Create(),
+            OperationRequestBuilder.Create().SetDocument(query).Build(),
             CancellationToken.None);
     }
 
@@ -78,7 +78,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New().SetQuery(query).Create(),
+            OperationRequestBuilder.Create().SetDocument(query).Build(),
             cancellationToken);
     }
 
@@ -109,10 +109,10 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .SetVariableValues(variableValues)
-                .Create(),
+                .Build(),
             CancellationToken.None);
     }
 
@@ -144,16 +144,16 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .SetVariableValues(variableValues)
-                .Create(),
+                .Build(),
             cancellationToken);
     }
 
     public static IExecutionResult Execute(
         this IRequestExecutor executor,
-        IQueryRequest request)
+        IOperationRequest request)
     {
         if (executor is null)
         {
@@ -193,9 +193,9 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
+                .Build());
     }
 
     public static IExecutionResult Execute(
@@ -225,15 +225,15 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            QueryRequestBuilder.New()
-                .SetQuery(query)
+            OperationRequestBuilder.Create()
+                .SetDocument(query)
                 .SetVariableValues(variableValues)
-                .Create());
+                .Build());
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        Action<IQueryRequestBuilder> buildRequest,
+        Action<OperationRequestBuilder> buildRequest,
         CancellationToken cancellationToken)
     {
         if (executor is null)
@@ -246,17 +246,17 @@ public static class ExecutionRequestExecutorExtensions
             throw new ArgumentNullException(nameof(buildRequest));
         }
 
-        var builder = new QueryRequestBuilder();
+        var builder = new OperationRequestBuilder();
         buildRequest(builder);
 
         return executor.ExecuteAsync(
-            builder.Create(),
+            builder.Build(),
             cancellationToken);
     }
 
     public static Task<IExecutionResult> ExecuteAsync(
         this IRequestExecutor executor,
-        Action<IQueryRequestBuilder> buildRequest)
+        Action<OperationRequestBuilder> buildRequest)
     {
         if (executor is null)
         {

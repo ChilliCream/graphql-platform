@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -28,7 +26,7 @@ public static class AutoMapperQueryableExtensions
         this IQueryable<TSource> queryable,
         IResolverContext context)
     {
-        IMapper mapper = context.Service<IMapper>();
+        var mapper = context.Service<IMapper>();
 
         // ensure projections are only applied once
         context.LocalContextData = context.LocalContextData.SetItem(SkipProjectionKey, true);

@@ -9,22 +9,10 @@ public class ServiceCollectionTests
         // act
         void Action()
             => HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
-                .AddInMemoryQueryStorage(null!);
+                .AddInMemoryOperationDocumentStorage(null!);
 
         // assert
-        Assert.Throws<ArgumentNullException>((Action) Action);
-    }
-
-    [Fact]
-    public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
-    {
-        // arrange
-        // act
-        void Action()
-            => HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyInMemoryQueryStorage(null!);
-
-        // assert
-        Assert.Throws<ArgumentNullException>(Action);
+        Assert.Throws<ArgumentNullException>((Action)Action);
     }
 }
+    

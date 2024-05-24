@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Validation.Options;
 
 public class ValidationOptionsTests

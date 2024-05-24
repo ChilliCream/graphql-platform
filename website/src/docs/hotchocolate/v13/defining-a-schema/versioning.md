@@ -35,7 +35,7 @@ public class Query
 }
 ```
 
-> Note: .NET's `[Obsolete("reason")]` attribute is handled in the same way as  `[GraphQLDeprecated("reason")]`.
+> Note: .NET's `[Obsolete("reason")]` attribute is handled in the same way as `[GraphQLDeprecated("reason")]`.
 
 </Annotation>
 <Code>
@@ -71,6 +71,5 @@ services
 
 </Schema>
 </ExampleTabs>
-
 
 > Warning: You can not deprecate non-null arguments or input fields without a default value.

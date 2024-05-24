@@ -84,85 +84,82 @@ public static partial class RequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder UseDocumentCache(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<DocumentCacheMiddleware>();
+        builder.UseRequest(DocumentCacheMiddleware.Create());
 
     public static IRequestExecutorBuilder UseDocumentParser(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<DocumentParserMiddleware>();
+        builder.UseRequest(DocumentParserMiddleware.Create());
 
     public static IRequestExecutorBuilder UseDocumentValidation(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<DocumentValidationMiddleware>();
+        builder.UseRequest(DocumentValidationMiddleware.Create());
 
     public static IRequestExecutorBuilder UseExceptions(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<ExceptionMiddleware>();
+        builder.UseRequest(ExceptionMiddleware.Create());
 
     public static IRequestExecutorBuilder UseTimeout(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<TimeoutMiddleware>();
+        builder.UseRequest(DocumentParserMiddleware.Create());
 
     public static IRequestExecutorBuilder UseInstrumentation(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<InstrumentationMiddleware>();
+        builder.UseRequest(InstrumentationMiddleware.Create());
 
     public static IRequestExecutorBuilder UseOperationCache(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<OperationCacheMiddleware>();
-
-    public static IRequestExecutorBuilder UseOperationComplexityAnalyzer(
-        this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<OperationComplexityMiddleware>();
+        builder.UseRequest(OperationCacheMiddleware.Create());
 
     public static IRequestExecutorBuilder UseOperationExecution(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<OperationExecutionMiddleware>();
+        builder.UseRequest(OperationExecutionMiddleware.Create());
 
     public static IRequestExecutorBuilder UseOperationResolver(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<OperationResolverMiddleware>();
+        builder.UseRequest(OperationResolverMiddleware.Create());
 
     public static IRequestExecutorBuilder UseOperationVariableCoercion(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<OperationVariableCoercionMiddleware>();
+        builder.UseRequest(OperationVariableCoercionMiddleware.Create());
 
     public static IRequestExecutorBuilder UseReadPersistedQuery(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<ReadPersistedQueryMiddleware>();
+        builder.UseRequest(ReadPersistedQueryMiddleware.Create());
 
     public static IRequestExecutorBuilder UseAutomaticPersistedQueryNotFound(
         this IRequestExecutorBuilder builder)
         => builder.UseRequest(next => context =>
         {
-            if (context.Document is null && context.Request.Query is null)
+            if (context.Document is not null || context.Request.Document is not null)
             {
-                var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
-                var result = QueryResultBuilder.CreateError(
-                    error,
-                    new Dictionary<string, object?>
-                    {
-                        { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
-                    });
-
-                context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
-                context.Result = result;
-                return default;
+                return next(context);
             }
+            
+            var error = ReadPersistedQueryMiddleware_PersistedQueryNotFound();
+            var result = OperationResultBuilder.CreateError(
+                error,
+                new Dictionary<string, object?>
+                {
+                    { WellKnownContextData.HttpStatusCode, HttpStatusCode.BadRequest },
+                });
 
-            return next(context);
+            context.DiagnosticEvents.RequestError(context, new GraphQLException(error));
+            context.Result = result;
+            return default;
+
         });
 
     public static IRequestExecutorBuilder UseWritePersistedQuery(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<WritePersistedQueryMiddleware>();
+        builder.UseRequest(WritePersistedQueryMiddleware.Create());
 
     public static IRequestExecutorBuilder UsePersistedQueryNotFound(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<PersistedQueryNotFoundMiddleware>();
+        builder.UseRequest(PersistedQueryNotFoundMiddleware.Create());
 
     public static IRequestExecutorBuilder UseOnlyPersistedQueriesAllowed(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest<OnlyPersistedQueriesAllowedMiddleware>();
+        builder.UseRequest(OnlyPersistedQueriesAllowedMiddleware.Create());
 
     public static IRequestExecutorBuilder UseDefaultPipeline(
         this IRequestExecutorBuilder builder)
@@ -196,7 +193,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
@@ -221,7 +217,6 @@ public static partial class RequestExecutorBuilderExtensions
             .UseDocumentParser()
             .UseDocumentValidation()
             .UseOperationCache()
-            .UseOperationComplexityAnalyzer()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
@@ -229,16 +224,15 @@ public static partial class RequestExecutorBuilderExtensions
 
     internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
     {
-        pipeline.Add(RequestClassMiddlewareFactory.Create<InstrumentationMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<TimeoutMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationComplexityMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
-        pipeline.Add(RequestClassMiddlewareFactory.Create<OperationExecutionMiddleware>());
+        pipeline.Add(InstrumentationMiddleware.Create());
+        pipeline.Add(ExceptionMiddleware.Create());
+        pipeline.Add(TimeoutMiddleware.Create());
+        pipeline.Add(DocumentCacheMiddleware.Create());
+        pipeline.Add(DocumentParserMiddleware.Create());
+        pipeline.Add(DocumentValidationMiddleware.Create());
+        pipeline.Add(OperationCacheMiddleware.Create());
+        pipeline.Add(OperationResolverMiddleware.Create());
+        pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(OperationExecutionMiddleware.Create());
     }
 }

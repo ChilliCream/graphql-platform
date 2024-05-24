@@ -46,7 +46,7 @@ internal sealed class Introspect(int id, SelectionSet selectionSet) : QueryPlanN
         RequestState state,
         CancellationToken cancellationToken)
     {
-        if (state.TryGetState(_selectionSet, out List<ExecutionState>? values))
+        if (state.TryGetState(_selectionSet, out var values))
         {
             var value = values[0];
             List<Task>? asyncTasks = null;

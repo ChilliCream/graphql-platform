@@ -22,9 +22,7 @@ internal sealed class FusionGraphConfigurationToSchemaRewriter
         return schemaDoc;
     }
 
-    protected override DirectiveNode? RewriteDirective(
-        DirectiveNode node,
-        Context context)
+    protected override DirectiveNode? RewriteDirective(DirectiveNode node, Context context)
     {
         if (context.TypeNames.IsFusionDirective(node.Name.Value))
         {
@@ -34,13 +32,8 @@ internal sealed class FusionGraphConfigurationToSchemaRewriter
         return base.RewriteDirective(node, context);
     }
 
-    internal sealed class Context : ISyntaxVisitorContext
+    internal sealed class Context(FusionTypeNames typeNames)
     {
-        public Context(FusionTypeNames typeNames)
-        {
-            TypeNames = typeNames;
-        }
-
-        public FusionTypeNames TypeNames { get; }
+        public FusionTypeNames TypeNames { get; } = typeNames;
     }
 }

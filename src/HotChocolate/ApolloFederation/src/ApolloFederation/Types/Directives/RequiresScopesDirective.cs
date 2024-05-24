@@ -26,7 +26,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// <param name="scopes">
 /// List of a list of required JWT scopes.
 /// </param>
-[Package(FederationVersionUrls.Federation24)]
+[Package(FederationVersionUrls.Federation25)]
 [DirectiveType(
     RequiresScopesDirective_Name,
     DirectiveLocation.Enum |

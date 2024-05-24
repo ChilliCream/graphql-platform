@@ -1,7 +1,5 @@
 ﻿using System.Text;
 using System.Text.Json;
-using CookieCrumble;
-using Moq;
 
 namespace HotChocolate.Transport.Http.Tests;
 

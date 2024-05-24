@@ -62,7 +62,14 @@ public class BatchDataLoaderTests
     public async Task Null_Result()
     {
         // arrange
-        var dataLoader = new EmptyBatchDataLoader(new AutoBatchScheduler());
+        using var cacheOwner = new TaskCacheOwner();
+        var dataLoader = new EmptyBatchDataLoader(
+            new AutoBatchScheduler(),
+            new DataLoaderOptions
+            {
+                Cache = cacheOwner.Cache, 
+                CancellationToken = cacheOwner.CancellationToken,
+            });
 
         // act
         var result = await dataLoader.LoadAsync("1");
@@ -73,8 +80,8 @@ public class BatchDataLoaderTests
 
     public class EmptyBatchDataLoader : BatchDataLoader<string, string>
     {
-        public EmptyBatchDataLoader(IBatchScheduler batchScheduler)
-            : base(batchScheduler)
+        public EmptyBatchDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+            : base(batchScheduler, options)
         {
         }
 
@@ -108,8 +115,13 @@ public class CacheDataLoaderTests
     public async Task LoadSingleAsync()
     {
         // arrange
-        var dataLoader = new CustomBatchDataLoader(
-            new DataLoaderOptions());
+        using var cacheOwner = new TaskCacheOwner();
+        var dataLoader = new CustomCacheDataLoader(
+            new DataLoaderOptions
+            {
+                Cache = cacheOwner.Cache,
+                CancellationToken = cacheOwner.CancellationToken,
+            });
 
         // act
         var result = await dataLoader.LoadAsync("abc");
@@ -118,13 +130,9 @@ public class CacheDataLoaderTests
         Assert.Equal("Value:abc", result);
     }
 
-    public class CustomBatchDataLoader : CacheDataLoader<string, string>
+    public class CustomCacheDataLoader(DataLoaderOptions options)
+        : CacheDataLoader<string, string>(options)
     {
-        public CustomBatchDataLoader(DataLoaderOptions options)
-            : base(options)
-        {
-        }
-
         protected override Task<string> LoadSingleAsync(
             string key,
             CancellationToken cancellationToken)

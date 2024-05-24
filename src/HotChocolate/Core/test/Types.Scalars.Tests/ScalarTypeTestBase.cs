@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -171,7 +170,7 @@ public class ScalarTypeTestBase
         var result = scalar.Deserialize(resultValue);
 
         // assert
-        Assert.Equal(resultValue, runtimeValue);
+        Assert.Equal(result, runtimeValue);
     }
 
     protected void ExpectSerializeToThrowSerializationException<TType>(object runtimeValue)

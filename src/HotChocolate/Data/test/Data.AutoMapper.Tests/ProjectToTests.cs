@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
@@ -20,34 +16,34 @@ public class ProjectToTests
             Name = "TestA",
             Url = "testa.com",
             Author =
-                new Author()
+                new Author
                 {
                     Name = "Phil",
                     Membership = new PremiumMember { Name = "foo", Premium = "A", },
                 },
-            TitleImage = new Image() { Url = "https://testa.com/image.png", },
+            TitleImage = new Image { Url = "https://testa.com/image.png", },
             Posts = new[]
             {
                 new Post
                 {
                     Title = "titleA",
                     Content = "contentA",
-                    Author = new Author()
+                    Author = new Author
                     {
                         Name = "Anna",
                         Membership =
-                            new StandardMember() { Name = "foo", Standard = "FLAT", },
+                            new StandardMember { Name = "foo", Standard = "FLAT", },
                     },
                 },
                 new Post
                 {
                     Title = "titleB",
                     Content = "contentB",
-                    Author = new Author()
+                    Author = new Author
                     {
                         Name = "Max",
                         Membership =
-                            new StandardMember() { Name = "foo", Standard = "FLAT", },
+                            new StandardMember { Name = "foo", Standard = "FLAT", },
                     },
                 },
             },
@@ -56,12 +52,12 @@ public class ProjectToTests
         {
             Name = "TestB",
             Url = "testb.com",
-            TitleImage = new Image() { Url = "https://testb.com/image.png", },
-            Author = new Author()
+            TitleImage = new Image { Url = "https://testb.com/image.png", },
+            Author = new Author
             {
                 Name = "Kurt",
                 Membership =
-                    new StandardMember() { Name = "foo", Standard = "FLAT", },
+                    new StandardMember { Name = "foo", Standard = "FLAT", },
             },
             Posts = new[]
             {
@@ -69,7 +65,7 @@ public class ProjectToTests
                 {
                     Title = "titleC",
                     Content = "contentC",
-                    Author = new Author()
+                    Author = new Author
                     {
                         Name = "Charles",
                         Membership =
@@ -80,7 +76,7 @@ public class ProjectToTests
                 {
                     Title = "titleD",
                     Content = "contentD",
-                    Author = new Author()
+                    Author = new Author
                     {
                         Name = "Simone",
                         Membership =
@@ -100,8 +96,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     {
                       posts {
@@ -112,7 +108,7 @@ public class ProjectToTests
                         }
                       }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -128,8 +124,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         posts {
@@ -149,7 +145,7 @@ public class ProjectToTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -164,8 +160,8 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     {
                       blogs {
@@ -175,7 +171,7 @@ public class ProjectToTests
                         }
                       }
                     }")
-                .Create());
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -192,8 +188,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         posts {
@@ -207,7 +203,7 @@ public class ProjectToTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -222,8 +218,8 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         members {
@@ -232,7 +228,7 @@ public class ProjectToTests
                             ... on StandardMemberDto { standard }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -249,8 +245,8 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                     query Test {
                         members {
@@ -258,7 +254,7 @@ public class ProjectToTests
                             ... on PremiumMemberDto { premium }
                         }
                     }")
-                .Create());
+                .Build());
 
         var snapshot = new Snapshot();
         snapshot.AddSqlFrom(res1);
@@ -268,7 +264,7 @@ public class ProjectToTests
     public async ValueTask<IRequestExecutor> CreateSchema()
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddPooledDbContextFactory<BloggingContext>(x
+        services.AddDbContextPool<BloggingContext>(x
             => x.UseSqlite($"Data Source={Guid.NewGuid():N}.db"));
         var mapperConfig = new MapperConfiguration(mc =>
         {
@@ -283,8 +279,8 @@ public class ProjectToTests
         services.AddSingleton(sp =>
         {
             // abusing the mapper factory to add to the database. You didnt see this.
-            var context =
-                sp.GetRequiredService<IDbContextFactory<BloggingContext>>().CreateDbContext();
+            using var scope = sp.CreateScope();
+            using var context = scope.ServiceProvider.GetRequiredService<BloggingContext>();
             context.Database.EnsureCreated();
             context.Blogs.AddRange(_blogEntries);
             context.SaveChanges();
@@ -298,7 +294,6 @@ public class ProjectToTests
             .AddInterfaceType<MembershipDto>()
             .AddType<PremiumMemberDto>()
             .AddType<StandardMemberDto>()
-            .RegisterDbContext<BloggingContext>(DbContextKind.Pooled)
             .AddProjections()
             .UseSqlLogging()
             .BuildRequestExecutorAsync();

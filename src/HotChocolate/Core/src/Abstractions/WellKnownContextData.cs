@@ -180,6 +180,11 @@ public static class WellKnownContextData
     public const string GlobalIdSupportEnabled = "HotChocolate.Relay.GlobalId";
 
     /// <summary>
+    /// The key to get the serializer types.
+    /// </summary>
+    public const string SerializerTypes = "HotChocolate.Relay.SerializerTypes";
+
+    /// <summary>
     /// The key to get the node id from the context data.
     /// </summary>
     public const string NodeId = "HotChocolate.Relay.Node.Id";
@@ -274,19 +279,39 @@ public static class WellKnownContextData
     /// The key to access the authorization allowed flag on the member context.
     /// </summary>
     public const string AllowAnonymous = "HotChocolate.Authorization.AllowAnonymous";
-    
+
     /// <summary>
     /// The key to access the true nullability flag on the execution context.
     /// </summary>
     public const string EnableTrueNullability = "HotChocolate.Types.EnableTrueNullability";
-    
+
     /// <summary>
     /// The key to access the tag options object.
     /// </summary>
     public const string TagOptions = "HotChocolate.Types.TagOptions";
-    
+
     /// <summary>
     /// Type key to access the internal schema options.
     /// </summary>
     public const string InternalSchemaOptions = "HotChocolate.Types.InternalSchemaOptions";
+
+    /// <summary>
+    /// Type key to access the paging arguments in the local resolver state.
+    /// </summary>
+    public const string PagingArguments = "HotChocolate.Types.PagingArguments";
+
+    /// <summary>
+    /// Type key to access the object type configuration hooks in the schema builder context data.
+    /// </summary>
+    public const string ObjectTypeConfigurations = "HotChocolate.Types.ObjectTypeConfigurations";
+
+    /// <summary>
+    /// Type key to access the node id result formatter on the descriptor context.
+    /// </summary>
+    public const string NodeIdResultFormatter = "HotChocolate.Relay.NodeIdResultFormatter";
+
+    /// <summary>
+    /// Type key to access the pattern validation tasks.
+    /// </summary>
+    public const string PatternValidationTasks = "HotChocolate.Validation.PatternValidationTasks";
 }

@@ -3,8 +3,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Raven.Client.Documents;
-using Raven.Client.Documents.Linq.Indexing;
 using static HotChocolate.Data.Raven.ProjectionVisitorTestBase;
 
 namespace HotChocolate.Data.Raven;
@@ -60,8 +58,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -74,7 +72,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -106,8 +104,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -122,7 +120,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -140,8 +138,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -156,7 +154,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -174,8 +172,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -190,7 +188,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -212,8 +210,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -228,7 +226,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -250,8 +248,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -266,7 +264,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -284,8 +282,8 @@ public class QueryableProjectionInterfaceTypeTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -294,7 +292,7 @@ public class QueryableProjectionInterfaceTypeTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

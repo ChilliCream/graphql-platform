@@ -539,7 +539,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_MissingDirectiveIfArgument,
                 directive.Name.Value)
-            .AddLocation(directive)
+            .AddLocation([directive])
             .Build());
 
     public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)
@@ -589,12 +589,4 @@ internal static class ThrowHelper
                 .SetExtension("type", type.Print())
                 .Build());
     }
-    
-    public static SchemaException PooledServicesNotAllowed(ParameterInfo parameter)
-        => throw new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_PooledServicesNotAllowed,
-                    parameter.ParameterType.FullName ?? parameter.ParameterType.Name)
-                .Build());
 }

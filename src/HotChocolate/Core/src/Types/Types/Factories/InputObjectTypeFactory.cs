@@ -13,39 +13,36 @@ internal sealed class InputObjectTypeFactory
         IDescriptorContext context,
         InputObjectTypeDefinitionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
         var typeDefinition = new InputObjectTypeDefinition(
             node.Name.Value,
-            node.Description?.Value);
-        typeDefinition.BindTo = node.GetBindingValue();
-
-        if (preserveSyntaxNodes)
+            node.Description?.Value)
         {
-            typeDefinition.SyntaxNode = node;
-        }
+            BindTo = node.GetBindingValue(),
+        };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path);
 
         return InputObjectType.CreateUnsafe(typeDefinition);
     }
 
     public InputObjectTypeExtension Create(IDescriptorContext context, InputObjectTypeExtensionNode node)
     {
-        var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
         var path = context.GetOrCreateDefinitionStack();
         path.Clear();
 
-        var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
-        typeDefinition.BindTo = node.GetBindingValue();
+        var typeDefinition = new InputObjectTypeDefinition(node.Name.Value)
+        {
+            BindTo = node.GetBindingValue(),
+        };
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
-        DeclareFields(context, typeDefinition, node.Fields, path, preserveSyntaxNodes);
+        DeclareFields(context, typeDefinition, node.Fields, path);
 
         return InputObjectTypeExtension.CreateUnsafe(typeDefinition);
     }
@@ -54,8 +51,7 @@ internal sealed class InputObjectTypeFactory
         IDescriptorContext context,
         InputObjectTypeDefinition parent,
         IReadOnlyCollection<InputValueDefinitionNode> fields,
-        Stack<IDefinition> path,
-        bool preserveSyntaxNodes)
+        Stack<IDefinition> path)
     {
         path.Push(parent);
 
@@ -65,13 +61,10 @@ internal sealed class InputObjectTypeFactory
                 inputField.Name.Value,
                 inputField.Description?.Value,
                 TypeReference.Create(inputField.Type),
-                inputField.DefaultValue);
-            inputFieldDefinition.BindTo = inputField.GetBindingValue();
-
-            if (preserveSyntaxNodes)
+                inputField.DefaultValue)
             {
-                inputFieldDefinition.SyntaxNode = inputField;
-            }
+                BindTo = inputField.GetBindingValue(),
+            };
 
             if (inputField.DeprecationReason() is { Length: > 0, } reason)
             {
