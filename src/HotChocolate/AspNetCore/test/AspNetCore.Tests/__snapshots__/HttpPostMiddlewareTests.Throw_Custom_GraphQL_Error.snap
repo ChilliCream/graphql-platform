@@ -1,6 +1,6 @@
 {
   "ContentType": "application/graphql-response+json; charset=utf-8",
-  "StatusCode": "InternalServerError",
+  "StatusCode": "BadRequest",
   "Data": null,
   "Errors": [
     {

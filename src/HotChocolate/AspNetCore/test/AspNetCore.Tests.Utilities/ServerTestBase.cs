@@ -76,6 +76,16 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         .AddDiagnosticEventListener(_ => new SubscriptionTestDiagnostics(output));
                 }
 
+                services
+                    .AddGraphQLServer("notnull")
+                    .AddQueryType(c =>
+                    {
+                        c.Name("Query");
+                        c.Field("error")
+                            .Type<NonNullType<StringType>>()
+                            .Resolve(_ => Task.FromResult<object?>(null!));
+                    });
+
                 configureServices?.Invoke(services);
             },
             app => app
@@ -87,7 +97,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
 #if NET8_0_OR_GREATER
                         endpoints.MapGraphQLPersistedOperations();
 #endif
-                        
+
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions
                             {
@@ -96,6 +106,7 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             });
 
                         configureConventions?.Invoke(builder);
+                        endpoints.MapGraphQL("/notnull", "notnull");
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
                         endpoints.MapGraphQL("/upload", "upload");
