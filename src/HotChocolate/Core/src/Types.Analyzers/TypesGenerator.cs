@@ -69,25 +69,11 @@ public class TypesGenerator : IIncrementalGenerator
         var sb = StringBuilderPool.Get();
         var first = true;
 
-        foreach (var syntaxInfo in syntaxInfos)
+        foreach (var group in syntaxInfos
+            .OfType<ObjectTypeExtensionInfo>()
+            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
-            if (syntaxInfo is not ObjectTypeExtensionInfo objectTypeExtension)
-            {
-                continue;
-            }
-
-            if (objectTypeExtension.Diagnostics.Length > 0)
-            {
-                foreach (var diagnostic in objectTypeExtension.Diagnostics)
-                {
-                    context.ReportDiagnostic(diagnostic);
-                }
-                continue;
-            }
-
-            var generator = new ObjectTypeExtensionSyntaxGenerator(
-                sb,
-                objectTypeExtension.Type.ContainingNamespace.ToDisplayString());
+            var generator = new ObjectTypeExtensionSyntaxGenerator(sb, group.Key);
 
             if (first)
             {
@@ -96,10 +82,34 @@ public class TypesGenerator : IIncrementalGenerator
             }
 
             generator.WriteBeginNamespace();
-            generator.WriteBeginClass(objectTypeExtension.Type.Name);
-            generator.WriteInitializeMethod(objectTypeExtension);
-            generator.WriteConfigureMethod(objectTypeExtension);
-            generator.WriteEndClass();
+
+            var firstClass = true;
+
+            foreach (var objectTypeExtension in group)
+            {
+                if (objectTypeExtension.Diagnostics.Length > 0)
+                {
+                    foreach (var diagnostic in objectTypeExtension.Diagnostics)
+                    {
+                        context.ReportDiagnostic(diagnostic);
+                    }
+
+                    continue;
+                }
+
+                if (!firstClass)
+                {
+                    sb.AppendLine();
+                }
+                firstClass = false;
+
+                generator.WriteBeginClass(objectTypeExtension.Type.Name);
+                generator.WriteInitializeMethod(objectTypeExtension);
+                sb.AppendLine();
+                generator.WriteConfigureMethod(objectTypeExtension);
+                generator.WriteEndClass();
+            }
+
             generator.WriteEndNamespace();
         }
 
