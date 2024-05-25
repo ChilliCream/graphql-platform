@@ -60,7 +60,7 @@ Learn more about the workshop here: [learn.chillicream.com](https://link.chillic
 
 ## We Want to Hear From You
 
-Your insights are invaluable to us. If you have questions, need more information, or want to discuss how our tools can fit into your projects, don’t hesitate to reach out on contact@chillicream.com or on [slack.chillicream.com](https://link.chillicream.com/2024/05/21/slack)
+Your insights are invaluable to us. If you have questions, need more information, or want to discuss how our tools can fit into your projects, don’t hesitate to reach out on <contact@chillicream.com> or on [slack.chillicream.com](https://link.chillicream.com/2024/05/21/slack)
 
 ## ❤️️ Thank You
 
