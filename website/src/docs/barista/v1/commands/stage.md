@@ -66,3 +66,5 @@ barista stage list --api-id QXBpCmdiOGRiYzk5NmRiNTI0OWRlYWIyM2ExNGRiYjdhMTIzNA==
 **Options:**
 
 - `--api-id <api-id>`: Specifies the ID of the API for which you want to list the stages. This ID can be retrieved with the `barista api list` command. You can set it from the environment variable `BARISTA_API_ID`.
+
+<!-- spell-checker:ignore Cmdi, elete, Yjdh -->

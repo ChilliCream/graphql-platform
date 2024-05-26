@@ -51,7 +51,7 @@ Adding pagination capabilities to our fields is a breeze. All we have to do is a
 public class Query
 {
     [UsePaging]
-    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -77,7 +77,7 @@ public class QueryType : ObjectType
             .UsePaging()
             .Resolve(context =>
             {
-                var repository = context.Service<IUserRespository>();
+                var repository = context.Service<IUserRepository>();
 
                 return repository.GetUsers();
             });
@@ -264,7 +264,7 @@ To add _offset-based_ pagination capabilities to our fields we have to add the `
 public class Query
 {
     [UseOffsetPaging]
-    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+    public IEnumerable<User> GetUsers([Service] IUserRepository repository)
         => repository.GetUsers();
 }
 ```
@@ -290,7 +290,7 @@ public class QueryType : ObjectType
             .UseOffsetPaging()
             .Resolve(context =>
             {
-                var repository = context.Service<IUserRespository>();
+                var repository = context.Service<IUserRepository>();
 
                 return repository.GetUsers();
             });
