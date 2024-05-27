@@ -222,3 +222,5 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 ```
 
 An `Accept` header with the value `application/json` will opt you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` will now be `application/json` and a status code of 200 will be returned for every request, even if it had validation errors or a valid response could not be produced.
+
+<!-- spell-checker:ignore Bname, Buser -->

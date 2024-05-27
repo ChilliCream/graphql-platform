@@ -86,7 +86,7 @@ jobs:
         run: npm install -g cspell
 
       - name: run cspell
-        run: cspell --config ./cSpell.json "website/src/**/*.md" --no-progress --no-cache
+        run: cspell --config ./cspell.json "website/src/**/*.md" --no-progress --no-cache
 
   linting:
     name: "Markdown linting"

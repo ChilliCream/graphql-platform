@@ -5,7 +5,7 @@ title: "Full Stack GraphQL Workshop"
 description: "We're excited to announce our new Full Stack GraphQL Workshop. Learn more about the workshop here!"
 tags: ["bananacakepop", "graphql", "hotchocolate", "workshops"]
 featuredImage: "header.png"
-author: Pascal Senn 
+author: Pascal Senn
 authorUrl: https://github.com/pascalsenn
 authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 ---
@@ -87,4 +87,5 @@ In-depth look at implementing real-time functionalities via GraphQL subscription
 An open session where attendees can ask questions or clarify doubts about the topics covered, facilitating deeper understanding and practical implementations.
 
 ## We Want to Hear From You
-Your insights are invaluable to us. If you have questions, need more information, or just want to talk to use, don’t hesitate to reach out on contact@chillicream.com or on [slack.chillicream.com](https://slack.chillicream.com/blog/2024/04/01/fullstack-workshop) 
+
+Your insights are invaluable to us. If you have questions, need more information, or just want to talk to use, don’t hesitate to reach out on <contact@chillicream.com> or on [slack.chillicream.com](https://slack.chillicream.com/blog/2024/04/01/fullstack-workshop)

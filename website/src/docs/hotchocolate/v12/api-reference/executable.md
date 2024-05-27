@@ -13,14 +13,14 @@ public class User
     public string Name { get; }
 }
 
-public interface IUserRepostiory
+public interface IUserRepository
 {
     public IExecutable<User> FindAll();
 }
 
 public class Query
 {
-    public IExecutable<User> GetUsers([Service] IUserRepostiory repo) =>
+    public IExecutable<User> GetUsers([Service] IUserRepository repo) =>
         repo.FindAll();
 }
 ```
