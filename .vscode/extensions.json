@@ -5,6 +5,7 @@
     "EditorConfig.EditorConfig",
     "k--kato.docomment",
     "dbaeumer.vscode-eslint",
-    "josefpihrt-vscode.roslynator"
+    "josefpihrt-vscode.roslynator",
+    "streetsidesoftware.code-spell-checker"
   ]
 }

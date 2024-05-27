@@ -161,7 +161,7 @@ interface GeoJSONInterface {
 }
 ```
 
-A `NetTopologySuite.Gemeotry` is mapped to this interface by default.
+A `NetTopologySuite.Geometry` is mapped to this interface by default.
 
 ## Input Types
 
@@ -602,3 +602,5 @@ Additionally we want to provide a way for users, to specify in what CRS they wan
 
 Currently we only support filtering for spatial data. We also want to provide a way for users to sort results.
 This can e.g. be used to find the nearest result for a given point.
+
+<!-- spell-checker:ignore ndistance -->

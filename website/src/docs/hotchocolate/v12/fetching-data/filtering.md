@@ -297,7 +297,7 @@ input UserFilterInput {
 
 ## Comparable Filter
 
-Defines filters for `IComparables` like: `bool`, `byte`, `shot`, `int`, `long`, `float`, `double` `decimal`, `Guid`, `DateTime`, `DateTimeOffset` and `TimeSpan`
+Defines filters for `IComparable`s like: `bool`, `byte`, `shot`, `int`, `long`, `float`, `double` `decimal`, `Guid`, `DateTime`, `DateTimeOffset` and `TimeSpan`
 
 ```csharp
 public class User

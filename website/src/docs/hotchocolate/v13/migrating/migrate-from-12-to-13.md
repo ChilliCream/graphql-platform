@@ -350,7 +350,7 @@ public class Subscription
 public class Subscription
 {
     [Subscribe]
-    // What's inbetween the curly braces must match an argument name.
+    // What's in between the curly braces must match an argument name.
     [Topic("{author}")]
     public Book BookPublished(string author, [EventMessage] Book book)
         => book;

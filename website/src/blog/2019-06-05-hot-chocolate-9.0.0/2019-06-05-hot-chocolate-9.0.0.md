@@ -158,7 +158,7 @@ As we promised in the past, we are adding more documentation with every release.
 
 With this release we have published a first draft of the new documentation and will add missing parts during this week.
 
-## Banana Cakepop
+## Banana Cake Pop
 
 When we released Hot Chocolate version 8 we announced a new _Hot Chocolate Developer Tool_. Since that announcement we were heavily at work building that new tool.
 

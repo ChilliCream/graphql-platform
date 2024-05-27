@@ -67,7 +67,7 @@ In schema stitching type renames can be defined on the gateway:
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .RenameType("Category","ProductCategory", Products);
 ```
 
@@ -136,7 +136,7 @@ In schema stitching field renames can be defined on the gateway:
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .RenameField("Query", "categories", "productCategories", schemaName: Products)
 ```
 
@@ -182,7 +182,7 @@ If you want to remove a specific type from the schema you can also use `IgnoreTy
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .IgnoreType("Category", schemaName: Products);
 ```
 
@@ -215,7 +215,7 @@ This can be useful when you want to merge root fields of domain services, but ig
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
-    .AddRemoteSchema(Inventiory)
+    .AddRemoteSchema(Inventory)
     .IgnoreField("Query", "categories", Products)
     .IgnoreField("Query", "categories", Inventory);
 ```
@@ -252,7 +252,7 @@ type InventoryInfo {
 
 type Query {
   inventoryInfo(upc: Int!): InventoryInfo!
-  shippingEsitmate(price: Int!, weight: Int!): InventoryInfo!
+  shippingEstimate(price: Int!, weight: Int!): InventoryInfo!
 }
 ```
 
@@ -453,7 +453,7 @@ It would be better if the middleware is only applied to the field that needs it.
 You can use a schema interceptor to apply the middleware to the fields that use it.
 
 ```csharp
-public class MessageMiddlwareInterceptor : TypeInterceptor
+public class MessageMiddlewareInterceptor : TypeInterceptor
 {
     public override bool CanHandle(ITypeSystemObjectContext context)
     {
@@ -524,7 +524,7 @@ services
     .PublishSchemaDefinition(
         c => c
             .SetName("inventory")
-            // Ignores the root types. This removes `inStock` and `shippingEsitmate`
+            // Ignores the root types. This removes `inStock` and `shippingEstimate`
             // from the `Query` type of the Gateway
             .IgnoreRootTypes()
             // Adds a type extension.
