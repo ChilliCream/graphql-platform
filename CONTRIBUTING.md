@@ -75,12 +75,12 @@ There are other available commands too. As set up in the [.build](./.build/) dir
 
 ## How to Check the docs
 
-We use [Markdownlint](https://github.com/DavidAnson/markdownlint) to check markdown formatting and [CSpell](https://cspell.org) for spelling. We have GitHub actions to check these for PRs, but if you'd like to check locally, you can:
+We use [markdownlint](https://github.com/DavidAnson/markdownlint) to check markdown formatting and [CSpell](https://cspell.org) for spelling. We have GitHub actions to check these for PRs, but if you'd like to check locally, you can:
 
 - Install CSpell: `npm install --global cspell`
-- Install the markdownlint CLI: `npm install -g markdownlint-cli`.
+- Install the markdownlint CLI: `npm install --global markdownlint-cli2`.
 - For spellcheck, run `cspell --config ./cspell.json "website/src/**/*.md" --no-progress`
-- For markdown linting, run `markdownlint "./website/src/**/*.md" --disable MD013`
+- For markdown linting, run `markdownlint-cli2 "*.md" "website/src/**/*.md"`
 
 ## Code of conduct
 
