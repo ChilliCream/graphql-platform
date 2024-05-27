@@ -103,7 +103,7 @@ The throughput graph shows you the operations per minute over time. You can see 
 You can track how many requests are done by each client. This helps you to understand which client is impacting your system the most.
 To track this, your clients need to send two headers with each request:
 
-- `GraphQL-Client-Id` - The id of the client. You can get the id from the client by execution `barsita client list` in your terminal.
+- `GraphQL-Client-Id` - The id of the client. You can get the id from the client by execution `barista client list` in your terminal.
 - `GraphQL-Client-Version` - The version of the client
 
 ## Errors

@@ -93,3 +93,5 @@ Sign in to your account by clicking the 'Sign In' button on the user icon in the
 **Step 10:** Great job! You've successfully created, executed, and saved your first GraphQL query using Banana Cake Pop. To learn more about the Banana Cake Pop User Interface, head over to the [Explore the UI](/docs/bananacakepop/v2/explore-the-ui) guide.
 
 Happy querying!
+
+<!-- spell-checker:ignore lvbgpp -->

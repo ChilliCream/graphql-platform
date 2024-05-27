@@ -20,6 +20,7 @@ internal sealed partial class SubscriptionExecutor
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly IErrorHandler _errorHandler;
         private IDisposable? _subscriptionScope;
         private readonly IRequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
@@ -52,6 +53,7 @@ internal sealed partial class SubscriptionExecutor
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
             _diagnosticEvents = diagnosticEvents;
+            _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
         }
 
         /// <summary>
@@ -111,7 +113,8 @@ internal sealed partial class SubscriptionExecutor
                 _sourceStream,
                 OnEvent,
                 this,
-                _diagnosticEvents);
+                _diagnosticEvents,
+                _errorHandler);
 
         /// <inheritdoc />
         public ulong Id => _id;
@@ -143,7 +146,7 @@ internal sealed partial class SubscriptionExecutor
         {
             using var es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
             using var serviceScope = _requestContext.Services.CreateScope();
-            
+
             serviceScope.ServiceProvider.InitializeDataLoaderScope();
 
             var operationContext = _operationContextPool.Get();
@@ -204,7 +207,7 @@ internal sealed partial class SubscriptionExecutor
             }
             finally
             {
-                // if the operation context is null a cancellation has happened and we will
+                // if the operation context is null a cancellation has happened, and we will
                 // abandon the operation context in order to not have leakage into the
                 // new operations.
                 if (operationContext is not null)
@@ -324,17 +327,20 @@ internal sealed partial class SubscriptionExecutor
         private readonly Func<object, Task<IOperationResult>> _onEvent;
         private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly IErrorHandler _errorHandler;
 
         public SubscriptionEnumerable(
             ISourceStream sourceStream,
             Func<object, Task<IOperationResult>> onEvent,
             Subscription subscription,
-            IExecutionDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents,
+            IErrorHandler errorHandler)
         {
             _sourceStream = sourceStream;
             _onEvent = onEvent;
             _subscription = subscription;
             _diagnosticEvents = diagnosticEvents;
+            _errorHandler = errorHandler;
         }
 
         public IAsyncEnumerator<IOperationResult> GetAsyncEnumerator(
@@ -351,6 +357,7 @@ internal sealed partial class SubscriptionExecutor
                     _onEvent,
                     _subscription,
                     _diagnosticEvents,
+                    _errorHandler,
                     cancellationToken);
             }
             catch (Exception ex)
@@ -367,7 +374,9 @@ internal sealed partial class SubscriptionExecutor
         private readonly Func<object, Task<IOperationResult>> _onEvent;
         private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly IErrorHandler _errorHandler;
         private readonly CancellationToken _requestAborted;
+        private bool _completed;
         private bool _disposed;
 
         public SubscriptionEnumerator(
@@ -375,12 +384,14 @@ internal sealed partial class SubscriptionExecutor
             Func<object, Task<IOperationResult>> onEvent,
             Subscription subscription,
             IExecutionDiagnosticEvents diagnosticEvents,
+            IErrorHandler errorHandler,
             CancellationToken requestAborted)
         {
             _eventEnumerator = eventEnumerator;
             _onEvent = onEvent;
             _subscription = subscription;
             _diagnosticEvents = diagnosticEvents;
+            _errorHandler = errorHandler;
             _requestAborted = requestAborted;
         }
 
@@ -388,7 +399,7 @@ internal sealed partial class SubscriptionExecutor
 
         public async ValueTask<bool> MoveNextAsync()
         {
-            if (_requestAborted.IsCancellationRequested)
+            if (_requestAborted.IsCancellationRequested || _completed)
             {
                 return false;
             }
@@ -401,10 +412,20 @@ internal sealed partial class SubscriptionExecutor
                     return true;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                Current = default!;
+                return false;
+            }
             catch (Exception ex)
             {
                 _diagnosticEvents.SubscriptionEventError(_subscription, ex);
-                throw;
+                _completed = true;
+
+                var error = _errorHandler.CreateUnexpectedError(ex).Build();
+                error = _errorHandler.Handle(error);
+                Current = OperationResultBuilder.CreateError(error);
+                return true;
             }
 
             return false;
