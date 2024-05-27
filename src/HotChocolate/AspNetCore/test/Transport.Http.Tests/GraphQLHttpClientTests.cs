@@ -2,6 +2,9 @@ using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
 namespace HotChocolate.Transport.Http.Tests;
@@ -642,6 +645,55 @@ public class GraphQLHttpClientTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Get_Subscription_Over_SSE_With_Errors()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddHttpResponseFormatter()
+                .AddGraphQLServer()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("foo")
+                        .Type<StringType>()
+                        .Resolve(_ => new ValueTask<object?>("bar"));
+                })
+                .AddSubscriptionType<ErrorSubscription>(),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        const string subscriptionRequest =
+            """
+            subscription {
+              onError
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var subscriptionResponse = await client.PostAsync(subscriptionRequest, cts.Token);
+
+        // assert
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
+        {
+            snapshot.Add(result);
+        }
+
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
+    [Fact]
     public async Task Post_GraphQL_FileUpload()
     {
         // arrange
@@ -724,5 +776,23 @@ public class GraphQLHttpClientTests : ServerTestBase
             """
             Data: {"singleUpload":"abc"}
             """);
+    }
+
+    public class ErrorSubscription
+    {
+        public async IAsyncEnumerable<string> CreateStream()
+        {
+            yield return "hello1";
+
+            yield return "hello2";
+
+            await Task.Delay(1000);
+
+            throw new Exception("Boom!");
+        }
+
+        [Subscribe(With = nameof(CreateStream))]
+        public string OnError([EventMessage] string message)
+            => message;
     }
 }

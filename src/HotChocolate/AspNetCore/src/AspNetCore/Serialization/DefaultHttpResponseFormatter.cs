@@ -27,7 +27,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _legacyFormat;
 
-
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
     /// </summary>
