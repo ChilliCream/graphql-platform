@@ -17,7 +17,7 @@ public sealed class ObjectResult
     , IReadOnlyDictionary<string, object?>
     , IEnumerable<ObjectFieldResult>
 {
-    private ObjectFieldResult[] _buffer = Array.Empty<ObjectFieldResult>();
+    private ObjectFieldResult[] _buffer = [];
     private int _capacity;
 
     /// <summary>

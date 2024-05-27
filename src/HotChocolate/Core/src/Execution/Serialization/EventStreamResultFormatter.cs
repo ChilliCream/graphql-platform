@@ -3,7 +3,6 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
@@ -17,8 +16,7 @@ namespace HotChocolate.Execution.Serialization;
 public sealed class EventStreamResultFormatter : IExecutionResultFormatter
 {
     private readonly JsonResultFormatter _payloadFormatter;
-    private readonly JsonWriterOptions _options;
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="EventStreamResultFormatter"/>.
     /// </summary>
@@ -27,7 +25,6 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
     /// </param>
     public EventStreamResultFormatter(JsonResultFormatterOptions options)
     {
-        _options = options.CreateWriterOptions();
         _payloadFormatter = new JsonResultFormatter(options);
     }
 
@@ -54,14 +51,14 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         {
             throw new ArgumentNullException(nameof(outputStream));
         }
-        
+
         return result switch
         {
-            IOperationResult operationResult 
+            IOperationResult operationResult
                 => FormatOperationResultAsync(operationResult, outputStream, cancellationToken),
-            OperationResultBatch resultBatch 
+            OperationResultBatch resultBatch
                 => FormatResultBatchAsync(resultBatch, outputStream, cancellationToken),
-            IResponseStream responseStream 
+            IResponseStream responseStream
                 => FormatResponseStreamAsync(responseStream, outputStream, cancellationToken),
             _ => throw new NotSupportedException()
         };
@@ -73,10 +70,10 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         CancellationToken ct)
     {
         using var buffer = new ArrayWriter();
-        
+
         MessageHelper.WriteNextMessage(_payloadFormatter, operationResult, buffer);
         MessageHelper.WriteCompleteMessage(buffer);
-        
+
         await outputStream.WriteAsync(buffer.GetInternalBuffer(), 0, buffer.Length, ct).ConfigureAwait(false);
         await outputStream.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -124,7 +121,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             keepAlive?.Dispose();
             buffer?.Dispose();
         }
-        
+
         MessageHelper.WriteCompleteMessage(writer);
         await writer.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -141,7 +138,7 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
             var formatter = new StreamFormatter(_payloadFormatter, keepAlive, responseStream, writer);
             await formatter.ProcessAsync(ct).ConfigureAwait(false);
         }
-        
+
         MessageHelper.WriteCompleteMessage(writer);
         await writer.FlushAsync(ct).ConfigureAwait(false);
     }
@@ -232,7 +229,6 @@ public sealed class EventStreamResultFormatter : IExecutionResultFormatter
         private static readonly byte[] _nextEvent = "event: next\ndata: "u8.ToArray();
         private static readonly byte[] _completeEvent = "event: complete\n\n"u8.ToArray();
         private static readonly byte[] _keepAlive = ":\n\n"u8.ToArray();
-        private static readonly byte[] _newLine = "\n"u8.ToArray();
         private static readonly byte[] _newLine2 = "\n\n"u8.ToArray();
 
         public static void WriteNextMessage(
