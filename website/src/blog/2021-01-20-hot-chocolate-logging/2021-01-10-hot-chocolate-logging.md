@@ -102,7 +102,7 @@ namespace Logging
                     }
                     _queryTimer.Stop();
                     stringBuilder.AppendFormat(
-                        $"Ellapsed time for query is {_queryTimer.Elapsed.TotalMilliseconds:0.#} milliseconds.");
+                        $"Elapsed time for query is {_queryTimer.Elapsed.TotalMilliseconds:0.#} milliseconds.");
                     _logger.LogInformation(stringBuilder.ToString());
                 }
             }
@@ -203,7 +203,7 @@ query person($upperCase: Boolean) {
 }
 Variables
 upperCase    :true  :HotChocolate.Types.BooleanType
-Ellapsed time for query is 162 milliseconds.
+Elapsed time for query is 162 milliseconds.
 ```
 
 Notice the execution time shows as 162 milliseconds. If you execute the query again, you'll see that drop to just 1 or 2 milliseconds as now, the query, along with it's resolvers are cached by Hot Chocolate.
@@ -275,7 +275,7 @@ Just like for the `ConsoleQueryLogger` class, we need to create a similar class 
 
 <https://github.com/pkellner/hot-chocolate-query-logging/blob/main/MiniProfilerQueryLogger.cs>
 
-It also implements `DiagosticEventListener` just like `ConsoleQueryLogger` did. It gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
+It also implements `DiagnosticEventListener` just like `ConsoleQueryLogger` did. It gets passed in the request context, but instead of logging to the console with the `ILogger` interface and the `ConsoleLoggerExtension`, it simply calls the MiniProfiler API directly.
 
 I could have implemented it with the ILogger interface and that would have given a lot more flexibility to our logging, but that also would have added a lot more complexity, so for now, if you want to log to MiniProfiler, add this middleware to your GraphQL.
 

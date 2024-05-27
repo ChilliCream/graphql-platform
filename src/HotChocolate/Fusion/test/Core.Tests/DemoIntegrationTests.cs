@@ -302,11 +302,11 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         Assert.NotEmpty(result.ExpectQueryResult().Errors!);
     }
 
-    [Fact(Skip = "Fix stream order")]
+    [Fact]
     public async Task Authors_And_Reviews_Subscription_OnNewReview()
     {
         // arrange
-        using var cts = new CancellationTokenSource(500_10_000);
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
         using var demoProject = await DemoProject.CreateAsync(cts.Token);
 
         // act
@@ -352,11 +352,111 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
-    [Fact(Skip = "Fix stream order")]
+    [Fact]
+    public async Task Authors_And_Reviews_Subscription_OnError()
+    {
+        // arrange
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+            },
+            default,
+            cts.Token);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+        var request = Parse(
+            """
+            subscription OnError {
+                onError {
+                    body
+                    author {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
+            cts.Token);
+
+        // assert
+        var snapshot = new Snapshot();
+        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
+    [Fact]
+    public async Task Authors_And_Reviews_Subscription_OnError_SSE()
+    {
+        // arrange
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var demoProject = await DemoProject.CreateAsync(cts.Token);
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl, onlyHttp: true),
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, onlyHttp: true),
+            },
+            default,
+            cts.Token);
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync(cancellationToken: cts.Token);
+
+        var request = Parse(
+            """
+            subscription OnError {
+                onError {
+                    body
+                    author {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
+            cts.Token);
+
+        // assert
+        var snapshot = new Snapshot();
+        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
+    [Fact]
     public async Task Authors_And_Reviews_Subscription_OnNewReview_Two_Graphs()
     {
         // arrange
-        using var cts = new CancellationTokenSource(10_000);
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
         using var demoProject = await DemoProject.CreateAsync(cts.Token);
 
         // act

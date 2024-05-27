@@ -542,3 +542,5 @@ A custom socket session interceptor can be registered like the following:
 ```csharp
 services.AddSocketSessionInterceptor<MyCustomSocketSessionInterceptor>();
 ```
+
+<!-- spell-checker:ignore Bname, Buser, Cbnia, Yero -->

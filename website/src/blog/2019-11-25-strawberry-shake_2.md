@@ -478,7 +478,7 @@ public class ByteArrayValueSerializer
 
         throw new ArgumentException(
             "The specified value is of an invalid type. " +
-            $"{ClrType.FullName} was expeceted.");
+            $"{ClrType.FullName} was expected.");
     }
 
     public override object? Deserialize(object? serialized)
@@ -495,7 +495,7 @@ public class ByteArrayValueSerializer
 
         throw new ArgumentException(
             "The specified value is of an invalid type. " +
-            $"{SerializationType.FullName} was expeceted.");
+            $"{SerializationType.FullName} was expected.");
     }
 }
 ```

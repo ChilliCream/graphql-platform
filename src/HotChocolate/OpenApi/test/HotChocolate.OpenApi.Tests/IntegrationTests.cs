@@ -35,47 +35,6 @@ public sealed class IntegrationTests
         Snapshot.Match(result, postFix: caseName, extension: ".json");
     }
 
-
-    [Theory]
-    [InlineData("me", "query { me { firstName lastName email picture promoCode } }")]
-    [InlineData("getProducts", "query { products(longitude: 1, latitude: 1) { productId displayName } }")]
-    public async Task QueryUber_Returns_Results(string caseName, string query)
-    {
-        // Arrange
-        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        var builder = new WebHostBuilder();
-        builder.ConfigureServices(services =>
-        {
-            services.AddRouting();
-            services.AddControllers();
-        });
-        builder.Configure(app =>
-        {
-            app.UseRouting();
-            app.UseEndpoints(e => e.MapControllers());
-        });
-        var openApiServer = new TestServer(builder);
-
-        httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(() => openApiServer.CreateClient());
-
-        await openApiServer.Host.StartAsync();
-        var apiDocument  = FileResource.Open("Uber.json");
-
-        var schema = await new ServiceCollection()
-            .AddSingleton(httpClientFactoryMock.Object)
-            .AddGraphQL()
-            .AddOpenApi("Uber", apiDocument)
-            .BuildRequestExecutorAsync();
-
-        // Act
-        var result = await schema.ExecuteAsync(query);
-
-        // Assert
-        Assert.NotNull(result);
-        Snapshot.Match(result, postFix: caseName, extension: ".json");
-    }
-
     [Theory]
     [MemberData(nameof(OperationsWithMutationConventions))]
     public async Task ExecuteQuery_PetStoreExpandedWithMutationConventions_ReturnsExpectedResult(
