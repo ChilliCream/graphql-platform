@@ -6,9 +6,9 @@
 {
   "data": {
     "onNewReview": {
-      "body": "irthdate",
+      "body": "Love it!",
       "author": {
-        "name": "__fu",
+        "name": "@ada",
         "birthdate": "1815-12-10"
       }
     }
@@ -38,9 +38,9 @@
 {
   "data": {
     "onNewReview": {
-      "body": "irthdate } }\",\"v",
+      "body": "Could be better.",
       "author": {
-        "name": "_exp",
+        "name": "@ada",
         "birthdate": "1815-12-10"
       }
     }
