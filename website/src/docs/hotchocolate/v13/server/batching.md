@@ -106,7 +106,7 @@ Before you can start using the `@export` directive, you need to register it with
 ```csharp
 builder.Services.AddGraphQLServer()
     .AddExportDirectiveType()
-    // Ommited for brevity
+    // Omitted for brevity
 ```
 
 Now you can annotate the directive on fields in your GraphQL query.
@@ -157,3 +157,5 @@ query NewsFeed {
 ```
 
 In the above example we would export a list of story objects that would be coerced and converted to fit into an input object.
+
+<!-- spell-checker:ignore Cbnia, Yero -->

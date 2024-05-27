@@ -60,6 +60,8 @@ type Mutation {
 }
 
 type Subscription {
+  onError: Review!
+    @resolver(subgraph: "Reviews", select: "{ onError }", kind: "SUBSCRIBE")
   onNewReview: Review!
     @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIBE")
 }
