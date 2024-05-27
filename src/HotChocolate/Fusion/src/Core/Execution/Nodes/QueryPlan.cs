@@ -125,14 +125,10 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
-            ? keys
-            : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : [];
 
     public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
-        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
-            ? path
-            : Array.Empty<string>();
+        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path) ? path : [];
 
     /// <summary>
     /// Executes the query plan.
