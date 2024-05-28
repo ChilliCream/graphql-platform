@@ -63,7 +63,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -114,7 +114,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -167,7 +167,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -218,7 +218,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -268,7 +268,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -318,7 +318,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 
@@ -368,7 +368,7 @@ public class ErrorTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         snapshot.MatchMarkdownSnapshot();
     }
 

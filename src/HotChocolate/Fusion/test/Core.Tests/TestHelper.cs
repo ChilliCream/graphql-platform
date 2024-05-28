@@ -1,14 +1,9 @@
-using System.Buffers;
-using ChilliCream.Testing;
 using CookieCrumble;
-using CookieCrumble.Formatters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.Components;
-using ObjectResult = HotChocolate.Execution.Processing.ObjectResult;
 using Snapshot = CookieCrumble.Snapshot;
 
 namespace HotChocolate.Fusion;
@@ -18,8 +13,7 @@ internal static class TestHelper
     public static void CollectSnapshotData(
         Snapshot snapshot,
         DocumentNode request,
-        IExecutionResult result,
-        Skimmed.Schema fusionGraph)
+        IExecutionResult result)
     {
         snapshot.Add(result, "Result");
         snapshot.Add(request, "Request");
@@ -37,14 +31,13 @@ internal static class TestHelper
         Snapshot snapshot,
         DocumentNode request,
         IExecutionResult result,
-        Skimmed.Schema fusionGraph,
         CancellationToken cancellationToken)
     {
         var i = 0;
         QueryPlan? plan = null;
 
         await foreach (var item in result.ExpectResponseStream()
-                           .ReadResultsAsync().WithCancellation(cancellationToken))
+            .ReadResultsAsync().WithCancellation(cancellationToken))
         {
             if (item.ContextData is not null &&
                 item.ContextData.TryGetValue("queryPlan", out var value) &&
