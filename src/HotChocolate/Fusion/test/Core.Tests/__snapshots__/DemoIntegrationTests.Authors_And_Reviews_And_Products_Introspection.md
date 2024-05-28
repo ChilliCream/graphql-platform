@@ -329,9 +329,23 @@
               }
             },
             {
+              "name": "productBookmarkByUsername",
+              "type": {
+                "name": "ProductBookmark",
+                "kind": "OBJECT"
+              }
+            },
+            {
               "name": "productById",
               "type": {
                 "name": "Product",
+                "kind": "OBJECT"
+              }
+            },
+            {
+              "name": "productConfigurationByUsername",
+              "type": {
+                "name": "ProductConfiguration",
                 "kind": "OBJECT"
               }
             },
@@ -529,6 +543,74 @@
           ]
         },
         {
+          "name": "ProductBookmark",
+          "kind": "OBJECT",
+          "fields": [
+            {
+              "name": "id",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "note",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "productId",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "username",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ProductConfiguration",
+          "kind": "OBJECT",
+          "fields": [
+            {
+              "name": "configurationName",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "id",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "productId",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "username",
+              "type": {
+                "name": null,
+                "kind": "NON_NULL"
+              }
+            }
+          ]
+        },
+        {
           "name": "ProductDimension",
           "kind": "OBJECT",
           "fields": [
@@ -713,6 +795,20 @@
               "type": {
                 "name": null,
                 "kind": "NON_NULL"
+              }
+            },
+            {
+              "name": "productBookmarkByUsername",
+              "type": {
+                "name": "ProductBookmark",
+                "kind": "OBJECT"
+              }
+            },
+            {
+              "name": "productConfigurationByUsername",
+              "type": {
+                "name": "ProductConfiguration",
+                "kind": "OBJECT"
               }
             },
             {

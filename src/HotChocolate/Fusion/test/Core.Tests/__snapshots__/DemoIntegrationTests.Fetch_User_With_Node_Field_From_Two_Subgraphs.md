@@ -38,7 +38,7 @@ query FetchNode($id: ID!) {
 ## QueryPlan Hash
 
 ```text
-CF2FA54AB2C2B903352C6B622DDDE63DD34CE7A4
+1F9F1C5519C133579571D04117F8B7727B84110B
 ```
 
 ## QueryPlan
@@ -70,11 +70,39 @@ CF2FA54AB2C2B903352C6B622DDDE63DD34CE7A4
             }
           },
           {
+            "type": "ProductBookmark",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
+            "type": "ProductConfiguration",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query FetchNode_3($id: ID!) { node(id: $id) { ... on ProductConfiguration { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
             "type": "Review",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "document": "query FetchNode_4($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -88,7 +116,7 @@ CF2FA54AB2C2B903352C6B622DDDE63DD34CE7A4
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_3($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
+              "document": "query FetchNode_5($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -108,8 +136,8 @@ CF2FA54AB2C2B903352C6B622DDDE63DD34CE7A4
       {
         "type": "Resolve",
         "subgraph": "Accounts",
-        "document": "query FetchNode_4($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-        "selectionSetId": 3,
+        "document": "query FetchNode_6($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
+        "selectionSetId": 5,
         "path": [
           "userById"
         ],
@@ -122,7 +150,7 @@ CF2FA54AB2C2B903352C6B622DDDE63DD34CE7A4
       {
         "type": "Compose",
         "selectionSetIds": [
-          3
+          5
         ]
       }
     ]

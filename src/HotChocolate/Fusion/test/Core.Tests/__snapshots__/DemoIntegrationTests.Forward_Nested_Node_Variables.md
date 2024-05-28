@@ -29,7 +29,7 @@ query ProductReviews($id: ID!, $first: Int!) {
 ## QueryPlan Hash
 
 ```text
-802664ED0C849F707F3AA4098DE07E5D1D9E80DB
+934EF521F28696C6C6BD91A930219DA09867A536
 ```
 
 ## QueryPlan
@@ -64,11 +64,39 @@ query ProductReviews($id: ID!, $first: Int!) {
             }
           },
           {
+            "type": "ProductBookmark",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query ProductReviews_2($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
+            "type": "ProductConfiguration",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query ProductReviews_3($id: ID!) { node(id: $id) { ... on ProductConfiguration { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
             "type": "Review",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query ProductReviews_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "document": "query ProductReviews_4($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -82,7 +110,7 @@ query ProductReviews($id: ID!, $first: Int!) {
             "node": {
               "type": "Resolve",
               "subgraph": "Accounts",
-              "document": "query ProductReviews_3($id: ID!) { node(id: $id) { ... on User { __typename } } }",
+              "document": "query ProductReviews_5($id: ID!) { node(id: $id) { ... on User { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
