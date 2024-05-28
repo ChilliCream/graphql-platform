@@ -62,7 +62,7 @@ public class EventStreamTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
+        await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 

@@ -90,7 +90,7 @@ public class FileUploadTests
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
@@ -146,7 +146,7 @@ public class FileUploadTests
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
@@ -210,7 +210,7 @@ public class FileUploadTests
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
