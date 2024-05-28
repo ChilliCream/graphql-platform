@@ -19,6 +19,9 @@ type Query {
     @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
   errorField: String
     @resolver(subgraph: "Accounts", select: "{ errorField }")
+  productBookmarkByUsername(username: ID!): ProductBookmark
+    @variable(subgraph: "Products", name: "username", argument: "username")
+    @resolver(subgraph: "Products", select: "{ productBookmarkByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
   productById(id: ID!): Product
     @variable(subgraph: "Reviews", name: "id", argument: "id")
     @resolver(subgraph: "Reviews", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -26,6 +29,9 @@ type Query {
     @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
     @variable(subgraph: "Shipping", name: "id", argument: "id")
     @resolver(subgraph: "Shipping", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  productConfigurationByUsername(username: ID!): ProductConfiguration
+    @variable(subgraph: "Products", name: "username", argument: "username")
+    @resolver(subgraph: "Products", select: "{ productConfigurationByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
   reviewById(id: ID!): Review
     @variable(subgraph: "Reviews", name: "id", argument: "id")
     @resolver(subgraph: "Reviews", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -132,6 +138,34 @@ type Product implements Node
   reviews: [Review!]!
     @source(subgraph: "Reviews")
   weight: Int!
+    @source(subgraph: "Products")
+}
+
+type ProductBookmark implements Node
+  @variable(subgraph: "Products", name: "ProductBookmark_id", select: "id")
+  @resolver(subgraph: "Products", select: "{ node(id: $ProductBookmark_id) { ... on ProductBookmark { ... ProductBookmark } } }", arguments: [ { name: "ProductBookmark_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $ProductBookmark_id) { ... on ProductBookmark { ... ProductBookmark } } }", arguments: [ { name: "ProductBookmark_id", type: "[ID!]!" } ], kind: "BATCH") {
+  id: ID!
+    @source(subgraph: "Products")
+  note: String!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+  username: String!
+    @source(subgraph: "Products")
+}
+
+type ProductConfiguration implements Node
+  @variable(subgraph: "Products", name: "ProductConfiguration_id", select: "id")
+  @resolver(subgraph: "Products", select: "{ node(id: $ProductConfiguration_id) { ... on ProductConfiguration { ... ProductConfiguration } } }", arguments: [ { name: "ProductConfiguration_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $ProductConfiguration_id) { ... on ProductConfiguration { ... ProductConfiguration } } }", arguments: [ { name: "ProductConfiguration_id", type: "[ID!]!" } ], kind: "BATCH") {
+  configurationName: String!
+    @source(subgraph: "Products")
+  id: ID!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+  username: String!
     @source(subgraph: "Products")
 }
 

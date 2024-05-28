@@ -16,6 +16,18 @@ public sealed class ProductQuery
         int id,
         [Service] ProductRepository repository)
         => repository.GetProductById(id);
+
+    [NodeResolver]
+    public ProductConfiguration? GetProductConfigurationByUsername(
+        string username,
+        [Service] ProductRepository repository)
+        => repository.GetProductConfigurationByUsername(username);
+
+    [NodeResolver]
+    public ProductBookmark? GetProductBookmarkByUsername(
+        string username,
+        [Service] ProductRepository repository)
+        => repository.GetProductBookmarkByUsername(username);
 }
 
 [GraphQLName("Mutation")]

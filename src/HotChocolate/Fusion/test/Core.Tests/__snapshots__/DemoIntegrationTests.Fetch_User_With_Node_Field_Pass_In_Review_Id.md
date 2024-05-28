@@ -25,7 +25,7 @@ query FetchNode($id: ID!) {
 ## QueryPlan Hash
 
 ```text
-1A21CA422439C6540C53FC5028089D965C5F8A03
+BF6F48F7F9CFB1049588D6F68B31736F8631A502
 ```
 
 ## QueryPlan
@@ -57,11 +57,39 @@ query FetchNode($id: ID!) {
             }
           },
           {
+            "type": "ProductBookmark",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
+            "type": "ProductConfiguration",
+            "node": {
+              "type": "Resolve",
+              "subgraph": "Products",
+              "document": "query FetchNode_3($id: ID!) { node(id: $id) { ... on ProductConfiguration { __typename } } }",
+              "selectionSetId": 0,
+              "forwardedVariables": [
+                {
+                  "variable": "id"
+                }
+              ]
+            }
+          },
+          {
             "type": "Review",
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "document": "query FetchNode_4($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -75,7 +103,7 @@ query FetchNode($id: ID!) {
             "node": {
               "type": "Resolve",
               "subgraph": "Reviews2",
-              "document": "query FetchNode_3($id: ID!) { node(id: $id) { ... on User { id __typename } } }",
+              "document": "query FetchNode_5($id: ID!) { node(id: $id) { ... on User { id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
