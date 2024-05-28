@@ -33,9 +33,6 @@ QueryPlan
         "provides": [
           {
             "variable": "__fusion_exports__1"
-          },
-          {
-            "variable": "__fusion_exports__2"
           }
         ]
       },
@@ -46,47 +43,52 @@ QueryPlan
         ]
       },
       {
-        "type": "Parallel",
-        "nodes": [
+        "type": "Resolve",
+        "subgraph": "Books",
+        "document": "query Query_2($__fusion_exports__1: String!) { authorById(id: $__fusion_exports__1) { books { id __fusion_exports__2: authorId } } }",
+        "selectionSetId": 1,
+        "path": [
+          "authorById"
+        ],
+        "requires": [
           {
-            "type": "Resolve",
-            "subgraph": "Books",
-            "document": "query Query_2($__fusion_exports__1: String!) { authorById(id: $__fusion_exports__1) { books { id } } }",
-            "selectionSetId": 1,
-            "path": [
-              "authorById"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__1"
-              }
-            ]
-          },
+            "variable": "__fusion_exports__1"
+          }
+        ],
+        "provides": [
           {
-            "type": "Resolve",
-            "subgraph": "Authors",
-            "document": "query Query_3($__fusion_exports__2: String!) { bookByAuthorId(authorId: $__fusion_exports__2) { author { __fusion_exports__3: id } } }",
-            "selectionSetId": 2,
-            "path": [
-              "bookByAuthorId"
-            ],
-            "requires": [
-              {
-                "variable": "__fusion_exports__2"
-              }
-            ],
-            "provides": [
-              {
-                "variable": "__fusion_exports__3"
-              }
-            ]
+            "variable": "__fusion_exports__2"
           }
         ]
       },
       {
         "type": "Compose",
         "selectionSetIds": [
-          1,
+          1
+        ]
+      },
+      {
+        "type": "Resolve",
+        "subgraph": "Authors",
+        "document": "query Query_3($__fusion_exports__2: String!) { bookByAuthorId(authorId: $__fusion_exports__2) { author { __fusion_exports__3: id } } }",
+        "selectionSetId": 2,
+        "path": [
+          "bookByAuthorId"
+        ],
+        "requires": [
+          {
+            "variable": "__fusion_exports__2"
+          }
+        ],
+        "provides": [
+          {
+            "variable": "__fusion_exports__3"
+          }
+        ]
+      },
+      {
+        "type": "Compose",
+        "selectionSetIds": [
           2
         ]
       },

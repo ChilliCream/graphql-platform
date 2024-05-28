@@ -32,6 +32,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 currentStep.ParentSelection is { } parent &&
                 currentStep.Resolver is not null)
             {
+                schemas.Clear();
                 siblingsToRemove.Clear();
                 roots.Clear();
 
@@ -65,7 +66,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                     }
 
                     // Tracks the most recent execution step (by query plan step order) targeting a given subgraph
-                    // Replacing a previous execution step if necessary. 
+                    // Replacing a previous execution step if necessary.
                     schemas[siblingExecutionStep.SubgraphName] = siblingExecutionStep;
                 }
 
