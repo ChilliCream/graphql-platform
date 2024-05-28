@@ -58,11 +58,15 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
 
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("var bindingFlags = System.Reflection.BindingFlags.Public |");
+            _writer.WriteIndentedLine("const global::System.Reflection.BindingFlags bindingFlags =");
             using (_writer.IncreaseIndent())
             {
-                _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
-                _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
+                _writer.WriteIndentedLine("global::System.Reflection.BindingFlags.Public |");
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
+                    _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
+                }
             }
 
             _writer.WriteIndentedLine(

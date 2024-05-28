@@ -32,7 +32,7 @@ public class RequestClassMiddlewareFactoryTests
             new Mock<IExecutionDiagnosticEvents>().Object);
 
         context.Initialize(
-            new Mock<IQueryRequest>().Object,
+            new Mock<IOperationRequest>().Object,
             new Mock<IServiceProvider>().Object);
 
         // act

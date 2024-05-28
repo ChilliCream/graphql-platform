@@ -52,8 +52,8 @@ public class QueryableProjectionSortedSetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -67,7 +67,7 @@ public class QueryableProjectionSortedSetTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -84,8 +84,8 @@ public class QueryableProjectionSortedSetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -100,7 +100,7 @@ public class QueryableProjectionSortedSetTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

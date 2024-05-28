@@ -667,7 +667,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         // assert
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Get_ActivePersistedQuery_Invalid_Id_Format()
     {
@@ -761,7 +761,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
             await server.GetAsync(
                 new ClientQueryRequest
                 {
-                    Query = 
+                    Query =
                         """
                         {
                             hero {
@@ -780,7 +780,7 @@ public class HttpGetMiddlewareTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             throw new GraphQLException("MyCustomError");

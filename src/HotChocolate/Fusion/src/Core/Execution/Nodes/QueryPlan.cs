@@ -125,14 +125,10 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
-            ? keys
-            : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : [];
 
     public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
-        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
-            ? path
-            : Array.Empty<string>();
+        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path) ? path : [];
 
     /// <summary>
     /// Executes the query plan.
@@ -150,7 +146,7 @@ internal sealed class QueryPlan
     /// The query plan represents a subscription request
     /// and cannot be executed but must be subscribed to.
     /// </exception>
-    public async Task<IQueryResult> ExecuteAsync(
+    public async Task<IOperationResult> ExecuteAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken = default)
     {

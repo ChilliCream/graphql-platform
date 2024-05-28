@@ -1,0 +1,9 @@
+schema {
+  query: Query
+}
+
+type Query {
+  get: Boolean!
+    @tag(name: "Tag1")
+    @tag(name: "Tag2")
+}

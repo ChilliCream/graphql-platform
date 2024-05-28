@@ -11,7 +11,7 @@ public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Serv
         await next(context);
 
         context.Result =
-            QueryResultBuilder.New()
+            OperationResultBuilder.New()
                 .SetData(
                     new Dictionary<string, object?>
                     {
@@ -19,7 +19,7 @@ public class SomeRequestMiddleware(RequestDelegate next, Service1 service1, Serv
                             $"{service1.Say()} {service3.Hello()} {service2.World()}", true
                         },
                     })
-                .Create();
+                .Build();
     }
 }
 

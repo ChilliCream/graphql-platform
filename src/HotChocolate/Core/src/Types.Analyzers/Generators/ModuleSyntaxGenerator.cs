@@ -80,63 +80,94 @@ public sealed class ModuleSyntaxGenerator : IDisposable
 
     public void WriteRegisterObjectTypeExtension(string runtimeTypeName, string extensionType)
     {
-        _writer.WriteIndentedLine("builder.ConfigureSchema(sb =>", runtimeTypeName);
-        _writer.WriteIndentedLine("{");
+        _writer.WriteIndentedLine(
+            "AddTypeExtension_8734371<{0}>(builder, {1}.Initialize);",
+            runtimeTypeName,
+            extensionType);
+    }
+
+    public void WriteRegisterObjectTypeExtensionHelpers()
+    {
+        _writer.WriteLine();
+        _writer.WriteIndentedLine("private static void AddTypeExtension_8734371<T>(");
+
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("const string typeKey = \"8734371_Type_ObjectType<{0}>\";", runtimeTypeName);
-            _writer.WriteIndentedLine("const string hooksKey = \"8734371_Hooks_ObjectType<{0}>\";", runtimeTypeName);
-            _writer.WriteLine();
-            _writer.WriteIndentedLine("if (!sb.ContextData.ContainsKey(typeKey))");
+            _writer.WriteIndentedLine("global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder,");
+            _writer.WriteIndentedLine("Action<IObjectTypeDescriptor<T>> initialize)");
+        }
+
+        _writer.WriteIndentedLine("{");
+
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine("builder.ConfigureSchema(sb =>");
             _writer.WriteIndentedLine("{");
+
             using (_writer.IncreaseIndent())
             {
-                _writer.WriteIndentedLine("sb.AddObjectType<{0}>(", runtimeTypeName);
+                _writer.WriteIndentedLine("string typeName = typeof(T).FullName!;");
+                _writer.WriteIndentedLine("string typeKey = $\"8734371_Type_ObjectType<{typeName}>\";");
+                _writer.WriteIndentedLine("string hooksKey = $\"8734371_Hooks_ObjectType<{typeName}>\";");
+                _writer.WriteLine();
+                _writer.WriteIndentedLine("if (!sb.ContextData.ContainsKey(typeKey))");
+                _writer.WriteIndentedLine("{");
+
                 using (_writer.IncreaseIndent())
                 {
-                    _writer.WriteIndentedLine("descriptor =>");
-                    _writer.WriteIndentedLine("{");
+                    _writer.WriteIndentedLine("sb.AddObjectType<T>(");
                     using (_writer.IncreaseIndent())
                     {
-                        _writer.WriteIndentedLine(
-                            "var hooks = (global::System.Collections.Generic.List<Action<IObjectTypeDescriptor" +
-                            "<{0}>>>)descriptor.Extend().Context.ContextData[hooksKey]!;",
-                            runtimeTypeName);
-                        _writer.WriteIndentedLine("foreach (var configure in hooks)");
+                        _writer.WriteIndentedLine("descriptor =>");
                         _writer.WriteIndentedLine("{");
+
                         using (_writer.IncreaseIndent())
                         {
-                            _writer.WriteIndentedLine("configure(descriptor);");
+                            _writer.WriteIndentedLine(
+                                "var hooks = (global::System.Collections.Generic.List<" +
+                                "Action<IObjectTypeDescriptor<T>>>)" +
+                                "descriptor.Extend().Context.ContextData[hooksKey]!;");
+                            _writer.WriteIndentedLine("foreach (var configure in hooks)");
+                            _writer.WriteIndentedLine("{");
+
+                            using (_writer.IncreaseIndent())
+                            {
+                                _writer.WriteIndentedLine("configure(descriptor);");
+                            }
+
+                            _writer.WriteIndentedLine("};");
                         }
-                        _writer.WriteIndentedLine("};");
+
+                        _writer.WriteIndentedLine("});");
                     }
-                    _writer.WriteIndentedLine("});");
+
+                    _writer.WriteIndentedLine("sb.ContextData.Add(typeKey, null);");
                 }
+
+                _writer.WriteIndentedLine("}");
                 _writer.WriteLine();
-                _writer.WriteIndentedLine("sb.ContextData.Add(typeKey, null);");
-            }
-            _writer.WriteIndentedLine("}");
 
-            _writer.WriteLine();
-            _writer.WriteIndentedLine("if (!sb.ContextData.TryGetValue(hooksKey, out var value))");
-            _writer.WriteIndentedLine("{");
-            using (_writer.IncreaseIndent())
-            {
+                _writer.WriteIndentedLine("if (!sb.ContextData.TryGetValue(hooksKey, out var value))");
+                _writer.WriteIndentedLine("{");
+
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine(
+                        "value = new System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>();");
+                    _writer.WriteIndentedLine("sb.ContextData.Add(hooksKey, value);");
+                }
+
+                _writer.WriteIndentedLine("}");
+                _writer.WriteLine();
                 _writer.WriteIndentedLine(
-                    "value = new System.Collections.Generic.List<Action<IObjectTypeDescriptor<{0}>>>();",
-                    runtimeTypeName);
-                _writer.WriteIndentedLine("sb.ContextData.Add(hooksKey, value);");
+                    "((System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)value!)" +
+                    ".Add(initialize);");
             }
 
-            _writer.WriteIndentedLine("}");
-            _writer.WriteLine();
-            _writer.WriteIndentedLine(
-                "((System.Collections.Generic.List<Action<IObjectTypeDescriptor<{0}>>>)value!)" +
-                ".Add({1}.Initialize);",
-                runtimeTypeName,
-                extensionType);
+            _writer.WriteIndentedLine("});");
         }
-        _writer.WriteIndentedLine("});");
+
+        _writer.WriteIndentedLine("}");
     }
 
     public void WriteRegisterDataLoader(string typeName)

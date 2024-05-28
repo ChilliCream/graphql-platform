@@ -24,9 +24,9 @@ public class CancellationTests
 
         // act
         await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ task1 task2 }")
-                .Create(),
+            OperationRequestBuilder.Create()
+                .SetDocument("{ task1 task2 }")
+                .Build(),
                 cts.Token);
 
         // assert
@@ -131,7 +131,7 @@ public class CancellationTests
             return "bar";
         }
     }
-    
+
     protected static async Task TryTest(Func<CancellationToken, Task> action)
     {
         // we will try four times ....

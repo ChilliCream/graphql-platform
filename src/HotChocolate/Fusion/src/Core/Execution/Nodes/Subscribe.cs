@@ -42,7 +42,7 @@ internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, co
     /// <returns>
     /// The query result stream.
     /// </returns>
-    internal async IAsyncEnumerable<IQueryResult> SubscribeAsync(
+    internal async IAsyncEnumerable<IOperationResult> SubscribeAsync(
         FusionExecutionContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {

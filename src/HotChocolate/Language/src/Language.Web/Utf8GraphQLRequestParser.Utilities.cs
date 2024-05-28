@@ -41,7 +41,36 @@ public ref partial struct Utf8GraphQLRequestParser
         }
     }
 
-    private IReadOnlyDictionary<string, object?>? ParseVariables()
+    private IReadOnlyList<IReadOnlyDictionary<string, object?>>? ParseVariables()
+    {
+        switch (_reader.Kind)
+        {
+            case TokenKind.LeftBrace:
+                return new[] { ParseVariablesObject(), };
+            
+            case TokenKind.LeftBracket:
+                var list = new List<IReadOnlyDictionary<string, object?>>();
+                _reader.Expect(TokenKind.LeftBracket);
+
+                while (_reader.Kind != TokenKind.RightBracket)
+                {
+                    list.Add(ParseObject());
+                }
+                
+                _reader.Expect(TokenKind.RightBracket);
+
+                return list;
+
+            case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                _reader.MoveNext();
+                return null;
+
+            default:
+                throw ThrowHelper.ExpectedObjectOrNull(_reader);
+        }
+    }
+    
+    private IReadOnlyDictionary<string, object?> ParseVariablesObject()
     {
         switch (_reader.Kind)
         {
@@ -72,10 +101,6 @@ public ref partial struct Utf8GraphQLRequestParser
                 _reader.Expect(TokenKind.RightBrace);
 
                 return obj;
-
-            case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
-                _reader.MoveNext();
-                return null;
 
             default:
                 throw ThrowHelper.ExpectedObjectOrNull(_reader);

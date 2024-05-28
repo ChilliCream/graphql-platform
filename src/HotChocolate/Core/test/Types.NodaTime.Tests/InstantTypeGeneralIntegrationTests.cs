@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 using NodaTime.Text;
@@ -6,23 +7,19 @@ namespace HotChocolate.Types.NodaTime.Tests
 {
     public class InstantTypeGeneralIntegrationTests
     {
-        private readonly IRequestExecutor testExecutor;
-
-        public InstantTypeGeneralIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<InstantTypeIntegrationTests.Schema.Query>()
                 .AddMutationType<InstantTypeIntegrationTests.Schema.Mutation>()
                 .AddNodaTime(typeof(InstantType))
                 .AddType(new InstantType(InstantPattern.General))
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturnsUtc()
         {
-            var result = testExecutor.Execute("query { test: one }");
+            var result = _testExecutor.Execute("query { test: one }");
 
             Assert.Equal("2020-02-20T17:42:59Z", result.ExpectQueryResult().Data!["test"]);
         }
@@ -30,11 +27,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Instant!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-21T17:42:59Z")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59Z" }, })
+                    .Build());
 
             Assert.Equal("2020-02-21T17:52:59Z", result.ExpectQueryResult().Data!["test"]);
         }
@@ -42,11 +39,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: Instant!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "2020-02-20T17:42:59")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
+                    .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -55,10 +52,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59Z\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59Z\") }")
+                    .Build());
 
             Assert.Equal("2020-02-20T17:52:59Z", result.ExpectQueryResult().Data!["test"]);
         }
@@ -66,10 +63,10 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            var result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"2020-02-20T17:42:59\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(OperationRequestBuilder.Create()
+                    .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
+                    .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);

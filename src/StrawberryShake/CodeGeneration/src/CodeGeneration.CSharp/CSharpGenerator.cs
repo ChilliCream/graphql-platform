@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
@@ -450,7 +451,7 @@ public static class CSharpGenerator
         var validationResult = await validator.ValidateAsync(
             schema,
             document,
-            "dummy",
+            new OperationDocumentId("dummy"),
             new Dictionary<string, object?>(),
             false);
 

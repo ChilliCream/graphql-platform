@@ -49,6 +49,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
         IRequestContext context,
         IBatchDispatcher batchDispatcher)
     {
+        // todo: we do need to add variable batching.
         if (context.Operation is not null &&
             context.Variables is not null &&
             context.Operation.ContextData.TryGetValue(PipelineProps.QueryPlan, out var value) &&
@@ -62,7 +63,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 context.Services,
                 batchDispatcher,
                 context.Operation,
-                context.Variables,
+                context.Variables[0],
                 GetRootObject(context.Operation),
                 () => _queryRoot);
 

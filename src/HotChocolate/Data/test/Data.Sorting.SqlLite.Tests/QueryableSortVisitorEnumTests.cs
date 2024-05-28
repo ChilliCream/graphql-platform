@@ -38,14 +38,14 @@ public class QueryableSortVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -64,14 +64,14 @@ public class QueryableSortVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

@@ -137,7 +137,7 @@ internal static class OperationContextExtensions
         return context;
     }
 
-    public static IQueryResult BuildResult(
+    public static IOperationResult BuildResult(
         this OperationContext context) =>
         context.Result.BuildResult();
 }

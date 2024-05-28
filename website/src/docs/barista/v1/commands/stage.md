@@ -41,7 +41,7 @@ Below the table, you'll find several options to manage stages:
 - **(e)dit**: This option allows you to edit an existing stage.
 - **(d)elete**: This option allows you to delete a stage.
 
-** Hot to use the Console UI **
+**Hot to use the Console UI**
 
 1. **Navigate**: Use the arrow keys on your keyboard to navigate through the table of stages.
 2. **Add a new stage**: To add a new stage, press the 'a' key on your keyboard. You'll be prompted to enter the details of the new stage.
@@ -66,3 +66,5 @@ barista stage list --api-id QXBpCmdiOGRiYzk5NmRiNTI0OWRlYWIyM2ExNGRiYjdhMTIzNA==
 **Options:**
 
 - `--api-id <api-id>`: Specifies the ID of the API for which you want to list the stages. This ID can be retrieved with the `barista api list` command. You can set it from the environment variable `BARISTA_API_ID`.
+
+<!-- spell-checker:ignore Cmdi, elete, Yjdh -->

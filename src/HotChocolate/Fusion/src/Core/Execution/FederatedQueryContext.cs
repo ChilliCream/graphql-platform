@@ -157,8 +157,7 @@ internal sealed class FusionExecutionContext : IDisposable
     {
         await using var client = _clientFactory.CreateSubscriptionClient(subgraphName);
 
-        await foreach (var response in client.SubscribeAsync(request, cancellationToken)
-                           .ConfigureAwait(false))
+        await foreach (var response in client.SubscribeAsync(request, cancellationToken).ConfigureAwait(false))
         {
             yield return response;
         }

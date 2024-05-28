@@ -22,8 +22,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -32,7 +32,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -49,8 +49,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -59,7 +59,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -76,8 +76,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -86,7 +86,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -103,8 +103,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -113,7 +113,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -130,8 +130,8 @@ public class QueryableProjectionNestedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -140,7 +140,7 @@ public class QueryableProjectionNestedTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

@@ -27,6 +27,8 @@ internal sealed partial class ResultBuilder
     private Path? _path;
     private string? _label;
     private bool? _hasNext;
+    private int? _requestIndex;
+    private int? _variableIndex;
 
     public IReadOnlyList<IError> Errors => _errors;
 
@@ -203,9 +205,15 @@ internal sealed partial class ResultBuilder
             _patchIds.Add(patchId);
         }
     }
+    
+    public void SetRequestIndex(int requestIndex)
+        => _requestIndex = requestIndex;
+    
+    public void SetVariableIndex(int variableIndex)
+        => _variableIndex = variableIndex;
 
     // ReSharper disable InconsistentlySynchronizedField
-    public IQueryResult BuildResult()
+    public IOperationResult BuildResult()
     {
         ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors);
         
@@ -240,7 +248,7 @@ internal sealed partial class ResultBuilder
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
         }
 
-        var result = new QueryResult(
+        var result = new OperationResult(
             _data,
             _errors.Count == 0 ? null : _errors.ToArray(),
             CreateExtensionData(_extensions),
@@ -253,7 +261,9 @@ internal sealed partial class ResultBuilder
             cleanupTasks: _cleanupTasks.Count == 0 
                 ? _emptyCleanupTasks 
                 : _cleanupTasks.ToArray(),
-            isDataSet: true);
+            isDataSet: true,
+            requestIndex: _requestIndex,
+            variableIndex: _variableIndex);
 
         if (_data is not null)
         {

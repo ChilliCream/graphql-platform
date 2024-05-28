@@ -376,7 +376,7 @@ When you build extensions for sorting, you may want to modify or extend the `Def
 
 ```csharp
 descriptor.ConfigureEnum<DefaultSortEnumType>(
-    x => x.Operaion(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
+    x => x.Operation(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
 ```
 
 ```sdl
@@ -394,11 +394,11 @@ You can use `Configure<TSortType>()` to alter the configuration of a type.
 
 ```csharp
 descriptor.Configure<CustomSortInputType>(
-    x => x.Description("This is my custome description"));
+    x => x.Description("This is my custom description"));
 ```
 
 ```sdl
-"This is my customer description"
+"This is my custom description"
 input CustomSortInputType {
   name: SortEnumType
 }

@@ -1,9 +1,0 @@
-﻿query getHero($ep: Episode!) {
-  ... q
-}
-
-fragment q on Query {
-  hero(episode: $ep) {
-    name
-  }
-}

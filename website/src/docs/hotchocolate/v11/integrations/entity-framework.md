@@ -5,7 +5,7 @@ title: Entity Framework
 The execution engine of Hot Chocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.
 So if you are seeing exceptions like `A second operation started on this context before a previous operation completed.`
-or `Cannot access a disposed object...` the `HotChocolate.Data.EnityFramework` package has you back.
+or `Cannot access a disposed object...` the `HotChocolate.Data.EntityFramework` package has you back.
 It provides helpers that make EF integration with Hot Chocolate a breeze.
 
 The package was build on the foundation of EntityFramework Core v5.0.0.

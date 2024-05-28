@@ -68,9 +68,9 @@ public sealed class ObjectTypeAttribute
 /// interpreted as a GraphQL object type.
 /// This class is used by the Hot Chocolate source generator.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class ObjectTypeAttribute<T>
-    : Attribute where T : class
+    : Attribute
 {
     public Type Type => typeof(T);
 }

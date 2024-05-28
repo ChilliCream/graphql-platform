@@ -40,10 +40,10 @@ public class IntegrationTests : IAsyncLifetime
 
         await using (var scope = services.CreateAsyncScope())
         {
-            var request = QueryRequestBuilder.New()
+            var request = OperationRequestBuilder.Create()
                 .SetServices(scope.ServiceProvider)
-                .SetQuery("{ foos { nodes { id } } }")
-                .Create();
+                .SetDocument("{ foos { nodes { id } } }")
+                .Build();
 
             var executor = await scope.ServiceProvider.GetRequestExecutorAsync();
             snapshot.Add(await executor.ExecuteAsync(request));

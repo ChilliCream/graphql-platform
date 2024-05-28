@@ -131,8 +131,8 @@ public class QueryableProjectionSortingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -151,7 +151,7 @@ public class QueryableProjectionSortingTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -167,8 +167,8 @@ public class QueryableProjectionSortingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -188,7 +188,7 @@ public class QueryableProjectionSortingTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -204,8 +204,8 @@ public class QueryableProjectionSortingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -224,7 +224,7 @@ public class QueryableProjectionSortingTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -240,8 +240,8 @@ public class QueryableProjectionSortingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -261,7 +261,7 @@ public class QueryableProjectionSortingTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

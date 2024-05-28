@@ -56,10 +56,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -107,10 +107,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -160,10 +160,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -211,10 +211,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -261,10 +261,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -311,10 +311,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -361,10 +361,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
@@ -410,10 +410,10 @@ public class ErrorTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         result.MatchSnapshot();

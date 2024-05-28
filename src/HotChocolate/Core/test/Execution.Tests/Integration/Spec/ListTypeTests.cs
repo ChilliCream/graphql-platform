@@ -14,15 +14,13 @@ public class ListTypeTests
         Snapshot.FullName();
 
         await ExpectValid(
-                @"
+                """
                 query ($a: String $b: String) {
                     list(items: [$a $b])
-                }",
-                b => b
-                    .AddQueryType<Query>(),
-                r => r
-                    .SetVariableValue("a", "a")
-                    .SetVariableValue("b", "b"))
+                }
+                """,
+                b => b.AddQueryType<Query>(),
+                r => r.SetVariableValues(new Dictionary<string, object> { {"a", "a" }, {"b", "b" }, }))
             .MatchSnapshotAsync();
     }
 

@@ -202,6 +202,12 @@ public class TypeModuleGenerator : IIncrementalGenerator
         }
 
         generator.WriteEndRegistrationMethod();
+
+        if (syntaxInfos.OfType<ObjectTypeExtensionInfo>().Any())
+        {
+            generator.WriteRegisterObjectTypeExtensionHelpers();
+        }
+
         generator.WriteEndClass();
         generator.WriteEndNamespace();
 

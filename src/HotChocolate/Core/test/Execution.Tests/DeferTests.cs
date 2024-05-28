@@ -80,7 +80,7 @@ public class DeferTests
                 }
             }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -91,9 +91,9 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     @"query($defer: Boolean!) {
                         ... @defer(if: $defer) {
                             person(id: ""UGVyc29uOjE="") {
@@ -101,10 +101,10 @@ public class DeferTests
                             }
                         }
                     }")
-                .SetVariableValue("defer", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object> { {"defer", false }, })
+                .Build());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class DeferTests
                 }
             }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -204,9 +204,9 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     @"query ($defer: Boolean!) {
                         ... Foo @defer(if: $defer)
                     }
@@ -216,9 +216,9 @@ public class DeferTests
                             id
                         }
                     }")
-                .SetVariableValue("defer", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object> { {"defer", false }, })
+                .Build());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 }

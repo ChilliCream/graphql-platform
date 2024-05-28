@@ -453,12 +453,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string MultiplierPathType_Description {
-            get {
-                return ResourceManager.GetString("MultiplierPathType_Description", resourceCulture);
-            }
-        }
-        
         internal static string NameType_Description {
             get {
                 return ResourceManager.GetString("NameType_Description", resourceCulture);
@@ -1248,18 +1242,6 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
-            }
-        }
-        
-        internal static string CostDirective_ComplexityCannotBeBelowOne {
-            get {
-                return ResourceManager.GetString("CostDirective_ComplexityCannotBeBelowOne", resourceCulture);
-            }
-        }
-        
-        internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
-            get {
-                return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
             }
         }
         

@@ -280,7 +280,7 @@ public class ProductType : ObjectType<Product>
 </Schema>
 </ExampleTabs>
 
-> #### A note about reference resolvers
+> ### A note about reference resolvers
 >
 > It's recommended to use a [dataloader](/docs/hotchocolate/v12/fetching-data/dataloader) to fetch the data in a reference resolver. This helps the API avoid [an N+1 problem](https://www.apollographql.com/docs/federation/entities-advanced#handling-the-n1-problem) when a query resolves multiple items from a given subgraph.
 
@@ -325,7 +325,7 @@ services.AddGraphQLServer()
 
 ## Testing and executing your reference resolvers
 
-After creating an entity, you'll likely wonder "how do I invoke and test this reference resolver?" Entities that define a reference resolver can be queried through the [auto-generated `_entites` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities) at the subgraph level.
+After creating an entity, you'll likely wonder "how do I invoke and test this reference resolver?" Entities that define a reference resolver can be queried through the [auto-generated `_entities` query](https://www.apollographql.com/docs/federation/subgraph-spec#understanding-query_entities) at the subgraph level.
 
 You'll invoke the query by providing an array of representations using a combination of a `__typename` and key field values to invoke the appropriate resolver. An example query for our `Product` would look something like the following.
 
@@ -435,7 +435,7 @@ services.AddGraphQLServer()
 
 </ExampleTabs>
 
-Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resovler(s).
+Next, we'll create our `Review` type that has a reference to the `Product` entity. Similar to our first class, we'll need to denote the type's key(s) and the corresponding entity reference resolver(s).
 
 <ExampleTabs>
 

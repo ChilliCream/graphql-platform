@@ -11,14 +11,9 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.AspNetCore.Tests.Utilities;
 
-public abstract class ServerTestBase : IClassFixture<TestServerFactory>
+public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFixture<TestServerFactory>
 {
-    protected ServerTestBase(TestServerFactory serverFactory)
-    {
-        ServerFactory = serverFactory;
-    }
-
-    protected TestServerFactory ServerFactory { get; }
+    protected TestServerFactory ServerFactory { get; } = serverFactory;
 
     protected virtual TestServer CreateStarWarsServer(
         string pattern = "/graphql",
@@ -36,17 +31,11 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                     .AddStarWarsTypes()
                     .AddTypeExtension<QueryExtension>()
                     .AddTypeExtension<SubscriptionsExtensions>()
-                    .AddExportDirectiveType()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
                     .UseAutomaticPersistedQueryPipeline()
                     .ConfigureSchemaServices(
-                        s => s
-                            .AddSingleton<PersistedQueryCache>()
-                            .AddSingleton<IReadStoredQueries>(
-                                c => c.GetRequiredService<PersistedQueryCache>())
-                            .AddSingleton<IWriteStoredQueries>(
-                                c => c.GetRequiredService<PersistedQueryCache>()))
+                        s => s.AddSingleton<IOperationDocumentStorage, TestOperationDocumentStorage>())
                     .ModifyOptions(
                         o =>
                         {
@@ -87,6 +76,16 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                         .AddDiagnosticEventListener(_ => new SubscriptionTestDiagnostics(output));
                 }
 
+                services
+                    .AddGraphQLServer("notnull")
+                    .AddQueryType(c =>
+                    {
+                        c.Name("Query");
+                        c.Field("error")
+                            .Type<NonNullType<StringType>>()
+                            .Resolve(_ => Task.FromResult<object?>(null!));
+                    });
+
                 configureServices?.Invoke(services);
             },
             app => app
@@ -98,7 +97,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
 #if NET8_0_OR_GREATER
                         endpoints.MapGraphQLPersistedOperations();
 #endif
-                        
+
                         var builder = endpoints.MapGraphQL(pattern)
                             .WithOptions(new GraphQLServerOptions
                             {
@@ -107,6 +106,7 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                             });
 
                         configureConventions?.Invoke(builder);
+                        endpoints.MapGraphQL("/notnull", "notnull");
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
                         endpoints.MapGraphQL("/upload", "upload");
@@ -132,7 +132,6 @@ public abstract class ServerTestBase : IClassFixture<TestServerFactory>
                 .AddStarWarsTypes()
                 .AddTypeExtension<QueryExtension>()
                 .AddTypeExtension<SubscriptionsExtensions>()
-                .AddExportDirectiveType()
                 .AddStarWarsRepositories()
                 .ModifyOptions(
                     o =>

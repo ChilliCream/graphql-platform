@@ -33,6 +33,11 @@ type Person implements Node & Entity {
   address: String!
 }
 
+type Publisher {
+  company: String!
+  name: String!
+}
+
 type Query {
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
@@ -50,6 +55,7 @@ type Query {
 type SomeBook {
   title: String
   author: Author
+  publisher: Publisher
 }
 
 type Subscription {

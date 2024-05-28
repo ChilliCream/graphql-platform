@@ -23,12 +23,25 @@ public sealed class ReviewsSubscription
 
         foreach (var review in reviews)
         {
-            await Task.Delay(200);
+            await Task.Delay(400);
             yield return review;
         }
     }
 
     [Subscribe(With = nameof(CreateOnNewReviewStream))]
     public Review OnNewReview([EventMessage] Review review)
+        => review;
+
+    public async IAsyncEnumerable<Review> OnErrorStream()
+    {
+        await Task.Delay(200);
+
+        yield return new Review(1, new Author(1, "@ada"), new Product(1), "Love it!");
+
+        throw new Exception("Boom!");
+    }
+
+    [Subscribe(With = nameof(OnErrorStream))]
+    public Review OnError([EventMessage] Review review)
         => review;
 }
