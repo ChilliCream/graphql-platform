@@ -57,7 +57,7 @@ public class DataTests(ITestOutputHelper output)
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
+        CollectSnapshotData(snapshot, request, result);
         await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
