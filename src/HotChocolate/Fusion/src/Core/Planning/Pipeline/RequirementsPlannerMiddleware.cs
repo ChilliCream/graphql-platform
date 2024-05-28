@@ -33,6 +33,7 @@ internal sealed class RequirementsPlannerMiddleware : IQueryPlanMiddleware
                 continue;
             }
 
+            schemas.Clear();
             siblingsToRemove.Clear();
             roots.Clear();
 
