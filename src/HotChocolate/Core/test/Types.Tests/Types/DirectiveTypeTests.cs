@@ -299,7 +299,7 @@ public class DirectiveTypeTests : TypeTestBase
         var directive = schema.GetDirectiveType("foo");
         Assert.NotNull(directive.Middleware);
     }
-    
+
     [Fact]
     public async Task Use_EnsureClassMiddlewareDoesNotTrap_Next()
     {
@@ -311,13 +311,13 @@ public class DirectiveTypeTests : TypeTestBase
                 {
                     descriptor
                         .Name("Query");
-                    
+
                     descriptor
                         .Field("foo")
                         .Type<StringType>()
                         .Resolve("bar")
                         .Directive("foo");
-                    
+
                     descriptor
                         .Field("foo1")
                         .Type<IntType>()
@@ -340,7 +340,7 @@ public class DirectiveTypeTests : TypeTestBase
         await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
         await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
         var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
-        
+
         result.MatchSnapshot();
     }
 
@@ -807,6 +807,34 @@ public class DirectiveTypeTests : TypeTestBase
     }
 
     [Fact]
+    public async Task Directive_ArgumentDirective_AddedToSchema()
+    {
+        // arrange
+        // act
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("bar")
+                    .Resolve("asd")
+                    .Directive("Qux"))
+            .AddDocumentFromString(
+                """
+                directive @Example on ARGUMENT_DEFINITION
+                directive @Qux(bar: String @Example) on FIELD_DEFINITION
+                """)
+            .BuildSchemaAsync();
+
+        // assert
+        Assert.True(
+            schema.DirectiveTypes
+                .Single(d => d.Name == "Qux")
+                .Arguments["bar"]
+                .Directives[0].Type.Name == "Example");
+    }
+
+    [Fact]
     public async Task AnnotationBased_Directive()
     {
         // arrange
@@ -912,7 +940,7 @@ public class DirectiveTypeTests : TypeTestBase
         public Task InvokeAsync(IMiddlewareContext context) =>
             Task.CompletedTask;
     }
-    
+
     public class DirectiveMiddleware1
     {
         private readonly FieldDelegate _next;
