@@ -87,6 +87,10 @@ internal sealed class DirectiveTypeFactory
                 Language.DirectiveLocation.InputFieldDefinition,
                 DirectiveLocation.InputFieldDefinition
             },
+            {
+                Language.DirectiveLocation.VariableDefinition,
+                DirectiveLocation.VariableDefinition
+            }
         };
 
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
