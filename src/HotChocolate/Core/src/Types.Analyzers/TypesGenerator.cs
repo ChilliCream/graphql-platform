@@ -114,6 +114,61 @@ public class TypesGenerator : IIncrementalGenerator
         }
 
         context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
+
+        sb.Clear();
+        var generator2 = new ResolverSyntaxGenerator(sb, "HotChocolate.Resolvers");
+
+        generator2.WriterHeader();
+        generator2.WriteBeginNamespace();
+        generator2.WriteBeginClass("Abc");
+
+        generator2.AddResolverDeclarations(
+            syntaxInfos
+                .OfType<ObjectTypeExtensionInfo>()
+                .SelectMany(static t => t.Members.Select(m => CreateResolverName(t, m))));
+        sb.AppendLine();
+
+        var firstResolver = true;
+
+        foreach (var objectTypeExtension in syntaxInfos.OfType<ObjectTypeExtensionInfo>())
+        {
+            foreach (var member in objectTypeExtension.Members)
+            {
+                if (!firstResolver)
+                {
+                    sb.AppendLine();
+                }
+                firstResolver = false;
+
+                generator2.AddResolver(
+                    new ResolverName(
+                        objectTypeExtension.Type.Name,
+                        member.Name,
+                        GetArgumentsCount(member)),
+                    member);
+            }
+        }
+
+        generator2.WriteEndClass();
+        generator2.WriteEndNamespace();
+
+        context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+
         StringBuilderPool.Return(sb);
+    }
+
+    private static ResolverName CreateResolverName(
+        ObjectTypeExtensionInfo objectTypeExtension,
+        ISymbol member)
+        => new ResolverName(objectTypeExtension.Type.Name, member.Name, GetArgumentsCount(member));
+
+    private static int GetArgumentsCount(ISymbol symbol)
+    {
+        if (symbol is IMethodSymbol methodSymbol)
+        {
+            return methodSymbol.Parameters.Length;
+        }
+
+        return 0;
     }
 }

@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace HotChocolate.Types.Analyzers;
 
 public static class WellKnownTypes
@@ -23,9 +25,16 @@ public static class WellKnownTypes
     public const string ReadOnlyDictionary = "System.Collections.Generic.IReadOnlyDictionary";
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
-    public const string RequestCoreMiddleware = $"HotChocolate.Execution.{nameof(RequestCoreMiddleware)}"; 
+    public const string ValueTask = "System.Threading.Tasks.ValueTask";
+    public const string RequestCoreMiddleware = $"HotChocolate.Execution.{nameof(RequestCoreMiddleware)}";
     public const string Schema = $"HotChocolate.{nameof(Schema)}";
     public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
+    public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
+    public const string ResolverContext = "HotChocolate.Resolvers.IResolverContext";
+    public const string ParameterBinding = nameof(ParameterBinding);
+    public const string MemoryMarshal = "System.Runtime.InteropServices.MemoryMarshal";
+    public const string Unsafe = "System.Runtime.CompilerServices.Unsafe";
+    public const string Object = "System.Object";
 
     public static HashSet<string> TypeClass { get; } =
     [
