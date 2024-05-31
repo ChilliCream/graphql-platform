@@ -22,6 +22,8 @@ public static class WellKnownTypes
     public const string CancellationToken = "System.Threading.CancellationToken";
     public const string GlobalCancellationToken = "global::System.Threading.CancellationToken";
     public const string ReadOnlyList = "System.Collections.Generic.IReadOnlyList";
+    public const string AsyncEnumerable = "System.Collections.Generic.IAsyncEnumerable";
+    public const string Queryable = "System.Linq.IQueryable";
     public const string ReadOnlyDictionary = "System.Collections.Generic.IReadOnlyDictionary";
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
@@ -31,10 +33,12 @@ public static class WellKnownTypes
     public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
     public const string ResolverContext = "HotChocolate.Resolvers.IResolverContext";
-    public const string ParameterBinding = nameof(ParameterBinding);
+    public const string PureResolverContext = "HotChocolate.Resolvers.IPureResolverContext";
+    public const string ParameterBinding = "HotChocolate.Resolvers.ParameterBinding";
     public const string MemoryMarshal = "System.Runtime.InteropServices.MemoryMarshal";
     public const string Unsafe = "System.Runtime.CompilerServices.Unsafe";
     public const string Object = "System.Object";
+    public const string Executable = "HotChocolate.IExecutable";
 
     public static HashSet<string> TypeClass { get; } =
     [

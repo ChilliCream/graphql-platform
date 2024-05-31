@@ -1,8 +1,10 @@
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
+using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -94,9 +96,34 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
                 _writer.WriteLine();
                 foreach (var member in objectTypeExtension.Members)
                 {
-                    _writer.WriteIndentedLine(
-                        "descriptor.Field(thisType.GetMember(\"{0}\", bindingFlags)[0]);",
-                        member.Name);
+                    _writer.WriteIndentedLine("descriptor");
+
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine(
+                            ".Field(thisType.GetMember(\"{0}\", bindingFlags)[0])",
+                            member.Name);
+
+                        if (member is IMethodSymbol method &&
+                            method.GetResultKind() is not ResolverResultKind.Pure)
+                        {
+                            _writer.WriteIndentedLine(
+                            ".Extend().Definition.Resolver = HotChocolate.Resolvers.Abc.{0}_{1};",
+                            objectTypeExtension.Type.Name,
+                            member.Name);
+                        }
+                        else
+                        {
+                            _writer.WriteIndentedLine(
+                            ".Extend().Definition.PureResolver = HotChocolate.Resolvers.Abc.{0}_{1};",
+                            objectTypeExtension.Type.Name,
+                            member.Name);
+                        }
+
+
+
+
+                    }
                 }
             }
 

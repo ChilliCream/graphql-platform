@@ -42,78 +42,66 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
         _writer.WriteIndentedLine("}");
     }
 
-    public void AddResolverDeclarations(IEnumerable<ResolverName> resolvers)
+    public void AddResolverDeclarations(IEnumerable<ResolverInfo> resolvers)
     {
-        _writer.WriteIndentedLine(
-            "private readonly static global::{0}[] _fieldResolver =",
-            WellKnownTypes.FieldResolverDelegate);
-
-        using (_writer.IncreaseIndent())
-        {
-            _writer.WriteIndentedLine("[");
-            using (_writer.IncreaseIndent())
-            {
-                foreach (var resolver in resolvers)
-                {
-                    _writer.WriteIndentedLine(
-                        "{0}_{1},",
-                        resolver.TypeName,
-                        resolver.MemberName);
-                }
-            }
-            _writer.WriteIndentedLine("];");
-        }
-
         foreach (var resolver in resolvers)
         {
+            if(resolver.Skip)
+            {
+                continue;
+            }
+
             _writer.WriteIndentedLine(
-                "private readonly static {0}[] _args_{1} = new {0}[1];",
+                "private readonly static global::{0}[] _args_{1}_{2} = new global::{0}[{3}];",
                 WellKnownTypes.ParameterBinding,
-                $"{resolver.TypeName}_{resolver.MemberName}");
+                resolver.Name.TypeName,
+                resolver.Name.MemberName,
+                resolver.ParameterCount);
         }
     }
 
     public void AddResolver(ResolverName resolverName, ISymbol member)
     {
-        const string task = $"{WellKnownTypes.Task}<";
-        const string valueTask = $"{WellKnownTypes.ValueTask}<";
-
         if (member is IMethodSymbol method)
         {
-            if (method.ReturnsVoid || method.ReturnsByRef || method.ReturnsByRefReadonly)
+            switch (method.GetResultKind())
             {
-                // error return void
-                return;
+                case ResolverResultKind.Invalid:
+                    return;
+
+                case ResolverResultKind.Pure:
+                    AddStaticPureResolver(resolverName, method);
+                    return;
+
+                case ResolverResultKind.Task:
+                case ResolverResultKind.TaskAsyncEnumerable:
+                    AddStaticStandardResolver(resolverName, method, true);
+                    return;
+
+                case ResolverResultKind.Executable:
+                case ResolverResultKind.Queryable:
+                case ResolverResultKind.AsyncEnumerable:
+                    AddStaticStandardResolver(resolverName, method, false);
+                    return;
             }
-
-            var returnType = method.ReturnType.ToFullyQualified();
-
-            if (returnType.StartsWith(task) ||
-                returnType.StartsWith(valueTask))
-            {
-                AddAsyncResolver(resolverName, method);
-                return;
-            }
-
-            if (returnType.StartsWith(WellKnownTypes.Task) ||
-                returnType.StartsWith(WellKnownTypes.ValueTask))
-            {
-                // error return void
-                return;
-            }
-
-            AddSyncResolver(resolverName, method);
-            return;
         }
 
-        AddPropertyResolver(resolverName, member);
+        AddStaticPropertyResolver(resolverName, member);
     }
 
-    private void AddAsyncResolver(ResolverName resolverName, IMethodSymbol method)
+    private void AddStaticStandardResolver(ResolverName resolverName, IMethodSymbol method, bool async)
     {
-        _writer.WriteIndentedLine(
-            "private static async global::{0}<object?> {1}_{2}(global::{3} context)",
+        _writer.WriteIndented("public static ");
+
+        if (async)
+        {
+            _writer.Write("async ");
+        }
+
+        _writer.WriteLine(
+            "global::{0}<{1}?> {2}_{3}(global::{4} context)",
             WellKnownTypes.ValueTask,
+            WellKnownTypes.Object,
             resolverName.TypeName,
             resolverName.MemberName,
             WellKnownTypes.ResolverContext);
@@ -122,23 +110,45 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
         {
             AddResolverArguments(resolverName, method);
 
-            _writer.WriteIndentedLine("var obj = context.Parent<{0}>();", method.ContainingType.ToFullyQualified());
-            _writer.WriteIndentedLine(
-                "return await obj.{0}({1});",
-                resolverName.MemberName,
-                GetResolverArguments(resolverName, method));
+            if (async)
+            {
+                _writer.WriteIndentedLine(
+                    "var result = await {0}.{1}({2});",
+                    method.ContainingType.ToFullyQualified(),
+                    resolverName.MemberName,
+                    GetResolverArguments(resolverName, method));
+
+                _writer.WriteIndentedLine(
+                    "return result;",
+                    WellKnownTypes.ValueTask,
+                    WellKnownTypes.Object);
+            }
+            else
+            {
+                _writer.WriteIndentedLine(
+                    "var result = {0}.{1}({2});",
+                    method.ContainingType.ToFullyQualified(),
+                    resolverName.MemberName,
+                    GetResolverArguments(resolverName, method));
+
+                _writer.WriteIndentedLine(
+                    "return new global::{0}<{1}?>(result);",
+                    WellKnownTypes.ValueTask,
+                    WellKnownTypes.Object);
+            }
+
         }
         _writer.WriteIndentedLine("}");
     }
 
-    private void AddSyncResolver(ResolverName resolverName, IMethodSymbol method)
+    private void AddStaticPureResolver(ResolverName resolverName, IMethodSymbol method)
     {
         _writer.WriteIndentedLine(
-            "private static async global::{0}<object?> {1}_{2}(global::{3} context)",
-            WellKnownTypes.ValueTask,
+            "public static {0}? {1}_{2}(global::{3} context)",
+            WellKnownTypes.Object,
             resolverName.TypeName,
             resolverName.MemberName,
-            WellKnownTypes.ResolverContext);
+            WellKnownTypes.PureResolverContext);
         _writer.WriteIndentedLine("{");
         using (_writer.IncreaseIndent())
         {
@@ -150,8 +160,29 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
                 resolverName.MemberName,
                 GetResolverArguments(resolverName, method));
 
+            _writer.WriteIndentedLine("return result;");
+        }
+        _writer.WriteIndentedLine("}");
+    }
+
+    private void AddStaticPropertyResolver(ResolverName resolverName, ISymbol method)
+    {
+        _writer.WriteIndentedLine(
+            "private static {0}? {1}_{2}(global::{3} context)",
+            WellKnownTypes.Object,
+            resolverName.TypeName,
+            resolverName.MemberName,
+            WellKnownTypes.PureResolverContext);
+        _writer.WriteIndentedLine("{");
+        using (_writer.IncreaseIndent())
+        {
             _writer.WriteIndentedLine(
-                "return new global::{0}<{1}?>(result);",
+                "var result = {0}.{1};",
+                method.ContainingType.ToFullyQualified(),
+                resolverName.MemberName);
+
+            _writer.WriteIndentedLine(
+                "return result;",
                 WellKnownTypes.ValueTask,
                 WellKnownTypes.Object);
         }
@@ -160,18 +191,33 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
 
     private void AddResolverArguments(ResolverName resolverName, IMethodSymbol method)
     {
-        if (resolverName.ArgumentsCount > 0)
+        if (method.Parameters.Length > 0)
         {
-            _writer.WriteIndentedLine(
-                "var args = global::{0}.GetReference({1}_{2}.AsSpan());",
-                WellKnownTypes.MemoryMarshal,
-                resolverName.TypeName,
-                resolverName.MemberName);
+            if(method.Parameters.Length > 1 || !method.Parameters[0].IsParent())
+            {
+                _writer.WriteIndentedLine(
+                    "var args = global::{0}.GetReference(_args_{1}_{2}.AsSpan());",
+                    WellKnownTypes.MemoryMarshal,
+                    resolverName.TypeName,
+                    resolverName.MemberName);
+            }
+
 
             for (var i = 0; i < method.Parameters.Length; i++)
             {
+                var parameter = method.Parameters[i];
+
+                if (parameter.IsParent())
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.Parent<{1}>();",
+                        i,
+                        method.Parameters[i].Type.ToFullyQualified());
+                    continue;
+                }
+
                 _writer.WriteIndentedLine(
-                    "var args{0} = global::{1}.Add(ref args, {0}).Resolve<global::{2}>(context)",
+                    "var args{0} = global::{1}.Add(ref args, {0}).Execute<global::{2}>(context);",
                     i,
                     WellKnownTypes.Unsafe,
                     method.Parameters[i].Type.ToFullyQualified());
@@ -181,7 +227,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
 
     private string GetResolverArguments(ResolverName resolverName, IMethodSymbol method)
     {
-        if (resolverName.ArgumentsCount == 0)
+        if (method.Parameters.Length == 0)
         {
             return string.Empty;
         }
@@ -198,29 +244,5 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
         }
 
         return arguments.ToString();
-    }
-
-    private void AddPropertyResolver(ResolverName resolverName, ISymbol method)
-    {
-        _writer.WriteIndentedLine(
-            "private static async global::{0}<object?> {1}_{2}(global::{3} context)",
-            WellKnownTypes.ValueTask,
-            resolverName.TypeName,
-            resolverName.MemberName,
-            WellKnownTypes.ResolverContext);
-        _writer.WriteIndentedLine("{");
-        using (_writer.IncreaseIndent())
-        {
-            _writer.WriteIndentedLine(
-                "var result = {0}.{1};",
-                method.ContainingType.ToFullyQualified(),
-                resolverName.MemberName);
-
-            _writer.WriteIndentedLine(
-                "return new global::{0}<global::{1}?>(result);",
-                WellKnownTypes.ValueTask,
-                WellKnownTypes.Object);
-        }
-        _writer.WriteIndentedLine("}");
     }
 }

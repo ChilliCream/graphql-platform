@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types;
@@ -6,6 +7,9 @@ namespace HotChocolate.Types;
 public static partial class PersonLastName
 {
     public static string LastName => default!;
+
+    public static async Task<string> GetAddressAsync(this Person person, int someArg)
+        => await Task.FromResult("something");
 
     [Query]
     public static string GetFooBarBaz() => "hello";

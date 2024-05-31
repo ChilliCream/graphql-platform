@@ -16,7 +16,7 @@ internal static class Resolvers
             0,
             [new GenParameterInfo("id", typeof(string), []) ])
     ];
-    private readonly static FieldResolverDelegate[] _fieldResolver = [Query_GetPersonById];
+    private readonly static FieldResolverDelegates[] _fieldResolver = [new(Query_GetPersonById)];
     private readonly static ParameterBinding[] _args_Query_GetPersonById = new ParameterBinding[1];
     private static bool _bindingsInitialized = false;
 
@@ -46,13 +46,19 @@ internal static class Resolvers
     }
 
     // example resolver
-    private static ValueTask<object?> Query_GetPersonById(IResolverContext context)
+    public static ValueTask<object?> Query_GetPersonById(IResolverContext context)
     {
         var args = MemoryMarshal.GetReference(_args_Query_GetPersonById.AsSpan());
         var arg0 = Unsafe.Add(ref args, 0).Resolve<int>(context);
         var result = PersonLastName.GetPersonById(arg0);
         return new ValueTask<object?>(result);
     }
+
+    private static object? Query_GetPersonById(IPureResolverContext context)
+    {
+        return context.Parent<object>().Prop;
+    }
+
 
     // generator proxies
     public sealed class ResolverInfo(int id, ParameterInfo[] parameters)

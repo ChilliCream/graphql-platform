@@ -125,7 +125,7 @@ public class TypesGenerator : IIncrementalGenerator
         generator2.AddResolverDeclarations(
             syntaxInfos
                 .OfType<ObjectTypeExtensionInfo>()
-                .SelectMany(static t => t.Members.Select(m => CreateResolverName(t, m))));
+                .SelectMany(static t => t.Members.Select(m => CreateResolverInfo(t, m))));
         sb.AppendLine();
 
         var firstResolver = true;
@@ -141,10 +141,7 @@ public class TypesGenerator : IIncrementalGenerator
                 firstResolver = false;
 
                 generator2.AddResolver(
-                    new ResolverName(
-                        objectTypeExtension.Type.Name,
-                        member.Name,
-                        GetArgumentsCount(member)),
+                    new ResolverName(objectTypeExtension.Type.Name, member.Name),
                     member);
             }
         }
@@ -157,18 +154,10 @@ public class TypesGenerator : IIncrementalGenerator
         StringBuilderPool.Return(sb);
     }
 
-    private static ResolverName CreateResolverName(
+    private static ResolverInfo CreateResolverInfo(
         ObjectTypeExtensionInfo objectTypeExtension,
         ISymbol member)
-        => new ResolverName(objectTypeExtension.Type.Name, member.Name, GetArgumentsCount(member));
-
-    private static int GetArgumentsCount(ISymbol symbol)
-    {
-        if (symbol is IMethodSymbol methodSymbol)
-        {
-            return methodSymbol.Parameters.Length;
-        }
-
-        return 0;
-    }
+        => new ResolverInfo(
+            new ResolverName(objectTypeExtension.Type.Name, member.Name),
+            member as IMethodSymbol);
 }
