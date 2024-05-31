@@ -6,6 +6,7 @@ namespace HotChocolate;
 /// This attribute can be used by custom diagnostic event listeners
 /// to specify the source to which a listener shall be bound to.
 /// </summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public class DiagnosticEventSourceAttribute : Attribute
 {
     /// <summary>

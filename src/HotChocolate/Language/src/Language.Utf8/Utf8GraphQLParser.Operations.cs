@@ -172,7 +172,7 @@ public ref partial struct Utf8GraphQLParser
                     CultureInfo.InvariantCulture,
                     ParseMany_InvalidOpenToken,
                     TokenKind.LeftBrace,
-                    TokenPrinter.Print(in _reader)));
+                    TokenPrinter.Print(ref _reader)));
         }
 
         var selections = new List<ISelectionNode>();

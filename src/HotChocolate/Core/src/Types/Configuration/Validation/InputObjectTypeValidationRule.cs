@@ -42,7 +42,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             EnsureFieldNamesAreValid(inputType, errors);
             EnsureOneOfFieldsAreValid(inputType, errors, ref names);
             EnsureFieldDeprecationIsValid(inputType, errors);
-            TryReachCycleRecursively(cycleValidationContext, inputType);
+            TryReachCycleRecursively(ref cycleValidationContext, inputType);
 
             cycleValidationContext.CycleStartIndex.Clear();
         }
@@ -58,7 +58,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
 
     // https://github.com/IvanGoncharov/graphql-js/blob/408bcda9c88df85e039f5d072011b1cb465fe830/src/type/validate.js#L535
     private static void TryReachCycleRecursively(
-        in CycleValidationContext context,
+        ref CycleValidationContext context,
         InputObjectType type)
     {
         if (!context.Visited.Add(type))
@@ -85,7 +85,7 @@ internal sealed class InputObjectTypeValidationRule : ISchemaValidationRule
             }
             else
             {
-                TryReachCycleRecursively(context, inputObjectType);
+                TryReachCycleRecursively(ref context, inputObjectType);
             }
             context.FieldPath.Pop();
         }
