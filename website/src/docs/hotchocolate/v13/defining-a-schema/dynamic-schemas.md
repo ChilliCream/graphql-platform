@@ -85,7 +85,6 @@ The unsafe way to create types, as the name implies, bypasses some of the standa
 The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`.
 
 ````csharp
-```csharp
 var typeDefinition = new ObjectTypeDefinition("DynamicType");
 // ... populate typeDefinition ...
 
