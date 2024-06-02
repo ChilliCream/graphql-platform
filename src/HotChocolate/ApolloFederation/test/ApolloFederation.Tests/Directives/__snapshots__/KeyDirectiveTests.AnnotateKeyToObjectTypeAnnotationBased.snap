@@ -1,22 +1,15 @@
-﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@external", "@key", "FieldSet" ]) {
-  query: Query
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "FieldSet" ]) {
+  query: QueryOfTestTypeClassDirective
 }
 
-type Address @external {
-  street: String!
-  city: String!
-}
-
-type Query {
-  entity(id: Int!): User!
+type QueryOfTestTypeClassDirective {
+  someField(id: Int!): TestTypeClassDirective!
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type User @key(fields: "id") {
+type TestTypeClassDirective @key(fields: "id") {
   id: Int!
-  idCode: String! @external
-  address: Address! @external
 }
 
 "This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec."
@@ -25,10 +18,7 @@ type _Service {
 }
 
 "Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
-union _Entity = User
-
-"Directive to indicate that a field is owned by another service, for example via Apollo federation."
-directive @external on OBJECT | FIELD_DEFINITION
+union _Entity = TestTypeClassDirective
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
