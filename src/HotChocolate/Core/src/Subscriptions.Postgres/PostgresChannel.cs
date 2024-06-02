@@ -177,7 +177,7 @@ internal sealed class PostgresChannel : IAsyncDisposable
             }
             catch (Exception)
             {
-                // we swallow any exception because we dont care about the connection state
+                // we swallow any exception because we don't care about the connection state
             }
         }
     }

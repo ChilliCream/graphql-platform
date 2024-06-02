@@ -109,7 +109,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// The validation builder.
     /// </param>
     /// <param name="isCacheable">
-    /// Specifies if the validation visitor`s results are cachable or
+    /// Specifies if the validation visitor`s results are cacheable or
     /// if the visitor needs to be rerun on every request.
     /// </param>
     /// <typeparam name="T">The validation visitor type.</typeparam>
@@ -142,7 +142,7 @@ public static partial class HotChocolateValidationBuilderExtensions
     /// A factory to create the validation visitor.
     /// </param>
     /// <param name="isCacheable">
-    /// Specifies if the validation visitor`s results are cachable or
+    /// Specifies if the validation visitor`s results are cacheable or
     /// if the visitor needs to be rerun on every request.
     /// </param>
     /// <typeparam name="T">The validation visitor type.</typeparam>

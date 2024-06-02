@@ -158,9 +158,9 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
 file static class Extensions
 {
-    public static bool HasIdAttribute(this InputFieldDefinition? definiton)
+    public static bool HasIdAttribute(this InputFieldDefinition? definition)
     {
-        if (definiton is not FilterFieldDefinition { Member: { } member })
+        if (definition is not FilterFieldDefinition { Member: { } member })
         {
             return false;
         }

@@ -43,8 +43,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Moved the `DispatchAsync` method from the `IDispatchableDataLoader` interface
   to the `IDataLoader` interface
   [#51](https://github.com/ChilliCream/greendonut/issues/51).
-- Chaning for `Clear`, `Remove` and `Set` is not supported anymore.
-- Changed _DignosticSource_ name from `GreenDonut.Dispatching` to `GreenDonut`
+- Chaining for `Clear`, `Remove` and `Set` is not supported anymore.
+- Changed _DiagnosticSource_ name from `GreenDonut.Dispatching` to `GreenDonut`
   [#64](https://github.com/ChilliCream/greendonut/issues/64).
 
 ### Fixed
@@ -151,3 +151,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [1.0.1]: https://github.com/ChilliCream/greendonut/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/ChilliCream/greendonut/compare/0.2.0...1.0.0
 [0.2.0]: https://github.com/ChilliCream/greendonut/compare/0.2.0-preview-1...0.2.0
+
+<!-- spell-checker:ignore jbray -->

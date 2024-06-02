@@ -18,16 +18,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Throwhelper_Generator_NoGraphQLFilesFound" xml:space="preserve">
+  <data name="ThrowHelper_Generator_NoGraphQLFilesFound" xml:space="preserve">
     <value>No .graphql files were found in your project. </value>
   </data>
-  <data name="Throwhelper_Generator_NoExecutableDocumentsFound" xml:space="preserve">
+  <data name="ThrowHelper_Generator_NoExecutableDocumentsFound" xml:space="preserve">
     <value>No operations were found in the given .graphql files.</value>
   </data>
-  <data name="Throwhelper_Generator_NoTypeDocumentsFound" xml:space="preserve">
+  <data name="ThrowHelper_Generator_NoTypeDocumentsFound" xml:space="preserve">
     <value>No types were found in the given .graphql files.</value>
   </data>
-  <data name="Throwhelper_Generator_SyntaxError" xml:space="preserve">
+  <data name="ThrowHelper_Generator_SyntaxError" xml:space="preserve">
     <value>One of the given .graphql files contains a GraphQL syntax error. </value>
   </data>
   <data name="OperationServiceDescriptor_Description" xml:space="preserve">

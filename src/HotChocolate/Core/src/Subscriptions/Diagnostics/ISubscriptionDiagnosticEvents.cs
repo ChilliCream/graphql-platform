@@ -33,7 +33,7 @@ public interface ISubscriptionDiagnosticEvents
     void Disconnected(string topicName);
 
     /// <summary>
-    /// An error occured during message processing or while connecting to the pub/sub system.
+    /// An error occurred during message processing or while connecting to the pub/sub system.
     /// </summary>
     /// <param name="topicName">
     /// The name of the topic.

@@ -117,7 +117,7 @@ public class QueryableDefaultFieldHandler
             return false;
         }
 
-        // Deque last
+        // Dequeue last
         var condition = context.GetLevel().Dequeue();
 
         context.PopInstance();

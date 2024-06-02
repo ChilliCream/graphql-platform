@@ -63,7 +63,7 @@ public static class QueryableFilterExtensions
                 return result;
             }
 
-            throw ThrowHelper.Filtering_TypeMissmatch(
+            throw ThrowHelper.Filtering_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

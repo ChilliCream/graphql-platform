@@ -265,7 +265,7 @@ internal static class ErrorHelper
         FieldInfo fieldB)
     {
         return ErrorBuilder.New()
-            .SetMessage(Resources.ErrorHelper_FieldsAreNotMergable)
+            .SetMessage(Resources.ErrorHelper_FieldsAreNotMergeable)
             .AddLocation([fieldA.Field, fieldB.Field])
             .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
             .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)

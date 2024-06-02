@@ -1,4 +1,4 @@
-# Mutation_Resolver_Service_Inferred_Scope_Overriden_On_Resolver
+# Mutation_Resolver_Service_Inferred_Scope_Overridden_On_Resolver
 
 ```json
 {

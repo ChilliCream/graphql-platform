@@ -63,7 +63,7 @@ public static class QueryableSortExtensions
                 return result;
             }
 
-            throw ThrowHelper.Sorting_TypeMissmatch(
+            throw ThrowHelper.Sorting_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

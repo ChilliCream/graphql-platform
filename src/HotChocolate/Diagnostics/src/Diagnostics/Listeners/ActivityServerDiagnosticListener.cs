@@ -150,7 +150,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
-        _enricher.EnrichFromatHttpResponse(context, activity);
+        _enricher.EnrichFormatHttpResponse(context, activity);
         activity.SetStatus(ActivityStatusCode.Ok);
         context.Items[FormatHttpResponseActivity] = activity;
 

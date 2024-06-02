@@ -52,7 +52,7 @@ namespace StarWars
                     .AddFiltering()
                     .AddSorting()
 
-                    // if you wanted to controll the pagination settings globally you could
+                    // if you wanted to control the pagination settings globally you could
                     // do so by setting the paging options.
                     // .SetPagingOptions()
 

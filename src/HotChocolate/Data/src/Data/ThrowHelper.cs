@@ -80,14 +80,14 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
-    public static SchemaException Filtering_TypeMissmatch(
+    public static SchemaException Filtering_TypeMismatch(
         IResolverContext context,
         Type expectedType,
         Type resultType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.Filtering_TypeMissmatch,
+                    DataResources.Filtering_TypeMismatch,
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
@@ -300,14 +300,14 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
-    public static SchemaException Sorting_TypeMissmatch(
+    public static SchemaException Sorting_TypeMismatch(
         IResolverContext context,
         Type expectedType,
         Type resultType) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.Sorting_TypeMissmatch,
+                    DataResources.Sorting_TypeMismatch,
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
@@ -365,7 +365,7 @@ internal static class ThrowHelper
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    DataResources.Projection_TypeMissmatch,
+                    DataResources.Projection_TypeMismatch,
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)

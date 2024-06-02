@@ -96,8 +96,8 @@ public class ResultDataFactoryGenerator : TypeMapperGenerator
                         .AddCode(
                             AssignmentBuilder
                                 .New()
-                                .SetLefthandSide(_snapshot)
-                                .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                                .SetLeftHandSide(_snapshot)
+                                .SetRightHandSide($"{_entityStore}.CurrentSnapshot")))
                 .AddEmptyLine();
         }
 

@@ -90,8 +90,8 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
         var typeNameAssignment =
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"{TypeNames.String} {WellKnownNames.TypeName}")
-                .SetRighthandSide(
+                .SetLeftHandSide($"{TypeNames.String} {WellKnownNames.TypeName}")
+                .SetRightHandSide(
                     MethodCallBuilder
                         .Inline()
                         .SetMethodName(_obj, nameof(JsonElement.GetProperty))
@@ -194,15 +194,15 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
         var body = CodeBlockBuilder
             .New();
 
-        body.AddAssigment($"using var {_writer}")
-            .SetRighthandSide(
+        body.AddAssignment($"using var {_writer}")
+            .SetRightHandSide(
                 MethodCallBuilder
                     .Inline()
                     .SetNew()
                     .SetMethodName(TypeNames.ArrayWriter));
 
-        body.AddAssigment($"using var {_jsonWriter}")
-            .SetRighthandSide(
+        body.AddAssignment($"using var {_jsonWriter}")
+            .SetRightHandSide(
                 MethodCallBuilder
                     .Inline()
                     .SetNew()
@@ -233,8 +233,8 @@ public class EntityIdFactoryGenerator : CodeGenerator<EntityIdFactoryDescriptor>
         }
         else
         {
-            body.AddAssigment($"var {_entityIdValues}")
-                .SetRighthandSide(CodeBlockBuilder
+            body.AddAssignment($"var {_entityIdValues}")
+                .SetRightHandSide(CodeBlockBuilder
                     .New()
                     .AddCode("(")
                     .AddCode(TupleBuilder

@@ -985,7 +985,7 @@ public class MongoDbFilterVisitorComparableTests
                     .Type<StringType>()
                     .Resolve("foo")
                     .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-            .AddMongoDbFiltering(compatabilityMode: true)
+            .AddMongoDbFiltering(compatibilityMode: true)
             .Create();
 
         // assert
