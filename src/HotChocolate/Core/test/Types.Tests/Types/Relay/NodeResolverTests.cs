@@ -1,3 +1,4 @@
+#pragma warning disable RCS1102 // Make class static
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -269,6 +270,7 @@ public class NodeResolverTests
 
     [Node]
     [ExtendObjectType(typeof(Entity))]
+
     public class EntityExtension
     {
         public static Entity GetEntity(string id) => new() { Name = id, };
@@ -297,3 +299,4 @@ public class NodeResolverTests
         public static Entity GetEntity(string id) => new() { Name = id, };
     }
 }
+#pragma warning restore RCS1102 // Make class static

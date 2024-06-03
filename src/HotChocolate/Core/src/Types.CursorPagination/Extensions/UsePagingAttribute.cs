@@ -10,6 +10,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// This attribute adds the cursor paging middleware to the annotated method or property.
 /// </summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
 public sealed class UsePagingAttribute : DescriptorAttribute
 {
     private string? _connectionName;

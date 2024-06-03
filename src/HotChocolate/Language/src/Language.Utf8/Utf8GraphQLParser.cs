@@ -89,7 +89,7 @@ public ref partial struct Utf8GraphQLParser
     private IDefinitionNode ParseDefinition()
     {
         _description = null;
-        if (TokenHelper.IsDescription(in _reader))
+        if (TokenHelper.IsDescription(ref _reader))
         {
             _description = ParseDescription();
         }

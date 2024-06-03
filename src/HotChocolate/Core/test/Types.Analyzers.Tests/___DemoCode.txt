@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
+
+namespace HotChocolate.Types;
+
+internal static class Resolvers
+{
+    private readonly static ResolverInfo[] _resolverInfos =
+    [
+        new ResolverInfo(
+            0,
+            [new GenParameterInfo("id", typeof(string), []) ])
+    ];
+    private readonly static FieldResolverDelegate[] _fieldResolver = [Query_GetPersonById];
+    private readonly static ParameterBinding[] _args_Query_GetPersonById = new ParameterBinding[1];
+    private static bool _bindingsInitialized = false;
+
+    public static void InitializeParameterBindings(IParameterBindingResolver parameterBindingResolver)
+    {
+        if (_bindingsInitialized)
+        {
+            return;
+        }
+
+        foreach (var resolverInfo in _resolverInfos)
+        {
+            // we get the right binding collection for the resolver
+            var bindings = resolverInfo.Id switch
+            {
+                1 => _args_Query_GetPersonById,
+                _ => throw new InvalidOperationException()
+            };
+
+            // next we resolve all bindings so that we can resolve the values for the resolver parameters.
+            for (var i = 0; i < resolverInfo.Parameters.Length; i++)
+            {
+                var parameter = resolverInfo.Parameters[i];
+                bindings[i] = parameterBindingResolver.GetBinding(parameter);
+            }
+        }
+    }
+
+    // example resolver
+    private static ValueTask<object?> Query_GetPersonById(IResolverContext context)
+    {
+        var args = MemoryMarshal.GetReference(_args_Query_GetPersonById.AsSpan());
+        var arg0 = Unsafe.Add(ref args, 0).Resolve<int>(context);
+        var result = PersonLastName.GetPersonById(arg0);
+        return new ValueTask<object?>(result);
+    }
+
+    // generator proxies
+    public sealed class ResolverInfo(int id, ParameterInfo[] parameters)
+    {
+        public int Id { get; } = id;
+
+        public ParameterInfo[] Parameters { get; } = parameters;
+
+        public DescriptorAttributeInfo[] Attributes { get; } = [];
+    }
+
+    public sealed class DescriptorAttributeInfo
+    {
+        public ICustomAttributeProvider Element { get; }
+
+        public DescriptorAttribute Attribute { get; }
+    }
+
+    public sealed class GenParameterInfo : ParameterInfo
+    {
+        public GenParameterInfo(string name, Type parameterType, CustomAttributeData[] customAttributes)
+        {
+
+        }
+
+        public override string? Name { get; }
+
+        public override Type ParameterType => base.ParameterType;
+
+        public override IEnumerable<CustomAttributeData> CustomAttributes => base.CustomAttributes;
+
+        public override bool IsDefined(Type attributeType, bool inherit)
+        {
+            return base.IsDefined(attributeType, inherit);
+        }
+    }
+
+    // this goes onto the core lib
+    public abstract class ParameterBinding
+    {
+        public abstract T Resolve<T>(IResolverContext context);
+    }
+
+    public sealed class ArgumentParameterBinding(string argumentName) : ParameterBinding
+    {
+        public override T Resolve<T>(IResolverContext context)
+            => context.ArgumentValue<T>(argumentName);
+    }
+
+    public interface IParameterBindingResolver
+    {
+        ParameterBinding GetBinding(ParameterInfo parameter);
+    }
+}
