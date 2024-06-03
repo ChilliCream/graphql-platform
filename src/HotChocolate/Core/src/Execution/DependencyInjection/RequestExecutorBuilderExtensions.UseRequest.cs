@@ -100,7 +100,7 @@ public static partial class RequestExecutorBuilderExtensions
 
     public static IRequestExecutorBuilder UseTimeout(
         this IRequestExecutorBuilder builder) =>
-        builder.UseRequest(DocumentParserMiddleware.Create());
+        builder.UseRequest(TimeoutMiddleware.Create());
 
     public static IRequestExecutorBuilder UseInstrumentation(
         this IRequestExecutorBuilder builder) =>
