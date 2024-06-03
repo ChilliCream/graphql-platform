@@ -19,7 +19,7 @@ public sealed class DocumentValidator : IDocumentValidator
 {
     private readonly DocumentValidatorContextPool _contextPool;
     private readonly IDocumentValidatorRule[] _allRules;
-    private readonly IDocumentValidatorRule[] _nonCachableRules;
+    private readonly IDocumentValidatorRule[] _nonCacheableRules;
     private readonly IValidationResultAggregator[] _aggregators;
     private readonly int _maxAllowedErrors;
 
@@ -56,13 +56,13 @@ public sealed class DocumentValidator : IDocumentValidator
 
         _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
         _allRules = rules.ToArray();
-        _nonCachableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
+        _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
         _aggregators = resultAggregators.ToArray();
         _maxAllowedErrors = errorOptions.MaxAllowedErrors;
     }
 
     /// <inheritdoc />
-    public bool HasDynamicRules => _nonCachableRules.Length > 0 || _aggregators.Length > 0;
+    public bool HasDynamicRules => _nonCacheableRules.Length > 0 || _aggregators.Length > 0;
 
     /// <inheritdoc />
     public ValueTask<DocumentValidatorResult> ValidateAsync(
@@ -70,7 +70,7 @@ public sealed class DocumentValidator : IDocumentValidator
         DocumentNode document,
         OperationDocumentId documentId,
         IDictionary<string, object?> contextData,
-        bool onlyNonCachable,
+        bool onlyNonCacheable,
         CancellationToken cancellationToken = default)
     {
         if (schema is null)
@@ -88,13 +88,13 @@ public sealed class DocumentValidator : IDocumentValidator
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (onlyNonCachable && _nonCachableRules.Length == 0 && _aggregators.Length == 0)
+        if (onlyNonCacheable && _nonCacheableRules.Length == 0 && _aggregators.Length == 0)
         {
             return new(DocumentValidatorResult.Ok);
         }
 
         var context = _contextPool.Get();
-        var rules = onlyNonCachable ? _nonCachableRules : _allRules;
+        var rules = onlyNonCacheable ? _nonCacheableRules : _allRules;
         var handleCleanup = true;
 
         try

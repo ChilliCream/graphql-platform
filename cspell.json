@@ -9,6 +9,18 @@
       "path": "./dictionary.txt"
     }
   ],
+  "ignorePaths": [
+    "__snapshots__/",
+    "*.Designer.cs",
+    "*.DotSettings*",
+    "*.drawio",
+    "**/bin/",
+    "**/obj/",
+    "packages.lock.json",
+
+    // TODO: Remove
+    "**/test/"
+  ],
   "ignoreRegExpList": [
     "featuredVideoId:(.*)", // video hash
     "videoId=\"(.*)\"" // video hash

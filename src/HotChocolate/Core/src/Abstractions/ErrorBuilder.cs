@@ -50,7 +50,7 @@ public class ErrorBuilder : IErrorBuilder
         if (string.IsNullOrEmpty(message))
         {
             throw new ArgumentException(
-                AbstractionResources.Error_Message_Mustnt_Be_Null,
+                AbstractionResources.Error_Message_Must_Not_Be_Null,
                 nameof(message));
         }
         _message = message;
@@ -202,7 +202,7 @@ public class ErrorBuilder : IErrorBuilder
         if (string.IsNullOrEmpty(_message))
         {
             throw new InvalidOperationException(
-                AbstractionResources.Error_Message_Mustnt_Be_Null);
+                AbstractionResources.Error_Message_Must_Not_Be_Null);
         }
 
         _dirtyExtensions = true;

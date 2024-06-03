@@ -80,7 +80,7 @@ internal sealed class CacheControlTypeInterceptor : TypeInterceptor
 
             if (field.IsIntrospectionField)
             {
-                // Introspection fields do not need to be declared as cachable.
+                // Introspection fields do not need to be declared as cacheable.
                 continue;
             }
 

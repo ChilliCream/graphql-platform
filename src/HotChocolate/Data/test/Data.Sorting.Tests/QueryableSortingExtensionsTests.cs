@@ -39,7 +39,7 @@ public class QueryableSortingExtensionsTests
     }
 
     [Fact]
-    public async Task Extension_Should_BeTypeMissMatch()
+    public async Task Extension_Should_BeTypeMismatch()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -52,7 +52,7 @@ public class QueryableSortingExtensionsTests
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .Create()
-                .SetDocument("{ typeMissmatch(order: {bar: DESC}) { bar baz }}")
+                .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
                 .Build());
 
         // assert
@@ -96,8 +96,8 @@ public class QueryableSortingExtensionsTests
 
         [CatchErrorMiddleware]
         [UseSorting]
-        [AddTypeMissmatchMiddleware]
-        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
+        [AddTypeMismatchMiddleware]
+        public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
             return _fooEntities.Sort(context);
         }
@@ -122,7 +122,7 @@ public class QueryableSortingExtensionsTests
         public string? NotSettable { get; }
     }
 
-    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
             IDescriptorContext context,

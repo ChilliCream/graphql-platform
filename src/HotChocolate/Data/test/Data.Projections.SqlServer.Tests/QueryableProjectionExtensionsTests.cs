@@ -38,7 +38,7 @@ public class QueryableProjectionExtensionsTests
     }
 
     [Fact]
-    public async Task Extension_Should_BeTypeMissMatch()
+    public async Task Extension_Should_BeTypeMismatch()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -51,7 +51,7 @@ public class QueryableProjectionExtensionsTests
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .Create()
-                .SetDocument("{ typeMissmatch { bar baz }}")
+                .SetDocument("{ typeMismatch { bar baz }}")
                 .Build());
 
         // assert
@@ -95,8 +95,8 @@ public class QueryableProjectionExtensionsTests
 
         [CatchErrorMiddleware]
         [UseProjection]
-        [AddTypeMissmatchMiddleware]
-        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
+        [AddTypeMismatchMiddleware]
+        public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
@@ -121,7 +121,7 @@ public class QueryableProjectionExtensionsTests
         public string? NotSettable { get; }
     }
 
-    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
             IDescriptorContext context,

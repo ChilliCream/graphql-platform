@@ -3,7 +3,7 @@ using ProjNet.CoordinateSystems;
 namespace HotChocolate.Types.Spatial.Configuration;
 
 /// <summary>
-/// A conventions that configures the behaviour of spatial types
+/// A conventions that configures the behavior of spatial types
 /// </summary>
 public class SpatialConventionDescriptor : ISpatialConventionDescriptor
 {

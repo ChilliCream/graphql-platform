@@ -131,7 +131,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
     public IReadOnlyCollection<TypeReference> GetUnhandled()
     {
-        // we are having a list and the hashset here to keep the order.
+        // we are having a list and the hash set here to keep the order.
         var unhandled = new List<TypeReference>();
         var registered = new HashSet<TypeReference>();
 

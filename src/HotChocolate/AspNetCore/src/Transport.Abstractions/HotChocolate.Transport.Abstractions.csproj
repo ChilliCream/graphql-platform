@@ -28,17 +28,17 @@
 
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\TransportAbstractionResoucrces.resx">
+    <EmbeddedResource Update="Properties\TransportAbstractionResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TransportAbstractionResoucrces.Designer.cs</LastGenOutput>
+      <LastGenOutput>TransportAbstractionResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\TransportAbstractionResoucrces.Designer.cs">
+    <Compile Update="Properties\TransportAbstractionResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>TransportAbstractionResoucrces.resx</DependentUpon>
+      <DependentUpon>TransportAbstractionResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

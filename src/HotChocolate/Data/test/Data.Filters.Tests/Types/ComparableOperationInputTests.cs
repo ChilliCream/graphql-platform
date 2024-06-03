@@ -27,7 +27,7 @@ public class ComparableOperationInputTests
                 .Type<StringType>()
                 .Resolve("foo")
                 .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-            .AddFiltering(compatabilityMode: true)
+            .AddFiltering(compatibilityMode: true)
             .Create()
             .MatchSnapshot();
 

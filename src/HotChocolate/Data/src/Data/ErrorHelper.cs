@@ -38,7 +38,7 @@ internal static class ErrorHelper
     public static IError SortingVisitor_ListValues(ISortField field, ListValueNode node) =>
         ErrorBuilder.New()
             .SetMessage(
-                DataResources.SortingVisitor_ListInput_AreNotSuported,
+                DataResources.SortingVisitor_ListInput_AreNotSupported,
                 field.DeclaringType.Name,
                 field.Name)
             .AddLocation([node])

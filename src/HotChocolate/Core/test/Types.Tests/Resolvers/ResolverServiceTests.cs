@@ -104,7 +104,7 @@ public class ResolverServiceTests
     }
 
     [Fact]
-    public async Task Resolver_Service_Inferred_Scope_Overriden_On_Resolver()
+    public async Task Resolver_Service_Inferred_Scope_Overridden_On_Resolver()
     {
         // arrange
         var services =
@@ -268,7 +268,7 @@ public class ResolverServiceTests
     }
 
     [Fact]
-    public async Task Mutation_Resolver_Service_Inferred_Scope_Overriden_On_Resolver()
+    public async Task Mutation_Resolver_Service_Inferred_Scope_Overridden_On_Resolver()
     {
         // arrange
         var services =
