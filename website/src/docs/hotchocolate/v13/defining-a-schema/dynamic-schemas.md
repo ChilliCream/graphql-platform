@@ -84,12 +84,12 @@ The unsafe way to create types, as the name implies, bypasses some of the standa
 
 The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`.
 
-````csharp
+```csharp
 var typeDefinition = new ObjectTypeDefinition("DynamicType");
 // ... populate typeDefinition ...
 
 var dynamicType = ObjectType.CreateUnsafe(typeDefinition);
-````
+```
 
 Using `CreateUnsafe` method for type creation can be a complex task as it involves operating directly on the type definition.
 This allows for a lot of flexibility, but it also requires a deeper understanding of the Hot Chocolate type system.
