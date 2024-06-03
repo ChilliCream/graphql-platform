@@ -34,11 +34,13 @@ public static class WellKnownTypes
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
     public const string ResolverContext = "HotChocolate.Resolvers.IResolverContext";
     public const string PureResolverContext = "HotChocolate.Resolvers.IPureResolverContext";
-    public const string ParameterBinding = "HotChocolate.Resolvers.ParameterBinding";
+    public const string ParameterBinding = "HotChocolate.Internal.IParameterBinding";
     public const string MemoryMarshal = "System.Runtime.InteropServices.MemoryMarshal";
     public const string Unsafe = "System.Runtime.CompilerServices.Unsafe";
     public const string Object = "System.Object";
     public const string Executable = "HotChocolate.IExecutable";
+    public const string ClaimsPrincipal = "System.Security.Claims.ClaimsPrincipal";
+    public const string DocumentNode = "HotChocolate.Language.DocumentNode";
 
     public static HashSet<string> TypeClass { get; } =
     [

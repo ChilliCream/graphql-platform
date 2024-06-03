@@ -10,6 +10,18 @@ public static class SymbolExtensions
                 .GetAttributes()
                 .Any(static t => t.AttributeClass?.ToDisplayString() == WellKnownAttributes.ParentAttribute);
 
+    public static bool IsCancellationToken(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownTypes.CancellationToken;
+
+    public static bool IsClaimsPrincipal(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownTypes.ClaimsPrincipal;
+
+    public static bool IsDocumentNode(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownTypes.DocumentNode;
+
+    public static bool IsEventMessage(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownAttributes.EnumTypeAttribute;
+
     public static ResolverResultKind GetResultKind(this IMethodSymbol method)
     {
         const string task = $"{WellKnownTypes.Task}<";

@@ -44,12 +44,20 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
 
     public void AddResolverDeclarations(IEnumerable<ResolverInfo> resolvers)
     {
+        var first = true;
+
         foreach (var resolver in resolvers)
         {
-            if(resolver.Skip)
+            if (resolver.Skip)
             {
                 continue;
             }
+
+            if (!first)
+            {
+                _writer.WriteLine();
+            }
+            first = false;
 
             _writer.WriteIndentedLine(
                 "private readonly static global::{0}[] _args_{1}_{2} = new global::{0}[{3}];",
@@ -168,7 +176,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
     private void AddStaticPropertyResolver(ResolverName resolverName, ISymbol method)
     {
         _writer.WriteIndentedLine(
-            "private static {0}? {1}_{2}(global::{3} context)",
+            "public static {0}? {1}_{2}(global::{3} context)",
             WellKnownTypes.Object,
             resolverName.TypeName,
             resolverName.MemberName,
@@ -193,7 +201,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
     {
         if (method.Parameters.Length > 0)
         {
-            if(method.Parameters.Length > 1 || !method.Parameters[0].IsParent())
+            if (method.Parameters.Length > 1 || !method.Parameters[0].IsParent())
             {
                 _writer.WriteIndentedLine(
                     "var args = global::{0}.GetReference(_args_{1}_{2}.AsSpan());",
@@ -201,7 +209,6 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
                     resolverName.TypeName,
                     resolverName.MemberName);
             }
-
 
             for (var i = 0; i < method.Parameters.Length; i++)
             {
@@ -213,14 +220,37 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb, string ns)
                         "var args{0} = context.Parent<{1}>();",
                         i,
                         method.Parameters[i].Type.ToFullyQualified());
-                    continue;
                 }
-
-                _writer.WriteIndentedLine(
-                    "var args{0} = global::{1}.Add(ref args, {0}).Execute<global::{2}>(context);",
-                    i,
-                    WellKnownTypes.Unsafe,
-                    method.Parameters[i].Type.ToFullyQualified());
+                else if (parameter.IsCancellationToken())
+                {
+                    _writer.WriteIndentedLine("var args{0} = context.RequestAborted;", i);
+                }
+                else if (parameter.IsClaimsPrincipal())
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalState<{1}>(\"ClaimsPrincipal\");",
+                        i,
+                        WellKnownTypes.ClaimsPrincipal);
+                }
+                else if (parameter.IsDocumentNode())
+                {
+                    _writer.WriteIndentedLine("var args{0} = context.Operation.Document;", i);
+                }
+                else if(parameter.IsEventMessage())
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalState<{1}>(global::HotChocolate.WellKnownContextData.EventMessage)!;",
+                        i,
+                        parameter.Type.ToFullyQualified());
+                }
+                else
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = global::{1}.Add(ref args, {0}).Execute<{2}>(context);",
+                        i,
+                        WellKnownTypes.Unsafe,
+                        method.Parameters[i].Type.ToFullyQualified());
+                }
             }
         }
     }

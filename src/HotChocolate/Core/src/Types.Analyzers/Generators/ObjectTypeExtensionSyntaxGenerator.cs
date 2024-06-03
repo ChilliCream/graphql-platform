@@ -62,14 +62,17 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
 
         using (_writer.IncreaseIndent())
         {
-            _writer.WriteIndentedLine("const global::System.Reflection.BindingFlags bindingFlags =");
-            using (_writer.IncreaseIndent())
+            if (objectTypeExtension.Members.Length > 0)
             {
-                _writer.WriteIndentedLine("global::System.Reflection.BindingFlags.Public |");
+                _writer.WriteIndentedLine("const global::System.Reflection.BindingFlags bindingFlags =");
                 using (_writer.IncreaseIndent())
                 {
-                    _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
-                    _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
+                    _writer.WriteIndentedLine("global::System.Reflection.BindingFlags.Public |");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
+                        _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
+                    }
                 }
             }
 
@@ -93,9 +96,9 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
 
             if (objectTypeExtension.Members.Length > 0)
             {
-                _writer.WriteLine();
                 foreach (var member in objectTypeExtension.Members)
                 {
+                    _writer.WriteLine();
                     _writer.WriteIndentedLine("descriptor");
 
                     using (_writer.IncreaseIndent())
@@ -119,10 +122,6 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
                             objectTypeExtension.Type.Name,
                             member.Name);
                         }
-
-
-
-
                     }
                 }
             }

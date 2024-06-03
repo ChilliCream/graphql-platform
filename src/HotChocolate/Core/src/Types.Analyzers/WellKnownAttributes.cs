@@ -17,6 +17,7 @@ public static class WellKnownAttributes
     public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";
     public const string NodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
     public const string ParentAttribute = "HotChocolate.ParentAttribute";
+    public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
 
 
     public static HashSet<string> TypeAttributes { get; } =

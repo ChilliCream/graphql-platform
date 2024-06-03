@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate.Types.Relay;
 
@@ -8,7 +9,7 @@ public static partial class PersonLastName
 {
     public static string LastName => default!;
 
-    public static async Task<string> GetAddressAsync(this Person person, int someArg)
+    public static async Task<string> GetAddressAsync(this Person person, ClaimsPrincipal user, int someArg)
         => await Task.FromResult("something");
 
     [Query]

@@ -10,7 +10,7 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder
+internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder, IParameterBinding
 {
     private const string _argumentValue = nameof(IPureResolverContext.ArgumentValue);
     private const string _argumentLiteral = nameof(IPureResolverContext.ArgumentLiteral);
@@ -83,4 +83,7 @@ internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder
 
         return Expression.Call(context.ResolverContext, argumentMethod, Expression.Constant(name));
     }
+
+    public T Execute<T>(IPureResolverContext context)
+        => context.ArgumentValue<T>("a");
 }
