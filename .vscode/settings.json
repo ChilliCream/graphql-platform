@@ -13,8 +13,5 @@
     "*.targets": "xml",
     "*.tasks": "xml"
   },
-  "cSpell.words": [
-    "Nats"
-  ],
   "dotnet.defaultSolution": "src/All.sln"
 }

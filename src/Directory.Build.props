@@ -64,4 +64,10 @@
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' == 'debug'">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.12.3" />
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.12.3" />
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.3" />
+  </ItemGroup>
+
 </Project>

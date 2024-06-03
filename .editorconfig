@@ -97,6 +97,7 @@ dotnet_style_require_accessibility_modifiers = always
 
 # Public API
 dotnet_diagnostic.rs0016.severity = warning
+dotnet_diagnostic.rcs1194.severity = none
 
 # Require braces on all control statements
 resharper_braces_for_for = required

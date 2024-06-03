@@ -2,9 +2,6 @@ using StrawberryShake.CodeGeneration.Descriptors;
 
 namespace StrawberryShake.CodeGeneration;
 
-/// <summary>
-///
-/// </summary>
 public interface ICSharpSyntaxGenerator
 {
     /// <summary>

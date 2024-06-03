@@ -22,10 +22,6 @@ public class XmlCommentBuilder : ICodeBuilder
 
     public static XmlCommentBuilder New() => new();
 
-    /// <summary>
-    ///
-    /// </summary>
-    /// <param name="writer"></param>
     public void Build(CodeWriter writer)
     {
         if (_summary is not null)

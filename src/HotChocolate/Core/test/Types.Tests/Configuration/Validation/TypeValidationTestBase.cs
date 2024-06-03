@@ -4,7 +4,7 @@ using Snapshooter.Xunit;
 
 namespace HotChocolate.Configuration.Validation;
 
-public class TypeValidationTestBase
+public abstract class TypeValidationTestBase
 {
     public static void ExpectValid(string schema)
     {

@@ -1,3 +1,5 @@
+#pragma warning disable RCS1102 // Make class static
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -1146,3 +1148,5 @@ public class ObjectTypeExtensionTests
         public string Bar() => "baz";
     }
 }
+
+#pragma warning restore RCS1102 // Make class static
