@@ -41,8 +41,8 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         {
             null => NullValueNode.Default,
 
-            string s when OffsetLookup.TryDeserialize(s, out var timespan) =>
-                ParseValue(timespan),
+            string s when OffsetLookup.TryDeserialize(s, out var timeSpan) =>
+                ParseValue(timeSpan),
 
             TimeSpan ts => ParseValue(ts),
 

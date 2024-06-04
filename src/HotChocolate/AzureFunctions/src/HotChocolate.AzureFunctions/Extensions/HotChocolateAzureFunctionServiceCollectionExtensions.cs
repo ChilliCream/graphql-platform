@@ -57,8 +57,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         // the Host Process & the Isolated Process Worker!
         // 2) Currently only String values are supported (obviously due to above complexities).
         // More Info. here (using Blob binding docs):
-        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-
-        // blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
+        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-input#usage
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 

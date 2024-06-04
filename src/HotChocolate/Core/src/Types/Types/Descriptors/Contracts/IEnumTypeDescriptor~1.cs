@@ -39,7 +39,7 @@ public interface IEnumTypeDescriptor<TRuntimeType>
     IEnumValueDescriptor Value(TRuntimeType value);
 
     /// <summary>
-    /// Specifies if the enum values shall be inferred or explicitly specfied.
+    /// Specifies if the enum values shall be inferred or explicitly specified.
     /// </summary>
     /// <param name="behavior">
     /// The binding behavior.

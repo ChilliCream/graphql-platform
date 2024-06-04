@@ -22,7 +22,7 @@ public static class HotChocolateDataRequestBuilderExtensions
     /// <param name="name">
     /// The filter convention name.
     /// </param>
-    /// <param name="compatabilityMode">
+    /// <param name="compatibilityMode">
     /// If true uses the old naming convention
     /// </param>
     /// <returns>
@@ -31,12 +31,12 @@ public static class HotChocolateDataRequestBuilderExtensions
     public static IRequestExecutorBuilder AddFiltering(
         this IRequestExecutorBuilder builder,
         string? name = null,
-        bool compatabilityMode = false)
+        bool compatibilityMode = false)
     {
         builder.Services.AddSingleton<IParameterExpressionBuilder>(
             new FilterContextParameterExpressionBuilder());
 
-        return builder.ConfigureSchema(s => s.AddFiltering(name, compatabilityMode));
+        return builder.ConfigureSchema(s => s.AddFiltering(name, compatibilityMode));
     }
 
     /// <summary>

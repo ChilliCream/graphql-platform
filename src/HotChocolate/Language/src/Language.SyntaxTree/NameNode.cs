@@ -17,7 +17,7 @@ public sealed class NameNode
         if (string.IsNullOrEmpty(value))
         {
             throw new ArgumentException(
-                Resources.NameNode_Name_CannnotBeNullOrEmpty,
+                Resources.NameNode_Name_CannotBeNullOrEmpty,
                 nameof(value));
         }
 

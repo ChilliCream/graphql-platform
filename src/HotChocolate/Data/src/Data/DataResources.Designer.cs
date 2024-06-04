@@ -153,9 +153,9 @@ namespace HotChocolate.Data {
             }
         }
         
-        internal static string SortingVisitor_ListInput_AreNotSuported {
+        internal static string SortingVisitor_ListInput_AreNotSupported {
             get {
-                return ResourceManager.GetString("SortingVisitor_ListInput_AreNotSuported", resourceCulture);
+                return ResourceManager.GetString("SortingVisitor_ListInput_AreNotSupported", resourceCulture);
             }
         }
         
@@ -255,9 +255,9 @@ namespace HotChocolate.Data {
             }
         }
         
-        internal static string Sorting_TypeMissmatch {
+        internal static string Sorting_TypeMismatch {
             get {
-                return ResourceManager.GetString("Sorting_TypeMissmatch", resourceCulture);
+                return ResourceManager.GetString("Sorting_TypeMismatch", resourceCulture);
             }
         }
         
@@ -309,9 +309,9 @@ namespace HotChocolate.Data {
             }
         }
         
-        internal static string Filtering_TypeMissmatch {
+        internal static string Filtering_TypeMismatch {
             get {
-                return ResourceManager.GetString("Filtering_TypeMissmatch", resourceCulture);
+                return ResourceManager.GetString("Filtering_TypeMismatch", resourceCulture);
             }
         }
         
@@ -459,9 +459,9 @@ namespace HotChocolate.Data {
             }
         }
         
-        internal static string Projection_TypeMissmatch {
+        internal static string Projection_TypeMismatch {
             get {
-                return ResourceManager.GetString("Projection_TypeMissmatch", resourceCulture);
+                return ResourceManager.GetString("Projection_TypeMismatch", resourceCulture);
             }
         }
         

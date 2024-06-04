@@ -2,7 +2,7 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-internal static class AssigmentBuilderExtensions
+internal static class AssignmentBuilderExtensions
 {
     public static MethodCallBuilder AddMethodCall(
         this AssignmentBuilder builder,
@@ -17,7 +17,7 @@ internal static class AssigmentBuilderExtensions
             methodCallBuilder.SetMethodName(methodName);
         }
 
-        builder.SetRighthandSide(methodCallBuilder);
+        builder.SetRightHandSide(methodCallBuilder);
 
         return methodCallBuilder;
     }

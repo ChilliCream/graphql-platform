@@ -1,7 +1,7 @@
 namespace StrawberryShake.Serialization;
 
 /// <summary>
-/// The serializer resolver provides centralised access to the serializers.
+/// The serializer resolver provides centralized access to the serializers.
 /// </summary>
 public interface ISerializerResolver
 {

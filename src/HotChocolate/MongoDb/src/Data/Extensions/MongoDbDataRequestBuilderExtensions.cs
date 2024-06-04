@@ -20,15 +20,15 @@ public static class MongoDbDataRequestBuilderExtensions
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
     /// <param name="name"></param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
     public static IRequestExecutorBuilder AddMongoDbFiltering(
         this IRequestExecutorBuilder builder,
         string? name = null,
-        bool compatabilityMode = false) =>
-        builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatabilityMode));
+        bool compatibilityMode = false) =>
+        builder.ConfigureSchema(s => s.AddMongoDbFiltering(name, compatibilityMode));
 
     /// <summary>
     /// Adds sorting support.

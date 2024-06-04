@@ -45,9 +45,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DirectiveArgument_NameMustNotBeNullOrempty {
+        internal static string DirectiveArgument_NameMustNotBeNullOrEmpty {
             get {
-                return ResourceManager.GetString("DirectiveArgument_NameMustNotBeNullOrempty", resourceCulture);
+                return ResourceManager.GetString("DirectiveArgument_NameMustNotBeNullOrEmpty", resourceCulture);
             }
         }
         
@@ -87,9 +87,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string Error_Message_Mustnt_Be_Null {
+        internal static string Error_Message_Must_Not_Be_Null {
             get {
-                return ResourceManager.GetString("Error_Message_Mustnt_Be_Null", resourceCulture);
+                return ResourceManager.GetString("Error_Message_Must_Not_Be_Null", resourceCulture);
             }
         }
         
