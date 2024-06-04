@@ -37,6 +37,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// </summary>
 [AttributeUsage(
     AttributeTargets.Class |
+    AttributeTargets.Interface |
     AttributeTargets.Property,
     AllowMultiple = true)]
 public sealed class KeyAttribute : DescriptorAttribute
@@ -48,7 +49,7 @@ public sealed class KeyAttribute : DescriptorAttribute
     {
         Resolvable = true;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of <see cref="KeyAttribute"/>.
     /// </summary>
@@ -70,7 +71,7 @@ public sealed class KeyAttribute : DescriptorAttribute
     /// Grammatically, a field set is a selection set minus the braces.
     /// </summary>
     public string? FieldSet { get; }
-    
+
     /// <summary>
     /// Gets a value that indicates whether the key is resolvable.
     /// </summary>
@@ -90,7 +91,7 @@ public sealed class KeyAttribute : DescriptorAttribute
             case PropertyInfo member:
                 ConfigureField(member, descriptor);
                 break;
-            
+
             case MethodInfo member:
                 ConfigureField(member, descriptor);
                 break;
@@ -109,26 +110,26 @@ public sealed class KeyAttribute : DescriptorAttribute
             case IObjectTypeDescriptor typeDesc:
                 typeDesc.Key(FieldSet, Resolvable);
                 break;
-                
+
             case IInterfaceTypeDescriptor interfaceDesc:
                 interfaceDesc.Key(FieldSet, Resolvable);
                 break;
         }
     }
-    
+
     private void ConfigureField(MemberInfo member, IDescriptor descriptor)
     {
         if (!string.IsNullOrEmpty(FieldSet))
         {
             throw Key_FieldSet_MustBeEmpty(member);
         }
-        
+
         switch (descriptor)
         {
             case IObjectFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, true);
                 break;
-                
+
             case IInterfaceFieldDescriptor fieldDesc:
                 fieldDesc.Extend().Definition.ContextData.TryAdd(KeyMarker, true);
                 break;

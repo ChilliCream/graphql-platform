@@ -2,13 +2,17 @@
   query: QueryOfTestTypeClassDirective
 }
 
+interface ITestTypeInterfaceDirective @key(fields: "id") {
+  id: Int!
+}
+
 type QueryOfTestTypeClassDirective {
   someField(id: Int!): TestTypeClassDirective!
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type TestTypeClassDirective @key(fields: "id") {
+type TestTypeClassDirective implements ITestTypeInterfaceDirective @key(fields: "id") {
   id: Int!
 }
 
