@@ -1,7 +1,9 @@
+using HotChocolate.Types.Relay;
+
 namespace HotChocolate.Types;
 
 [InterfaceType("Entity")]
 public interface IEntity
 {
-    string Name { get; }
+    [ID] int Id { get; }
 }

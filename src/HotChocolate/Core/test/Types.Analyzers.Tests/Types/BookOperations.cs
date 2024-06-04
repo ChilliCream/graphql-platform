@@ -24,7 +24,8 @@ public static class BookOperations
     public static async Task<Book> CreateBookAsync(
         string title,
         int authorId,
+        Genre genre,
         BookRepository repository,
         CancellationToken cancellationToken)
-        => await repository.CreateBookAsync(title, authorId, cancellationToken);
+        => await repository.CreateBookAsync(title, genre, authorId, cancellationToken);
 }

@@ -12,6 +12,8 @@ public static partial class BookNode
     {
         descriptor.BindFieldsExplicitly();
         descriptor.Field(t => t.Id);
+        descriptor.Field(t => t.Title);
+        descriptor.Field(t => t.Genre);
     }
 
     public static async Task<Author?> GetAuthorAsync(

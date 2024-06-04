@@ -13,4 +13,8 @@ public static partial class AuthorNode
         BookRepository repository,
         CancellationToken cancellationToken)
         => await repository.GetBooksByAuthorAsync(author.Id, cancellationToken);
+
+
+    [Query]
+    public static string QueryFieldCollocatedWithAuthor() => "hello";
 }
