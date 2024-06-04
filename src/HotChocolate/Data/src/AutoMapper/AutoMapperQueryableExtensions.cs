@@ -8,7 +8,7 @@ using static HotChocolate.Data.Projections.Expressions.QueryableProjectionProvid
 namespace HotChocolate.Data;
 
 /// <summary>
-/// Common extensions for automapper and <see cref="IQueryable{T}"/>
+/// Common extensions for AutoMapper and <see cref="IQueryable{T}"/>
 /// </summary>
 public static class AutoMapperQueryableExtensions
 {

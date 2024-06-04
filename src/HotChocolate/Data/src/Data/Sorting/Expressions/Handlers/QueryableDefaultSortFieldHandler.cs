@@ -95,7 +95,7 @@ public class QueryableDefaultSortFieldHandler
             return false;
         }
 
-        // Deque last
+        // Dequeue last
         context.PopInstance();
         context.RuntimeTypes.Pop();
 

@@ -20,8 +20,8 @@ public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDe
 
         var assignment = AssignmentBuilder
             .New()
-            .SetLefthandSide(fieldName)
-            .SetRighthandSide(paramName);
+            .SetLeftHandSide(fieldName)
+            .SetRightHandSide(paramName);
 
         if (!skipNullCheck)
         {

@@ -417,7 +417,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                TypeResources.SchemaBuilder_Interceptor_NotSupported,
                 nameof(interceptor));
         }
 

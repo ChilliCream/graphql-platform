@@ -68,7 +68,7 @@ public class QueryableFilteringExtensionsTests
     }
 
     [Fact]
-    public async Task Extension_Should_BeTypeMissMatch()
+    public async Task Extension_Should_BeTypeMismatch()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -81,7 +81,7 @@ public class QueryableFilteringExtensionsTests
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
                 .Create()
-                .SetDocument("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
+                .SetDocument("{ typeMismatch(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
         // assert
@@ -125,8 +125,8 @@ public class QueryableFilteringExtensionsTests
 
         [CatchErrorMiddleware]
         [UseFiltering]
-        [AddTypeMissmatchMiddleware]
-        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
+        [AddTypeMismatchMiddleware]
+        public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
             return _fooEntities.Filter(context);
         }
@@ -151,7 +151,7 @@ public class QueryableFilteringExtensionsTests
         public string? NotSettable { get; }
     }
 
-    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
             IDescriptorContext context,

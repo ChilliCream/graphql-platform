@@ -373,7 +373,7 @@ public class FieldSelectionMergingRuleTests
     }
 
     [Fact]
-    public void ShortHandQueryWithDupMergableFieldInSecondLevelFragment()
+    public void ShortHandQueryWithDupMergeableFieldInSecondLevelFragment()
     {
         // arrange
         ExpectValid(@"
@@ -395,7 +395,7 @@ public class FieldSelectionMergingRuleTests
     }
 
     [Fact]
-    public void TypeNameFieldOnInterfaceIsMergable()
+    public void TypeNameFieldOnInterfaceIsMergeable()
     {
         // arrange
         ExpectValid(@"
@@ -413,7 +413,7 @@ public class FieldSelectionMergingRuleTests
     }
 
     [Fact]
-    public void TypeNameFieldOnUnionIsMergable()
+    public void TypeNameFieldOnUnionIsMergeable()
     {
         ExpectValid(@"
                 {

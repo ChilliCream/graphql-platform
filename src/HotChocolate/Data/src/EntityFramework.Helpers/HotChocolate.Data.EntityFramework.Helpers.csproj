@@ -4,7 +4,7 @@
     <PackageId>HotChocolate.Data.EntityFramework.Helpers</PackageId>
     <AssemblyName>HotChocolate.Data.EntityFramework.Helpers</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <Description>Provides helper classes to implement cursor paging in a layerd architecture without the need to reference HotChocolate GraphQL libraries.</Description>
+    <Description>Provides helper classes to implement cursor paging in a layered architecture without the need to reference HotChocolate GraphQL libraries.</Description>
   </PropertyGroup>
 
   <ItemGroup>

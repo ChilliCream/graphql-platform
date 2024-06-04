@@ -112,7 +112,7 @@ internal sealed class ComposeCommand : Command
 
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
 
-        // resolve subgraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
+        // resolve subgraph packages will scan the directory for FSPs. In case of remove we don't want to do that.
         if (removeSubgraphs is not { Count: > 0, } || subgraphPackageFiles is { Count: > 0, })
         {
             await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);

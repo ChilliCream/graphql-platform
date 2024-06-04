@@ -19,14 +19,14 @@ public static class FilterConventionDescriptorExtensions
     /// <see cref="IEnumerable{T}"/> on the convention
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     public static IFilterConventionDescriptor AddDefaults(
         this IFilterConventionDescriptor descriptor,
-        bool compatabilityMode) =>
+        bool compatibilityMode) =>
         descriptor
             .AddDefaultOperations()
-            .BindDefaultTypes(compatabilityMode)
+            .BindDefaultTypes(compatibilityMode)
             .UseQueryableProvider();
 
     /// <summary>
@@ -78,21 +78,21 @@ public static class FilterConventionDescriptorExtensions
     /// Binds common runtime types to the according <see cref="FilterInputType"/>
     /// </summary>
     /// <param name="descriptor">The descriptor where the handlers are registered</param>
-    /// <param name="compatabilityMode">Uses the old behaviour of naming the filters</param>
+    /// <param name="compatibilityMode">Uses the old behavior of naming the filters</param>
     /// <returns>The descriptor that was passed in as a parameter</returns>
     /// <exception cref="ArgumentNullException">
     /// Throws in case the argument <paramref name="descriptor"/> is null
     /// </exception>
     public static IFilterConventionDescriptor BindDefaultTypes(
         this IFilterConventionDescriptor descriptor,
-        bool compatabilityMode = false)
+        bool compatibilityMode = false)
     {
         if (descriptor is null)
         {
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        if (compatabilityMode)
+        if (compatibilityMode)
         {
             return descriptor
                 .BindRuntimeType<string, StringOperationFilterInputType>()

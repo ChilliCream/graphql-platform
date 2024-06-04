@@ -315,7 +315,7 @@ public class ActivityEnricher
     public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
         => EnrichError(error, activity);
 
-    public virtual void EnrichFromatHttpResponse(HttpContext context, Activity activity)
+    public virtual void EnrichFormatHttpResponse(HttpContext context, Activity activity)
     {
         activity.DisplayName = "Format HTTP Response";
     }
