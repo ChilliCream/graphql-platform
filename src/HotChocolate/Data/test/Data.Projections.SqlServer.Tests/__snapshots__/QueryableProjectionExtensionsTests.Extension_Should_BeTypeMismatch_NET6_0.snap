@@ -11,13 +11,14 @@ Result:
         }
       ],
       "path": [
-        "typeMissmatch"
+        "typeMismatch"
       ],
       "extensions": {
         "code": "HC0018"
       }
     }
-  ]
+  ],
+  "data": null
 }
 ---------------
 
@@ -25,6 +26,6 @@ Exception:
 ---------------
 For more details look at the `Errors` property.
 
-1. Sorting is expected to be of type System.Collections.Generic.IEnumerable`1[[HotChocolate.Data.Sorting.QueryableSortingExtensionsTests+Foo, HotChocolate.Data.Sorting.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], but was of type System.Object
+1. Projection is expected to be of type System.Collections.Generic.IEnumerable`1[[HotChocolate.Data.Projections.QueryableProjectionExtensionsTests+Foo, HotChocolate.Data.Projections.SqlServer.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], but was of type System.Object
 
 ---------------

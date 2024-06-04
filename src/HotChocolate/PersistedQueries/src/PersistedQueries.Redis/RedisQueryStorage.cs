@@ -20,7 +20,7 @@ public class RedisQueryStorage : IOperationDocumentStorage
     /// </summary>
     /// <param name="database">The redis database instance.</param>
     /// <param name="queryExpiration">
-    /// A timespan after that a query will be removed from the cache.
+    /// A time span after that a query will be removed from the cache.
     /// </param>
     public RedisQueryStorage(IDatabase database, TimeSpan? queryExpiration = null)
     {

@@ -2,7 +2,7 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class ContinuousTask : IAsyncDisposable
 {
-    private const int _waitOnFailureinMs = 1000;
+    private const int _waitOnFailureInMs = 1000;
 
     private readonly CancellationTokenSource _completion = new();
     private readonly Func<CancellationToken, Task> _handler;
@@ -38,7 +38,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
             {
                 if (!_completion.IsCancellationRequested)
                 {
-                    await Task.Delay(_waitOnFailureinMs, _completion.Token);
+                    await Task.Delay(_waitOnFailureInMs, _completion.Token);
                 }
             }
         }

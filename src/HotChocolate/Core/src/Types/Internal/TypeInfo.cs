@@ -172,7 +172,7 @@ internal sealed partial class TypeInfo
 
     private static bool IsStructureValid(IReadOnlyList<TypeComponent> components)
     {
-        var nonnull = false;
+        var nonNull = false;
         var named = false;
         var lists = 0;
 
@@ -186,7 +186,7 @@ internal sealed partial class TypeInfo
             switch (components[i].Kind)
             {
                 case TypeComponentKind.List:
-                    nonnull = false;
+                    nonNull = false;
                     lists++;
 
                     if (lists > 2)
@@ -195,15 +195,15 @@ internal sealed partial class TypeInfo
                     }
                     break;
 
-                case TypeComponentKind.NonNull when nonnull:
+                case TypeComponentKind.NonNull when nonNull:
                     return false;
 
                 case TypeComponentKind.NonNull:
-                    nonnull = true;
+                    nonNull = true;
                     break;
 
                 case TypeComponentKind.Named:
-                    nonnull = false;
+                    nonNull = false;
                     named = true;
                     break;
 

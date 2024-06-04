@@ -11,13 +11,14 @@ Result:
         }
       ],
       "path": [
-        "typeMissmatch"
+        "typeMismatch"
       ],
       "extensions": {
         "code": "HC0018"
       }
     }
-  ]
+  ],
+  "data": null
 }
 ---------------
 

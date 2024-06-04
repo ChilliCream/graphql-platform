@@ -25,11 +25,11 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Schema.MutationPayloadMustBeObject)
             .Build();
 
-    public static SchemaException MutationConvDirective_In_Wrong_Location(
+    public static SchemaException MutationConventionDirective_In_Wrong_Location(
         DirectiveNode directiveNode)
         => new(SchemaErrorBuilder.New()
-            .SetMessage(ThrowHelper_MutationConvDirective_In_Wrong_Location)
-            .SetCode(ErrorCodes.Schema.MutationConvDirectiveWrongLocation)
+            .SetMessage(ThrowHelper_MutationConventionDirective_In_Wrong_Location)
+            .SetCode(ErrorCodes.Schema.MutationConventionDirectiveWrongLocation)
             .AddSyntaxNode(directiveNode)
             .Build());
 

@@ -19,7 +19,7 @@ public interface ISyntaxWriter
     /// Write a single character.
     /// </summary>
     /// <param name="c">
-    /// The characted that shall be written.
+    /// The character that shall be written.
     /// </param>
     void Write(char c);
 

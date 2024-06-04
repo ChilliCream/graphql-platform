@@ -6,7 +6,7 @@ namespace HotChocolate.PersistedQueries.FileSystem;
 public interface IQueryFileMap
 {
     /// <summary>
-    /// Gets the roor directory on which the map operates.
+    /// Gets the root directory on which the map operates.
     /// </summary>
     string Root { get; }
 

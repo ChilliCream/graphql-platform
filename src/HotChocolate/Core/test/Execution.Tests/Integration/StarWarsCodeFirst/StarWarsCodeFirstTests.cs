@@ -1000,7 +1000,7 @@ public class StarWarsCodeFirstTests
             });
     }
 
-    // this test ensures that overriden depth validations are not cached.
+    // this test ensures that overridden depth validations are not cached.
     [Fact]
     public async Task Depth_Analysis_Overrides_Are_Not_Cached()
     {

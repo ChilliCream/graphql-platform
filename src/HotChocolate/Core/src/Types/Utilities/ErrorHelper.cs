@@ -536,7 +536,7 @@ internal static class ErrorHelper
                 string.Join(", ", duplicateFieldNames),
                 @is,
                 coordinate.ToString())
-            .SetCode(ErrorCodes.Schema.DupplicateFieldNames)
+            .SetCode(ErrorCodes.Schema.DuplicateFieldNames)
             .SetTypeSystemObject(type)
             .Build();
     }

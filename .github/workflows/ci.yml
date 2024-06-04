@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
 
@@ -54,15 +54,6 @@ jobs:
           else
             echo "::set-output name=src_changes::false"
           fi
-
-  pr-labeler:
-    name: Apply Labels
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/labeler@v5
 
   spellcheck:
     name: "Spellcheck Documentation"

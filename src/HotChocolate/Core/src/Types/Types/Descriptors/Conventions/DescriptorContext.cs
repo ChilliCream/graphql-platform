@@ -164,8 +164,8 @@ public sealed partial class DescriptorContext : IDescriptorContext
 
         var key = (typeof(T), scope);
 
-        if (_conventionInstances.TryGetValue(key, out var conv) &&
-            conv is T castedConvention)
+        if (_conventionInstances.TryGetValue(key, out var convention) &&
+            convention is T castedConvention)
         {
             return castedConvention;
         }

@@ -203,8 +203,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {_serviceCollection}")
-                    .SetRighthandSide(MethodCallBuilder
+                    .SetLeftHandSide($"var {_serviceCollection}")
+                    .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetNew()
                         .SetMethodName(ServiceCollection)))
@@ -760,8 +760,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_clientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IHttpClientFactory)
@@ -806,8 +806,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_clientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IInMemoryClientFactory)
@@ -843,8 +843,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_sessionPool}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_sessionPool}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(ISessionPool)
