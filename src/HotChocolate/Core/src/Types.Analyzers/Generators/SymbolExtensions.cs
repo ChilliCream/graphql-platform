@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -21,6 +23,142 @@ public static class SymbolExtensions
 
     public static bool IsEventMessage(this IParameterSymbol parameter)
         => parameter.Type.ToDisplayString() == WellKnownAttributes.EnumTypeAttribute;
+
+    public static bool IsFieldNode(this IParameterSymbol parameter)
+        => parameter.Type.ToDisplayString() == WellKnownAttributes.FieldNode;
+
+    public static bool IsOutputField(this IParameterSymbol parameterSymbol, Compilation compilation)
+    {
+        var type = compilation.GetTypeByMetadataName(WellKnownTypes.OutputField);
+
+        if (type == null)
+        {
+            return false;
+        }
+
+        return compilation.ClassifyConversion(parameterSymbol.Type, type).IsImplicit;
+    }
+
+    public static bool IsGlobalState(
+        this IParameterSymbol parameter,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (attributeData.AttributeClass?.ToDisplayString() == "HotChocolate.GlobalStateAttribute")
+            {
+                if (attributeData.ConstructorArguments.Length == 1 &&
+                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
+                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                {
+                    key = keyValue;
+                    return true;
+                }
+
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    {
+                        key = namedKeyValue;
+                        return true;
+                    }
+                }
+
+                key = parameter.Name;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsScopedState(
+        this IParameterSymbol parameter,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (attributeData.AttributeClass?.ToDisplayString() == "HotChocolate.ScopedStateAttribute")
+            {
+                if (attributeData.ConstructorArguments.Length == 1 &&
+                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
+                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                {
+                    key = keyValue;
+                    return true;
+                }
+
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    {
+                        key = namedKeyValue;
+                        return true;
+                    }
+                }
+
+                key = parameter.Name;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsLocalState(
+        this IParameterSymbol parameter,
+        [NotNullWhen(true)] out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (attributeData.AttributeClass?.ToDisplayString() == "HotChocolate.LocalStateAttribute")
+            {
+                if (attributeData.ConstructorArguments.Length == 1 &&
+                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
+                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                {
+                    key = keyValue;
+                    return true;
+                }
+
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg.Key == "Key" && namedArg.Value.Value is string namedKeyValue)
+                    {
+                        key = namedKeyValue;
+                        return true;
+                    }
+                }
+
+                key = parameter.Name;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsNonNullable(this IParameterSymbol parameter)
+    {
+        if (parameter.Type.NullableAnnotation != NullableAnnotation.NotAnnotated)
+        {
+            return false;
+        }
+
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol &&
+            namedTypeSymbol.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     public static ResolverResultKind GetResultKind(this IMethodSymbol method)
     {

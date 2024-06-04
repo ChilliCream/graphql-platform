@@ -13,9 +13,11 @@ public readonly struct ResolverInfo(ResolverName resolverName, IMethodSymbol? me
 {
     public readonly ResolverName Name = resolverName;
 
+    public readonly IMethodSymbol? Method = methodSymbol;
+
     public readonly int ParameterCount = methodSymbol?.Parameters.Length ?? 0;
 
     public readonly bool Skip =>
         ParameterCount == 0 ||
-        (ParameterCount == 1 && (methodSymbol?.Parameters[0]?.IsParent() ?? false));
+        (ParameterCount == 1 && (Method?.Parameters[0]?.IsParent() ?? false));
 }

@@ -9,8 +9,8 @@ public static partial class PersonLastName
 {
     public static string LastName => default!;
 
-    public static async Task<string> GetAddressAsync(this Person person, ClaimsPrincipal user, int someArg)
-        => await Task.FromResult("something");
+    public static async Task<string> GetAddressAsync([Parent] Person person, ClaimsPrincipal? user, int someArg)
+        => await Task.FromResult("something_" + someArg);
 
     [Query]
     public static string GetFooBarBaz() => "hello";

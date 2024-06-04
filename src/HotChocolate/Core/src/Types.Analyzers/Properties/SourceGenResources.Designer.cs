@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Types.Analyzers.Properties {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class SourceGenResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal SourceGenResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Analyzers.Properties {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,19 +44,19 @@ namespace HotChocolate.Types.Analyzers.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string DataLoader_KeyParameterMissing {
             get {
                 return ResourceManager.GetString("DataLoader_KeyParameterMissing", resourceCulture);
             }
         }
-        
+
         internal static string DataLoader_InvalidAccessModifier {
             get {
                 return ResourceManager.GetString("DataLoader_InvalidAccessModifier", resourceCulture);
             }
         }
-        
+
         internal static string InterceptsAttribute {
             get {
                 return ResourceManager.GetString("InterceptsAttribute", resourceCulture);

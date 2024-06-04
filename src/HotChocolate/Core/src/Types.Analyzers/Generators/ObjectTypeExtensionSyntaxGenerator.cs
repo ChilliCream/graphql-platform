@@ -1,6 +1,3 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -8,26 +5,20 @@ using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
-public sealed class ObjectTypeExtensionSyntaxGenerator
+public sealed class ObjectTypeExtensionSyntaxGenerator(StringBuilder sb, string ns)
 {
-    private readonly string _ns;
-    private readonly CodeWriter _writer;
+    private readonly CodeWriter _writer = new(sb);
 
-    public ObjectTypeExtensionSyntaxGenerator(StringBuilder sb, string ns)
-    {
-        _ns = ns;
-        _writer = new(sb);
-    }
-
-    public void WriterHeader()
+    public void WriteHeader()
     {
         _writer.WriteFileHeader();
+        _writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");
         _writer.WriteLine();
     }
 
     public void WriteBeginNamespace()
     {
-        _writer.WriteIndentedLine("namespace {0}", _ns);
+        _writer.WriteIndentedLine("namespace {0}", ns);
         _writer.WriteIndentedLine("{");
         _writer.IncreaseIndent();
     }
@@ -64,14 +55,14 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
         {
             if (objectTypeExtension.Members.Length > 0)
             {
-                _writer.WriteIndentedLine("const global::System.Reflection.BindingFlags bindingFlags =");
+                _writer.WriteIndentedLine("const global::{0} bindingFlags =", WellKnownTypes.BindingFlags);
                 using (_writer.IncreaseIndent())
                 {
-                    _writer.WriteIndentedLine("global::System.Reflection.BindingFlags.Public |");
+                    _writer.WriteIndentedLine("global::{0}.Public", WellKnownTypes.BindingFlags);
                     using (_writer.IncreaseIndent())
                     {
-                        _writer.WriteIndentedLine("System.Reflection.BindingFlags.NonPublic |");
-                        _writer.WriteIndentedLine("System.Reflection.BindingFlags.Static;");
+                        _writer.WriteIndentedLine("| global::{0}.NonPublic", WellKnownTypes.BindingFlags);
+                        _writer.WriteIndentedLine("| global::{0}.Static;", WellKnownTypes.BindingFlags);
                     }
                 }
             }
@@ -111,16 +102,18 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
                             method.GetResultKind() is not ResolverResultKind.Pure)
                         {
                             _writer.WriteIndentedLine(
-                            ".Extend().Definition.Resolver = HotChocolate.Resolvers.Abc.{0}_{1};",
-                            objectTypeExtension.Type.Name,
-                            member.Name);
+                                ".Extend().Definition.Resolver = {0}Resolvers.{1}_{2};",
+                                objectTypeExtension.Type.ToDisplayString(),
+                                objectTypeExtension.Type.Name,
+                                member.Name);
                         }
                         else
                         {
                             _writer.WriteIndentedLine(
-                            ".Extend().Definition.PureResolver = HotChocolate.Resolvers.Abc.{0}_{1};",
-                            objectTypeExtension.Type.Name,
-                            member.Name);
+                                ".Extend().Definition.PureResolver = {0}Resolvers.{1}_{2};",
+                                objectTypeExtension.Type.ToDisplayString(),
+                                objectTypeExtension.Type.Name,
+                                member.Name);
                         }
                     }
                 }
@@ -128,6 +121,28 @@ public sealed class ObjectTypeExtensionSyntaxGenerator
 
             _writer.WriteLine();
             _writer.WriteIndentedLine("Configure(descriptor);");
+
+            if (objectTypeExtension.Members.Length > 0)
+            {
+                _writer.WriteLine();
+                _writer.WriteIndentedLine("descriptor.Extend().Context.OnSchemaCreated(");
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine("schema =>");
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("var services = schema.Services.GetApplicationServices();");
+                        _writer.WriteIndentedLine(
+                            "var bindingResolver = services.GetRequiredService<global::{0}>();",
+                            WellKnownTypes.ParameterBindingResolver);
+                        _writer.WriteIndentedLine(
+                            "global::{0}Resolvers.InitializeBindings(bindingResolver);",
+                            objectTypeExtension.Type.ToDisplayString());
+                    }
+                    _writer.WriteIndentedLine("});");
+                }
+            }
         }
 
         _writer.WriteIndentedLine("}");

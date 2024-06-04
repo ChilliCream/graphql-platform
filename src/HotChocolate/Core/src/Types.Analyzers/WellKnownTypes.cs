@@ -24,6 +24,7 @@ public static class WellKnownTypes
     public const string ReadOnlyList = "System.Collections.Generic.IReadOnlyList";
     public const string AsyncEnumerable = "System.Collections.Generic.IAsyncEnumerable";
     public const string Queryable = "System.Linq.IQueryable";
+    public const string Dictionary = "System.Collections.Generic.Dictionary";
     public const string ReadOnlyDictionary = "System.Collections.Generic.IReadOnlyDictionary";
     public const string Lookup = "System.Linq.ILookup";
     public const string Task = "System.Threading.Tasks.Task";
@@ -41,6 +42,13 @@ public static class WellKnownTypes
     public const string Executable = "HotChocolate.IExecutable";
     public const string ClaimsPrincipal = "System.Security.Claims.ClaimsPrincipal";
     public const string DocumentNode = "HotChocolate.Language.DocumentNode";
+    public const string OutputField = "HotChocolate.Types.IOutputField";
+    public const string ParameterBindingResolver = "HotChocolate.Internal.IParameterBindingResolver";
+    public const string CustomAttributeData = "HotChocolate.Internal.GenCustomAttributeData";
+    public const string ParameterInfo = "HotChocolate.Internal.GenParameterInfo";
+    public const string CustomAttributeTypedArgument = "System.Reflection.CustomAttributeTypedArgument";
+    public const string CustomAttributeNamedArgument = "System.Reflection.CustomAttributeNamedArgument";
+    public const string BindingFlags = "System.Reflection.BindingFlags";
 
     public static HashSet<string> TypeClass { get; } =
     [
