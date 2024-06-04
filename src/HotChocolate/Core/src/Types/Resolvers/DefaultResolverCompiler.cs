@@ -22,8 +22,7 @@ namespace HotChocolate.Resolvers;
 /// </summary>
 internal sealed class DefaultResolverCompiler : IResolverCompiler
 {
-    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty =
-        Array.Empty<IParameterExpressionBuilder>();
+    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty = [];
 
     private static readonly ParameterExpression _context =
         Parameter(typeof(IResolverContext), "context");

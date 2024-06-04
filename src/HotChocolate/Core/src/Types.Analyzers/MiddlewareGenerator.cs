@@ -86,7 +86,7 @@ public class MiddlewareGenerator : IIncrementalGenerator
 
         using var generator = new RequestMiddlewareSyntaxGenerator(module.ModuleName, _namespace);
 
-        generator.WriterHeader();
+        generator.WriteHeader();
         generator.WriteBeginNamespace();
 
         generator.WriteBeginClass();

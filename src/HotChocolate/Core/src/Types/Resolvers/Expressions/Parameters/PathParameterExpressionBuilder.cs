@@ -7,6 +7,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class PathParameterExpressionBuilder
     : LambdaParameterExpressionBuilder<IPureResolverContext, Path>
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public PathParameterExpressionBuilder()
         : base(ctx => ctx.Path)
@@ -17,4 +19,13 @@ internal sealed class PathParameterExpressionBuilder
 
     public override bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(Path);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)(object)context.Path;
+
+    public T Execute<T>(IPureResolverContext context)
+        => (T)(object)context.Path;
 }

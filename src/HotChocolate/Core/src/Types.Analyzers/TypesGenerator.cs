@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
@@ -67,24 +68,37 @@ public class TypesGenerator : IIncrementalGenerator
         }
 
         var sb = StringBuilderPool.Get();
-        var first = true;
 
+        WriteTypes(context, syntaxInfos, sb);
+
+        sb.Clear();
+
+        WriteResolvers(context, compilation, syntaxInfos, sb);
+
+        StringBuilderPool.Return(sb);
+    }
+
+    private static void WriteTypes(
+        SourceProductionContext context,
+        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        StringBuilder sb)
+    {
+        var firstNamespace = true;
         foreach (var group in syntaxInfos
             .OfType<ObjectTypeExtensionInfo>()
             .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
             var generator = new ObjectTypeExtensionSyntaxGenerator(sb, group.Key);
 
-            if (first)
+            if (firstNamespace)
             {
-                generator.WriterHeader();
-                first = false;
+                generator.WriteHeader();
+                firstNamespace = false;
             }
 
             generator.WriteBeginNamespace();
 
             var firstClass = true;
-
             foreach (var objectTypeExtension in group)
             {
                 if (objectTypeExtension.Diagnostics.Length > 0)
@@ -114,6 +128,73 @@ public class TypesGenerator : IIncrementalGenerator
         }
 
         context.AddSource(WellKnownFileNames.TypesFile, sb.ToString());
-        StringBuilderPool.Return(sb);
     }
+
+    private static void WriteResolvers(
+        SourceProductionContext context,
+        Compilation compilation,
+        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        StringBuilder sb)
+    {
+        var generator = new ResolverSyntaxGenerator(sb);
+        generator.WriteHeader();
+
+        var firstNamespace = true;
+        foreach (var group in syntaxInfos
+            .OfType<ObjectTypeExtensionInfo>()
+            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+        {
+            if(!firstNamespace)
+            {
+                sb.AppendLine();
+            }
+            firstNamespace = false;
+
+            generator.WriteBeginNamespace(group.Key);
+
+            var firstClass = true;
+            foreach (var objectTypeExtension in group)
+            {
+                if(!firstClass)
+                {
+                    sb.AppendLine();
+                }
+                firstClass = false;
+
+                var resolverInfos = objectTypeExtension.Members.Select(
+                    m => CreateResolverInfo(objectTypeExtension, m));
+
+                generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
+
+                if (generator.AddResolverDeclarations(resolverInfos))
+                {
+                    sb.AppendLine();
+                }
+
+                generator.AddParameterInitializer(resolverInfos);
+
+                foreach (var member in objectTypeExtension.Members)
+                {
+                    sb.AppendLine();
+                    generator.AddResolver(
+                        new ResolverName(objectTypeExtension.Type.Name, member.Name),
+                        member,
+                        compilation);
+                }
+
+                generator.WriteEndClass();
+            }
+
+            generator.WriteEndNamespace();
+        }
+
+        context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
+    }
+
+    private static ResolverInfo CreateResolverInfo(
+        ObjectTypeExtensionInfo objectTypeExtension,
+        ISymbol member)
+        => new ResolverInfo(
+            new ResolverName(objectTypeExtension.Type.Name, member.Name),
+            member as IMethodSymbol);
 }
