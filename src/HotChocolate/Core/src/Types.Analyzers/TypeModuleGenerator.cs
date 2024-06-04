@@ -107,7 +107,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
     {
         using var generator = new ModuleSyntaxGenerator(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
 
-        generator.WriterHeader();
+        generator.WriteHeader();
         generator.WriteBeginNamespace();
         generator.WriteBeginClass();
         generator.WriteBeginRegistrationMethod();
@@ -255,7 +255,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         }
 
         using var generator = new DataLoaderSyntaxGenerator();
-        generator.WriterHeader();
+        generator.WriteHeader();
 
         foreach (var group in dataLoaders.GroupBy(t => t.Namespace))
         {
@@ -335,7 +335,7 @@ public class TypeModuleGenerator : IIncrementalGenerator
         }
 
         using var generator = new OperationFieldSyntaxGenerator();
-        generator.WriterHeader();
+        generator.WriteHeader();
         generator.WriteBeginNamespace("Microsoft.Extensions.DependencyInjection");
 
         foreach (var group in operations.GroupBy(t => t.Type))

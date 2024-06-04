@@ -25,7 +25,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
         _writer = new(_sb);
     }
 
-    public void WriterHeader()
+    public void WriteHeader()
     {
         _writer.WriteFileHeader();
         _writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");

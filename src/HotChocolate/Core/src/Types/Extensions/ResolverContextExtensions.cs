@@ -25,7 +25,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T? GetGlobalStateOrDefault<T>(
-        this IResolverContext context,
+        this IPureResolverContext context,
         string name)
     {
         if (context is null)
@@ -49,6 +49,43 @@ public static class ResolverContextExtensions
 
     /// <summary>
     /// Gets the global state for the specified <paramref name="name" />,
+    /// or a default value if the state could not be resolved.
+    /// </summary>
+    /// <param name="context">The resolver context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the global state for the specified <paramref name="name" />
+    /// or the default value of <typeparamref name="T" />, if the state
+    /// could not be found or casted to <typeparamref name="T" />.
+    /// </returns>
+    public static T GetGlobalStateOrDefault<T>(
+        this IPureResolverContext context,
+        string name,
+        T defaultValue)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.ContextData.TryGetValue(name, out var value) &&
+            value is T casted)
+        {
+            return casted;
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Gets the global state for the specified <paramref name="name" />,
     /// or throws if the state does not exist.
     /// </summary>
     /// <param name="context">The resolver context.</param>
@@ -58,7 +95,7 @@ public static class ResolverContextExtensions
     /// Returns the global state for the specified <paramref name="name" />.
     /// </returns>
     public static T? GetGlobalState<T>(
-        this IResolverContext context,
+        this IPureResolverContext context,
         string name)
     {
         if (context is null)
@@ -101,7 +138,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T? GetScopedStateOrDefault<T>(
-        this IResolverContext context,
+        this IPureResolverContext context,
         string name)
     {
         if (context is null)
@@ -125,6 +162,43 @@ public static class ResolverContextExtensions
 
     /// <summary>
     /// Gets the scoped state for the specified <paramref name="name" />,
+    /// or a default value if the state could not be resolved.
+    /// </summary>
+    /// <param name="context">The resolver context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the scoped state for the specified <paramref name="name" />
+    /// or the default value of <typeparamref name="T" />, if the state
+    /// could not be found or casted to <typeparamref name="T" />.
+    /// </returns>
+    public static T GetScopedStateOrDefault<T>(
+        this IPureResolverContext context,
+        string name,
+        T defaultValue)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.ScopedContextData.TryGetValue(name, out var value) &&
+            value is T casted)
+        {
+            return casted;
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
+    /// Gets the scoped state for the specified <paramref name="name" />,
     /// or throws if the state does not exist.
     /// </summary>
     /// <param name="context">The resolver context.</param>
@@ -134,7 +208,7 @@ public static class ResolverContextExtensions
     /// Returns the scoped state for the specified <paramref name="name" />.
     /// </returns>
     public static T? GetScopedState<T>(
-        this IResolverContext context,
+        this IPureResolverContext context,
         string name)
     {
         if (context is null)
@@ -197,6 +271,43 @@ public static class ResolverContextExtensions
         }
 
         return default;
+    }
+
+    /// <summary>
+    /// Gets the local state for the specified <paramref name="name" />,
+    /// or a default value if the state could not be resolved.
+    /// </summary>
+    /// <param name="context">The resolver context.</param>
+    /// <param name="name">The name of the state.</param>
+    /// <param name="defaultValue">The default value.</param>
+    /// <typeparam name="T">The type of the state.</typeparam>
+    /// <returns>
+    /// Returns the local state for the specified <paramref name="name" />
+    /// or the default value of <typeparamref name="T" />, if the state
+    /// could not be found or casted to <typeparamref name="T" />.
+    /// </returns>
+    public static T GetLocalStateOrDefault<T>(
+        this IResolverContext context,
+        string name,
+        T defaultValue)
+    {
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw String_NullOrEmpty(nameof(name));
+        }
+
+        if (context.LocalContextData.TryGetValue(name, out var value) &&
+            value is T casted)
+        {
+            return casted;
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -542,7 +653,7 @@ public static class ResolverContextExtensions
     /// </returns>
     public static ClaimsPrincipal? GetUser(this IResolverContext context)
         => context.GetGlobalStateOrDefault<ClaimsPrincipal?>(nameof(ClaimsPrincipal));
-    
+
     /// <summary>
     /// Checks if a field is selected in the current selection set.
     /// </summary>
@@ -574,7 +685,7 @@ public static class ResolverContextExtensions
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;
@@ -646,14 +757,14 @@ public static class ResolverContextExtensions
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName1));
         }
-        
+
         if (string.IsNullOrWhiteSpace(fieldName2))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName2));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;
@@ -737,21 +848,21 @@ public static class ResolverContextExtensions
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName1));
         }
-        
+
         if (string.IsNullOrWhiteSpace(fieldName2))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName2));
         }
-        
+
         if(string.IsNullOrWhiteSpace(fieldName3))
         {
             throw new ArgumentException(
                 ResolverContextExtensions_IsSelected_FieldNameEmpty,
                 nameof(fieldName3));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;
@@ -797,7 +908,7 @@ public static class ResolverContextExtensions
 
         return false;
     }
-    
+
     /// <summary>
     /// Checks if a field is selected in the current selection set.
     /// </summary>
@@ -813,19 +924,19 @@ public static class ResolverContextExtensions
     /// <paramref name="fieldNames" /> is <c>null</c>.
     /// </exception>
     public static bool IsSelected(
-        this IResolverContext context, 
+        this IResolverContext context,
         ISet<string> fieldNames)
     {
         if(context is null)
         {
             throw new ArgumentNullException(nameof(context));
         }
-        
+
         if(fieldNames is null)
         {
             throw new ArgumentNullException(nameof(fieldNames));
         }
-        
+
         if (!context.Selection.Type.IsCompositeType())
         {
             return false;

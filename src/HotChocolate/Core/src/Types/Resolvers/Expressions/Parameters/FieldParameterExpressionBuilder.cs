@@ -9,6 +9,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class FieldParameterExpressionBuilder
     : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectField>
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public FieldParameterExpressionBuilder()
         : base(ctx => ctx.Selection.Field)
@@ -29,4 +31,13 @@ internal sealed class FieldParameterExpressionBuilder
             ? Expression.Convert(expression, parameter.ParameterType)
             : expression;
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)(object)context.Selection.Field;
+
+    public T Execute<T>(IPureResolverContext context)
+        => (T)(object)context.Selection.Field;
 }
