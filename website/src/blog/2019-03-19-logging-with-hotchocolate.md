@@ -212,4 +212,3 @@ Another example is our [Apollo Tracing implementation](https://github.com/Chilli
 I hope this little field trip into our instrumentation API gives a little outlook of an often-overlooked feature that is coming with version 9. All of what I showed in this blog is available with preview 5 (9.0.0-preview.5) that we released today.
 
 We will add stitching related events with the next view preview builds.
-

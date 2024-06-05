@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using CookieCrumble;
-using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -10,7 +9,7 @@ using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 public class AnnotationBasedAuthorizationTests
 {
@@ -28,7 +27,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -81,7 +80,7 @@ public class AnnotationBasedAuthorizationTests
         await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -90,7 +89,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -129,7 +128,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -172,10 +171,10 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              person(id: "UGVyc29uCmRhYmM=") {
+              person(id: "UGVyc29uOmFiYw==") {
                 name
               }
-              person2(id: "UGVyc29uCmRhYmM=") {
+              person2(id: "UGVyc29uOmFiYw==") {
                 name
               }
             }
@@ -413,10 +412,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureSchemaField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -467,10 +463,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureTypeField =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -521,10 +514,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -577,7 +567,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             """
             {
-              node(id: "UGVyc29uCmRhYmM=") {
+              node(id: "UGVyc29uOmFiYw==") {
                 __typename
               }
             }
@@ -625,13 +615,12 @@ public class AnnotationBasedAuthorizationTests
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Street", 1);
+        var id = Convert.ToBase64String("Street:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     query($id: ID!) {
                       node(id: $id) {
@@ -639,8 +628,8 @@ public class AnnotationBasedAuthorizationTests
                       }
                     }
                     """)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         Snapshot
@@ -685,13 +674,12 @@ public class AnnotationBasedAuthorizationTests
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
         var executor = await services.GetRequestExecutorAsync();
-        var idSerializer = new IdSerializer();
-        var id = idSerializer.Serialize("Street", 1);
+        var id = Convert.ToBase64String("Street:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     """
                     query($id: ID!) {
                       node(id: $id) {
@@ -699,8 +687,8 @@ public class AnnotationBasedAuthorizationTests
                       }
                     }
                     """)
-                .SetVariableValue("id", id)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
+                .Build());
 
         // assert
         Snapshot
@@ -747,10 +735,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -801,10 +786,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE", ApplyPolicy.Validation); };
             });
         var executor = await services.GetRequestExecutorAsync();
 
@@ -860,10 +842,7 @@ public class AnnotationBasedAuthorizationTests
             options =>
             {
                 options.ConfigureNodeFields =
-                    descriptor =>
-                    {
-                        descriptor.Authorize("READ_NODE");
-                    };
+                    descriptor => { descriptor.Authorize("READ_NODE"); };
             });
 
         var executor = await services.GetRequestExecutorAsync();
@@ -872,7 +851,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             builder =>
                 builder
-                    .SetQuery(
+                    .SetDocument(
                         """
                         {
                           nodes(ids: "abc") {
@@ -891,13 +870,22 @@ public class AnnotationBasedAuthorizationTests
                 {
                   "errors": [
                     {
-                      "message": "Unable to decode the id string.",
+                      "message": "The node ID string has an invalid format.",
+                      "locations": [
+                        {
+                          "line": 2,
+                          "column": 3
+                        }
+                      ],
+                      "path": [
+                        "nodes"
+                      ],
                       "extensions": {
-                        "operationStatus": "InvalidData",
                         "originalValue": "abc"
                       }
                     }
-                  ]
+                  ],
+                  "data": null
                 }
                 """);
     }
@@ -922,7 +910,7 @@ public class AnnotationBasedAuthorizationTests
         var result = await executor.ExecuteAsync(
             builder =>
                 builder
-                    .SetQuery(
+                    .SetDocument(
                         """
                         {
                           null

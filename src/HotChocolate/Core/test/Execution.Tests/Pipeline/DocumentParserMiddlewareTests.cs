@@ -1,11 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Language;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -15,19 +12,18 @@ public class DocumentParserMiddlewareTests
     public async Task DocumentExists_SkipParsing_DocumentIsUnchanged()
     {
         // arrange
-        var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentParserMiddleware(
-            context => default,
+        var middleware = DocumentParserMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             hashProvider,
             new ParserOptions());
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
@@ -46,19 +42,18 @@ public class DocumentParserMiddlewareTests
     public async Task NoDocument_ParseQuery_DocumentParsedAndHashed()
     {
         // arrange
-        var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentParserMiddleware(
-            context => default,
+        var middleware = DocumentParserMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             hashProvider,
             new ParserOptions());
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);
@@ -77,19 +72,18 @@ public class DocumentParserMiddlewareTests
     public async Task InvalidQuery_SyntaxError_ContextHasErrorResult()
     {
         // arrange
-        var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentParserMiddleware(
-            context => throw new Exception("Should not be invoked."),
+        var middleware = DocumentParserMiddleware.Create(
+            _ => throw new Exception("Should not be invoked."),
             new NoopExecutionDiagnosticEvents(),
             hashProvider,
             new ParserOptions());
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{")
+            .SetDocumentId("a")
+            .Build();
 
         var requestContext = new Mock<IRequestContext>();
         requestContext.SetupGet(t => t.Request).Returns(request);

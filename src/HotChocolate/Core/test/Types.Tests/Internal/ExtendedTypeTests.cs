@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using Xunit;
 
 #nullable enable
 
@@ -38,7 +37,7 @@ public class ExtendedTypeTests
             typeof(NativeType<List<byte?>>),
             _cache);
         list = ExtendedType.Tools.ChangeNullability(
-            list, new bool?[] { false }, _cache);
+            list, new bool?[] { false, }, _cache);
 
         var nullableList = ExtendedType.FromType(
             typeof(List<byte?>),
@@ -338,7 +337,7 @@ public class ExtendedTypeTests
         // act
         IExtendedType list = ExtendedType.FromType(listType, _cache);
         list = ExtendedType.Tools.ChangeNullability(
-            list, new bool?[] { null, false }, _cache);
+            list, new bool?[] { null, false, }, _cache);
 
         // assert
         Assert.False(list.ElementType!.IsNullable);

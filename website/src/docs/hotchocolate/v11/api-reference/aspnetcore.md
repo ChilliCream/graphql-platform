@@ -443,7 +443,7 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
     public virtual ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         requestBuilder.TrySetServices(context.RequestServices);
@@ -513,7 +513,7 @@ public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 
     public virtual ValueTask OnRequestAsync(
         ISocketConnection connection,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         HttpContext context = connection.HttpContext;
@@ -542,3 +542,5 @@ A custom socket session interceptor can be registered like the following:
 ```csharp
 services.AddSocketSessionInterceptor<MyCustomSocketSessionInterceptor>();
 ```
+
+<!-- spell-checker:ignore Bname, Buser, Cbnia, Yero -->

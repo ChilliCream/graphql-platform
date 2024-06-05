@@ -50,7 +50,7 @@ internal static class MiddlewareCompiler<TMiddleware>
 
         var handlers = new List<IParameterHandler>();
         handlers.Add(new TypeParameterHandler(typeof(TNext), next));
-        if (createParameters is { })
+        if (createParameters is not null)
         {
             handlers.AddRange(createParameters(context, next));
         }

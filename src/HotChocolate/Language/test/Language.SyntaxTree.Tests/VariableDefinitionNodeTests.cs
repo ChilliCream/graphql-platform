@@ -182,7 +182,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux") });
+            new List<DirectiveNode> { new("qux"), });
 
         // assert
         variableDefinition.MatchSnapshot();
@@ -197,7 +197,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux") });
+            new List<DirectiveNode> { new("qux"), });
 
         // act
         variableDefinition =
@@ -219,7 +219,7 @@ public class VariableDefinitionNodeTests
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux")
+                    new DirectiveNode("qux"),
             });
 
         // act
@@ -242,7 +242,7 @@ public class VariableDefinitionNodeTests
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux")
+                    new DirectiveNode("qux"),
             });
 
         // act
@@ -261,7 +261,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux") });
+            new List<DirectiveNode> { new("qux"), });
 
         // act
         variableDefinition =
@@ -283,7 +283,7 @@ public class VariableDefinitionNodeTests
             new StringValueNode("baz"),
             new List<DirectiveNode>
             {
-                    new DirectiveNode("qux")
+                    new DirectiveNode("qux"),
             });
 
         // act
@@ -302,7 +302,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux") });
+            new List<DirectiveNode> { new("qux"), });
 
         // act
         variableDefinition =
@@ -322,12 +322,12 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux") });
+            new List<DirectiveNode> { new("qux"), });
 
         // act
         variableDefinition =
             variableDefinition.WithDirectives(
-                new List<DirectiveNode> { new("quux") });
+                new List<DirectiveNode> { new("quux"), });
 
         // assert
         variableDefinition.MatchSnapshot();
@@ -342,7 +342,7 @@ public class VariableDefinitionNodeTests
             new VariableNode(new NameNode("foo")),
             new NamedTypeNode(new NameNode("bar")),
             new StringValueNode("baz"),
-            new List<DirectiveNode> { new("qux") });
+            new List<DirectiveNode> { new("qux"), });
 
         // act
         void Action() => variableDefinition.WithDirectives(null!);

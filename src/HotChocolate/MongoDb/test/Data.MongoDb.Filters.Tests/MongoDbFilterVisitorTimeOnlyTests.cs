@@ -14,17 +14,17 @@ public class MongoDbFilterVisitorTimeOnlyTests
     , IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = new TimeOnly(06, 30) },
-        new() { Bar = new TimeOnly(16, 00) }
-    };
+    [
+        new() { Bar = new TimeOnly(06, 30), },
+        new() { Bar = new TimeOnly(16, 00), },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = new TimeOnly(06, 30) },
-        new() { Bar = null },
-        new() { Bar = new TimeOnly(16, 00) }
-    };
+    [
+        new() { Bar = new TimeOnly(06, 30), },
+        new() { Bar = null, },
+        new() { Bar = new TimeOnly(16, 00), },
+    ];
 
     public MongoDbFilterVisitorTimeOnlyTests(MongoResource resource)
     {
@@ -42,14 +42,14 @@ public class MongoDbFilterVisitorTimeOnlyTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(
@@ -67,14 +67,14 @@ public class MongoDbFilterVisitorTimeOnlyTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(
@@ -92,19 +92,19 @@ public class MongoDbFilterVisitorTimeOnlyTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"06:30:00\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"16:00:00\" } }){ bar } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: null } }){ bar } }")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(
@@ -123,19 +123,19 @@ public class MongoDbFilterVisitorTimeOnlyTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"06:30:00\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"16:00:00\" } }){ bar } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: null } }){ bar } }")
+                .Build());
 
         // arrange
         await SnapshotExtensions.AddResult(

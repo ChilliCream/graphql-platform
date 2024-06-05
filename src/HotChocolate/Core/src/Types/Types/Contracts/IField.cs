@@ -10,7 +10,6 @@ public interface IField
     , IHasDescription
     , IHasFieldCoordinate
     , IHasDirectives
-    , IHasSyntaxNode
     , IHasRuntimeType
     , IHasReadOnlyContextData
     , ITypeSystemMember

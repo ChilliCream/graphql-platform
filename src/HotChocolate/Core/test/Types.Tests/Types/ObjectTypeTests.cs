@@ -1170,10 +1170,10 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ desc }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1415,7 +1415,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // assert
         Assert.Throws<SchemaException>(Action)
-            .Errors.Select(t => new { t.Message, t.Code })
+            .Errors.Select(t => new { t.Message, t.Code, })
             .MatchSnapshot();
     }
 
@@ -1481,12 +1481,12 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ bar baz }")
+            OperationRequestBuilder.Create()
+                .SetDocument("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,
-                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
-                .Create());
+                    new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value", })
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1788,7 +1788,7 @@ public class ObjectTypeTests : TypeTestBase
                 d =>
                 {
                     d.Name("Query");
-                    d.Field("Foo").Type("String").Resolve(_ => null);
+                    d.Field("Foo").Type("String").Resolve(_ => null!);
                 })
             .Create()
             .Print()
@@ -1806,7 +1806,7 @@ public class ObjectTypeTests : TypeTestBase
                     d.Field("Foo")
                         .Argument("a", t => t.Type("Int"))
                         .Type("String")
-                        .Resolve(_ => null);
+                        .Resolve(_ => null!);
                 })
             .Create()
             .Print()
@@ -2322,7 +2322,7 @@ public class ObjectTypeTests : TypeTestBase
     public class QueryWithNestedList
     {
         public List<List<FooIgnore>> FooMatrix =>
-            new() { new() { new() } };
+            [[new(),],];
     }
 
     public class ResolveWithQuery

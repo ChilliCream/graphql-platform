@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,24 +8,36 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Tests;
 
 public static class TestHelper
 {
+    public static string EncodeId(string typeName, Guid id)
+    {
+        var nameBuffer = Encoding.UTF8.GetBytes(typeName);
+        var idBuffer = id.ToByteArray();
+        var buffer = new byte[nameBuffer.Length + 1 + idBuffer.Length];
+        Buffer.BlockCopy(nameBuffer, 0, buffer, 0, nameBuffer.Length);
+        buffer[nameBuffer.Length] = (byte)':';
+        Buffer.BlockCopy(idBuffer, 0, buffer, nameBuffer.Length + 1, idBuffer.Length);
+        return Convert.ToBase64String(buffer);
+    }
+
     public static Task<IExecutionResult> ExpectValid(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IQueryRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null)
     {
         return ExpectValid(
             query,
             new TestConfiguration
             {
-                ConfigureRequest = request, Configure = configure, Services = requestServices,
+                ConfigureRequest = request,
+                Configure = configure,
+                Services = requestServices,
             });
     }
 
@@ -41,7 +54,7 @@ public static class TestHelper
         var result = await executor.ExecuteAsync(request, cancellationToken);
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         return result;
     }
 
@@ -49,7 +62,7 @@ public static class TestHelper
         string sdl,
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IQueryRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null,
         params Action<IError>[] elementInspectors) =>
         ExpectError(
@@ -66,7 +79,7 @@ public static class TestHelper
     public static Task ExpectError(
         string query,
         Action<IRequestExecutorBuilder>? configure = null,
-        Action<IQueryRequestBuilder>? request = null,
+        Action<OperationRequestBuilder>? request = null,
         IServiceProvider? requestServices = null,
         params Action<IError>[] elementInspectors)
     {
@@ -74,7 +87,9 @@ public static class TestHelper
             query,
             new TestConfiguration
             {
-                Configure = configure, ConfigureRequest = request, Services = requestServices
+                Configure = configure,
+                ConfigureRequest = request,
+                Services = requestServices,
             },
             elementInspectors);
     }
@@ -92,15 +107,15 @@ public static class TestHelper
         var result = await executor.ExecuteAsync(request);
 
         // assert
-        IQueryResult queryResult = Assert.IsType<QueryResult>(result);
-        Assert.NotNull(queryResult.Errors);
+        IOperationResult operationResult = Assert.IsType<OperationResult>(result);
+        Assert.NotNull(operationResult.Errors);
 
         if (elementInspectors.Length > 0)
         {
-            Assert.Collection(queryResult.Errors!, elementInspectors);
+            Assert.Collection(operationResult.Errors!, elementInspectors);
         }
 
-        await queryResult.MatchSnapshotAsync();
+        await operationResult.MatchSnapshotAsync();
     }
 
     public static async Task<T> CreateTypeAsync<T>()
@@ -174,13 +189,13 @@ public static class TestHelper
             .GetRequestExecutorAsync();
     }
 
-    public static IQueryRequest CreateRequest(
+    public static IOperationRequest CreateRequest(
         TestConfiguration? configuration,
         string query)
     {
         configuration ??= new TestConfiguration();
 
-        var builder = QueryRequestBuilder.New().SetQuery(query);
+        var builder = OperationRequestBuilder.Create().SetDocument(query);
 
         if (configuration.Services is { } services)
         {
@@ -192,7 +207,7 @@ public static class TestHelper
             configure(builder);
         }
 
-        return builder.Create();
+        return builder.Build();
     }
 
     public static void AddDefaultConfiguration(
@@ -209,52 +224,5 @@ public static class TestHelper
             .AddInMemorySubscriptions()
             .Services
             .AddStarWarsRepositories();
-    }
-
-    public static async Task TryTest(
-        Func<CancellationToken, Task> action,
-        int allowedRetries = 3,
-        int timeout = 30_000)
-    {
-        // we will try four times ....
-        var attempt = 0;
-        var wait = 250;
-
-        while (true)
-        {
-            attempt++;
-
-            var success = await ExecuteAsync(attempt).ConfigureAwait(false);
-
-            if (success)
-            {
-                break;
-            }
-
-            await Task.Delay(wait).ConfigureAwait(false);
-            wait *= 2;
-        }
-
-        // ReSharper disable once VariableHidesOuterVariable
-        async Task<bool> ExecuteAsync(int attempt)
-        {
-            using var cts = new CancellationTokenSource(timeout);
-
-            if (attempt < allowedRetries)
-            {
-                try
-                {
-                    await action(cts.Token).ConfigureAwait(false);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            await action(cts.Token).ConfigureAwait(false);
-            return true;
-        }
     }
 }

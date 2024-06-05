@@ -10,7 +10,7 @@ public static class TypeExtensions
         {
             TypeKind.List => true,
             TypeKind.NonNull when ((NonNullType) type).NullableType.Kind == TypeKind.List => true,
-            _ => false
+            _ => false,
         };
 
     public static bool IsInputType(this IType type)
@@ -39,7 +39,7 @@ public static class TypeExtensions
         {
             ListType listType => listType.ElementType,
             NonNullType nonNullType => nonNullType.NullableType,
-            _ => type
+            _ => type,
         };
 
     public static INamedType NamedType(this IType type)
@@ -71,7 +71,7 @@ public static class TypeExtensions
             INamedType namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
             NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 
     public static IType ReplaceNameType(this IType type, Func<string, INamedType> newNamedType)
@@ -80,6 +80,6 @@ public static class TypeExtensions
             INamedType namedType => newNamedType(namedType.Name),
             ListType listType => new ListType(ReplaceNameType(listType.ElementType, newNamedType)),
             NonNullType nonNullType => new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType)),
-            _ => throw new NotSupportedException()
+            _ => throw new NotSupportedException(),
         };
 }

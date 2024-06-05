@@ -1,4 +1,3 @@
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static HotChocolate.Subscriptions.Properties.Resources;
@@ -16,7 +15,7 @@ public sealed class DefaultJsonMessageSerializer : IMessageSerializer
     private readonly JsonSerializerOptions _options =
         new(JsonSerializerDefaults.Web)
         {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
     /// <inheritdoc />

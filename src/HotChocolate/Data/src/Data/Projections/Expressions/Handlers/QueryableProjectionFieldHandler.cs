@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -23,7 +22,7 @@ public class QueryableProjectionFieldHandler
         Expression nestedProperty;
         Type memberType;
 
-        if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
+        if (field.Member is PropertyInfo { CanWrite: true, } propertyInfo)
         {
             memberType = propertyInfo.PropertyType;
             nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);

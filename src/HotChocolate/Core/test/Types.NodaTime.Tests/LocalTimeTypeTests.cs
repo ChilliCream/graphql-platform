@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using NodaTime;
 using NodaTime.Text;
-using Xunit;
 
 namespace HotChocolate.Types.NodaTime.Tests
 {
@@ -26,22 +26,18 @@ namespace HotChocolate.Types.NodaTime.Tests
             }
         }
 
-        private readonly IRequestExecutor testExecutor;
-
-        public LocalTimeTypeIntegrationTests()
-        {
-            testExecutor = SchemaBuilder.New()
+        private readonly IRequestExecutor _testExecutor =
+            SchemaBuilder.New()
                 .AddQueryType<Schema.Query>()
                 .AddMutationType<Schema.Mutation>()
                 .AddNodaTime()
                 .Create()
                 .MakeExecutable();
-        }
 
         [Fact]
         public void QueryReturns()
         {
-            IExecutionResult? result = testExecutor.Execute("query { test: one }");
+            var result = _testExecutor.Execute("query { test: one }");
 
             Assert.Equal("12:42:13.031011234", result.ExpectQueryResult().Data!["test"]);
         }
@@ -49,11 +45,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariable()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "12:42:13.031011234")
-                    .Create());
+            var result = _testExecutor
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
+                        .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13.031011234" }, })
+                        .Build());
 
             Assert.Equal("12:52:13.031011234", result.ExpectQueryResult().Data!["test"]);
         }
@@ -61,11 +58,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesVariableWithoutTicks()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "12:42:13")
-                    .Create());
+            var result = _testExecutor
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
+                        .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42:13" }, })
+                        .Build());
 
             Assert.Equal("12:52:13", result.ExpectQueryResult().Data!["test"]);
         }
@@ -73,11 +71,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseAnIncorrectVariable()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation($arg: LocalTime!) { test(arg: $arg) }")
-                    .SetVariableValue("arg", "12:42")
-                    .Create());
+            var result = _testExecutor
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation($arg: LocalTime!) { test(arg: $arg) }")
+                        .SetVariableValues(new Dictionary<string, object?> { { "arg", "12:42" }, })
+                        .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -86,10 +85,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteral()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"12:42:13.031011234\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation { test(arg: \"12:42:13.031011234\") }")
+                        .Build());
 
             Assert.Equal("12:52:13.031011234", result.ExpectQueryResult().Data!["test"]);
         }
@@ -97,10 +97,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void ParsesLiteralWithoutTick()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"12:42:13\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation { test(arg: \"12:42:13\") }")
+                        .Build());
 
             Assert.Equal("12:52:13", result.ExpectQueryResult().Data!["test"]);
         }
@@ -108,10 +109,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         [Fact]
         public void DoesntParseIncorrectLiteral()
         {
-            IExecutionResult? result = testExecutor
-                .Execute(QueryRequestBuilder.New()
-                    .SetQuery("mutation { test(arg: \"12:42\") }")
-                    .Create());
+            var result = _testExecutor
+                .Execute(
+                    OperationRequestBuilder.Create()
+                        .SetDocument("mutation { test(arg: \"12:42\") }")
+                        .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
             Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
@@ -122,7 +124,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         }
 
         [Fact]
-        public void PatternEmpty_ThrowSchemaException()
+        public void PatternEmptyThrowSchemaException()
         {
             static object Call() => new LocalTimeType(Array.Empty<IPattern<LocalTime>>());
             Assert.Throws<SchemaException>(Call);

@@ -54,5 +54,3 @@ A full list of all available keyboard shortcuts can be found clicking on the 'Ke
 - Reload Schema: CTRL + ALT + R
 - Show Operation: CTRL + SHIFT + O
 - Show Schema: CTRL + SHIFT + S
-
-

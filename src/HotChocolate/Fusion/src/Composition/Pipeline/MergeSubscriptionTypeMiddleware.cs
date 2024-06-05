@@ -58,7 +58,7 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
                     arguments,
                     null);
 
-                var selectionSet = new SelectionSetNode(new[] { selection });
+                var selectionSet = new SelectionSetNode(new[] { selection, });
 
                 foreach (var arg in field.Arguments)
                 {

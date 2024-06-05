@@ -40,7 +40,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
                 _services,
                 context.ContextData,
                 document,
-                context.DocumentId);
+                context.DocumentId.Value);
 
             var result = await handler.AuthorizeAsync(ctx, directives, ct).ConfigureAwait(false);
 
@@ -73,7 +73,7 @@ internal sealed class AuthorizeValidationResultAggregator : IValidationResultAgg
                     .SetCode(result == AuthorizeResult.NotAllowed
                         ? ErrorCodes.Authentication.NotAuthorized
                         : ErrorCodes.Authentication.NotAuthenticated)
-                    .Build()
+                    .Build(),
         };
     }
 }

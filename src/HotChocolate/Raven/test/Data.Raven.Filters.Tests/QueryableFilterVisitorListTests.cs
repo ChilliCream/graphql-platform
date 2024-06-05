@@ -1,9 +1,5 @@
-using System.Collections.Immutable;
 using CookieCrumble;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
-using Raven.Client.Documents;
-using Raven.Client.Documents.Queries;
 
 namespace HotChocolate.Data.Filters;
 
@@ -11,43 +7,43 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilterVisitorListTests
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "a" }, new() { Bar = "a" }, new() { Bar = "a" }
-            }
+            FooNested =
+            [
+                new() { Bar = "a", }, new() { Bar = "a", }, new() { Bar = "a", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "c" }, new() { Bar = "a" }, new() { Bar = "a" }
-            }
+            FooNested =
+            [
+                new() { Bar = "c", }, new() { Bar = "a", }, new() { Bar = "a", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "a" }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
+            FooNested =
+            [
+                new() { Bar = "a", }, new() { Bar = "d", }, new() { Bar = "b", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = "c" }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
+            FooNested =
+            [
+                new() { Bar = "c", }, new() { Bar = "d", }, new() { Bar = "b", },
+            ],
         },
         new()
         {
-            FooNested = new List<FooNested>()
-            {
-                new() { Bar = null! }, new() { Bar = "d" }, new() { Bar = "b" }
-            }
-        }
-    };
+            FooNested =
+            [
+                new() { Bar = null!, }, new() { Bar = "d", }, new() { Bar = "b", },
+            ],
+        },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -64,8 +60,8 @@ public class QueryableFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root(where: {
                             fooNested: {
@@ -81,19 +77,19 @@ public class QueryableFilterVisitorListTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -112,22 +108,22 @@ public class QueryableFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -146,16 +142,16 @@ public class QueryableFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -169,12 +165,12 @@ public class QueryableFilterVisitorListTests
     {
         public string? Id { get; set; }
 
-        public List<FooNested> FooNested { get; set; } = new();
+        public List<FooNested> FooNested { get; set; } = [];
     }
 
     public class FooSimple
     {
-        public List<string> Bar { get; set; } = new();
+        public List<string> Bar { get; set; } = [];
     }
 
     public class FooNested

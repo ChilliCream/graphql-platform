@@ -1,15 +1,12 @@
 #if NET7_0_OR_GREATER
 using System.Buffers;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Planning;
 
 namespace CookieCrumble.Formatters;
 
-internal sealed class QueryPlanSnapshotValueFormatter : SnapshotValueFormatter<QueryPlan>
+internal sealed class QueryPlanSnapshotValueFormatter() : SnapshotValueFormatter<QueryPlan>("json")
 {
     protected override void Format(IBufferWriter<byte> snapshot, QueryPlan value)
-    {
-        value.Format(snapshot);
-    }
+        => value.Format(snapshot);
 }
 #endif

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -10,7 +9,10 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuilder
+internal class ScopedStateParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private static readonly MethodInfo _getScopedState =
         typeof(ExpressionHelper).GetMethod(
@@ -18,17 +20,21 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
     private static readonly MethodInfo _getScopedStateWithDefault =
         typeof(ExpressionHelper).GetMethod(
             nameof(ExpressionHelper.GetScopedStateWithDefault))!;
+    private static readonly MethodInfo _setScopedState =
+        typeof(ExpressionHelper).GetMethod(
+            nameof(ExpressionHelper.SetScopedState))!;
+    private static readonly MethodInfo _setScopedStateGeneric =
+        typeof(ExpressionHelper).GetMethod(
+            nameof(ExpressionHelper.SetScopedStateGeneric))!;
 
-    protected virtual PropertyInfo ContextDataProperty { get; } =
+    private static readonly PropertyInfo _contextDataProperty =
         ContextType.GetProperty(nameof(IResolverContext.ScopedContextData))!;
 
-    protected virtual MethodInfo SetStateMethod { get; } =
-        typeof(ExpressionHelper)
-            .GetMethod(nameof(ExpressionHelper.SetScopedState))!;
+    protected virtual PropertyInfo ContextDataProperty => _contextDataProperty;
 
-    protected virtual MethodInfo SetStateGenericMethod { get; } =
-        typeof(ExpressionHelper)
-            .GetMethod(nameof(ExpressionHelper.SetScopedStateGeneric))!;
+    protected virtual MethodInfo SetStateMethod => _setScopedState;
+
+    protected virtual MethodInfo SetStateGenericMethod => _setScopedStateGeneric;
 
     public virtual ArgumentKind Kind => ArgumentKind.ScopedState;
 
@@ -103,7 +109,30 @@ internal class ScopedStateParameterExpressionBuilder : IParameterExpressionBuild
                 contextData,
                 key,
                 Expression.Constant(
-                    new NullableHelper(targetType).GetFlags(parameter).FirstOrDefault() ?? false,
+                    ResolveDefaultIfNotExistsParameterValue(targetType, parameter),
                     typeof(bool)));
     }
+
+    protected virtual bool ResolveDefaultIfNotExistsParameterValue(
+        Type targetType,
+        ParameterInfo parameter)
+    {
+        var helper = new NullableHelper(targetType);
+        var nullabilityFlags = helper.GetFlags(parameter);
+        if (nullabilityFlags.Length > 0 &&
+            nullabilityFlags[0] is { } f)
+        {
+            return f;
+        }
+        return false;
+    }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => throw new NotSupportedException();
+
+    public T Execute<T>(IPureResolverContext context)
+        => throw new NotSupportedException();
 }

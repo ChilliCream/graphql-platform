@@ -191,3 +191,5 @@ while (!responseStream.IsCompleted)
     Console.WriteLine(query.ToJson());
 }
 ```
+
+<!-- spell-checker:ignore Cbnia, Yero -->

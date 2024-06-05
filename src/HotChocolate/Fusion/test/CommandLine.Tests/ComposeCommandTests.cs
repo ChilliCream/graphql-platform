@@ -31,7 +31,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", subgraphPackageFile });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -52,7 +52,7 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -85,12 +85,12 @@ public class ComposeCommandTests : CommandTestBase
         var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", accountSubgraphPackageFile });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", accountSubgraphPackageFile,]);
 
         // act
         app = App.CreateBuilder().Build();
         await app.InvokeAsync(
-            new[] { "compose", "-p", packageFile, "-s", reviewSubgraphPackageFile });
+            ["compose", "-p", packageFile, "-s", reviewSubgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -111,7 +111,7 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", subgraphPackageFile });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -165,7 +165,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", subgraphPackageFile, "--enable-nodes" });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile, "--enable-nodes",]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -193,9 +193,9 @@ public class ComposeCommandTests : CommandTestBase
                 account.ExtensionFiles));
 
         var packageFile = CreateTempFile(Extensions.FusionPackage);
-        var settingsFile = System.IO.Path.Combine(
-            System.IO.Path.GetDirectoryName(packageFile)!,
-            $"{System.IO.Path.GetFileNameWithoutExtension(packageFile)}-settings.json");
+        var settingsFile = Path.Combine(
+            Path.GetDirectoryName(packageFile)!,
+            $"{Path.GetFileNameWithoutExtension(packageFile)}-settings.json");
 
         await File.WriteAllTextAsync(
             settingsFile,
@@ -214,7 +214,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", subgraphPackageFile });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphPackageFile,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -242,7 +242,7 @@ public class ComposeCommandTests : CommandTestBase
 
         // act
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", subgraphDir });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphDir,]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -263,7 +263,7 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -296,16 +296,16 @@ public class ComposeCommandTests : CommandTestBase
         var packageFile = CreateTempFile(Extensions.FusionPackage);
 
         var app = App.CreateBuilder().Build();
-        await app.InvokeAsync(new[] { "compose", "-p", packageFile, "-s", accountSubgraphPackageFile });
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", accountSubgraphPackageFile,]);
 
         app = App.CreateBuilder().Build();
         await app.InvokeAsync(
-            new[] { "compose", "-p", packageFile, "-s", reviewSubgraphPackageFile });
+            ["compose", "-p", packageFile, "-s", reviewSubgraphPackageFile,]);
 
         // act
         app = App.CreateBuilder().Build();
         await app.InvokeAsync(
-            new[] { "compose", "-p", packageFile, "-r", "Reviews2" });
+            ["compose", "-p", packageFile, "-r", "Reviews2",]);
 
         // assert
         Assert.True(File.Exists(packageFile));
@@ -326,6 +326,53 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Compose_With_Tag()
+    {
+        // arrange
+        var subgraphDir = CreateTempDir();
+        Directory.CreateDirectory(subgraphDir);
+
+        var schemaFile = Path.Combine(subgraphDir, "schema.graphql");
+        var configFile = Path.Combine(subgraphDir, "subgraph-config.json");
+
+        await File.WriteAllTextAsync(schemaFile, FileResource.Open("test2.graphql"), Encoding.UTF8);
+        await File.WriteAllTextAsync(configFile, FileResource.Open("test2.subgraph-config.json"), Encoding.UTF8);
+
+        var packageFile = CreateTempFile(Extensions.FusionPackage);
+        var gatewayConfig = Path.Combine(
+            Path.GetDirectoryName(packageFile)!,
+            Path.GetFileNameWithoutExtension(packageFile) + "-settings.json");
+        File.Delete(packageFile);
+
+        await File.WriteAllTextAsync(gatewayConfig, FileResource.Open("test2.gateway-config.json"), Encoding.UTF8);
+
+        // act
+        var app = App.CreateBuilder().Build();
+        await app.InvokeAsync(["compose", "-p", packageFile, "-s", subgraphDir,]);
+
+        // assert
+        Assert.True(File.Exists(packageFile));
+
+        await using var package = FusionGraphPackage.Open(packageFile, FileAccess.Read);
+
+        var fusionGraph = await package.GetFusionGraphAsync();
+        var schema = await package.GetSchemaAsync();
+        var subgraphs = await package.GetSubgraphConfigurationsAsync();
+
+        var snapshot = new Snapshot();
+
+        snapshot.Add(schema, "Schema Document");
+        snapshot.Add(fusionGraph, "Fusion Graph Document");
+
+        foreach (var subgraph in subgraphs)
+        {
+            snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
+        }
+
+        await snapshot.MatchMarkdownAsync();
     }
 }

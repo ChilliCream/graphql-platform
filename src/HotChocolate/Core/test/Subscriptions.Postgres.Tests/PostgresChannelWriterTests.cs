@@ -27,7 +27,7 @@ public class PostgresChannelWriterTests
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
         {
-            ConnectionFactory = ConnectionFactory, ChannelName = _channelName
+            ConnectionFactory = ConnectionFactory, ChannelName = _channelName,
         };
     }
 
@@ -56,15 +56,16 @@ public class PostgresChannelWriterTests
         // Arrange
         var postgresChannelWriter = new PostgresChannelWriter(_events, _options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
-        var message =
-            PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
         var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
 
         // Act
         await Parallel.ForEachAsync(Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (_, _) =>
             {
+                var message =
+                    PostgresMessageEnvelope.Create("test", "test", _options.MaxMessagePayloadSize);
+
                 await postgresChannelWriter.SendAsync(message, CancellationToken.None);
             });
 
@@ -89,7 +90,7 @@ public class PostgresChannelWriterTests
                 connected = true;
                 return await ConnectionFactory(ct);
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var postgresChannelWriter = new PostgresChannelWriter(_events, options);
 
@@ -121,7 +122,7 @@ public class PostgresChannelWriterTests
 
                 return await ConnectionFactory(ct);
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var postgresChannelWriter = new PostgresChannelWriter(_events, options);
         await postgresChannelWriter.Initialize(CancellationToken.None);
@@ -146,7 +147,7 @@ public class PostgresChannelWriterTests
                 connection = await ConnectionFactory(ct);
                 return connection;
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var postgresChannelWriter = new PostgresChannelWriter(_events, options);
         await postgresChannelWriter.Initialize(CancellationToken.None);

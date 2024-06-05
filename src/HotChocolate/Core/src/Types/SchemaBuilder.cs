@@ -7,8 +7,10 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -23,21 +25,20 @@ public partial class SchemaBuilder : ISchemaBuilder
     private delegate TypeReference CreateRef(ITypeInspector typeInspector);
 
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<FieldMiddleware> _globalComponents = new();
-    private readonly List<LoadSchemaDocument> _documents = new();
-    private readonly List<CreateRef> _types = new();
+    private readonly List<FieldMiddleware> _globalComponents = [];
+    private readonly List<LoadSchemaDocument> _documents = [];
+    private readonly List<CreateRef> _types = [];
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
 
-    private readonly List<object> _typeInterceptors = new()
-    {
+    private readonly List<object> _typeInterceptors =
+    [
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
-        typeof(CostTypeInterceptor),
         typeof(MiddlewareValidationTypeInterceptor),
-        typeof(EnableTrueNullabilityTypeInterceptor)
-    };
+        typeof(EnableTrueNullabilityTypeInterceptor),
+    ];
 
     private SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;
@@ -201,7 +202,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             (convention, scope),
             out var factories))
         {
-            factories = new List<CreateConvention>();
+            factories = [];
             _conventions[(convention, scope)] = factories;
         }
 
@@ -260,6 +261,16 @@ public partial class SchemaBuilder : ISchemaBuilder
 
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
+    }
+    
+    internal void AddTypeReference(TypeReference typeReference)
+    {
+        if (typeReference is null)
+        {
+            throw new ArgumentNullException(nameof(typeReference));
+        }
+
+        _types.Add(_ => typeReference);
     }
 
     /// <inheritdoc />
@@ -375,7 +386,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(services));
         }
 
-        _services = _services is null ? services : _services.Include(services);
+        _services = _services is null ? services : new CombinedServiceProvider(_services, services);
 
         return this;
     }
@@ -406,7 +417,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         if (!typeof(TypeInterceptor).IsAssignableFrom(interceptor))
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                TypeResources.SchemaBuilder_Interceptor_NotSupported,
                 nameof(interceptor));
         }
 
@@ -441,4 +452,24 @@ public partial class SchemaBuilder : ISchemaBuilder
     /// Returns a new instance of <see cref="SchemaBuilder"/>.
     /// </returns>
     public static SchemaBuilder New() => new();
+
+    private sealed class CopyOptions : TypeInterceptor
+    {
+        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+        {
+            if (definition is SchemaTypeDefinition schemaDef)
+            {
+                var key = typeof(PagingOptions).FullName!;
+
+                if (completionContext.DescriptorContext.ContextData.TryGetValue(key, out var value))
+                {
+                    schemaDef.ContextData[key] = value;
+                }
+                else
+                {
+                    schemaDef.ContextData[key] = new PagingOptions();
+                }
+            }
+        }
+    }
 }

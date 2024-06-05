@@ -55,7 +55,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         : base(new SyntaxVisitorOptions
         {
             VisitDirectives = true,
-            VisitArguments = true
+            VisitArguments = true,
         })
     {
     }
@@ -248,7 +248,7 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         {
             SyntaxKind.Argument => context.InputFields.Peek().DefaultValue,
             SyntaxKind.ObjectField => context.InputFields.Peek().DefaultValue,
-            _ => null
+            _ => null,
         };
 
         if (context.Variables.TryGetValue(

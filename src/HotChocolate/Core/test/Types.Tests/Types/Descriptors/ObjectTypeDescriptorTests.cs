@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -84,7 +83,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void IgnoreOverridenPropertyField()
+    public void IgnoreOverriddenPropertyField()
     {
         // arrange
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
@@ -103,7 +102,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
 
 
     [Fact]
-    public void UnignoreOverridenPropertyField()
+    public void UnignoreOverriddenPropertyField()
     {
         // arrange
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
@@ -123,7 +122,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void IgnoreOverridenMethodField()
+    public void IgnoreOverriddenMethodField()
     {
         // arrange
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);
@@ -143,7 +142,7 @@ public class ObjectTypeDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void UnignoreOverridenMethodField()
+    public void UnignoreOverriddenMethodField()
     {
         // arrange
         var descriptor = new ObjectTypeDescriptor<Foo>(Context);

@@ -301,10 +301,14 @@ internal struct Iso8601Duration
                 }
                 // Normalize to nanosecond intervals
                 for (; numDigits > 9; numDigits--)
+                {
                     value /= 10;
+                }
 
                 for (; numDigits < 9; numDigits++)
+                {
                     value *= 10;
+                }
 
                 nanoseconds |= (uint)value;
 
@@ -355,13 +359,13 @@ internal struct Iso8601Duration
         return false;
     }
 
-    /// Helper method that constructs an integer from leading digits starting at s[offset].
-    /// "offset" is updated to contain an offset just beyond the last digit.
-    /// The number of digits consumed is returned in cntDigits.
-    /// The integer is returned (0 if no digits).  If the digits cannot fit into an Int32:
-    ///   1. If eatDigits is true, then additional digits will be silently discarded
-    ///      (don't count towards numDigits)
-    ///   2. If eatDigits is false, an overflow exception is thrown
+    // Helper method that constructs an integer from leading digits starting at s[offset].
+    // "offset" is updated to contain an offset just beyond the last digit.
+    // The number of digits consumed is returned in cntDigits.
+    // The integer is returned (0 if no digits).  If the digits cannot fit into an Int32:
+    //   1. If eatDigits is true, then additional digits will be silently discarded
+    //      (don't count towards numDigits)
+    //   2. If eatDigits is false, an overflow exception is thrown
     private static bool TryParseDigits(string s, ref int offset, bool eatDigits, out int result, out int numDigits)
     {
         var offsetStart = offset;

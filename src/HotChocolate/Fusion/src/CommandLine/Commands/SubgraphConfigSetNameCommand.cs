@@ -16,7 +16,7 @@ internal sealed class SubgraphConfigSetNameCommand : Command
 
         var subgraphName = new Argument<string>("name")
         {
-            Description = "The subgraph name."
+            Description = "The subgraph name.",
         };
 
         var configFile = new SubgraphConfigFileOption();
@@ -53,15 +53,15 @@ internal sealed class SubgraphConfigSetNameCommand : Command
         else if (configFile.Extension.EqualsOrdinal(".fsp"))
         {
             var config = await LoadSubgraphConfigFromSubgraphPackageAsync(configFile.FullName, cancellationToken);
-            
+
             await ReplaceSubgraphConfigInSubgraphPackageAsync(
                 configFile.FullName,
-                config with { Name = subgraphName });
+                config with { Name = subgraphName, });
         }
         else
         {
             var config = await LoadSubgraphConfigAsync(configFile.FullName, cancellationToken);
-            var configJson = FormatSubgraphConfig(config with { Name = subgraphName });
+            var configJson = FormatSubgraphConfig(config with { Name = subgraphName, });
             await File.WriteAllTextAsync(configFile.FullName, configJson, cancellationToken);
         }
     }

@@ -9,7 +9,7 @@ public class SelectionSetVariants
         IReadOnlyList<SelectionSet>? variants = null)
     {
         ReturnType = returnType;
-        Variants = variants ?? new [] { returnType };
+        Variants = variants ?? new [] { returnType, };
     }
 
     public SelectionSet ReturnType { get; }

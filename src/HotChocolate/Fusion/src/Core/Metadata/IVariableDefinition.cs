@@ -1,5 +1,3 @@
-using HotChocolate.Language;
-
 namespace HotChocolate.Fusion.Metadata;
 
 /// <summary>

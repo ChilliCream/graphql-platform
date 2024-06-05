@@ -2,9 +2,19 @@
   "errors": [
     {
       "message": "The default coordinate reference system `26918` was not found.\n      Register it on the schema with `.AddSpatialTypes(x => x.DefaultSRID(26918).AddAddCoordinateSystemFromString(26918, \"...\"))`",
+      "locations": [
+        {
+          "line": 3,
+          "column": 21
+        }
+      ],
+      "path": [
+        "test"
+      ],
       "extensions": {
         "code": "HC0029"
       }
     }
-  ]
+  ],
+  "data": null
 }

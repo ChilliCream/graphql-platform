@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 namespace HotChocolate.Language;
 
 public interface ISyntaxNodeVisitor<T>
@@ -7,7 +6,7 @@ public interface ISyntaxNodeVisitor<T>
 {
     /// <summary>
     /// Enter is called when the visitation method hit the node and
-    /// is aboute to visit its subtree.
+    /// is about to visit its subtree.
     /// </summary>
     /// <param name="node">
     /// The current node being visited.

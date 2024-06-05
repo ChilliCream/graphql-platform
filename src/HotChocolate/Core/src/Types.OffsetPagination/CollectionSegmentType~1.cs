@@ -83,7 +83,7 @@ internal class CollectionSegmentType
         var definition = new ObjectTypeDefinition
         {
             Description = CollectionSegmentType_Description,
-            RuntimeType = typeof(CollectionSegment)
+            RuntimeType = typeof(CollectionSegment),
         };
 
         definition.Fields.Add(new(
@@ -95,7 +95,7 @@ internal class CollectionSegmentType
         definition.Fields.Add(new(
             Names.Items,
             CollectionSegmentType_Items_Description,
-            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items}});
+            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items, }, });
 
         if (withTotalCount)
         {

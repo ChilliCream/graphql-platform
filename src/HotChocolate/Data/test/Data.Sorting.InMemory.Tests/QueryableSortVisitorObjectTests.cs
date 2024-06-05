@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -8,7 +6,7 @@ namespace HotChocolate.Data.Sorting.Expressions;
 public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -25,11 +23,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new Foo
                         {
                             // ScalarArray = new[] { "c", "d", "a" }
-                            BarShort = 12, BarString = "a"
-                        }
-                    }
-                }
-            }
+                            BarShort = 12, BarString = "a",
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -47,11 +45,11 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         Foo = new Foo
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
-                            BarShort = 14, BarString = "d"
-                        }
-                    }
-                }
-            }
+                            BarShort = 14, BarString = "d",
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -63,12 +61,12 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarString = "testctest",
                 //ScalarArray = null,
                 ObjectArray = null,
-            }
-        }
-    };
+            },
+        },
+    ];
 
     private static readonly BarNullable?[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -86,10 +84,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         {
                             //ScalarArray = new[] { "c", "d", "a" }
                             BarShort = 12,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -108,10 +106,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
                             BarShort = null,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -130,10 +128,10 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                         {
                             //ScalarArray = new[] { "c", "d", "b" }
                             BarShort = 14,
-                        }
-                    }
-                }
-            }
+                        },
+                    },
+                },
+            },
         },
         new()
         {
@@ -144,15 +142,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
                 //ScalarArray = null,
-                ObjectArray = null
-            }
+                ObjectArray = null,
+            },
         },
         new()
         {
-            Foo =null
+            Foo =null,
         },
-        null
-    };
+        null,
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -169,18 +167,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barShort: ASC}}) " +
                     "{ foo{ barShort}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barShort: DESC}}) " +
                     "{ foo{ barShort}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -199,18 +197,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barShort: ASC}}) " +
                     "{ foo{ barShort}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barShort: DESC}}) " +
                     "{ foo{ barShort}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -228,18 +226,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barEnum: ASC}}) " +
                     "{ foo{ barEnum}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barEnum: DESC}}) " +
                     "{ foo{ barEnum}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -257,18 +255,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barEnum: ASC}}) " +
                     "{ foo{ barEnum}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barEnum: DESC}}) " +
                     "{ foo{ barEnum}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -286,18 +284,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barString: ASC}}) " +
                     "{ foo{ barString}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barString: DESC}}) " +
                     "{ foo{ barString}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -315,18 +313,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barString: ASC}}) " +
                     "{ foo{ barString}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barString: DESC}}) " +
                     "{ foo{ barString}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -344,18 +342,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barBool: ASC}}) " +
                     "{ foo{ barBool}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barBool: DESC}}) " +
                     "{ foo{ barBool}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -373,18 +371,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barBool: ASC}}) " +
                     "{ foo{ barBool}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barBool: DESC}}) " +
                     "{ foo{ barBool}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -402,15 +400,15 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
                     "{ foo{ barBool barShort}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root(order: [
@@ -423,18 +421,18 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             }
                         }
                         ")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
                     "{ foo{ barBool barShort}}}")
-                .Create());
+                .Build());
 
         var res4 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root(order: [
                             { foo: { barBool: DESC } },
@@ -445,7 +443,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -472,7 +470,7 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         //Not supported in SQL
         //public string[] ScalarArray { get; set; }
 
-        public List<Bar>? ObjectArray { get; set; } = new();
+        public List<Bar>? ObjectArray { get; set; } = [];
     }
 
     public class FooNullable
@@ -520,6 +518,6 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

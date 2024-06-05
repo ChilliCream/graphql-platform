@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -41,7 +39,7 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     }
 
     /// <inheritdoc />
-    public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+    public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
     {
         var serializers = _collection.Settings.SerializerRegistry;
         IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
@@ -72,14 +70,14 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
     }
 
     /// <inheritdoc />
-    public override async ValueTask<object?> FirstOrDefaultAsync(
+    public override async ValueTask<T?> FirstOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
     /// <inheritdoc />
-    public override async ValueTask<object?> SingleOrDefaultAsync(
+    public override async ValueTask<T?> SingleOrDefaultAsync(
         CancellationToken cancellationToken) =>
         await BuildPipeline()
             .SingleOrDefaultAsync(cancellationToken)

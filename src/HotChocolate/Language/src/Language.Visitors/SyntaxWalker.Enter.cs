@@ -1,12 +1,8 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 public partial class SyntaxWalker
 {
-    protected override ISyntaxVisitorAction Enter(
-        ISyntaxNode node,
-        ISyntaxVisitorContext context)
+    protected override ISyntaxVisitorAction Enter(ISyntaxNode node, object? context)
     {
         switch (node.Kind)
         {
@@ -100,196 +96,196 @@ public partial class SyntaxWalker
 
     protected virtual ISyntaxVisitorAction Enter(
         NameNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         DocumentNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         VariableDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         VariableNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SelectionSetNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         FieldNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ArgumentNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         FragmentSpreadNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         InlineFragmentNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         FragmentDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         DirectiveNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         NamedTypeNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ListTypeNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         NonNullTypeNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ListValueNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ObjectValueNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ObjectFieldNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         IValueNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SchemaDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         OperationTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ScalarTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ObjectTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         FieldDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         InputValueDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         InterfaceTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         UnionTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         EnumTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         EnumValueDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         InputObjectTypeDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         DirectiveDefinitionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         SchemaExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ScalarTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         ObjectTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         InterfaceTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
         UnionTypeExtensionNode node,
-        ISyntaxVisitorContext context) =>
+        object? context) =>
         DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
        EnumTypeExtensionNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
        InputObjectTypeExtensionNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 
     protected virtual ISyntaxVisitorAction Enter(
        SchemaCoordinateNode node,
-       ISyntaxVisitorContext context) =>
+       object? context) =>
        DefaultAction;
 }

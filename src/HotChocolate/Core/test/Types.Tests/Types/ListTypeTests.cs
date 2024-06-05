@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -61,10 +60,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ scalars(values: [1,2]) }")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ scalars(values: [1,2]) }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -81,10 +80,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ scalars(values: 1) }")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ scalars(values: 1) }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -101,10 +100,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ objects(values: [{ bar: 1 }, { bar: 2 }]) { bar } }")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ objects(values: [{ bar: 1 }, { bar: 2 }]) { bar } }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -121,10 +120,10 @@ public class ListTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ objects(values: { bar: 1 }) { bar } }")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ objects(values: { bar: 1 }) { bar } }")
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();

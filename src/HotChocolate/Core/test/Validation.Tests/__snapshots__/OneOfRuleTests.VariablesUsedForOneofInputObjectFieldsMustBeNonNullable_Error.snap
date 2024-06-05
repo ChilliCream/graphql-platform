@@ -23,55 +23,6 @@
       "specifiedBy": "https://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
       "rfc": "https://github.com/graphql/graphql-spec/pull/825"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectValue",
-      "Location": {
-        "Start": 83,
-        "End": 97,
-        "Line": 3,
-        "Column": 33
-      },
-      "Fields": [
-        {
-          "Kind": "ObjectField",
-          "Location": {
-            "Start": 85,
-            "End": 96,
-            "Line": 3,
-            "Column": 35
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 85,
-              "End": 89,
-              "Line": 3,
-              "Column": 35
-            },
-            "Value": "cat"
-          },
-          "Value": {
-            "Kind": "Variable",
-            "Location": {
-              "Start": 90,
-              "End": 96,
-              "Line": 3,
-              "Column": 40
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 91,
-                "End": 96,
-                "Line": 3,
-                "Column": 41
-              },
-              "Value": "cat"
-            }
-          }
-        }
-      ]
-    }
+    "Exception": null
   }
 ]

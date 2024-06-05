@@ -31,16 +31,6 @@ public class RgbType : RegexType
 #endif
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPv6Type"/> class.
-    /// </summary>
-    public RgbType()
-        : this(
-            WellKnownScalarTypes.Rgb,
-            ScalarResources.RgbType_Description)
-    {
-    }
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="RgbType"/> class.
     /// </summary>
     public RgbType(
@@ -52,6 +42,17 @@ public class RgbType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IPv6Type"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public RgbType()
+        : this(
+            WellKnownScalarTypes.Rgb,
+            ScalarResources.RgbType_Description)
     {
     }
 

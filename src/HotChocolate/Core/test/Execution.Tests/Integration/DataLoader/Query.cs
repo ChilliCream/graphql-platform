@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Integration.DataLoader;
 

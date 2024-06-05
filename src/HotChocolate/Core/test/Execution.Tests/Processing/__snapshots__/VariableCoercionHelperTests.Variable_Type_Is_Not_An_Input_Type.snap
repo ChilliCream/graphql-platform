@@ -9,7 +9,6 @@
       "variable": "abc",
       "type": "Human"
     },
-    "Exception": null,
-    "SyntaxNode": null
+    "Exception": null
   }
 ]

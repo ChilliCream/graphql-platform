@@ -91,7 +91,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         var operation = context.Operation;
         List<ISelection>? leftovers = null;
         var path = new List<ISelection>();
-        
+
         // if this is the root selection set of a query we will
         // look for some special selections.
         if (!context.HasHandledSpecialQueryFields && parentSelection is null)
@@ -141,13 +141,13 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             {
                 var pathIndex = path.Count;
                 path.Add(selection);
-                
+
                 var field = selection.Field;
                 var fieldInfo = selectionSetTypeMetadata.Fields[field.Name];
 
                 if (!fieldInfo.Bindings.ContainsSubgraph(subgraph))
                 {
-                    (leftovers ??= new()).Add(selection);
+                    (leftovers ??= []).Add(selection);
                     continue;
                 }
 
@@ -205,15 +205,15 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         preferBatching,
                         context.ParentSelections);
                 }
-                
+
                 path.RemoveAt(pathIndex);
             }
-            
+
             // if the current execution step has now way to resolve the data
             // we will try to resolve it from the root.
-            if(executionStep.ParentSelection is not null && 
+            if(executionStep.ParentSelection is not null &&
                 executionStep.ParentSelectionPath is not null &&
-                executionStep.Resolver is null && 
+                executionStep.Resolver is null &&
                 executionStep.SelectionResolvers.Count == 0)
             {
                 if (!EnsureStepCanBeResolvedFromRoot(
@@ -251,7 +251,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         field,
                         operation.RootType,
                         selectionSetTypeMetadata);
-                    (processed ??= new()).Add(i);
+                    (processed ??= []).Add(i);
                     continue;
                 }
 
@@ -263,11 +263,11 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
                         selection,
                         selectionSetTypeMetadata,
                         context.ParentSelections);
-                    (processed ??= new()).Add(i);
+                    (processed ??= []).Add(i);
                 }
             }
 
-            if (processed is { Count: > 0 })
+            if (processed is { Count: > 0, })
             {
                 var temp = selections.ToList();
 
@@ -332,7 +332,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
         {
             var pathIndex = path.Count;
             path.Add(selection);
-            
+
             parentSelectionLookup.TryAdd(selection, parentSelection);
             var field = declaringType.Fields[selection.Field.Name];
 
@@ -391,9 +391,9 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             }
             else
             {
-                (leftovers ??= new()).Add(selection);
+                (leftovers ??= []).Add(selection);
             }
-            
+
             path.RemoveAt(pathIndex);
         }
 
@@ -553,7 +553,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             operation,
             nodeSelection,
             null,
-            new List<ISelection>(),
+            [],
             executionStep,
             entityType,
             preferBatching,
@@ -804,7 +804,7 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
             {
                 return false;
             }
-            
+
             current = current.Parent;
         }
 
@@ -833,6 +833,6 @@ internal sealed class ExecutionStepDiscoveryMiddleware(
     {
         Query,
         Batch,
-        Subscription
+        Subscription,
     }
 }

@@ -1,15 +1,16 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
 internal sealed class QueryCacheMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly ICacheControlOptions _options;
-
-    public QueryCacheMiddleware(
+    private readonly RequestDelegate _next;
+    
+    private QueryCacheMiddleware(
         RequestDelegate next,
         [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
     {
@@ -46,7 +47,7 @@ internal sealed class QueryCacheMiddleware
 
             contextData.Add(CacheControlHeaderValue, cacheControlHeaderValue);
 
-            context.Result = new QueryResult(
+            context.Result = new OperationResult(
                 queryResult.Data,
                 queryResult.Errors,
                 queryResult.Extensions,
@@ -58,4 +59,12 @@ internal sealed class QueryCacheMiddleware
                 queryResult.HasNext);
         }
     }
+
+    internal static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var options = core.SchemaServices.GetRequiredService<ICacheControlOptionsAccessor>();
+            var middleware = new QueryCacheMiddleware(next, options);
+            return context => middleware.InvokeAsync(context);
+        };
 }

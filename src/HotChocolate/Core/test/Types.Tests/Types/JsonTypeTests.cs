@@ -24,17 +24,14 @@ public class JsonTypeTests
             schema {
               query: Query
             }
-            
+
             type Query {
               someJson: JSON!
               manyJson: [JSON!]
               inputJson(input: JSON!): JSON!
               jsonFromString: JSON!
             }
-            
-            "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
-            directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-            
+
             scalar JSON
             """);
     }
@@ -278,15 +275,15 @@ public class JsonTypeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.Create()
+                        .SetDocument(
                             """
                             query($input: JSON!) {
                                 inputJson(input: $input)
                             }
                             """)
-                        .SetVariableValue("input", input)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object> { {"input", input }, })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """

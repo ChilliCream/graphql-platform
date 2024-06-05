@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -105,7 +104,7 @@ public abstract class TypeReference : IEquatable<TypeReference>
         ITypeSystemMember type,
         string? scope = null)
     {
-        if (scope is null && type is IHasScope { Scope: not null } withScope)
+        if (scope is null && type is IHasScope { Scope: not null, } withScope)
         {
             scope = withScope.Scope;
         }

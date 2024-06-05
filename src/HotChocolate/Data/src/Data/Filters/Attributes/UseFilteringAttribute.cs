@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types;
@@ -52,7 +50,7 @@ public class UseFilteringAttribute : ObjectFieldDescriptorAttribute
         }
         else
         {
-            _generic.MakeGenericMethod(Type).Invoke(null, new object?[] { descriptor, Scope });
+            _generic.MakeGenericMethod(Type).Invoke(null, [descriptor, Scope,]);
         }
     }
 }

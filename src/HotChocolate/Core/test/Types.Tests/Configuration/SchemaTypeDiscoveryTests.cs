@@ -2,7 +2,6 @@
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 
@@ -177,7 +176,7 @@ public class SchemaTypeDiscoveryTests
     public enum FooBar
     {
         Foo,
-        Bar
+        Bar,
     }
 
     public class ByteArrayType : ScalarType

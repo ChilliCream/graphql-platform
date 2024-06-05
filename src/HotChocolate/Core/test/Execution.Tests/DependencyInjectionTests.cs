@@ -1,10 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Execution;
 
@@ -30,7 +27,7 @@ public class DependencyInjectionTests
                 .ToJsonAsync(),
             result2 = await executor
                 .ExecuteAsync("{ hello }")
-                .ToJsonAsync()
+                .ToJsonAsync(),
         }.MatchSnapshot();
     }
 
@@ -55,11 +52,11 @@ public class DependencyInjectionTests
         {
             result[0] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -67,11 +64,11 @@ public class DependencyInjectionTests
         {
             result[1] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -97,7 +94,7 @@ public class DependencyInjectionTests
                 .ToJsonAsync(),
             result2 = await executor
                 .ExecuteAsync("{ hello }")
-                .ToJsonAsync()
+                .ToJsonAsync(),
         }.MatchSnapshot();
     }
 
@@ -121,11 +118,11 @@ public class DependencyInjectionTests
         {
             result[0] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
@@ -133,16 +130,46 @@ public class DependencyInjectionTests
         {
             result[1] = await executor
                 .ExecuteAsync(
-                    QueryRequestBuilder
-                        .New()
-                        .SetQuery("{ hello }")
+                    OperationRequestBuilder
+                        .Create()
+                        .SetDocument("{ hello }")
                         .SetServices(scope.ServiceProvider)
-                        .Create())
+                        .Build())
                 .ToJsonAsync();
         }
 
         result.MatchSnapshot();
     }
+
+#if NET8_0_OR_GREATER
+    [Fact]
+    public async Task Keyed_Services_Do_Not_Throw()
+    {
+        var services =
+            new ServiceCollection()
+                .AddKeyedScoped<Query1>("abc")
+                .AddScoped<SomeService>()
+                .AddScoped<Query2>()
+                .AddGraphQL()
+                .AddQueryType<Query2>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        using var scope = services.CreateScope();
+
+        await executor
+            .ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ hello }")
+                    .SetServices(scope.ServiceProvider)
+                    .Build())
+            .ToJsonAsync()
+            .MatchSnapshotAsync();
+    }
+#endif
 
     public class SomeService
     {

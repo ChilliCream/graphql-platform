@@ -8,7 +8,7 @@ namespace HotChocolate.Skimmed;
 /// </summary>
 public sealed class DirectiveCollection : ICollection<Directive>
 {
-    private readonly List<Directive> _directives = new();
+    private readonly List<Directive> _directives = [];
 
     public int Count => _directives.Count;
 

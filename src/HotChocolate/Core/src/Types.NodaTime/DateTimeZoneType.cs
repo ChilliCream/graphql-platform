@@ -14,6 +14,7 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
     /// <summary>
     /// Initializes a new instance of <see cref="DateTimeZoneType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public DateTimeZoneType() : base("DateTimeZone")
     {
         Description = NodaTimeResources.DateTimeZoneType_Description;
@@ -28,7 +29,7 @@ public class DateTimeZoneType : StringToClassBaseType<DateTimeZone>
         string resultValue,
         [NotNullWhen(true)] out DateTimeZone? runtimeValue)
     {
-        DateTimeZone? result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
+        var result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
 
         if (result == null)
         {

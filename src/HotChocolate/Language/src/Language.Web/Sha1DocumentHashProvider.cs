@@ -1,8 +1,5 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using System.Threading;
-using static HotChocolate.Language.Properties.LangWebResources;
 
 namespace HotChocolate.Language;
 
@@ -33,20 +30,13 @@ public sealed class Sha1DocumentHashProvider : DocumentHashProviderBase
 
         if (written < 20)
         {
-            hashSpan = hashSpan.Slice(0, written);
+            hashSpan = hashSpan[..written];
         }
 
-        return format switch
-        {
-            HashFormat.Base64 => Convert.ToBase64String(hashSpan),
-            HashFormat.Hex => ToHexString(hashSpan),
-            _ => throw new NotSupportedException(ComputeHash_FormatNotSupported)
-        };
+        return FormatHash(hashSpan, format);
     }
 #else
     protected override byte[] ComputeHash(byte[] document, int length)
-    {
-        return _sha.Value!.ComputeHash(document, 0, length);
-    }
+        => _sha.Value!.ComputeHash(document, 0, length);
 #endif
 }

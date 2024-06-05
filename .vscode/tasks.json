@@ -17,22 +17,53 @@
       }
     },
     {
-      "label": "Build entire repository (Debug)",
+      "label": "Build src/All.sln",
       "command": "dotnet",
       "type": "shell",
       "args": [
         "build",
         "src/All.sln",
-        // Ask dotnet build to generate full paths for file names.
         "/property:GenerateFullPaths=true",
-        // Do not generate summary otherwise it leads to duplicate errors in Problems panel
-        "/consoleloggerparameters:NoSummary",
+        "/consoleloggerparameters:NoSummary"
       ],
       "group": "build",
       "presentation": {
         "reveal": "silent"
       },
       "problemMatcher": "$msCompile"
-    }
+    },
+    {
+      "label": "Build src/HotChocolate/Core/HotChocolate.Core.sln",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "src/HotChocolate/Core/HotChocolate.Core.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Test src/All.sln",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "test",
+        "src/All.sln",
+        "--verbosity q",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile"
+    },
   ]
 }

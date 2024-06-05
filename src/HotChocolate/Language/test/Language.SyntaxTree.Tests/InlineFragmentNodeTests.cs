@@ -55,7 +55,7 @@ public class InlineFragmentNodeTests
         var c = new InlineFragmentNode(
             new Location(3, 3, 3, 3),
             new("aa"),
-            new List<DirectiveNode> { new("bb") },
+            new List<DirectiveNode> { new("bb"), },
             new SelectionSetNode(new List<ISelectionNode>(0)));
 
         // act

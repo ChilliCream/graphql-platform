@@ -13,5 +13,5 @@ public enum FloatFormat
     /// <summary>
     /// The value has the e notation eg. 6.022e23
     /// </summary>
-    Exponential = 1
+    Exponential = 1,
 }

@@ -1,15 +1,13 @@
-using System;
-using System.Threading.Tasks;
+
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Resolvers;
-using MongoDB.Driver;
+using static HotChocolate.Data.MongoDb.MongoDbContextData;
 
 namespace HotChocolate.Data.MongoDb;
 
 /// <inheritdoc/>
-public class MongoDbProjectionProvider
-    : ProjectionProvider
+public class MongoDbProjectionProvider : ProjectionProvider
 {
     /// <inheritdoc/>
     public MongoDbProjectionProvider()
@@ -23,51 +21,65 @@ public class MongoDbProjectionProvider
     {
     }
 
-    /// <inheritdoc/>
-    public override FieldMiddleware CreateExecutor<TEntityType>()
-    {
-        return next => context => ExecuteAsync(next, context);
+    public override IQueryBuilder CreateBuilder<TEntityType>()
+        => new MongoDbQueryBuilder(CreateProjectionDefinition());
 
-        async ValueTask ExecuteAsync(
-            FieldDelegate next,
-            IMiddlewareContext context)
+    private Func<IMiddlewareContext, MongoDbProjectionDefinition?> CreateProjectionDefinition()
+        => context =>
         {
-            // first we let the pipeline run and produce a result.
-            await next(context).ConfigureAwait(false);
+            // if no filter is defined we can stop here and yield back control.
+            var skipProjection = context.GetLocalStateOrDefault<bool>(SkipProjectionKey);
 
-            if (context.Result is not null)
+            // ensure filtering is only applied once
+            context.SetLocalState(SkipProjectionKey, true);
+
+            if (skipProjection)
             {
-                var visitorContext =
-                    new MongoDbProjectionVisitorContext(context, context.ObjectType);
-
-                var visitor = new ProjectionVisitor<MongoDbProjectionVisitorContext>();
-                visitor.Visit(visitorContext);
-
-                if (!visitorContext.TryCreateQuery(
-                        out var projections) ||
-                    visitorContext.Errors.Count > 0)
-                {
-                    context.Result = Array.Empty<TEntityType>();
-                    foreach (var error in visitorContext.Errors)
-                    {
-                        context.ReportError(error.WithPath(context.Path));
-                    }
-                }
-                else
-                {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem(
-                            nameof(ProjectionDefinition<TEntityType>),
-                            projections);
-
-                    await next(context).ConfigureAwait(false);
-
-                    if (context.Result is IMongoDbExecutable executable)
-                    {
-                        context.Result = executable.WithProjection(projections);
-                    }
-                }
+                return null;
             }
+
+            var visitorContext = new MongoDbProjectionVisitorContext(context, context.ObjectType);
+            var visitor = new ProjectionVisitor<MongoDbProjectionVisitorContext>();
+            visitor.Visit(visitorContext);
+
+            if (visitorContext.Errors.Count == 0)
+            {
+                if(visitorContext.TryCreateQuery(out var projectionDef))
+                {
+                    return projectionDef;
+                }
+
+                return null;
+            }
+
+            throw new GraphQLException(
+                visitorContext.Errors.Select(e => e.WithPath(context.Path)).ToArray());
+        };
+
+    private sealed class MongoDbQueryBuilder(
+        Func<IMiddlewareContext, MongoDbProjectionDefinition?> createProjectionDef)
+        : IQueryBuilder
+    {
+        public void Prepare(IMiddlewareContext context)
+        {
+            var projectionDef = createProjectionDef(context);
+            context.SetLocalState(ProjectionDefinitionKey, projectionDef);
+        }
+
+        public void Apply(IMiddlewareContext context)
+        {
+            if (context.Result is not IMongoDbExecutable executable)
+            {
+                return;
+            }
+
+            var filterDef = context.GetLocalState<MongoDbProjectionDefinition>(ProjectionDefinitionKey);
+            if (filterDef is null)
+            {
+                return;
+            }
+
+            context.Result = executable.WithProjection(filterDef);
         }
     }
 }

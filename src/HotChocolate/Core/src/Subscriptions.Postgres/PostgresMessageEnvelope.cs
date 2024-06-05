@@ -11,7 +11,7 @@ internal readonly struct PostgresMessageEnvelope
 {
     private static readonly Encoding _utf8 = Encoding.UTF8;
     private static readonly Random _random = Random.Shared;
-    private const byte separator = (byte)':';
+    private const byte _separator = (byte)':';
     private const byte _messageIdLength = 24;
 
     private PostgresMessageEnvelope(string topic, string formattedPayload)
@@ -53,7 +53,7 @@ internal readonly struct PostgresMessageEnvelope
         slicedBuffer = slicedBuffer[_messageIdLength..];
 
         // write separator
-        slicedBuffer[0] = separator;
+        slicedBuffer[0] = _separator;
         slicedBuffer = slicedBuffer[1..];
 
         // write topic as base64
@@ -62,7 +62,7 @@ internal readonly struct PostgresMessageEnvelope
         slicedBuffer = slicedBuffer[topicLengthBase64..];
 
         // write separator
-        slicedBuffer[0] = separator;
+        slicedBuffer[0] = _separator;
         slicedBuffer = slicedBuffer[1..];
 
         // write payload
@@ -112,7 +112,7 @@ internal readonly struct PostgresMessageEnvelope
         buffer = buffer[(_messageIdLength + 1)..];
 
         // find the separator
-        var indexOfColon = buffer.IndexOf(separator);
+        var indexOfColon = buffer.IndexOf(_separator);
         if (indexOfColon == -1)
         {
             topic = null;

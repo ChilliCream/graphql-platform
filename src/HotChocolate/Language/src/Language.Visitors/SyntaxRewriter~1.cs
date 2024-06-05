@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Language.Visitors;
 
 /// <summary>
@@ -10,9 +7,7 @@ namespace HotChocolate.Language.Visitors;
 /// <typeparam name="TContext">
 /// The context type.
 /// </typeparam>
-public class SyntaxRewriter<TContext>
-    : ISyntaxRewriter<TContext>
-    where TContext : ISyntaxVisitorContext
+public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
 {
     public virtual ISyntaxNode? Rewrite(ISyntaxNode node, TContext context)
     {
@@ -76,7 +71,7 @@ public class SyntaxRewriter<TContext>
             VariableDefinitionNode n => RewriteVariableDefinition(n, context),
             VariableNode n => RewriteVariable(n, context),
             IValueNode n => RewriteCustomValue(n, context),
-            _ => throw new ArgumentOutOfRangeException(nameof(node))
+            _ => throw new ArgumentOutOfRangeException(nameof(node)),
         };
 
     protected virtual void OnLeave(
@@ -856,7 +851,7 @@ public class SyntaxRewriter<TContext>
         StringValueNode node,
         TContext context)
         => node;
-    
+
     protected virtual IValueNode? RewriteCustomValue(
         IValueNode node,
         TContext context)

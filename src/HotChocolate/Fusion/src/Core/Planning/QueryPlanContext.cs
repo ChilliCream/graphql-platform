@@ -11,9 +11,10 @@ internal sealed class QueryPlanContext(IOperation operation)
 {
     private readonly Dictionary<ExecutionStep, QueryPlanNode> _stepToNode = new();
     private readonly Dictionary<QueryPlanNode, ExecutionStep> _nodeToStep = new();
-    private readonly Dictionary<object, SelectionExecutionStep> _selectionLookup = new();
-    private readonly HashSet<ISelectionSet> _selectionSets = new();
-    private readonly HashSet<ExecutionStep> _completed = new();
+    private readonly Dictionary<ISelection, SelectionExecutionStep> _selectionLookup = new();
+    private readonly Dictionary<ISelectionSet, SelectionExecutionStep> _selectionSetLookup = new();
+    private readonly HashSet<ISelectionSet> _selectionSets = [];
+    private readonly HashSet<ExecutionStep> _completed = [];
     private readonly string _opName = operation.Name ?? CreateOperationName(operation);
     private QueryPlanNode? _rootNode;
     private int _opId;
@@ -24,7 +25,7 @@ internal sealed class QueryPlanContext(IOperation operation)
 
     public ExportDefinitionRegistry Exports { get; } = new();
 
-    public List<ExecutionStep> Steps { get; } = new();
+    public List<ExecutionStep> Steps { get; } = [];
 
     public Dictionary<string, IValueNode> VariableValues { get; } = new();
 
@@ -111,26 +112,29 @@ internal sealed class QueryPlanContext(IOperation operation)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        return _selectionLookup.TryGetValue(selectionSet, out step);
+        return _selectionSetLookup.TryGetValue(selectionSet, out step);
     }
 
     public void ReBuildSelectionLookup()
     {
         _selectionLookup.Clear();
+        _selectionSetLookup.Clear();
 
         foreach (var executionStep in Steps)
         {
-            if (executionStep is SelectionExecutionStep ses)
+            if (executionStep is not SelectionExecutionStep selectionStep)
             {
-                foreach (var selection in ses.AllSelections)
-                {
-                    _selectionLookup.TryAdd(selection, ses);
-                }
+                continue;
+            }
 
-                foreach (var selectionSet in ses.AllSelectionSets)
-                {
-                    _selectionLookup.TryAdd(selectionSet, ses);
-                }
+            foreach (var selection in selectionStep.AllSelections)
+            {
+                _selectionLookup.TryAdd(selection, selectionStep);
+            }
+
+            foreach (var selectionSet in selectionStep.AllSelectionSets)
+            {
+                _selectionSetLookup.TryAdd(selectionSet, selectionStep);
             }
         }
     }

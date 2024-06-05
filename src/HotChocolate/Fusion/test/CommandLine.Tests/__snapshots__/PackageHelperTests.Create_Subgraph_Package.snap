@@ -23,6 +23,7 @@ type Query {
   users: [User!]!
   userById(id: ID!): User
   usersById(ids: [ID!]!): [User!]!
+  errorField: String
   viewer: Viewer!
 }
 
@@ -39,6 +40,7 @@ type Viewer {
 }
 
 type User implements Node {
+  errorField: String
   id: ID!
   name: String!
   birthdate: Date!
@@ -58,8 +60,6 @@ input AddUserInput {
 type AddUserPayload {
   user: User
 }
-
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 ---------------
 
 Extensions

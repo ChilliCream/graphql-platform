@@ -34,7 +34,7 @@ public struct JsonResultFormatterOptions
         => new()
         {
             Indented = Indented,
-            Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            Encoder = Encoder ?? JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
     internal JsonSerializerOptions CreateSerializerOptions()
@@ -45,6 +45,6 @@ public struct JsonResultFormatterOptions
             DefaultIgnoreCondition =
                 NullIgnoreCondition is Fields or All
                     ? WhenWritingNull
-                    : default
+                    : default,
         };
 }

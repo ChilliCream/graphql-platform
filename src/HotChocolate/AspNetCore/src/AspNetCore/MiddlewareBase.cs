@@ -56,6 +56,11 @@ public class MiddlewareBase : IDisposable
     protected RequestExecutorProxy ExecutorProxy => _executorProxy;
 
     /// <summary>
+    /// Gets the response formatter.
+    /// </summary>
+    protected IHttpResponseFormatter ResponseFormatter => _responseFormatter;
+
+    /// <summary>
     /// Invokes the next middleware in line.
     /// </summary>
     /// <param name="context">
@@ -113,7 +118,7 @@ public class MiddlewareBase : IDisposable
     {
         diagnosticEvents.StartSingleRequest(context, request);
 
-        var requestBuilder = QueryRequestBuilder.From(request);
+        var requestBuilder = OperationRequestBuilder.From(request);
         requestBuilder.SetFlags(flags);
 
         await requestInterceptor.OnCreateAsync(
@@ -123,7 +128,7 @@ public class MiddlewareBase : IDisposable
             context.RequestAborted);
 
         return await requestExecutor.ExecuteAsync(
-            requestBuilder.Create(),
+            requestBuilder.Build(),
             context.RequestAborted);
     }
 
@@ -138,12 +143,12 @@ public class MiddlewareBase : IDisposable
     {
         diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
 
-        var requestBatch = new IQueryRequest[operationNames.Count];
+        var requestBatch = new IOperationRequest[operationNames.Count];
 
         for (var i = 0; i < operationNames.Count; i++)
         {
-            var requestBuilder = QueryRequestBuilder.From(request);
-            requestBuilder.SetOperation(operationNames[i]);
+            var requestBuilder = OperationRequestBuilder.From(request);
+            requestBuilder.SetOperationName(operationNames[i]);
             requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
@@ -152,11 +157,11 @@ public class MiddlewareBase : IDisposable
                 requestBuilder,
                 context.RequestAborted);
 
-            requestBatch[i] = requestBuilder.Create();
+            requestBatch[i] = requestBuilder.Build();
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch,
+            new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
     }
 
@@ -170,11 +175,11 @@ public class MiddlewareBase : IDisposable
     {
         diagnosticEvents.StartBatchRequest(context, requests);
 
-        var requestBatch = new IQueryRequest[requests.Count];
+        var requestBatch = new IOperationRequest[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
         {
-            var requestBuilder = QueryRequestBuilder.From(requests[i]);
+            var requestBuilder = OperationRequestBuilder.From(requests[i]);
             requestBuilder.SetFlags(flags);
 
             await requestInterceptor.OnCreateAsync(
@@ -183,11 +188,11 @@ public class MiddlewareBase : IDisposable
                 requestBuilder,
                 context.RequestAborted);
 
-            requestBatch[i] = requestBuilder.Create();
+            requestBatch[i] = requestBuilder.Build();
         }
 
         return await requestExecutor.ExecuteBatchAsync(
-            requestBatch,
+            new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
     }
 

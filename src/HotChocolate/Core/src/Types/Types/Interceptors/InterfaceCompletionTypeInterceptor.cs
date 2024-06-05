@@ -13,9 +13,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
     private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
     private readonly Dictionary<Type, TypeInfo> _allInterfaceRuntimeTypes = new();
-    private readonly HashSet<Type> _interfaceRuntimeTypes = new();
-    private readonly HashSet<string> _completed = new();
-    private readonly HashSet<string> _completedFields = new();
+    private readonly HashSet<Type> _interfaceRuntimeTypes = [];
+    private readonly HashSet<string> _completed = [];
+    private readonly HashSet<string> _completedFields = [];
     private readonly Queue<InterfaceType> _backlog = new();
 
     public override void OnAfterInitialize(
@@ -78,7 +78,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
     // defines if this type has a concrete runtime type.
     private bool IsRelevant(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef &&
+        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef &&
             objectDef.FieldBindingType != typeof(object))
         {
             return true;
@@ -90,7 +90,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
 
     private Type GetRuntimeType(TypeInfo typeInfo)
     {
-        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef)
+        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true, } objectDef)
         {
             return objectDef.FieldBindingType ?? typeof(object);
         }
@@ -102,7 +102,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0 } } typeDef)
+        if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0, }, } typeDef)
         {
             _completed.Clear();
             _completedFields.Clear();
@@ -127,7 +127,7 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             CompleteInterfacesAndFields(typeDef);
         }
 
-        if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } } objectTypeDef)
+        if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0, }, } objectTypeDef)
         {
             _completed.Clear();
             _completedFields.Clear();

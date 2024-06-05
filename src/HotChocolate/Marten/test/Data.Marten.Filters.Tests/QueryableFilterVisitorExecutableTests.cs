@@ -8,17 +8,17 @@ namespace HotChocolate.Data;
 public class QueryableFilterVisitorExecutableTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = false }
-    };
+    [
+        new() { Bar = true, },
+        new() { Bar = false, },
+    ];
 
     private static readonly FooNullable[] _fooNullableEntities =
-    {
-        new() { Bar = true },
-        new() { Bar = null },
-        new() { Bar = false }
-    };
+    [
+        new() { Bar = true, },
+        new() { Bar = null, },
+        new() { Bar = false, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -35,14 +35,14 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot.Create().AddResult(res1, "true").AddResult(res2, "false")
@@ -57,14 +57,14 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -80,23 +80,26 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: false}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { eq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot
-            .Create().AddResult(res1, "true").AddResult(res2, "false").AddResult(res3, "null")
+            .Create()
+            .AddResult(res1, "true")
+            .AddResult(res2, "false")
+            .AddResult(res3, "null")
             .MatchAsync();
     }
 
@@ -108,19 +111,19 @@ public class QueryableFilterVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: true}}){ bar}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: false}}){ bar}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ rootExecutable(where: { bar: { neq: null}}){ bar}}")
+                .Build());
 
         // assert
         await Snapshot

@@ -1,4 +1,4 @@
-﻿schema {
+﻿schema @link(url: "https:\/\/specs.apollo.dev\/federation\/v2.6", import: [ "@key", "@provides", "FieldSet", "@external" ]) {
   query: Query
 }
 
@@ -40,22 +40,19 @@ type _Service {
 union _Entity = Product | User
 
 "Directive to indicate that a field is owned by another service, for example via Apollo federation."
-directive @external on FIELD_DEFINITION
+directive @external on OBJECT | FIELD_DEFINITION
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+
+"Links definitions within the document to external schemas."
+directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
-directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+directive @provides(fields: FieldSet!) on FIELD_DEFINITION
 
-"Used to annotate the required input fieldset from a base type for a resolver."
-directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
-
-"The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
-directive @tag("The name of the tag." name: String!) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+"Scalar representing a set of fields."
+scalar FieldSet
 
 "The _Any scalar is used to pass representations of entities from external services into the root _entities field for execution. Validation of the _Any scalar is done by matching the __typename and @external fields defined in the schema."
 scalar _Any
-
-"Scalar representing a set of fields."
-scalar _FieldSet

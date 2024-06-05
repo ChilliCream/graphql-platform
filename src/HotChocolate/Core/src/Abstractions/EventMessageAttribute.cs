@@ -3,7 +3,4 @@ using System;
 namespace HotChocolate;
 
 [AttributeUsage(AttributeTargets.Parameter)]
-public sealed class EventMessageAttribute
-    : Attribute
-{
-}
+public sealed class EventMessageAttribute : Attribute;

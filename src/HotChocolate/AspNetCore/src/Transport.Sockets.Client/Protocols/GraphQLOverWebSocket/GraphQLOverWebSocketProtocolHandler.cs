@@ -4,7 +4,6 @@ using System.Net.WebSockets;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Transport.Serialization;
 using HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket.Messages;
 
 namespace HotChocolate.Transport.Sockets.Client.Protocols.GraphQLOverWebSocket;
@@ -122,17 +121,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
         }
     }
 
-    private sealed class DataCompletion : IDataCompletion
+    private sealed class DataCompletion(WebSocket socket, string id) : IDataCompletion
     {
-        private readonly WebSocket _socket;
-        private readonly string _id;
         private bool _completed;
-
-        public DataCompletion(WebSocket socket, string id)
-        {
-            _socket = socket;
-            _id = id;
-        }
 
         public void MarkDataStreamCompleted()
             => _completed = true;
@@ -148,9 +139,9 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
                         try
                         {
-                            if (_socket.IsOpen())
+                            if (socket.IsOpen())
                             {
-                                await _socket.SendCompleteMessageAsync(_id, cts.Token);
+                                await socket.SendCompleteMessageAsync(id, cts.Token);
                             }
                         }
                         catch
@@ -158,7 +149,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
                             // if we cannot send the complete message we will just abort the socket.
                             try
                             {
-                                _socket.Abort();
+                                socket.Abort();
                             }
                             catch
                             {

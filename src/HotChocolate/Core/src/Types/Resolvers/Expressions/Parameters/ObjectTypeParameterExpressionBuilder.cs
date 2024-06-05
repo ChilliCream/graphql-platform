@@ -9,6 +9,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class ObjectTypeParameterExpressionBuilder
     : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectType>
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public ObjectTypeParameterExpressionBuilder()
         : base(ctx => ctx.ObjectType)
@@ -29,4 +31,13 @@ internal sealed class ObjectTypeParameterExpressionBuilder
             ? Expression.Convert(expression, typeof(ObjectType))
             : expression;
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)(object)context.ObjectType;
+
+    public T Execute<T>(IPureResolverContext context)
+        => (T)(object)context.ObjectType;
 }

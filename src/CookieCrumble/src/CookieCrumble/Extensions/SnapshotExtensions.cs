@@ -23,6 +23,16 @@ public static class SnapshotExtensions
         ISnapshotValueFormatter? formatter = null)
         => Snapshot.Match(value, postFix?.ToString(), extension, formatter);
 
+    public static void MatchMarkdownSnapshot(
+        this object? value,
+        object? postFix = null,
+        string? extension = null,
+        ISnapshotValueFormatter? formatter = null)
+        => Snapshot.Create(postFix?.ToString(), extension).Add(value, formatter: formatter).MatchMarkdown();
+
+    public static void MatchMarkdownSnapshot(this Snapshot value)
+        => value.MatchMarkdown();
+
     public static void MatchSnapshot(
         this ISyntaxNode? value,
         string? postFix = null)

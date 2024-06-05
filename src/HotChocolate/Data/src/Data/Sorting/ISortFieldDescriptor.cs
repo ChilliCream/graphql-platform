@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -8,8 +7,6 @@ public interface ISortFieldDescriptor
     : IDescriptor<SortFieldDefinition>
     , IFluent
 {
-    ISortFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     ISortFieldDescriptor Name(string value);
 
     ISortFieldDescriptor Description(string value);

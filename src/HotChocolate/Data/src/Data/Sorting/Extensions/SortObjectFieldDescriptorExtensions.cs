@@ -1,14 +1,13 @@
-using System;
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
+using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
@@ -141,7 +140,6 @@ public static class SortObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (c, definition) =>
                 {
-                    var convention = c.GetSortConvention(scope);
                     TypeReference argumentTypeReference;
                     if (sortTypeInstance is not null)
                     {
@@ -150,11 +148,11 @@ public static class SortObjectFieldDescriptorExtensions
                     }
                     else if (sortType is null)
                     {
+                        var convention = c.GetSortConvention(scope);
+
                         if (definition.ResultType is null ||
                             definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType,
-                                out var typeInfo))
+                            !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
                         {
                             throw new ArgumentException(
                                 SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
@@ -174,7 +172,7 @@ public static class SortObjectFieldDescriptorExtensions
                     var argumentDefinition = new ArgumentDefinition
                     {
                         Name = argumentPlaceholder,
-                        Type = argumentTypeReference
+                        Type = argumentTypeReference,
                     };
 
                     argumentDefinition.Configurations.Add(
@@ -224,7 +222,7 @@ public static class SortObjectFieldDescriptorExtensions
         string? scope)
     {
         var resolvedType = context.GetType<IType>(argumentDefinition.Type!);
-        if (!(resolvedType.ElementType().NamedType() is ISortInputType type))
+        if (resolvedType.ElementType().NamedType() is not ISortInputType type)
         {
             throw Sorting_TypeOfInvalidFormat(resolvedType);
         }
@@ -235,13 +233,13 @@ public static class SortObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
+        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
+
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
-        definition.MiddlewareDefinitions[index] =
-            new(middleware, key: WellKnownMiddleware.Sorting);
+        definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Sorting);
     }
 
-    private static FieldMiddleware CreateMiddleware<TEntity>(
+    private static IQueryBuilder CreateMiddleware<TEntity>(
         ISortConvention convention) =>
-        convention.CreateExecutor<TEntity>();
+        convention.CreateBuilder<TEntity>();
 }

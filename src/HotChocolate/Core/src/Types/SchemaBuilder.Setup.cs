@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -11,9 +12,10 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate;
 
@@ -49,6 +51,12 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(FlagsEnumInterceptor));
                 }
 
+                if (context.Options.RemoveUnusedTypeSystemDirectives &&
+                    !builder._typeInterceptors.Contains(typeof(DirectiveTypeInterceptor)))
+                {
+                    builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
+                }
+
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,
@@ -79,7 +87,7 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             LazySchema lazySchema)
         {
-            var services = builder._services ?? new EmptyServiceProvider();
+            var services = builder._services ?? CreateDefaultServiceProvider(lazySchema);
 
             var typeInterceptor = new AggregateTypeInterceptor();
 
@@ -94,7 +102,14 @@ public partial class SchemaBuilder
             return context;
         }
 
-        private static IReadOnlyList<TypeReference> CreateTypeReferences(
+        private static IServiceProvider CreateDefaultServiceProvider(LazySchema lazySchema)
+        {
+            var services = new ServiceCollection();
+            AddCoreSchemaServices(services, lazySchema);
+            return services.BuildServiceProvider();
+        }
+
+        private static List<TypeReference> CreateTypeReferences(
             SchemaBuilder builder,
             IDescriptorContext context)
         {
@@ -155,9 +170,7 @@ public partial class SchemaBuilder
                 var directives =
                     visitorContext.Directives ?? Array.Empty<DirectiveNode>();
 
-                if (builder._schema is null
-                    && (directives.Count > 0
-                    || visitorContext.Description != null))
+                if (builder._schema is null && (directives.Count > 0 || visitorContext.Description != null))
                 {
                     builder.SetSchema(new Schema(d =>
                     {
@@ -178,8 +191,7 @@ public partial class SchemaBuilder
             OperationType operation,
             string? typeName)
         {
-            if (!builder._operations.ContainsKey(operation)
-                && !string.IsNullOrEmpty(typeName))
+            if (!builder._operations.ContainsKey(operation) && !string.IsNullOrEmpty(typeName))
             {
                 builder._operations.Add(
                     operation,
@@ -247,13 +259,11 @@ public partial class SchemaBuilder
 
             if (registered.Count > 0)
             {
-                var serviceFactory = new ServiceFactory { Services = services };
-
                 foreach (var interceptorOrType in registered)
                 {
                     if (interceptorOrType is Type type)
                     {
-                        var obj = serviceFactory.CreateInstance(type);
+                        var obj = ServiceFactory.CreateInstance(services, type);
                         if (obj is T casted)
                         {
                             interceptors.Add(casted);
@@ -275,28 +285,28 @@ public partial class SchemaBuilder
             if (type is ObjectType objectType)
             {
                 if (IsOperationType(
-                    objectType,
-                    OperationType.Query,
-                    typeInspector,
-                    operations))
+                        objectType,
+                        OperationType.Query,
+                        typeInspector,
+                        operations))
                 {
                     return RootTypeKind.Query;
                 }
 
                 if (IsOperationType(
-                    objectType,
-                    OperationType.Mutation,
-                    typeInspector,
-                    operations))
+                        objectType,
+                        OperationType.Mutation,
+                        typeInspector,
+                        operations))
                 {
                     return RootTypeKind.Mutation;
                 }
 
                 if (IsOperationType(
-                    objectType,
-                    OperationType.Subscription,
-                    typeInspector,
-                    operations))
+                        objectType,
+                        OperationType.Subscription,
+                        typeInspector,
+                        operations))
                 {
                     return RootTypeKind.Subscription;
                 }
@@ -320,8 +330,8 @@ public partial class SchemaBuilder
 
                 if (typeRef is ExtendedTypeReference cr)
                 {
-                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType()))
-                        || cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
+                    return cr.Type.Equals(typeInspector.GetType(objectType.GetType())) ||
+                        cr.Type.Equals(typeInspector.GetType(objectType.RuntimeType));
                 }
 
                 if (typeRef is SyntaxTypeReference str)
@@ -351,8 +361,16 @@ public partial class SchemaBuilder
             LazySchema lazySchema,
             TypeRegistry typeRegistry)
         {
-            var definition =
-                CreateSchemaDefinition(builder, context, typeRegistry);
+            var definition = CreateSchemaDefinition(builder, context, typeRegistry);
+            context.TypeInterceptor.OnBeforeRegisterSchemaTypes(context, definition);
+
+            var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
+            schema.CompleteSchema(definition);
+
+            if (SchemaValidator.Validate(context, schema) is { Count: > 0 } errors)
+            {
+                throw new SchemaException(errors);
+            }
 
             if (definition.QueryType is null && builder._options.StrictValidation)
             {
@@ -362,10 +380,9 @@ public partial class SchemaBuilder
                         .Build());
             }
 
-            var schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
-            schema.CompleteSchema(definition);
-            lazySchema.Schema = schema;
             context.TypeInterceptor.OnAfterCreateSchemaInternal(context, schema);
+            lazySchema.Schema = schema;
+
             return schema;
         }
 
@@ -422,6 +439,8 @@ public partial class SchemaBuilder
                 schemaDef.MutationType = GetOperationType(OperationType.Mutation);
                 schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
             }
+
+            return;
 
             ObjectType? GetObjectType(string typeName)
             {
@@ -482,5 +501,52 @@ public partial class SchemaBuilder
 
             return typeRegistry.Types.Select(t => t.Type).ToArray();
         }
+    }
+
+    internal static void AddCoreSchemaServices(IServiceCollection services, LazySchema lazySchema)
+    {
+        services.TryAddSingleton(lazySchema);
+        services.TryAddSingleton(static sp => sp.GetRequiredService<LazySchema>().Schema);
+
+        services.AddSingleton<INodeIdValueSerializer, StringNodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, Int16NodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, Int32NodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, Int64NodeIdValueSerializer>();
+        services.AddSingleton<INodeIdValueSerializer, GuidNodeIdValueSerializer>();
+
+        services.TryAddSingleton<INodeIdSerializer>(static sp =>
+        {
+            var schema = sp.GetRequiredService<ISchema>();
+            var boundSerializers = new List<BoundNodeIdValueSerializer>();
+            var allSerializers = sp.GetServices<INodeIdValueSerializer>().ToArray();
+
+            if (schema.ContextData.TryGetValue(WellKnownContextData.SerializerTypes, out var value))
+            {
+                var serializerTypes = (Dictionary<string, Type>)value!;
+
+                foreach (var item in serializerTypes)
+                {
+                    foreach (var serializer in allSerializers)
+                    {
+                        if (serializer.IsSupported(item.Value))
+                        {
+                            boundSerializers.Add(new BoundNodeIdValueSerializer(item.Key, serializer));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return new DefaultNodeIdSerializer(boundSerializers, allSerializers);
+        });
+
+        services.TryAddSingleton<INodeIdSerializerAccessor>(
+            static sp =>
+            {
+                var lazy = sp.GetRequiredService<LazySchema>();
+                var accessor = new NodeIdSerializerAccessor();
+                lazy.OnSchemaCreated(accessor.OnSchemaCreated);
+                return accessor;
+            });
     }
 }

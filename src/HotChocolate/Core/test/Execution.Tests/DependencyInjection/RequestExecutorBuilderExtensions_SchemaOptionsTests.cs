@@ -14,7 +14,7 @@ public class RequestExecutorBuilderExtensionsSchemaOptionsTests
         await new ServiceCollection()
             .AddGraphQLServer()
             .AddType<Query>()
-            .SetOptions(new SchemaOptions { ValidatePipelineOrder = false })
+            .SetOptions(new SchemaOptions { ValidatePipelineOrder = false, })
             .TryAddTypeInterceptor(interceptor)
             .BuildRequestExecutorAsync();
 

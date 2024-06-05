@@ -9,8 +9,8 @@ public class FieldDefinitionNodeTests
     public void Equals_FieldDefinitionNode_When_Both_Are_Equal()
     {
         // arrange
-        FieldDefinitionNode a = ParseFieldDefinition("foo(a: String): String @bar");
-        FieldDefinitionNode b = ParseFieldDefinition("foo(a: String): String @bar");
+        var a = ParseFieldDefinition("foo(a: String): String @bar");
+        var b = ParseFieldDefinition("foo(a: String): String @bar");
 
         // act
         var success = SyntaxComparer.BySyntax.Equals(a, b);

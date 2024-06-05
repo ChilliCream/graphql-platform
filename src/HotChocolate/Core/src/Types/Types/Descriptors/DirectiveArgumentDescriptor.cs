@@ -65,21 +65,17 @@ public class DirectiveArgumentDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Property is not null)
+        Context.Descriptors.Push(this);
+            
+        if (Definition is { AttributesAreApplied: false, Property: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
             Definition.AttributesAreApplied = true;
         }
 
         base.OnCreateDefinition(definition);
-    }
 
-    /// <inheritdoc />
-    public new IDirectiveArgumentDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinition)
-    {
-        base.SyntaxNode(inputValueDefinition);
-        return this;
+        Context.Descriptors.Pop();
     }
 
     /// <inheritdoc />

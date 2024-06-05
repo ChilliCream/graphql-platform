@@ -45,9 +45,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DirectiveArgument_NameMustNotBeNullOrempty {
+        internal static string DirectiveArgument_NameMustNotBeNullOrEmpty {
             get {
-                return ResourceManager.GetString("DirectiveArgument_NameMustNotBeNullOrempty", resourceCulture);
+                return ResourceManager.GetString("DirectiveArgument_NameMustNotBeNullOrEmpty", resourceCulture);
             }
         }
         
@@ -57,15 +57,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string QueryRequestBuilder_QueryIsNull {
+        internal static string OperationRequestBuilder_QueryIsNull {
             get {
-                return ResourceManager.GetString("QueryRequestBuilder_QueryIsNull", resourceCulture);
+                return ResourceManager.GetString("OperationRequestBuilder_QueryIsNull", resourceCulture);
             }
         }
         
-        internal static string QueryRequestBuilder_QueryIsNullOrEmpty {
+        internal static string OperationRequestBuilder_OperationIsNullOrEmpty {
             get {
-                return ResourceManager.GetString("QueryRequestBuilder_QueryIsNullOrEmpty", resourceCulture);
+                return ResourceManager.GetString("OperationRequestBuilder_OperationIsNullOrEmpty", resourceCulture);
             }
         }
         
@@ -87,9 +87,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string Error_Message_Mustnt_Be_Null {
+        internal static string Error_Message_Must_Not_Be_Null {
             get {
-                return ResourceManager.GetString("Error_Message_Mustnt_Be_Null", resourceCulture);
+                return ResourceManager.GetString("Error_Message_Must_Not_Be_Null", resourceCulture);
             }
         }
         
@@ -264,6 +264,24 @@ namespace HotChocolate.Properties {
         internal static string MutationError_ErrorsEmpty {
             get {
                 return ResourceManager.GetString("MutationError_ErrorsEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string OperationDocumentId_InvalidOperationIdFormat {
+            get {
+                return ResourceManager.GetString("OperationDocumentId_InvalidOperationIdFormat", resourceCulture);
+            }
+        }
+        
+        internal static string OperationRequest_DocumentOrIdMustBeSet {
+            get {
+                return ResourceManager.GetString("OperationRequest_DocumentOrIdMustBeSet", resourceCulture);
+            }
+        }
+        
+        internal static string OperationResultBatch_ResponseStreamOrOperationResult {
+            get {
+                return ResourceManager.GetString("OperationResultBatch_ResponseStreamOrOperationResult", resourceCulture);
             }
         }
     }

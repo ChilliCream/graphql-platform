@@ -18,15 +18,6 @@ public interface IObjectFieldDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the specified <paramref name="fieldDefinition"/>
-    /// with the <see cref="ObjectField"/>.
-    /// </summary>
-    /// <param name="fieldDefinition">
-    /// The <see cref="FieldDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode? fieldDefinition);
-
-    /// <summary>
     /// Defines the name of the <see cref="ObjectField"/>.
     /// </summary>
     /// <param name="value">The object field name.</param>
@@ -232,7 +223,7 @@ public interface IObjectFieldDescriptor
     /// }
     /// ]]>
     /// </code>
-    /// The GetFoo method cann be mapped like:
+    /// The GetFoo method can be mapped like:
     /// <code>
     /// <![CDATA[
     /// descriptor

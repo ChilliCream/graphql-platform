@@ -10,13 +10,13 @@ namespace HotChocolate.Data;
 public class QueryableSortVisitorExpressionTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>() },
+    [
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = new List<Bar>(), },
         new Foo
         {
-            Name = "Foo", LastName = "Galoo", Bars = new List<Bar>() { new() { Value = "A" } }
-        }
-    };
+            Name = "Foo", LastName = "Galoo", Bars = new List<Bar>() { new() { Value = "A", }, },
+        },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -58,14 +58,14 @@ public class QueryableSortVisitorExpressionTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barLength: ASC}){ name lastName}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(order: { barLength: DESC}){ name lastName}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

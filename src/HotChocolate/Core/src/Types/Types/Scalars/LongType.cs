@@ -11,14 +11,6 @@ public class LongType
     /// <summary>
     /// Initializes a new instance of the <see cref="LongType"/> class.
     /// </summary>
-    public LongType()
-        : this(long.MinValue, long.MaxValue)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LongType"/> class.
-    /// </summary>
     public LongType(long min, long max)
         : this(
             ScalarNames.Long,
@@ -41,6 +33,15 @@ public class LongType
         : base(name, min, max, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LongType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LongType()
+        : this(long.MinValue, long.MaxValue)
+    {
     }
 
     protected override long ParseLiteral(IntValueNode valueSyntax) =>

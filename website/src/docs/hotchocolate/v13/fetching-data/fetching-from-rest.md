@@ -251,3 +251,5 @@ You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) 
   }
 }
 ```
+
+<!-- spell-checker:ignore classname, csclient -->

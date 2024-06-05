@@ -1,5 +1,4 @@
 using ChilliCream.Testing;
-using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -97,7 +96,7 @@ public class StarWarsGeneratorTests
         AssertStarWarsResult(
             new AssertSettings {
                 StrictValidation = true,
-                AccessModifier = AccessModifier.Internal
+                AccessModifier = AccessModifier.Internal,
             },
             @"query GetHero {
                     hero(episode: NEW_HOPE) {

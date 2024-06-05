@@ -37,11 +37,11 @@ public class TaskCacheTests
         Assert.Equal(expectedCacheSize, result);
     }
 
-    [InlineData(new[] { "Foo" }, 1)]
-    [InlineData(new[] { "Foo", "Bar" }, 2)]
-    [InlineData(new[] { "Foo", "Bar", "Baz" }, 3)]
+    [InlineData(new[] { "Foo", }, 1)]
+    [InlineData(new[] { "Foo", "Bar", }, 2)]
+    [InlineData(new[] { "Foo", "Bar", "Baz", }, 3)]
     [InlineData(new[] { "Foo", "Bar", "Baz", "Qux", "Quux", "Corge",
-        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy" }, 10)]
+        "Grault", "Graply", "Waldo", "Fred", "Plugh", "xyzzy", }, 10)]
     [Theory(DisplayName = "Usage: Should return the expected cache usage")]
     public void Usage(string[] values, int expectedUsage)
     {
@@ -51,7 +51,7 @@ public class TaskCacheTests
 
         foreach (var value in values)
         {
-            cache.TryAdd(new TaskCacheKey("a", $"Key:{value}"), Task.FromResult(value));
+            cache.TryAdd(new TaskCacheKey("a", $"Key:{value}"), new Promise<string>(value));
         }
 
         // act
@@ -96,8 +96,8 @@ public class TaskCacheTests
         var cacheSize = 10;
         var cache = new TaskCache(cacheSize);
 
-        cache.TryAdd(new TaskCacheKey("a", "Foo"), Task.FromResult("Bar"));
-        cache.TryAdd(new TaskCacheKey("a", "Bar"), Task.FromResult("Baz"));
+        cache.TryAdd(new TaskCacheKey("a", "Foo"), new Promise<string>("Bar"));
+        cache.TryAdd(new TaskCacheKey("a", "Bar"), new Promise<string>("Baz"));
 
         // act
         cache.Clear();
@@ -130,13 +130,13 @@ public class TaskCacheTests
         var key = new TaskCacheKey("a", "Foo");
         var value = Task.FromResult("Bar");
 
-        cache.TryAdd(key, value);
+        cache.TryAdd(key, new Promise<string>(value));
 
         // act
         cache.TryRemove(key);
 
         // assert
-        var retrieved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        var retrieved = cache.GetOrAddTask(key, _ => new Promise<string>("Baz"));
         Assert.NotSame(value, retrieved);
     }
 
@@ -149,7 +149,7 @@ public class TaskCacheTests
         var key = new TaskCacheKey("a", "Foo");
 
         // act
-        void Verify() => cache.TryAdd(key, default(Task<string>)!);
+        void Verify() => cache.TryAdd(key, default(Promise<string>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>("value", Verify);
@@ -162,16 +162,16 @@ public class TaskCacheTests
         var cacheSize = 10;
         var cache = new TaskCache(cacheSize);
         var key = new TaskCacheKey("a", "Foo");
-        var expected = Task.FromResult("Bar");
+        var expected = new Promise<string>("Bar");
 
         // act
         var added = cache.TryAdd(key, expected);
 
         // assert
-        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>("Baz"));
 
         Assert.True(added);
-        Assert.Same(expected, resolved);
+        Assert.Equal(expected.Task, resolved);
     }
 
     [Fact(DisplayName = "TryAdd: Should result in a new cache entry and use the factory")]
@@ -181,16 +181,16 @@ public class TaskCacheTests
         var cacheSize = 10;
         var cache = new TaskCache(cacheSize);
         var key = new TaskCacheKey("a", "Foo");
-        var expected = Task.FromResult("Bar");
+        var expected = new Promise<string>(Task.FromResult("Bar"));
 
         // act
         var added = cache.TryAdd(key, () => expected);
 
         // assert
-        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Baz")));
 
         Assert.True(added);
-        Assert.Same(expected, resolved);
+        Assert.Same(expected.Task, resolved);
     }
 
     [Fact(DisplayName = "TryAdd: Should result in 'Bar'")]
@@ -204,11 +204,11 @@ public class TaskCacheTests
         var another = Task.FromResult("Baz");
 
         // act
-        var addedFirst = cache.TryAdd(key, expected);
-        var addedSecond = cache.TryAdd(key, another);
+        var addedFirst = cache.TryAdd(key, new Promise<string>(expected));
+        var addedSecond = cache.TryAdd(key, new Promise<string>(another));
 
         // assert
-        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
 
         Assert.True(addedFirst);
         Assert.False(addedSecond);
@@ -224,7 +224,7 @@ public class TaskCacheTests
         var key = new TaskCacheKey("a", "Foo");
 
         // act
-        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
 
         // assert
         Assert.Equal("Quox", resolved.Result);
@@ -239,7 +239,7 @@ public class TaskCacheTests
         var key = new TaskCacheKey("a", 1);
 
         // act
-        var resolved = cache.GetOrAddTask(key, () => Task.FromResult("Quox"));
+        var resolved = cache.GetOrAddTask(key, _ => new Promise<string>(Task.FromResult("Quox")));
 
         // assert
         Assert.Equal("Quox", resolved.Result);

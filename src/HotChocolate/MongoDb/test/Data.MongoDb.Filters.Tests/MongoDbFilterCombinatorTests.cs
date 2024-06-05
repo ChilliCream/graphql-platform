@@ -10,11 +10,11 @@ public class MongoDbFilterCombinatorTests
     : SchemaCache
     , IClassFixture<MongoResource>
 {
-    private static readonly Foo[] _fooEntities = 
-    { 
-        new() { Bar = true }, 
-        new() { Bar = false } 
-    };
+    private static readonly Foo[] _fooEntities =
+    [
+        new() { Bar = true, },
+        new() { Bar = false, },
+    ];
 
     public MongoDbFilterCombinatorTests(MongoResource resource)
     {
@@ -30,9 +30,9 @@ public class MongoDbFilterCombinatorTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { }){ bar }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { }){ bar }}")
+                .Build());
 
         await Snapshot.Create()
             .Add(res1)

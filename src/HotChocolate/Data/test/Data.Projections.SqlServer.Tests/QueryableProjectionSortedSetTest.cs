@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +7,7 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionSortedSetTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -19,12 +17,12 @@ public class QueryableProjectionSortedSetTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectSet = new SortedSet<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                },
+            },
         },
         new()
         {
@@ -35,14 +33,14 @@ public class QueryableProjectionSortedSetTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
                 ObjectSet = new SortedSet<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
-            }
-        }
-    };
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
+                },
+            },
+        },
+    ];
 
     private readonly SchemaCache _cache = new();
 
@@ -54,8 +52,8 @@ public class QueryableProjectionSortedSetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -69,7 +67,7 @@ public class QueryableProjectionSortedSetTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -86,8 +84,8 @@ public class QueryableProjectionSortedSetTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -102,7 +100,7 @@ public class QueryableProjectionSortedSetTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -196,6 +194,6 @@ public class QueryableProjectionSortedSetTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

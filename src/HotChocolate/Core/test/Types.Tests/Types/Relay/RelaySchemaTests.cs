@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -93,6 +92,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -107,6 +107,7 @@ public class RelaySchemaTests
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -121,7 +122,7 @@ public class RelaySchemaTests
             .AddQueryType(d => d
                 .Field("user")
                 .Type<UserType>()
-                .Resolve(_ => new User { Name = "TEST" }))
+                .Resolve(_ => new User { Name = "TEST", }))
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("query { user { id name } } ")
             .MatchSnapshotAsync();
@@ -146,7 +147,7 @@ public class RelaySchemaTests
 
         private Task<User> ResolveNode(IResolverContext context, string id)
         {
-            return Task.FromResult(new User { Name = "TEST" });
+            return Task.FromResult(new User { Name = "TEST", });
         }
     }
 

@@ -1,6 +1,4 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Composition;
@@ -83,9 +81,9 @@ public class ErrorTests(ITestOutputHelper output)
                     Array.Empty<string>(),
                     new IClientConfiguration[]
                     {
-                        new HttpClientConfiguration(new Uri("http://localhost"))
+                        new HttpClientConfiguration(new Uri("http://localhost")),
                     },
-                    null)
+                    null),
             });
 
         Assert.Null(fusionConfig);

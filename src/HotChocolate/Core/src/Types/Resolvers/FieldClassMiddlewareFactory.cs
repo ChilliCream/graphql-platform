@@ -56,7 +56,7 @@ public static class FieldClassMiddlewareFactory
     {
         return (FieldMiddleware)_createGeneric
             .MakeGenericMethod(middlewareType)
-            .Invoke(null, new object[] { services });
+            .Invoke(null, [services,]);
     }
 
     public static FieldMiddleware Create<TMiddleware>(
@@ -83,7 +83,7 @@ public static class FieldClassMiddlewareFactory
             MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
                 (context, _) => new List<IParameterHandler>
                 {
-                    new ServiceParameterHandler(Expression.Property(context, _services))
+                    new ServiceParameterHandler(Expression.Property(context, _services)),
                 });
 
         return context =>

@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
@@ -21,7 +19,7 @@ public abstract class FilterProvider<TContext>
     , IFilterProviderConvention
     where TContext : IFilterVisitorContext
 {
-    private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers = new();
+    private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers = [];
     private Action<IFilterProviderDescriptor<TContext>>? _configure;
     private IFilterConvention? _filterConvention;
 
@@ -84,40 +82,41 @@ public abstract class FilterProvider<TContext>
                 context.Scope);
         }
 
-        var services = new DictionaryServiceProvider(
-            (typeof(IFilterProvider), this),
-            (typeof(IConventionContext), context),
-            (typeof(IDescriptorContext), context.DescriptorContext),
-            (typeof(IFilterConvention), _filterConvention),
-            (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
-            (typeof(InputParser), context.DescriptorContext.InputParser),
-            (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
-            (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
-            .Include(context.Services);
+        var services = new CombinedServiceProvider(
+            new DictionaryServiceProvider(
+                (typeof(IFilterProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(IFilterConvention), _filterConvention),
+                (typeof(ITypeConverter), context.DescriptorContext.TypeConverter),
+                (typeof(InputParser), context.DescriptorContext.InputParser),
+                (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector)),
+            context.Services);
 
-        foreach ((Type Type, IFilterFieldHandler? Instance) handler in Definition.Handlers)
+        foreach (var (type, instance) in Definition.Handlers)
         {
-            switch (handler.Instance)
+            if (instance is IFilterFieldHandler<TContext> casted)
             {
-                case null when services.TryGetOrCreateService(
-                    handler.Type,
-                    out IFilterFieldHandler<TContext>? service):
-                    _fieldHandlers.Add(service);
-                    break;
+                _fieldHandlers.Add(casted);
+                continue;
+            }
 
-                case null:
-                    throw FilterProvider_UnableToCreateFieldHandler(this, handler.Type);
-
-                case IFilterFieldHandler<TContext> casted:
-                    _fieldHandlers.Add(casted);
-                    break;
+            try
+            {
+                var optimizers = (IFilterFieldHandler<TContext>)ActivatorUtilities.GetServiceOrCreateInstance(services, type);
+                _fieldHandlers.Add(optimizers);
+            }
+            catch
+            {
+                throw FilterProvider_UnableToCreateFieldHandler(this, type);
             }
         }
     }
 
     /// <summary>
     /// This method is called on initialization of the provider but before the provider is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the provider can be further configured before it is
     /// completed
     /// </summary>
@@ -134,7 +133,7 @@ public abstract class FilterProvider<TContext>
     /// </param>
     /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
     /// <returns>A middleware</returns>
-    public abstract FieldMiddleware CreateExecutor<TEntityType>(string argumentName);
+    public abstract IQueryBuilder CreateBuilder<TEntityType>(string argumentName);
 
     /// <summary>
     /// Is called on each field that filtering is applied to. This method can be used to

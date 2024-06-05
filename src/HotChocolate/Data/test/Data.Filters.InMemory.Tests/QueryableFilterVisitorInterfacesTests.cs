@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -8,10 +7,10 @@ public class QueryableFilterVisitorInterfacesTests
     : IClassFixture<SchemaCache>
 {
     private static readonly BarInterface[] _barEntities =
-    {
-        new() { Test = new InterfaceImpl1 { Prop = "a" } },
-        new() { Test = new InterfaceImpl1 { Prop = "b" } }
-    };
+    [
+        new() { Test = new InterfaceImpl1 { Prop = "a", }, },
+        new() { Test = new InterfaceImpl1 { Prop = "b", }, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -31,25 +30,25 @@ public class QueryableFilterVisitorInterfacesTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"a\"}}}) " +
                     "{ test{ prop }}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { test: { prop: { eq: \"b\"}}}) " +
                     "{ test{ prop }}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { test: { prop: { eq: null}}}) " +
                     "{ test{ prop}}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

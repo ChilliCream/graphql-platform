@@ -8,7 +8,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
 using static HotChocolate.Types.Relay.NodeFieldResolvers;
@@ -43,9 +42,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         {
             var typeInspector = _queryContext.TypeInspector;
 
-            var serializer =
-                _queryContext.Services.GetService<IIdSerializer>() ??
-                new IdSerializer();
+            var serializer = _queryContext.DescriptorContext.NodeIdSerializerAccessor;
 
             // the nodes fields shall be chained in after the introspection fields,
             // so we first get the index of the last introspection field,
@@ -73,7 +70,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void CreateNodeField(
         ITypeInspector typeInspector,
-        IIdSerializer serializer,
+        INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldDefinition> fields,
         int index)
     {
@@ -85,15 +82,20 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodeField_Description,
             node)
         {
-            Arguments = { new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id) },
+            Arguments = { new ArgumentDefinition(Id, Relay_NodeField_Id_Description, id), },
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    _ => async context =>
+                    _ =>
                     {
-                        await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                    })
-            }
+                        INodeIdSerializer? serializer = null;
+                        return async context =>
+                        {
+                            serializer ??= serializerAccessor.Serializer;
+                            await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
+                        };
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field
@@ -106,7 +108,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 
     private static void CreateNodesField(
         ITypeInspector typeInspector,
-        IIdSerializer serializer,
+        INodeIdSerializerAccessor serializerAccessor,
         IList<ObjectFieldDefinition> fields,
         int index,
         int maxAllowedNodes)
@@ -119,16 +121,20 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Relay_NodesField_Description,
             nodes)
         {
-            Arguments = { new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids) },
+            Arguments = { new ArgumentDefinition(Ids, Relay_NodesField_Ids_Description, ids), },
             MiddlewareDefinitions =
             {
                 new FieldMiddlewareDefinition(
-                    _ => async context =>
+                    _ =>
                     {
-                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes)
-                            .ConfigureAwait(false);
-                    })
-            }
+                        INodeIdSerializer? serializer = null;
+                        return async context =>
+                        {
+                            serializer ??= serializerAccessor.Serializer;
+                            await ResolveManyNodeAsync(context, serializer, maxAllowedNodes).ConfigureAwait(false);
+                        };
+                    }),
+            },
         };
 
         // In the projection interceptor we want to change the context data that is on this field

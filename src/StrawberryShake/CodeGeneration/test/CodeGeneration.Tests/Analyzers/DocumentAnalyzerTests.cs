@@ -1,14 +1,9 @@
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Utilities;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.Analyzers;
 
@@ -31,7 +26,7 @@ public class DocumentAnalyzerTests
                 {
                     new(schema.ToDocument()),
                     new(Utf8GraphQLParser.Parse(
-                        @"extend scalar String @runtimeType(name: ""Abc"")"))
+                        @"extend scalar String @runtimeType(name: ""Abc"")")),
                 });
 
         var document =
@@ -98,7 +93,7 @@ public class DocumentAnalyzerTests
                     new(Utf8GraphQLParser.Parse(
                         @"extend scalar String @runtimeType(name: ""Abc"")")),
                     new(Utf8GraphQLParser.Parse(
-                        "extend schema @key(fields: \"id\")"))
+                        "extend schema @key(fields: \"id\")")),
                 });
 
         var document =

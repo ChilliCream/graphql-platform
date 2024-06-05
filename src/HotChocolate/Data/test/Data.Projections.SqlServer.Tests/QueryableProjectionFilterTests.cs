@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +7,7 @@ namespace HotChocolate.Data.Projections;
 public class QueryableProjectionFilterTests
 {
     private static readonly Bar[] _barEntities =
-    {
+    [
         new()
         {
             Foo = new Foo
@@ -19,12 +17,12 @@ public class QueryableProjectionFilterTests
                 BarEnum = BarEnum.BAR,
                 BarString = "testatest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 12, BarString = "a", }, },
+                },
+            },
         },
         new()
         {
@@ -35,17 +33,17 @@ public class QueryableProjectionFilterTests
                 BarEnum = BarEnum.BAZ,
                 BarString = "testbtest",
                 NestedObject =
-                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d", }, },
                 ObjectArray = new List<BarDeep>
                 {
-                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
-                }
-            }
-        }
-    };
+                    new() { Foo = new FooDeep { BarShort = 14, BarString = "d", }, },
+                },
+            },
+        },
+    ];
 
     private static readonly BarNullable[] _barNullableEntities =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -56,9 +54,9 @@ public class QueryableProjectionFilterTests
                 BarString = "testatest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new() { Foo = new FooDeep { BarShort = 12 } }
-                }
-            }
+                    new() { Foo = new FooDeep { BarShort = 12, }, },
+                },
+            },
         },
         new()
         {
@@ -70,9 +68,9 @@ public class QueryableProjectionFilterTests
                 BarString = "testbtest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }
-                }
-            }
+                    new BarNullableDeep { Foo = new FooDeep { BarShort = 9, }, },
+                },
+            },
         },
         new()
         {
@@ -84,9 +82,9 @@ public class QueryableProjectionFilterTests
                 BarString = "testctest",
                 ObjectArray = new List<BarNullableDeep?>
                 {
-                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }
-                }
-            }
+                    new BarNullableDeep { Foo = new FooDeep { BarShort = 14, }, },
+                },
+            },
         },
         new()
         {
@@ -96,13 +94,13 @@ public class QueryableProjectionFilterTests
                 BarBool = false,
                 BarEnum = BarEnum.FOO,
                 BarString = "testdtest",
-                ObjectArray = null
-            }
-        }
-    };
+                ObjectArray = null,
+            },
+        },
+    ];
 
     private static readonly BarNullable[] _barWithoutRelation =
-    {
+    [
         new()
         {
             Foo = new FooNullable
@@ -111,13 +109,13 @@ public class QueryableProjectionFilterTests
                 BarShort = 15,
                 NestedObject = new BarNullableDeep
                 {
-                    Foo = new FooDeep { BarString = "Foo" }
-                }
-            }
+                    Foo = new FooDeep { BarString = "Foo", },
+                },
+            },
         },
-        new() { Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14 } },
-        new()
-    };
+        new() { Foo = new FooNullable { BarEnum = BarEnum.FOO, BarShort = 14, }, },
+        new(),
+    ];
 
     private readonly SchemaCache _cache = new();
 
@@ -129,8 +127,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -150,7 +148,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -167,8 +165,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -190,7 +188,7 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -207,8 +205,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -228,7 +226,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -245,8 +243,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -267,7 +265,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -284,8 +282,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -293,7 +291,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -310,8 +308,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             id
@@ -321,7 +319,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -338,8 +336,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             id
@@ -354,7 +352,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -449,6 +447,6 @@ public class QueryableProjectionFilterTests
         FOO,
         BAR,
         BAZ,
-        QUX
+        QUX,
     }
 }

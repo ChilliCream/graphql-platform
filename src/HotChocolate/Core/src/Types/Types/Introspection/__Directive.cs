@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -42,9 +41,9 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                         new(Names.IncludeDeprecated, type: booleanType)
                         {
                             DefaultValue = BooleanValueNode.False,
-                            RuntimeDefaultValue = false
-                        }
-                    }
+                            RuntimeDefaultValue = false,
+                        },
+                    },
                 },
                 new(Names.IsRepeatable,
                     type: nonNullBooleanType,
@@ -53,21 +52,21 @@ internal sealed class __Directive : ObjectType<DirectiveType>
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnOperation)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation
+                    DeprecationReason = TypeResources.Directive_UseLocation,
                 },
                 new(Names.OnFragment,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnFragment)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation
+                    DeprecationReason = TypeResources.Directive_UseLocation,
                 },
                 new(Names.OnField,
                     type: nonNullBooleanType,
                     pureResolver: Resolvers.OnField)
                 {
-                    DeprecationReason = TypeResources.Directive_UseLocation
-                }
-            }
+                    DeprecationReason = TypeResources.Directive_UseLocation,
+                },
+            },
         };
     }
 

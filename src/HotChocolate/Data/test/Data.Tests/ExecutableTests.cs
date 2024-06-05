@@ -1,7 +1,4 @@
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
-using Xunit;
 
 namespace HotChocolate.Data;
 
@@ -51,7 +48,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         object result = await executable.ToListAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 
     [Fact]
@@ -64,7 +61,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 
     [Fact]
@@ -77,6 +74,6 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         var result = await executable.FirstOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 }

@@ -6,15 +6,10 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination;
 
-internal class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
+internal class QueryableCursorPagingHandler<TEntity>(PagingOptions options) : CursorPagingHandler(options)
 {
     private readonly QueryableCursorPagination<TEntity> _pagination =
         QueryableCursorPagination<TEntity>.Instance;
-
-    public QueryableCursorPagingHandler(PagingOptions options)
-        : base(options)
-    {
-    }
 
     protected override ValueTask<Connection> SliceAsync(
         IResolverContext context,
@@ -27,7 +22,7 @@ internal class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
             IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
             IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments, ct),
             IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
-            _ => throw new GraphQLException("Cannot handle the specified data source.")
+            _ => throw new GraphQLException("Cannot handle the specified data source."),
         };
     }
 

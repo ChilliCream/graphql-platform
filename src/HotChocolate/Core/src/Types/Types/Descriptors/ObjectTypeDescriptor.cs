@@ -17,7 +17,7 @@ public class ObjectTypeDescriptor
     : DescriptorBase<ObjectTypeDefinition>
     , IObjectTypeDescriptor
 {
-    private readonly List<ObjectFieldDescriptor> _fields = new();
+    private readonly List<ObjectFieldDescriptor> _fields = [];
 
     protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
         : base(context)
@@ -58,7 +58,9 @@ public class ObjectTypeDescriptor
     protected override void OnCreateDefinition(
         ObjectTypeDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.FieldBindingType is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, FieldBindingType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
                 Context,
@@ -113,6 +115,8 @@ public class ObjectTypeDescriptor
         TypeMemHelper.Return(handledMembers);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     internal void InferFieldsFromFieldBindingType()
@@ -202,9 +206,9 @@ public class ObjectTypeDescriptor
                 foreach (var member in allMembers)
                 {
                     if (member.IsDefined(typeof(SubscribeAttribute)) &&
-                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } a)
+                        member.GetCustomAttribute<SubscribeAttribute>() is { With: not null, } a)
                     {
-                        subscribeResolver ??= new HashSet<string>();
+                        subscribeResolver ??= [];
                         subscribeResolverLookup ??= new Dictionary<MemberInfo, string>();
                         subscribeResolver.Add(a.With);
                         subscribeResolverLookup.Add(member, a.With);
@@ -222,14 +226,7 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-
-    public IObjectTypeDescriptor SyntaxNode(
-        ObjectTypeDefinitionNode? objectTypeDefinition)
-    {
-        Definition.SyntaxNode = objectTypeDefinition;
-        return this;
-    }
-
+    
     public IObjectTypeDescriptor Name(string value)
     {
         Definition.Name = value;
@@ -431,7 +428,7 @@ public class ObjectTypeDescriptor
     public static ObjectTypeDescriptor FromSchemaType(
         IDescriptorContext context,
         Type schemaType) =>
-        new(context, schemaType) { Definition = { RuntimeType = typeof(object) } };
+        new(context, schemaType) { Definition = { RuntimeType = typeof(object), }, };
 
     public static ObjectTypeDescriptor From(
         IDescriptorContext context,

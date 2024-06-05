@@ -11,7 +11,7 @@ public class InterfaceFieldDescriptor
     : OutputFieldDescriptorBase<InterfaceFieldDefinition>
     , IInterfaceFieldDescriptor
 {
-    private ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
+    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
     private bool _argumentsInitialized;
 
     protected internal InterfaceFieldDescriptor(
@@ -58,7 +58,9 @@ public class InterfaceFieldDescriptor
 
     protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Member is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
             Definition.AttributesAreApplied = true;
@@ -67,6 +69,8 @@ public class InterfaceFieldDescriptor
         base.OnCreateDefinition(definition);
 
         CompleteArguments(definition);
+
+        Context.Descriptors.Pop();
     }
 
     private void CompleteArguments(InterfaceFieldDefinition definition)
@@ -81,12 +85,6 @@ public class InterfaceFieldDescriptor
                 definition.GetParameterExpressionBuilders());
             _argumentsInitialized = true;
         }
-    }
-
-    public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinition)
-    {
-        base.SyntaxNode(fieldDefinition);
-        return this;
     }
 
     public new IInterfaceFieldDescriptor Name(string name)

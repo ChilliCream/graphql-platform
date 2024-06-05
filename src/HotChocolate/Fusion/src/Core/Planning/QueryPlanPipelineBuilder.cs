@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 internal sealed class QueryPlanPipelineBuilder
 {
-    private readonly List<QueryPlanMiddleware> _pipeline = new();
+    private readonly List<QueryPlanMiddleware> _pipeline = [];
 
     private QueryPlanPipelineBuilder()
     {

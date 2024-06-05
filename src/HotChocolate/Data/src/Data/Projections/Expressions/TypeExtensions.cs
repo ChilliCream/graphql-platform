@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
@@ -14,6 +13,6 @@ public static class TypeExtensions
             IEdgeType t => t.NodeType.UnwrapRuntimeType(),
             NonNullType t => t.InnerType().UnwrapRuntimeType(),
             INamedType t => t.ToRuntimeType(),
-            _ => throw ThrowHelper.ProjectionVisitor_CouldNotUnwrapType(type)
+            _ => throw ThrowHelper.ProjectionVisitor_CouldNotUnwrapType(type),
         };
 }

@@ -1,8 +1,6 @@
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -15,16 +13,16 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentCacheMiddleware(
+        var middleware = DocumentCacheMiddleware.Create(
             _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         cache.TryAddDocument("a", document);
@@ -53,16 +51,16 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentCacheMiddleware(
-            context => default,
+        var middleware = DocumentCacheMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryHash("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentHash("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         cache.TryAddDocument("a", document);
@@ -91,16 +89,16 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var middleware = new DocumentCacheMiddleware(
-            context => default,
+        var middleware = DocumentCacheMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .SetQueryId("a")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .SetDocumentId("a")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
         cache.TryAddDocument("b", document);
@@ -121,7 +119,7 @@ public class DocumentCacheMiddlewareTests
         // assert
         Assert.Null(requestContext.Object.Document);
         Assert.Null(requestContext.Object.DocumentId);
-        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        Assert.Equal("1_4JnW9GhGu3YdhGeMefaA", requestContext.Object.DocumentHash);
     }
 
     [Fact]
@@ -131,13 +129,13 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .Build();
 
         var document = Utf8GraphQLParser.Parse("{ a }");
 
-        var middleware = new DocumentCacheMiddleware(
+        var middleware = DocumentCacheMiddleware.Create(
             context =>
             {
                 context.Document = document;
@@ -161,7 +159,7 @@ public class DocumentCacheMiddlewareTests
         // assert
         Assert.Equal(document, requestContext.Object.Document);
         Assert.Equal("a", requestContext.Object.DocumentId);
-        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        Assert.Equal("1_4JnW9GhGu3YdhGeMefaA", requestContext.Object.DocumentHash);
     }
 
     [Fact]
@@ -171,23 +169,18 @@ public class DocumentCacheMiddlewareTests
         var cache = new Caching.DefaultDocumentCache();
         var hashProvider = new MD5DocumentHashProvider();
 
-        var request = QueryRequestBuilder.New()
-            .SetQuery("{ a }")
-            .Create();
+        var request = OperationRequestBuilder.Create()
+            .SetDocument("{ a }")
+            .Build();
 
-        var document = Utf8GraphQLParser.Parse("{ a }");
-
-        var parserMiddleware = new DocumentParserMiddleware(
-            context => default,
+        var parserMiddleware = DocumentParserMiddleware.Create(
+            _ => default,
             new NoopExecutionDiagnosticEvents(),
             hashProvider,
             new ParserOptions());
 
-        var middleware = new DocumentCacheMiddleware(
-            context =>
-            {
-                return parserMiddleware.InvokeAsync(context);
-            },
+        var middleware = DocumentCacheMiddleware.Create(
+            context => parserMiddleware.InvokeAsync(context),
             new NoopExecutionDiagnosticEvents(),
             cache,
             hashProvider);
@@ -205,6 +198,6 @@ public class DocumentCacheMiddlewareTests
         // assert
         Assert.NotNull(requestContext.Object.Document);
         Assert.Equal(requestContext.Object.DocumentHash, requestContext.Object.DocumentId);
-        Assert.Equal("1/4JnW9GhGu3YdhGeMefaA==", requestContext.Object.DocumentHash);
+        Assert.Equal("1_4JnW9GhGu3YdhGeMefaA", requestContext.Object.DocumentHash);
     }
 }

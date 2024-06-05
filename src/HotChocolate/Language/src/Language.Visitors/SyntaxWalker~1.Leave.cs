@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Visitors;
 
 public partial class SyntaxWalker<TContext>
@@ -289,6 +287,6 @@ public partial class SyntaxWalker<TContext>
 
     protected virtual ISyntaxVisitorAction Leave(
        SchemaCoordinateNode node,
-       ISyntaxVisitorContext context) =>
+       TContext context) =>
        DefaultAction;
 }

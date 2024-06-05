@@ -63,7 +63,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
 
         _task = null;
 
-        _diagnosticEvents.ProviderInfo(ChannelWriter_Disconnectd);
+        _diagnosticEvents.ProviderInfo(ChannelWriter_Disconnected);
     }
 
     private async Task HandleMessage(NpgsqlConnection connection, CancellationToken ct)
@@ -79,7 +79,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             await _channel.Reader.WaitToReadAsync(ct);
         }
 
-        var messages = new List<PostgresMessageEnvelope> { firstItem };
+        var messages = new List<PostgresMessageEnvelope> { firstItem, };
         while (!ct.IsCancellationRequested &&
                _maxSendBatchSize > messages.Count &&
                _channel.Reader.TryRead(out var item))
@@ -103,11 +103,11 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
 
                 var channel = new NpgsqlParameter("channel", DbType.String)
                 {
-                    Value = _channelName
+                    Value = _channelName,
                 };
                 var msg = new NpgsqlParameter("message", DbType.String)
                 {
-                    Value = message.FormattedPayload
+                    Value = message.FormattedPayload,
                 };
                 command.Parameters.Add(channel);
                 command.Parameters.Add(msg);

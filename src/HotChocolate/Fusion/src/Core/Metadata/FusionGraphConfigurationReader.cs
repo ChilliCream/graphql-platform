@@ -12,8 +12,8 @@ namespace HotChocolate.Fusion.Metadata;
 internal sealed class FusionGraphConfigurationReader
 {
     private readonly Dictionary<string, ITypeNode> _emptyArgumentDefs = new();
-    private readonly HashSet<string> _assert = new();
-    private readonly HashSet<string> _subgraphNames = new();
+    private readonly HashSet<string> _assert = [];
+    private readonly HashSet<string> _subgraphNames = [];
     private readonly Dictionary<string, SubgraphInfo> _subgraphInfos = new();
 
     public FusionGraphConfiguration Read(string sourceText)
@@ -66,7 +66,7 @@ internal sealed class FusionGraphConfigurationReader
             }
         }
 
-        if (httpClientConfigs is not { Count: > 0 })
+        if (httpClientConfigs is not { Count: > 0, })
         {
             throw ServiceConfNoClientsSpecified();
         }
@@ -141,7 +141,7 @@ internal sealed class FusionGraphConfigurationReader
             {
                 continue;
             }
-            
+
             var config = TryReadHttpClientConfig(typeNames, directiveNode);
             if (config is not null)
             {
@@ -179,13 +179,13 @@ internal sealed class FusionGraphConfigurationReader
                 case LocationArg:
                     baseAddress = Expect<StringValueNode>(argument.Value).Value;
                     break;
-                
+
                 case KindArg:
                     kind = Expect<StringValueNode>(argument.Value).Value;
                     break;
             }
         }
-        
+
         if (!kind.EqualsOrdinal("HTTP"))
         {
             return null;
@@ -216,7 +216,7 @@ internal sealed class FusionGraphConfigurationReader
             {
                 continue;
             }
-            
+
             var config = TryReadWebSocketClientConfig(typeNames, directiveNode);
             if (config is not null)
             {
@@ -254,7 +254,7 @@ internal sealed class FusionGraphConfigurationReader
                 case LocationArg:
                     baseAddress = Expect<StringValueNode>(argument.Value).Value;
                     break;
-                
+
                 case KindArg:
                     kind = Expect<StringValueNode>(argument.Value).Value;
                     break;
@@ -318,7 +318,7 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
-        
+
         _subgraphNames.Add(subgraph);
 
         if(!_subgraphInfos.TryGetValue(subgraph, out var subgraphInfo))
@@ -404,7 +404,7 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
-        
+
         _subgraphNames.Add(schemaName);
 
         return new ArgumentVariableDefinition(name, schemaName, type, argumentName);
@@ -440,7 +440,7 @@ internal sealed class FusionGraphConfigurationReader
         }
 
         _subgraphNames.Add(schemaName);
-        
+
         return new FieldVariableDefinition(name, schemaName, select);
     }
 
@@ -454,7 +454,7 @@ internal sealed class FusionGraphConfigurationReader
         {
             if (directiveNode.Name.Value.EqualsOrdinal(typeNames.ResolverDirective))
             {
-                (definitions ??= new()).Add(ReadResolverDefinition(typeNames, directiveNode));
+                (definitions ??= []).Add(ReadResolverDefinition(typeNames, directiveNode));
             }
         }
 
@@ -494,7 +494,7 @@ internal sealed class FusionGraphConfigurationReader
                         FusionEnumValueNames.Batch => ResolverKind.Batch,
                         FusionEnumValueNames.Subscribe => ResolverKind.Subscribe,
                         _ => throw new InvalidOperationException(
-                            FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue)
+                            FusionGraphConfigurationReader_ReadResolverDefinition_InvalidKindValue),
                     };
                     break;
 
@@ -503,7 +503,7 @@ internal sealed class FusionGraphConfigurationReader
                     break;
             }
         }
-        
+
         _subgraphNames.Add(subgraph);
 
         FragmentSpreadNode? placeholder = null;
@@ -526,7 +526,7 @@ internal sealed class FusionGraphConfigurationReader
 
                     return SyntaxVisitor.Continue;
                 },
-                options: new() { VisitArguments = true })
+                options: new() { VisitArguments = true, })
             .Visit(select);
 
         return new ResolverDefinition(
@@ -596,7 +596,7 @@ internal sealed class FusionGraphConfigurationReader
             if (directiveNode.Name.Value.EqualsOrdinal(typeNames.SourceDirective))
             {
                 var memberBinding = ReadMemberBinding(typeNames, directiveNode, annotatedMember);
-                (definitions ??= new()).Add(memberBinding);
+                (definitions ??= []).Add(memberBinding);
             }
         }
 

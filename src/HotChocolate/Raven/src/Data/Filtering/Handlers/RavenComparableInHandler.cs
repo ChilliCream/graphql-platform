@@ -4,7 +4,6 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Raven.Client.Documents.Linq;
 
 namespace HotChocolate.Data.Raven.Filtering.Handlers;
 

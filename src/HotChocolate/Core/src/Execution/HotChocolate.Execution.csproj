@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.DependencyInjection\HotChocolate.Utilities.DependencyInjection.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
@@ -32,15 +33,17 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="System.Threading.Channels" Version="7.0.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
   </ItemGroup>
@@ -141,9 +144,6 @@
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Optimizer.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
-    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.ResolverCompiler.cs">
-      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
-    </Compile>
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TransactionScope.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
@@ -204,6 +204,18 @@
     <Compile Update="Processing\ValueCompletionContext.cs">
       <DependentUpon>ValueCompletion.cs</DependentUpon>
     </Compile>
+    <Compile Update="Batching\BatchExecutor.Enumerable.cs">
+      <DependentUpon>BatchExecutor.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.InputParser.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.TypeDiscovery.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
+    <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
+      <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -211,6 +223,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

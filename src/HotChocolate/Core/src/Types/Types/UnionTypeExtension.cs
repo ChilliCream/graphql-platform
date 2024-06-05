@@ -53,7 +53,7 @@ public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
     /// Returns the newly created union type extension.
     /// </returns>
     public static UnionTypeExtension CreateUnsafe(UnionTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;

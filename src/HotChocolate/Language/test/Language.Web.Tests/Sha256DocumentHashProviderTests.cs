@@ -1,6 +1,4 @@
-using System.Text;
 using CookieCrumble;
-using Xunit;
 
 namespace HotChocolate.Language;
 
@@ -9,7 +7,7 @@ public class Sha256DocumentHashProviderTests
     [Fact]
     public void HashAsBase64()
     {
-        var content = Encoding.UTF8.GetBytes("abc");
+        var content = "abc"u8.ToArray();
         var hashProvider = new Sha256DocumentHashProvider(HashFormat.Base64);
 
         var hash = hashProvider.ComputeHash(content);
@@ -17,13 +15,13 @@ public class Sha256DocumentHashProviderTests
         Snapshot
             .Create()
             .Add(hash)
-            .MatchInline("ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=");
+            .MatchInline("ungWv48Bz-pBQUDeXa4iI7ADYaOWF3qctBD_YfIAFa0");
     }
 
     [Fact]
     public void HashAsHex()
     {
-        var content = Encoding.UTF8.GetBytes("abc");
+        var content = "abc"u8.ToArray();
         var hashProvider = new Sha256DocumentHashProvider(HashFormat.Hex);
 
         var hash = hashProvider.ComputeHash(content);

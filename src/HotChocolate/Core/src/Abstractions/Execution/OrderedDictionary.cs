@@ -4,9 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution;
 
-public class OrderedDictionary : OrderedDictionary<string, object?>
-{
-}
+public class OrderedDictionary : OrderedDictionary<string, object?>;
 
 public class OrderedDictionary<TKey, TValue>
     : IDictionary<TKey, TValue>
@@ -18,7 +16,7 @@ public class OrderedDictionary<TKey, TValue>
 
     public OrderedDictionary()
     {
-        _order = new List<KeyValuePair<TKey, TValue>>();
+        _order = [];
         _map = new Dictionary<TKey, TValue>();
     }
 
@@ -29,7 +27,7 @@ public class OrderedDictionary<TKey, TValue>
             throw new System.ArgumentNullException(nameof(values));
         }
 
-        _order = new List<KeyValuePair<TKey, TValue>>();
+        _order = [];
         _map = new Dictionary<TKey, TValue>();
 
         foreach (var item in values)
@@ -46,7 +44,7 @@ public class OrderedDictionary<TKey, TValue>
             throw new System.ArgumentNullException(nameof(source));
         }
 
-        _order = new List<KeyValuePair<TKey, TValue>>(source._order);
+        _order = [..source._order,];
         _map = new Dictionary<TKey, TValue>(source._map);
     }
 

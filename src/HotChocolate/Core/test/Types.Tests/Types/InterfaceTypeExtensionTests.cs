@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Linq;
 using Snapshooter.Xunit;
 using HotChocolate.Language;

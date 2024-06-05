@@ -27,7 +27,7 @@ public class PostgresChannelTests
         _channelName = $"channel_{Guid.NewGuid():N}";
         _options = new PostgresSubscriptionOptions
         {
-            ConnectionFactory = ConnectionFactory, ChannelName = _channelName
+            ConnectionFactory = ConnectionFactory, ChannelName = _channelName,
         };
     }
 
@@ -124,7 +124,7 @@ public class PostgresChannelTests
 
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (i, _) =>
             {
                 using var testChannel = new TestChannel(SyncConnectionFactory, _channelName);
@@ -158,7 +158,7 @@ public class PostgresChannelTests
 
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (i, _) =>
             {
                 var messageId = i.ToString();
@@ -211,7 +211,7 @@ public class PostgresChannelTests
         // Act
         await Parallel.ForEachAsync(
             Enumerable.Range(0, 1000),
-            new ParallelOptions { MaxDegreeOfParallelism = 10 },
+            new ParallelOptions { MaxDegreeOfParallelism = 10, },
             async (_, ct) =>
             {
                 var message = PostgresMessageEnvelope
@@ -299,7 +299,7 @@ public class PostgresChannelTests
 
                 return await ConnectionFactory(ct);
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var channel = new PostgresChannel(_events, options);
         await channel.EnsureInitialized(CancellationToken.None);
@@ -358,7 +358,7 @@ public class PostgresChannelTests
 
                 return await ConnectionFactory(ct);
             },
-            ChannelName = _channelName
+            ChannelName = _channelName,
         };
         var channel = new PostgresChannel(_events, options);
         await channel.EnsureInitialized(CancellationToken.None);

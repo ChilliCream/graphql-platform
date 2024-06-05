@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore;
 public enum AcceptMediaTypeKind
 {
     /// <summary>
-    /// Not a well-known meda type.
+    /// Not a well-known media type.
     /// </summary>
     Unknown = 0,
 
@@ -43,5 +43,5 @@ public enum AcceptMediaTypeKind
     /// <summary>
     /// text/event-stream
     /// </summary>
-    EventStream
+    EventStream,
 }

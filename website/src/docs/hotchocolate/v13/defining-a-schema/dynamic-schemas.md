@@ -4,13 +4,13 @@ title: Dynamic Schemas
 
 In the world of SaaS, one size rarely fits all. With the ever-changing requirements and the need for high flexibility, schemas in a web application often need to be dynamic. In the context of GraphQL, a dynamic schema allows you to adapt the data structure exposed by your API according to varying conditions, be it different tenant, changing data sources, or configuration.
 
-For instance, consider a Content Management System (CMS) where each tenant might require custom fields that are specific to their use case. Having a static GraphQL schema in such a scenario would mean that you need to anticipate all possible custom fields beforehand, which is not practical. A dynamic schema, on the other hand, allows you to add, remove, or modify the types and fields in your schema at runtime based on the specific needs of each tenant. Each tenant can have a different schema, and you can adapt the schema to the tenant's needs without having to redeploy your application. 
+For instance, consider a Content Management System (CMS) where each tenant might require custom fields that are specific to their use case. Having a static GraphQL schema in such a scenario would mean that you need to anticipate all possible custom fields beforehand, which is not practical. A dynamic schema, on the other hand, allows you to add, remove, or modify the types and fields in your schema at runtime based on the specific needs of each tenant. Each tenant can have a different schema, and you can adapt the schema to the tenant's needs without having to redeploy your application.
 
 While creating dynamic schemas in GraphQL offers substantial flexibility, it also comes with its own set of complexities. This is where the `ITypeModule` interface in Hot Chocolate comes into play.
 
 # What is `ITypeModule`?
 
-`ITypeModule` is an interface introduced in Hot Chocolate that allows you to build a component that dynamically provides types to the schema building process. 
+`ITypeModule` is an interface introduced in Hot Chocolate that allows you to build a component that dynamically provides types to the schema building process.
 
 The `ITypeModule` interface consists of an event `TypesChanged` and a method `CreateTypesAsync`. Here is a brief overview of each:
 
@@ -79,12 +79,11 @@ In this implementation, `CreateTypesAsync` reads a JSON file, parses it, and cre
 
 # Unsafe Type Creation
 
-When working with dynamic schemas and the `ITypeModule` interface, one of the practices you'll encounter is the use of the `CreateUnsafe` method to create types. 
+When working with dynamic schemas and the `ITypeModule` interface, one of the practices you'll encounter is the use of the `CreateUnsafe` method to create types.
 The unsafe way to create types, as the name implies, bypasses some of the standard validation logic. This method is useful for advanced scenarios where you need more flexibility, such as when dynamically creating types based on runtime data.
 
-The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`. 
+The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`.
 
-```csharp
 ```csharp
 var typeDefinition = new ObjectTypeDefinition("DynamicType");
 // ... populate typeDefinition ...
@@ -92,16 +91,16 @@ var typeDefinition = new ObjectTypeDefinition("DynamicType");
 var dynamicType = ObjectType.CreateUnsafe(typeDefinition);
 ```
 
-Using `CreateUnsafe` method for type creation can be a complex task as it involves operating directly on the type definition. 
+Using `CreateUnsafe` method for type creation can be a complex task as it involves operating directly on the type definition.
 This allows for a lot of flexibility, but it also requires a deeper understanding of the Hot Chocolate type system.
 
-Here are some examples of how you might use the `CreateUnsafe` method to create various types. 
+Here are some examples of how you might use the `CreateUnsafe` method to create various types.
 
 > This is by no means an exhaustive list, but it should give you an idea of how to use this feature.
 
 ## Creating an Object Type
 
-Let's say we want to create a new object type representing a `Product` in an e-commerce system. 
+Let's say we want to create a new object type representing a `Product` in an e-commerce system.
 We would start by defining the `ObjectTypeDefinition`:
 
 ```csharp
@@ -164,7 +163,7 @@ var discountPriceField = new ObjectFieldDefinition(
 {
     Arguments = { discountArgument }
 };
-    
+
 objectTypeDefinition.Fields.Add(discountPriceField);
 ```
 
@@ -186,20 +185,22 @@ Now our `Product` object type has fields `id`, `name`, `price`, and `discountPri
 
 A resolver in Hot Chocolate is a delegate that fetches the data for a specific field. There are two types of resolvers: _async Resolvers_ and _pure Resolvers_.
 
-1. **Async Resolvers**: 
+1. **Async Resolvers**:
 
-    ```csharp
-    public delegate ValueTask<object?> FieldResolverDelegate(IResolverContext context);
-    ```
-    _Async Resolvers_ are are typically async and have access to a `IResolverContext`. They are usually used for fetching data from services or databases.
+   ```csharp
+   public delegate ValueTask<object?> FieldResolverDelegate(IResolverContext context);
+   ```
 
-2. **Pure Resolvers**: 
+   _Async Resolvers_ are are typically async and have access to a `IResolverContext`. They are usually used for fetching data from services or databases.
 
-    ```csharp
-    public delegate object? PureFieldDelegate(IPureResolverContext context);
-    ```
-    _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate. 
-    The execution engine optimizes the execution of these resolvers (through inlining of the value completion) to make it significantly faster.
+2. **Pure Resolvers**:
+
+   ```csharp
+   public delegate object? PureFieldDelegate(IPureResolverContext context);
+   ```
+
+   _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate.
+   The execution engine optimizes the execution of these resolvers (through inlining of the value completion) to make it significantly faster.
 
 The decision to use _async Resolvers_ or _pure Resolvers_ depends on your use case. If you need to perform asynchronous operations,or fetch data from services, you would use _async Resolvers_. If your resolver is simply retrieving data without any side effects, _pure Resolvers_ would be a more performant choice.
 
@@ -225,7 +226,7 @@ Here, `IReviewsService` could be an interface representing a service that fetche
 This field resolver is a `FieldResolverDelegate` (i.e., a non-pure resolver) because it needs perform an asynchronous operation.
 
 The resulting schema is:
-  
+
 ```graphql
 "Represents a product in the e-commerce system"
 type Product {
@@ -246,7 +247,7 @@ type Product {
 
 Creating an Input Object Type is very similar to creating an Object Type. The major difference lies in the fact that Input Object Types are used in GraphQL mutations or as arguments in queries, whereas Object Types are used in GraphQL queries to define the shape of the returned data. Meaning you don't need to define resolvers for Input Object Types.
 
-An Input Object Type can be created by defining an `InputObjectTypeDefinition` and using the `InputObjectType.CreateUnsafe` method. 
+An Input Object Type can be created by defining an `InputObjectTypeDefinition` and using the `InputObjectType.CreateUnsafe` method.
 
 Let's create an input object type representing a `ProductInput` which can be used to create or update a product:
 
@@ -299,7 +300,7 @@ var createProductMutationFieldDefinition = new ObjectFieldDefinition(
     }
 )
 {
-    Arguments = 
+    Arguments =
     {
         new ArgumentDefinition(
             "input",

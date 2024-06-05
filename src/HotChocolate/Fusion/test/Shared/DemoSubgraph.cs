@@ -12,7 +12,7 @@ public sealed class DemoSubgraph
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     public DemoSubgraph(
@@ -47,7 +47,7 @@ public sealed class DemoSubgraph
                 Name,
                 Schema.ToString(_serializerOptions),
                 Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
-                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri), },
                 null)
             : new SubgraphConfiguration(
                 Name,
@@ -56,7 +56,7 @@ public sealed class DemoSubgraph
                 new IClientConfiguration[]
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
-                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                    new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 null);
 
@@ -69,7 +69,7 @@ public sealed class DemoSubgraph
                 Name,
                 Schema.ToString(_serializerOptions),
                 Utf8GraphQLParser.Parse(extensions).ToString(_serializerOptions),
-                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri), },
                 configurationExtensions)
             : new SubgraphConfiguration(
                 Name,
@@ -78,7 +78,7 @@ public sealed class DemoSubgraph
                 new IClientConfiguration[]
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
-                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                    new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 configurationExtensions);
 
@@ -88,7 +88,7 @@ public sealed class DemoSubgraph
                 Name,
                 Schema.ToString(_serializerOptions),
                 Array.Empty<string>(),
-                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri) },
+                new IClientConfiguration[] { new HttpClientConfiguration(HttpEndpointUri), },
                 null)
             : new SubgraphConfiguration(
                 Name,
@@ -97,7 +97,7 @@ public sealed class DemoSubgraph
                 new IClientConfiguration[]
                 {
                     new HttpClientConfiguration(HttpEndpointUri),
-                    new WebSocketClientConfiguration(WebSocketEndpointUri)
+                    new WebSocketClientConfiguration(WebSocketEndpointUri),
                 },
                 null);
 }

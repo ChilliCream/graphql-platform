@@ -96,7 +96,7 @@ public async Task SayHello_HelloIsReturned()
     .MakeExecutable();
 
     IReadOnlyQueryRequest request =
-        QueryRequestBuilder.New()
+        OperationRequestBuilder.New()
             .SetQuery("{ sayHello }")
             .SetServices(serviceProvider)
             .AddProperty("Key", "value")
@@ -116,7 +116,7 @@ The query executor will return an execution result, depending on the type of ope
 
 An `IReadOnlyQueryResult` contains basically the result graph of the query, but asserting this could be very tiresome.
 
-My good friend [Normen](https://github.com/nscheibe) who works at Swiss Life created a snapshot testing library that basically works like [jestjs](https://jestjs.io). We use _Snapshooter_ internally to test the Hot Chocolate core.
+My good friend [Normen](https://github.com/nscheibe) who works at Swiss Life created a snapshot testing library that basically works like [Jest](https://jestjs.io). We use _Snapshooter_ internally to test the Hot Chocolate core.
 
 [Snapshooter](https://github.com/SwissLife-OSS/snapshooter) will create a snapshot at the first execution of the test. The snapshots are saved in a folder `__snapshot__` that is co-located with our test class. Every consecutive test run will be validated against that first snapshot. If the snapshots do not match the test will fail and tell us what part did not match.
 
@@ -139,7 +139,7 @@ public async Task SayHello_HelloIsReturned()
     .MakeExecutable();
 
     IReadOnlyQueryRequest request =
-        QueryRequestBuilder.New()
+        OperationRequestBuilder.New()
             .SetQuery("{ sayHello }")
             .SetServices(serviceProvider)
             .AddProperty("Key", "value")
@@ -174,7 +174,7 @@ result.MatchSnapshot(o =>
 
 For more information about how snapshooter works head over to their repository:
 
-https://github.com/SwissLife-OSS/snapshooter
+<https://github.com/SwissLife-OSS/snapshooter>
 
 ## Schema Tests
 
@@ -307,6 +307,3 @@ services.AddGraphQL(Schema.Create(c =>
 ```
 
 I hope this little post will help when you start writing tests for your schema. If you run into any issues or if you have further questions/suggestions head over to our slack channel and we will be happy to help you.
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/graphql-platform

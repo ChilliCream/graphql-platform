@@ -1,12 +1,11 @@
+#nullable enable
+
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
-
-#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -46,12 +45,7 @@ public partial class DirectiveType
     /// Returns the newly created directive type.
     /// </returns>
     public static DirectiveType CreateUnsafe(DirectiveTypeDefinition definition)
-        => new() { Definition = definition };
-
-    /// <summary>
-    /// The associated syntax node from the GraphQL SDL.
-    /// </summary>
-    public DirectiveDefinitionNode? SyntaxNode { get; private set; }
+        => new() { Definition = definition, };
 
     /// <summary>
     /// Gets the runtime type.

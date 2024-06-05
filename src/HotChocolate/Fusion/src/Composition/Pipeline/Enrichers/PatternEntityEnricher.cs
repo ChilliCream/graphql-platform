@@ -98,7 +98,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null);
 
             // Create a new SelectionSetNode for the entity resolver
-            var selectionSet = new SelectionSetNode(new[] { selection });
+            var selectionSet = new SelectionSetNode(new[] { selection, });
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
@@ -211,7 +211,7 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
                 null);
 
             // Create a new SelectionSetNode for the entity resolver
-            var selectionSet = new SelectionSetNode(new[] { selection });
+            var selectionSet = new SelectionSetNode(new[] { selection, });
 
             // Create a new EntityResolver for the entity
             var resolver = new EntityResolver(
@@ -248,7 +248,13 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
         {
             if (keyArgument.Type.IsListType() && !keyArgument.ContainsIsDirective())
             {
-                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+                var argumentType = keyArgument.Type;
+                if (argumentType.Kind is TypeKind.NonNull)
+                {
+                    argumentType = argumentType.InnerType();
+                }
+                
+                return argumentType.InnerType().Equals(keyField.Type, TypeComparison.Structural);
             }
             
             keyArgument = null;
@@ -261,7 +267,13 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             
             if (keyArgument.Type.IsListType() && !keyArgument.ContainsIsDirective())
             {
-                return keyArgument.Type.Equals(keyField.Type.InnerType(), TypeComparison.Structural);
+                var argumentType = keyArgument.Type;
+                if (argumentType.Kind is TypeKind.NonNull)
+                {
+                    argumentType = argumentType.InnerType();
+                }
+
+                return argumentType.InnerType().Equals(keyField.Type, TypeComparison.Structural);
             }
 
             keyArgument = null;
@@ -288,11 +300,15 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
             }
         }
 
-        if (keyArgument?.Type.IsListType() is true && 
-            keyArgument.Type.InnerType().Equals(keyField.Type, TypeComparison.Structural) &&
-            !keyArgument.ContainsIsDirective())
+        if (keyArgument?.Type.IsListType() is true && !keyArgument.ContainsIsDirective())
         {
-            return true;
+            var argumentType = keyArgument.Type;
+            if (argumentType.Kind is TypeKind.NonNull)
+            {
+                argumentType = argumentType.InnerType();
+            }
+
+            return argumentType.InnerType().Equals(keyField.Type, TypeComparison.Structural);
         }
 
         keyArgument = null;

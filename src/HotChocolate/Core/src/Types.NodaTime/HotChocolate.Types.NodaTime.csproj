@@ -14,6 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>  
 

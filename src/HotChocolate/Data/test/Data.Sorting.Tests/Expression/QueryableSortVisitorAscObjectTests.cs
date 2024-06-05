@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
@@ -115,7 +112,7 @@ public class QueryableSortVisitorAscObjectTests
         // assert
         var inputs =
             data.Select(
-                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
+                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x, }, })
                 .ToArray();
         var sorted = func(inputs);
 
@@ -143,8 +140,8 @@ public class QueryableSortVisitorAscObjectTests
         var inputs =
             data
                 .Select(
-                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
-                .Prepend(new FooNullable<string> { Bar = null })
+                    x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x, }, })
+                .Prepend(new FooNullable<string> { Bar = null, })
                 .ToArray();
         var sorted = func(inputs);
 
@@ -169,7 +166,7 @@ public class QueryableSortVisitorAscObjectTests
 
         // assert
         var inputs = dataObject
-            .Select(x => new BarInterface { Test = new InterfaceImpl1 { Prop = x } })
+            .Select(x => new BarInterface { Test = new InterfaceImpl1 { Prop = x, }, })
             .ToArray();
         var sorted = func(inputs);
 
@@ -191,7 +188,7 @@ public class QueryableSortVisitorAscObjectTests
         var func = tester.Build<Foo<T>>(value);
 
         // assert
-        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x } }).ToArray();
+        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x, }, }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -246,7 +243,7 @@ public class QueryableSortVisitorAscObjectTests
     {
         Foo = 0,
         Bar = 1,
-        Baz = 2
+        Baz = 2,
     }
 
     public class FooNullableSortType<T>

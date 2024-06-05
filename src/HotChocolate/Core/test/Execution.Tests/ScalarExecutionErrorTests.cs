@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Tests;
-using Xunit;
 
 #nullable enable
 
@@ -81,7 +77,7 @@ public class ScalarExecutionErrorTests
             "query a($a: Foo) { fooToString(name: $a) }",
             new Dictionary<string, object?>
             {
-                {"a", " "}
+                {"a", " "},
             });
 
         // assert
@@ -142,7 +138,7 @@ public class ScalarExecutionErrorTests
                 return true;
             }
 
-            return literal is StringValueNode { Value: "a" };
+            return literal is StringValueNode { Value: "a", };
         }
 
         public override bool IsInstanceOfType(object? value)
@@ -167,7 +163,7 @@ public class ScalarExecutionErrorTests
                 return null;
             }
 
-            if (literal is StringValueNode { Value: "a" })
+            if (literal is StringValueNode { Value: "a", })
             {
                 return "a";
             }

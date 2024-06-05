@@ -31,16 +31,6 @@ public class HslaType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="HslaType"/> class.
     /// </summary>
-    public HslaType()
-        : this(
-            WellKnownScalarTypes.Hsla,
-            ScalarResources.HslaType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HslaType"/> class.
-    /// </summary>
     public HslaType(
         string name,
         string? description = null,
@@ -50,6 +40,17 @@ public class HslaType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HslaType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public HslaType()
+        : this(
+            WellKnownScalarTypes.Hsla,
+            ScalarResources.HslaType_Description)
     {
     }
 

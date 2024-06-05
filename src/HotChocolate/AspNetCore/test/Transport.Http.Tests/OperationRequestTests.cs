@@ -1,7 +1,5 @@
 ﻿using System.Text;
 using System.Text.Json;
-using CookieCrumble;
-using Moq;
 
 namespace HotChocolate.Transport.Http.Tests;
 
@@ -18,7 +16,7 @@ public class OperationRequestTests
             variables: new Dictionary<string, object?>()
             {
                 ["abc"] = "def",
-                ["hij"] = null
+                ["hij"] = null,
             });
 
         using var memory = new MemoryStream();

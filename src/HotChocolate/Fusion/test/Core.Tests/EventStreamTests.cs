@@ -1,14 +1,9 @@
 using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Clients;
 using HotChocolate.Fusion.Composition;
-using HotChocolate.Fusion.Composition.Features;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
@@ -33,7 +28,7 @@ public class EventStreamTests(ITestOutputHelper output)
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl, onlyHttp: true),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, onlyHttp: true)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl, onlyHttp: true),
             },
             default,
             cts.Token);
@@ -59,16 +54,16 @@ public class EventStreamTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
-        await snapshot.MatchAsync(cts.Token);
+        await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

@@ -925,7 +925,7 @@ type UserMutations {
 The stitching engine provides a lot of extension points, but if we wanted to write the stitching for one specific resolver by ourselves then we could do that by using the `IStitchingContext` which is a scoped service and can be resolved through the resolver context.
 
 ```csharp
-IStitchingContext stitchingContext = context.Service<IStichingContext>();
+IStitchingContext stitchingContext = context.Service<IStitchingContext>();
 IRemoteQueryClient remoteQueryClient = stitchingContext.GetRemoteQueryClient("messages");
 IExecutionResult result = remoteQueryClient.ExecuteAsync("{ foo { bar } }")
 ```

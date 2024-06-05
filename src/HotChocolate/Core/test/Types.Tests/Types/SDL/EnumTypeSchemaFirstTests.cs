@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
-using Xunit;
 using System.Threading.Tasks;
 using Snapshooter;
 
@@ -205,6 +204,6 @@ public class EnumTypeSchemaFirstTests
     public enum Greetings
     {
         GoodMorning,
-        GoodEvening
+        GoodEvening,
     }
 }

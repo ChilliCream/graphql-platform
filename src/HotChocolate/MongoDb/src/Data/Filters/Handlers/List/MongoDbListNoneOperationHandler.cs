@@ -26,7 +26,7 @@ public class MongoDbListNoneOperationHandler : MongoDbListOperationHandlerBase
                 new BsonDocument
                 {
                         { "$exists", true },
-                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
+                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value, } },
                 }),
             new MongoDbFilterOperation(
                 path,

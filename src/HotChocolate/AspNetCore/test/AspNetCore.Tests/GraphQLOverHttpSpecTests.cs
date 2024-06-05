@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using static System.Net.Http.HttpCompletionOption;
@@ -11,12 +13,9 @@ using static HotChocolate.AspNetCore.HttpTransportVersion;
 
 namespace HotChocolate.AspNetCore;
 
-public class GraphQLOverHttpSpecTests : ServerTestBase
+public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri _url = new("http://localhost:5000/graphql");
-
-    public GraphQLOverHttpSpecTests(TestServerFactory serverFactory)
-        : base(serverFactory) { }
 
     [Theory]
     [InlineData(null, Latest, ContentType.GraphQLResponse)]
@@ -61,7 +60,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }", }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -94,11 +93,11 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" }),
+                new ClientQueryRequest { Query = "{ __typename }", }),
             Headers =
             {
-                { "Accept", acceptHeader }
-            }
+                { "Accept", acceptHeader },
+            },
         };
 
         using var response = await client.SendAsync(request);
@@ -144,8 +143,14 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         {
             Content = new ByteArrayContent(Array.Empty<byte>())
             {
-                Headers = { ContentType = new("application/json") { CharSet = "utf-8" } }
-            }
+                Headers =
+                {
+                    ContentType = new("application/json")
+                    {
+                        CharSet = "utf-8",
+                    },
+                },
+            },
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -162,7 +167,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 Status Code: {expectedStatusCode}
                 -------------------------->
                 " +
-                @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0012""}}]}");
+                @"{""errors"":[{""message"":""The GraphQL request is empty."",""extensions"":{""code"":""HC0009""}}]}");
     }
 
     [Theory]
@@ -186,7 +191,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typ$ename }" })
+                new ClientQueryRequest { Query = "{ __typ$ename }", }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -229,7 +234,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __type name }" })
+                new ClientQueryRequest { Query = "{ __type name }", }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -275,7 +280,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }", }),
         };
 
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
@@ -308,7 +313,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ __typename }" })
+                new ClientQueryRequest { Query = "{ __typename }", }),
         };
 
         request.Headers.TryAddWithoutValidation("Accept", "application/unsupported");
@@ -346,7 +351,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" })
+                new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
         };
         AddAcceptHeader(request, acceptHeader);
 
@@ -390,8 +395,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", acceptHeader } }
+                new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
+            Headers = { { "Accept", acceptHeader }, },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -420,7 +425,7 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
     }
 
     [Fact]
-    public async Task DefferedQuery_NoStreamableAcceptHeader()
+    public async Task DeferredQuery_NoStreamableAcceptHeader()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -430,8 +435,8 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         using var request = new HttpRequestMessage(HttpMethod.Post, _url)
         {
             Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "{ ... @defer { __typename } }" }),
-            Headers = { { "Accept", ContentType.GraphQLResponse } }
+                new ClientQueryRequest { Query = "{ ... @defer { __typename } }", }),
+            Headers = { { "Accept", ContentType.GraphQLResponse }, },
         };
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
@@ -460,12 +465,13 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
         client.Timeout = TimeSpan.FromSeconds(30);
 
         // act
-        using var request = new HttpRequestMessage(HttpMethod.Post, _url)
-        {
-            Content = JsonContent.Create(
-                new ClientQueryRequest { Query = "subscription {delay(count: 2, delay:15000)}" }),
-            Headers = { { "Accept", "text/event-stream" } }
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = "subscription {delay(count: 2, delay:15000)}",
+            });
+        request.Headers.Add("Accept", "text/event-stream");
 
         using var response = await client.SendAsync(request, ResponseHeadersRead);
 
@@ -496,13 +502,120 @@ public class GraphQLOverHttpSpecTests : ServerTestBase
                 """);
     }
 
+    [Fact]
+    public async Task OperationBatch()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+        var snapshot = new Snapshot();
+
+        // act
+        var request = new GraphQLHttpRequest(
+            new OperationBatchRequest(
+            [
+                new OperationRequest(
+                    """
+                    {
+                        hero(episode: NEW_HOPE) {
+                            name
+                        }
+                    }
+                    """),
+                new OperationRequest(
+                    """
+                    {
+                        hero(episode: EMPIRE) {
+                            name
+                        }
+                    }
+                    """),
+            ]),
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(response.StatusCode, OK);
+
+        var sortedResults = new SortedList<(int?, int?), OperationResult>();
+
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            sortedResults.Add((result.RequestIndex, result.VariableIndex), result);
+        }
+
+        foreach (var result in sortedResults.Values)
+        {
+            snapshot.Add(result);
+        }
+
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task VariableBatch()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+        var snapshot = new Snapshot();
+
+        // act
+        var request = new GraphQLHttpRequest(
+            new VariableBatchRequest(
+                """
+                query($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }
+                """,
+                variables:
+                [
+                    new Dictionary<string, object?> { { "episode", "NEW_HOPE" }, },
+                    new Dictionary<string, object?> { { "episode", "EMPIRE" }, },
+                ]),
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(response.StatusCode, OK);
+
+        await foreach (var result in response.ReadAsResultStreamAsync())
+        {
+            snapshot.Add(result);
+        }
+
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task After_Execution_StatusCode_Is_200()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = new DefaultGraphQLHttpClient(server.CreateClient());
+
+        // act
+        var request = new GraphQLHttpRequest(
+            new OperationRequest("{ error }"),
+            new Uri("http://localhost:5000/notnull"));
+
+        using var response = await client.SendAsync(request);
+
+        // assert
+        Assert.Equal(response.StatusCode, OK);
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
             configureServices: s => s.AddHttpResponseFormatter(
                 new HttpResponseFormatterOptions
                 {
-                    HttpTransportVersion = serverTransportVersion
+                    HttpTransportVersion = serverTransportVersion,
                 }));
 
         return server.CreateClient();

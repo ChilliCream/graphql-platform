@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language;
 
 internal static class GraphQLKeywords
@@ -12,7 +10,7 @@ internal static class GraphQLKeywords
         (byte)'h',
         (byte)'e',
         (byte)'m',
-        (byte)'a'
+        (byte)'a',
     };
 
     public static ReadOnlySpan<byte> Scalar => new[]
@@ -22,7 +20,7 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'l',
         (byte)'a',
-        (byte)'r'
+        (byte)'r',
     };
 
     public static ReadOnlySpan<byte> Type => new[]
@@ -30,7 +28,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'y',
         (byte)'p',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> Interface => new[]
@@ -43,7 +41,7 @@ internal static class GraphQLKeywords
         (byte)'f',
         (byte)'a',
         (byte)'c',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> Union => new[]
@@ -52,7 +50,7 @@ internal static class GraphQLKeywords
         (byte)'n',
         (byte)'i',
         (byte)'o',
-        (byte)'n'
+        (byte)'n',
     };
 
     public static ReadOnlySpan<byte> Enum => new[]
@@ -60,7 +58,7 @@ internal static class GraphQLKeywords
         (byte)'e',
         (byte)'n',
         (byte)'u',
-        (byte)'m'
+        (byte)'m',
     };
 
     public static ReadOnlySpan<byte> Input => new[]
@@ -69,7 +67,7 @@ internal static class GraphQLKeywords
         (byte)'n',
         (byte)'p',
         (byte)'u',
-        (byte)'t'
+        (byte)'t',
     };
 
     public static ReadOnlySpan<byte> Extend => new[]
@@ -79,7 +77,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'e',
         (byte)'n',
-        (byte)'d'
+        (byte)'d',
     };
 
     public static ReadOnlySpan<byte> Implements => new[]
@@ -93,7 +91,7 @@ internal static class GraphQLKeywords
         (byte)'e',
         (byte)'n',
         (byte)'t',
-        (byte)'s'
+        (byte)'s',
     };
 
     public static ReadOnlySpan<byte> Repeatable => new[]
@@ -107,7 +105,7 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'b',
         (byte)'l',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> Directive => new[]
@@ -120,7 +118,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'v',
-        (byte)'e'
+        (byte)'e',
     };
 
     // query
@@ -130,7 +128,7 @@ internal static class GraphQLKeywords
         (byte)'u',
         (byte)'e',
         (byte)'r',
-        (byte)'y'
+        (byte)'y',
     };
 
     public static ReadOnlySpan<byte> Mutation => new[]
@@ -142,7 +140,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'o',
-        (byte)'n'
+        (byte)'n',
     };
 
     public static ReadOnlySpan<byte> Subscription => new[]
@@ -158,7 +156,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'i',
         (byte)'o',
-        (byte)'n'
+        (byte)'n',
     };
 
     public static ReadOnlySpan<byte> Fragment => new[]
@@ -170,14 +168,14 @@ internal static class GraphQLKeywords
         (byte)'m',
         (byte)'e',
         (byte)'n',
-        (byte)'t'
+        (byte)'t',
     };
 
     // general
     public static ReadOnlySpan<byte> On => new[]
     {
         (byte)'o',
-        (byte)'n'
+        (byte)'n',
     };
 
     public static ReadOnlySpan<byte> True => new[]
@@ -185,7 +183,7 @@ internal static class GraphQLKeywords
         (byte)'t',
         (byte)'r',
         (byte)'u',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> False => new[]
@@ -194,7 +192,7 @@ internal static class GraphQLKeywords
         (byte)'a',
         (byte)'l',
         (byte)'s',
-        (byte)'e'
+        (byte)'e',
     };
 
     public static ReadOnlySpan<byte> Null => new[]
@@ -202,6 +200,6 @@ internal static class GraphQLKeywords
         (byte)'n',
         (byte)'u',
         (byte)'l',
-        (byte)'l'
+        (byte)'l',
     };
 }

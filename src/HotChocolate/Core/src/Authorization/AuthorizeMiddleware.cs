@@ -7,20 +7,14 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Authorization;
 
-internal sealed class AuthorizeMiddleware
+internal sealed class AuthorizeMiddleware(
+    FieldDelegate next,
+    AuthorizeDirective directive)
 {
-    private readonly FieldDelegate _next;
-    private readonly AuthorizeDirective _directive;
-
-    public AuthorizeMiddleware(
-        FieldDelegate next,
-        AuthorizeDirective directive)
-    {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
-        _directive = directive ??
-            throw new ArgumentNullException(nameof(directive));
-    }
+    private readonly FieldDelegate _next = next ??
+        throw new ArgumentNullException(nameof(next));
+    private readonly AuthorizeDirective _directive = directive ??
+        throw new ArgumentNullException(nameof(directive));
 
     public async Task InvokeAsync(IMiddlewareContext context)
     {
@@ -87,7 +81,7 @@ internal sealed class AuthorizeMiddleware
                     .SetMessage(AuthorizeMiddleware_NoDefaultPolicy)
                     .SetCode(ErrorCodes.Authentication.NoDefaultPolicy)
                     .SetPath(context.Path)
-                    .AddLocation(context.Selection.SyntaxNode)
+                    .AddLocation([context.Selection.SyntaxNode])
                     .Build(),
             AuthorizeResult.PolicyNotFound
                 => ErrorBuilder.New()
@@ -96,7 +90,7 @@ internal sealed class AuthorizeMiddleware
                         _directive.Policy!)
                     .SetCode(ErrorCodes.Authentication.PolicyNotFound)
                     .SetPath(context.Path)
-                    .AddLocation(context.Selection.SyntaxNode)
+                    .AddLocation([context.Selection.SyntaxNode])
                     .Build(),
             _
                 => ErrorBuilder.New()
@@ -106,7 +100,7 @@ internal sealed class AuthorizeMiddleware
                             ? ErrorCodes.Authentication.NotAuthorized
                             : ErrorCodes.Authentication.NotAuthenticated)
                     .SetPath(context.Path)
-                    .AddLocation(context.Selection.SyntaxNode)
-                    .Build()
+                    .AddLocation([context.Selection.SyntaxNode])
+                    .Build(),
         };
 }

@@ -11,16 +11,6 @@ public class NegativeIntType : IntType
     /// <summary>
     /// Initializes a new instance of the <see cref="NegativeIntType"/> class.
     /// </summary>
-    public NegativeIntType()
-        : this(
-            WellKnownScalarTypes.NegativeInt,
-            ScalarResources.NegativeIntType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="NegativeIntType"/> class.
-    /// </summary>
     public NegativeIntType(
         string name,
         string? description = null,
@@ -28,6 +18,17 @@ public class NegativeIntType : IntType
         : base(name, description, int.MinValue, -1, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="NegativeIntType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public NegativeIntType()
+        : this(
+            WellKnownScalarTypes.NegativeInt,
+            ScalarResources.NegativeIntType_Description)
+    {
     }
 
     /// <inheritdoc />

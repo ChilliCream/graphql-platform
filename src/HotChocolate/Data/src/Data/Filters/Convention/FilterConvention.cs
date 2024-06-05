@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Data.Utilities;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using static HotChocolate.Data.ThrowHelper;
+using static Microsoft.Extensions.DependencyInjection.ActivatorUtilities;
 
 namespace HotChocolate.Data.Filters;
 
@@ -19,7 +14,7 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public class FilterConvention
     : Convention<FilterConventionDefinition>
-    , IFilterConvention
+        , IFilterConvention
 {
     private const string _inputPostFix = "FilterInput";
     private const string _inputTypePostFix = "FilterInputType";
@@ -70,16 +65,14 @@ public class FilterConvention
 
     /// <summary>
     /// This method is called on initialization of the convention but before the convention is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the convention can be further configured before it is
     /// completed
     /// </summary>
     /// <param name="descriptor">
     /// The descriptor that can be used to configure the convention
     /// </param>
-    protected virtual void Configure(IFilterConventionDescriptor descriptor)
-    {
-    }
+    protected virtual void Configure(IFilterConventionDescriptor descriptor) { }
 
     /// <inheritdoc />
     protected internal override void Complete(IConventionContext context)
@@ -92,7 +85,7 @@ public class FilterConvention
         if (Definition.ProviderInstance is null)
         {
             _provider =
-                context.Services.GetOrCreateService<IFilterProvider>(Definition.Provider) ??
+                (IFilterProvider)GetServiceOrCreateInstance(context.Services, Definition.Provider) ??
                 throw FilterConvention_NoProviderFound(GetType(), Definition.Scope);
         }
         else
@@ -156,16 +149,10 @@ public class FilterConvention
             runtimeType.GenericTypeArguments.Length == 1)
         {
             var genericType = runtimeType.GenericTypeArguments[0];
-            string genericName;
 
-            if (typeof(FilterInputType).IsAssignableFrom(genericType))
-            {
-                genericName = GetTypeName(genericType);
-            }
-            else
-            {
-                genericName = _namingConventions.GetTypeName(genericType);
-            }
+            var genericName = typeof(FilterInputType).IsAssignableFrom(genericType)
+                ? GetTypeName(genericType)
+                : _namingConventions.GetTypeName(genericType);
 
             return "List" + genericName;
         }
@@ -253,8 +240,8 @@ public class FilterConvention
         IFilterInputTypeDescriptor descriptor)
     {
         if (_configs.TryGetValue(
-                typeReference,
-                out var configurations))
+            typeReference,
+            out var configurations))
         {
             foreach (var configure in configurations)
             {
@@ -263,8 +250,8 @@ public class FilterConvention
         }
     }
 
-    public FieldMiddleware CreateExecutor<TEntityType>() =>
-        _provider.CreateExecutor<TEntityType>(_argumentName);
+    public IQueryBuilder CreateBuilder<TEntityType>() =>
+        _provider.CreateBuilder<TEntityType>(_argumentName);
 
     public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
         _provider.ConfigureField(_argumentName, descriptor);
@@ -333,7 +320,7 @@ public class FilterConvention
             return true;
         }
 
-        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false })
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
         {
             type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Type);
 
@@ -358,14 +345,10 @@ public class FilterConvention
     {
         var extensions = new List<IFilterProviderExtension>();
         extensions.AddRange(definition.ProviderExtensions);
+
         foreach (var extensionType in definition.ProviderExtensionsTypes)
         {
-            if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
-                    extensionType,
-                    out var createdExtension))
-            {
-                extensions.Add(createdExtension);
-            }
+            extensions.Add((IFilterProviderExtension)GetServiceOrCreateInstance(serviceProvider, extensionType));
         }
 
         return extensions;
@@ -376,16 +359,18 @@ public class FilterConvention
         IFilterProviderConvention provider,
         IReadOnlyList<IFilterProviderExtension> extensions)
     {
-        if (provider is Convention providerConvention)
+        if (provider is not Convention providerConvention)
         {
-            for (var m = 0; m < extensions.Count; m++)
+            return;
+        }
+
+        for (var m = 0; m < extensions.Count; m++)
+        {
+            if (extensions[m] is IFilterProviderConvention extensionConvention)
             {
-                if (extensions[m] is IFilterProviderConvention extensionConvention)
-                {
-                    extensionConvention.Initialize(context, this);
-                    extensions[m].Merge(context, providerConvention);
-                    extensionConvention.Complete(context);
-                }
+                extensionConvention.Initialize(context, this);
+                extensions[m].Merge(context, providerConvention);
+                extensionConvention.Complete(context);
             }
         }
     }

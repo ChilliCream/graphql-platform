@@ -1,5 +1,4 @@
 using HotChocolate.Configuration.Validation;
-using Xunit;
 
 namespace HotChocolate.Types.Validation;
 
@@ -140,7 +139,7 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
-    public void RejectInterfaceWithNullableMissMatchInImplementationOfArgument()
+    public void RejectInterfaceWithNullableMismatchInImplementationOfArgument()
     {
         ExpectError(@"
           type Query { stub: String }
@@ -155,7 +154,7 @@ public class ObjectTypeValidationRuleTests : TypeValidationTestBase
     }
 
     [Fact]
-    public void RejectInterfaceWithNullableMissMatchInImplementationOfField()
+    public void RejectInterfaceWithNullableMismatchInImplementationOfField()
     {
         ExpectError(@"
           type Query { stub: String }

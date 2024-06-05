@@ -7,7 +7,7 @@ using HotChocolate.Utilities.Introspection.Properties;
 namespace HotChocolate.Utilities.Introspection;
 
 /// <summary>
-/// A utility to format an introspection result into a GraphQL schema document. 
+/// A utility to format an introspection result into a GraphQL schema document.
 /// </summary>
 internal static class IntrospectionFormatter
 {
@@ -62,7 +62,7 @@ internal static class IntrospectionFormatter
         OperationType operation,
         ICollection<OperationTypeDefinitionNode> operations)
     {
-        if (rootType is { Name: not null })
+        if (rootType is { Name: not null, })
         {
             operations.Add(new OperationTypeDefinitionNode(
                 null,
@@ -169,7 +169,9 @@ internal static class IntrospectionFormatter
                 CreateDescription(field.Description),
                 CreateTypeReference(field.Type),
                 ParseDefaultValue(field.DefaultValue),
-                Array.Empty<DirectiveNode>()
+                CreateDeprecatedDirective(
+                    field.IsDeprecated,
+                    field.DeprecationReason)
             ));
         }
 
@@ -254,7 +256,7 @@ internal static class IntrospectionFormatter
     private static DirectiveDefinitionNode CreateDirectiveDefinition(
         Directive directive)
     {
-        var locations = directive.Locations?.Select(t => new NameNode(t)).ToList() ?? 
+        var locations = directive.Locations?.Select(t => new NameNode(t)).ToList() ??
             InferDirectiveLocation(directive);
 
         return new DirectiveDefinitionNode
@@ -330,7 +332,7 @@ internal static class IntrospectionFormatter
                         WellKnownDirectives.DeprecationReasonArgument,
                         new StringValueNode(deprecationReason)
                     )
-                )
+                ),
             };
         }
         return Array.Empty<DirectiveNode>();

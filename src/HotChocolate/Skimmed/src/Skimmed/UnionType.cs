@@ -22,7 +22,7 @@ public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
 
     public string? Description { get; set; }
 
-    public DirectiveCollection Directives { get; } = new();
+    public DirectiveCollection Directives { get; } = [];
 
     public IList<ObjectType> Types { get; } = new List<ObjectType>();
 

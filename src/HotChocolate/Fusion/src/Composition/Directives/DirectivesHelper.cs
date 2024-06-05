@@ -24,14 +24,14 @@ internal static class DirectivesHelper
 
         var arg = directive.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(CoordinateArg));
 
-        if (arg is { Value: StringValueNode coordinate })
+        if (arg is { Value: StringValueNode coordinate, })
         {
             return new IsDirective(SchemaCoordinate.Parse(coordinate.Value));
         }
 
         arg = directive.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(FieldArg));
 
-        if (arg is { Value: StringValueNode field })
+        if (arg is { Value: StringValueNode field, })
         {
             return new IsDirective(Utf8GraphQLParser.Syntax.ParseField(field.Value));
         }
@@ -48,7 +48,7 @@ internal static class DirectivesHelper
         var directive = member.Directives[RequireDirectiveName].First();
         var arg = directive.Arguments.FirstOrDefault(t => t.Name.EqualsOrdinal(FieldArg));
 
-        if (arg is { Value: StringValueNode field })
+        if (arg is { Value: StringValueNode field, })
         {
             return new RequireDirective(Utf8GraphQLParser.Syntax.ParseField(field.Value));
         }

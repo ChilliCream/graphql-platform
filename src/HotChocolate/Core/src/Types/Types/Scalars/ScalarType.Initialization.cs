@@ -36,7 +36,7 @@ public abstract partial class ScalarType
     }
 
     protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        => new() { Name = Name, Description = Description };
+        => new() { Name = Name, Description = Description, };
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
@@ -59,6 +59,5 @@ public abstract partial class ScalarType
         _converter = context.DescriptorContext.TypeConverter;
         var directiveDefinitions = Array.Empty<DirectiveDefinition>();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
-        SyntaxNode = definition.SyntaxNode;
     }
 }

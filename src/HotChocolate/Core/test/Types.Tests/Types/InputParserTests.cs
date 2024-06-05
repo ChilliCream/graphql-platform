@@ -28,7 +28,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -76,7 +76,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field1", "abc" },
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -123,7 +123,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field2", 123 }
+            { "field2", 123 },
         };
 
         // act
@@ -170,7 +170,7 @@ public class InputParserTests
         var fieldData = new Dictionary<string, object?>
         {
             { "field2", 123 },
-            { "field3", 123 }
+            { "field3", 123 },
         };
 
         // act
@@ -223,7 +223,7 @@ public class InputParserTests
         {
             { "field2", 123 },
             { "field3", 123 },
-            { "field4", 123 }
+            { "field4", 123 },
         };
 
         // act
@@ -283,7 +283,7 @@ public class InputParserTests
 
         var options = new InputParserOptions
         {
-            IgnoreAdditionalInputFields = true
+            IgnoreAdditionalInputFields = true,
         };
 
         // act
@@ -380,13 +380,16 @@ public class InputParserTests
             .BuildRequestExecutorAsync();
 
         // act
-        var query = QueryRequestBuilder.Create(@"
-            {
-                loopback(input: {field2: 1}) {
-                    field1
-                    field2
+        var query = 
+            OperationRequest.FromSourceText(
+                """
+                {
+                    loopback(input: {field2: 1}) {
+                        field1
+                        field2
+                    }
                 }
-            }");
+                """);
         var result = await executor.ExecuteAsync(query, CancellationToken.None);
 
         // assert
@@ -485,7 +488,7 @@ public class InputParserTests
 
         var fieldData = new Dictionary<string, object?>
         {
-            { "field1", "abc" }
+            { "field1", "abc" },
         };
 
         // act
@@ -530,7 +533,7 @@ public class InputParserTests
 
     public class FooInput
     {
-        public List<Bar?> Bars { get; set; } = new();
+        public List<Bar?> Bars { get; set; } = [];
     }
 
     public class Query4
@@ -548,7 +551,7 @@ public class InputParserTests
 
     public enum Bar
     {
-        Baz
+        Baz,
     }
 
     [OneOf]

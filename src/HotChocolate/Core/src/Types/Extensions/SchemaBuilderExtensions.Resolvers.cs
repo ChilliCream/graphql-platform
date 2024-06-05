@@ -45,7 +45,7 @@ public static partial class SchemaBuilderExtensions
         if (!field.HasValue)
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilderExtensions_AddResolver_EmptyCooridnates,
+                TypeResources.SchemaBuilderExtensions_AddResolver_EmptyCoordinates,
                 nameof(builder));
         }
 
@@ -584,8 +584,8 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(resolverType));
         }
 
-        if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
-            { IsClass: true, IsAbstract: false, IsNestedPublic: true })
+        if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true, } or
+            { IsClass: true, IsAbstract: false, IsNestedPublic: true, })
         {
             if (string.IsNullOrEmpty(typeName))
             {
@@ -633,7 +633,7 @@ public static partial class SchemaBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (resolverType is { IsClass: true } or { IsInterface: true })
+        if (resolverType is { IsClass: true, } or { IsInterface: true, })
         {
             foreach (var property in resolverType.GetProperties())
             {

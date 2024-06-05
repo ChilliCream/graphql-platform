@@ -5,7 +5,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 
@@ -16,7 +15,7 @@ public class TypeInitializerTests
     {
         // arrange
         var typeInterceptor = new AggregateTypeInterceptor();
-        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
+        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor(), });
         IDescriptorContext context = DescriptorContext.Create(
             typeInterceptor: typeInterceptor);
         var typeRegistry = new TypeRegistry(context.TypeInterceptor);
@@ -26,7 +25,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
             },
             null,
             t => t is FooType ? RootTypeKind.Query : RootTypeKind.None,
@@ -56,7 +55,7 @@ public class TypeInitializerTests
                 t => t.Name.ToString(),
                 t => t.Type.Print());
 
-        new { fooType, barType }.MatchSnapshot();
+        new { fooType, barType, }.MatchSnapshot();
     }
 
     [Fact]
@@ -64,7 +63,7 @@ public class TypeInitializerTests
     {
         // arrange
         var typeInterceptor = new AggregateTypeInterceptor();
-        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
+        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor(), });
         IDescriptorContext context = DescriptorContext.Create(
             typeInterceptor: typeInterceptor);
         var typeRegistry = new TypeRegistry(context.TypeInterceptor);
@@ -74,7 +73,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
             },
             null,
             t =>
@@ -82,7 +81,7 @@ public class TypeInitializerTests
                 return t switch
                 {
                     ObjectType<Foo> => RootTypeKind.Query,
-                    _ => RootTypeKind.None
+                    _ => RootTypeKind.None,
                 };
             },
             new SchemaOptions());
@@ -111,7 +110,7 @@ public class TypeInitializerTests
                 t => t.Name.ToString(),
                 t => t.Type.Print());
 
-        new { fooType, barType }.MatchSnapshot();
+        new { fooType, barType, }.MatchSnapshot();
     }
 
     [Fact]
@@ -119,7 +118,7 @@ public class TypeInitializerTests
     {
         // arrange
         var typeInterceptor = new AggregateTypeInterceptor();
-        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
+        typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor(), });
         IDescriptorContext context = DescriptorContext.Create(
             typeInterceptor: typeInterceptor);
         var typeRegistry = new TypeRegistry(context.TypeInterceptor);
@@ -130,7 +129,7 @@ public class TypeInitializerTests
             typeRegistry,
             new List<TypeReference>
             {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output),
             },
             null!,
             t =>
@@ -138,7 +137,7 @@ public class TypeInitializerTests
                 return t switch
                 {
                     ObjectType<Foo> => RootTypeKind.Query,
-                    _ => RootTypeKind.None
+                    _ => RootTypeKind.None,
                 };
             },
             null!);
@@ -179,7 +178,7 @@ public class TypeInitializerTests
             "Abc",
             factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
 
-        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
+        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2, });
 
         // act
         var schema =
@@ -202,7 +201,7 @@ public class TypeInitializerTests
 
         var typeRef2 = TypeReference.Parse("Abc");
 
-        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
+        var interceptor = new InjectTypes(new[] { typeRef1, typeRef2, });
 
         // act
         var schema =

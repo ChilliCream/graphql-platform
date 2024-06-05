@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
 
@@ -56,8 +53,8 @@ public static class QueryableFilterExtensions
         Type expectedType)
     {
         if (context.LocalContextData.TryGetValue(
-                QueryableFilterProvider.ContextApplyFilteringKey,
-                out var applicatorObj) &&
+            QueryableFilterProvider.ContextApplyFilteringKey,
+            out var applicatorObj) &&
             applicatorObj is ApplyFiltering applicator)
         {
             var resultObj = applicator(context, input);
@@ -66,7 +63,7 @@ public static class QueryableFilterExtensions
                 return result;
             }
 
-            throw ThrowHelper.Filtering_TypeMissmatch(
+            throw ThrowHelper.Filtering_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

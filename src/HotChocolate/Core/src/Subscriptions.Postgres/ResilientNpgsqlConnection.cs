@@ -7,7 +7,7 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
 {
-    private const int _waitOnFailureinMs = 500;
+    private const int _waitOnFailureInMs = 500;
 
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
     private readonly Func<CancellationToken, ValueTask<NpgsqlConnection>> _connectionFactory;
@@ -53,12 +53,12 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
             // trigger
 
             var message = string
-                .Format(ResilientConnection_FailedToConnect, _waitOnFailureinMs, ex.Message);
+                .Format(ResilientConnection_FailedToConnect, _waitOnFailureInMs, ex.Message);
             _diagnosticEvents.ProviderInfo(message);
 
             try
             {
-                await Task.Delay(_waitOnFailureinMs, cancellationToken);
+                await Task.Delay(_waitOnFailureInMs, cancellationToken);
             }
             catch
             {
@@ -100,7 +100,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
                 {
                     await _onDisconnect(cancellationToken);
                 }
-                catch (Exception)
+                catch
                 {
                     // on disconnect we ignore all exceptions
                 }
@@ -108,7 +108,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
                 await Connection.DisposeAsync();
             }
         }
-        catch (Exception)
+        catch
         {
             // on disconnect we ignore all exceptions
         }

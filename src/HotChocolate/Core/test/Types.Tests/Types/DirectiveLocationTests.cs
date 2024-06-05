@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -16,7 +15,7 @@ public class DirectiveLocationTests
             (int)DirectiveLocation.Executable,
             (int)DirectiveLocation.TypeSystem,
             (int)DirectiveLocation.Operation,
-            (int)DirectiveLocation.Fragment
+            (int)DirectiveLocation.Fragment,
         };
 
         Enum.GetValues(typeof(DirectiveLocation))

@@ -405,9 +405,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string InterfaceImplRule_ArgumentsDontMatch {
+        internal static string InterfaceImplRule_ArgumentsDoNotMatch {
             get {
-                return ResourceManager.GetString("InterfaceImplRule_ArgumentsDontMatch", resourceCulture);
+                return ResourceManager.GetString("InterfaceImplRule_ArgumentsDoNotMatch", resourceCulture);
             }
         }
         
@@ -450,12 +450,6 @@ namespace HotChocolate.Properties {
         internal static string LongType_Description {
             get {
                 return ResourceManager.GetString("LongType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string MultiplierPathType_Description {
-            get {
-                return ResourceManager.GetString("MultiplierPathType_Description", resourceCulture);
             }
         }
         
@@ -837,9 +831,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string TypeNameHelper_OnlyTsosAreAllowed {
+        internal static string TypeNameHelper_OnlyTypeSystemObjectsAreAllowed {
             get {
-                return ResourceManager.GetString("TypeNameHelper_OnlyTsosAreAllowed", resourceCulture);
+                return ResourceManager.GetString("TypeNameHelper_OnlyTypeSystemObjectsAreAllowed", resourceCulture);
             }
         }
         
@@ -975,15 +969,15 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string TypeConvertion_ConvertNotSupported {
+        internal static string TypeConversion_ConvertNotSupported {
             get {
-                return ResourceManager.GetString("TypeConvertion_ConvertNotSupported", resourceCulture);
+                return ResourceManager.GetString("TypeConversion_ConvertNotSupported", resourceCulture);
             }
         }
         
-        internal static string SchemaBuilder_Interceptor_NotSuppported {
+        internal static string SchemaBuilder_Interceptor_NotSupported {
             get {
-                return ResourceManager.GetString("SchemaBuilder_Interceptor_NotSuppported", resourceCulture);
+                return ResourceManager.GetString("SchemaBuilder_Interceptor_NotSupported", resourceCulture);
             }
         }
         
@@ -999,9 +993,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string SchemaBuilder_Convention_NotSuppported {
+        internal static string SchemaBuilder_Convention_NotSupported {
             get {
-                return ResourceManager.GetString("SchemaBuilder_Convention_NotSuppported", resourceCulture);
+                return ResourceManager.GetString("SchemaBuilder_Convention_NotSupported", resourceCulture);
             }
         }
         
@@ -1251,18 +1245,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string CostDirective_ComplexityCannotBeBelowOne {
-            get {
-                return ResourceManager.GetString("CostDirective_ComplexityCannotBeBelowOne", resourceCulture);
-            }
-        }
-        
-        internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
-            get {
-                return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
-            }
-        }
-        
         internal static string EventMessageParameterExpressionBuilder_MessageNotFound {
             get {
                 return ResourceManager.GetString("EventMessageParameterExpressionBuilder_MessageNotFound", resourceCulture);
@@ -1287,9 +1269,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string SchemaBuilderExtensions_AddResolver_EmptyCooridnates {
+        internal static string SchemaBuilderExtensions_AddResolver_EmptyCoordinates {
             get {
-                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_EmptyCooridnates", resourceCulture);
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_EmptyCoordinates", resourceCulture);
             }
         }
         
@@ -1821,6 +1803,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_RequiredArgumentCannotBeDeprecated {
             get {
                 return ResourceManager.GetString("ErrorHelper_RequiredArgumentCannotBeDeprecated", resourceCulture);
@@ -1977,12 +1965,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string MutationConvention_ShouldBeEnabled_WhenAddingErrorType {
-            get {
-                return ResourceManager.GetString("MutationConvention_ShouldBeEnabled_WhenAddingErrorType", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_DuplicateFieldName_Message {
             get {
                 return ResourceManager.GetString("ErrorHelper_DuplicateFieldName_Message", resourceCulture);
@@ -2004,6 +1986,12 @@ namespace HotChocolate.Properties {
         internal static string SchemaException_ErrorSummaryText {
             get {
                 return ResourceManager.GetString("SchemaException_ErrorSummaryText", resourceCulture);
+            }
+        }
+        
+        internal static string ResolverContextExtensions_IsSelected_FieldNameEmpty {
+            get {
+                return ResourceManager.GetString("ResolverContextExtensions_IsSelected_FieldNameEmpty", resourceCulture);
             }
         }
     }

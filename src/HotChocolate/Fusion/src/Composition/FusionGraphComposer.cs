@@ -32,19 +32,17 @@ public sealed class FusionGraphComposer
         bool fusionTypeSelf = false,
         Func<ICompositionLog>? logFactory = null)
         : this(
-            new IEntityEnricher[]
-            {
+            [
                 new RefResolverEntityEnricher(),
                 new PatternEntityEnricher(),
                 new RequireEnricher(),
-                new NodeEntityEnricher()
-            },
-            new ITypeMergeHandler[]
-            {
+                new NodeEntityEnricher(),
+            ],
+            [
                 new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
                 new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
-                new ScalarTypeMergeHandler()
-            },
+                new ScalarTypeMergeHandler(),
+            ],
             fusionTypePrefix,
             fusionTypeSelf,
             logFactory)
@@ -111,7 +109,7 @@ public sealed class FusionGraphComposer
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Abort = cancellationToken
+            Abort = cancellationToken,
         };
 
         // Run the merge pipeline on the composition context.
@@ -157,7 +155,7 @@ public sealed class FusionGraphComposer
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Abort = cancellationToken
+            Abort = cancellationToken,
         };
 
         // Run the merge pipeline on the composition context.

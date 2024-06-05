@@ -1,6 +1,4 @@
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -91,7 +89,7 @@ public ref partial struct Utf8GraphQLParser
     private IDefinitionNode ParseDefinition()
     {
         _description = null;
-        if (TokenHelper.IsDescription(in _reader))
+        if (TokenHelper.IsDescription(ref _reader))
         {
             _description = ParseDescription();
         }

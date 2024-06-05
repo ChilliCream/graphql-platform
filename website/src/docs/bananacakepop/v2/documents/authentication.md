@@ -2,7 +2,7 @@
 title: Authentication
 ---
 
-Banana Cake pop offers support for various authentication flows. The following guide details how to use these authentication flows to retrieve a token from an identity server and send the Authorization header to the server. 
+Banana Cake pop offers support for various authentication flows. The following guide details how to use these authentication flows to retrieve a token from an identity server and send the Authorization header to the server.
 
 ![BCP Authentication Flow](images/auth-0.png)
 
@@ -19,7 +19,7 @@ BCP supports three types of authentication flows:
 
 # Basic Authentication
 
-Basic Authentication is a built-in authentication scheme of the HTTP protocol. It works by sending HTTP requests with an Authorization header. This header includes the word 'Basic' followed by a space and a base64-encoded string of the format 'username:password'. 
+Basic Authentication is a built-in authentication scheme of the HTTP protocol. It works by sending HTTP requests with an Authorization header. This header includes the word 'Basic' followed by a space and a base64-encoded string of the format 'username:password'.
 
 ![Basic Authentication Fields](images/auth-1.png)
 
@@ -44,9 +44,10 @@ You will need to provide at least the token. The following fields are available:
 - **Authorization Header**: A preview of the header that will be used for authentication. This field is auto-generated based on the provided token and prefix.
 
 Learn more about Bearer Token Authentication [here](https://swagger.io/docs/specification/authentication/bearer-authentication/).
-# OAuth 2.0 
- 
-OAuth 2.0 authentication flow is a industry-standard authorization framework. It allows third-party applications to gain limited access to a web service through a server that supports the OAuth 2.0 protocol. Most major identity providers support OAuth 2.0, including Auth0, Okta, AWS Cognito, Azure AD, and more. 
+
+# OAuth 2.0
+
+OAuth 2.0 authentication flow is a industry-standard authorization framework. It allows third-party applications to gain limited access to a web service through a server that supports the OAuth 2.0 protocol. Most major identity providers support OAuth 2.0, including Auth0, Okta, AWS Cognito, Azure AD, and more.
 
 In .NET, OAuth 2.0 is implemented by [Duende IdentityServer](https://duendesoftware.com/products/identityserver) and [OpenIddict](https://documentation.openiddict.com/).
 
@@ -65,9 +66,9 @@ The following fields are available required:
 
 - **[Grant Type](https://datatracker.ietf.org/doc/html/rfc6749#section-1.3)**: This is the method an application uses to obtain an access token. Common values include 'authorization_code', 'client_credentials', 'password', and 'refresh_token'. Each type serves a different use case, such as a web application, machine-to-machine, mobile apps, etc.
 
-- **Authorization URL**: This is the URL to which your application directs the user in the initial step of the authorization process. It usually looks something like 'https://auth.example.com/authorize'.
+- **Authorization URL**: This is the URL to which your application directs the user in the initial step of the authorization process. It usually looks something like '<https://auth.example.com/authorize>'.
 
-- **Access Token URL**: This is the URL your application uses to obtain the access token from the authorization server. It's typically of the form 'https://auth.example.com/token'. 
+- **Access Token URL**: This is the URL your application uses to obtain the access token from the authorization server. It's typically of the form '<https://auth.example.com/token>'.
 
 - **[Client ID](https://datatracker.ietf.org/doc/html/rfc6749#section-2.2)**: This is a public identifier for your application, issued by the authorization server when you register your application. It's used to identify your application to the user during authorization.
 
@@ -83,13 +84,13 @@ The following fields are available required:
 
 - **[State](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1)**: This is an opaque value that is used to maintain state between the request and the callback, mitigating CSRF attacks. It's a good practice to use a unique value for each authorization request.
 
-- **[Credentials](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3)**: Defines how client credentials are sent to the server. They can be sent as a Basic Auth Header or in the Request Body. 
+- **[Credentials](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3)**: Defines how client credentials are sent to the server. They can be sent as a Basic Auth Header or in the Request Body.
 
 - **Header Prefix**: This is the prefix that appears before the token in the Authorization header. The default is 'Bearer', as described in [RFC 6750](https://datatracker.ietf.org/doc/html/rfc6750), but it could also be 'Token' or other custom strings.
 
 - **Audience**: This is the intended audience of the token, typically the identifier of the resource server that should accept the token.
 
-- **Resource**: The target resource that the application wants to access. 
+- **Resource**: The target resource that the application wants to access.
 
 - **Origin**: This is used in browser-based applications to indicate the origin of the request and mitigate CSRF attacks.
 
@@ -107,8 +108,8 @@ Learn more about OAuth 2.0 [here](https://oauth.net/2/).
 
 In BCP, you can fetch the authentication token using two different methods:
 
-1. **Fetch Button in Authentication Settings**: 
-   
+1. **Fetch Button in Authentication Settings**:
+
    Located at the bottom of the authentication settings is a button labeled `Fetch`. Clicking this will retrieve the authentication token. Once the token is fetched, you also have options to `Clear` it or `Refresh` it (if a refresh token was requested).
 
    In the desktop application, there's an additional feature to `Reset the session on identity server`. This is particularly useful because your authentication session on your identity server is persisted in the browser, meaning you don't need to sign in repeatedly. If you wish to log in as a different user, you can reset your session by clicking this button.
@@ -123,9 +124,8 @@ In BCP, you can fetch the authentication token using two different methods:
 
 These two methods allow you to conveniently manage and initiate your authentication flows, providing you with flexibility to cater to different use-case scenarios.
 
-## Redirect URL 
+## Redirect URL
 
-In the context of BCP (Banana Cake Pop), the Redirect URL plays a crucial role, particularly when you're using BCP within a web browser rather than the desktop application. 
+In the context of BCP (Banana Cake Pop), the Redirect URL plays a crucial role, particularly when you're using BCP within a web browser rather than the desktop application.
 
 The Redirect URL is where your browser is directed to after the authentication process. It must be configured to point back to the URL where BCP is hosted. This is essential because BCP needs to retrieve the authorization code from this URL to exchange it for a token.
-

@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;

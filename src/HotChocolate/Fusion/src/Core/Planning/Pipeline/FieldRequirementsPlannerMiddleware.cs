@@ -302,7 +302,7 @@ internal sealed class FieldRequirementsPlannerMiddleware(
                 out var providingExecutionStep))
             {
                 executionStep.DependsOn.Add(providingExecutionStep);
-                executionStep.Variables.Add(requirement, stateKey);
+                executionStep.Variables.TryAdd(requirement, stateKey);
             }
         }
 
@@ -349,11 +349,11 @@ internal sealed class FieldRequirementsPlannerMiddleware(
     {
         public readonly Dictionary<string, SelectionExecutionStep> Schemas = new(Ordinal);
         public readonly HashSet<string> Requires = new(Ordinal);
-        public readonly List<ExecutionStep> RequirementSteps = new();
-        public readonly HashSet<string> AllSubgraphs = new();
-        public readonly HashSet<string> VariableSubgraphs = new();
-        public readonly List<IGrouping<string, VariableInfo>> Variables = new();
-        public readonly List<IGrouping<string, VariableInfo>> Selected = new();
+        public readonly List<ExecutionStep> RequirementSteps = [];
+        public readonly HashSet<string> AllSubgraphs = [];
+        public readonly HashSet<string> VariableSubgraphs = [];
+        public readonly List<IGrouping<string, VariableInfo>> Variables = [];
+        public readonly List<IGrouping<string, VariableInfo>> Selected = [];
         public readonly HashSet<string> VariablesInContext = new(Ordinal);
     }
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -12,10 +8,10 @@ namespace HotChocolate.Data.Sorting;
 public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 {
     private static readonly Foo[] _fooEntities =
-    {
-         new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>() },
-         new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A"} } }
-     };
+    [
+        new Foo { Name = "Sam", LastName = "Sampleman", Bars = Array.Empty<Bar>(), },
+         new Foo { Name = "Foo", LastName = "Galoo", Bars = new Bar[]{ new Bar { Value="A", }, }, },
+    ];
 
     private readonly SchemaCache _cache;
 
@@ -32,14 +28,14 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { displayName: DESC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(order: { displayName: DESC}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { displayName: ASC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(order: { displayName: ASC}){ name lastName}}")
+            .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -82,14 +78,14 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { barLength: ASC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
+            .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-            .SetQuery("{ root(order: { barLength: DESC}){ name lastName}}")
-            .Create());
+            OperationRequestBuilder.Create()
+            .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
+            .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

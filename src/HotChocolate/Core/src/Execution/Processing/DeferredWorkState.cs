@@ -13,10 +13,10 @@ internal sealed class DeferredWorkState
     private readonly object _deliverSync = new();
     private readonly object _patchSync = new();
 
-    private readonly List<DeferredExecutionTaskResult> _ready = new();
-    private readonly Queue<IQueryResult> _deliverable = new();
-    private readonly HashSet<uint> _completed = new();
-    private readonly HashSet<uint> _notPatchable = new();
+    private readonly List<DeferredExecutionTaskResult> _ready = [];
+    private readonly Queue<IOperationResult> _deliverable = new();
+    private readonly HashSet<uint> _completed = [];
+    private readonly HashSet<uint> _notPatchable = [];
     private SemaphoreSlim _semaphore = new(0);
     private uint _taskId;
     private uint _work;
@@ -108,7 +108,7 @@ internal sealed class DeferredWorkState
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void EnqueueResult(IQueryResult? queryResult)
+    private void EnqueueResult(IOperationResult? queryResult)
     {
         lock (_deliverSync)
         {
@@ -123,7 +123,7 @@ internal sealed class DeferredWorkState
         }
     }
 
-    public async ValueTask<IQueryResult?> TryDequeueResultsAsync(
+    public async ValueTask<IOperationResult?> TryDequeueResultsAsync(
         CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
@@ -133,7 +133,7 @@ internal sealed class DeferredWorkState
             if (_deliverable.Count > 0)
             {
                 var hasNext = true;
-                var result = new IQueryResult[_deliverable.Count];
+                var result = new IOperationResult[_deliverable.Count];
                 var consumed = 0;
 
                 for (var i = 0; i < result.Length; i++)
@@ -169,14 +169,14 @@ internal sealed class DeferredWorkState
                     Array.Resize(ref result, consumed);
                 }
 
-                return new QueryResult(null, incremental: result, hasNext: hasNext);
+                return new OperationResult(null, incremental: result, hasNext: hasNext);
             }
         }
 
         return null;
 
         static void AddRemovedResultSetsToNotPatchable(
-            IQueryResult result,
+            IOperationResult result,
             HashSet<uint> notPatchable)
         {
             if ((result.ContextData?.TryGetValue(RemovedResults, out var value) ?? false) &&
@@ -190,7 +190,7 @@ internal sealed class DeferredWorkState
         }
 
         static void AddAllResultSetsToNotPatchable(
-            IQueryResult result,
+            IOperationResult result,
             HashSet<uint> notPatchable)
         {
             if ((result.ContextData?.TryGetValue(ExpectedPatches, out var value) ?? false) &&

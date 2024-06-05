@@ -127,7 +127,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         get
         {
             _middlewareDefinitionsCleaned = false;
-            return _middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+            return _middlewareDefinitions ??= [];
         }
     }
 
@@ -139,7 +139,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         get
         {
             _resultConvertersCleaned = false;
-            return _resultConverters ??= new List<ResultFormatterDefinition>();
+            return _resultConverters ??= [];
         }
     }
 
@@ -151,7 +151,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         get
         {
-            return _expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            return _expressionBuilders ??= [];
         }
     }
 
@@ -160,7 +160,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     /// Custom settings are not copied to the actual type system object.
     /// </summary>
     public IList<object> CustomSettings
-        => _customSettings ??= new List<object>();
+        => _customSettings ??= [];
 
     /// <summary>
     /// Defines if this field configuration represents an introspection field.
@@ -199,6 +199,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+    
+    /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    public DependencyInjectionScope? DependencyInjectionScope { get; set; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an
@@ -285,26 +290,26 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         base.CopyTo(target);
 
-        if (_middlewareDefinitions is { Count: > 0 })
+        if (_middlewareDefinitions is { Count: > 0, })
         {
-            target._middlewareDefinitions = new(_middlewareDefinitions);
+            target._middlewareDefinitions = [.._middlewareDefinitions,];
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0 })
+        if (_resultConverters is { Count: > 0, })
         {
-            target._resultConverters = new(_resultConverters);
+            target._resultConverters = [.._resultConverters,];
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0 })
+        if (_expressionBuilders is { Count: > 0, })
         {
-            target._expressionBuilders = new(_expressionBuilders);
+            target._expressionBuilders = [.._expressionBuilders,];
         }
 
-        if (_customSettings is { Count: > 0 })
+        if (_customSettings is { Count: > 0, })
         {
-            target._customSettings = new(_customSettings);
+            target._customSettings = [.._customSettings,];
         }
 
         target.SourceType = SourceType;
@@ -319,6 +324,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
+        target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
         target.SubscribeWith = SubscribeWith;
     }
@@ -327,35 +333,40 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         base.MergeInto(target);
 
-        if (_middlewareDefinitions is { Count: > 0 })
+        if (_middlewareDefinitions is { Count: > 0, })
         {
-            target._middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+            target._middlewareDefinitions ??= [];
             target._middlewareDefinitions.AddRange(_middlewareDefinitions);
             _middlewareDefinitionsCleaned = false;
         }
 
-        if (_resultConverters is { Count: > 0 })
+        if (_resultConverters is { Count: > 0, })
         {
-            target._resultConverters ??= new List<ResultFormatterDefinition>();
+            target._resultConverters ??= [];
             target._resultConverters.AddRange(_resultConverters);
             _resultConvertersCleaned = false;
         }
 
-        if (_expressionBuilders is { Count: > 0 })
+        if (_expressionBuilders is { Count: > 0, })
         {
-            target._expressionBuilders ??= new List<IParameterExpressionBuilder>();
+            target._expressionBuilders ??= [];
             target._expressionBuilders.AddRange(_expressionBuilders);
         }
 
-        if (_customSettings is { Count: > 0 })
+        if (_customSettings is { Count: > 0, })
         {
-            target._customSettings ??= new List<object>();
+            target._customSettings ??= [];
             target._customSettings.AddRange(_customSettings);
         }
 
         if (!IsParallelExecutable)
         {
             target.IsParallelExecutable = false;
+        }
+        
+        if(DependencyInjectionScope.HasValue)
+        {
+            target.DependencyInjectionScope = DependencyInjectionScope;
         }
 
         if (!HasStreamResult)
@@ -447,7 +458,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
                 foreach (var def in definitions)
                 {
-                    if (def is { IsRepeatable: false, Key: not null })
+                    if (def is { IsRepeatable: false, Key: not null, })
                     {
                         nonRepeatable++;
                     }

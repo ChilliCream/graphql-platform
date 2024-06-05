@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -30,7 +27,7 @@ internal class GeoJsonMultiPolygonSerializer
 
         Polygon[]? geometries;
 
-        if (coordinates is IList { Count: > 0 } list)
+        if (coordinates is IList { Count: > 0, } list)
         {
             if (list.Count != 0)
             {
@@ -131,7 +128,7 @@ Error:
                         ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
-                        new IntValueNode(geometry.SRID))
+                        new IntValueNode(geometry.SRID)),
                 };
 
             return new ObjectValueNode(list);

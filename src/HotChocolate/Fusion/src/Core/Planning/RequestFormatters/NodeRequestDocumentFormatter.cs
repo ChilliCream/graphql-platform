@@ -24,7 +24,7 @@ internal sealed class NodeRequestDocumentFormatter(
         OperationType operationType = OperationType.Query)
     {
         var rootSelectionSetNode =
-            CreateRooSelectionSetNode(
+            CreateRootSelectionSetNode(
                 context,
                 executionStep,
                 entityTypeName);
@@ -43,11 +43,11 @@ internal sealed class NodeRequestDocumentFormatter(
             rootSelectionSetNode);
 
         return new RequestDocument(
-            new DocumentNode(new[] { operationDefinitionNode }),
+            new DocumentNode(new[] { operationDefinitionNode, }),
             path);
     }
 
-    private SelectionSetNode CreateRooSelectionSetNode(
+    private SelectionSetNode CreateRootSelectionSetNode(
         QueryPlanContext context,
         SelectionExecutionStep executionStep,
         string entityTypeName)
@@ -90,7 +90,8 @@ internal sealed class NodeRequestDocumentFormatter(
         var (selectionNode, _) = nodeSelection.Resolver.CreateSelection(
             context.VariableValues,
             selectionSetNode,
-            nodeSelection.Selection.ResponseName);
+            nodeSelection.Selection.ResponseName,
+            null);
 
         if (selectionNode is FieldNode fieldNode &&
             !nodeSelection.Selection.ResponseName.EqualsOrdinal(fieldNode.Name.Value))
@@ -157,7 +158,7 @@ internal sealed class NodeRequestDocumentFormatter(
                 Array.Empty<DirectiveNode>(),
                 new SelectionSetNode(typeSelectionNodes));
             selectionNodes.Add(inlineFragment);
-            typeSelectionNodes = new List<ISelectionNode>();
+            typeSelectionNodes = [];
         }
     }
 
@@ -187,12 +188,12 @@ internal sealed class NodeRequestDocumentFormatter(
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {

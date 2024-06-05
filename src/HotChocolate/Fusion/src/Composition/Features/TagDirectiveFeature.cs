@@ -3,23 +3,18 @@ namespace HotChocolate.Fusion.Composition.Features;
 /// <summary>
 /// Specifies behavior of the @tag directive.
 /// </summary>
-public sealed class TagDirectiveFeature : IFusionFeature
+public sealed class TagDirectiveFeature(
+    IEnumerable<string>? exclude = null,
+    bool makeTagsPublic = false)
+    : IFusionFeature
 {
-    public TagDirectiveFeature(
-        IEnumerable<string>? exclude = null,
-        bool makeTagsPublic = false)
-    {
-        Excluded = new HashSet<string>(exclude ?? Enumerable.Empty<string>());
-        MakeTagsPublic = makeTagsPublic;
-    }
-
     /// <summary>
     /// Gets the tags that shall be excluded from the public schema.
     /// </summary>
-    public IReadOnlySet<string> Excluded { get; }
+    public IReadOnlySet<string> Excluded { get; } = new HashSet<string>(exclude ?? Enumerable.Empty<string>());
 
     /// <summary>
     /// Defines if the tag directives should be exported to the public schema.
     /// </summary>
-    public bool MakeTagsPublic { get; }
+    public bool MakeTagsPublic { get; } = makeTagsPublic;
 }

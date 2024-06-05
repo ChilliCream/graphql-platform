@@ -38,19 +38,19 @@ public sealed class FusionTypes
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var booleanType))
         {
-            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true };
+            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(booleanType);
         }
 
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var intType))
         {
-            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true };
+            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(intType);
         }
-        
+
         if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.String, out var stringType))
         {
-            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true };
+            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(stringType);
         }
 
@@ -210,10 +210,10 @@ public sealed class FusionTypes
     {
         var directiveArgs = new List<Argument>
         {
-            new(SubgraphArg, subgraphName), new(SelectArg, select.ToString(false))
+            new(SubgraphArg, subgraphName), new(SelectArg, select.ToString(false)),
         };
 
-        if (arguments is { Count: > 0 })
+        if (arguments is { Count: > 0, })
         {
             var argumentDefs = new List<IValueNode>();
 
@@ -238,7 +238,7 @@ public sealed class FusionTypes
             {
                 EntityResolverKind.Batch => FusionEnumValueNames.Batch,
                 EntityResolverKind.Subscribe => FusionEnumValueNames.Subscribe,
-                _ => throw new NotSupportedException()
+                _ => throw new NotSupportedException(),
             };
 
             directiveArgs.Add(new Argument(KindArg, kindValue));
@@ -289,12 +289,12 @@ public sealed class FusionTypes
             Arguments =
             {
                 new InputField(SubgraphArg, new NonNullType(typeName)),
-                new InputField(NameArg, typeName)
+                new InputField(NameArg, typeName),
             },
             ContextData =
             {
-                [WellKnownContextData.IsFusionType] = true
-            }
+                [WellKnownContextData.IsFusionType] = true,
+            },
         };
         _fusionGraph.DirectiveTypes.Add(directiveType);
         return directiveType;
@@ -323,7 +323,7 @@ public sealed class FusionTypes
     }
 
     public Directive CreateHttpDirective(string subgraphName, string? clientName, Uri location)
-        =>  clientName is null 
+        =>  clientName is null
             ? new Directive(
                 Transport,
                 new Argument(SubgraphArg, subgraphName),
@@ -354,7 +354,7 @@ public sealed class FusionTypes
     }
 
     public Directive CreateWebSocketDirective(string subgraphName, string? clientName, Uri location)
-        =>  clientName is null 
+        =>  clientName is null
             ? new Directive(
                 Transport,
                 new Argument(SubgraphArg, subgraphName),

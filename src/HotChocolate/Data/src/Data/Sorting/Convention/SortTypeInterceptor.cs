@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
@@ -127,7 +124,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             definition);
 
         if (!string.IsNullOrEmpty(definition.Name) &&
-            definition is IHasScope { Scope: not null })
+            definition is IHasScope { Scope: not null, })
         {
             definition.Name = completionContext.Scope + "_" + definition.Name;
         }
@@ -156,7 +153,7 @@ public sealed class SortTypeInterceptor : TypeInterceptor
             definition);
 
         if (!string.IsNullOrEmpty(definition.Name) &&
-            definition is IHasScope { Scope: not null })
+            definition is IHasScope { Scope: not null, })
         {
             definition.Name = completionContext.Scope + "_" + definition.Name;
         }

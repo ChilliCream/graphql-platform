@@ -1,19 +1,9 @@
-using System.Linq;
 using static HotChocolate.Types.Properties.MutationResources;
 
 namespace HotChocolate.Types;
 
 internal static class ThrowHelper
 {
-    public static SchemaException MessageWasNotDefinedOnError(IType type, Type runtimeType) =>
-        new(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError,
-                    type.GetType().FullName,
-                    runtimeType.FullName)
-                .Build());
-
     public static SchemaException CannotResolvePayloadType()
         => new(
             SchemaErrorBuilder.New()
@@ -35,11 +25,11 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Schema.MutationPayloadMustBeObject)
             .Build();
 
-    public static SchemaException MutationConvDirective_In_Wrong_Location(
+    public static SchemaException MutationConventionDirective_In_Wrong_Location(
         DirectiveNode directiveNode)
         => new(SchemaErrorBuilder.New()
-            .SetMessage(ThrowHelper_MutationConvDirective_In_Wrong_Location)
-            .SetCode(ErrorCodes.Schema.MutationConvDirectiveWrongLocation)
+            .SetMessage(ThrowHelper_MutationConventionDirective_In_Wrong_Location)
+            .SetCode(ErrorCodes.Schema.MutationConventionDirectiveWrongLocation)
             .AddSyntaxNode(directiveNode)
             .Build());
 

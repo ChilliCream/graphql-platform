@@ -37,11 +37,11 @@ public class InMemoryIntegrationTests : SubscriptionIntegrationTestBase
     [Fact]
     public override Task Subscribe_Topic_With_2_Arguments()
         => base.Subscribe_Topic_With_2_Arguments();
-    
+
     [Fact]
     public override Task Subscribe_And_Complete_Topic()
         => base.Subscribe_And_Complete_Topic();
-    
+
     [Fact]
     public override Task Subscribe_And_Complete_Topic_With_ValueTypeMessage()
         => base.Subscribe_And_Complete_Topic_With_ValueTypeMessage();

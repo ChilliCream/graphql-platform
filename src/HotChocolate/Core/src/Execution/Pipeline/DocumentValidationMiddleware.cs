@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Execution.ErrorHelper;
 
@@ -14,9 +15,9 @@ internal sealed class DocumentValidationMiddleware
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IDocumentValidator _documentValidator;
 
-    public DocumentValidationMiddleware(
+    private DocumentValidationMiddleware(
         RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         IDocumentValidator documentValidator)
     {
         _next = next ??
@@ -29,7 +30,7 @@ internal sealed class DocumentValidationMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.Document is null || context.DocumentId is null)
+        if (context.Document is null || OperationDocumentId.IsNullOrEmpty(context.DocumentId))
         {
             context.Result = StateInvalidForDocumentValidation();
         }
@@ -44,7 +45,7 @@ internal sealed class DocumentValidationMiddleware
                             .ValidateAsync(
                                 context.Schema,
                                 context.Document,
-                                context.DocumentId,
+                                context.DocumentId.Value,
                                 context.ContextData,
                                 context.ValidationResult is not null,
                                 context.RequestAborted)
@@ -60,7 +61,7 @@ internal sealed class DocumentValidationMiddleware
                         // create result context data that indicate that validation has failed.
                         var resultContextData = new Dictionary<string, object?>
                         {
-                            { ValidationErrors, true }
+                            { ValidationErrors, true },
                         };
 
                         // if one of the validation rules proposed a status code we will add
@@ -72,7 +73,7 @@ internal sealed class DocumentValidationMiddleware
                             resultContextData.Add(HttpStatusCode, value);
                         }
 
-                        context.Result = QueryResultBuilder.CreateError(
+                        context.Result = OperationResultBuilder.CreateError(
                             validationResult.Errors,
                             resultContextData);
 
@@ -85,4 +86,20 @@ internal sealed class DocumentValidationMiddleware
             await _next(context).ConfigureAwait(false);
         }
     }
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var documentValidatorFactory = core.Services.GetRequiredService<IDocumentValidatorFactory>();
+            var documentValidator = documentValidatorFactory.CreateValidator(core.SchemaName);
+            var middleware = Create(next, diagnosticEvents, documentValidator);
+            return context => middleware.InvokeAsync(context);
+        };
+
+    internal static DocumentValidationMiddleware Create(
+        RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        IDocumentValidator documentValidator)
+        => new(next, diagnosticEvents, documentValidator);
 }

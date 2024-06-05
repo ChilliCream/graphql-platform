@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -7,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Data.Filters.Expressions;
@@ -38,10 +36,10 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -96,7 +94,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return fieldDefinition is FilterOperationFieldDefinition { Id: 155 };
+            return fieldDefinition is FilterOperationFieldDefinition { Id: 155, };
         }
 
         public override bool TryHandleEnter(
@@ -148,7 +146,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
             IFilterFieldDefinition fieldDefinition)
         {
             _extendedType ??= context.TypeInspector.GetReturnType(_method);
-            return fieldDefinition is FilterOperationFieldDefinition { Id: 156 };
+            return fieldDefinition is FilterOperationFieldDefinition { Id: 156, };
         }
 
         public override bool TryHandleEnter(

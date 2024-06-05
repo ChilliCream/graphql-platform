@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Pagination;
 /// <summary>
 /// The connection type.
 /// </summary>
-internal class ConnectionType
+internal sealed class ConnectionType
     : ObjectType
     , IConnectionType
     , IPageType
@@ -145,6 +145,17 @@ internal class ConnectionType
         base.OnBeforeRegisterDependencies(context, definition);
     }
 
+    protected override void OnBeforeCompleteType(ITypeCompletionContext context, DefinitionBase definition)
+    {
+        Definition!.IsOfType = IsOfTypeWithRuntimeType;
+        base.OnBeforeCompleteType(context, definition);
+    }
+    
+    private bool IsOfTypeWithRuntimeType(
+        IResolverContext context,
+        object? result) =>
+        result is null || RuntimeType.IsInstanceOfType(result);
+
     private static ObjectTypeDefinition CreateTypeDefinition(
         bool withTotalCount,
         TypeReference? edgesType = null)
@@ -152,7 +163,7 @@ internal class ConnectionType
         var definition = new ObjectTypeDefinition
         {
             Description = ConnectionType_Description,
-            RuntimeType = typeof(Connection)
+            RuntimeType = typeof(Connection),
         };
 
         definition.Fields.Add(new(
@@ -166,13 +177,13 @@ internal class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { CustomSettings = { ContextDataKeys.Edges } });
+        { CustomSettings = { ContextDataKeys.Edges, }, });
 
         definition.Fields.Add(new(
             Names.Nodes,
             ConnectionType_Nodes_Description,
             pureResolver: GetNodes)
-        { CustomSettings = { ContextDataKeys.Nodes } });
+        { CustomSettings = { ContextDataKeys.Nodes, }, });
 
         if (withTotalCount)
         {

@@ -23,24 +23,21 @@ public class BindingBehaviorTests
             schema {
               query: Query
             }
-            
+
             type Book1 {
               title: String
               category: BookCategory1!
             }
-            
+
             type Query {
               books: Book1
             }
-            
+
             enum BookCategory1 {
               A
               B
               C
             }
-            
-            "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
-            directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 
@@ -58,7 +55,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     [Fact]
@@ -96,7 +93,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     [Fact]
@@ -116,22 +113,19 @@ public class BindingBehaviorTests
             schema {
               query: Query
             }
-            
+
             type Book3 {
               title: String
               category: BookCategory3!
             }
-            
+
             type Query {
               books: Book3
             }
-            
+
             enum BookCategory3 {
               A
             }
-            
-            "The @tag directive is used to apply arbitrary string\nmetadata to a schema location. Custom tooling can use\nthis metadata during any step of the schema delivery flow,\nincluding composition, static analysis, and documentation.\n            \n\ninterface Book {\n  id: ID! @tag(name: \"your-value\")\n  title: String!\n  author: String!\n}"
-            directive @tag("The name of the tag." name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 
@@ -148,7 +142,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     public class BookCategory3Type : EnumType<BookCategory3>

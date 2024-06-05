@@ -106,6 +106,6 @@ public class ListFilterInputTests
     public enum FooBar
     {
         Foo,
-        Bar
+        Bar,
     }
 }

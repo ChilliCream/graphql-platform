@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -540,7 +539,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_MissingDirectiveIfArgument,
                 directive.Name.Value)
-            .AddLocation(directive)
+            .AddLocation([directive])
             .Build());
 
     public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)

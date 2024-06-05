@@ -6,7 +6,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.ExecutionUtils;
 using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
 using static HotChocolate.WellKnownContextData;
 
@@ -42,7 +42,7 @@ internal sealed class Subscribe(int id, Config config) : ResolverNodeBase(id, co
     /// <returns>
     /// The query result stream.
     /// </returns>
-    internal async IAsyncEnumerable<IQueryResult> SubscribeAsync(
+    internal async IAsyncEnumerable<IOperationResult> SubscribeAsync(
         FusionExecutionContext rootContext,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {

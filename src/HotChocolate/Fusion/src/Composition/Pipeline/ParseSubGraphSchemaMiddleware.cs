@@ -17,7 +17,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             var schema = SchemaParser.Parse(config.Schema);
             schema.Name = config.Name;
-            
+
             var alignTypes = new AlignTypesVisitor(schema);
 
             foreach (var sourceText in config.Extensions)
@@ -49,10 +49,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             return true;
         }
-        
+
         foreach (var directive in schema.Directives[WellKnownDirectives.Tag])
         {
-            if (directive.Arguments[0] is { Name: WellKnownDirectives.Name, Value: StringValueNode name } &&
+            if (directive.Arguments[0] is { Name: WellKnownDirectives.Name, Value: StringValueNode name, } &&
                 excludedTags.Contains(name.Value))
             {
                 return false;
@@ -104,15 +104,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                 schema.DirectiveTypes.Add(
                     new DirectiveType(directiveType.Name)
                     {
-                        IsRepeatable = directiveType.IsRepeatable
+                        IsRepeatable = directiveType.IsRepeatable,
                     });
             }
         }
-    }
-
-    private void AlignTypes(Schema schema)
-    {
-        
     }
 
     private static void TryCreateMissingType<T>(

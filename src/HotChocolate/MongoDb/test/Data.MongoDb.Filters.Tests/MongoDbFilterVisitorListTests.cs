@@ -11,66 +11,66 @@ public class MongoDbFilterVisitorListTests
     , IClassFixture<MongoResource>
 {
     private static readonly Foo[] _fooEntities =
-    {
+    [
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "a" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "a", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "a" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "a", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = "c" },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = "c", },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         },
         new()
         {
             FooNested = new[]
             {
-                new FooNested { Bar = null },
-                new FooNested { Bar = "d" },
-                new FooNested { Bar = "b" }
-            }
+                new FooNested { Bar = null, },
+                new FooNested { Bar = "d", },
+                new FooNested { Bar = "b", },
+            },
         },
-        new() { FooNested = null },
-        new() { FooNested = Array.Empty<FooNested>() }
-    };
+        new() { FooNested = null, },
+        new() { FooNested = Array.Empty<FooNested>(), },
+    ];
 
     private static readonly FooSimple[] _fooSimple =
-    {
+    [
         new()
         {
             Bar = new[]
             {
                 "a",
                 "a",
-                "a"
-            }
+                "a",
+            },
         },
         new()
         {
@@ -78,8 +78,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "c",
                 "a",
-                "a"
-            }
+                "a",
+            },
         },
         new()
         {
@@ -87,8 +87,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "a",
                 "d",
-                "b"
-            }
+                "b",
+            },
         },
         new()
         {
@@ -96,8 +96,8 @@ public class MongoDbFilterVisitorListTests
             {
                 "c",
                 "d",
-                "b"
-            }
+                "b",
+            },
         },
         new()
         {
@@ -105,12 +105,12 @@ public class MongoDbFilterVisitorListTests
             {
                 null,
                 "d",
-                "b"
-            }
+                "b",
+            },
         },
-        new() { Bar = null },
-        new() { Bar = Array.Empty<string>() }
-    };
+        new() { Bar = null, },
+        new() { Bar = Array.Empty<string>(), },
+    ];
 
     public MongoDbFilterVisitorListTests(MongoResource resource)
     {
@@ -125,8 +125,8 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             root(where: {
                                 fooNested: {
@@ -142,19 +142,19 @@ public class MongoDbFilterVisitorListTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -173,22 +173,22 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -207,22 +207,22 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -241,19 +241,19 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -273,8 +273,8 @@ public class MongoDbFilterVisitorListTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root(where: {
                             bar: {
@@ -286,19 +286,19 @@ public class MongoDbFilterVisitorListTests
                             bar
                         }
                     }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { some: { eq: \"d\"}}}){ bar }}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { some: { eq: null}}}){ bar }}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -317,22 +317,22 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { none: { eq: \"a\"}}}){ bar }}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { none: { eq: \"d\"}}}){ bar }}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { none: { eq: null}}}){ bar }}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -351,22 +351,22 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { all: { eq: \"a\"}}}){ bar }}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { all: { eq: \"d\"}}}){ bar }}")
-                .Create());
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(where: { bar: { all: { eq: null}}}){ bar }}")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -385,19 +385,19 @@ public class MongoDbFilterVisitorListTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { any: false}}){ bar }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { any: false}}){ bar }}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { any: true}}){ bar }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { any: true}}){ bar }}")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { all: null}}){ bar }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { all: null}}){ bar }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

@@ -16,9 +16,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents a field of an <see cref="ObjectType"/>.
 /// </summary>
-public sealed class ObjectField
-    : OutputFieldBase<ObjectFieldDefinition>
-    , IObjectField
+public sealed class ObjectField : OutputFieldBase, IObjectField
 {
     private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
 
@@ -45,10 +43,7 @@ public sealed class ObjectField
     /// </summary>
     public bool IsParallelExecutable
     {
-        get
-        {
-            return (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
-        }
+        get => (Flags & FieldFlags.ParallelExecutable) == FieldFlags.ParallelExecutable;
         private set
         {
             if (value)
@@ -61,6 +56,11 @@ public sealed class ObjectField
             }
         }
     }
+
+    /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    public DependencyInjectionScope DependencyInjectionScope { get; private set; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an
@@ -110,23 +110,15 @@ public sealed class ObjectField
     /// Gets the associated resolver expression.
     /// This expression can be <c>null</c>.
     /// </summary>
-    [Obsolete("Use resolver expression.")]
-    public Expression? Expression => ResolverExpression;
-
-    /// <summary>
-    /// Gets the associated resolver expression.
-    /// This expression can be <c>null</c>.
-    /// </summary>
     public Expression? ResolverExpression { get; }
 
     protected override void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,
-        ObjectFieldDefinition definition)
+        OutputFieldDefinitionBase definition)
     {
         base.OnCompleteField(context, declaringMember, definition);
-
-        CompleteResolver(context, definition);
+        CompleteResolver(context, (ObjectFieldDefinition)definition);
     }
 
     private void CompleteResolver(
@@ -136,6 +128,18 @@ public sealed class ObjectField
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
         var options = context.DescriptorContext.Options;
+        var isMutation = ((RegisteredType)context).IsMutationType ?? false;
+
+        if (definition.DependencyInjectionScope.HasValue)
+        {
+            DependencyInjectionScope = definition.DependencyInjectionScope.Value;
+        }
+        else
+        {
+            DependencyInjectionScope = isMutation
+                ? options.DefaultMutationDependencyInjectionScope
+                : options.DefaultQueryDependencyInjectionScope;
+        }
 
         if (Directives.Count > 0)
         {
@@ -194,8 +198,7 @@ public sealed class ObjectField
                 ObjectField_HasNoResolver(
                     context.Type.Name,
                     Name,
-                    context.Type,
-                    SyntaxNode));
+                    context.Type));
         }
         else
         {

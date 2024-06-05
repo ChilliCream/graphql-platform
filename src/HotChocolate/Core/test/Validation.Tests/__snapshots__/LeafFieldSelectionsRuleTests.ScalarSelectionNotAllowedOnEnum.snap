@@ -25,64 +25,6 @@
       "responseName": "furColor",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 124,
-          "End": 223,
-          "Line": 5,
-          "Column": 38
-        },
-        "Selections": [
-          {
-            "Kind": "Field",
-            "Alias": null,
-            "Arguments": [],
-            "Required": null,
-            "SelectionSet": null,
-            "Location": {
-              "Start": 158,
-              "End": 197,
-              "Line": 6,
-              "Column": 33
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 158,
-                "End": 197,
-                "Line": 6,
-                "Column": 33
-              },
-              "Value": "inHexDec"
-            },
-            "Directives": []
-          }
-        ]
-      },
-      "Location": {
-        "Start": 115,
-        "End": 223,
-        "Line": 5,
-        "Column": 29
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 115,
-          "End": 125,
-          "Line": 5,
-          "Column": 29
-        },
-        "Value": "furColor"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

@@ -8,13 +8,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public class UnsignedIntType : IntegerTypeBase<uint>
 {
-    public UnsignedIntType()
-        : this(
-            WellKnownScalarTypes.UnsignedInt,
-            ScalarResources.UnsignedIntType_Description)
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedIntType"/> class.
     /// </summary>
@@ -25,6 +18,17 @@ public class UnsignedIntType : IntegerTypeBase<uint>
         : base(name, uint.MinValue, uint.MaxValue, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UnsignedIntType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UnsignedIntType()
+        : this(
+            WellKnownScalarTypes.UnsignedInt,
+            ScalarResources.UnsignedIntType_Description)
+    {
     }
 
     /// <inheritdoc />

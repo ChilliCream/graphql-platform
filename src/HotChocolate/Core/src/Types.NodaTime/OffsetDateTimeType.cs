@@ -16,16 +16,6 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
     /// <summary>
     /// Initializes a new instance of <see cref="OffsetDateTimeType"/>.
     /// </summary>
-    public OffsetDateTimeType() : this(OffsetDateTimePattern.ExtendedIso)
-    {
-        // Backwards compatibility with the original code's behavior
-        _serializationPattern = OffsetDateTimePattern.GeneralIso;
-        _allowedPatterns = new IPattern<OffsetDateTime>[] { OffsetDateTimePattern.ExtendedIso };
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="OffsetDateTimeType"/>.
-    /// </summary>
     public OffsetDateTimeType(params IPattern<OffsetDateTime>[] allowedPatterns)
         : base("OffsetDateTime")
     {
@@ -37,6 +27,17 @@ public class OffsetDateTimeType : StringToStructBaseType<OffsetDateTime>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = _allowedPatterns[0];
         Description = NodaTimeResources.OffsetDateTimeType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="OffsetDateTimeType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public OffsetDateTimeType() : this(OffsetDateTimePattern.ExtendedIso)
+    {
+        // Backwards compatibility with the original code's behavior
+        _serializationPattern = OffsetDateTimePattern.GeneralIso;
+        _allowedPatterns = [OffsetDateTimePattern.ExtendedIso,];
     }
 
     /// <inheritdoc />

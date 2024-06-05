@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -10,7 +11,7 @@
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>This package provides helpers for creating GraphQL mutations.</Description>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Using Include="System" />
     <Using Include="System.Collections.Generic" />
@@ -27,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Types.Errors\HotChocolate.Types.Errors.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 

@@ -11,7 +11,7 @@ public static class SchemaFormatter
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     public static string FormatAsString(Schema schema, bool indented = true)
@@ -79,9 +79,7 @@ public static class SchemaFormatter
 
                 var schemaDefinition = new SchemaDefinitionNode(
                     null,
-                    string.IsNullOrEmpty(schema.Description)
-                        ? null
-                        : new(schema.Description),
+                    CreateDescription(schema.Description),
                     (IReadOnlyList<DirectiveNode>)context.Result!,
                     operationTypes);
                 definitions.Add(schemaDefinition);
@@ -157,7 +155,7 @@ public static class SchemaFormatter
 
             foreach (var type in types.OfType<ScalarType>().OrderBy(t => t.Name))
             {
-                if (type is { IsSpecScalar: true } || SpecScalarTypes.IsSpecScalar(type.Name))
+                if (type is { IsSpecScalar: true, } || SpecScalarTypes.IsSpecScalar(type.Name))
                 {
                     type.IsSpecScalar = true;
                     continue;
@@ -204,9 +202,7 @@ public static class SchemaFormatter
                     : new ObjectTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList(),
                         fields);
@@ -231,9 +227,7 @@ public static class SchemaFormatter
                     : new InterfaceTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         type.Implements.Select(t => new NamedTypeNode(t.Name)).ToList(),
                         fields);
@@ -257,9 +251,7 @@ public static class SchemaFormatter
                     : new InputObjectTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         fields);
         }
@@ -278,9 +270,7 @@ public static class SchemaFormatter
                     : new ScalarTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives);
         }
 
@@ -302,9 +292,7 @@ public static class SchemaFormatter
                     : new EnumTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         values);
         }
@@ -332,9 +320,7 @@ public static class SchemaFormatter
             context.Result = new EnumValueDefinitionNode(
                 null,
                 new NameNode(value.Name),
-                value.Description is not null
-                    ? new StringValueNode(value.Description)
-                    : null,
+                CreateDescription(value.Description),
                 directives);
         }
 
@@ -353,9 +339,7 @@ public static class SchemaFormatter
                     : new UnionTypeDefinitionNode(
                         null,
                         new NameNode(type.Name),
-                        type.Description is not null
-                            ? new StringValueNode(type.Description)
-                            : null,
+                        CreateDescription(type.Description),
                         directives,
                         type.Types.Select(t => new NamedTypeNode(t.Name)).ToList());
         }
@@ -371,9 +355,7 @@ public static class SchemaFormatter
                 new DirectiveDefinitionNode(
                     null,
                     new NameNode(directive.Name),
-                    directive.Description is not null
-                        ? new StringValueNode(directive.Description)
-                        : null,
+                    CreateDescription(directive.Description),
                     directive.IsRepeatable,
                     arguments,
                     directive.Locations.ToNameNodes());
@@ -407,9 +389,7 @@ public static class SchemaFormatter
             context.Result = new FieldDefinitionNode(
                 null,
                 new NameNode(field.Name),
-                field.Description is not null
-                    ? new StringValueNode(field.Description)
-                    : null,
+                CreateDescription(field.Description),
                 arguments,
                 field.Type.ToTypeNode(),
                 directives);
@@ -440,9 +420,7 @@ public static class SchemaFormatter
             context.Result = new InputValueDefinitionNode(
                 null,
                 new NameNode(field.Name),
-                field.Description is not null
-                    ? new StringValueNode(field.Description)
-                    : null,
+                CreateDescription(field.Description),
                 field.Type.ToTypeNode(),
                 field.DefaultValue,
                 directives);
@@ -500,7 +478,7 @@ public static class SchemaFormatter
 
                 if (directives.Count == 0)
                 {
-                    directives = new List<DirectiveNode> { deprecateDirective };
+                    directives = [deprecateDirective,];
                 }
                 else
                 {
@@ -522,12 +500,27 @@ public static class SchemaFormatter
 
             var arguments = reason is null
                 ? Array.Empty<ArgumentNode>()
-                : new[] { new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason) };
+                : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason),];
 
             return new DirectiveNode(
                 null,
                 new NameNode(WellKnownDirectives.Deprecated),
                 arguments);
+        }
+
+        private StringValueNode? CreateDescription(string? description)
+        {
+            if (string.IsNullOrEmpty(description))
+            {
+                return null;
+            }
+
+            // Get rid of any unnecessary whitespace.
+            description = description.Trim();
+
+            var isBlock = description.Contains("\n");
+
+            return new StringValueNode(null, description, isBlock);
         }
     }
 

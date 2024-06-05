@@ -4,7 +4,6 @@ using System.Text.Json;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
-using HotChocolate.Subscriptions;
 
 namespace HotChocolate.StarWars;
 
@@ -46,7 +45,7 @@ public class Query
     {
         var list = new List<ICharacter>();
 
-        foreach (Episode episode in episodes)
+        foreach (var episode in episodes)
         {
             list.Add(_repository.GetHero(episode));
         }
@@ -78,7 +77,7 @@ public class Query
     {
         foreach (var characterId in characterIds)
         {
-            ICharacter character = _repository.GetCharacter(characterId);
+            var character = _repository.GetCharacter(characterId);
 
             if (character is null)
             {

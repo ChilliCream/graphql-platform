@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using Moq;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -662,7 +661,7 @@ public class EnumTypeTests : TypeTestBase
     public enum Foo
     {
         Bar1,
-        Bar2
+        Bar2,
     }
 
     public class Bar;
@@ -672,14 +671,14 @@ public class EnumTypeTests : TypeTestBase
         Bar1,
 
         [Obsolete]
-        Bar2
+        Bar2,
     }
 
     public enum FooIgnore
     {
         Bar1,
         [GraphQLIgnore]
-        Bar2
+        Bar2,
     }
 
     public class FooIgnoredType : EnumType<Foo>
@@ -702,7 +701,7 @@ public class EnumTypeTests : TypeTestBase
     {
         Bar1,
         [GraphQLDeprecated("Baz.")]
-        Bar2
+        Bar2,
     }
 
     [GraphQLName("Foo")]
@@ -710,12 +709,12 @@ public class EnumTypeTests : TypeTestBase
     {
         Bar1,
         [GraphQLName("BAR_2")]
-        Bar2
+        Bar2,
     }
 
     public enum FooUnderline
     {
-        Creating_Instance = 1
+        Creating_Instance = 1,
     }
 
     public class SomeQueryType : ObjectType
@@ -742,7 +741,7 @@ public class EnumTypeTests : TypeTestBase
     public enum DescriptionTestEnum
     {
         Foo,
-        Bar
+        Bar,
     }
 
     public class ValueComparer : IEqualityComparer<object>

@@ -1,142 +1,353 @@
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
-using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Resolvers;
 
 public class ResolverServiceTests
 {
     [Fact]
-    public async Task AddDefaultService()
+    public async Task Resolver_Service_Attribute_Default_Scope()
     {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddSingleton<SayHelloService>()
-            .AddGraphQL()
-            .AddQueryType<QueryService>()
-            .ExecuteRequestAsync("{ sayHello }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AddPooledService()
-    {
-        Snapshot.FullName();
-
-        var pooledService = new SayHelloServicePool();
-
-        await new ServiceCollection()
-            .AddSingleton<ObjectPool<SayHelloService>>(pooledService)
-            .AddGraphQL()
-            .AddQueryType<QueryPooledService>()
-            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .ExecuteRequestAsync("{ sayHello }")
-            .MatchSnapshotAsync();
-
-        Assert.True(pooledService.GetService);
-        Assert.True(pooledService.ReturnService);
-    }
-
-    [Fact]
-    public async Task AddSynchronizedService()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton<SayHelloService>()
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
                 .AddGraphQL()
-                .AddQueryType<QuerySynchronizedService>()
-                .BuildRequestExecutorAsync();
+                .AddQueryType<QueryService>()
+                .Services
+                .BuildServiceProvider();
 
-        Assert.False(executor.Schema.QueryType.Fields["sayHello"].IsParallelExecutable);
+        var executor = await services.GetRequestExecutorAsync();
 
-        await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AddResolverService()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton<SayHelloService>()
-                .AddGraphQL()
-                .AddQueryType<QueryResolverService>(x => x.Name("Query"))
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .MapField(
-                    new FieldReference("Query", "sayHello"),
-                    next => async context =>
-                    {
-                        await next(context);
-                        Assert.True(
-                            context.LocalContextData.ContainsKey(
-                                WellKnownMiddleware.ResolverServiceScope));
-                    })
-                .BuildRequestExecutorAsync();
-
-        await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task AddResolverService_2()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton<SayHelloService>()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
-
-        await executor.ExecuteAsync("{ sayHello }").MatchSnapshotAsync();
-    }
-
-    public class QueryType : ObjectType
-    {
-        protected override void Configure(IObjectTypeDescriptor descriptor)
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
         {
-            descriptor
-                .Field("sayHello")
-                .ResolveWith<QueryResolverService>(r => r.SayHello(default!));
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloAttribute }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
         }
+
+        result.MatchMarkdownSnapshot();
     }
 
-    public class SayHelloService
+    [Fact]
+    public async Task Resolver_Service_Attribute_Default_Request_Scope()
     {
-        public string SayHello() => "Hello";
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .ModifyOptions(o => o.DefaultQueryDependencyInjectionScope = DependencyInjectionScope.Request)
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloAttribute }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolver_Service_Inferred_Default_Scope()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloInferred }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolver_Service_Inferred_Scope_Overridden_On_Resolver()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloRequest }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Resolver_Service_Attribute_Copy_State()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .AddScopedServiceInitializer<SayHelloService>(
+                    (request, resolver) =>
+                    {
+                        resolver.Scope += $"_{request.Scope}";
+                    })
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ sayHelloAttribute }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Resolver_Service_Attribute_Default_Scope()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .AddMutationType<MutationService>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingAttribute }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Resolver_Service_Attribute_Default_Resolver_Scope()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .AddMutationType<MutationService>()
+                .ModifyOptions(o => o.DefaultMutationDependencyInjectionScope = DependencyInjectionScope.Resolver)
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingAttribute }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Resolver_Service_Inferred_Default_Scope()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .AddMutationType<MutationService>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingInferred }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Mutation_Resolver_Service_Inferred_Scope_Overridden_On_Resolver()
+    {
+        // arrange
+        var services =
+            new ServiceCollection()
+                .AddScoped<SayHelloService>()
+                .AddGraphQL()
+                .AddQueryType<QueryService>()
+                .AddMutationType<MutationService>()
+                .Services
+                .BuildServiceProvider();
+
+        var executor = await services.GetRequestExecutorAsync();
+
+        // act
+        IExecutionResult result;
+        using (var requestScope = services.CreateScope())
+        {
+            requestScope.ServiceProvider.GetRequiredService<SayHelloService>().Scope = "Request";
+
+            result = await executor.ExecuteAsync(
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("mutation { doSomethingResolver }")
+                    .SetServices(requestScope.ServiceProvider)
+                    .Build());
+        }
+
+        result.MatchMarkdownSnapshot();
+    }
+
+#if NET8_0_OR_GREATER
+    [Fact]
+    public async Task Resolver_KeyedService()
+    {
+        var executor =
+            await new ServiceCollection()
+                .AddKeyedSingleton("abc", (_, _) => new KeyedService("abc"))
+                .AddKeyedSingleton("def", (_, _) => new KeyedService("def"))
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        result.MatchMarkdownSnapshot();
+    }
+#endif
+
+    public sealed class SayHelloService
+    {
+        public string Scope = "Resolver";
+
+        public string SayHello() => $"Hello {Scope}";
     }
 
     public class QueryService
     {
-        public string SayHello([Service] SayHelloService service)
+        public string SayHelloAttribute([Service] SayHelloService service)
+            => service.SayHello();
+
+        public string SayHelloInferred(SayHelloService service)
+            => service.SayHello();
+
+        [UseRequestScope]
+        public string SayHelloRequest(SayHelloService service)
             => service.SayHello();
     }
 
-    public class QueryPooledService
+    public class MutationService
     {
-        public string SayHello([Service(ServiceKind.Pooled)] SayHelloService service)
+        public string DoSomethingAttribute([Service] SayHelloService service)
             => service.SayHello();
-    }
 
-    public class QuerySynchronizedService
-    {
-        public string SayHello([Service(ServiceKind.Synchronized)] SayHelloService service)
+        public string DoSomethingInferred(SayHelloService service)
             => service.SayHello();
-    }
 
-    public class QueryResolverService
-    {
-        public string SayHello([Service(ServiceKind.Resolver)] SayHelloService service)
+        [UseResolverScope]
+        public string DoSomethingResolver(SayHelloService service)
             => service.SayHello();
     }
 
@@ -157,4 +368,19 @@ public class ResolverServiceTests
             ReturnService = true;
         }
     }
+
+#if NET8_0_OR_GREATER
+    public class Query
+    {
+        public string Foo([AbcService] KeyedService service)
+            => service.Key;
+    }
+
+    public class KeyedService(string key)
+    {
+        public string Key => key;
+    }
+
+    public class AbcService() : ServiceAttribute("abc");
+#endif
 }

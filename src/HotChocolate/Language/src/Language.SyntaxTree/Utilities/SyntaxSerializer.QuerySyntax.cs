@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Utilities;
 
 public sealed partial class SyntaxSerializer
@@ -30,7 +28,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteMany(node.VariableDefinitions, VisitVariableDefinition);
             writer.Write(')');
         }
-        
+
         WriteDirectives(node.Directives, writer);
 
         if (writeOperation)
@@ -53,6 +51,8 @@ public sealed partial class SyntaxSerializer
             writer.Write(" = ");
             writer.WriteValue(node.DefaultValue);
         }
+
+        WriteDirectives(node.Directives, writer);
     }
 
     private void VisitFragmentDefinition(FragmentDefinitionNode node, ISyntaxWriter writer)
@@ -82,11 +82,8 @@ public sealed partial class SyntaxSerializer
 
         WriteDirectives(node.Directives, writer);
 
-        if (node.SelectionSet is not null)
-        {
-            writer.WriteSpace();
-            VisitSelectionSet(node.SelectionSet, writer);
-        }
+        writer.WriteSpace();
+        VisitSelectionSet(node.SelectionSet, writer);
     }
 
     private void VisitSelectionSet(SelectionSetNode node, ISyntaxWriter writer)
@@ -230,10 +227,7 @@ public sealed partial class SyntaxSerializer
 
         WriteDirectives(node.Directives, writer);
 
-        if (node.SelectionSet is { })
-        {
-            writer.WriteSpace();
-            VisitSelectionSet(node.SelectionSet, writer);
-        }
+        writer.WriteSpace();
+        VisitSelectionSet(node.SelectionSet, writer);
     }
 }

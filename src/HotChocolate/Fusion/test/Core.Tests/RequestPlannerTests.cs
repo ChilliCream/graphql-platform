@@ -28,7 +28,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -52,7 +52,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -98,7 +98,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -129,7 +129,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -161,7 +161,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -200,7 +200,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -214,7 +214,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -242,7 +242,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -287,7 +287,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -301,7 +301,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -324,7 +324,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -338,7 +338,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -369,7 +369,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -415,7 +415,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -429,7 +429,7 @@ public class RequestPlannerTests
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
         // act
@@ -461,7 +461,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -474,7 +474,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -495,7 +495,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -508,7 +508,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -530,7 +530,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -543,7 +543,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -564,7 +564,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -577,7 +577,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -601,7 +601,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -614,7 +614,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -640,7 +640,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -653,7 +653,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -679,7 +679,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -692,7 +692,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
@@ -722,7 +722,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -767,7 +767,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -780,7 +780,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         // act
@@ -812,7 +812,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -856,7 +856,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -891,7 +891,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -930,7 +930,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -976,7 +976,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
 
@@ -1014,7 +1014,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1055,7 +1055,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1068,7 +1068,7 @@ public class RequestPlannerTests
             new[]
             {
                 demoProject.Authors.ToConfiguration(),
-                demoProject.Books.ToConfiguration()
+                demoProject.Books.ToConfiguration(),
             });
 
         // act
@@ -1095,7 +1095,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1135,7 +1135,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
         {
             new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
-            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null),
         });
 
         // act
@@ -1153,7 +1153,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1193,7 +1193,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
         {
             new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
-            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null),
         });
 
         // act
@@ -1211,7 +1211,7 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -1253,7 +1253,7 @@ public class RequestPlannerTests
         var fusionGraph = await FusionGraphComposer.ComposeAsync(new[]
         {
             new SubgraphConfiguration("A", schemaA, Array.Empty<string>(), CreateClients(), null),
-            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null)
+            new SubgraphConfiguration("B", schemaB, Array.Empty<string>(), CreateClients(), null),
         });
 
         // act
@@ -1271,7 +1271,303 @@ public class RequestPlannerTests
         var snapshot = new Snapshot();
         snapshot.Add(result.UserRequest, nameof(result.UserRequest));
         snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_32_Argument_No_Value_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
+                    },
+                    null),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_33_Argument_Default_Value_Explicitly_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
+                    },
+                    null),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg(arg: VALUE2)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_34_Argument_Not_Default_Value_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
+                    },
+                    null),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg(arg: VALUE1)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_35_Argument_Value_Variable_Specified()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
+                    },
+                    null),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test($variable: TestEnum) {
+              fieldWithEnumArg(arg: $variable)
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_31_Argument_No_Value_Specified_With_Selection_Set()
+    {
+        // arrange
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                new SubgraphConfiguration(
+                    "Test",
+                    """
+                    type Query {
+                        fieldWithEnumArg(arg: TestEnum = VALUE2): TestObject
+                    }
+
+                    type TestObject {
+                        test: Boolean
+                    }
+
+                    enum TestEnum {
+                        VALUE1,
+                        VALUE2
+                    }
+                    """,
+                    "",
+                    new []
+                    {
+                        new HttpClientConfiguration(new Uri("http://client"), "Test"),
+                    },
+                    null),
+            });
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Test {
+              fieldWithEnumArg {
+                test
+              }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_36_Requires_CommonField_Multiple_Times()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                users {
+                  id
+                  username
+                  productConfigurationByUsername {
+                    id
+                  }
+                  productBookmarkByUsername {
+                    id
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Query_Plan_37_Requires_CommonField_Once()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var fusionGraph = await FusionGraphComposer.ComposeAsync(
+            new[]
+            {
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
+            },
+            new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        // act
+        var result = await CreateQueryPlanAsync(
+            fusionGraph,
+            """
+            query Requires {
+                users {
+                  id
+                  username
+                  productConfigurationByUsername {
+                    id
+                  }
+                }
+            }
+            """);
+
+        // assert
+        var snapshot = new Snapshot();
+        snapshot.Add(result.UserRequest, nameof(result.UserRequest));
+        snapshot.Add(result.QueryPlan, nameof(result.QueryPlan));
+        await snapshot.MatchMarkdownAsync();
     }
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
@@ -1288,7 +1584,7 @@ public class RequestPlannerTests
             .AddDocumentFromString(rewritten.ToString())
             .UseField(n => n);
 
-        if (document.Definitions.Any(d => d is ScalarTypeDefinitionNode { Name.Value: "Upload" }))
+        if (document.Definitions.Any(d => d is ScalarTypeDefinitionNode { Name.Value: "Upload", }))
         {
             services.AddUploadType();
         }
@@ -1314,8 +1610,8 @@ public class RequestPlannerTests
     }
 
     private static IClientConfiguration[] CreateClients()
-        => new IClientConfiguration[]
-        {
-            new HttpClientConfiguration(new Uri("http://nothing"))
-        };
+        =>
+        [
+            new HttpClientConfiguration(new Uri("http://nothing")),
+        ];
 }

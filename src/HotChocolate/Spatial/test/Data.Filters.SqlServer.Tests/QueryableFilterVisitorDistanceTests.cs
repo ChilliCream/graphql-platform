@@ -11,30 +11,30 @@ public class QueryableFilterVisitorDistanceTests
     : SchemaCache
 {
     private static readonly Polygon _truePolygon = new(
-        new LinearRing(new[]
-        {
+        new LinearRing(
+        [
             new Coordinate(0, 0),
             new Coordinate(0, 2),
             new Coordinate(2, 2),
             new Coordinate(2, 0),
-            new Coordinate(0, 0)
-        }));
+            new Coordinate(0, 0),
+        ]));
 
     private static readonly Polygon _falsePolygon = new(
-        new LinearRing(new[]
-        {
+        new LinearRing(
+        [
             new Coordinate(0, 0),
             new Coordinate(0, -2),
             new Coordinate(-2, -2),
             new Coordinate(-2, 0),
-            new Coordinate(0, 0)
-        }));
+            new Coordinate(0, 0),
+        ]));
 
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Id = 1, Bar = _truePolygon },
-        new() { Id = 2, Bar = _falsePolygon }
-    };
+    [
+        new() { Id = 1, Bar = _truePolygon, },
+        new() { Id = 2, Bar = _falsePolygon, },
+    ];
 
     public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
         : base(resource)
@@ -50,8 +50,8 @@ public class QueryableFilterVisitorDistanceTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             root(where: {
                                 bar: {
@@ -67,11 +67,11 @@ public class QueryableFilterVisitorDistanceTests
                                 id
                             }
                         }")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                             root(where: {
                                 bar: {
@@ -87,7 +87,7 @@ public class QueryableFilterVisitorDistanceTests
                                 id
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

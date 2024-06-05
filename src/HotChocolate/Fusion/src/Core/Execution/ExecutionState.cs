@@ -33,7 +33,7 @@ internal sealed class ExecutionState
     /// required to fetch data for the associated <see cref="SelectionSet"/>.
     /// </summary>
     public IReadOnlyList<string> Requires { get; }
-
+    
     /// <summary>
     /// Gets the selection set that is being executed.
     /// </summary>
@@ -41,11 +41,15 @@ internal sealed class ExecutionState
 
     /// <summary>
     /// Gets the selection set data that was collected during execution.
+    /// The selection set data represents the data that we have collected
+    /// from the subgraphs for the <see cref="SelectionSet"/>.
     /// </summary>
     public SelectionData[] SelectionSetData { get; }
 
     /// <summary>
     /// Gets the completed selection set result.
+    /// The selection set result represents the data for the
+    /// <see cref="SelectionSet"/> that we deliver to the user.
     /// </summary>
     public ObjectResult SelectionSetResult { get; }
 

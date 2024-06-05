@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Projections;
@@ -20,7 +19,7 @@ public interface IProjectionConvention : IConvention
     /// Returns a field middleware which represents the projection execution logic
     /// for the specified entity type.
     /// </returns>
-    FieldMiddleware CreateExecutor<TEntityType>();
+    IQueryBuilder CreateBuilder<TEntityType>();
 
     /// <summary>
     /// Creates a new selection optimizer for this projection convention.

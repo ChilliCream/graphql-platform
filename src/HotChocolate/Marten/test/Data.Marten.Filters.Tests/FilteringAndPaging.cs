@@ -5,33 +5,26 @@ using HotChocolate.Execution;
 namespace HotChocolate.Data;
 
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
-public class FilteringAndPaging
+public class FilteringAndPaging(SchemaCache cache)
 {
-    private static readonly Foo[] _fooEntities = { new() { Bar = true }, new() { Bar = false } };
-
-    private readonly SchemaCache _cache;
-
-    public FilteringAndPaging(SchemaCache cache)
-    {
-        _cache = cache;
-    }
+    private static readonly Foo[] _fooEntities = [new() { Bar = true, }, new() { Bar = false, },];
 
     [Fact]
     public async Task Create_BooleanEqual_Expression()
     {
         // arrange
-        var tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
+        var tester = cache.CreateSchema<Foo, FooFilterInput>(_fooEntities, true);
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
+                .Build());
 
         // assert
         await Snapshot
@@ -55,13 +48,7 @@ public class FilteringAndPaging
         public bool? Bar { get; set; }
     }
 
-    public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-    }
+    public class FooFilterInput : FilterInputType<Foo>;
 
-    public class FooNullableFilterInput
-        : FilterInputType<FooNullable>
-    {
-    }
+    public class FooNullableFilterInput : FilterInputType<FooNullable>;
 }

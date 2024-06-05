@@ -18,17 +18,6 @@ public class StringType : ScalarType<string, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="StringType"/> class.
     /// </summary>
-    public StringType()
-        : this(
-            ScalarNames.String,
-            TypeResources.StringType_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="StringType"/> class.
-    /// </summary>
     public StringType(
         string name,
         string? description = null,
@@ -36,6 +25,18 @@ public class StringType : ScalarType<string, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StringType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public StringType()
+        : this(
+            ScalarNames.String,
+            TypeResources.StringType_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     protected override string ParseLiteral(StringValueNode valueSyntax) =>

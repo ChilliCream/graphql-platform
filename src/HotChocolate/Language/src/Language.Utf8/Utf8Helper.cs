@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -149,7 +148,7 @@ internal static class Utf8Helper
             >= 48 and <= 57 => a - 48,
             >= 65 and <= 70 => a - 55,
             >= 97 and <= 102 => a - 87,
-            _ => -1
+            _ => -1,
         };
     }
 }

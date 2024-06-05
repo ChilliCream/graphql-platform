@@ -1,5 +1,3 @@
-using Xunit;
-
 namespace HotChocolate.Configuration.Validation;
 
 public class InterfaceTypeValidation : TypeValidationTestBase

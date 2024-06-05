@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
@@ -14,10 +12,10 @@ namespace HotChocolate.Data.Filters;
 public class QueryableFilteringExtensionsTests
 {
     private static readonly Foo[] _fooEntities =
-    {
-        new() { Bar = true, Baz = "a" },
-        new() { Bar = false, Baz = "b" }
-    };
+    [
+        new() { Bar = true, Baz = "a", },
+        new() { Bar = false, Baz = "b", },
+    ];
 
     [Fact]
     public async Task Test()
@@ -39,10 +37,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
@@ -60,17 +58,17 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Extension_Should_BeTypeMissMatch()
+    public async Task Extension_Should_BeTypeMismatch()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -81,10 +79,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ typeMismatch(where: {bar: {eq: true}}) { bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -105,10 +103,10 @@ public class QueryableFilteringExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ missingMiddleware { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ missingMiddleware { bar baz }}")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -127,8 +125,8 @@ public class QueryableFilteringExtensionsTests
 
         [CatchErrorMiddleware]
         [UseFiltering]
-        [AddTypeMissmatchMiddleware]
-        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
+        [AddTypeMismatchMiddleware]
+        public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
             return _fooEntities.Filter(context);
         }
@@ -153,7 +151,7 @@ public class QueryableFilteringExtensionsTests
         public string? NotSettable { get; }
     }
 
-    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
             IDescriptorContext context,

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb.Projections;
 

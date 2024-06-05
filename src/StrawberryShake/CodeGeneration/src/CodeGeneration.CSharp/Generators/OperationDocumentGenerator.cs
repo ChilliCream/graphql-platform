@@ -1,5 +1,4 @@
 using System;
-using System.Security.Cryptography;
 using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
@@ -28,7 +27,7 @@ public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor
             MutationOperationDescriptor => "Mutation",
             QueryOperationDescriptor => "Query",
             SubscriptionOperationDescriptor => "Subscription",
-            _ => throw new ArgumentOutOfRangeException(nameof(descriptor))
+            _ => throw new ArgumentOutOfRangeException(nameof(descriptor)),
         };
 
         var classBuilder = ClassBuilder

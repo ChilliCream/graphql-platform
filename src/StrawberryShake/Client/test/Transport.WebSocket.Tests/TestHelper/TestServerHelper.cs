@@ -36,7 +36,6 @@ public static class TestServerHelper
 
                             builder
                                 .AddStarWarsTypes()
-                                .AddExportDirectiveType()
                                 .AddStarWarsRepositories()
                                 .AddInMemorySubscriptions()
                                 .ModifyOptions(
@@ -53,25 +52,25 @@ public static class TestServerHelper
                                                 nameof(HttpContext),
                                                 out var value) &&
                                             value is HttpContext httpContext &&
-                                            context.Result is IQueryResult result)
+                                            context.Result is HotChocolate.Execution.IOperationResult result)
                                         {
                                             var headers = httpContext.Request.Headers;
                                             if (headers.ContainsKey("sendErrorStatusCode"))
                                             {
                                                 context.Result = result =
-                                                    QueryResultBuilder
+                                                    OperationResultBuilder
                                                         .FromResult(result)
                                                         .SetContextData(HttpStatusCode, 403)
-                                                        .Create();
+                                                        .Build();
                                             }
 
                                             if (headers.ContainsKey("sendError"))
                                             {
                                                 context.Result =
-                                                    QueryResultBuilder
+                                                    OperationResultBuilder
                                                         .FromResult(result)
                                                         .AddError(new Error("Some error!"))
-                                                        .Create();
+                                                        .Build();
                                             }
                                         }
 
