@@ -16,6 +16,7 @@ static class Helpers
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "AzureFunctions"),
         Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "CostAnalysis"),
         Path.Combine("HotChocolate", "Caching"),
         Path.Combine("HotChocolate", "Diagnostics"),
         Path.Combine("HotChocolate", "Language"),
