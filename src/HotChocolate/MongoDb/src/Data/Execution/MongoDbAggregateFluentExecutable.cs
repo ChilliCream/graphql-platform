@@ -1,4 +1,3 @@
-using System.Collections;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb;
@@ -7,37 +6,22 @@ namespace HotChocolate.Data.MongoDb;
 /// A executable that is based on <see cref="IAggregateFluent{TInput}"/>
 /// </summary>
 /// <typeparam name="T">The entity type</typeparam>
-public class MongoDbAggregateFluentExecutable<T> : MongoDbExecutable<T>
+public class MongoDbAggregateFluentExecutable<T>(IAggregateFluent<T> aggregate) : MongoDbExecutable<T>
 {
-    private readonly IAggregateFluent<T> _aggregate;
-
-    public MongoDbAggregateFluentExecutable(IAggregateFluent<T> aggregate)
-    {
-        _aggregate = aggregate;
-    }
+    /// <inheritdoc />
+    public override object Source => aggregate;
 
     /// <inheritdoc />
-    public override object Source => _aggregate;
+    public override async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+        => await BuildPipeline().ToListAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
-    public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
-        await BuildPipeline()
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+    public override async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await BuildPipeline().FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
-    public override async ValueTask<object?> FirstOrDefaultAsync(
-        CancellationToken cancellationToken) =>
-        await BuildPipeline()
-            .FirstOrDefaultAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-    /// <inheritdoc />
-    public override async ValueTask<object?> SingleOrDefaultAsync(
-        CancellationToken cancellationToken) =>
-        await BuildPipeline()
-            .SingleOrDefaultAsync(cancellationToken)
-            .ConfigureAwait(false);
+    public override async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await BuildPipeline().SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 
     /// <inheritdoc />
     public override string Print() => BuildPipeline().ToString() ?? "";
@@ -48,7 +32,7 @@ public class MongoDbAggregateFluentExecutable<T> : MongoDbExecutable<T>
     /// <returns>A aggregate fluent including the configuration of this executable</returns>
     public virtual IAggregateFluent<T> BuildPipeline()
     {
-        var pipeline = _aggregate;
+        var pipeline = aggregate;
         if (Sorting is not null)
         {
             pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());

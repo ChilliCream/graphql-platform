@@ -10,6 +10,8 @@ schema
 }
 
 type Query {
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
   productById(id: ID!): Product
     @variable(subgraph: "Reviews", name: "id", argument: "id")
     @resolver(subgraph: "Reviews", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
@@ -47,6 +49,8 @@ type Mutation {
 }
 
 type Subscription {
+  onError: Review!
+    @resolver(subgraph: "Reviews", select: "{ onError }", kind: "SUBSCRIBE")
   onNewReview: Review!
     @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIBE")
 }
@@ -105,6 +109,8 @@ type User implements Node
   @resolver(subgraph: "Reviews", select: "{ authorById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
   @resolver(subgraph: "Reviews", select: "{ nodes(ids: $User_id) { ... on User { ... User } } }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
   birthdate: Date!
+    @source(subgraph: "Accounts")
+  errorField: String
     @source(subgraph: "Accounts")
   id: ID!
     @source(subgraph: "Accounts")

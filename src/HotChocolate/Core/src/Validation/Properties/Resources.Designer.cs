@@ -141,9 +141,9 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
-        internal static string ErrorHelper_FieldsAreNotMergable {
+        internal static string ErrorHelper_FieldsAreNotMergeable {
             get {
-                return ResourceManager.GetString("ErrorHelper_FieldsAreNotMergable", resourceCulture);
+                return ResourceManager.GetString("ErrorHelper_FieldsAreNotMergeable", resourceCulture);
             }
         }
         

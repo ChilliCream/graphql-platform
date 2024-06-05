@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
@@ -17,7 +20,7 @@ internal sealed partial class ResolverTask
         {
             using (DiagnosticEvents.ResolveFieldValue(_context))
             {
-                // we initialize the field here so we are able to propagate non-null violations
+                // we initialize the field so we are able to propagate non-null violations
                 // through the result tree.
                 _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
                 
@@ -69,7 +72,7 @@ internal sealed partial class ResolverTask
                 await _context.ExecuteCleanupTasksAsync().ConfigureAwait(false);
             }
 
-            _objectPool.Return(this);
+            objectPool.Return(this);
         }
     }
 
@@ -135,6 +138,14 @@ internal sealed partial class ResolverTask
 
     private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)
     {
+        if(_context.Field.DependencyInjectionScope == DependencyInjectionScope.Resolver)
+        {
+            var serviceScope = _operationContext.Services.CreateAsyncScope();
+            _context.Services = serviceScope.ServiceProvider;
+            _context.RegisterForCleanup(serviceScope.DisposeAsync);
+            _operationContext.ServiceScopeInitializer.Initialize(_context.RequestServices, _context.Services);
+        }
+        
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);
 
         var result = _context.Result;
@@ -295,7 +306,7 @@ internal sealed partial class ResolverTask
 
             Status = _completionStatus;
             _operationContext.Scheduler.Complete(this);
-            _objectPool.Return(this);
+            objectPool.Return(this);
         }
     }
 }

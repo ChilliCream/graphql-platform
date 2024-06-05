@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -11,9 +12,8 @@ internal sealed class OperationCacheMiddleware
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
     private readonly IPreparedOperationCache _operationCache;
 
-    public OperationCacheMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
+    private OperationCacheMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
         IPreparedOperationCache operationCache)
     {
         _next = next ??
@@ -26,7 +26,7 @@ internal sealed class OperationCacheMiddleware
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
-        if (context.DocumentId is null)
+        if (OperationDocumentId.IsNullOrEmpty(context.DocumentId))
         {
             await _next(context).ConfigureAwait(false);
         }
@@ -37,7 +37,7 @@ internal sealed class OperationCacheMiddleware
 
             if (operationId is null)
             {
-                operationId = context.CreateCacheId(context.DocumentId, context.Request.OperationName);
+                operationId = context.CreateCacheId(context.DocumentId.Value.Value, context.Request.OperationName);
                 context.OperationId = operationId;
             }
 
@@ -52,7 +52,7 @@ internal sealed class OperationCacheMiddleware
 
             if (addToCache &&
                 context.Operation is not null &&
-                context.DocumentId is not null &&
+                !OperationDocumentId.IsNullOrEmpty(context.DocumentId) &&
                 context.Document is not null &&
                 context.IsValidDocument)
             {
@@ -61,4 +61,13 @@ internal sealed class OperationCacheMiddleware
             }
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var cache = core.Services.GetRequiredService<IPreparedOperationCache>();
+            var middleware = new OperationCacheMiddleware(next, diagnosticEvents, cache);
+            return context => middleware.InvokeAsync(context);
+        };
 }

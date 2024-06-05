@@ -120,6 +120,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     {
         var method = request.Method;
 
+        if(method == GraphQLHttpMethod.Get)
+        {
+            if (request.Body is not OperationRequest)
+            {
+                throw new InvalidOperationException(
+                    HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
+            }
+
+            if (request.EnableFileUploads)
+            {
+                throw new NotSupportedException(
+                    HttpResources.DefaultGraphQLHttpClient_FileUploadNotAllowed);
+            }
+        }
+
         var message = new HttpRequestMessage
         {
             Method = method,
@@ -150,7 +165,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         }
         else if (method == GraphQLHttpMethod.Get)
         {
-            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Operation);
+            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
         }
         else
         {
@@ -167,15 +182,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        request.Operation.WriteTo(jsonWriter);
+        request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
 
         var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
 #if NET7_0_OR_GREATER
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        content.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
+        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         return content;
     }
@@ -228,7 +242,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     private static void WriteOperationJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        request.Operation.WriteTo(jsonWriter);
+        request.Body.WriteTo(jsonWriter);
     }
 
     private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(
@@ -236,67 +250,71 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Operation);
+        return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Body);
     }
 
     private static Uri CreateGetRequestUri(
         ArrayWriter arrayWriter,
         Uri baseAddress,
-        OperationRequest request)
+        IRequestBody body)
     {
+        if(body is not OperationRequest or)
+        {
+            throw new InvalidOperationException(
+                HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
+        }
+
         var sb = new StringBuilder();
         var appendAmpersand = false;
 
         sb.Append(baseAddress);
         sb.Append('?');
 
-        if (!string.IsNullOrWhiteSpace(request.Id))
+        if (!string.IsNullOrWhiteSpace(or.Id))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(request.Id!));
+            sb.Append(Uri.EscapeDataString(or.Id!));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Query))
+        if (!string.IsNullOrWhiteSpace(or.Query))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(request.Query!));
+            sb.Append(Uri.EscapeDataString(or.Query!));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.OperationName))
+        if (!string.IsNullOrWhiteSpace(or.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(request.OperationName!));
+            sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
-        if (request.VariablesNode is not null)
+        if (or.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(
-                Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.VariablesNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.VariablesNode)));
         }
-        else if (request.Variables is not null)
+        else if (or.Variables is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(request.Variables)));
+            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(or.Variables)));
         }
 
-        if (request.ExtensionsNode is not null)
+        if (or.ExtensionsNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(
-                Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.ExtensionsNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.ExtensionsNode)));
         }
-        else if (request.Extensions is not null)
+        else if (or.Extensions is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(request.Extensions)));
+            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(or.Extensions)));
         }
 
         return new Uri(sb.ToString());

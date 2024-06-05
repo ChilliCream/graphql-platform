@@ -25,9 +25,9 @@ public class ArgumentTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(@"{
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(@"{
                         arrayOfScalarsA: arrayOfScalars(values: 1)
                         arrayOfScalarsB: arrayOfScalars(values: [1, 2])
                         arrayOfObjectsA: arrayOfObjects(values: { bar: 1 }) { bar }
@@ -37,7 +37,7 @@ public class ArgumentTests
                         listOfObjectsA: listOfObjects(values: { bar: 1 }) { bar }
                         listOfObjectsB: listOfObjects(values: [{ bar: 1 }, { bar: 2 }]) { bar }
                     }")
-                .Create());
+                .Build());
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -66,7 +66,7 @@ public class ArgumentTests
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
-            IFieldCollection<IInputField> arguments = context.Selection.Field.Arguments;
+            var arguments = context.Selection.Field.Arguments;
             foreach (var argument in arguments)
             {
                 var value = context.ArgumentValue<object?>(argument.Name)!;

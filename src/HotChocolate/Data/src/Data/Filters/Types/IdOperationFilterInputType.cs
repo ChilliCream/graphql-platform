@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,13 +7,13 @@ public class IdOperationFilterInputType
     : FilterInputType
     , IComparableOperationFilterInputType
 {
-    [ActivatorUtilitiesConstructor]
-    public IdOperationFilterInputType()
+    public IdOperationFilterInputType(Action<IFilterInputTypeDescriptor> configure)
+        : base(configure)
     {
     }
 
-    public IdOperationFilterInputType(Action<IFilterInputTypeDescriptor> configure)
-        : base(configure)
+    [ActivatorUtilitiesConstructor]
+    public IdOperationFilterInputType()
     {
     }
 

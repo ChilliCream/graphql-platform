@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -174,7 +172,7 @@ public ref partial struct Utf8GraphQLParser
                     CultureInfo.InvariantCulture,
                     ParseMany_InvalidOpenToken,
                     TokenKind.LeftBrace,
-                    TokenPrinter.Print(in _reader)));
+                    TokenPrinter.Print(ref _reader)));
         }
 
         var selections = new List<ISelectionNode>();

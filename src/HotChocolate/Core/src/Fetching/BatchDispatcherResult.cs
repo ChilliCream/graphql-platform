@@ -19,7 +19,7 @@ public class BatchDispatcherResult
     /// Creates a new error result.
     /// </summary>
     /// <param name="exceptions">
-    /// The exceptions that occured while dispatching enqueued batches.
+    /// The exceptions that occurred while dispatching enqueued batches.
     /// </param>
     public BatchDispatcherResult(IReadOnlyList<Exception> exceptions)
     {
@@ -45,7 +45,7 @@ public class BatchDispatcherResult
     public bool IsSuccessful { get; }
 
     /// <summary>
-    /// Gets the list of exceptions that occured during the execution of the enqueued
+    /// Gets the list of exceptions that occurred during the execution of the enqueued
     /// batches if <see cref="IsSuccessful"/> is <c>false</c>.
     /// </summary>
     public IReadOnlyList<Exception> Exceptions { get; }

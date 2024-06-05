@@ -4,11 +4,9 @@ using HotChocolate.Fusion.Execution.Nodes;
 
 namespace CookieCrumble.Formatters;
 
-internal sealed class QueryPlanSnapshotValueFormatter : SnapshotValueFormatter<QueryPlan>
+internal sealed class QueryPlanSnapshotValueFormatter() : SnapshotValueFormatter<QueryPlan>("json")
 {
     protected override void Format(IBufferWriter<byte> snapshot, QueryPlan value)
-    {
-        value.Format(snapshot);
-    }
+        => value.Format(snapshot);
 }
 #endif

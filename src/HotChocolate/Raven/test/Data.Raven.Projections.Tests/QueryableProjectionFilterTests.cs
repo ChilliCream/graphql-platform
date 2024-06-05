@@ -140,8 +140,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -161,7 +161,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -177,8 +177,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"
                         {
                             root {
@@ -200,7 +200,7 @@ public class QueryableProjectionFilterTests
                                 }
                             }
                         }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -216,8 +216,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -237,7 +237,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -253,8 +253,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -275,7 +275,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -291,8 +291,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             foo {
@@ -300,7 +300,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -316,8 +316,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             id
@@ -327,7 +327,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot
@@ -343,8 +343,8 @@ public class QueryableProjectionFilterTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     @"{
                         root {
                             id
@@ -359,7 +359,7 @@ public class QueryableProjectionFilterTests
                             }
                         }
                     }")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

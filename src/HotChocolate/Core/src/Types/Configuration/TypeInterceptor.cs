@@ -310,7 +310,7 @@ public abstract class TypeInterceptor
     }
 
     /// <summary>
-    /// This hook is invoked if an error occured during schema creation.
+    /// This hook is invoked if an error occurred during schema creation.
     /// </summary>
     /// <param name="context">
     /// The descriptor context.

@@ -23,11 +23,11 @@ public class AuthorizationHandlerTests
             .AddTypeExtension<QueryExtensions>()
             .AddAuthorizationHandler<CustomHandler>()
             .ExecuteRequestAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ bar }")
+                OperationRequestBuilder
+                    .Create()
+                    .SetDocument("{ bar }")
                     .AddGlobalState("auth", authResult)
-                    .Create());
+                    .Build());
 
         result.MatchSnapshot(authResult);
     }

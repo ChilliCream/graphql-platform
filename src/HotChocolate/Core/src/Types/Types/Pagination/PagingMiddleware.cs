@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -13,19 +14,21 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
     private readonly IPagingHandler _pagingHandler = pagingHandler ??
         throw new ArgumentNullException(nameof(pagingHandler));
 
-    public async Task InvokeAsync(IMiddlewareContext context)
+    public async ValueTask InvokeAsync(IMiddlewareContext context)
     {
         _pagingHandler.ValidateContext(context);
+        _pagingHandler.PublishPagingArguments(context);
 
         await _next(context).ConfigureAwait(false);
 
+        // if the result is a field result we gonna unwrap it.
         if (context.Result is IFieldResult fieldResult)
         {
             if (fieldResult.IsError)
             {
                 return;
             }
-            
+
             context.Result = fieldResult.Value;
         }
 
@@ -45,8 +48,7 @@ public class PagingMiddleware(FieldDelegate next, IPagingHandler pagingHandler)
                 {
                     errors[i] = ErrorBuilder
                         .FromError(ex.Errors[i])
-                        .AddLocation(context.Selection.SyntaxNode)
-                        .SetSyntaxNode(context.Selection.SyntaxNode)
+                        .AddLocation(context.Selection.SyntaxNodes)
                         .SetPath(context.Path)
                         .Build();
                 }

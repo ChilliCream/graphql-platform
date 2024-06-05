@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -147,6 +148,22 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
                     return;
                 }
             }
+            catch (GraphQLRequestException ex)
+            {
+                if (!root.TryGetProperty(Id, out idProp) ||
+                    idProp.ValueKind is not JsonValueKind.String ||
+                    string.IsNullOrEmpty(idProp.GetString()))
+                {
+                    await connection.CloseInvalidSubscribeMessageAsync(cancellationToken);
+                    return;
+                }
+                
+                await SendErrorMessageAsync(
+                    session,
+                    idProp.GetString()!,
+                    ex.Errors,
+                    cancellationToken);
+            }
             catch (SyntaxException ex)
             {
                 if (!root.TryGetProperty(Id, out idProp) ||
@@ -195,7 +212,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryResult result,
+        IOperationResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
@@ -315,6 +332,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IGraphQLOverWebSocke
             return false;
         }
 
+        DefaultHttpRequestParser.EnsureValidQueryId(request);
         message = new SubscribeMessage(id, request[0]);
         return true;
     }

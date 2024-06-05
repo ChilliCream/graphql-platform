@@ -13,7 +13,7 @@ testatest Result:
 
 testatest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' != :p0;
 ---------------
 
 testbtest Result:
@@ -31,7 +31,7 @@ testbtest Result:
 
 testbtest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where d.data ->> 'Bar' != :p0;
 ---------------
 
 null

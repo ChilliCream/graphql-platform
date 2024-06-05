@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -28,13 +27,17 @@ public class FilterOperationFieldDescriptor
     protected override void OnCreateDefinition(
         FilterOperationFieldDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.Property is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, Property: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
             Definition.AttributesAreApplied = true;
         }
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     public IFilterOperationFieldDescriptor Name(string value)

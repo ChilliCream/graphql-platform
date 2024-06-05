@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
-using HotChocolate.Subscriptions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
@@ -23,8 +22,7 @@ namespace HotChocolate.Resolvers;
 /// </summary>
 internal sealed class DefaultResolverCompiler : IResolverCompiler
 {
-    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty =
-        Array.Empty<IParameterExpressionBuilder>();
+    private static readonly IReadOnlyList<IParameterExpressionBuilder> _empty = [];
 
     private static readonly ParameterExpression _context =
         Parameter(typeof(IResolverContext), "context");
@@ -53,7 +51,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     {
         var appServiceProvider = schemaServiceProvider.GetService<IApplicationServiceProvider>();
         var serviceInspector = appServiceProvider?.GetService<IServiceProviderIsService>();
-        
+
         var custom = customParameterExpressionBuilders is not null
             ? [..customParameterExpressionBuilders,]
             : new List<IParameterExpressionBuilder>();
@@ -67,9 +65,8 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             new GlobalStateParameterExpressionBuilder(),
             new ScopedStateParameterExpressionBuilder(),
             new LocalStateParameterExpressionBuilder(),
+            new IsSelectedParameterExpressionBuilder(),
             new EventMessageParameterExpressionBuilder(),
-            new ScopedServiceParameterExpressionBuilder(),
-            new LegacyScopedServiceParameterExpressionBuilder(),
         };
 
         if (customParameterExpressionBuilders is not null)
@@ -99,8 +96,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new FieldParameterExpressionBuilder());
         expressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
         expressionBuilders.Add(new PathParameterExpressionBuilder());
-        expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventReceiver>());
-        expressionBuilders.Add(new CustomServiceParameterExpressionBuilder<ITopicEventSender>());
 
         if (serviceInspector is not null)
         {

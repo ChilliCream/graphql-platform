@@ -69,7 +69,7 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
 
             // in case we already know the total count, we set the totalCount parameter
             // so that we do not have have to fetch the count twice
-            executeCount = _ => new(count);
+            executeCount = _ => new ValueTask<int>(count);
         }
 
         var range = SliceRange(arguments, maxElementCount);
@@ -94,18 +94,13 @@ public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : 
             slicedSource = ApplyTake(slicedSource, take);
         }
 
-        var selectedEdges =
-            await ExecuteAsync(slicedSource, skip, cancellationToken);
-
+        var selectedEdges = await ExecuteAsync(slicedSource, skip, cancellationToken);
         var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
         var isSequenceFromStart = range.Start == 0;
 
-        selectedEdges = new SkipLastCollection<Edge<TEntity>>(
-            selectedEdges,
-            moreItemsReturnedThanRequested);
+        selectedEdges = new SkipLastCollection<Edge<TEntity>>(selectedEdges, moreItemsReturnedThanRequested);
 
-        var pageInfo =
-            CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
+        var pageInfo = CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
 
         return new Connection<TEntity>(selectedEdges, pageInfo, executeCount);
     }

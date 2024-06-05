@@ -7,6 +7,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class OperationParameterExpressionBuilder
     : LambdaParameterExpressionBuilder<IPureResolverContext, IOperation>
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public OperationParameterExpressionBuilder()
         : base(ctx => ctx.Operation)
@@ -17,4 +19,13 @@ internal sealed class OperationParameterExpressionBuilder
 
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(IOperation) == parameter.ParameterType;
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)(object)context.Operation;
+
+    public T Execute<T>(IPureResolverContext context)
+        => (T)(object)context.Operation;
 }

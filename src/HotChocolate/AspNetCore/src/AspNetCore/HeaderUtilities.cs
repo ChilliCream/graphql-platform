@@ -165,7 +165,7 @@ MULTI_VALUES:
 
         public AcceptMediaType[] AcceptMediaTypes { get; }
 
-        public IQueryResult? ErrorResult { get; }
+        public IOperationResult? ErrorResult { get; }
 
         [MemberNotNullWhen(true, nameof(ErrorResult))]
         public bool HasError { get; }

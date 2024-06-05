@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -138,7 +136,7 @@ public abstract class SortProvider<TContext>
 
     /// <summary>
     /// This method is called on initialization of the provider but before the provider is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the provider can be further configured before it is
     /// completed
     /// </summary>

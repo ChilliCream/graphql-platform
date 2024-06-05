@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
@@ -7,7 +5,7 @@ namespace HotChocolate.Data.Filters;
 /// <summary>
 /// A context object that is passed along the visitation cycle
 /// </summary>
-public interface IFilterVisitorContext : ISyntaxVisitorContext
+public interface IFilterVisitorContext
 {
     /// <summary>
     /// The already visited types

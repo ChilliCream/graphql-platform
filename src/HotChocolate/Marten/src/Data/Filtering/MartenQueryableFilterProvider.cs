@@ -13,20 +13,20 @@ public class MartenQueryableFilterProvider : QueryableFilterProvider
     /// <summary>
     /// Initializes a new instance of <see cref="MartenQueryableFilterProvider"/>.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public MartenQueryableFilterProvider()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="MartenQueryableFilterProvider"/>.
-    /// </summary>
     /// <param name="configure">
     /// A delegate to configure this provider.
     /// </param>
     public MartenQueryableFilterProvider(
         Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
         : base(configure)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="MartenQueryableFilterProvider"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public MartenQueryableFilterProvider()
     {
     }
 
@@ -44,5 +44,5 @@ public class MartenQueryableFilterProvider : QueryableFilterProvider
 
     protected override bool IsInMemoryQuery<TEntityType>(object? input)
         => base.IsInMemoryQuery<TEntityType>(input) &&
-            input is not IMartenQueryable<TEntityType> and not IMartenQueryable;
+            input is not IMartenQueryable<TEntityType>;
 }

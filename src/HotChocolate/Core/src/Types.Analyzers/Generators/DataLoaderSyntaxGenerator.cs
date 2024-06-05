@@ -18,7 +18,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
         _writer = new CodeWriter(_sb);
     }
 
-    public void WriterHeader()
+    public void WriteHeader()
     {
         _writer.WriteFileHeader();
         _writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");
@@ -91,7 +91,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
                     key.ToFullyQualified(),
                     value.ToFullyQualified());
                 break;
-            
+
             case DataLoaderKind.Group:
                 _writer.WriteIndentedLine(
                     ": global::GreenDonut.GroupedDataLoader<{0}, {1}>",
@@ -135,7 +135,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
                 _writer.WriteIndentedLine("global::GreenDonut.IBatchScheduler batchScheduler,");
-                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions? options = null)");
+                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
                 _writer.WriteIndentedLine(": base(batchScheduler, options)");
             }
         }
@@ -146,7 +146,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
             using (_writer.IncreaseIndent())
             {
                 _writer.WriteIndentedLine("global::System.IServiceProvider services,");
-                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions? options = null)");
+                _writer.WriteIndentedLine("global::GreenDonut.DataLoaderOptions options)");
                 _writer.WriteIndentedLine(": base(options)");
             }
         }

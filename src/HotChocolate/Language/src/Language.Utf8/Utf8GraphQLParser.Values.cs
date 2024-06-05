@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 using static HotChocolate.Language.TokenPrinter;
@@ -42,7 +40,7 @@ public ref partial struct Utf8GraphQLParser
             return ParseObject(isConstant);
         }
 
-        if (TokenHelper.IsScalarValue(in _reader))
+        if (TokenHelper.IsScalarValue(ref _reader))
         {
             return ParseScalarValue();
         }
@@ -93,7 +91,7 @@ public ref partial struct Utf8GraphQLParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBracket,
-                Print(in _reader));
+                Print(ref _reader));
         }
 
         var items = new List<IValueNode>();
@@ -138,7 +136,7 @@ public ref partial struct Utf8GraphQLParser
                 _reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBrace,
-                Print(in _reader));
+                Print(ref _reader));
         }
 
         var fields = new List<ObjectFieldNode>();
@@ -172,7 +170,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IValueNode ParseScalarValue()
     {
-        if (TokenHelper.IsString(in _reader))
+        if (TokenHelper.IsString(ref _reader))
         {
             return ParseStringLiteral();
         }
@@ -180,7 +178,7 @@ public ref partial struct Utf8GraphQLParser
         var start = Start();
         var kind = _reader.Kind;
 
-        if (!TokenHelper.IsScalarValue(in _reader))
+        if (!TokenHelper.IsScalarValue(ref _reader))
         {
             throw new SyntaxException(_reader, Parser_InvalidScalarToken, _reader.Kind);
         }

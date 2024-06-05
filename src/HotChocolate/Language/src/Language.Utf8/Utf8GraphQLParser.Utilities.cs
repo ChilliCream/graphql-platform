@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 using static HotChocolate.Language.TokenPrinter;
@@ -88,7 +87,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private string ExpectString()
     {
-        if (TokenHelper.IsString(in _reader))
+        if (TokenHelper.IsString(ref _reader))
         {
             var value = _reader.GetString();
             MoveNext();

@@ -1,22 +1,14 @@
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
 
 #pragma warning disable CA1812
 
-internal sealed class ExecutableMiddleware
+internal sealed class ExecutableMiddleware(FieldDelegate next)
 {
-    private readonly FieldDelegate _next;
-
-    public ExecutableMiddleware(FieldDelegate next)
-    {
-        _next = next;
-    }
-
     public async ValueTask InvokeAsync(IMiddlewareContext context)
     {
-        await _next(context).ConfigureAwait(false);
+        await next(context).ConfigureAwait(false);
 
         if (context.Result is IExecutable executable)
         {

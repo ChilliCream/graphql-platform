@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -65,7 +62,9 @@ public class FilterInputTypeDescriptor
 
     protected override void OnCreateDefinition(FilterInputTypeDefinition definition)
     {
-        if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
+        Context.Descriptors.Push(this);
+        
+        if (Definition is { AttributesAreApplied: false, EntityType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
             Definition.AttributesAreApplied = true;
@@ -84,6 +83,8 @@ public class FilterInputTypeDescriptor
         OnCompleteFields(fields, handledProperties);
 
         Definition.Fields.AddRange(fields.Values);
+
+        Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteFields(

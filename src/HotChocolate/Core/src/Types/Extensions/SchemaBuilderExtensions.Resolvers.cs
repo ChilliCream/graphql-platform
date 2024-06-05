@@ -45,7 +45,7 @@ public static partial class SchemaBuilderExtensions
         if (!field.HasValue)
         {
             throw new ArgumentException(
-                TypeResources.SchemaBuilderExtensions_AddResolver_EmptyCooridnates,
+                TypeResources.SchemaBuilderExtensions_AddResolver_EmptyCoordinates,
                 nameof(builder));
         }
 

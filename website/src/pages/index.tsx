@@ -5,9 +5,9 @@ import styled from "styled-components";
 
 import { BananaCakePop } from "@/components/images/banana-cake-pop";
 import { BlogPostBananaCakePopApis } from "@/components/images/blog-post-banana-cake-pop-apis";
-import { BlogPostEFMeetsGraphQL } from "@/components/images/blog-post-ef-meets-graphql";
-import { BlogPostHotChocolate13 } from "@/components/images/blog-post-hot-chocolate-13";
 import { BlogPostGraphQLFusion } from "@/components/images/blog-post-graphql-fusion";
+import { BlogPostHotChocolate13 } from "@/components/images/blog-post-hot-chocolate-13";
+import { NewsletterMay2024 } from "@/components/images/newsletter-may-2024";
 import { Layout } from "@/components/layout";
 import { Link } from "@/components/misc/link";
 import {
@@ -30,6 +30,7 @@ import { GetIndexPageDataQuery } from "@/graphql-types";
 import { THEME_COLORS } from "@/shared-style";
 
 // Artwork
+import { FullstackWorkshop } from "@/components/images/fullstack-workshop";
 import { SrOnly } from "@/components/misc/sr-only";
 import ContactUsSvg from "@/images/artwork/contact-us.svg";
 import DashboardSvg from "@/images/artwork/dashboard.svg";
@@ -76,6 +77,16 @@ const IndexPage: FC = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2024/05/21/newsletter-may">
+              <NewsletterMay2024 />
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2024/04/01/fullstack-workshop">
+              <FullstackWorkshop />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2023/08/15/graphql-fusion">
               <BlogPostGraphQLFusion />
             </Link>
@@ -98,17 +109,6 @@ const IndexPage: FC = () => {
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.
-                </SlideDescription>
-              </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2020/03/18/entity-framework">
-              <BlogPostEFMeetsGraphQL />
-              <SlideContent>
-                <SlideTitle>Entity Framework Meets GraphQL</SlideTitle>
-                <SlideDescription>
-                  Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
               </SlideContent>
             </Link>

@@ -468,7 +468,7 @@ We also wanted to clean up the attributes around services and allow for the same
 ```csharp
 public async Task<ScheduleSessionPayload> ScheduleSessionAsync(
     ScheduleSessionInput input,
-    [Service(ServiceKind.Syncronized)] ISessionService sessionService,
+    [Service(ServiceKind.Synchronized)] ISessionService sessionService,
     [Service] ITopicEventSender eventSender)
 {
     // code omitted for brevity
@@ -498,7 +498,7 @@ builder.Services
 
 The DBContext can be registered as a well-known DBContext with three different behaviors.
 
-The first and the default is `DbContextKind.Syncronized` which will ensure that all resolvers that access such a DBContext synchronize their access through the query execution plan.
+The first and the default is `DbContextKind.Synchronized` which will ensure that all resolvers that access such a DBContext synchronize their access through the query execution plan.
 
 You also can use a pooled DBContext with the `DbContextKind.Pooled`. In this case, we will wrap a middleware around your resolver that will retrieve the DBContext through the DBContextFactory, inject the DBContext in your resolver and dispose of it once the resolver pipeline is finished executing.
 

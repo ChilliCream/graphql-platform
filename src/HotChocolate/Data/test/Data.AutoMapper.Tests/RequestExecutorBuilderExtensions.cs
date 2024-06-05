@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
@@ -45,11 +43,11 @@ public static class RequestExecutorBuilderExtensions
                         context.ContextData.TryGetValue("expression", out var expression))
                     {
                         context.Result =
-                            QueryResultBuilder
+                            OperationResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
                                 .SetContextData("expression", expression)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline();

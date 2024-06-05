@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Language.Utilities.ThrowHelper;
 

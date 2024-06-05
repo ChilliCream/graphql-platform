@@ -8,7 +8,7 @@ namespace HotChocolate.ApolloFederation.Types;
 public static class ContactDescriptorExtensions
 {
     /// <summary>
-    /// Applies @contact directive which can be used to prpvode team contact information to your subgraph schema.
+    /// Applies @contact directive which can be used to provide team contact information to your subgraph schema.
     /// This information is automatically parsed and displayed by Apollo Studio. See
     /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">
     /// Subgraph Contact Information</see>
@@ -69,7 +69,7 @@ public static class ContactDescriptorExtensions
     }
 
     /// <summary>
-    /// Applies @contact directive which can be used to prpvode team contact information to your subgraph schema.
+    /// Applies @contact directive which can be used to provide team contact information to your subgraph schema.
     /// This information is automatically parsed and displayed by Apollo Studio. See
     /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">
     /// Subgraph Contact Information</see>
@@ -122,7 +122,7 @@ public static class ContactDescriptorExtensions
     }
     
     /// <summary>
-    /// Applies @contact directive which can be used to prpvode team contact information to your subgraph schema.
+    /// Applies @contact directive which can be used to provide team contact information to your subgraph schema.
     /// This information is automatically parsed and displayed by Apollo Studio. See
     /// <see href="https://www.apollographql.com/docs/graphos/graphs/federated-graphs/#contact-info-for-subgraphs">
     /// Subgraph Contact Information</see>

@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language;
 
 public class SchemaSyntaxWalker<TContext>

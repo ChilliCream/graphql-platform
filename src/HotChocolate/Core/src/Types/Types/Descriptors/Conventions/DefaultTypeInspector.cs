@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Descriptors;
 /// The default type inspector implementation that provides helpers to inspect .NET types and
 /// infer GraphQL type structures.
 /// </summary>
-public class DefaultTypeInspector : Convention, ITypeInspector
+public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Convention, ITypeInspector
 {
     private const string _toString = "ToString";
     private const string _getHashCode = "GetHashCode";
@@ -35,15 +35,10 @@ public class DefaultTypeInspector : Convention, ITypeInspector
     private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
     private readonly ConcurrentDictionary<(Type, bool, bool), MemberInfo[]> _memberCache = new();
 
-    public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
-    {
-        IgnoreRequiredAttribute = ignoreRequiredAttribute;
-    }
-
     /// <summary>
     /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
     /// </summary>
-    public bool IgnoreRequiredAttribute { get; protected set; }
+    public bool IgnoreRequiredAttribute { get; protected set; } = ignoreRequiredAttribute;
 
     /// <inheritdoc />
     public ReadOnlySpan<MemberInfo> GetMembers(
@@ -58,6 +53,7 @@ public class DefaultTypeInspector : Convention, ITypeInspector
         }
 
         var cacheKey = (type, includeIgnored, includeStatic);
+
         if (_memberCache.TryGetValue(cacheKey, out var cached))
         {
             return cached;
@@ -695,7 +691,10 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             return false;
         }
 
-        if (member.IsDefined(typeof(DataLoaderAttribute)))
+        if (member.IsDefined(typeof(DataLoaderAttribute)) ||
+            member.IsDefined(typeof(QueryAttribute)) ||
+            member.IsDefined(typeof(MutationAttribute)) ||
+            member.IsDefined(typeof(SubscriptionAttribute)))
         {
             return false;
         }
@@ -730,7 +729,6 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             {
                 if (!CanHandleParameter(parameter, allowObjectType))
                 {
-
                     return false;
                 }
             }
@@ -878,9 +876,6 @@ public class DefaultTypeInspector : Convention, ITypeInspector
             element.IsDefined(typeof(ParentAttribute), true) ||
             element.IsDefined(typeof(ServiceAttribute), true) ||
             element.IsDefined(typeof(GlobalStateAttribute), true) ||
-#pragma warning disable CS0618
-            element.IsDefined(typeof(ScopedServiceAttribute), true) ||
-#pragma warning restore CS0618
             element.IsDefined(typeof(ScopedStateAttribute), true) ||
             element.IsDefined(typeof(LocalStateAttribute), true) ||
             element.IsDefined(typeof(DescriptorAttribute), true);

@@ -24,7 +24,7 @@ barista api delete abc123
 
 - `<id>`: Specifies the ID of the API you want to delete.
 
-# List all Apis
+# List all APIs
 
 The `barista api list` command is used to list all APIs of a workspace.
 

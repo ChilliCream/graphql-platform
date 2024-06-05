@@ -70,7 +70,7 @@ public static class ConnectionExtensions
         this ISocketConnection connection,
         CancellationToken cancellationToken)
         => connection.CloseAsync(
-            "Too many initialisation requests.",
+            "Too many initialization requests.",
             CloseReasons.TooManyInitAttempts,
             cancellationToken);
 

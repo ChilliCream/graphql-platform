@@ -20,7 +20,7 @@
 
 12and13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0);
 ---------------
 
 13and14 Result:
@@ -45,7 +45,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnull
 
 13and14 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0);
 ---------------
 
 13andNull Result:
@@ -65,5 +65,5 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnull
 
 13andNull SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = ANY(:p0);
 ---------------

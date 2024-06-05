@@ -41,7 +41,7 @@ public static class WebSocketClientBuilderExtensions
             throw new ArgumentNullException(nameof(configureClient));
         }
 
-        IWebSocketClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddWebSocketClient(clientBuilder.ClientName, configureClient);
 
         configureClientBuilder?.Invoke(builder);
@@ -80,7 +80,7 @@ public static class WebSocketClientBuilderExtensions
             throw new ArgumentNullException(nameof(configureClient));
         }
 
-        IWebSocketClientBuilder builder = clientBuilder.Services
+        var builder = clientBuilder.Services
             .AddWebSocketClient(clientBuilder.ClientName, configureClient);
 
         configureClientBuilder?.Invoke(builder);

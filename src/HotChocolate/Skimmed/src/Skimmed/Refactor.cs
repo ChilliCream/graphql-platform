@@ -402,19 +402,13 @@ public static class Refactor
             }
         }
 
-        private class RewriterContext : ISyntaxVisitorContext
+        private class RewriterContext(string value)
         {
-            public RewriterContext(string value)
-            {
-                Value = value;
-            }
-
-            public string Value { get; }
+            public string Value { get; } = value;
         }
     }
 
-    private sealed class RemoveInputFieldRewriter
-        : SchemaVisitor<(InputObjectType Type, InputField Field)>
+    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectType Type, InputField Field)>
     {
         public override void VisitInputField(InputField field, (InputObjectType Type, InputField Field) context)
         {
@@ -457,14 +451,9 @@ public static class Refactor
             }
         }
 
-        private class RewriterContext : ISyntaxVisitorContext
+        private class RewriterContext(string name)
         {
-            public RewriterContext(string name)
-            {
-                Name = name;
-            }
-
-            public string Name { get; }
+            public string Name { get; } = name;
         }
     }
 }

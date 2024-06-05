@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -33,9 +32,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -52,9 +51,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse isProjectedTrue  }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse isProjectedTrue  }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -71,9 +70,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -90,9 +89,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -109,9 +108,9 @@ public class QueryableProjectionVisitorIsProjectedTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root { isProjectedFalse }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root { isProjectedFalse }}")
+                .Build());
 
         // assert
         await Snapshot

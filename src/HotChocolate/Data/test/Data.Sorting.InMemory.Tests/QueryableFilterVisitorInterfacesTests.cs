@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
@@ -31,18 +30,18 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { test: { prop: ASC}}) " +
                     "{ test{ prop }}}")
-                .Create());
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery(
+            OperationRequestBuilder.Create()
+                .SetDocument(
                     "{ root(order: { test: { prop: DESC}}) " +
                     "{ test{ prop }}}")
-                .Create());
+                .Build());
 
         // assert
         await Snapshot

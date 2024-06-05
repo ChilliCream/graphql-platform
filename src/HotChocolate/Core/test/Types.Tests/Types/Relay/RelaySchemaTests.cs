@@ -92,6 +92,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }
@@ -106,6 +107,7 @@ public class RelaySchemaTests
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
+            .AddGlobalObjectIdentification()
             .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
             .MatchSnapshotAsync();
     }

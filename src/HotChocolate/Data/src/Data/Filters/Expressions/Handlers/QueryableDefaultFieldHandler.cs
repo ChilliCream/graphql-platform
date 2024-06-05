@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -118,7 +117,7 @@ public class QueryableDefaultFieldHandler
             return false;
         }
 
-        // Deque last
+        // Dequeue last
         var condition = context.GetLevel().Dequeue();
 
         context.PopInstance();

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 
@@ -23,15 +22,15 @@ public class FilteringAndPaging
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
+                .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
+                .Build());
         snapshot.Add(res2, "true");
 
         // assert

@@ -40,15 +40,15 @@ public class IntrospectionTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }

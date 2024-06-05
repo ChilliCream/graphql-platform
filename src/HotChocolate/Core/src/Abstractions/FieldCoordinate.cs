@@ -3,8 +3,6 @@ using HotChocolate.Properties;
 using HotChocolate.Utilities;
 using static System.StringComparison;
 
-#nullable enable
-
 namespace HotChocolate;
 
 /// <summary>

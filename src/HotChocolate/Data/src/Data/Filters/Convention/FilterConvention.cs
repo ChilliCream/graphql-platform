@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -68,7 +65,7 @@ public class FilterConvention
 
     /// <summary>
     /// This method is called on initialization of the convention but before the convention is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the convention can be further configured before it is
     /// completed
     /// </summary>

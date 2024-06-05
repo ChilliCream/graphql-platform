@@ -1,12 +1,10 @@
-using System;
-
 namespace HotChocolate.Language;
 
 // Implements the parsing rules in the Fragments section.
 public ref partial struct Utf8GraphQLParser
 {
     /// <summary>
-    /// Parses a fragment spred or inline fragment within a selection set.
+    /// Parses a fragment spread or inline fragment within a selection set.
     /// <see cref="ParseFragmentSpread" /> and
     /// <see cref="ParseInlineFragment" />.
     /// </summary>

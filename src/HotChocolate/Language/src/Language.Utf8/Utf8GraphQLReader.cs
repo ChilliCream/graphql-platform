@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -113,7 +112,7 @@ public ref partial struct Utf8GraphQLReader
 
         if (_position == 0)
         {
-            SkipBoml();
+            SkipBom();
         }
 
         SkipWhitespaces();
@@ -734,7 +733,7 @@ public ref partial struct Utf8GraphQLReader
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void SkipBoml()
+    private void SkipBom()
     {
         var code = _graphQLData[_position];
 

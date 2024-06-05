@@ -36,7 +36,7 @@ internal static class RootValueResolver
             var rootValue = services.GetService(rootType.RuntimeType);
 
             // if the request services did not provide a rootValue and the runtime
-            // representation is a instantiatable class we will create a singleton ourselfs
+            // representation is an instantiable class we will create a singleton ourselves
             // and store it as cached value in order to reuse it.
             if (rootValue is null &&
                 !rootType.RuntimeType.IsAbstract &&

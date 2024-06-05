@@ -10,15 +10,6 @@ public class DecimalType : FloatTypeBase<decimal>
     /// <summary>
     /// Initializes a new instance of the <see cref="DecimalType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public DecimalType()
-        : this(decimal.MinValue, decimal.MaxValue)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DecimalType"/> class.
-    /// </summary>
     public DecimalType(decimal min, decimal max)
         : this(
             ScalarNames.Decimal,
@@ -41,6 +32,15 @@ public class DecimalType : FloatTypeBase<decimal>
         : base(name, min, max, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DecimalType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public DecimalType()
+        : this(decimal.MinValue, decimal.MaxValue)
+    {
     }
 
     protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax) =>

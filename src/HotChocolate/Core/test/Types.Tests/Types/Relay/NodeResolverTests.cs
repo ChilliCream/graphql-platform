@@ -1,3 +1,4 @@
+#pragma warning disable RCS1102 // Make class static
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -24,7 +25,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -51,7 +52,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -78,7 +79,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -115,7 +116,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -152,7 +153,7 @@ public class NodeResolverTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ node(id: \"RW50aXR5CmRmb28=\")  " +
+            "{ node(id: \"RW50aXR5OmZvbw==\")  " +
             "{ ... on Entity { id name } } }");
 
         // assert
@@ -222,13 +223,15 @@ public class NodeResolverTests
             .AddTypeExtension<EntityExtension>()
             .AddGlobalObjectIdentification()
             .ExecuteRequestAsync(
-                @"{
-                    node(id: ""RW50aXR5CmRhYmM="") {
+                """
+                {
+                    node(id: "RW50aXR5OmFiYw==") {
                         ... on Entity {
                             name
                         }
                     }
-                }")
+                }
+                """)
             .MatchSnapshotAsync();
     }
 
@@ -239,8 +242,7 @@ public class NodeResolverTests
         public Entity2 GetEntity2(string name) => new Entity2 { Name = name, };
     }
 
-    public class EntityType
-        : ObjectType<Entity>
+    public class EntityType : ObjectType<Entity>
     {
         protected override void Configure(
             IObjectTypeDescriptor<Entity> descriptor)
@@ -268,6 +270,7 @@ public class NodeResolverTests
 
     [Node]
     [ExtendObjectType(typeof(Entity))]
+
     public class EntityExtension
     {
         public static Entity GetEntity(string id) => new() { Name = id, };
@@ -296,3 +299,4 @@ public class NodeResolverTests
         public static Entity GetEntity(string id) => new() { Name = id, };
     }
 }
+#pragma warning restore RCS1102 // Make class static

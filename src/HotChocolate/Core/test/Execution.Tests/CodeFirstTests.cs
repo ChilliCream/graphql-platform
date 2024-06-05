@@ -24,7 +24,7 @@ public class CodeFirstTests
         var result = await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -43,7 +43,7 @@ public class CodeFirstTests
         var result = await executor.ExecuteAsync("{ a: test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<QueryResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors!,
             e => Assert.Equal("Document contains more than 5 tokens. Parsing aborted.", e.Message));
     }
 
@@ -81,7 +81,7 @@ public class CodeFirstTests
         var result = await executor.ExecuteAsync("{ a: test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class CodeFirstTests
 
         // assert
         Assert.Collection(
-            Assert.IsType<QueryResult>(result).Errors!,
+            Assert.IsType<OperationResult>(result).Errors!,
             e => Assert.Equal("Document contains more than 6 nodes. Parsing aborted.", e.Message));
     }
 
@@ -117,7 +117,7 @@ public class CodeFirstTests
             await schema.MakeExecutable().ExecuteAsync("{ test }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -134,7 +134,7 @@ public class CodeFirstTests
             await schema.MakeExecutable().ExecuteAsync("{ query }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -158,7 +158,7 @@ public class CodeFirstTests
                         ");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -248,7 +248,7 @@ public class CodeFirstTests
                 "{ drink { ... on Tea { kind } } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -282,7 +282,7 @@ public class CodeFirstTests
                 "{ dog { name } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -298,7 +298,7 @@ public class CodeFirstTests
                 "{ dog { desc } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -314,7 +314,7 @@ public class CodeFirstTests
                 "{ dog { name2 } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -330,7 +330,7 @@ public class CodeFirstTests
                 "{ dog { names } }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         await result.MatchSnapshotAsync();
     }
 
@@ -360,9 +360,9 @@ public class CodeFirstTests
     public async Task EnsureThatArgumentDefaultIsUsedWhenVariableValueIsOmitted()
     {
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("query($v: String) { foo(value: $v) }")
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("query($v: String) { foo(value: $v) }")
+                .Build();
 
         await new ServiceCollection()
             .AddGraphQL()
@@ -553,36 +553,30 @@ public class CodeFirstTests
         }
     }
 
-    public class MockExecutable<T> : IExecutable<T>
+    public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     {
-        private readonly IQueryable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IQueryable<T> source)
-        {
-            _source = source;
-        }
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
 
-        public object Source => _source;
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
 
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<IList>(_source.ToList());
-        }
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.FirstOrDefault());
-        }
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.SingleOrDefault());
-        }
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
+
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
         public string Print()
-        {
-            return _source.ToString()!;
-        }
+            => source.ToString()!;
     }
 
     public class QueryPrivateConstructor

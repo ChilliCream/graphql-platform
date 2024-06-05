@@ -1,17 +1,11 @@
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 
 namespace HotChocolate.Data;
 
-public class EntityFrameworkExecutableTests : IClassFixture<AuthorFixture>
+public class EntityFrameworkExecutableTests(AuthorFixture authorFixture) 
+    : IClassFixture<AuthorFixture>
 {
-    private readonly BookContext _context;
-
-    public EntityFrameworkExecutableTests(AuthorFixture authorFixture)
-    {
-        _context = authorFixture.Context;
-    }
+    private readonly BookContext _context = authorFixture.Context;
 
     [Fact]
     public void Extensions_Should_ReturnEntityFrameworkExecutable_When_DBSet()

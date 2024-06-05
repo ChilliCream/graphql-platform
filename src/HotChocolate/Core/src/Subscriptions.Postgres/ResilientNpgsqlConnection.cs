@@ -100,7 +100,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
                 {
                     await _onDisconnect(cancellationToken);
                 }
-                catch (Exception)
+                catch
                 {
                     // on disconnect we ignore all exceptions
                 }
@@ -108,7 +108,7 @@ internal sealed class ResilientNpgsqlConnection : IAsyncDisposable
                 await Connection.DisposeAsync();
             }
         }
-        catch (Exception)
+        catch
         {
             // on disconnect we ignore all exceptions
         }

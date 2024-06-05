@@ -135,7 +135,7 @@ public static class ErrorCodes
         /// <summary>
         /// A key is referring to a file that was not provided.
         /// </summary>
-        public const string MultiPartFileMissing = "HC00038";
+        public const string MultiPartFileMissing = "HC0038";
 
         /// <summary>
         /// The variable path is referring to a variable that does not exist.
@@ -211,7 +211,7 @@ public static class ErrorCodes
         public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
-        public const string DupplicateFieldNames = "HCXXXX";
+        public const string DuplicateFieldNames = "HCXXXX";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.
@@ -237,7 +237,7 @@ public static class ErrorCodes
         /// The schema building directive `@mutation`
         /// can only be applied on object fields.
         /// </summary>
-        public const string MutationConvDirectiveWrongLocation = "HC0070";
+        public const string MutationConventionDirectiveWrongLocation = "HC0070";
 
         /// <summary>
         /// A schema building directive had an argument with an unexpected value.
@@ -289,7 +289,7 @@ public static class ErrorCodes
         /// <summary>
         /// The coordinate reference system is not supported by this server
         /// </summary>
-        public const string UnknowCrs = "HC0029";
+        public const string UnknownCrs = "HC0029";
 
         /// <summary>
         /// Coordinates with M values cannot be reprojected
@@ -324,7 +324,7 @@ public static class ErrorCodes
     }
 
     /// <summary>
-    /// Error codes related to paging compinents
+    /// Error codes related to paging components
     /// </summary>
     public static class Paging
     {
@@ -352,6 +352,11 @@ public static class ErrorCodes
         /// You must provide a `first` or `last` value to properly paginate the connection.
         /// </summary>
         public const string NoPagingBoundaries = "HC0052";
+
+        /// <summary>
+        /// The requested number of values per page must be at least 0.
+        /// </summary>
+        public const string MinPaginationItems = "HC0079";
 
         /// <summary>
         /// The cursor format is invalid.

@@ -24,4 +24,14 @@ internal static class Utf8GraphQLResultProperties
     /// Gets the extensions property name.
     /// </summary>
     public static ReadOnlySpan<byte> ExtensionsProp => "extensions"u8;
+    
+    /// <summary>
+    /// Gets the request index property name.
+    /// </summary>
+    public static ReadOnlySpan<byte> RequestIndexProp => "requestIndex"u8;
+    
+    /// <summary>
+    /// Gets the variable index property name.
+    /// </summary>
+    public static ReadOnlySpan<byte> VariableIndexProp => "variableIndex"u8;
 }

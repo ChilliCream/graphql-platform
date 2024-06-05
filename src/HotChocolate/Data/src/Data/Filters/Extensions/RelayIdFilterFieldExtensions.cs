@@ -1,17 +1,28 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 
-internal static class RelayIdFilterFieldExtensions
+/// <summary>
+/// Provides extension methods to the <see cref="IFilterOperationFieldDescriptor"/>
+/// </summary>
+public static class RelayIdFilterFieldExtensions
 {
-    private static IdSerializer? _idSerializer;
-
-    internal static IFilterOperationFieldDescriptor ID(
+    /// <summary>
+    /// Makes the operation field type an ID type.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The filter operation field descriptor.
+    /// </param>
+    /// <returns>
+    /// Returns the filter operation field descriptor for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IFilterOperationFieldDescriptor ID(
         this IFilterOperationFieldDescriptor descriptor)
     {
         if (descriptor is null)
@@ -23,19 +34,18 @@ internal static class RelayIdFilterFieldExtensions
             .Extend()
             .OnBeforeCompletion((c, d) =>
             {
-                d.Formatters.Push(CreateSerializer(c));
+                var returnType = d.Member is null ? typeof(string) : d.Member.GetReturnType();
+                var returnTypeInfo = c.DescriptorContext.TypeInspector.CreateTypeInfo(returnType);
+                d.Formatters.Push(CreateSerializer(c, returnTypeInfo.NamedType));
             });
 
         return descriptor;
     }
 
     private static IInputValueFormatter CreateSerializer(
-        ITypeCompletionContext completionContext)
-    {
-        var serializer =
-            completionContext.Services.GetService<IIdSerializer>() ??
-            (_idSerializer ??= new IdSerializer());
-
-        return new FilterGlobalIdInputValueFormatter(serializer);
-    }
+        ITypeCompletionContext completionContext,
+        Type namedType)
+        => new FilterGlobalIdInputValueFormatter(
+            completionContext.DescriptorContext.NodeIdSerializerAccessor,
+            namedType);
 }

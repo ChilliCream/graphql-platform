@@ -105,8 +105,8 @@ const BananaCakePopPage: FC = () => {
                 <h2>Organization Workspaces</h2>
               </header>
               <p>
-                Organize your GraphQL APIs and collaborate with colleagues across
-                your organization with ease.
+                Organize your GraphQL APIs and collaborate with colleagues
+                across your organization with ease.
               </p>
             </CardOffer>
           </Card>

@@ -85,7 +85,6 @@ The unsafe way to create types, as the name implies, bypasses some of the standa
 The `CreateUnsafe` method allows you to create types directly from a `TypeDefinition`.
 
 ```csharp
-```csharp
 var typeDefinition = new ObjectTypeDefinition("DynamicType");
 // ... populate typeDefinition ...
 
@@ -164,7 +163,7 @@ var discountPriceField = new ObjectFieldDefinition(
 {
     Arguments = { discountArgument }
 };
-    
+
 objectTypeDefinition.Fields.Add(discountPriceField);
 ```
 
@@ -188,20 +187,20 @@ A resolver in Hot Chocolate is a delegate that fetches the data for a specific f
 
 1. **Async Resolvers**:
 
-    ```csharp
-    public delegate ValueTask<object?> FieldResolverDelegate(IResolverContext context);
-    ```
+   ```csharp
+   public delegate ValueTask<object?> FieldResolverDelegate(IResolverContext context);
+   ```
 
-    _Async Resolvers_ are are typically async and have access to a `IResolverContext`. They are usually used for fetching data from services or databases.
+   _Async Resolvers_ are are typically async and have access to a `IResolverContext`. They are usually used for fetching data from services or databases.
 
 2. **Pure Resolvers**:
 
-    ```csharp
-    public delegate object? PureFieldDelegate(IPureResolverContext context);
-    ```
+   ```csharp
+   public delegate object? PureFieldDelegate(IPureResolverContext context);
+   ```
 
-    _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate.
-    The execution engine optimizes the execution of these resolvers (through inlining of the value completion) to make it significantly faster.
+   _Pure Resolvers_ is used where no side-effects or async calls are needed. All your properties are turned into pure resolvers by Hot Chocolate.
+   The execution engine optimizes the execution of these resolvers (through inlining of the value completion) to make it significantly faster.
 
 The decision to use _async Resolvers_ or _pure Resolvers_ depends on your use case. If you need to perform asynchronous operations,or fetch data from services, you would use _async Resolvers_. If your resolver is simply retrieving data without any side effects, _pure Resolvers_ would be a more performant choice.
 
@@ -227,7 +226,7 @@ Here, `IReviewsService` could be an interface representing a service that fetche
 This field resolver is a `FieldResolverDelegate` (i.e., a non-pure resolver) because it needs perform an asynchronous operation.
 
 The resulting schema is:
-  
+
 ```graphql
 "Represents a product in the e-commerce system"
 type Product {
@@ -301,7 +300,7 @@ var createProductMutationFieldDefinition = new ObjectFieldDefinition(
     }
 )
 {
-    Arguments = 
+    Arguments =
     {
         new ArgumentDefinition(
             "input",

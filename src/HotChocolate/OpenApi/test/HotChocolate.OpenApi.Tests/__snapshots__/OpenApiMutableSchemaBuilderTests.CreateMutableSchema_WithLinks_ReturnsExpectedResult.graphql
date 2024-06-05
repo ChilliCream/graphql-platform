@@ -1,0 +1,30 @@
+schema {
+  query: Query
+}
+
+type Query {
+  getArticleById(id: Int!): GetArticleByIdResponse200!
+  getArticles: [GetArticlesResponse200Item!]!
+  getUserById(id: Int!): GetUserByIdResponse200!
+}
+
+type GetArticleByIdResponse200 {
+  "Link to author."
+  author: GetUserByIdResponse200!
+  authorUserId: Int
+  id: Int
+  title: String
+}
+
+type GetArticlesResponse200Item {
+  "Link to author."
+  author: GetUserByIdResponse200!
+  authorUserId: Int
+  id: Int
+  title: String
+}
+
+type GetUserByIdResponse200 {
+  id: Int
+  username: String
+}

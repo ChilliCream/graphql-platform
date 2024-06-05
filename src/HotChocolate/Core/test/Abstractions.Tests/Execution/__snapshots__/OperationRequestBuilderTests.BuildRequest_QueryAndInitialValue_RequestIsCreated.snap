@@ -1,0 +1,17 @@
+﻿{
+  "Document": {
+    "SourceText": "{ foo }"
+  },
+  "DocumentId": null,
+  "DocumentHash": null,
+  "OperationName": null,
+  "VariableValues": null,
+  "Extensions": null,
+  "ContextData": {
+    "HotChocolate.Execution.InitialValue": {
+      "a": "123"
+    }
+  },
+  "Services": null,
+  "Flags": "AllowAll"
+}

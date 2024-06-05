@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Resolvers;
 
@@ -66,7 +63,7 @@ public static class QueryableSortExtensions
                 return result;
             }
 
-            throw ThrowHelper.Sorting_TypeMissmatch(
+            throw ThrowHelper.Sorting_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

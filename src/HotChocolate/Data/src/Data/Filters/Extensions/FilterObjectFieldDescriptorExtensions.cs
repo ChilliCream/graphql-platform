@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -138,7 +137,6 @@ public static class FilterObjectFieldDescriptorExtensions
             .OnBeforeCreate(
                 (c, definition) =>
                 {
-                    var convention = c.GetFilterConvention(scope);
                     TypeReference argumentTypeReference;
 
                     if (filterTypeInstance is not null)
@@ -147,6 +145,8 @@ public static class FilterObjectFieldDescriptorExtensions
                     }
                     else if (filterType is null)
                     {
+                        var convention = c.GetFilterConvention(scope);
+
                         if (definition.ResultType is null ||
                             definition.ResultType == typeof(object) ||
                             !c.TypeInspector.TryCreateTypeInfo(definition.ResultType, out var typeInfo))
@@ -215,11 +215,11 @@ public static class FilterObjectFieldDescriptorExtensions
 
         var factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention,])!);
-        
+
         var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
         definition.MiddlewareDefinitions[index] = new(middleware, key: WellKnownMiddleware.Filtering);
     }
-    
+
     private static IQueryBuilder CreateMiddleware<TEntity>(IFilterConvention convention) =>
         convention.CreateBuilder<TEntity>();
 }

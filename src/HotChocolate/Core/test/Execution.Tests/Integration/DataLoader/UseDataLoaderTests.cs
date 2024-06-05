@@ -17,7 +17,7 @@ public class UseDataLoaderTests
                     .AddQueryType<Query>(x => x
                         .BindFieldsExplicitly()
                         .Field(y => y.Single)
-                        .UseDataloader(typeof(Foo)))
+                        .UseDataLoader(typeof(Foo)))
                     .Create());
 
         // assert
@@ -33,7 +33,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Single)
-                .UseDataloader<TestBatchLoader>())
+                .UseDataLoader<TestBatchLoader>())
             .Create();
 
         // assert
@@ -49,7 +49,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Multiple)
-                .UseDataloader<TestBatchLoader>())
+                .UseDataLoader<TestBatchLoader>())
             .Create();
 
         // assert
@@ -65,7 +65,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Single)
-                .UseDataloader<TestGroupedLoader>())
+                .UseDataLoader<TestGroupedLoader>())
             .Create();
 
         // assert
@@ -81,7 +81,7 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(x => x
                 .BindFieldsExplicitly()
                 .Field(y => y.Multiple)
-                .UseDataloader<TestGroupedLoader>())
+                .UseDataLoader<TestGroupedLoader>())
             .Create();
 
         // assert
@@ -156,13 +156,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Single)
-                    .UseDataloader<TestBatchLoader>())
+                    .UseDataLoader<TestBatchLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -176,13 +176,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Multiple)
-                    .UseDataloader<TestBatchLoader>())
+                    .UseDataLoader<TestBatchLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -196,13 +196,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Single)
-                    .UseDataloader<TestGroupedLoader>())
+                    .UseDataLoader<TestGroupedLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -216,13 +216,13 @@ public class UseDataLoaderTests
             .AddQueryType<Query>(
                 x => x.BindFieldsExplicitly()
                     .Field(y => y.Multiple)
-                    .UseDataloader<TestGroupedLoader>())
+                    .UseDataLoader<TestGroupedLoader>())
             .Create()
             .MakeExecutable();
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder.Create(@"{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"));
 
         // assert
         result.ToJson().MatchSnapshot();

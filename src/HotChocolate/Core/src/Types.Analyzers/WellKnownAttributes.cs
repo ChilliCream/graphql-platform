@@ -12,9 +12,13 @@ public static class WellKnownAttributes
     public const string MutationTypeAttribute = "HotChocolate.Types.MutationTypeAttribute";
     public const string SubscriptionTypeAttribute = "HotChocolate.Types.SubscriptionTypeAttribute";
     public const string DataLoaderAttribute = "HotChocolate.DataLoaderAttribute";
-    public const string QueryAttribute = "HotChocolate.QueryFieldAttribute";
-    public const string MutationAttribute = "HotChocolate.MutationFieldAttribute";
-    public const string SubscriptionAttribute = "HotChocolate.SubscriptionFieldAttribute";
+    public const string QueryAttribute = "HotChocolate.QueryAttribute";
+    public const string MutationAttribute = "HotChocolate.MutationAttribute";
+    public const string SubscriptionAttribute = "HotChocolate.SubscriptionAttribute";
+    public const string NodeResolverAttribute = "HotChocolate.Types.Relay.NodeResolverAttribute";
+    public const string ParentAttribute = "HotChocolate.ParentAttribute";
+    public const string EventMessageAttribute = "HotChocolate.EventMessageAttribute";
+    public const string FieldNode = "HotChocolate.Language.FieldNode";
 
     public static HashSet<string> TypeAttributes { get; } =
     [

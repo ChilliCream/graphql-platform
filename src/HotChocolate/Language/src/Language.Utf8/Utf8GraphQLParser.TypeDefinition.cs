@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -17,7 +16,7 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private StringValueNode? ParseDescription()
     {
-        if (TokenHelper.IsDescription(in _reader))
+        if (TokenHelper.IsDescription(ref _reader))
         {
             return ParseStringLiteral();
         }
@@ -43,7 +42,7 @@ public ref partial struct Utf8GraphQLParser
             throw new SyntaxException(_reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBrace,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var operationTypeDefinitions =

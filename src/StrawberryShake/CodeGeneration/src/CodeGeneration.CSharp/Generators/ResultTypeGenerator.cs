@@ -65,8 +65,8 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
                 .AddParameter(paramName, x => x.SetType(propTypeBuilder))
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide(GetLeftPropertyAssignment(prop.Name))
-                    .SetRighthandSide(paramName));
+                    .SetLeftHandSide(GetLeftPropertyAssignment(prop.Name))
+                    .SetRightHandSide(paramName));
         }
 
         classBuilder.AddImplementsRange(descriptor.Implements);
@@ -112,8 +112,8 @@ public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
                 .AddParameter(paramName, x => x.SetType($"{deferred.InterfaceName}?"))
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide(GetLeftPropertyAssignment(fieldName))
-                    .SetRighthandSide(paramName));
+                    .SetLeftHandSide(GetLeftPropertyAssignment(fieldName))
+                    .SetRightHandSide(paramName));
         }
 
         classBuilder.Build(writer);

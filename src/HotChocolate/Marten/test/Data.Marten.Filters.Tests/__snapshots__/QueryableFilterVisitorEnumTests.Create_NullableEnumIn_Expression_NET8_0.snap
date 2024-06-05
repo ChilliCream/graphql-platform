@@ -16,7 +16,7 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null);
 ---------------
 
 FOO Result:
@@ -34,7 +34,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null);
 ---------------
 
 nullAndFoo Result:
@@ -55,5 +55,5 @@ nullAndFoo Result:
 
 nullAndFoo SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) OR CAST(d.data ->> 'BarEnum' as integer) is null)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) OR CAST(d.data ->> 'BarEnum' as integer) is null);
 ---------------

@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -21,7 +20,7 @@ internal static class TokenHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsDescription(in Utf8GraphQLReader reader)
+    public static bool IsDescription(ref Utf8GraphQLReader reader)
     {
         ref var searchSpace = ref MemoryMarshal.GetReference(_isString.AsSpan());
         var index = (int)reader.Kind;
@@ -29,7 +28,7 @@ internal static class TokenHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsString(in Utf8GraphQLReader reader)
+    public static bool IsString(ref Utf8GraphQLReader reader)
     {
         ref var searchSpace = ref MemoryMarshal.GetReference(_isString.AsSpan());
         var index = (int)reader.Kind;
@@ -37,7 +36,7 @@ internal static class TokenHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsScalarValue(in Utf8GraphQLReader reader)
+    public static bool IsScalarValue(ref Utf8GraphQLReader reader)
     {
         ref var searchSpace = ref MemoryMarshal.GetReference(_isScalar.AsSpan());
         var index = (int)reader.Kind;

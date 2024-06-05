@@ -29,7 +29,7 @@ public static class HotChocolateFileSystemPersistedQueriesRequestExecutorBuilder
         }
 
         return builder.ConfigureSchemaServices(
-            s => s.AddFileSystemQueryStorage(cacheDirectory));
+            s => s.AddFileSystemOperationDocumentStorage(cacheDirectory));
     }
 
     /// <summary>
@@ -52,6 +52,6 @@ public static class HotChocolateFileSystemPersistedQueriesRequestExecutorBuilder
         }
 
         return builder.ConfigureSchemaServices(
-            s => s.AddReadOnlyFileSystemQueryStorage(cacheDirectory));
+            s => s.AddFileSystemOperationDocumentStorage(cacheDirectory));
     }
 }

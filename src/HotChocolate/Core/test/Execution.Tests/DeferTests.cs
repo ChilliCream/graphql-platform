@@ -14,7 +14,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                     }
                 }
@@ -33,7 +33,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                         ... @defer {
                             name
@@ -55,7 +55,7 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer(label: ""abc"") {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                     }
                 }
@@ -74,13 +74,13 @@ public class DeferTests
         var result = await executor.ExecuteAsync(
             @"{
                 ... @defer(if: false) {
-                    person(id: ""UGVyc29uCmkx"") {
+                    person(id: ""UGVyc29uOjE="") {
                         id
                     }
                 }
             }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -91,20 +91,20 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     @"query($defer: Boolean!) {
                         ... @defer(if: $defer) {
-                            person(id: ""UGVyc29uCmkx"") {
+                            person(id: ""UGVyc29uOjE="") {
                                 id
                             }
                         }
                     }")
-                .SetVariableValue("defer", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object> { {"defer", false }, })
+                .Build());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -118,9 +118,9 @@ public class DeferTests
             @"{
                 ... Foo @defer
             }
-            
+
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: ""UGVyc29uOjE="") {
                     id
                 }
             }");
@@ -136,13 +136,13 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            """    
+            """
             {
                 ... Foo @defer
             }
-            
+
             fragment Foo on Query {
-                person(id: "UGVyc29uCmkx") {
+                person(id: "UGVyc29uOjE=") {
                     id
                     ... @defer {
                         name
@@ -165,9 +165,9 @@ public class DeferTests
             @"{
                 ... Foo @defer(label: ""abc"")
             }
-            
+
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: ""UGVyc29uOjE="") {
                     id
                 }
             }");
@@ -186,14 +186,14 @@ public class DeferTests
             @"{
                 ... Foo @defer(if: false)
             }
-            
+
             fragment Foo on Query {
-                person(id: ""UGVyc29uCmkx"") {
+                person(id: ""UGVyc29uOjE="") {
                     id
                 }
             }");
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 
     [Fact]
@@ -204,21 +204,21 @@ public class DeferTests
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(
                     @"query ($defer: Boolean!) {
                         ... Foo @defer(if: $defer)
                     }
-                    
+
                     fragment Foo on Query {
-                        person(id: ""UGVyc29uCmkx"") {
+                        person(id: ""UGVyc29uOjE="") {
                             id
                         }
                     }")
-                .SetVariableValue("defer", false)
-                .Create());
+                .SetVariableValues(new Dictionary<string, object> { {"defer", false }, })
+                .Build());
 
-        Assert.IsType<QueryResult>(result).MatchSnapshot();
+        Assert.IsType<OperationResult>(result).MatchSnapshot();
     }
 }

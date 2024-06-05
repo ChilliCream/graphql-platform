@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
@@ -30,17 +28,17 @@ public class QueryableProjectionExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ shouldWork { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ shouldWork { bar baz }}")
+                .Build());
 
         // assert
         res1.MatchSnapshot();
     }
 
     [Fact]
-    public async Task Extension_Should_BeTypeMissMatch()
+    public async Task Extension_Should_BeTypeMismatch()
     {
         // arrange
         var executor = await new ServiceCollection()
@@ -51,10 +49,10 @@ public class QueryableProjectionExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ typeMissmatch { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ typeMismatch { bar baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -75,10 +73,10 @@ public class QueryableProjectionExtensionsTests
 
         // act
         var res1 = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery("{ missingMiddleware { bar baz }}")
-                .Create());
+            OperationRequestBuilder
+                .Create()
+                .SetDocument("{ missingMiddleware { bar baz }}")
+                .Build());
 
         // assert
         await Snapshot
@@ -97,8 +95,8 @@ public class QueryableProjectionExtensionsTests
 
         [CatchErrorMiddleware]
         [UseProjection]
-        [AddTypeMissmatchMiddleware]
-        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
+        [AddTypeMismatchMiddleware]
+        public IEnumerable<Foo> TypeMismatch(IResolverContext context)
         {
             return _fooEntities.Project(context);
         }
@@ -123,7 +121,7 @@ public class QueryableProjectionExtensionsTests
         public string? NotSettable { get; }
     }
 
-    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    public class AddTypeMismatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
     {
         protected override void OnConfigure(
             IDescriptorContext context,

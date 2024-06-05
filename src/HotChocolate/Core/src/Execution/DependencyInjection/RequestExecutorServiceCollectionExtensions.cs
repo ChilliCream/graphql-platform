@@ -9,7 +9,9 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 
@@ -36,6 +38,8 @@ public static class RequestExecutorServiceCollectionExtensions
         services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.TryAddSingleton<DefaultRequestContextAccessor>();
         services.TryAddSingleton<IRequestContextAccessor>(sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
+        services.TryAddSingleton<AggregateServiceScopeInitializer>();
+        services.TryAddSingleton<IParameterBindingResolver, DefaultParameterBindingResolver>();
 
         services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
         {
@@ -54,9 +58,7 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddDefaultDocumentHashProvider()
             .TryAddDefaultBatchDispatcher()
             .TryAddDefaultDataLoaderRegistry()
-            .TryAddIdSerializer()
             .TryAddDataLoaderParameterExpressionBuilder()
-            .TryAddDataLoaderOptions()
             .AddSingleton<ResolverProvider>();
 
         // pools
@@ -65,7 +67,6 @@ public static class RequestExecutorServiceCollectionExtensions
             .TryAddResolverTaskPool()
             .TryAddOperationContextPool()
             .TryAddDeferredWorkStatePool()
-            .TryAddDataLoaderTaskCachePool()
             .TryAddOperationCompilerPool();
 
         // global executor services
@@ -196,12 +197,9 @@ public static class RequestExecutorServiceCollectionExtensions
         int capacity = 100)
     {
         services.RemoveAll<IPreparedOperationCache>();
-        services.RemoveAll<IComplexityAnalyzerCache>();
 
         services.AddSingleton<IPreparedOperationCache>(
             _ => new DefaultPreparedOperationCache(capacity));
-        services.AddSingleton<IComplexityAnalyzerCache>(
-            _ => new DefaultComplexityAnalyzerCache(capacity));
 
         return services;
     }

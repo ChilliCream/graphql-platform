@@ -13,7 +13,7 @@ public class ServiceCollectionTests
         // act
         void Action()
             => HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                .AddFileSystemQueryStorage(null!);
+                .AddFileSystemOperationDocumentStorage(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -26,7 +26,7 @@ public class ServiceCollectionTests
         var services = new ServiceCollection();
 
         // act
-        services.AddFileSystemQueryStorage("foo");
+        services.AddFileSystemOperationDocumentStorage("foo");
 
         // assert
         services.ToDictionary(
@@ -42,7 +42,7 @@ public class ServiceCollectionTests
         var services = new ServiceCollection();
 
         // act
-        services.AddFileSystemQueryStorage();
+        services.AddFileSystemOperationDocumentStorage();
 
         // assert
         services.ToDictionary(
@@ -58,7 +58,7 @@ public class ServiceCollectionTests
         // act
         void Action()
             => HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyFileSystemQueryStorage(null!);
+                .AddFileSystemOperationDocumentStorage(null!);
 
         // assert
         Assert.Throws<ArgumentNullException>((Action) Action);
@@ -71,7 +71,7 @@ public class ServiceCollectionTests
         var services = new ServiceCollection();
 
         // act
-        services.AddReadOnlyFileSystemQueryStorage("foo");
+        services.AddFileSystemOperationDocumentStorage("foo");
 
         // assert
         services.ToDictionary(
@@ -88,7 +88,7 @@ public class ServiceCollectionTests
         var services = new ServiceCollection();
 
         // act
-        services.AddReadOnlyFileSystemQueryStorage();
+        services.AddFileSystemOperationDocumentStorage();
 
         // assert
         services.ToDictionary(

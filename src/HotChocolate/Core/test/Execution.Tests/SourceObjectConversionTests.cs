@@ -31,7 +31,7 @@ public class SourceObjectConversionTests
 
         // assert
         Assert.True(
-            Assert.IsType<QueryResult>(result).Errors is null,
+            Assert.IsType<OperationResult>(result).Errors is null,
             "There should be no errors.");
         Assert.True(
             conversionTriggered,
@@ -50,9 +50,9 @@ public class SourceObjectConversionTests
 
         // act
         var request =
-            QueryRequestBuilder.New()
-                .SetQuery("{ foo { qux } }")
-                .Create();
+            OperationRequestBuilder.Create()
+                .SetDocument("{ foo { qux } }")
+                .Build();
 
         var result =
             await schema.MakeExecutable().ExecuteAsync(request);

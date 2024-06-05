@@ -54,16 +54,16 @@ public class EventStreamTests(ITestOutputHelper output)
 
         // act
         var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
-                .New()
-                .SetQuery(request)
-                .Create(),
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build(),
             cts.Token);
 
         // assert
         var snapshot = new Snapshot();
-        await CollectStreamSnapshotData(snapshot, request, result, fusionGraph, cts.Token);
-        await snapshot.MatchAsync(cts.Token);
+        await CollectStreamSnapshotData(snapshot, request, result, cts.Token);
+        await snapshot.MatchMarkdownAsync(cts.Token);
     }
 
     private sealed class NoWebSockets : IWebSocketConnectionFactory

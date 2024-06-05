@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -65,7 +63,7 @@ public abstract class ProjectionProvider
 
     /// <summary>
     /// This method is called on initialization of the provider but before the provider is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the provider can be further configured before it is
     /// completed
     /// </summary>

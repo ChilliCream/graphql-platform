@@ -6,7 +6,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace CookieCrumble.Formatters;
 
-internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter
+internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter, IMarkdownSnapshotValueFormatter
 {
     private static readonly JsonSerializerSettings _settings =
         new()
@@ -22,9 +22,19 @@ internal sealed class JsonSnapshotValueFormatter : ISnapshotValueFormatter
 
     public bool CanHandle(object? value)
         => true;
-
+    
     public void Format(IBufferWriter<byte> snapshot, object? value)
         => snapshot.Append(JsonConvert.SerializeObject(value, _settings));
+    
+    public void FormatMarkdown(IBufferWriter<byte> snapshot, object? value)
+    {
+        snapshot.Append("```json");
+        snapshot.AppendLine();
+        Format(snapshot, value);
+        snapshot.AppendLine();
+        snapshot.Append("```");
+        snapshot.AppendLine();
+    }
 
     private class ChildFirstContractResolver : DefaultContractResolver
     {

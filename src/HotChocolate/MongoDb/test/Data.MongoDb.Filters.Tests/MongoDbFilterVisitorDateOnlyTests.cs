@@ -43,14 +43,14 @@ public class MongoDbFilterVisitorDateOnlyTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -68,14 +68,14 @@ public class MongoDbFilterVisitorDateOnlyTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -94,19 +94,19 @@ public class MongoDbFilterVisitorDateOnlyTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"2022-01-16\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: \"2022-01-15\" } }){ bar } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { eq: null } }){ bar } }")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(
@@ -127,19 +127,19 @@ public class MongoDbFilterVisitorDateOnlyTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"2022-01-15\" } }){ bar } }")
+                .Build());
 
         var res2 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: \"2022-01-16\" } }){ bar } }")
+                .Build());
 
         var res3 = await tester.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null } }){ bar } }")
-                .Create());
+            OperationRequestBuilder.Create()
+                .SetDocument("{ root(where: { bar: { neq: null } }){ bar } }")
+                .Build());
 
         // assert
         await SnapshotExtensions.AddResult(

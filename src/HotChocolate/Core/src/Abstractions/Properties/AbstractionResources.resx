@@ -117,17 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DirectiveArgument_NameMustNotBeNullOrempty" xml:space="preserve">
+  <data name="DirectiveArgument_NameMustNotBeNullOrEmpty" xml:space="preserve">
     <value>The directive argument name be mustn't null or empty.</value>
   </data>
   <data name="Name_MustNotBeEmpty" xml:space="preserve">
     <value>The specified name mustn't be empty.</value>
   </data>
-  <data name="QueryRequestBuilder_QueryIsNull" xml:space="preserve">
+  <data name="OperationRequestBuilder_QueryIsNull" xml:space="preserve">
     <value>You must specify a query before creating a query request.</value>
   </data>
-  <data name="QueryRequestBuilder_QueryIsNullOrEmpty" xml:space="preserve">
-    <value>The query mustn't be null or empty.</value>
+  <data name="OperationRequestBuilder_OperationIsNullOrEmpty" xml:space="preserve">
+    <value>The operation source text mustn't be null or empty.</value>
   </data>
   <data name="State_KeyMustNotBeNullOrEmpty" xml:space="preserve">
     <value>The state key mustn't null or empty.</value>
@@ -138,8 +138,8 @@
   <data name="Error_Unknown_Error" xml:space="preserve">
     <value>Unknown Error</value>
   </data>
-  <data name="Error_Message_Mustnt_Be_Null" xml:space="preserve">
-    <value>The message mustn't be null or empty.</value>
+  <data name="Error_Message_Must_Not_Be_Null" xml:space="preserve">
+    <value>The message must not be null or empty.</value>
   </data>
   <data name="Error_WithMessage_Message_Cannot_Be_Empty" xml:space="preserve">
     <value>Message cannot be null or empty.</value>
@@ -175,7 +175,7 @@
     <value>Value cannot be null or empty.</value>
   </data>
   <data name="FieldCoordinate_Parse_InvalidComponentCount" xml:space="preserve">
-    <value>A field coordinate must consist of the type and a field seperated by a `.`.</value>
+    <value>A field coordinate must consist of the type and a field separated by a `.`.</value>
   </data>
   <data name="FieldCoordinate_Parse_InvalidFieldComponentCount" xml:space="preserve">
     <value>A field coordinate must consist of the type, field and a maximum of one argument.</value>
@@ -227,5 +227,14 @@
   </data>
   <data name="MutationError_ErrorsEmpty" xml:space="preserve">
     <value>There must be at least one error in the errors list.</value>
+  </data>
+  <data name="OperationDocumentId_InvalidOperationIdFormat" xml:space="preserve">
+    <value>Invalid operation id format.</value>
+  </data>
+  <data name="OperationRequest_DocumentOrIdMustBeSet" xml:space="preserve">
+    <value>A GraphQL operation document or a document id is required to create a query request.</value>
+  </data>
+  <data name="OperationResultBatch_ResponseStreamOrOperationResult" xml:space="preserve">
+    <value>The result must be either an operation result or a response stream.</value>
   </data>
 </root>
