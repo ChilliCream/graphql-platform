@@ -23,7 +23,7 @@ internal sealed partial class ResolverTask
                 // we initialize the field so we are able to propagate non-null violations
                 // through the result tree.
                 _context.ParentResult.InitValueUnsafe(_context.ResponseIndex, _context.Selection);
-                
+
                 var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                 CompleteValue(success, cancellationToken);
 
@@ -78,17 +78,17 @@ internal sealed partial class ResolverTask
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
     {
+        // We will pre-check if the request was already canceled and mark the task as faulted if
+        // this is the case. This essentially gives us a cheap and easy way out without any
+        // exceptions.
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _completionStatus = ExecutionTaskStatus.Faulted;
+            return false;
+        }
+
         try
         {
-            // We will pre-check if the request was already canceled and mark the task as faulted if
-            // this is the case. This essentially gives us a cheap and easy way out without any
-            // exceptions.
-            if (cancellationToken.IsCancellationRequested)
-            {
-                _completionStatus = ExecutionTaskStatus.Faulted;
-                return false;
-            }
-
             // If the arguments are already parsed and processed we can just process.
             // Arguments need no pre-processing if they have no variables.
             if (Selection.Arguments.IsFullyCoercedNoErrors)
@@ -138,14 +138,14 @@ internal sealed partial class ResolverTask
 
     private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)
     {
-        if(_context.Field.DependencyInjectionScope == DependencyInjectionScope.Resolver)
+        if (_context.Field.DependencyInjectionScope == DependencyInjectionScope.Resolver)
         {
             var serviceScope = _operationContext.Services.CreateAsyncScope();
             _context.Services = serviceScope.ServiceProvider;
             _context.RegisterForCleanup(serviceScope.DisposeAsync);
             _operationContext.ServiceScopeInitializer.Initialize(_context.RequestServices, _context.Services);
         }
-        
+
         await _context.ResolverPipeline!(_context).ConfigureAwait(false);
 
         var result = _context.Result;

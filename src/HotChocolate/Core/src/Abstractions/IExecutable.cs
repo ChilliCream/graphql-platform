@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,6 +24,15 @@ public interface IExecutable
     /// </param>
     /// <returns>Returns a arbitrary list</returns>
     ValueTask<IList> ToListAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes the executable and returns an async enumerable.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// A cancellation token that can be used to cancel the execution.
+    /// </param>
+    /// <returns>Returns an async enumerable</returns>
+    IAsyncEnumerable<object?> ToAsyncEnumerable(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Returns the first element of a sequence, or a default value if the sequence contains no
