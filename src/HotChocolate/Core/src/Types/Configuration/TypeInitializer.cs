@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -25,7 +24,6 @@ internal sealed class TypeInitializer
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
-    private readonly IReadOnlySchemaOptions _options;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -52,8 +50,6 @@ internal sealed class TypeInitializer
             throw new ArgumentNullException(nameof(initialTypes));
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
-        _options = options ??
-            throw new ArgumentNullException(nameof(options));
 
         _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
 

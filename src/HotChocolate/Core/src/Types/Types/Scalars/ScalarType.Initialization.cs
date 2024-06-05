@@ -1,6 +1,7 @@
-using System;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -36,7 +37,13 @@ public abstract partial class ScalarType
     }
 
     protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        => new() { Name = Name, Description = Description, };
+    {
+        var descriptor = ScalarTypeDescriptor.New(context.DescriptorContext, Name, Description);
+        Configure(descriptor);
+        return descriptor.CreateDefinition();
+    }
+
+    protected virtual void Configure(IScalarTypeDescriptor descriptor) { }
 
     protected override void OnRegisterDependencies(
         ITypeDiscoveryContext context,
@@ -46,9 +53,17 @@ public abstract partial class ScalarType
 
         if (SpecifiedBy is not null)
         {
-            var inspector = context.TypeInspector;
-            var specifiedByTypeRef = inspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
+            definition.AddDirective(new SpecifiedByDirective(SpecifiedBy.ToString()), context.TypeInspector);
+            var specifiedByTypeRef = context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
             context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
+        }
+
+        if (definition.HasDirectives)
+        {
+            foreach (var directive in definition.Directives)
+            {
+                context.Dependencies.Add(new TypeDependency(directive.Type, TypeDependencyFulfilled.Completed));
+            }
         }
     }
 
@@ -57,7 +72,7 @@ public abstract partial class ScalarType
         ScalarTypeDefinition definition)
     {
         _converter = context.DescriptorContext.TypeConverter;
-        var directiveDefinitions = Array.Empty<DirectiveDefinition>();
+        var directiveDefinitions = definition.GetDirectives();
         Directives = DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
     }
 }

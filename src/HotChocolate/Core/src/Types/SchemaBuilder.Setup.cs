@@ -37,6 +37,7 @@ public partial class SchemaBuilder
         {
             try
             {
+                var typeReferences = CreateTypeReferences(builder, context);
                 var typeInterceptors = new List<TypeInterceptor>();
 
                 if (context.Options.StrictRuntimeTypeValidation &&
@@ -67,7 +68,6 @@ public partial class SchemaBuilder
 
                 context.TypeInterceptor.OnBeforeCreateSchemaInternal(context, builder);
 
-                var typeReferences = CreateTypeReferences(builder, context);
                 var typeRegistry = InitializeTypes(builder, context, typeReferences);
 
                 return CompleteSchema(builder, context, lazySchema, typeRegistry);
@@ -180,6 +180,11 @@ public partial class SchemaBuilder
                             d.Directive(directive);
                         }
                     }));
+                }
+
+                if(visitorContext.TypeInterceptor is not null)
+                {
+                    builder._typeInterceptors.Add(visitorContext.TypeInterceptor);
                 }
             }
 
