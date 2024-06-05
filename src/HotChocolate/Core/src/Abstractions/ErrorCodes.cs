@@ -135,7 +135,7 @@ public static class ErrorCodes
         /// <summary>
         /// A key is referring to a file that was not provided.
         /// </summary>
-        public const string MultiPartFileMissing = "HC00038";
+        public const string MultiPartFileMissing = "HC0038";
 
         /// <summary>
         /// The variable path is referring to a variable that does not exist.
