@@ -20,11 +20,11 @@ public interface IObjectField : IOutputField
     /// Defines if this field can be executed in parallel with other fields.
     /// </summary>
     bool IsParallelExecutable { get; }
-    
+
     /// <summary>
     /// Defines in which DI scope this field is executed.
     /// </summary>
-    DependencyInjectionScope DependencyInjectionScope { get; }    
+    DependencyInjectionScope DependencyInjectionScope { get; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an

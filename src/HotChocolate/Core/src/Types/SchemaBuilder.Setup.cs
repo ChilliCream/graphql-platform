@@ -57,6 +57,11 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
                 }
 
+                if(builder._schemaFirstTypeInterceptor is not null)
+                {
+                    typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
+                }
+
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,
@@ -146,7 +151,9 @@ public partial class SchemaBuilder
                 schemaDocument = schemaDocument.RemoveBuiltInTypes();
                 documents.Add(schemaDocument);
 
-                var visitorContext = new SchemaSyntaxVisitorContext(context);
+                var visitorContext = new SchemaSyntaxVisitorContext(
+                    context,
+                    builder._schemaFirstTypeInterceptor!.Directives);
                 var visitor = new SchemaSyntaxVisitor();
 
                 visitor.Visit(schemaDocument, visitorContext);
