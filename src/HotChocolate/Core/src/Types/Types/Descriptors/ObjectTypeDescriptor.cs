@@ -59,7 +59,7 @@ public class ObjectTypeDescriptor
         ObjectTypeDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, FieldBindingType: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
@@ -226,7 +226,7 @@ public class ObjectTypeDescriptor
         IDictionary<string, ObjectFieldDefinition> fields,
         ISet<MemberInfo> handledMembers)
     { }
-    
+
     public IObjectTypeDescriptor Name(string value)
     {
         Definition.Name = value;

@@ -58,7 +58,7 @@ public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
     {
         if (_directives is null)
         {
-            return Array.Empty<DirectiveDefinition>();
+            return [];
         }
 
         return _directives;
