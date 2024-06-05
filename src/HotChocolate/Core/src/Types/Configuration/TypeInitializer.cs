@@ -42,6 +42,11 @@ internal sealed class TypeInitializer
         Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
         IReadOnlySchemaOptions options)
     {
+        if(options is null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+
         _context = descriptorContext ??
             throw new ArgumentNullException(nameof(descriptorContext));
         _typeRegistry = typeRegistry ??

@@ -1,7 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -50,13 +49,6 @@ public abstract partial class ScalarType
         ScalarTypeDefinition definition)
     {
         base.OnRegisterDependencies(context, definition);
-
-        if (SpecifiedBy is not null)
-        {
-            definition.AddDirective(new SpecifiedByDirective(SpecifiedBy.ToString()), context.TypeInspector);
-            var specifiedByTypeRef = context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType));
-            context.Dependencies.Add(new TypeDependency(specifiedByTypeRef));
-        }
 
         if (definition.HasDirectives)
         {

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
@@ -7,13 +6,15 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Factories;
 
-internal class SchemaSyntaxVisitorContext(IDescriptorContext descriptorContext)
+internal class SchemaSyntaxVisitorContext(
+    IDescriptorContext descriptorContext,
+    Dictionary<string, IReadOnlyList<DirectiveNode>> scalarDirectives)
 {
     public List<TypeReference> Types { get; } = [];
 
-    public TypeInterceptor? TypeInterceptor { get; set; }
-
     public IReadOnlyCollection<DirectiveNode>? Directives { get; set; }
+
+    public Dictionary<string, IReadOnlyList<DirectiveNode>> ScalarDirectives => scalarDirectives;
 
     public string? QueryTypeName { get; set; }
 

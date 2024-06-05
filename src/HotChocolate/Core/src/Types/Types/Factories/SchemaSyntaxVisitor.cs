@@ -21,7 +21,6 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
     private readonly InputObjectTypeFactory _inputObjectTypeFactory = new();
     private readonly EnumTypeFactory _enumTypeFactory = new();
     private readonly DirectiveTypeFactory _directiveTypeFactory = new();
-    private Dictionary<string, IReadOnlyList<DirectiveNode>>? _scalarDirectives;
 
     protected override ISyntaxVisitorAction DefaultAction => Continue;
 
@@ -159,11 +158,9 @@ internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorCon
         ScalarTypeDefinitionNode node,
         SchemaSyntaxVisitorContext context)
     {
-        if(node.Directives.Count > 0)
+        if (node.Directives.Count > 0)
         {
-            _scalarDirectives ??= new();
-            context.TypeInterceptor ??= new SchemaFirstTypeInterceptor(_scalarDirectives);
-            _scalarDirectives[node.Name.Value] = node.Directives;
+            context.ScalarDirectives[node.Name.Value] = node.Directives;
         }
 
         return base.VisitChildren(node, context);
@@ -220,31 +217,4 @@ EXIT:
         return base.VisitChildren(node, context);
     }
 
-    private sealed class SchemaFirstTypeInterceptor : TypeInterceptor
-    {
-        private readonly Dictionary<string, IReadOnlyList<DirectiveNode>> _directives;
-
-        public SchemaFirstTypeInterceptor(Dictionary<string, IReadOnlyList<DirectiveNode>> directives)
-        {
-            _directives = directives;
-        }
-
-        public override void OnAfterCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase definition)
-        {
-            if(_directives.TryGetValue(completionContext.Type.Name, out var directives) &&
-                definition is ScalarTypeDefinition scalarTypeDef)
-            {
-                foreach (var directive in directives)
-                {
-                    scalarTypeDef.AddDirective(directive.Name.Value, directive.Arguments);
-                    ((RegisteredType)completionContext).Dependencies.Add(
-                        new TypeDependency(
-                            TypeReference.CreateDirective(directive.Name.Value),
-                            TypeDependencyFulfilled.Completed));
-                }
-            }
-        }
-    }
 }

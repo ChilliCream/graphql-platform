@@ -37,7 +37,6 @@ public partial class SchemaBuilder
         {
             try
             {
-                var typeReferences = CreateTypeReferences(builder, context);
                 var typeInterceptors = new List<TypeInterceptor>();
 
                 if (context.Options.StrictRuntimeTypeValidation &&
@@ -58,6 +57,11 @@ public partial class SchemaBuilder
                     builder._typeInterceptors.Add(typeof(DirectiveTypeInterceptor));
                 }
 
+                if(builder._schemaFirstTypeInterceptor is not null)
+                {
+                    typeInterceptors.Add(builder._schemaFirstTypeInterceptor);
+                }
+
                 InitializeInterceptors(
                     context.Services,
                     builder._typeInterceptors,
@@ -68,6 +72,7 @@ public partial class SchemaBuilder
 
                 context.TypeInterceptor.OnBeforeCreateSchemaInternal(context, builder);
 
+                var typeReferences = CreateTypeReferences(builder, context);
                 var typeRegistry = InitializeTypes(builder, context, typeReferences);
 
                 return CompleteSchema(builder, context, lazySchema, typeRegistry);
@@ -146,7 +151,9 @@ public partial class SchemaBuilder
                 schemaDocument = schemaDocument.RemoveBuiltInTypes();
                 documents.Add(schemaDocument);
 
-                var visitorContext = new SchemaSyntaxVisitorContext(context);
+                var visitorContext = new SchemaSyntaxVisitorContext(
+                    context,
+                    builder._schemaFirstTypeInterceptor!.Directives);
                 var visitor = new SchemaSyntaxVisitor();
 
                 visitor.Visit(schemaDocument, visitorContext);
@@ -180,11 +187,6 @@ public partial class SchemaBuilder
                             d.Directive(directive);
                         }
                     }));
-                }
-
-                if(visitorContext.TypeInterceptor is not null)
-                {
-                    builder._typeInterceptors.Add(visitorContext.TypeInterceptor);
                 }
             }
 
