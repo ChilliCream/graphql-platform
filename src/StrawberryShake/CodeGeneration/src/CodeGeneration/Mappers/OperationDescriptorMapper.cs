@@ -23,7 +23,8 @@ public static class OperationDescriptorMapper
                         var typeName = arg.Type.TypeName();
 
                         var namedTypeDescriptor =
-                            context.Types.Single(type => type.Name.EqualsOrdinal(typeName));
+                            context.Types.Single(
+                                type => type.Name.EqualsInvariantIgnoreCase(typeName));
 
                         hasUpload = hasUpload || namedTypeDescriptor.HasUpload();
 

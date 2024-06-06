@@ -1,0 +1,18 @@
+type Query {
+  user(id: ID!): User!
+}
+
+type Mutation {
+  createUser(id: ID! gender: gender!): User!
+}
+
+type User {
+  id: ID!
+  gender: gender!
+}
+
+# Intentionally-lowercased name.
+enum gender {
+  Male
+  Female
+}

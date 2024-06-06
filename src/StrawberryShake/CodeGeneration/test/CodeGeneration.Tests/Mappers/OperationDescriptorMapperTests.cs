@@ -63,4 +63,30 @@ public class OperationDescriptorMapperTests
                 Assert.Equal("OnReview", operation.Name);
             });
     }
+
+    [Fact]
+    public void MapOperationTypeDescriptors_SchemaWithLowercaseEnumName()
+    {
+        // arrange
+        var clientModel = CreateClientModelAsync(
+            "simple.mutation.graphql",
+            "simple.schema2.graphql");
+
+        // act
+        var context = new MapperContext(
+            "Foo.Bar",
+            "FooClient",
+            new Sha1DocumentHashProvider(),
+            RequestStrategyGen.Default,
+            new[]
+            {
+                TransportProfile.Default,
+            });
+        TypeDescriptorMapper.Map(clientModel, context);
+
+        var exception = Record.Exception(() => OperationDescriptorMapper.Map(clientModel, context));
+
+        // assert
+        Assert.Null(exception);
+    }
 }

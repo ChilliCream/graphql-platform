@@ -1,0 +1,7 @@
+# Intentionally-lowercased name for "gender" type.
+mutation CreateUser($id: ID! $gender: gender!) {
+  createUser(id: $id, gender: $gender){
+    id,
+    gender
+  }
+}
