@@ -18,7 +18,7 @@ public sealed class OperationFieldSyntaxGenerator: IDisposable
         _writer = new CodeWriter(_sb);
     }
 
-    public void WriterHeader()
+    public void WriteHeader()
     {
         _writer.WriteFileHeader();
         _writer.WriteLine();

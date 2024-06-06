@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Factories;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Pagination;
@@ -31,6 +32,7 @@ public partial class SchemaBuilder : ISchemaBuilder
     private readonly Dictionary<OperationType, CreateRef> _operations = new();
     private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
     private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
+    private SchemaFirstTypeInterceptor? _schemaFirstTypeInterceptor;
 
     private readonly List<object> _typeInterceptors =
     [
@@ -146,6 +148,7 @@ public partial class SchemaBuilder : ISchemaBuilder
             throw new ArgumentNullException(nameof(loadSchemaDocument));
         }
 
+        _schemaFirstTypeInterceptor ??= new SchemaFirstTypeInterceptor();
         _documents.Add(loadSchemaDocument);
         return this;
     }
@@ -262,7 +265,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         _types.Add(_ => TypeReference.Create(typeExtension));
         return this;
     }
-    
+
     internal void AddTypeReference(TypeReference typeReference)
     {
         if (typeReference is null)

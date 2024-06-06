@@ -18,7 +18,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
         _writer = new CodeWriter(_sb);
     }
 
-    public void WriterHeader()
+    public void WriteHeader()
     {
         _writer.WriteFileHeader();
         _writer.WriteIndentedLine("using Microsoft.Extensions.DependencyInjection;");
@@ -91,7 +91,7 @@ public sealed class DataLoaderSyntaxGenerator : IDisposable
                     key.ToFullyQualified(),
                     value.ToFullyQualified());
                 break;
-            
+
             case DataLoaderKind.Group:
                 _writer.WriteIndentedLine(
                     ": global::GreenDonut.GroupedDataLoader<{0}, {1}>",

@@ -1,0 +1,11 @@
+schema {
+  query: Query
+}
+
+type Query {
+  sayHello: Custom!
+}
+
+directive @custom on SCALAR
+
+scalar Custom @custom

@@ -90,7 +90,6 @@ pkey
 Postgraphile
 preconfigured
 protobuf
-Qodana
 queryables
 quox
 quux

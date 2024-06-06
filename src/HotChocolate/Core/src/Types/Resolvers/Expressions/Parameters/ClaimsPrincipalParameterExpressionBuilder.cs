@@ -11,7 +11,10 @@ using static HotChocolate.Utilities.NullableHelper;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class ClaimsPrincipalParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class ClaimsPrincipalParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public ArgumentKind Kind => ArgumentKind.Custom;
 
@@ -52,4 +55,13 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder : IParameterExpr
             TypeResources.ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound,
             nameof(context));
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => context.GetGlobalState<T>(nameof(ClaimsPrincipal))!;
+
+    public T Execute<T>(IPureResolverContext context)
+        => context.GetGlobalState<T>(nameof(ClaimsPrincipal))!;
 }
