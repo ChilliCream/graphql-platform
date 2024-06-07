@@ -126,7 +126,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             // if we cannot send the message we put it back into the channel
             foreach (var message in messages)
             {
-                await _channel.Writer.WriteAsync(message, ct);
+                await _channel.Writer.WriteAsync(message, CancellationToken.None);
             }
         }
     }
