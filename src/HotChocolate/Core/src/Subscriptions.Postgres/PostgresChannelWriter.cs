@@ -120,7 +120,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            var msg = string.Format(ChannelWriter_FailedToSend, messages.Count, ex.Message);
+            var msg = string.Format(ChannelWriter_FailedToSend, messages.Count, ex.ToString());
             _diagnosticEvents.ProviderInfo(msg);
 
             // if we cannot send the message we put it back into the channel
