@@ -1,5 +1,8 @@
 namespace HotChocolate.CostAnalysis;
 
+/// <summary>
+/// Options for cost analysis.
+/// </summary>
 public sealed class CostAnalysisOptions
 {
     /// <summary>

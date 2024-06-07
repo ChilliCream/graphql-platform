@@ -5,6 +5,11 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.CostAnalysis.Attributes;
 
+/// <summary>
+/// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
+/// <c>weight</c> for GraphQL types, fields, and arguments. Static analysis can use these weights
+/// when calculating the overall cost of a query or response.
+/// </summary>
 [AttributeUsage(
     AttributeTargets.Class
     | AttributeTargets.Enum
