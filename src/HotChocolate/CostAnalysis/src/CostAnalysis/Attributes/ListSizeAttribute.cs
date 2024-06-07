@@ -27,12 +27,12 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     /// The arguments of this field with numeric type that are slicing arguments. Their value
     /// determines the size of the returned list.
     /// </summary>
-    public string[]? SlicingArguments { get; set; }
+    public string[]? SlicingArguments { get; init; }
 
     /// <summary>
     /// The subfield(s) that the list size applies to.
     /// </summary>
-    public string[]? SizedFields { get; set; }
+    public string[]? SizedFields { get; init; }
 
     /// <summary>
     /// Whether to require a single slicing argument in the query. If that is not the case (i.e., if
