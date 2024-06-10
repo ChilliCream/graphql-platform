@@ -93,30 +93,42 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             // firstMessage that was already read from the channel
             ct.ThrowIfCancellationRequested();
 
-            await using var batch = connection.CreateBatch();
+            var payloads = new string[messages.Count];
 
-            foreach (var message in messages)
+            for (var i = 0; i < messages.Count; i++)
             {
-                var command = batch.CreateBatchCommand();
-
-                command.CommandText = "SELECT pg_notify(@channel, @message);";
-
-                var channel = new NpgsqlParameter("channel", DbType.String)
-                {
-                    Value = _channelName
-                };
-                var msg = new NpgsqlParameter("message", DbType.String)
-                {
-                    Value = message.FormattedPayload
-                };
-                command.Parameters.Add(channel);
-                command.Parameters.Add(msg);
-
-                batch.BatchCommands.Add(command);
+                payloads[i] = messages[i].FormattedPayload;
             }
 
-            await batch.PrepareAsync(ct);
-            await batch.ExecuteNonQueryAsync(ct);
+            const string sql =
+                """
+                SELECT
+                    pg_notify(t.channel, t.message)
+                from
+                    (select
+                         @channel as channel,
+                         unnest(@messages) as message
+                     ) as t;
+                """;
+
+            await using var command = connection.CreateCommand();
+
+            command.CommandText = sql;
+
+            command.Parameters.Add(
+                new NpgsqlParameter("channel", NpgsqlDbType.Text)
+                {
+                    Value = _channelName
+                });
+
+            command.Parameters.Add(
+                new NpgsqlParameter("messages", NpgsqlDbType.Array | NpgsqlDbType.Varchar)
+                {
+                    Value = payloads
+                });
+
+            await command.PrepareAsync(ct);
+            await command.ExecuteNonQueryAsync(ct);
         }
         catch (Exception ex)
         {
