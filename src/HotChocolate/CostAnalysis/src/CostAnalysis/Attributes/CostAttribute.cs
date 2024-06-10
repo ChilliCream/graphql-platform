@@ -22,9 +22,7 @@ public sealed class CostAttribute : DescriptorAttribute
     private readonly string _weight;
 
     /// <summary>
-    /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
-    /// <c>weight</c> for GraphQL types, fields, and arguments. Static analysis can use these
-    /// weights when calculating the overall cost of a query or response.
+    /// Initializes a new instance of <see cref="CostAttribute"/>.
     /// </summary>
     /// <param name="weight">
     /// The <c>weight</c> argument defines what value to add to the overall cost for every
