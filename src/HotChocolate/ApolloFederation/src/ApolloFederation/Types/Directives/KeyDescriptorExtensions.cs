@@ -47,7 +47,7 @@ public static class KeyDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-        
+
         descriptor.Directive(new KeyDirective(fieldSet, resolvable));
         return new EntityResolverDescriptor<object>(descriptor);
     }
@@ -139,7 +139,7 @@ public static class KeyDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentException.ThrowIfNullOrEmpty(fieldSet);
-        
+
         return descriptor.Directive(new KeyDirective(fieldSet, resolvable));
     }
 }
