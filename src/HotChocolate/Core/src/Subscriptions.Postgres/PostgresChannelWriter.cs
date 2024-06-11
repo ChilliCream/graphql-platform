@@ -1,7 +1,7 @@
-using System.Data;
 using System.Threading.Channels;
 using HotChocolate.Subscriptions.Diagnostics;
 using Npgsql;
+using NpgsqlTypes;
 using static HotChocolate.Subscriptions.Postgres.PostgresResources;
 
 namespace HotChocolate.Subscriptions.Postgres;
@@ -136,9 +136,20 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
             _diagnosticEvents.ProviderInfo(msg);
 
             // if we cannot send the message we put it back into the channel
+            // however as the channel is bounded, we might not able to requeue the message and will be forced to drop them if they can't be written
+            var failedCount = 0;
+
             foreach (var message in messages)
             {
-                await _channel.Writer.WriteAsync(message, CancellationToken.None);
+                if (!_channel.Writer.TryWrite(message))
+                {
+                    failedCount++;
+                }
+            }
+
+            if (failedCount > 0)
+            {
+                _diagnosticEvents.ProviderInfo(string.Format(ChannelWriter_FailedToRequeueMessage, failedCount));
             }
         }
     }
