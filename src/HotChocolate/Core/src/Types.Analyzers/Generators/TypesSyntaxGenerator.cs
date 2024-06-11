@@ -1,61 +1,18 @@
 using System.Collections.Immutable;
 using System.Text;
-using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HotChocolate.Types.Analyzers;
+namespace HotChocolate.Types.Analyzers.Generators;
 
-[Generator]
-public class TypesGenerator : IIncrementalGenerator
+public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 {
-    private static readonly ISyntaxInspector[] _inspectors =
-    [
-        new ObjectTypeExtensionInfoInspector(),
-    ];
-
-    public void Initialize(IncrementalGeneratorInitializationContext context)
-    {
-        var modulesAndTypes =
-            context.SyntaxProvider
-                .CreateSyntaxProvider(
-                    predicate: static (s, _) => IsRelevant(s),
-                    transform: TryGetModuleOrType)
-                .Where(static t => t is not null)!
-                .WithComparer(SyntaxInfoComparer.Default);
-
-        var valueProvider = context.CompilationProvider.Combine(modulesAndTypes.Collect());
-
-        context.RegisterSourceOutput(
-            valueProvider,
-            static (context, source) => Execute(context, source.Left, source.Right));
-    }
-
-    private static bool IsRelevant(SyntaxNode node)
-        => IsClassWithAttribute(node) || IsAssemblyAttributeList(node);
-
-    private static bool IsClassWithAttribute(SyntaxNode node)
-        => node is ClassDeclarationSyntax { AttributeLists.Count: > 0, };
-
-    private static bool IsAssemblyAttributeList(SyntaxNode node)
-        => node is AttributeListSyntax;
-
-    private static ISyntaxInfo? TryGetModuleOrType(
-        GeneratorSyntaxContext context,
-        CancellationToken cancellationToken)
-    {
-        for (var i = 0; i < _inspectors.Length; i++)
-        {
-            if (_inspectors[i].TryHandle(context, out var syntaxInfo))
-            {
-                return syntaxInfo;
-            }
-        }
-
-        return null;
-    }
+    public void Generate(
+        SourceProductionContext context,
+        Compilation compilation,
+        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        => Execute(context, compilation, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
@@ -85,8 +42,8 @@ public class TypesGenerator : IIncrementalGenerator
     {
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-            .OfType<ObjectTypeExtensionInfo>()
-            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+                     .OfType<ObjectTypeExtensionInfo>()
+                     .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
             var generator = new ObjectTypeExtensionSyntaxGenerator(sb, group.Key);
 
@@ -141,8 +98,8 @@ public class TypesGenerator : IIncrementalGenerator
 
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-            .OfType<ObjectTypeExtensionInfo>()
-            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+                     .OfType<ObjectTypeExtensionInfo>()
+                     .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
             if(!firstNamespace)
             {

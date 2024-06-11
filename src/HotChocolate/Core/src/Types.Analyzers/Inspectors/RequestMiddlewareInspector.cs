@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,6 +9,8 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 {
+    public IReadOnlyList<ISyntaxFilter> Filters => [MiddlewareMethod.Instance];
+
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
         if (context.Node is InvocationExpressionSyntax

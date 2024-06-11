@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,6 +8,8 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class OperationInspector : ISyntaxInspector
 {
+    public IReadOnlyList<ISyntaxFilter> Filters => [MethodWithAttribute.Instance];
+
     public bool TryHandle(
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
@@ -27,7 +30,7 @@ public sealed class OperationInspector : ISyntaxInspector
                     var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                     var fullName = attributeContainingTypeSymbol.ToDisplayString();
                     var operationType = ParseOperationType(fullName);
-                    
+
                     if(operationType == OperationType.No)
                     {
                         continue;
@@ -42,7 +45,7 @@ public sealed class OperationInspector : ISyntaxInspector
                     {
                         continue;
                     }
-                    
+
                     syntaxInfo = new OperationInfo(
                         operationType,
                         methodSymbol.ContainingType.ToDisplayString(),
@@ -62,15 +65,15 @@ public sealed class OperationInspector : ISyntaxInspector
         {
             return OperationType.Query;
         }
-        
+
         if (attributeName.Equals(WellKnownAttributes.MutationAttribute, StringComparison.Ordinal))
         {
             return OperationType.Mutation;
         }
-        
+
         if (attributeName.Equals(WellKnownAttributes.SubscriptionAttribute, StringComparison.Ordinal))
         {
-            return OperationType.Subscription;    
+            return OperationType.Subscription;
         }
 
         return OperationType.No;
