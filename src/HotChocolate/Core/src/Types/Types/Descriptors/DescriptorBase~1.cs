@@ -6,19 +6,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors;
 
-public abstract class DescriptorBase<T>
+public abstract class DescriptorBase<T>(IDescriptorContext context)
     : IDescriptor<T>
     , IDescriptorExtension<T>
     , IDescriptorExtension
     , IDefinitionFactory<T>
     where T : DefinitionBase
 {
-    protected DescriptorBase(IDescriptorContext context)
-    {
-        Context = context ?? throw new ArgumentNullException(nameof(context));
-    }
-
-    protected internal IDescriptorContext Context { get; }
+    protected internal IDescriptorContext Context { get; } =
+        context ?? throw new ArgumentNullException(nameof(context));
 
     IDescriptorContext IHasDescriptorContext.Context => Context;
 
