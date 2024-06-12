@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.Helpers;
 
