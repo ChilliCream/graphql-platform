@@ -132,11 +132,12 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            var msg = string.Format(ChannelWriter_FailedToSend, messages.Count, ex.ToString());
+            var msg = string.Format(ChannelWriter_FailedToSend, messages.Count, ex.Message);
             _diagnosticEvents.ProviderInfo(msg);
 
             // if we cannot send the message we put it back into the channel
-            // however as the channel is bounded, we might not able to requeue the message and will be forced to drop them if they can't be written
+            // however as the channel is bounded, we might not able to requeue the message and will
+            // be forced to drop them if they can't be written
             var failedCount = 0;
 
             foreach (var message in messages)
@@ -149,7 +150,8 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
 
             if (failedCount > 0)
             {
-                _diagnosticEvents.ProviderInfo(string.Format(ChannelWriter_FailedToRequeueMessage, failedCount));
+                _diagnosticEvents.ProviderInfo(
+                    string.Format(ChannelWriter_FailedToRequeueMessage, failedCount));
             }
         }
     }
