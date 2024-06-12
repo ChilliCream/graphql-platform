@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,6 +12,8 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
 {
+    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+
     public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
     {
         if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
