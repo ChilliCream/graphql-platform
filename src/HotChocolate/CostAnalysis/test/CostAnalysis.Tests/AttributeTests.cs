@@ -82,6 +82,20 @@ public sealed class AttributeTests
     }
 
     [Fact]
+    public void Cost_ScalarTypeAttribute_AppliesDirective()
+    {
+        // arrange & act
+        var exampleScalar = CreateSchema().GetType<ExampleScalar>(nameof(ExampleScalar));
+
+        var costDirective = exampleScalar.Directives
+            .Single(d => d.Type.Name == "cost")
+            .AsValue<CostDirective>();
+
+        // assert
+        Assert.Equal("1.0", costDirective.Weight);
+    }
+
+    [Fact]
     public void ListSize_ObjectFieldAttribute_AppliesDirective()
     {
         // arrange & act
@@ -104,6 +118,7 @@ public sealed class AttributeTests
         return SchemaBuilder.New()
             .AddQueryType(new ObjectType(d => d.Name(OperationTypeNames.Query)))
             .AddType(typeof(Queries))
+            .AddType<ExampleScalar>()
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()
             .AddEnumType<ExampleEnum>()
@@ -143,6 +158,10 @@ public sealed class AttributeTests
         // ReSharper disable once UnusedMember.Local
         public string Field { get; set; } = field;
     }
+
+    [Cost("1.0")]
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private sealed class ExampleScalar() : StringType("ExampleScalar");
 
     [EnumType]
     [Cost("0.0")]

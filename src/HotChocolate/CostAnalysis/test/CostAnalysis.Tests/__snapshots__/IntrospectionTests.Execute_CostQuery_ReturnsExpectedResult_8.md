@@ -122,17 +122,17 @@ fragment fragment1 on Example2 @example(dirArg1: 7, dirArg2: { input1Field1: "",
         "examplesField": [
           {
             "path": "query.examples",
-            "cost": 210
+            "cost": 330
           }
         ],
         "example1Field3": [
           {
             "path": "query.examples.example1Field3[0]",
-            "cost": 80
+            "cost": 140
           },
           {
             "path": "query.examples.example1Field3[1]",
-            "cost": 80
+            "cost": 140
           }
         ]
       }

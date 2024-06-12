@@ -64,6 +64,10 @@ public sealed class CostAttribute : DescriptorAttribute
             case IObjectTypeDescriptor objectTypeDescriptor:
                 objectTypeDescriptor.Directive(new CostDirective(_weight));
                 break;
+
+            case IScalarTypeDescriptor scalarTypeDescriptor:
+                scalarTypeDescriptor.Directive(new CostDirective(_weight));
+                break;
         }
     }
 }

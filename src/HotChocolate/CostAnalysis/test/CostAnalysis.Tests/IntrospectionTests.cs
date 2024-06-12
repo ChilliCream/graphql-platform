@@ -1,7 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -321,17 +320,11 @@ public sealed class IntrospectionTests
     private sealed record Example2(bool Field1, int Field2, string Field3);
     private sealed record Example3(string Field1, Enum1 Field2);
 
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private sealed class Scalar1Type() : StringType("Scalar1");
+
     private enum Enum1
     {
         EnumValue1
     }
-}
-
-public sealed class Scalar1Type() : ScalarType<string, StringValueNode>("Scalar1")
-{
-    public override IValueNode ParseResult(object? resultValue) => ParseValue(resultValue);
-
-    protected override string ParseLiteral(StringValueNode valueSyntax) => valueSyntax.Value;
-
-    protected override StringValueNode ParseValue(string runtimeValue) => new(runtimeValue);
 }

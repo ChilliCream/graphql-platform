@@ -266,7 +266,7 @@ fragment fragment1 on Example2 @example(dirArg1: 7, dirArg2: { input1Field1: "",
           }
         ],
         "fieldCost": 315,
-        "typeCost": 210,
+        "typeCost": 330,
         "fieldCostByLocation": [
           {
             "path": "query($limit:)",
@@ -644,7 +644,7 @@ fragment fragment1 on Example2 @example(dirArg1: 7, dirArg2: { input1Field1: "",
         "typeCostByLocation": [
           {
             "path": "query.examples",
-            "cost": 210
+            "cost": 330
           },
           {
             "path": "query.examples.on~Example1[0].example1Field1",
@@ -680,11 +680,11 @@ fragment fragment1 on Example2 @example(dirArg1: 7, dirArg2: { input1Field1: "",
           },
           {
             "path": "query.examples.example1Field3[0]",
-            "cost": 80
+            "cost": 140
           },
           {
             "path": "query.examples.example1Field3[0].example3Field1",
-            "cost": 0
+            "cost": 60
           },
           {
             "path": "query.examples.example1Field3[0].aliasField2",
@@ -692,11 +692,11 @@ fragment fragment1 on Example2 @example(dirArg1: 7, dirArg2: { input1Field1: "",
           },
           {
             "path": "query.examples.example1Field3[1]",
-            "cost": 80
+            "cost": 140
           },
           {
             "path": "query.examples.example1Field3[1].aliasField1",
-            "cost": 0
+            "cost": 60
           },
           {
             "path": "query.examples.example1Field3[1].example3Field2",
@@ -704,7 +704,7 @@ fragment fragment1 on Example2 @example(dirArg1: 7, dirArg2: { input1Field1: "",
           },
           {
             "path": "query",
-            "cost": 210
+            "cost": 330
           }
         ]
       }
