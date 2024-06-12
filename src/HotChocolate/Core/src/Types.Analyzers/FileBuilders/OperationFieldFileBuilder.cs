@@ -1,18 +1,18 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class OperationFieldSyntaxGenerator: IDisposable
+public sealed class OperationFieldFileBuilder : IDisposable
 {
     private StringBuilder _sb;
     private CodeWriter _writer;
     private bool _first = true;
     private bool _disposed;
 
-    public OperationFieldSyntaxGenerator()
+    public OperationFieldFileBuilder()
     {
         _sb = StringBuilderPool.Get();
         _writer = new CodeWriter(_sb);

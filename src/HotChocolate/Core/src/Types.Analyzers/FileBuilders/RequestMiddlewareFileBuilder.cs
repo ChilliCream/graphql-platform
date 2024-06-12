@@ -1,12 +1,12 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis.Text;
 using static HotChocolate.Types.Analyzers.WellKnownTypes;
 
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
+public sealed class RequestMiddlewareFileBuilder : IDisposable
 {
     private readonly string _moduleName;
     private readonly string _ns;
@@ -15,7 +15,7 @@ public sealed class RequestMiddlewareSyntaxGenerator : IDisposable
     private CodeWriter _writer;
     private bool _disposed;
 
-    public RequestMiddlewareSyntaxGenerator(string moduleName, string ns)
+    public RequestMiddlewareFileBuilder(string moduleName, string ns)
     {
         _moduleName = moduleName;
         _ns = ns;

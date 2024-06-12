@@ -2,12 +2,13 @@
 using HotChocolate.Types.Analyzers.Filters;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers;
 
 [Generator]
-public class TypeModuleGenerator : IIncrementalGenerator
+public class GraphQLServerGenerator : IIncrementalGenerator
 {
     private static readonly ISyntaxInspector[] _inspectors =
     [
@@ -19,17 +20,19 @@ public class TypeModuleGenerator : IIncrementalGenerator
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
         new ObjectTypeExtensionInfoInspector(),
+        new RequestMiddlewareInspector(),
     ];
 
     private static readonly ISyntaxGenerator[] _generators =
     [
         new TypeModuleSyntaxGenerator(),
         new TypesSyntaxGenerator(),
+        new MiddlewareGenerator(),
     ];
 
     private static readonly Func<SyntaxNode, bool> _predicate;
 
-    static TypeModuleGenerator()
+    static GraphQLServerGenerator()
     {
         var filterBuilder = new SyntaxFilterBuilder();
 

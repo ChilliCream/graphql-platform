@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Analyzers.Inspectors;
+namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class OperationRegistrationInfo(OperationType type, string typeName) : ISyntaxInfo
 {

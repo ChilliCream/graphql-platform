@@ -1,10 +1,14 @@
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class ResolverSyntaxGenerator(StringBuilder sb)
+public sealed class ResolverFileBuilder(StringBuilder sb)
 {
     private readonly CodeWriter _writer = new(sb);
 
@@ -59,6 +63,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
             {
                 _writer.WriteLine();
             }
+
             first = false;
 
             _writer.WriteIndentedLine(
@@ -72,7 +77,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
         return !first;
     }
 
-    public void AddParameterInitializer(IEnumerable<ResolverInfo> resolvers)
+    public void AddParameterInitializer(IEnumerable<ResolverInfo> resolvers, ILocalTypeLookup typeLookup)
     {
         _writer.WriteIndentedLine(
             "public static void InitializeBindings(global::{0} bindingResolver)",
@@ -83,63 +88,77 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
             var first = true;
             foreach (var resolver in resolvers)
             {
-                if (!resolver.Skip && resolver.Method is not null)
+                if (resolver is not { Skip: false, Method: not null })
                 {
-                    if (first)
+                    continue;
+                }
+
+                if (first)
+                {
+                    _writer.WriteIndentedLine("if (_bindingsInitialized)");
+                    _writer.WriteIndentedLine("{");
+                    using (_writer.IncreaseIndent())
                     {
-                        _writer.WriteIndentedLine("if (_bindingsInitialized)");
-                        _writer.WriteIndentedLine("{");
-                        using (_writer.IncreaseIndent())
-                        {
-                            _writer.WriteIndentedLine("return;");
-                        }
-                        _writer.WriteIndentedLine("}");
-                        _writer.WriteIndentedLine("_bindingsInitialized = true;");
-                        _writer.WriteLine();
-                        _writer.WriteIndentedLine(
-                            "const global::{0} bindingFlags =",
-                            WellKnownTypes.BindingFlags);
-                        _writer.WriteIndentedLine(
-                            "    global::{0}.Public",
-                            WellKnownTypes.BindingFlags);
-                        _writer.WriteIndentedLine(
-                            "        | global::{0}.NonPublic",
-                            WellKnownTypes.BindingFlags);
-                        _writer.WriteIndentedLine(
-                            "        | global::{0}.Static;",
-                            WellKnownTypes.BindingFlags);
-                        _writer.WriteIndentedLine(
-                            "var type = typeof(global::{0});",
-                            resolver.Method.ContainingType.ToDisplayString());
-                        first = false;
+                        _writer.WriteIndentedLine("return;");
                     }
 
+                    _writer.WriteIndentedLine("}");
+                    _writer.WriteIndentedLine("_bindingsInitialized = true;");
                     _writer.WriteLine();
                     _writer.WriteIndentedLine(
-                        "var resolver_{0}_{1} = type.GetMethod(\"{1}\", bindingFlags, [{2}])!;",
-                        resolver.Name.TypeName,
-                        resolver.Name.MemberName,
-                        string.Join(", ", resolver.Method.Parameters.Select(
-                            p => $"typeof(global::{p.Type.ToDisplayString()})")));
-
+                        "const global::{0} bindingFlags =",
+                        WellKnownTypes.BindingFlags);
                     _writer.WriteIndentedLine(
-                        "var parameters_{0}_{1} = resolver_{0}_{1}.GetParameters();",
+                        "    global::{0}.Public",
+                        WellKnownTypes.BindingFlags);
+                    _writer.WriteIndentedLine(
+                        "        | global::{0}.NonPublic",
+                        WellKnownTypes.BindingFlags);
+                    _writer.WriteIndentedLine(
+                        "        | global::{0}.Static;",
+                        WellKnownTypes.BindingFlags);
+                    _writer.WriteIndentedLine(
+                        "var type = typeof(global::{0});",
+                        resolver.Method.ContainingType.ToDisplayString());
+                    first = false;
+                }
+
+                _writer.WriteLine();
+                _writer.WriteIndentedLine(
+                    "var resolver_{0}_{1} = type.GetMethod(\"{1}\", bindingFlags, [{2}])!;",
+                    resolver.Name.TypeName,
+                    resolver.Name.MemberName,
+                    string.Join(", ", resolver.Method.Parameters.Select(
+                        p => $"typeof(global::{ToDisplayString(p.Type, resolver, typeLookup)})")));
+
+                _writer.WriteIndentedLine(
+                    "var parameters_{0}_{1} = resolver_{0}_{1}.GetParameters();",
+                    resolver.Name.TypeName,
+                    resolver.Name.MemberName);
+
+                for (var i = 0; i < resolver.Method.Parameters.Length; i++)
+                {
+                    _writer.WriteIndentedLine(
+                        "_args_{0}_{1}[{2}] = bindingResolver.GetBinding(parameters_{0}_{1}[{2}]);",
                         resolver.Name.TypeName,
                         resolver.Name.MemberName,
-                        string.Join(", ", resolver.Method.Parameters.Select(p => $"typeof({p.Type.ToDisplayString()})")));
-
-                    for (var i = 0; i < resolver.Method.Parameters.Length; i++)
-                    {
-                        _writer.WriteIndentedLine(
-                            "_args_{0}_{1}[{2}] = bindingResolver.GetBinding(parameters_{0}_{1}[{2}]);",
-                            resolver.Name.TypeName,
-                            resolver.Name.MemberName,
-                            i);
-                    }
+                        i);
                 }
             }
         }
+
         _writer.WriteIndentedLine("}");
+    }
+
+    private static string ToDisplayString(ITypeSymbol type, ResolverInfo resolver, ILocalTypeLookup typeLookup)
+    {
+        if (type.TypeKind is TypeKind.Error &&
+            typeLookup.TryGetTypeName(type, resolver, out var typeDisplayName))
+        {
+            return typeDisplayName;
+        }
+
+        return type.ToDisplayString();
     }
 
     public void AddResolver(ResolverName resolverName, ISymbol member, Compilation compilation)
@@ -223,6 +242,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
                     WellKnownTypes.Object);
             }
         }
+
         _writer.WriteIndentedLine("}");
     }
 
@@ -247,6 +267,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
 
             _writer.WriteIndentedLine("return result;");
         }
+
         _writer.WriteIndentedLine("}");
     }
 
@@ -271,6 +292,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
                 WellKnownTypes.ValueTask,
                 WellKnownTypes.Object);
         }
+
         _writer.WriteIndentedLine("}");
     }
 
@@ -450,6 +472,7 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
             {
                 arguments.Append(", ");
             }
+
             arguments.Append($"args{i}");
         }
 
@@ -478,7 +501,8 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
             return defaultValue.ToString().ToLower();
         }
 
-        if (type.SpecialType == SpecialType.System_Double || type.SpecialType == SpecialType.System_Single)
+        if (type.SpecialType == SpecialType.System_Double ||
+            type.SpecialType == SpecialType.System_Single)
         {
             return $"{defaultValue}d";
         }
@@ -488,11 +512,101 @@ public sealed class ResolverSyntaxGenerator(StringBuilder sb)
             return $"{defaultValue}m";
         }
 
-        if (type.SpecialType == SpecialType.System_Int64 || type.SpecialType == SpecialType.System_UInt64)
+        if (type.SpecialType == SpecialType.System_Int64 ||
+            type.SpecialType == SpecialType.System_UInt64)
         {
             return $"{defaultValue}L";
         }
 
         return defaultValue.ToString();
+    }
+}
+
+public interface ILocalTypeLookup
+{
+    bool TryGetTypeName(ITypeSymbol type, ResolverInfo resolver, [NotNullWhen(true)] out string? typeDisplayName);
+}
+
+public sealed class DefaultLocalTypeLookup(ImmutableArray<ISyntaxInfo> syntaxInfos) : ILocalTypeLookup
+{
+    private Dictionary<string, List<string>>? _typeNameLookup;
+
+    public bool TryGetTypeName(ITypeSymbol type, ResolverInfo resolver, [NotNullWhen(true)] out string? typeDisplayName)
+    {
+        var typeNameLookup = GetTypeNameLookup();
+
+        if(!typeNameLookup.TryGetValue(type.Name, out var typeNames))
+        {
+            typeDisplayName = null;
+            return false;
+        }
+
+        if(typeNames.Count == 1)
+        {
+            typeDisplayName = typeNames[0];
+            return true;
+        }
+
+        if (resolver.Method is not null)
+        {
+            foreach (var namespaceString in GetContainingNamespaces(resolver.Method))
+            {
+                if (typeNames.Contains($"{namespaceString}.{type.Name}"))
+                {
+                    typeDisplayName = typeNames[0];
+                    return true;
+                }
+            }
+        }
+
+        typeDisplayName = type.Name;
+        return true;
+    }
+
+    private Dictionary<string, List<string>> GetTypeNameLookup()
+    {
+        if (_typeNameLookup is null)
+        {
+            _typeNameLookup = new Dictionary<string, List<string>>();
+            foreach (var dataLoaderInfo in syntaxInfos.OfType<DataLoaderInfo>())
+            {
+                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
+                {
+                    typeNames = [];
+                    _typeNameLookup[dataLoaderInfo.Name] = typeNames;
+                }
+
+                typeNames.Add(dataLoaderInfo.FullName);
+
+                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.InterfaceName, out typeNames))
+                {
+                    typeNames = [];
+                    _typeNameLookup[dataLoaderInfo.InterfaceName] = typeNames;
+                }
+
+                typeNames.Add(dataLoaderInfo.InterfaceFullName);
+            }
+        }
+
+        return _typeNameLookup;
+    }
+
+    private IEnumerable<string> GetContainingNamespaces(IMethodSymbol methodSymbol)
+    {
+        var namespaces = new HashSet<string>();
+        var syntaxTree = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
+
+        if (syntaxTree != null)
+        {
+            var root = syntaxTree.GetRoot();
+            var namespaceDeclarations = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>();
+
+            foreach (var namespaceDeclaration in namespaceDeclarations)
+            {
+                namespaces.Add(namespaceDeclaration.Name.ToString());
+            }
+        }
+
+        return namespaces;
     }
 }

@@ -3,7 +3,7 @@ using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HotChocolate.Types.Analyzers.Inspectors;
+namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ObjectTypeExtensionInfo : ISyntaxInfo, IEquatable<ObjectTypeExtensionInfo>
 {

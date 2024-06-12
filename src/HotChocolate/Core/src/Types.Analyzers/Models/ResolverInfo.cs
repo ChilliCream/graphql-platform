@@ -1,13 +1,7 @@
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 
-namespace HotChocolate.Types.Analyzers.Generators;
-
-public readonly struct ResolverName(string typeName, string memberName)
-{
-    public readonly string TypeName = typeName;
-
-    public readonly string MemberName = memberName;
-}
+namespace HotChocolate.Types.Analyzers.Models;
 
 public readonly struct ResolverInfo(ResolverName resolverName, IMethodSymbol? methodSymbol)
 {
@@ -17,7 +11,7 @@ public readonly struct ResolverInfo(ResolverName resolverName, IMethodSymbol? me
 
     public readonly int ParameterCount = methodSymbol?.Parameters.Length ?? 0;
 
-    public readonly bool Skip =>
+    public bool Skip =>
         ParameterCount == 0 ||
-        (ParameterCount == 1 && (Method?.Parameters[0]?.IsParent() ?? false));
+        (ParameterCount == 1 && (Method?.Parameters[0].IsParent() ?? false));
 }

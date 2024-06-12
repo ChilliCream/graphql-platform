@@ -4,15 +4,15 @@ using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class DataLoaderSyntaxGenerator : IDisposable
+public sealed class DataLoaderFileBuilder : IDisposable
 {
     private StringBuilder _sb;
     private CodeWriter _writer;
     private bool _disposed;
 
-    public DataLoaderSyntaxGenerator()
+    public DataLoaderFileBuilder()
     {
         _sb = StringBuilderPool.Get();
         _writer = new CodeWriter(_sb);

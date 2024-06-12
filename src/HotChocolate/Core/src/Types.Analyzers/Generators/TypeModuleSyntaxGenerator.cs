@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using TypeInfo = HotChocolate.Types.Analyzers.Inspectors.TypeInfo;
+using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
@@ -44,7 +46,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         List<ISyntaxInfo> syntaxInfos,
         ModuleInfo module)
     {
-        using var generator = new ModuleSyntaxGenerator(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
+        using var generator = new ModuleFileBuilder(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
 
         generator.WriteHeader();
         generator.WriteBeginNamespace();
@@ -193,7 +195,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
             dataLoaders.Add(dataLoader);
         }
 
-        using var generator = new DataLoaderSyntaxGenerator();
+        using var generator = new DataLoaderFileBuilder();
         generator.WriteHeader();
 
         foreach (var group in dataLoaders.GroupBy(t => t.Namespace))
@@ -273,7 +275,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
             return;
         }
 
-        using var generator = new OperationFieldSyntaxGenerator();
+        using var generator = new OperationFieldFileBuilder();
         generator.WriteHeader();
         generator.WriteBeginNamespace("Microsoft.Extensions.DependencyInjection");
 
@@ -296,7 +298,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     }
 
     private static void GenerateDataLoader(
-        DataLoaderSyntaxGenerator generator,
+        DataLoaderFileBuilder generator,
         DataLoaderInfo dataLoader,
         DataLoaderDefaultsInfo defaults,
         DataLoaderKind kind,

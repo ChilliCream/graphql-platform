@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 

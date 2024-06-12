@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
 using System.Text;
+using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Generators;
@@ -42,10 +44,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
     {
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-                     .OfType<ObjectTypeExtensionInfo>()
-                     .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+            .OfType<ObjectTypeExtensionInfo>()
+            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
-            var generator = new ObjectTypeExtensionSyntaxGenerator(sb, group.Key);
+            var generator = new ObjectTypeExtensionFileBuilder(sb, group.Key);
 
             if (firstNamespace)
             {
@@ -93,13 +95,15 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<ISyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
-        var generator = new ResolverSyntaxGenerator(sb);
+        var localTypeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+
+        var generator = new ResolverFileBuilder(sb);
         generator.WriteHeader();
 
         var firstNamespace = true;
         foreach (var group in syntaxInfos
-                     .OfType<ObjectTypeExtensionInfo>()
-                     .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
+            .OfType<ObjectTypeExtensionInfo>()
+            .GroupBy(t => t.Type.ContainingNamespace.ToDisplayString()))
         {
             if(!firstNamespace)
             {
@@ -118,8 +122,9 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
                 firstClass = false;
 
-                var resolverInfos = objectTypeExtension.Members.Select(
-                    m => CreateResolverInfo(objectTypeExtension, m));
+                var resolverInfos = objectTypeExtension.Members
+                    .Select(m => CreateResolverInfo(objectTypeExtension, m))
+                    .ToList();
 
                 generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
 
@@ -128,7 +133,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                     sb.AppendLine();
                 }
 
-                generator.AddParameterInitializer(resolverInfos);
+                generator.AddParameterInitializer(resolverInfos, localTypeLookup);
 
                 foreach (var member in objectTypeExtension.Members)
                 {

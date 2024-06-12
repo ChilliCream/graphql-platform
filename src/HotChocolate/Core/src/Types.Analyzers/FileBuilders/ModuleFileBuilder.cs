@@ -1,10 +1,11 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class ModuleSyntaxGenerator : IDisposable
+public sealed class ModuleFileBuilder : IDisposable
 {
     private readonly string _moduleName;
     private readonly string _ns;
@@ -12,7 +13,7 @@ public sealed class ModuleSyntaxGenerator : IDisposable
     private CodeWriter _writer;
     private bool _disposed;
 
-    public ModuleSyntaxGenerator(string moduleName, string ns)
+    public ModuleFileBuilder(string moduleName, string ns)
     {
         _moduleName = moduleName;
         _ns = ns;

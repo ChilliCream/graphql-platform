@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.Models;
 
 public enum ResolverResultKind
 {

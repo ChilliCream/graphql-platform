@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Analyzers.Inspectors;
+namespace HotChocolate.Types.Analyzers.Models;
 
 internal sealed class SyntaxInfoComparer : IEqualityComparer<ISyntaxInfo>
 {

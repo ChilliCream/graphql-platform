@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Analyzers;
+namespace HotChocolate.Types.Analyzers.Models;
 
 [Flags]
 public enum OperationType

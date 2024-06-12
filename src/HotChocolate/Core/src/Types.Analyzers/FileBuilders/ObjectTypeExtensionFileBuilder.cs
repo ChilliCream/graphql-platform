@@ -1,11 +1,11 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
-namespace HotChocolate.Types.Analyzers.Generators;
+namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class ObjectTypeExtensionSyntaxGenerator(StringBuilder sb, string ns)
+public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
 {
     private readonly CodeWriter _writer = new(sb);
 
