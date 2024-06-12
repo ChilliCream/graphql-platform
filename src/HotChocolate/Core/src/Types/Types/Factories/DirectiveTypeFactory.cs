@@ -94,6 +94,9 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
 
     public DirectiveType Create(IDescriptorContext context, DirectiveDefinitionNode node)
     {
+        var path = context.GetOrCreateDefinitionStack();
+        path.Clear();
+
         var typeDefinition = new DirectiveTypeDefinition(
             node.Name.Value,
             node.Description?.Value,
@@ -104,16 +107,20 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
             typeDefinition.IsPublic = true;
         }
 
-        DeclareArguments(typeDefinition, node.Arguments);
+        DeclareArguments(context, typeDefinition, node.Arguments, path);
         DeclareLocations(typeDefinition, node);
 
         return DirectiveType.CreateUnsafe(typeDefinition);
     }
 
     private static void DeclareArguments(
+        IDescriptorContext context,
         DirectiveTypeDefinition parent,
-        IReadOnlyCollection<InputValueDefinitionNode> arguments)
+        IReadOnlyCollection<InputValueDefinitionNode> arguments,
+        Stack<IDefinition> path)
     {
+        path.Push(parent);
+
         foreach (var argument in arguments)
         {
             var argumentDefinition = new DirectiveArgumentDefinition(
@@ -127,8 +134,12 @@ internal sealed class DirectiveTypeFactory : ITypeFactory<DirectiveDefinitionNod
                 argumentDefinition.DeprecationReason = reason;
             }
 
+            SdlToTypeSystemHelper.AddDirectives(context, argumentDefinition, argument, path);
+
             parent.Arguments.Add(argumentDefinition);
         }
+
+        path.Pop();
     }
 
     private static void DeclareLocations(
