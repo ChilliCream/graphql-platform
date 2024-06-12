@@ -55,4 +55,7 @@
   <data name="PostgresMessageEnvelope_PayloadTooLarge" xml:space="preserve">
     <value>Payload is too long to we written to Postgres. Serialized message is {0} bytes but limit is {1} bytes</value>
   </data>
+  <data name="ChannelWriter_FailedToRequeueMessage" xml:space="preserve">
+    <value>The postgres writer was unable to requeue messages. {0} messages have been lost</value>
+  </data>
 </root>
