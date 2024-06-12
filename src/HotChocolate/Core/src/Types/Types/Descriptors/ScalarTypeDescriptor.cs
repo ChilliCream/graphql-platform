@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
@@ -16,6 +17,25 @@ public class ScalarTypeDescriptor
     }
 
     protected internal override ScalarTypeDefinition Definition { get; protected set; } = new();
+
+    protected override void OnCreateDefinition(ScalarTypeDefinition definition)
+    {
+        Context.Descriptors.Push(this);
+
+        if (!Definition.AttributesAreApplied &&
+            Definition.RuntimeType != typeof(object))
+        {
+            Context.TypeInspector.ApplyAttributes(
+                Context,
+                this,
+                Definition.RuntimeType);
+            Definition.AttributesAreApplied = true;
+        }
+
+        base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
+    }
 
     public IScalarTypeDescriptor Directive<T>(T directiveInstance)
         where T : class
@@ -40,6 +60,7 @@ public class ScalarTypeDescriptor
     public static ScalarTypeDescriptor New(
         IDescriptorContext context,
         string name,
-        string? description)
-        => new(context) { Definition = { Name = name, Description = description } };
+        string? description,
+        Type scalarType)
+        => new(context) { Definition = { Name = name, Description = description, RuntimeType = scalarType } };
 }

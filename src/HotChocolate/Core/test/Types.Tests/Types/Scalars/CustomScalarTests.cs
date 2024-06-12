@@ -30,7 +30,7 @@ public class CustomScalarTests
         var schema = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .AddType<FluentCustomScalarType>()
+            .AddType<AnnotationCustomScalarType>()
             .BuildSchemaAsync();
 
         // assert
@@ -91,11 +91,6 @@ public class CustomScalarTests
         public AnnotationCustomScalarType()
             : base("Custom")
         {
-        }
-
-        protected override void Configure(IScalarTypeDescriptor descriptor)
-        {
-            descriptor.Directive<CustomDirective>();
         }
     }
 
