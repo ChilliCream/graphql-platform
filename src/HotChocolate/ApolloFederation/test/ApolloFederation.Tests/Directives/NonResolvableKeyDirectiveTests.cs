@@ -80,7 +80,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypeClassDirective>>()
-            .AddObjectType<TestTypeResolvableKeyClassDirective>()
             .BuildSchemaAsync();
 
         // act
@@ -111,7 +110,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypePropertyDirective>>()
-            .AddObjectType<TestTypeResolvableKeyClassDirective>()
             .BuildSchemaAsync();
 
         // act
@@ -142,7 +140,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypePropertyDirectives>>()
-            .AddObjectType<TestTypeResolvableKeyClassDirective>()
             .BuildSchemaAsync();
 
         // act
@@ -171,15 +168,14 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             async () => await new ServiceCollection()
             .AddGraphQL()
             .AddApolloFederation()
-            .AddQueryType<Query<TestTypeInconsistentResolablePropertyDirectives>>()
-            .AddObjectType<TestTypeResolvableKeyClassDirective>()
+            .AddQueryType<Query<TestTypeInconsistentResolvablePropertyDirectives>>()
             .BuildSchemaAsync());
 
         // assert
         Assert.Collection(ex.Errors,
             item =>
             {
-                Assert.Contains("The specified key attributes must shared the same resolvable values when annotated on multiple fields.", item.Message);
+                Assert.Contains("The specified key attributes must share the same resolvable values when annotated on multiple fields.", item.Message);
             });
     }
 
@@ -193,7 +189,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypeClassDirective>>()
-            .AddObjectType<TestTypeResolvableKeyClassDirective>()
             .AddInterfaceType<ITestTypeInterfaceDirective>()
             .BuildSchemaAsync();
 
@@ -294,12 +289,6 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
         public T someField(int id) => default!;
     }
 
-    [Key("id")]
-    public class TestTypeResolvableKeyClassDirective : ITestTypeInterfaceDirective
-    {
-        public int Id { get; set; }
-    }
-
     [Key("id", resolvable: false)]
     public class TestTypeClassDirective : ITestTypeInterfaceDirective
     {
@@ -326,7 +315,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
         public string Name { get; set; } = default!;
     }
 
-    public class TestTypeInconsistentResolablePropertyDirectives
+    public class TestTypeInconsistentResolvablePropertyDirectives
     {
         [Key(null!, resolvable: false)]
         public int Id { get; set; }

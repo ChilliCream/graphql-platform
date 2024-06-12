@@ -13,6 +13,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 using static HotChocolate.ApolloFederation.FederationContextData;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.Types.TagHelper;
 
 namespace HotChocolate.ApolloFederation;

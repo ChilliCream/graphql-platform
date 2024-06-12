@@ -5,14 +5,9 @@
 type QueryOfTestTypePropertyDirective {
   someField(id: Int!): TestTypePropertyDirective!
   _service: _Service!
-  _entities(representations: [_Any!]!): [_Entity]!
 }
 
 type TestTypePropertyDirective @key(fields: "id", resolvable: false) {
-  id: Int!
-}
-
-type TestTypeResolvableKeyClassDirective @key(fields: "id") {
   id: Int!
 }
 
@@ -20,9 +15,6 @@ type TestTypeResolvableKeyClassDirective @key(fields: "id") {
 type _Service {
   sdl: String!
 }
-
-"Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
-union _Entity = TestTypeResolvableKeyClassDirective
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
