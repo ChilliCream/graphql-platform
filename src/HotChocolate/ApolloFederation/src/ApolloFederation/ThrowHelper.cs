@@ -84,18 +84,6 @@ internal static class ThrowHelper
             scalarType);
 
     /// <summary>
-    /// The schema doesn't contain any types with a key directive
-    /// and therefore no entities. An Apollo federation service
-    /// needs at least one entity.
-    /// </summary>
-    public static SchemaException EntityType_NoEntities() =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(ThrowHelper_EntityType_NoEntities)
-                // .SetCode(ErrorCodes.ApolloFederation.NoEntitiesDeclared)
-                .Build());
-
-    /// <summary>
     /// The apollo gateway tries to resolve an entity for which no
     /// EntityResolver method was found.
     /// </summary>

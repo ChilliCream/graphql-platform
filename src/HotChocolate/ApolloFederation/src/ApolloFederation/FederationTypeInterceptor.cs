@@ -12,7 +12,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.FederationContextData;
 using static HotChocolate.Types.TagHelper;
 
@@ -95,7 +94,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         _registeredTypes = true;
         yield return _typeInspector.GetTypeRef(typeof(_Service));
-        yield return _typeInspector.GetTypeRef(typeof(_EntityType));
+        if (_entityTypes.Count > 0)
+        {
+            yield return _typeInspector.GetTypeRef(typeof(_EntityType));
+        }
         yield return _typeInspector.GetTypeRef(typeof(_AnyType));
         yield return _typeInspector.GetTypeRef(typeof(FieldSetType));
 
@@ -283,14 +285,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnTypesInitialized()
-    {
-        if (_entityTypes.Count == 0)
-        {
-            throw EntityType_NoEntities();
-        }
-    }
-
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
@@ -388,7 +382,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         var objectTypeDefinition = (ObjectTypeDefinition)definition!;
         objectTypeDefinition.Fields.Add(ServerFields.CreateServiceField(_context));
-        objectTypeDefinition.Fields.Add(ServerFields.CreateEntitiesField(_context));
+        if (_entityTypes.Count > 0)
+        {
+            objectTypeDefinition.Fields.Add(ServerFields.CreateEntitiesField(_context));
+        }
     }
 
     private void ApplyMethodLevelReferenceResolvers(
