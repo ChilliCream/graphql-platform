@@ -284,6 +284,12 @@ public class SortConvention
             return false;
         }
 
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
+        {
+            type = typeof(SortInputType<>).MakeGenericType(runtimeType.Type);
+            return true;
+        }
+
         if (runtimeType.Type.IsClass ||
             runtimeType.Type.IsInterface)
         {
