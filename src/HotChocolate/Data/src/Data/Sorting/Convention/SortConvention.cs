@@ -284,7 +284,9 @@ public class SortConvention
             return false;
         }
 
-        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false, })
+        //Record struct will have a generated PrintMembers method while guid/decimals won't
+        if (runtimeType.Type is { IsValueType: true, IsPrimitive: false }
+            && runtimeType.Type.GetMethod("PrintMembers") != null)
         {
             type = typeof(SortInputType<>).MakeGenericType(runtimeType.Type);
             return true;
