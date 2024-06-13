@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public interface IField : IHasName, IHasDirectives, IHasContextData, IHasDescription, ICanBeDeprecated
+public interface IField : INameProvider, IDirectivesProvider, IHasContextData, IDescriptionProvider, IDeprecationProvider
 {
-    IType Type { get; set; }
+    ITypeDefinition Type { get; set; }
 }

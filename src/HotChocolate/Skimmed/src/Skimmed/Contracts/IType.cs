@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public interface IType : IEquatable<IType>
+public interface ITypeDefinition : IEquatable<ITypeDefinition>
 {
     /// <summary>
     /// Gets the type kind.
@@ -17,8 +17,9 @@ public interface IType : IEquatable<IType>
     /// Specifies the comparison type.
     /// </param>
     /// <returns>
-    /// <see langword="true" /> if the current object is equal to the <paramref name="other" /> parameter;
+    /// <see langword="true" /> if the current object is equal to the
+    /// <paramref name="other" /> parameter;
     /// otherwise, <see langword="false" />.
     /// </returns>
-    bool Equals(IType? other, TypeComparison comparison);
+    bool Equals(ITypeDefinition? other, TypeComparison comparison);
 }

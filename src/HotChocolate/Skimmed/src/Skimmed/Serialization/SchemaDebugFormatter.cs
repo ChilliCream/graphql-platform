@@ -119,7 +119,7 @@ internal static class SchemaDebugFormatter
     private static NameNode RewriteDirectiveLocation(DirectiveLocation location)
         => new NameNode(location.ToString());
 
-    public static ITypeNode RewriteTypeRef(IType type)
+    public static ITypeNode RewriteTypeRef(ITypeDefinition type)
     {
         switch (type.Kind)
         {
@@ -132,7 +132,7 @@ internal static class SchemaDebugFormatter
                         ((NonNullType)type).NullableType));
 
             default:
-                return new NamedTypeNode(((INamedType)type).Name);
+                return new NamedTypeNode(((INamedTypeDefinition)type).Name);
         }
     }
 

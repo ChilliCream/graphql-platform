@@ -3,7 +3,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class OutputField : IField, INamedTypeSystemMember<OutputField>
+public sealed class OutputField : IField, INamedTypeSystemMemberDefinition<OutputField>
 {
     private string _name;
     private bool _isDeprecated;
@@ -55,7 +55,7 @@ public sealed class OutputField : IField, INamedTypeSystemMember<OutputField>
 
     public FieldCollection<InputField> Arguments { get; } = [];
 
-    public IType Type { get; set; }
+    public ITypeDefinition Type { get; set; }
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 

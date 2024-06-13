@@ -280,7 +280,7 @@ public static class SchemaParser
     private static void BuildAndExtendSchema(Schema schema, DocumentNode document)
     {
         var hasDefinition = false;
-        
+
         foreach (var definition in document.Definitions)
         {
             if (definition is SchemaDefinitionNode node)
@@ -302,19 +302,19 @@ public static class SchemaParser
         // if we did not find a schema definition we will infer the root types.
         if (!hasDefinition)
         {
-            if (schema.QueryType is null && 
+            if (schema.QueryType is null &&
                 schema.Types.TryGetType<ObjectType>("Query", out var queryType))
             {
                 schema.QueryType = queryType;
             }
-            
-            if (schema.MutationType is null && 
+
+            if (schema.MutationType is null &&
                 schema.Types.TryGetType<ObjectType>("Mutation", out var mutationType))
             {
                 schema.MutationType = mutationType;
             }
-            
-            if (schema.SubscriptionType is null && 
+
+            if (schema.SubscriptionType is null &&
                 schema.Types.TryGetType<ObjectType>("Subscription", out var subscriptionType))
             {
                 schema.SubscriptionType = subscriptionType;
@@ -354,7 +354,7 @@ public static class SchemaParser
 
     private static void BuildComplexType(
         Schema schema,
-        ComplexType type,
+        ComplexTypeDefinition type,
         ComplexTypeDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
@@ -674,10 +674,10 @@ public static class SchemaParser
 static file class SchemaParserExtensions
 {
     public static T ResolveType<T>(this TypeCollection types, ITypeNode typeRef)
-        where T : IType
+        where T : ITypeDefinition
         => (T)ResolveType(types, typeRef);
 
-    public static IType ResolveType(this TypeCollection types, ITypeNode typeRef)
+    public static ITypeDefinition ResolveType(this TypeCollection types, ITypeNode typeRef)
     {
         switch (typeRef)
         {

@@ -2,7 +2,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class InterfaceType : ComplexType, INamedTypeSystemMember<InterfaceType>
+public sealed class InterfaceType : ComplexTypeDefinition, INamedTypeSystemMemberDefinition<InterfaceType>
 {
     public InterfaceType(string name) : base(name)
     {
@@ -10,13 +10,13 @@ public sealed class InterfaceType : ComplexType, INamedTypeSystemMember<Interfac
 
     public override TypeKind Kind => TypeKind.Interface;
 
-    public override bool Equals(IType? other, TypeComparison comparison)
+    public override bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {
             return ReferenceEquals(this, other);
         }
-        
+
         return other is InterfaceType otherInterface && otherInterface.Name.Equals(Name, StringComparison.Ordinal);
     }
 

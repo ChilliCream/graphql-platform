@@ -63,7 +63,7 @@ internal static class LogEntryHelper
             extension: typeGroup);
 
     public static LogEntry MergeTypeKindDoesNotMatch(
-        INamedType type,
+        INamedTypeDefinition type,
         TypeKind sourceKind,
         TypeKind targetKind)
         => new LogEntry(
@@ -124,9 +124,9 @@ internal static class LogEntryHelper
             schema: schema);
 
     public static LogEntry OutputFieldTypeMismatch(
-        SchemaCoordinate schemaCoordinate, 
-        OutputField source, 
-        IType targetType, 
+        SchemaCoordinate schemaCoordinate,
+        OutputField source,
+        IType targetType,
         IType sourceType)
         => new(
             string.Format(
@@ -139,11 +139,11 @@ internal static class LogEntryHelper
             coordinate: schemaCoordinate,
             member: source,
             extension: new[] { targetType, sourceType, });
-    
+
     public static LogEntry InputFieldTypeMismatch(
-        SchemaCoordinate schemaCoordinate, 
-        InputField source, 
-        IType targetType, 
+        SchemaCoordinate schemaCoordinate,
+        InputField source,
+        IType targetType,
         IType sourceType)
         => new(
             string.Format(
@@ -156,7 +156,7 @@ internal static class LogEntryHelper
             coordinate: schemaCoordinate,
             member: source,
             extension: new[] { targetType, sourceType, });
-    
+
     public static LogEntry RootTypeNameMismatch(
         OperationType operationType,
         string fusionRootTypeName,
@@ -190,7 +190,7 @@ static file class LogEntryCodes
     public const string CoordinateNotAllowedForRequirements = "HF0007";
 
     public const string FieldDependencyCannotBeResolved = "HF0008";
-    
+
     public const string TypeNotDeclared = "HF0009";
     public const string RootNameMismatch = "HF0010";
 }

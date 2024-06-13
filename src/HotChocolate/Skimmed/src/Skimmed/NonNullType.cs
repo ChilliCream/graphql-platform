@@ -3,9 +3,9 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class NonNullType : IType
+public sealed class NonNullType : ITypeDefinition
 {
-    public NonNullType(IType nullableType)
+    public NonNullType(ITypeDefinition nullableType)
     {
         if (nullableType is null)
         {
@@ -21,23 +21,23 @@ public sealed class NonNullType : IType
     }
 
     public TypeKind Kind => TypeKind.NonNull;
-    
-    public IType NullableType { get; }
-    
+
+    public ITypeDefinition NullableType { get; }
+
     public override string ToString()
         => RewriteTypeRef(this).ToString(true);
 
-    public bool Equals(IType? other)
+    public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
-    
-    public bool Equals(IType? other, TypeComparison comparison)
+
+    public bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {
             return ReferenceEquals(this, other);
         }
-        
-        return other is NonNullType otherNonNull && 
+
+        return other is NonNullType otherNonNull &&
             NullableType.Equals(otherNonNull.NullableType, comparison);
     }
 }

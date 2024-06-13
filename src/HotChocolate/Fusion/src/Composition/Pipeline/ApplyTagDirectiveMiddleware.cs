@@ -2,7 +2,7 @@ using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
-using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
+using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -11,8 +11,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     public ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         Rewrite(context, context.Features.MakeTagsPublic());
-        return !context.Log.HasErrors 
-            ? next(context) 
+        return !context.Log.HasErrors
+            ? next(context)
             : ValueTask.CompletedTask;
     }
 
@@ -110,7 +110,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ComplexType type,
+        ComplexTypeDefinition type,
         DirectiveType tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
@@ -258,7 +258,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         DirectiveType tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
-        where T : ITypeSystemMember, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         var parts = context.GetSubgraphMembers<T>(coordinate);
         ApplyDirectives(tagContext, merged, parts, tagDirectiveType, tags, makePublic);
@@ -276,7 +276,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         DirectiveType tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
-        where T : ITypeSystemMember, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         tags.Clear();
 
@@ -301,7 +301,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                     {
                         continue;
                     }
-                    
+
                     merged.Directives.Add(
                         new Directive(
                             tagDirectiveType,

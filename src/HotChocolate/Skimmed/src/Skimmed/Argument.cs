@@ -4,6 +4,9 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
+/// <summary>
+/// Represents a field or directive argument value.
+/// </summary>
 public sealed class Argument
 {
     public Argument(string name, string value)
@@ -32,6 +35,10 @@ public sealed class Argument
         Value = value;
     }
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <value></value>
     public string Name { get;  }
 
     public IValueNode Value { get; }

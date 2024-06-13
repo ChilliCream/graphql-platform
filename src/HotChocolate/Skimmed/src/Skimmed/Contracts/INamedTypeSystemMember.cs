@@ -1,6 +1,6 @@
 namespace HotChocolate.Skimmed;
 
-public interface INamedTypeSystemMember<out TSelf> : IHasName
+public interface INamedTypeSystemMemberDefinition<out TSelf> : INameProvider
 {
     static abstract TSelf Create(string name);
 }

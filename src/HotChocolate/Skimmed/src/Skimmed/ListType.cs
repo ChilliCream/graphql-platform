@@ -2,9 +2,9 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ListType : IType
+public sealed class ListType : ITypeDefinition
 {
-    public ListType(IType elementType)
+    public ListType(ITypeDefinition elementType)
     {
         ElementType = elementType ??
             throw new ArgumentNullException(nameof(elementType));
@@ -12,22 +12,22 @@ public sealed class ListType : IType
 
     public TypeKind Kind => TypeKind.List;
 
-    public IType ElementType { get; }
-    
+    public ITypeDefinition ElementType { get; }
+
     public override string ToString()
         => RewriteTypeRef(this).ToString(true);
-    
-    public bool Equals(IType? other)
+
+    public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
-    
-    public bool Equals(IType? other, TypeComparison comparison)
+
+    public bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {
             return ReferenceEquals(this, other);
         }
-        
-        return other is ListType otherList && 
+
+        return other is ListType otherList &&
             ElementType.Equals(otherList.ElementType, comparison);
     }
 }

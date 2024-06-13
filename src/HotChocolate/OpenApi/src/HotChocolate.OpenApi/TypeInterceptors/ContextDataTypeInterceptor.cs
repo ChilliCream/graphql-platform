@@ -45,7 +45,7 @@ public sealed class ContextDataTypeInterceptor(Skimmed.Schema schema) : TypeInte
 
     private void CopyContextData(SchemaCoordinate coordinate, IDefinition typeDef)
     {
-        Skimmed.ITypeSystemMember? type = null;
+        Skimmed.ITypeSystemMemberDefinition? type = null;
 
         switch (coordinate.Name)
         {

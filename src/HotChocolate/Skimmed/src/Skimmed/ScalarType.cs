@@ -3,7 +3,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class ScalarType : INamedType, INamedTypeSystemMember<ScalarType>
+public sealed class ScalarType : INamedTypeDefinition, INamedTypeSystemMemberDefinition<ScalarType>
 {
     private string _name;
 
@@ -31,10 +31,10 @@ public sealed class ScalarType : INamedType, INamedTypeSystemMember<ScalarType>
     public override string ToString()
         => RewriteScalarType(this).ToString(true);
 
-    public bool Equals(IType? other)
+    public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
 
-    public bool Equals(IType? other, TypeComparison comparison)
+    public bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {

@@ -2,7 +2,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
-using IHasName = HotChocolate.Skimmed.IHasName;
+using INameProvider = HotChocolate.Skimmed.INameProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -18,7 +18,7 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
         {
             foreach (var directive in schema.GetRenameDirectives(context))
             {
-                if (schema.TryGetMember(directive.Coordinate, out IHasName? member) &&
+                if (schema.TryGetMember(directive.Coordinate, out INameProvider? member) &&
                     member is IHasContextData memberWithContext)
                 {
                     memberWithContext.ContextData[WellKnownContextData.OriginalName] = member.Name;

@@ -3,7 +3,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
+public sealed class UnionType : INamedTypeDefinition, INamedTypeSystemMemberDefinition<UnionType>
 {
     private string _name;
 
@@ -27,20 +27,20 @@ public sealed class UnionType : INamedType, INamedTypeSystemMember<UnionType>
     public IList<ObjectType> Types { get; } = new List<ObjectType>();
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
-    
+
     public override string ToString()
         => RewriteUnionType(this).ToString(true);
-    
-    public bool Equals(IType? other)
+
+    public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
-    
-    public bool Equals(IType? other, TypeComparison comparison)
+
+    public bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {
             return ReferenceEquals(this, other);
         }
-        
+
         return other is UnionType otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
     }
 

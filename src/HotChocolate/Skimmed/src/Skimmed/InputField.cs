@@ -4,14 +4,14 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class InputField : IField, INamedTypeSystemMember<InputField>
+public sealed class InputField : IField, INamedTypeSystemMemberDefinition<InputField>
 {
-    private IType _type;
+    private ITypeDefinition _type;
     private string _name;
     private bool _isDeprecated;
     private string? _deprecationReason;
 
-    public InputField(string name, IType? type = null)
+    public InputField(string name, ITypeDefinition? type = null)
     {
         _name = name.EnsureGraphQLName();
         _type = type ?? NotSetType.Default;
@@ -59,7 +59,7 @@ public sealed class InputField : IField, INamedTypeSystemMember<InputField>
 
     public IDictionary<string, object?> ContextData => new Dictionary<string, object?>();
 
-    public IType Type
+    public ITypeDefinition Type
     {
         get => _type;
         set => _type = value.ExpectInputType();

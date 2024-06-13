@@ -4,12 +4,12 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 namespace HotChocolate.Skimmed;
 
 public sealed class EnumValue
-    : IHasName
-    , IHasDirectives
+    : INameProvider
+    , IDirectivesProvider
     , IHasContextData
-    , INamedTypeSystemMember<EnumValue>
-    , IHasDescription
-    , ICanBeDeprecated
+    , INamedTypeSystemMemberDefinition<EnumValue>
+    , IDescriptionProvider
+    , IDeprecationProvider
 {
     private string _name;
     private bool _isDeprecated;

@@ -130,11 +130,11 @@ internal sealed class CompositionContext
         string subgraphName,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out T? member)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
         => GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
 
     public IEnumerable<T> GetSubgraphMembers<T>(SchemaCoordinate coordinate)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
     {
         foreach (var subgraph in Subgraphs)
         {

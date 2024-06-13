@@ -3,7 +3,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputObjectType>
+public sealed class InputObjectType : INamedTypeDefinition, INamedTypeSystemMemberDefinition<InputObjectType>
 {
     private string _name;
 
@@ -29,16 +29,16 @@ public sealed class InputObjectType : INamedType, INamedTypeSystemMember<InputOb
 
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
-    public bool Equals(IType? other)
+    public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
-    
-    public bool Equals(IType? other, TypeComparison comparison)
+
+    public bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {
             return ReferenceEquals(this, other);
         }
-        
+
         return other is InputObjectType otherInput && otherInput.Name.Equals(Name, StringComparison.Ordinal);
     }
 

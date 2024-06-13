@@ -156,23 +156,23 @@ internal static class MergeExtensions
         return null;
     }
 
-    internal static void MergeDescriptionWith<T>(this T target, T source) where T : IHasDescription
+    internal static void MergeDescriptionWith<T>(this T target, T source) where T : IDescriptionProvider
     {
         if (string.IsNullOrWhiteSpace(target.Description) && !string.IsNullOrWhiteSpace(source.Description))
         {
             target.Description = source.Description;
         }
-    } 
-    
-    internal static void MergeDeprecationWith<T>(this T target, T source) where T : ICanBeDeprecated
+    }
+
+    internal static void MergeDeprecationWith<T>(this T target, T source) where T : IDeprecationProvider
     {
         if (!target.IsDeprecated && source.IsDeprecated)
         {
             target.IsDeprecated = true;
         }
-        
-        if (target.IsDeprecated && 
-            string.IsNullOrWhiteSpace(target.DeprecationReason) && 
+
+        if (target.IsDeprecated &&
+            string.IsNullOrWhiteSpace(target.DeprecationReason) &&
             !string.IsNullOrWhiteSpace(source.DeprecationReason))
         {
             target.DeprecationReason = source.DeprecationReason;

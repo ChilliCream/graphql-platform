@@ -1,5 +1,4 @@
 using System.Collections;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 

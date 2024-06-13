@@ -367,7 +367,7 @@ internal sealed class OpenApiMutableSchemaBuilder
     }
 
     private static void AddTagDirectives(
-        Skimmed.IHasDirectives outputField,
+        Skimmed.IDirectivesProvider outputField,
         IEnumerable<OpenApiTag> tags)
     {
         foreach (var tag in tags)

@@ -3,7 +3,7 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class DirectiveType : IHasName, IHasContextData, INamedTypeSystemMember<DirectiveType>
+public sealed class DirectiveType : INameProvider, IHasContextData, INamedTypeSystemMemberDefinition<DirectiveType>
 {
     private string _name;
 

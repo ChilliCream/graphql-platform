@@ -3,20 +3,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class TypeCollection : ICollection<INamedType>
+public sealed class TypeCollection : ICollection<INamedTypeDefinition>
 {
-    private readonly Dictionary<string, INamedType> _types = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, INamedTypeDefinition> _types = new(StringComparer.Ordinal);
 
     public int Count => _types.Count;
 
     public bool IsReadOnly => false;
 
-    public INamedType this[string name] => _types[name];
+    public INamedTypeDefinition this[string name] => _types[name];
 
-    public bool TryGetType(string name, [NotNullWhen(true)] out INamedType? type)
+    public bool TryGetType(string name, [NotNullWhen(true)] out INamedTypeDefinition? type)
         => _types.TryGetValue(name, out type);
 
-    public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedType
+    public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedTypeDefinition
     {
         if (_types.TryGetValue(name, out var namedType) && namedType is T casted)
         {
@@ -28,7 +28,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         return false;
     }
 
-    public void Add(INamedType item)
+    public void Add(INamedTypeDefinition item)
     {
         if (item is null)
         {
@@ -38,7 +38,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         _types.Add(item.Name, item);
     }
 
-    public bool Remove(INamedType item)
+    public bool Remove(INamedTypeDefinition item)
     {
         if (item is null)
         {
@@ -60,7 +60,7 @@ public sealed class TypeCollection : ICollection<INamedType>
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
 
-    public bool Contains(INamedType item)
+    public bool Contains(INamedTypeDefinition item)
     {
         if (item is null)
         {
@@ -76,7 +76,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         return false;
     }
 
-    public void CopyTo(INamedType[] array, int arrayIndex)
+    public void CopyTo(INamedTypeDefinition[] array, int arrayIndex)
     {
         foreach (var item in _types)
         {
@@ -84,7 +84,7 @@ public sealed class TypeCollection : ICollection<INamedType>
         }
     }
 
-    public IEnumerator<INamedType> GetEnumerator()
+    public IEnumerator<INamedTypeDefinition> GetEnumerator()
         => _types.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

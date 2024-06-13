@@ -16,7 +16,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitType(IType type, TContext context)
+    public virtual void VisitType(ITypeDefinition type, TContext context)
     {
         switch (type.Kind)
         {
@@ -41,7 +41,7 @@ public abstract class SchemaVisitor<TContext>
                 {
                     break;
                 }
-                
+
                 VisitScalarType((ScalarType)type, context);
                 break;
 

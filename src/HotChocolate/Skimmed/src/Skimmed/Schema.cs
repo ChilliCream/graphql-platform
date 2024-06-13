@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMember<Schema>
+public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSystemMemberDefinition<Schema>
 {
     public string Name { get; set; } = "default";
 
@@ -23,7 +23,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
     public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
 
     /// <summary>
-    /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// Tries to resolve a <see cref="ITypeSystemMemberDefinition"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="coordinate">
     /// A schema coordinate.
@@ -38,7 +38,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
     public bool TryGetMember<T>(
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out T? member)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
     {
         if (TryGetMember(coordinate, out var m) && m is T casted)
         {
@@ -51,7 +51,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
     }
 
     /// <summary>
-    /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// Tries to resolve a <see cref="ITypeSystemMemberDefinition"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="coordinate">
     /// A schema coordinate.
@@ -65,7 +65,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
     /// </returns>
     public bool TryGetMember(
         SchemaCoordinate coordinate,
-        [NotNullWhen(true)] out ITypeSystemMember? member)
+        [NotNullWhen(true)] out ITypeSystemMemberDefinition? member)
     {
         if (coordinate.OfDirective)
         {
@@ -125,7 +125,7 @@ public sealed class Schema : IHasDirectives, IHasContextData, INamedTypeSystemMe
                 return false;
             }
 
-            var complexType = (ComplexType)type;
+            var complexType = (ComplexTypeDefinition)type;
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
                 if (coordinate.ArgumentName is null)

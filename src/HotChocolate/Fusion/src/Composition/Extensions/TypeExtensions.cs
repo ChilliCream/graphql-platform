@@ -11,7 +11,7 @@ internal static class TypeExtensions
         T source,
         Schema sourceSchema,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IHasContextData, IDirectivesProvider
         => TryApplySource(context, source, sourceSchema.Name, target);
 
     public static void TryApplySource<T>(
@@ -19,7 +19,7 @@ internal static class TypeExtensions
         T source,
         string subgraphName,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IHasContextData, IDirectivesProvider
     {
         if (source.TryGetOriginalName(out var originalName))
         {
@@ -35,7 +35,7 @@ internal static class TypeExtensions
         T source,
         Schema sourceSchema,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IHasContextData, IDirectivesProvider
         => ApplySource(context, source, sourceSchema.Name, target);
 
     public static void ApplySource<T>(
@@ -43,7 +43,7 @@ internal static class TypeExtensions
         T source,
         string subgraphName,
         T target)
-        where T : ITypeSystemMember, IHasContextData, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IHasContextData, IDirectivesProvider
     {
         if (source.TryGetOriginalName(out var originalName))
         {
@@ -63,7 +63,7 @@ internal static class TypeExtensions
     public static bool TryGetOriginalName<T>(
         this T member,
         [NotNullWhen(true)] out string? originalName)
-        where T : ITypeSystemMember, IHasContextData
+        where T : ITypeSystemMemberDefinition, IHasContextData
     {
         if (member.ContextData.TryGetValue(OriginalName, out var value) &&
             value is string s)
@@ -77,7 +77,7 @@ internal static class TypeExtensions
     }
 
     public static string GetOriginalName<T>(this T member)
-        where T : IHasName, IHasContextData
+        where T : INameProvider, IHasContextData
         => member.TryGetOriginalName(out var originalName)
             ? originalName
             : member.Name;

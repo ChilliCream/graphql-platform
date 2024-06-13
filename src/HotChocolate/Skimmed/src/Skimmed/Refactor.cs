@@ -20,9 +20,9 @@ public static class Refactor
                 nameof(newName));
         }
 
-        if (schema.TryGetMember<IHasName>(coordinate, out var member))
+        if (schema.TryGetMember<INameProvider>(coordinate, out var member))
         {
-            if (member is INamedType nt)
+            if (member is INamedTypeDefinition nt)
             {
                 schema.Types.Remove(nt);
                 member.Name = newName;
@@ -146,7 +146,7 @@ public static class Refactor
                 return false;
             }
 
-            var complexType = (ComplexType) type;
+            var complexType = (ComplexTypeDefinition) type;
 
             if (complexType.Fields.TryGetField(coordinate.MemberName, out var field))
             {
@@ -192,7 +192,7 @@ public static class Refactor
             throw new ArgumentNullException(nameof(directive));
         }
 
-        if (schema.TryGetMember<IHasDirectives>(coordinate, out var member))
+        if (schema.TryGetMember<IDirectivesProvider>(coordinate, out var member))
         {
             member.Directives.Add(directive);
             return true;
@@ -260,14 +260,14 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveTypeRewriter : SchemaVisitor<INamedType>
+    private sealed class RemoveTypeRewriter : SchemaVisitor<INamedTypeDefinition>
     {
         // note: by removing fields this could clash with directive arguments
         // we should make this more robust and also remove these.
         private readonly List<OutputField> _removeOutputFields = [];
         private readonly List<InputField> _removeInputFields = [];
 
-        public override void VisitOutputFields(FieldCollection<OutputField> fields, INamedType context)
+        public override void VisitOutputFields(FieldCollection<OutputField> fields, INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -288,7 +288,7 @@ public static class Refactor
             }
         }
 
-        public override void VisitInputFields(FieldCollection<InputField> fields, INamedType context)
+        public override void VisitInputFields(FieldCollection<InputField> fields, INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -309,7 +309,7 @@ public static class Refactor
             }
         }
 
-        public override void VisitObjectType(ObjectType type, INamedType context)
+        public override void VisitObjectType(ObjectType type, INamedTypeDefinition context)
         {
             var current = type.Implements.Count - 1;
 
@@ -328,7 +328,7 @@ public static class Refactor
             base.VisitObjectType(type, context);
         }
 
-        public override void VisitUnionType(UnionType type, INamedType context)
+        public override void VisitUnionType(UnionType type, INamedTypeDefinition context)
         {
             var current = type.Types.Count - 1;
 

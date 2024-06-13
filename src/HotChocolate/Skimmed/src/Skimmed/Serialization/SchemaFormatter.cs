@@ -469,7 +469,7 @@ public static class SchemaFormatter
         }
 
         private static List<DirectiveNode> ApplyDeprecatedDirective(
-            ICanBeDeprecated canBeDeprecated,
+            IDeprecationProvider canBeDeprecated,
             List<DirectiveNode> directives)
         {
             if (canBeDeprecated.IsDeprecated)

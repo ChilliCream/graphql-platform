@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
-using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
+using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -114,7 +114,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         CompositionContext context,
         T sourceType,
         Schema targetSchema)
-        where T : INamedType, INamedTypeSystemMember<T>
+        where T : INamedTypeDefinition, INamedTypeSystemMemberDefinition<T>
     {
         if (targetSchema.Types.TryGetType(sourceType.Name, out var targetType))
         {
@@ -251,7 +251,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         CompositionContext context,
         T source,
         Schema targetSchema)
-        where T : ComplexType
+        where T : ComplexTypeDefinition
     {
         if (targetSchema.Types.TryGetType<T>(source.Name, out var target))
         {
@@ -323,7 +323,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
     }
 
     private static void MergeDirectives<T>(T source, T target, Schema targetSchema)
-        where T : ITypeSystemMember, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         foreach (var sourceDirective in source.Directives)
         {

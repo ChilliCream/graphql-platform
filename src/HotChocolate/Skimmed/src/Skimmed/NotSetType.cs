@@ -1,23 +1,23 @@
 namespace HotChocolate.Skimmed;
 
-public sealed class NotSetType : IType
+public sealed class NotSetType : ITypeDefinition
 {
     private NotSetType()
     {
     }
 
     public TypeKind Kind => TypeKind.Scalar;
-    
-    public bool Equals(IType? other)
+
+    public bool Equals(ITypeDefinition? other)
         => Equals(other, TypeComparison.Reference);
-    
-    public bool Equals(IType? other, TypeComparison comparison)
+
+    public bool Equals(ITypeDefinition? other, TypeComparison comparison)
     {
         if (comparison is TypeComparison.Reference)
         {
             return ReferenceEquals(this, other);
         }
-        
+
         return other is NotSetType;
     }
 
