@@ -3,7 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class FieldCollection<TField> : ICollection<TField> where TField : IField
+public sealed class InputFieldCollection : FieldCollection<InputField>;
+
+public sealed class OutputFieldCollection : FieldCollection<OutputField>;
+
+public abstract class FieldCollection<TField> : ICollection<TField> where TField : IField
 {
     private readonly Dictionary<string, TField> _fields = new(StringComparer.Ordinal);
 

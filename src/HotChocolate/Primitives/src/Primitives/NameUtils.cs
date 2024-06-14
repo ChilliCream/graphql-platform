@@ -1,11 +1,13 @@
+using System;
 using System.Runtime.CompilerServices;
+using static HotChocolate.Properties.PrimitiveResources;
 
 namespace HotChocolate.Utilities;
 
 /// <summary>
 /// Helper methods to handle GraphQL names.
 /// </summary>
-internal static class NameUtils
+public static class NameUtils
 {
     private const byte _underscore = (byte)'_';
 
@@ -33,7 +35,7 @@ internal static class NameUtils
             return name!;
         }
 
-        throw new ArgumentException("The specified name is not a valid GraphQL name.", argumentName);
+        throw new ArgumentException(NameUtils_InvalidGraphQLName, argumentName);
     }
 
     /// <summary>

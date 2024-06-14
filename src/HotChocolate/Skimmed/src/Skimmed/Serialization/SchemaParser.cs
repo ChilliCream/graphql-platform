@@ -47,7 +47,7 @@ public static class SchemaParser
                     throw new Exception("duplicate");
                 }
 
-                schema.DirectiveTypes.Add(new DirectiveType(def.Name.Value));
+                schema.DirectiveTypes.Add(new DirectiveDefinition(def.Name.Value));
             }
         }
     }
@@ -72,7 +72,7 @@ public static class SchemaParser
                 switch (typeDef)
                 {
                     case EnumTypeDefinitionNode:
-                        schema.Types.Add(new EnumType(typeDef.Name.Value));
+                        schema.Types.Add(new EnumTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case InputObjectTypeDefinitionNode:
@@ -113,7 +113,7 @@ public static class SchemaParser
                 switch (definition)
                 {
                     case EnumTypeExtensionNode:
-                        var enumType = new EnumType(typeExt.Name.Value);
+                        var enumType = new EnumTypeDefinition(typeExt.Name.Value);
                         enumType.ContextData.Add(TypeExtension, true);
                         schema.Types.Add(enumType);
                         break;
@@ -167,7 +167,7 @@ public static class SchemaParser
                     case EnumTypeDefinitionNode typeDef:
                         BuildEnumType(
                             schema,
-                            (EnumType)schema.Types[typeDef.Name.Value],
+                            (EnumTypeDefinition)schema.Types[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -230,7 +230,7 @@ public static class SchemaParser
                     case EnumTypeExtensionNode typeDef:
                         ExtendEnumType(
                             schema,
-                            (EnumType)schema.Types[typeDef.Name.Value],
+                            (EnumTypeDefinition)schema.Types[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -454,7 +454,7 @@ public static class SchemaParser
 
     private static void BuildEnumType(
         Schema schema,
-        EnumType type,
+        EnumTypeDefinition type,
         EnumTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -463,7 +463,7 @@ public static class SchemaParser
 
     private static void ExtendEnumType(
         Schema schema,
-        EnumType type,
+        EnumTypeDefinition type,
         EnumTypeDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
@@ -552,7 +552,7 @@ public static class SchemaParser
 
     private static void BuildDirectiveType(
         Schema schema,
-        DirectiveType type,
+        DirectiveDefinition type,
         DirectiveDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -636,14 +636,14 @@ public static class SchemaParser
                 directiveNode.Name.Value,
                 out var directiveType))
             {
-                directiveType = new DirectiveType(directiveNode.Name.Value);
+                directiveType = new DirectiveDefinition(directiveNode.Name.Value);
                 directiveType.IsRepeatable = true;
                 schema.DirectiveTypes.Add(directiveType);
             }
 
             var directive = new Directive(
                 directiveType,
-                directiveNode.Arguments.Select(t => new Argument(t.Name.Value, t.Value)).ToList());
+                directiveNode.Arguments.Select(t => new ArgumentAssignment(t.Name.Value, t.Value)).ToList());
             directives.Add(directive);
         }
     }

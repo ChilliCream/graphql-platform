@@ -21,7 +21,7 @@ public abstract class SchemaVisitor<TContext>
         switch (type.Kind)
         {
             case TypeKind.Enum:
-                VisitEnumType((EnumType)type, context);
+                VisitEnumType((EnumTypeDefinition)type, context);
                 break;
 
             case TypeKind.InputObject:
@@ -54,7 +54,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitDirectiveTypes(DirectiveTypeCollection directiveTypes, TContext context)
+    public virtual void VisitDirectiveTypes(DirectiveDefinitionCollection directiveTypes, TContext context)
     {
         foreach (var type in directiveTypes)
         {
@@ -62,7 +62,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitEnumType(EnumType type, TContext context)
+    public virtual void VisitEnumType(EnumTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
         VisitEnumValues(type.Values, context);
@@ -122,7 +122,7 @@ public abstract class SchemaVisitor<TContext>
         VisitArguments(directive.Arguments, context);
     }
 
-    public virtual void VisitArguments(ArgumentCollection arguments, TContext context)
+    public virtual void VisitArguments(ArgumentAssignmentCollection arguments, TContext context)
     {
         foreach (var argument in arguments)
         {
@@ -130,7 +130,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitArgument(Argument argument, TContext context)
+    public virtual void VisitArgument(ArgumentAssignment argument, TContext context)
     {
 
     }
@@ -162,7 +162,7 @@ public abstract class SchemaVisitor<TContext>
         VisitInputFields(field.Arguments, context);
     }
 
-    public virtual void VisitDirectiveType(DirectiveType directive, TContext context)
+    public virtual void VisitDirectiveType(DirectiveDefinition directive, TContext context)
     {
         VisitInputFields(directive.Arguments, context);
     }

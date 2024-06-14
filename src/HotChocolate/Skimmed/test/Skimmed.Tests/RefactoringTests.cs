@@ -153,7 +153,7 @@ public class RefactoringTests
             """;
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        var directiveType = new DirectiveType("source");
+        var directiveType = new DirectiveDefinition("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
         schema.DirectiveTypes.Add(directiveType);
@@ -163,7 +163,7 @@ public class RefactoringTests
             new SchemaCoordinate("Bar"),
             new Directive(
                 directiveType,
-                new Argument("name", "abc")));
+                new ArgumentAssignment("name", "abc")));
 
         // assert
         Assert.True(success);
@@ -203,7 +203,7 @@ public class RefactoringTests
             """;
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
-        var directiveType = new DirectiveType("source");
+        var directiveType = new DirectiveDefinition("source");
         directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
         schema.DirectiveTypes.Add(directiveType);
@@ -213,7 +213,7 @@ public class RefactoringTests
             new SchemaCoordinate("Bar", "field"),
             new Directive(
                 directiveType,
-                new Argument("name", "abc")));
+                new ArgumentAssignment("name", "abc")));
 
         // assert
         Assert.True(success);

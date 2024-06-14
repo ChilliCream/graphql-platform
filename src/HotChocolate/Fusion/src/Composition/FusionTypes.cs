@@ -105,21 +105,21 @@ public sealed class FusionTypes
 
     public InputObjectType ArgumentDefinition { get; }
 
-    public EnumType ResolverKind { get; }
+    public EnumTypeDefinition ResolverKind { get; }
 
-    public DirectiveType Resolver { get; }
+    public DirectiveDefinition Resolver { get; }
 
-    public DirectiveType Variable { get; }
+    public DirectiveDefinition Variable { get; }
 
-    public DirectiveType Source { get; }
+    public DirectiveDefinition Source { get; }
 
-    public DirectiveType Node { get; }
+    public DirectiveDefinition Node { get; }
 
-    public DirectiveType ReEncodeId { get; }
+    public DirectiveDefinition ReEncodeId { get; }
 
-    public DirectiveType Transport { get; }
+    public DirectiveDefinition Transport { get; }
 
-    public DirectiveType Fusion { get; }
+    public DirectiveDefinition Fusion { get; }
 
     private ScalarType RegisterScalarType(string name)
     {
@@ -142,9 +142,9 @@ public sealed class FusionTypes
         return argumentDef;
     }
 
-    private EnumType RegisterResolverKindType(string name)
+    private EnumTypeDefinition RegisterResolverKindType(string name)
     {
-        var resolverKind = new EnumType(name);
+        var resolverKind = new EnumTypeDefinition(name);
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Fetch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
@@ -173,12 +173,12 @@ public sealed class FusionTypes
             new Argument(NameArg, variableName),
             new Argument(ArgumentArg, argumentName));
 
-    private DirectiveType RegisterVariableDirectiveType(
+    private DirectiveDefinition RegisterVariableDirectiveType(
         string name,
         ScalarType typeName,
         ScalarType selection)
     {
-        var directiveType = new DirectiveType(name);
+        var directiveType = new DirectiveDefinition(name);
         directiveType.Arguments.Add(new InputField(NameArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(SelectArg, selection));
         directiveType.Arguments.Add(new InputField(ArgumentArg, typeName));
@@ -193,9 +193,9 @@ public sealed class FusionTypes
     public Directive CreateReEncodeIdDirective()
         => new Directive(ReEncodeId);
 
-    private DirectiveType RegisterReEncodeIdDirectiveType(string name)
+    private DirectiveDefinition RegisterReEncodeIdDirectiveType(string name)
     {
-        var directiveType = new DirectiveType(name);
+        var directiveType = new DirectiveDefinition(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
         _fusionGraph.DirectiveTypes.Add(directiveType);
@@ -247,14 +247,14 @@ public sealed class FusionTypes
         return new Directive(Resolver, directiveArgs);
     }
 
-    private DirectiveType RegisterResolverDirectiveType(
+    private DirectiveDefinition RegisterResolverDirectiveType(
         string name,
         ScalarType typeName,
         InputObjectType argumentDef,
         ScalarType selectionSet,
-        EnumType resolverKind)
+        EnumTypeDefinition resolverKind)
     {
-        var directiveType = new DirectiveType(name);
+        var directiveType = new DirectiveDefinition(name);
         directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
@@ -275,9 +275,9 @@ public sealed class FusionTypes
                 new Argument(SubgraphArg, subgraphName),
                 new Argument(NameArg, originalName));
 
-    private DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
+    private DirectiveDefinition RegisterSourceDirectiveType(string name, ScalarType typeName)
     {
-        var directiveType = new DirectiveType(name)
+        var directiveType = new DirectiveDefinition(name)
         {
             Locations = DirectiveLocation.Object |
                 DirectiveLocation.FieldDefinition |
@@ -310,9 +310,9 @@ public sealed class FusionTypes
             new Argument(TypesArg, new ListValueNode(null, temp)));
     }
 
-    private DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
+    private DirectiveDefinition RegisterNodeDirectiveType(string name, ScalarType typeName)
     {
-        var directiveType = new DirectiveType(name);
+        var directiveType = new DirectiveDefinition(name);
         directiveType.Locations = DirectiveLocation.Schema;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(
@@ -336,13 +336,13 @@ public sealed class FusionTypes
                 new Argument(LocationArg, location.ToString()),
                 new Argument(KindArg, "HTTP"));
 
-    private DirectiveType RegisterTransportDirectiveType(
+    private DirectiveDefinition RegisterTransportDirectiveType(
         string name,
         ScalarType stringType,
         ScalarType typeName,
         ScalarType uri)
     {
-        var directiveType = new DirectiveType(name);
+        var directiveType = new DirectiveDefinition(name);
         directiveType.Locations = DirectiveLocation.FieldDefinition;
         directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
         directiveType.Arguments.Add(new InputField(ClientGroupArg, typeName));
@@ -367,13 +367,13 @@ public sealed class FusionTypes
                 new Argument(LocationArg, location.ToString()),
                 new Argument(KindArg, "WebSocket"));
 
-    private DirectiveType RegisterFusionDirectiveType(
+    private DirectiveDefinition RegisterFusionDirectiveType(
         string name,
         ScalarType typeName,
         ScalarType boolean,
         ScalarType integer)
     {
-        var directiveType = new DirectiveType(name);
+        var directiveType = new DirectiveDefinition(name);
         directiveType.Locations = DirectiveLocation.Schema;
         directiveType.Arguments.Add(new InputField(PrefixArg, typeName));
         directiveType.Arguments.Add(new InputField(PrefixSelfArg, boolean));

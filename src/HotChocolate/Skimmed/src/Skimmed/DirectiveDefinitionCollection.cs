@@ -3,20 +3,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
+public sealed class DirectiveDefinitionCollection : ICollection<DirectiveDefinition>
 {
-    private readonly Dictionary<string, DirectiveType> _types = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DirectiveDefinition> _types = new(StringComparer.Ordinal);
 
     public int Count => _types.Count;
 
     public bool IsReadOnly => false;
 
-    public DirectiveType this[string name] => _types[name];
+    public DirectiveDefinition this[string name] => _types[name];
 
-    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveType? type)
+    public bool TryGetDirective(string name, [NotNullWhen(true)] out DirectiveDefinition? type)
         => _types.TryGetValue(name, out type);
 
-    public void Add(DirectiveType item)
+    public void Add(DirectiveDefinition item)
     {
         if (item is null)
         {
@@ -26,7 +26,7 @@ public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
         _types.Add(item.Name, item);
     }
 
-    public bool Remove(DirectiveType item)
+    public bool Remove(DirectiveDefinition item)
     {
         if (item is null)
         {
@@ -48,7 +48,7 @@ public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
     public bool ContainsName(string name)
         => _types.ContainsKey(name);
 
-    public bool Contains(DirectiveType item)
+    public bool Contains(DirectiveDefinition item)
     {
         if (item is null)
         {
@@ -64,7 +64,7 @@ public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
         return false;
     }
 
-    public void CopyTo(DirectiveType[] array, int arrayIndex)
+    public void CopyTo(DirectiveDefinition[] array, int arrayIndex)
     {
         foreach (var item in _types)
         {
@@ -72,7 +72,7 @@ public sealed class DirectiveTypeCollection : ICollection<DirectiveType>
         }
     }
 
-    public IEnumerator<DirectiveType> GetEnumerator()
+    public IEnumerator<DirectiveDefinition> GetEnumerator()
         => _types.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()

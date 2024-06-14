@@ -1,3 +1,4 @@
+using HotChocolate.Types;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;

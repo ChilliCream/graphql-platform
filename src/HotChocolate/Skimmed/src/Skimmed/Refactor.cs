@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed;
 
@@ -28,7 +27,7 @@ public static class Refactor
                 member.Name = newName;
                 schema.Types.Add(nt);
             }
-            else if (member is DirectiveType dt)
+            else if (member is DirectiveDefinition dt)
             {
                 schema.DirectiveTypes.Remove(dt);
                 member.Name = newName;
@@ -104,7 +103,7 @@ public static class Refactor
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumType) type;
+                    var enumType = (EnumTypeDefinition) type;
 
                     if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
@@ -201,11 +200,11 @@ public static class Refactor
         return false;
     }
 
-    private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveType>
+    private sealed class RemoveDirectiveRewriter : SchemaVisitor<DirectiveDefinition>
     {
         private readonly List<Directive> _remove = [];
 
-        public override void VisitDirectives(DirectiveCollection directives, DirectiveType directiveType)
+        public override void VisitDirectives(DirectiveCollection directives, DirectiveDefinition directiveType)
         {
             foreach (var directive in directives)
             {
@@ -225,19 +224,19 @@ public static class Refactor
     }
 
     private sealed class RemoveDirectiveArgRewriter
-        : SchemaVisitor<(DirectiveType Type, string Arg)>
+        : SchemaVisitor<(DirectiveDefinition Type, string Arg)>
     {
         private readonly List<(Directive, Directive)> _replace = [];
 
         public override void VisitDirectives(
             DirectiveCollection directives,
-            (DirectiveType Type, string Arg) context)
+            (DirectiveDefinition Type, string Arg) context)
         {
             foreach (var directive in directives)
             {
                 if (ReferenceEquals(context.Type, directive.Type))
                 {
-                    var arguments = new List<Argument>();
+                    var arguments = new List<ArgumentAssignment>();
 
                     foreach (var argument in directive.Arguments)
                     {
@@ -348,9 +347,9 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumType Type, EnumValue Value)>
+    private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumTypeDefinition Type, EnumValue Value)>
     {
-        public override void VisitInputField(InputField field, (EnumType Type, EnumValue Value) context)
+        public override void VisitInputField(InputField field, (EnumTypeDefinition Type, EnumValue Value) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))

@@ -18,9 +18,9 @@ public sealed class DirectiveCollection : ICollection<Directive>
         get
         {
             var directives = _directives;
-            return directives.Count == 0
-                ? Enumerable.Empty<Directive>()
-                : FindDirectives(directives, directiveName);
+            return directives.Count != 0
+                ? FindDirectives(directives, directiveName)
+                : [];
         }
     }
 
@@ -30,7 +30,7 @@ public sealed class DirectiveCollection : ICollection<Directive>
         {
             var directive = directives[i];
 
-            if (directive.Name.EqualsOrdinal(name))
+            if (directive.Name.Equals(name, StringComparison.Ordinal))
             {
                 yield return directive;
             }
@@ -45,7 +45,7 @@ public sealed class DirectiveCollection : ICollection<Directive>
         {
             var directive = directives[i];
 
-            if (directive.Name.EqualsOrdinal(name))
+            if (directive.Name.Equals(name, StringComparison.Ordinal))
             {
                 return directive;
             }

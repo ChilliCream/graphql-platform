@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
@@ -9,7 +10,7 @@ public static class TypeExtensions
         => type.Kind switch
         {
             TypeKind.List => true,
-            TypeKind.NonNull when ((NonNullType) type).NullableType.Kind == TypeKind.List => true,
+            TypeKind.NonNull when ((NonNullType)type).NullableType.Kind == TypeKind.List => true,
             _ => false,
         };
 
@@ -70,7 +71,7 @@ public static class TypeExtensions
         {
             INamedTypeDefinition namedType => new NamedTypeNode(namedType.Name),
             ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
-            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
+            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
             _ => throw new NotSupportedException(),
         };
 

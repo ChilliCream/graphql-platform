@@ -147,7 +147,7 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<EnumType>().OrderBy(t => t.Name))
+            foreach (var type in types.OfType<EnumTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -169,7 +169,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitDirectiveTypes(
-            DirectiveTypeCollection directiveTypes,
+            DirectiveDefinitionCollection directiveTypes,
             VisitorContext context)
         {
             var definitionNodes = new List<IDefinitionNode>();
@@ -274,7 +274,7 @@ public static class SchemaFormatter
                         directives);
         }
 
-        public override void VisitEnumType(EnumType type, VisitorContext context)
+        public override void VisitEnumType(EnumTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -345,7 +345,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitDirectiveType(
-            DirectiveType directive,
+            DirectiveDefinition directive,
             VisitorContext context)
         {
             VisitInputFields(directive.Arguments, context);
@@ -449,7 +449,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitArguments(
-            ArgumentCollection arguments,
+            ArgumentAssignmentCollection arguments,
             VisitorContext context)
         {
             var argumentNodes = new List<ArgumentNode>();
@@ -463,7 +463,7 @@ public static class SchemaFormatter
             context.Result = argumentNodes;
         }
 
-        public override void VisitArgument(Argument argument, VisitorContext context)
+        public override void VisitArgument(ArgumentAssignment argument, VisitorContext context)
         {
             context.Result = new ArgumentNode(argument.Name, argument.Value);
         }

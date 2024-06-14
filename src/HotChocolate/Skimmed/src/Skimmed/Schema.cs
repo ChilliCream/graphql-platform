@@ -16,7 +16,7 @@ public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSys
 
     public TypeCollection Types { get; } = [];
 
-    public DirectiveTypeCollection DirectiveTypes { get; } = [];
+    public DirectiveDefinitionCollection DirectiveTypes { get; } = [];
 
     public DirectiveCollection Directives { get; } = [];
 
@@ -100,7 +100,7 @@ public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSys
             {
                 if (type.Kind is TypeKind.Enum)
                 {
-                    var enumType = (EnumType)type;
+                    var enumType = (EnumTypeDefinition)type;
                     if (enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue))
                     {
                         member = enumValue;

@@ -1,4 +1,4 @@
-using HotChocolate.Utilities;
+using HotChocolate.Skimmed.Utilities;
 
 namespace HotChocolate.Skimmed;
 

@@ -1,7 +1,7 @@
-namespace HotChocolate.Skimmed;
+using System;
 
-// note: when adding a member here we need to ensure that the location extensions
-// still work: internal static IEnumerable<DirectiveLocation> EnumerateLocations(...
+namespace HotChocolate.Types;
+
 /// <summary>
 /// A Directive can be adjacent to many parts of the GraphQL language,
 /// a DirectiveLocation describes one such possible adamancies.

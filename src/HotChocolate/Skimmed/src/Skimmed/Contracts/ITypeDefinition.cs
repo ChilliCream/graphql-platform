@@ -1,5 +1,10 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Skimmed;
 
+/// <summary>
+/// Represents a GraphQL type definition.
+/// </summary>
 public interface ITypeDefinition : IEquatable<ITypeDefinition>
 {
     /// <summary>

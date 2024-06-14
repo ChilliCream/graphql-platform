@@ -33,7 +33,7 @@ internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
                             break;
 
                         case TypeKind.Enum:
-                            context.FusionGraph.Types.Add(new EnumType(type.Name));
+                            context.FusionGraph.Types.Add(new EnumTypeDefinition(type.Name));
                             break;
 
                         case TypeKind.Scalar:

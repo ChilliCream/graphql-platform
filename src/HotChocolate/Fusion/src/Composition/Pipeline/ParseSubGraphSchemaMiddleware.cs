@@ -71,7 +71,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             switch (type)
             {
-                case EnumType sourceType:
+                case EnumTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
@@ -102,7 +102,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
             if (!schema.DirectiveTypes.ContainsName(directiveType.Name))
             {
                 schema.DirectiveTypes.Add(
-                    new DirectiveType(directiveType.Name)
+                    new DirectiveDefinition(directiveType.Name)
                     {
                         IsRepeatable = directiveType.IsRepeatable,
                     });
@@ -142,7 +142,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         {
             switch (type)
             {
-                case EnumType sourceType:
+                case EnumTypeDefinition sourceType:
                     MergeEnumType(context, sourceType, schema);
                     break;
 
@@ -171,10 +171,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void MergeEnumType(
         CompositionContext context,
-        EnumType source,
+        EnumTypeDefinition source,
         Schema targetSchema)
     {
-        if (targetSchema.Types.TryGetType<EnumType>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<EnumTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 

@@ -375,7 +375,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             var tagName = GraphQLNamingHelper.CreateName(tag.Name);
 
             outputField.Directives.Add(new Skimmed.Directive(
-                new Skimmed.DirectiveType(WellKnownDirectives.Tag),
+                new Skimmed.DirectiveDefinition(WellKnownDirectives.Tag),
                 [new Skimmed.Argument(WellKnownDirectives.Name, tagName)]));
         }
     }

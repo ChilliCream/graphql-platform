@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed.Serialization;
 
@@ -46,7 +47,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Fields.Select(RewriteInputField).ToArray());
 
-    public static EnumTypeDefinitionNode RewriteEnumType(EnumType type)
+    public static EnumTypeDefinitionNode RewriteEnumType(EnumTypeDefinition type)
             => new EnumTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -65,7 +66,7 @@ internal static class SchemaDebugFormatter
                 : new StringValueNode(type.Description),
             type.Directives.Select(RewriteDirective).ToArray());
 
-    public static DirectiveDefinitionNode RewriteDirectiveType(DirectiveType type)
+    public static DirectiveDefinitionNode RewriteDirectiveType(DirectiveDefinition type)
         => new DirectiveDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -113,7 +114,7 @@ internal static class SchemaDebugFormatter
             new NameNode(directive.Name),
             directive.Arguments.Select(RewriteArgument).ToArray());
 
-    public static ArgumentNode RewriteArgument(Argument argument)
+    public static ArgumentNode RewriteArgument(ArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
     private static NameNode RewriteDirectiveLocation(DirectiveLocation location)
