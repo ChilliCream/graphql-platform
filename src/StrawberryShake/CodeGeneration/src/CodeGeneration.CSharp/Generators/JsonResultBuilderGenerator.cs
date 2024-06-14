@@ -218,7 +218,7 @@ public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuild
                 .SetCondition($"!{_obj}.HasValue")
                 .AddCode(
                     typeReference.IsNonNull()
-                        ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                        ? CodeLineBuilder.From("return default;")
                         : CodeLineBuilder.From("return null;"));
 
             methodBuilder
