@@ -24,23 +24,23 @@ public class SchemaParserTests
 
         // assert
         Assert.Collection(
-            schema.Types.OrderBy(t => t.Name),
+            schema.TypeDefinitions.OrderBy(t => t.Name),
             type =>
             {
-                var fooType = Assert.IsType<ObjectType>(type);
+                var fooType = Assert.IsType<ObjectTypeDefinition>(type);
                 Assert.Equal("Foo", fooType.Name);
                 Assert.Collection(
                     fooType.Fields,
                     field =>
                     {
                         Assert.Equal("field", field.Name);
-                        var fieldType = Assert.IsType<ScalarType>(field.Type);
+                        var fieldType = Assert.IsType<ScalarTypeDefinition>(field.Type);
                         Assert.Equal("String", fieldType.Name);
                     });
             },
             type =>
             {
-                var stringType = Assert.IsType<ScalarType>(type);
+                var stringType = Assert.IsType<ScalarTypeDefinition>(type);
                 Assert.Equal("String", stringType.Name);
             });
     }
@@ -61,22 +61,22 @@ public class SchemaParserTests
 
         // assert
         Assert.Collection(
-            schema.Types.OrderBy(t => t.Name),
+            schema.TypeDefinitions.OrderBy(t => t.Name),
             type =>
             {
-                var stringType = Assert.IsType<MissingType>(type);
+                var stringType = Assert.IsType<MissingTypeDefinition>(type);
                 Assert.Equal("Bar", stringType.Name);
             },
             type =>
             {
-                var fooType = Assert.IsType<ObjectType>(type);
+                var fooType = Assert.IsType<ObjectTypeDefinition>(type);
                 Assert.Equal("Foo", fooType.Name);
                 Assert.Collection(
                     fooType.Fields,
                     field =>
                     {
                         Assert.Equal("field", field.Name);
-                        var fieldType = Assert.IsType<MissingType>(field.Type);
+                        var fieldType = Assert.IsType<MissingTypeDefinition>(field.Type);
                         Assert.Equal("Bar", fieldType.Name);
                     });
             });
@@ -98,15 +98,15 @@ public class SchemaParserTests
 
         // assert
         Assert.Collection(
-            schema.Types.OrderBy(t => t.Name),
+            schema.TypeDefinitions.OrderBy(t => t.Name),
             type =>
             {
-                var stringType = Assert.IsType<MissingType>(type);
+                var stringType = Assert.IsType<MissingTypeDefinition>(type);
                 Assert.Equal("Bar", stringType.Name);
             },
             type =>
             {
-                var fooType = Assert.IsType<ObjectType>(type);
+                var fooType = Assert.IsType<ObjectTypeDefinition>(type);
                 Assert.Equal("Foo", fooType.Name);
                 Assert.True(fooType.ContextData.ContainsKey(TypeExtension));
                 Assert.Collection(
@@ -114,7 +114,7 @@ public class SchemaParserTests
                     field =>
                     {
                         Assert.Equal("field", field.Name);
-                        var fieldType = Assert.IsType<MissingType>(field.Type);
+                        var fieldType = Assert.IsType<MissingTypeDefinition>(field.Type);
                         Assert.Equal("Bar", fieldType.Name);
                     });
             });

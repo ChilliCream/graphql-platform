@@ -10,7 +10,7 @@ public static class TypeExtensions
         => type.Kind switch
         {
             TypeKind.List => true,
-            TypeKind.NonNull when ((NonNullType)type).NullableType.Kind == TypeKind.List => true,
+            TypeKind.NonNull when ((NonNullTypeDefinition)type).NullableType.Kind == TypeKind.List => true,
             _ => false,
         };
 
@@ -19,8 +19,8 @@ public static class TypeExtensions
         {
             TypeKind.Interface or TypeKind.Object or TypeKind.Union => false,
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => true,
-            TypeKind.List => IsInputType(((ListType)type).ElementType),
-            TypeKind.NonNull => IsInputType(((NonNullType)type).NullableType),
+            TypeKind.List => IsInputType(((ListTypeDefinition)type).ElementType),
+            TypeKind.NonNull => IsInputType(((NonNullTypeDefinition)type).NullableType),
             _ => throw new NotSupportedException(),
         };
 
@@ -29,8 +29,8 @@ public static class TypeExtensions
         {
             TypeKind.Interface or TypeKind.Object or TypeKind.Union => true,
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => false,
-            TypeKind.List => IsOutputType(((ListType)type).ElementType),
-            TypeKind.NonNull => IsOutputType(((NonNullType)type).NullableType),
+            TypeKind.List => IsOutputType(((ListTypeDefinition)type).ElementType),
+            TypeKind.NonNull => IsOutputType(((NonNullTypeDefinition)type).NullableType),
             _ => throw new NotSupportedException(),
         };
 
@@ -38,8 +38,8 @@ public static class TypeExtensions
     public static ITypeDefinition InnerType(this ITypeDefinition type)
         => type switch
         {
-            ListType listType => listType.ElementType,
-            NonNullType nonNullType => nonNullType.NullableType,
+            ListTypeDefinition listType => listType.ElementType,
+            NonNullTypeDefinition nonNullType => nonNullType.NullableType,
             _ => type,
         };
 
@@ -52,11 +52,11 @@ public static class TypeExtensions
                 case INamedTypeDefinition namedType:
                     return namedType;
 
-                case ListType listType:
+                case ListTypeDefinition listType:
                     type = listType.ElementType;
                     continue;
 
-                case NonNullType nonNullType:
+                case NonNullTypeDefinition nonNullType:
                     type = nonNullType.NullableType;
                     continue;
 
@@ -70,8 +70,8 @@ public static class TypeExtensions
         => type switch
         {
             INamedTypeDefinition namedType => new NamedTypeNode(namedType.Name),
-            ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
-            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
+            ListTypeDefinition listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
+            NonNullTypeDefinition nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
             _ => throw new NotSupportedException(),
         };
 
@@ -79,8 +79,8 @@ public static class TypeExtensions
         => type switch
         {
             INamedTypeDefinition namedType => newNamedType(namedType.Name),
-            ListType listType => new ListType(ReplaceNameType(listType.ElementType, newNamedType)),
-            NonNullType nonNullType => new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType)),
+            ListTypeDefinition listType => new ListTypeDefinition(ReplaceNameType(listType.ElementType, newNamedType)),
+            NonNullTypeDefinition nonNullType => new NonNullTypeDefinition(ReplaceNameType(nonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException(),
         };
 }

@@ -13,4 +13,4 @@ namespace HotChocolate.Fusion.Composition;
 /// </param>
 internal sealed record TypePart(
     INamedTypeDefinition Type,
-    Schema Schema);
+    SchemaDefinition Schema);

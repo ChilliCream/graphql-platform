@@ -7,7 +7,7 @@ namespace HotChocolate.OpenApi.TypeInterceptors;
 /// <summary>
 /// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
 /// </summary>
-public sealed class ContextDataTypeInterceptor(Skimmed.Schema schema) : TypeInterceptor
+public sealed class ContextDataTypeInterceptor(Skimmed.SchemaDefinition schema) : TypeInterceptor
 {
     private static readonly List<string> CopyKeys =
     [

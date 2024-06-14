@@ -20,11 +20,11 @@ internal sealed class UnionTypeMergeHandler : ITypeMergeHandler
             return new(MergeStatus.Skipped);
         }
 
-        var target = (UnionType)context.FusionGraph.Types[typeGroup.Name];
+        var target = (UnionTypeDefinition)context.FusionGraph.TypeDefinitions[typeGroup.Name];
 
         foreach (var part in typeGroup.Parts)
         {
-            var source = (UnionType)part.Type;
+            var source = (UnionTypeDefinition)part.Type;
             MergeType(context, source, part.Schema, target, context.FusionGraph);
         }
 
@@ -33,10 +33,10 @@ internal sealed class UnionTypeMergeHandler : ITypeMergeHandler
 
     private static void MergeType(
         CompositionContext context,
-        UnionType source,
-        Schema sourceSchema,
-        UnionType target,
-        Schema targetSchema)
+        UnionTypeDefinition source,
+        SchemaDefinition sourceSchema,
+        UnionTypeDefinition target,
+        SchemaDefinition targetSchema)
     {
         context.TryApplySource(source, sourceSchema, target);
 
@@ -45,7 +45,7 @@ internal sealed class UnionTypeMergeHandler : ITypeMergeHandler
         foreach (var sourceType in source.Types)
         {
             // Retrieve the target member type from the schema.
-            var targetMemberType = (ObjectType)targetSchema.Types[sourceType.Name];
+            var targetMemberType = (ObjectTypeDefinition)targetSchema.TypeDefinitions[sourceType.Name];
 
             // If the target union type does not contain the target member type, add it.
             if (!target.Types.Contains(targetMemberType))

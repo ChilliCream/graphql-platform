@@ -1,27 +1,25 @@
 using System.Text;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.WellKnownContextData;
-using static HotChocolate.WellKnownDirectives;
 
 namespace HotChocolate.Skimmed.Serialization;
 
 public static class SchemaParser
 {
-    public static Schema Parse(string sourceText)
+    public static SchemaDefinition Parse(string sourceText)
         => Parse(Encoding.UTF8.GetBytes(sourceText));
 
-    public static Schema Parse(ReadOnlySpan<byte> sourceText)
+    public static SchemaDefinition Parse(ReadOnlySpan<byte> sourceText)
     {
-        var schema = new Schema();
+        var schema = new SchemaDefinition();
         Parse(schema, sourceText);
         return schema;
     }
 
-    public static void Parse(Schema schema, string sourceText)
+    public static void Parse(SchemaDefinition schema, string sourceText)
         => Parse(schema, Encoding.UTF8.GetBytes(sourceText));
 
-    public static void Parse(Schema schema, ReadOnlySpan<byte> sourceText)
+    public static void Parse(SchemaDefinition schema, ReadOnlySpan<byte> sourceText)
     {
         var document = Utf8GraphQLParser.Parse(sourceText);
 
@@ -35,24 +33,24 @@ public static class SchemaParser
         BuildAndExtendSchema(schema, document);
     }
 
-    private static void DiscoverDirectives(Schema schema, DocumentNode document)
+    private static void DiscoverDirectives(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
             if (definition is DirectiveDefinitionNode def)
             {
-                if (schema.DirectiveTypes.ContainsName(def.Name.Value))
+                if (schema.DirectiveDefinitions.ContainsName(def.Name.Value))
                 {
                     // TODO : parsing error
                     throw new Exception("duplicate");
                 }
 
-                schema.DirectiveTypes.Add(new DirectiveDefinition(def.Name.Value));
+                schema.DirectiveDefinitions.Add(new DirectiveDefinition(def.Name.Value));
             }
         }
     }
 
-    private static void DiscoverTypes(Schema schema, DocumentNode document)
+    private static void DiscoverTypes(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
@@ -63,7 +61,7 @@ public static class SchemaParser
                     continue;
                 }
 
-                if (schema.Types.ContainsName(typeDef.Name.Value))
+                if (schema.TypeDefinitions.ContainsName(typeDef.Name.Value))
                 {
                     // TODO : parsing error
                     throw new Exception("duplicate");
@@ -72,27 +70,27 @@ public static class SchemaParser
                 switch (typeDef)
                 {
                     case EnumTypeDefinitionNode:
-                        schema.Types.Add(new EnumTypeDefinition(typeDef.Name.Value));
+                        schema.TypeDefinitions.Add(new EnumTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case InputObjectTypeDefinitionNode:
-                        schema.Types.Add(new InputObjectTypeDefinition(typeDef.Name.Value));
+                        schema.TypeDefinitions.Add(new InputObjectTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case InterfaceTypeDefinitionNode:
-                        schema.Types.Add(new InterfaceType(typeDef.Name.Value));
+                        schema.TypeDefinitions.Add(new InterfaceTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case ObjectTypeDefinitionNode:
-                        schema.Types.Add(new ObjectType(typeDef.Name.Value));
+                        schema.TypeDefinitions.Add(new ObjectTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case ScalarTypeDefinitionNode:
-                        schema.Types.Add(new ScalarType(typeDef.Name.Value));
+                        schema.TypeDefinitions.Add(new ScalarTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case UnionTypeDefinitionNode:
-                        schema.Types.Add(new UnionType(typeDef.Name.Value));
+                        schema.TypeDefinitions.Add(new UnionTypeDefinition(typeDef.Name.Value));
                         break;
 
                     default:
@@ -103,49 +101,49 @@ public static class SchemaParser
         }
     }
 
-    private static void DiscoverExtensions(Schema schema, DocumentNode document)
+    private static void DiscoverExtensions(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
             if (definition is ITypeExtensionNode typeExt &&
-                !schema.Types.ContainsName(typeExt.Name.Value))
+                !schema.TypeDefinitions.ContainsName(typeExt.Name.Value))
             {
                 switch (definition)
                 {
                     case EnumTypeExtensionNode:
                         var enumType = new EnumTypeDefinition(typeExt.Name.Value);
-                        enumType.ContextData.Add(TypeExtension, true);
-                        schema.Types.Add(enumType);
+                        enumType.GetTypeMetadata().IsExtension = true;
+                        schema.TypeDefinitions.Add(enumType);
                         break;
 
                     case InputObjectTypeExtensionNode:
                         var inputObjectType = new InputObjectTypeDefinition(typeExt.Name.Value);
-                        inputObjectType.ContextData.Add(TypeExtension, true);
-                        schema.Types.Add(inputObjectType);
+                        inputObjectType.GetTypeMetadata().IsExtension = true;
+                        schema.TypeDefinitions.Add(inputObjectType);
                         break;
 
                     case InterfaceTypeExtensionNode:
-                        var interfaceType = new InterfaceType(typeExt.Name.Value);
-                        interfaceType.ContextData.Add(TypeExtension, true);
-                        schema.Types.Add(interfaceType);
+                        var interfaceType = new InterfaceTypeDefinition(typeExt.Name.Value);
+                        interfaceType.GetTypeMetadata().IsExtension = true;
+                        schema.TypeDefinitions.Add(interfaceType);
                         break;
 
                     case ObjectTypeExtensionNode:
-                        var objectType = new ObjectType(typeExt.Name.Value);
-                        objectType.ContextData.Add(TypeExtension, true);
-                        schema.Types.Add(objectType);
+                        var objectType = new ObjectTypeDefinition(typeExt.Name.Value);
+                        objectType.GetTypeMetadata().IsExtension = true;
+                        schema.TypeDefinitions.Add(objectType);
                         break;
 
                     case ScalarTypeExtensionNode:
-                        var scalarType = new ScalarType(typeExt.Name.Value);
-                        scalarType.ContextData.Add(TypeExtension, true);
-                        schema.Types.Add(scalarType);
+                        var scalarType = new ScalarTypeDefinition(typeExt.Name.Value);
+                        scalarType.GetTypeMetadata().IsExtension = true;
+                        schema.TypeDefinitions.Add(scalarType);
                         break;
 
                     case UnionTypeExtensionNode:
-                        var unionType = new UnionType(typeExt.Name.Value);
-                        unionType.ContextData.Add(TypeExtension, true);
-                        schema.Types.Add(unionType);
+                        var unionType = new UnionTypeDefinition(typeExt.Name.Value);
+                        unionType.GetTypeMetadata().IsExtension = true;
+                        schema.TypeDefinitions.Add(unionType);
                         break;
 
                     default:
@@ -156,7 +154,7 @@ public static class SchemaParser
         }
     }
 
-    private static void BuildTypes(Schema schema, DocumentNode document)
+    private static void BuildTypes(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
@@ -167,28 +165,28 @@ public static class SchemaParser
                     case EnumTypeDefinitionNode typeDef:
                         BuildEnumType(
                             schema,
-                            (EnumTypeDefinition)schema.Types[typeDef.Name.Value],
+                            (EnumTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case InputObjectTypeDefinitionNode typeDef:
                         BuildInputObjectType(
                             schema,
-                            (InputObjectTypeDefinition)schema.Types[typeDef.Name.Value],
+                            (InputObjectTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case InterfaceTypeDefinitionNode typeDef:
                         BuildInterfaceType(
                             schema,
-                            (InterfaceType)schema.Types[typeDef.Name.Value],
+                            (InterfaceTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case ObjectTypeDefinitionNode typeDef:
                         BuildObjectType(
                             schema,
-                            (ObjectType)schema.Types[typeDef.Name.Value],
+                            (ObjectTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -200,14 +198,14 @@ public static class SchemaParser
 
                         BuildScalarType(
                             schema,
-                            (ScalarType)schema.Types[typeDef.Name.Value],
+                            (ScalarTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case UnionTypeDefinitionNode typeDef:
                         BuildUnionType(
                             schema,
-                            (UnionType)schema.Types[typeDef.Name.Value],
+                            (UnionTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -219,7 +217,7 @@ public static class SchemaParser
         }
     }
 
-    private static void ExtendTypes(Schema schema, DocumentNode document)
+    private static void ExtendTypes(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
@@ -230,42 +228,42 @@ public static class SchemaParser
                     case EnumTypeExtensionNode typeDef:
                         ExtendEnumType(
                             schema,
-                            (EnumTypeDefinition)schema.Types[typeDef.Name.Value],
+                            (EnumTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case InputObjectTypeExtensionNode typeDef:
                         ExtendInputObjectType(
                             schema,
-                            (InputObjectTypeDefinition)schema.Types[typeDef.Name.Value],
+                            (InputObjectTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case InterfaceTypeExtensionNode typeDef:
                         ExtendInterfaceType(
                             schema,
-                            (InterfaceType)schema.Types[typeDef.Name.Value],
+                            (InterfaceTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case ObjectTypeExtensionNode typeDef:
                         ExtendObjectType(
                             schema,
-                            (ObjectType)schema.Types[typeDef.Name.Value],
+                            (ObjectTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case ScalarTypeExtensionNode typeDef:
                         ExtendScalarType(
                             schema,
-                            (ScalarType)schema.Types[typeDef.Name.Value],
+                            (ScalarTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
                     case UnionTypeExtensionNode typeDef:
                         ExtendUnionType(
                             schema,
-                            (UnionType)schema.Types[typeDef.Name.Value],
+                            (UnionTypeDefinition)schema.TypeDefinitions[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -277,7 +275,7 @@ public static class SchemaParser
         }
     }
 
-    private static void BuildAndExtendSchema(Schema schema, DocumentNode document)
+    private static void BuildAndExtendSchema(SchemaDefinition schema, DocumentNode document)
     {
         var hasDefinition = false;
 
@@ -303,19 +301,19 @@ public static class SchemaParser
         if (!hasDefinition)
         {
             if (schema.QueryType is null &&
-                schema.Types.TryGetType<ObjectType>("Query", out var queryType))
+                schema.TypeDefinitions.TryGetType<ObjectTypeDefinition>("Query", out var queryType))
             {
                 schema.QueryType = queryType;
             }
 
             if (schema.MutationType is null &&
-                schema.Types.TryGetType<ObjectType>("Mutation", out var mutationType))
+                schema.TypeDefinitions.TryGetType<ObjectTypeDefinition>("Mutation", out var mutationType))
             {
                 schema.MutationType = mutationType;
             }
 
             if (schema.SubscriptionType is null &&
-                schema.Types.TryGetType<ObjectType>("Subscription", out var subscriptionType))
+                schema.TypeDefinitions.TryGetType<ObjectTypeDefinition>("Subscription", out var subscriptionType))
             {
                 schema.SubscriptionType = subscriptionType;
             }
@@ -323,8 +321,8 @@ public static class SchemaParser
     }
 
     private static void BuildObjectType(
-        Schema schema,
-        ObjectType type,
+        SchemaDefinition schema,
+        ObjectTypeDefinition type,
         ObjectTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -332,14 +330,14 @@ public static class SchemaParser
     }
 
     private static void ExtendObjectType(
-        Schema schema,
-        ObjectType type,
+        SchemaDefinition schema,
+        ObjectTypeDefinition type,
         ObjectTypeExtensionNode node)
         => BuildComplexType(schema, type, node);
 
     private static void BuildInterfaceType(
-        Schema schema,
-        InterfaceType type,
+        SchemaDefinition schema,
+        InterfaceTypeDefinition type,
         InterfaceTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -347,13 +345,13 @@ public static class SchemaParser
     }
 
     private static void ExtendInterfaceType(
-        Schema schema,
-        InterfaceType type,
+        SchemaDefinition schema,
+        InterfaceTypeDefinition type,
         InterfaceTypeExtensionNode node)
         => BuildComplexType(schema, type, node);
 
     private static void BuildComplexType(
-        Schema schema,
+        SchemaDefinition schema,
         ComplexTypeDefinition type,
         ComplexTypeDefinitionNodeBase node)
     {
@@ -361,7 +359,7 @@ public static class SchemaParser
 
         foreach (var interfaceRef in node.Interfaces)
         {
-            type.Implements.Add(schema.Types.ResolveType<InterfaceType>(interfaceRef));
+            type.Implements.Add(schema.TypeDefinitions.ResolveType<InterfaceTypeDefinition>(interfaceRef));
         }
 
         foreach (var fieldNode in node.Fields)
@@ -372,9 +370,9 @@ public static class SchemaParser
                 throw new Exception("");
             }
 
-            var field = new OutputField(fieldNode.Name.Value);
+            var field = new OutputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.TypeDefinitions.ResolveType(fieldNode.Type);
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -394,7 +392,7 @@ public static class SchemaParser
 
                 var argument = new InputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
-                argument.Type = schema.Types.ResolveType(argumentNode.Type);
+                argument.Type = schema.TypeDefinitions.ResolveType(argumentNode.Type);
                 argument.DefaultValue = argumentNode.DefaultValue;
 
                 BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -413,7 +411,7 @@ public static class SchemaParser
     }
 
     private static void BuildInputObjectType(
-        Schema schema,
+        SchemaDefinition schema,
         InputObjectTypeDefinition type,
         InputObjectTypeDefinitionNode node)
     {
@@ -422,7 +420,7 @@ public static class SchemaParser
     }
 
     private static void ExtendInputObjectType(
-        Schema schema,
+        SchemaDefinition schema,
         InputObjectTypeDefinition type,
         InputObjectTypeDefinitionNodeBase node)
     {
@@ -438,7 +436,7 @@ public static class SchemaParser
 
             var field = new InputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
-            field.Type = schema.Types.ResolveType(fieldNode.Type);
+            field.Type = schema.TypeDefinitions.ResolveType(fieldNode.Type);
 
             BuildDirectiveCollection(schema, field.Directives, fieldNode.Directives);
 
@@ -453,7 +451,7 @@ public static class SchemaParser
     }
 
     private static void BuildEnumType(
-        Schema schema,
+        SchemaDefinition schema,
         EnumTypeDefinition type,
         EnumTypeDefinitionNode node)
     {
@@ -462,7 +460,7 @@ public static class SchemaParser
     }
 
     private static void ExtendEnumType(
-        Schema schema,
+        SchemaDefinition schema,
         EnumTypeDefinition type,
         EnumTypeDefinitionNodeBase node)
     {
@@ -491,8 +489,8 @@ public static class SchemaParser
     }
 
     private static void BuildUnionType(
-        Schema schema,
-        UnionType type,
+        SchemaDefinition schema,
+        UnionTypeDefinition type,
         UnionTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -500,15 +498,15 @@ public static class SchemaParser
     }
 
     private static void ExtendUnionType(
-        Schema schema,
-        UnionType type,
+        SchemaDefinition schema,
+        UnionTypeDefinition type,
         UnionTypeDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
 
         foreach (var objectTypeRef in node.Types)
         {
-            var objectType = (ObjectType)schema.Types[objectTypeRef.Name.Value];
+            var objectType = (ObjectTypeDefinition)schema.TypeDefinitions[objectTypeRef.Name.Value];
 
             if (type.Types.Contains(objectType))
             {
@@ -520,8 +518,8 @@ public static class SchemaParser
     }
 
     private static void BuildScalarType(
-        Schema schema,
-        ScalarType type,
+        SchemaDefinition schema,
+        ScalarTypeDefinition type,
         ScalarTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -529,14 +527,14 @@ public static class SchemaParser
     }
 
     private static void ExtendScalarType(
-        Schema schema,
-        ScalarType type,
+        SchemaDefinition schema,
+        ScalarTypeDefinition type,
         ScalarTypeExtensionNode node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
     }
 
-    private static void BuildDirectiveTypes(Schema schema, DocumentNode document)
+    private static void BuildDirectiveTypes(SchemaDefinition schema, DocumentNode document)
     {
         foreach (var definition in document.Definitions)
         {
@@ -544,14 +542,14 @@ public static class SchemaParser
             {
                 BuildDirectiveType(
                     schema,
-                    schema.DirectiveTypes[directiveDef.Name.Value],
+                    schema.DirectiveDefinitions[directiveDef.Name.Value],
                     directiveDef);
             }
         }
     }
 
     private static void BuildDirectiveType(
-        Schema schema,
+        SchemaDefinition schema,
         DirectiveDefinition type,
         DirectiveDefinitionNode node)
     {
@@ -562,7 +560,7 @@ public static class SchemaParser
         {
             var argument = new InputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
-            argument.Type = schema.Types.ResolveType(argumentNode.Type);
+            argument.Type = schema.TypeDefinitions.ResolveType(argumentNode.Type);
             argument.DefaultValue = argumentNode.DefaultValue;
 
             BuildDirectiveCollection(schema, argument.Directives, argumentNode.Directives);
@@ -588,7 +586,7 @@ public static class SchemaParser
     }
 
     private static void BuildSchema(
-        Schema schema,
+        SchemaDefinition schema,
         SchemaDefinitionNode node)
     {
         schema.Description = node.Description?.Value;
@@ -596,7 +594,7 @@ public static class SchemaParser
     }
 
     private static void ExtendSchema(
-        Schema schema,
+        SchemaDefinition schema,
         SchemaDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, schema.Directives, node.Directives);
@@ -608,15 +606,15 @@ public static class SchemaParser
             switch (operationType.Operation)
             {
                 case OperationType.Query:
-                    schema.QueryType = (ObjectType)schema.Types[typeName];
+                    schema.QueryType = (ObjectTypeDefinition)schema.TypeDefinitions[typeName];
                     break;
 
                 case OperationType.Mutation:
-                    schema.MutationType = (ObjectType)schema.Types[typeName];
+                    schema.MutationType = (ObjectTypeDefinition)schema.TypeDefinitions[typeName];
                     break;
 
                 case OperationType.Subscription:
-                    schema.SubscriptionType = (ObjectType)schema.Types[typeName];
+                    schema.SubscriptionType = (ObjectTypeDefinition)schema.TypeDefinitions[typeName];
                     break;
 
                 default:
@@ -626,19 +624,19 @@ public static class SchemaParser
     }
 
     private static void BuildDirectiveCollection(
-        Schema schema,
+        SchemaDefinition schema,
         DirectiveCollection directives,
         IReadOnlyList<DirectiveNode> nodes)
     {
         foreach (var directiveNode in nodes)
         {
-            if (!schema.DirectiveTypes.TryGetDirective(
+            if (!schema.DirectiveDefinitions.TryGetDirective(
                 directiveNode.Name.Value,
                 out var directiveType))
             {
                 directiveType = new DirectiveDefinition(directiveNode.Name.Value);
                 directiveType.IsRepeatable = true;
-                schema.DirectiveTypes.Add(directiveType);
+                schema.DirectiveDefinitions.Add(directiveType);
             }
 
             var directive = new Directive(
@@ -682,10 +680,10 @@ static file class SchemaParserExtensions
         switch (typeRef)
         {
             case NonNullTypeNode nonNullTypeRef:
-                return new NonNullType(ResolveType(types, nonNullTypeRef.Type));
+                return new NonNullTypeDefinition(ResolveType(types, nonNullTypeRef.Type));
 
             case ListTypeNode listTypeRef:
-                return new ListType(ResolveType(types, listTypeRef.Type));
+                return new ListTypeDefinition(ResolveType(types, listTypeRef.Type));
 
             case NamedTypeNode namedTypeRef:
                 if (types.TryGetType(namedTypeRef.Name.Value, out var type))
@@ -695,12 +693,12 @@ static file class SchemaParserExtensions
 
                 if (SpecScalarTypes.IsSpecScalar(namedTypeRef.Name.Value))
                 {
-                    var scalar = new ScalarType(namedTypeRef.Name.Value) { IsSpecScalar = true, };
+                    var scalar = new ScalarTypeDefinition(namedTypeRef.Name.Value) { IsSpecScalar = true, };
                     types.Add(scalar);
                     return scalar;
                 }
 
-                var missing = new MissingType(namedTypeRef.Name.Value);
+                var missing = new MissingTypeDefinition(namedTypeRef.Name.Value);
                 types.Add(missing);
                 return missing;
 

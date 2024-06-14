@@ -12,10 +12,10 @@ namespace HotChocolate.Fusion.Composition;
 /// </summary>
 public sealed class FusionTypes
 {
-    private readonly Schema _fusionGraph;
+    private readonly SchemaDefinition _fusionGraph;
     private readonly bool _prefixSelf;
 
-    public FusionTypes(Schema fusionGraph, string? prefix = null, bool prefixSelf = false)
+    public FusionTypes(SchemaDefinition fusionGraph, string? prefix = null, bool prefixSelf = false)
     {
         if (fusionGraph is null)
         {
@@ -36,22 +36,22 @@ public sealed class FusionTypes
                 nameof(fusionGraph));
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var booleanType))
+        if (!_fusionGraph.TypeDefinitions.TryGetType<ScalarTypeDefinition>(SpecScalarTypes.Boolean, out var booleanType))
         {
-            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true, };
-            _fusionGraph.Types.Add(booleanType);
+            booleanType = new ScalarTypeDefinition(SpecScalarTypes.Boolean) { IsSpecScalar = true, };
+            _fusionGraph.TypeDefinitions.Add(booleanType);
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var intType))
+        if (!_fusionGraph.TypeDefinitions.TryGetType<ScalarTypeDefinition>(SpecScalarTypes.Int, out var intType))
         {
-            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true, };
-            _fusionGraph.Types.Add(intType);
+            intType = new ScalarTypeDefinition(SpecScalarTypes.Int) { IsSpecScalar = true, };
+            _fusionGraph.TypeDefinitions.Add(intType);
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.String, out var stringType))
+        if (!_fusionGraph.TypeDefinitions.TryGetType<ScalarTypeDefinition>(SpecScalarTypes.String, out var stringType))
         {
-            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true, };
-            _fusionGraph.Types.Add(stringType);
+            stringType = new ScalarTypeDefinition(SpecScalarTypes.String) { IsSpecScalar = true, };
+            _fusionGraph.TypeDefinitions.Add(stringType);
         }
 
         Selection = RegisterScalarType(names.SelectionScalar);
@@ -93,15 +93,15 @@ public sealed class FusionTypes
 
     private string Prefix { get; }
 
-    public ScalarType Selection { get; }
+    public ScalarTypeDefinition Selection { get; }
 
-    public ScalarType SelectionSet { get; }
+    public ScalarTypeDefinition SelectionSet { get; }
 
-    public ScalarType TypeName { get; }
+    public ScalarTypeDefinition TypeName { get; }
 
-    public ScalarType Type { get; }
+    public ScalarTypeDefinition Type { get; }
 
-    public ScalarType Uri { get; }
+    public ScalarTypeDefinition Uri { get; }
 
     public InputObjectTypeDefinition ArgumentDefinition { get; }
 
@@ -121,24 +121,24 @@ public sealed class FusionTypes
 
     public DirectiveDefinition Fusion { get; }
 
-    private ScalarType RegisterScalarType(string name)
+    private ScalarTypeDefinition RegisterScalarType(string name)
     {
-        var scalarType = new ScalarType(name);
+        var scalarType = new ScalarTypeDefinition(name);
         scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.Types.Add(scalarType);
+        _fusionGraph.TypeDefinitions.Add(scalarType);
         return scalarType;
     }
 
     private InputObjectTypeDefinition RegisterArgumentDefType(
         string name,
-        ScalarType typeName,
-        ScalarType type)
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition type)
     {
         var argumentDef = new InputObjectTypeDefinition(name);
-        argumentDef.Fields.Add(new InputFieldDefinition(NameArg, new NonNullType(typeName)));
-        argumentDef.Fields.Add(new InputFieldDefinition(TypeArg, new NonNullType(type)));
+        argumentDef.Fields.Add(new InputFieldDefinition(NameArg, new NonNullTypeDefinition(typeName)));
+        argumentDef.Fields.Add(new InputFieldDefinition(TypeArg, new NonNullTypeDefinition(type)));
         argumentDef.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.Types.Add(argumentDef);
+        _fusionGraph.TypeDefinitions.Add(argumentDef);
         return argumentDef;
     }
 
@@ -149,7 +149,7 @@ public sealed class FusionTypes
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
         resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.Types.Add(resolverKind);
+        _fusionGraph.TypeDefinitions.Add(resolverKind);
         return resolverKind;
     }
 
@@ -175,18 +175,18 @@ public sealed class FusionTypes
 
     private DirectiveDefinition RegisterVariableDirectiveType(
         string name,
-        ScalarType typeName,
-        ScalarType selection)
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition selection)
     {
         var directiveType = new DirectiveDefinition(name);
-        directiveType.Arguments.Add(new InputFieldDefinition(NameArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(NameArg, new NonNullTypeDefinition(typeName)));
         directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, selection));
         directiveType.Arguments.Add(new InputFieldDefinition(ArgumentArg, typeName));
-        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
         directiveType.Locations |= DirectiveLocation.Object;
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -198,7 +198,7 @@ public sealed class FusionTypes
         var directiveType = new DirectiveDefinition(name);
         directiveType.Locations |= DirectiveLocation.FieldDefinition;
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -249,19 +249,19 @@ public sealed class FusionTypes
 
     private DirectiveDefinition RegisterResolverDirectiveType(
         string name,
-        ScalarType typeName,
+        ScalarTypeDefinition typeName,
         InputObjectTypeDefinition argumentDef,
-        ScalarType selectionSet,
+        ScalarTypeDefinition selectionSet,
         EnumTypeDefinition resolverKind)
     {
         var directiveType = new DirectiveDefinition(name);
         directiveType.Locations |= DirectiveLocation.Object;
-        directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, new NonNullType(selectionSet)));
-        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputFieldDefinition(ArgumentsArg, new ListType(new NonNullType(argumentDef))));
+        directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, new NonNullTypeDefinition(selectionSet)));
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(ArgumentsArg, new ListTypeDefinition(new NonNullTypeDefinition(argumentDef))));
         directiveType.Arguments.Add(new InputFieldDefinition(KindArg, resolverKind));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -275,7 +275,7 @@ public sealed class FusionTypes
                 new Argument(SubgraphArg, subgraphName),
                 new Argument(NameArg, originalName));
 
-    private DirectiveDefinition RegisterSourceDirectiveType(string name, ScalarType typeName)
+    private DirectiveDefinition RegisterSourceDirectiveType(string name, ScalarTypeDefinition typeName)
     {
         var directiveType = new DirectiveDefinition(name)
         {
@@ -288,7 +288,7 @@ public sealed class FusionTypes
                 DirectiveLocation.Scalar,
             Arguments =
             {
-                new InputFieldDefinition(SubgraphArg, new NonNullType(typeName)),
+                new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)),
                 new InputFieldDefinition(NameArg, typeName),
             },
             ContextData =
@@ -296,11 +296,11 @@ public sealed class FusionTypes
                 [WellKnownContextData.IsFusionType] = true,
             },
         };
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
-    public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectType> types)
+    public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectTypeDefinition> types)
     {
         var temp = types.Select(t => new StringValueNode(t.Name)).ToArray();
 
@@ -310,15 +310,15 @@ public sealed class FusionTypes
             new Argument(TypesArg, new ListValueNode(null, temp)));
     }
 
-    private DirectiveDefinition RegisterNodeDirectiveType(string name, ScalarType typeName)
+    private DirectiveDefinition RegisterNodeDirectiveType(string name, ScalarTypeDefinition typeName)
     {
         var directiveType = new DirectiveDefinition(name);
         directiveType.Locations = DirectiveLocation.Schema;
-        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
         directiveType.Arguments.Add(
-            new InputFieldDefinition(TypesArg, new NonNullType(new ListType(new NonNullType(typeName)))));
+            new InputFieldDefinition(TypesArg, new NonNullTypeDefinition(new ListTypeDefinition(new NonNullTypeDefinition(typeName)))));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -338,18 +338,18 @@ public sealed class FusionTypes
 
     private DirectiveDefinition RegisterTransportDirectiveType(
         string name,
-        ScalarType stringType,
-        ScalarType typeName,
-        ScalarType uri)
+        ScalarTypeDefinition stringType,
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition uri)
     {
         var directiveType = new DirectiveDefinition(name);
         directiveType.Locations = DirectiveLocation.FieldDefinition;
-        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullType(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
         directiveType.Arguments.Add(new InputFieldDefinition(ClientGroupArg, typeName));
         directiveType.Arguments.Add(new InputFieldDefinition(LocationArg, uri));
-        directiveType.Arguments.Add(new InputFieldDefinition(KindArg, new NonNullType(stringType)));
+        directiveType.Arguments.Add(new InputFieldDefinition(KindArg, new NonNullTypeDefinition(stringType)));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -369,9 +369,9 @@ public sealed class FusionTypes
 
     private DirectiveDefinition RegisterFusionDirectiveType(
         string name,
-        ScalarType typeName,
-        ScalarType boolean,
-        ScalarType integer)
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition boolean,
+        ScalarTypeDefinition integer)
     {
         var directiveType = new DirectiveDefinition(name);
         directiveType.Locations = DirectiveLocation.Schema;
@@ -379,7 +379,7 @@ public sealed class FusionTypes
         directiveType.Arguments.Add(new InputFieldDefinition(PrefixSelfArg, boolean));
         directiveType.Arguments.Add(new InputFieldDefinition(VersionArg, integer));
         directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
 
         if (string.IsNullOrEmpty(Prefix))
         {

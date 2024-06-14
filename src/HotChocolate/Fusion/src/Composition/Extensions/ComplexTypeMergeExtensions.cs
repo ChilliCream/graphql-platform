@@ -7,18 +7,18 @@ internal static class ComplexTypeMergeExtensions
 {
     // This extension method creates a new OutputField by replacing the type name of each field
     // in the source with the corresponding type name in the target schema.
-    public static OutputField CreateField(
+    public static OutputFieldDefinition CreateField(
         this CompositionContext context,
-        OutputField source,
-        Schema targetSchema)
+        OutputFieldDefinition source,
+        SchemaDefinition targetSchema)
     {
-        var target = new OutputField(source.Name);
+        var target = new OutputFieldDefinition(source.Name);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);
 
         // Replace the type name of the field in the source with the corresponding type name
         // in the target schema.
-        target.Type = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
+        target.Type = source.Type.ReplaceNameType(n => targetSchema.TypeDefinitions[n]);
 
         // Copy each argument from the source to the target, replacing the type name of each argument
         // in the source with the corresponding type name in the target schema.
@@ -30,7 +30,7 @@ internal static class ComplexTypeMergeExtensions
 
             // Replace the type name of the argument in the source with the corresponding type name
             // in the target schema.
-            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
+            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.TypeDefinitions[n]);
 
             targetArgument.MergeDeprecationWith(sourceArgument);
 
@@ -45,8 +45,8 @@ internal static class ComplexTypeMergeExtensions
     // names or if the number of arguments does not match.
     public static void MergeField(
         this CompositionContext context,
-        OutputField source,
-        OutputField target,
+        OutputFieldDefinition source,
+        OutputFieldDefinition target,
         string typeName)
     {
         var mergedType = MergeOutputType(source.Type, target.Type);

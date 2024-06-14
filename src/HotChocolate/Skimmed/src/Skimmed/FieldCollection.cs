@@ -5,7 +5,7 @@ namespace HotChocolate.Skimmed;
 
 public sealed class InputFieldDefinitionCollection : FieldDefinitionCollection<InputFieldDefinition>;
 
-public sealed class OutputFieldDefinitionCollection : FieldDefinitionCollection<OutputField>;
+public sealed class OutputFieldDefinitionCollection : FieldDefinitionCollection<OutputFieldDefinition>;
 
 public abstract class FieldDefinitionCollection<TField> : ICollection<TField> where TField : IFieldDefinition
 {

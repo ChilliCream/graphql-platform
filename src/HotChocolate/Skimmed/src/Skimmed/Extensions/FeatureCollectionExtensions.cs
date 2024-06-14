@@ -1,20 +1,17 @@
-using HotChocolate.Features;
-
 namespace HotChocolate.Skimmed;
 
 public static class FeatureCollectionExtensions
 {
-    public static void ModifyFeature<T>(this IFeatureCollection features, Action<T> modification)
-        where T : class, new()
+    public static TypeMetadata GetTypeMetadata(this INamedTypeDefinition type)
     {
-        var feature = features.Get<T>();
+        var metadata = type.Features.Get<TypeMetadata>();
 
-        if(feature is null)
+        if(metadata is null)
         {
-            feature = new T();
-            features.Set(feature);
+            metadata = new TypeMetadata();
+            type.Features.Set(metadata);
         }
 
-        modification(feature);
+        return metadata;
     }
 }

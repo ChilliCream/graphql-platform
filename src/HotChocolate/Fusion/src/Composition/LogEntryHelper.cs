@@ -8,7 +8,7 @@ internal static class LogEntryHelper
 {
     public static LogEntry RemoveMemberNotFound(
         SchemaCoordinate coordinate,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(LogEntryHelper_RemoveMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
@@ -18,7 +18,7 @@ internal static class LogEntryHelper
 
     public static LogEntry RenameMemberNotFound(
         SchemaCoordinate coordinate,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(LogEntryHelper_RenameMemberNotFound, coordinate),
             LogEntryCodes.RemoveMemberNotFound,
@@ -29,7 +29,7 @@ internal static class LogEntryHelper
     public static LogEntry DirectiveArgumentMissing(
         string argumentName,
         Directive directive,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(
                 LogEntryHelper_DirectiveArgumentMissing,
@@ -43,7 +43,7 @@ internal static class LogEntryHelper
     public static LogEntry DirectiveArgumentValueInvalid(
         string argumentName,
         Directive directive,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(
                 LogEntryHelper_DirectiveArgumentValueInvalid,
@@ -77,7 +77,7 @@ internal static class LogEntryHelper
 
     public static LogEntry OutputFieldArgumentMismatch(
         SchemaCoordinate coordinate,
-        OutputField field)
+        OutputFieldDefinition field)
         => new LogEntry(
             LogEntryHelper_OutputFieldArgumentMismatch,
             code: LogEntryCodes.OutputFieldArgumentMismatch,
@@ -87,7 +87,7 @@ internal static class LogEntryHelper
 
     public static LogEntry OutputFieldArgumentSetMismatch(
         SchemaCoordinate coordinate,
-        OutputField field,
+        OutputFieldDefinition field,
         IReadOnlyList<string> targetArgs,
         IReadOnlyList<string> sourceArgs)
         => new LogEntry(
@@ -104,7 +104,7 @@ internal static class LogEntryHelper
     public static LogEntry FieldDependencyCannotBeResolved(
         SchemaCoordinate coordinate,
         FieldNode dependency,
-        Schema schema)
+        SchemaDefinition schema)
         => new LogEntry(
             string.Format(
                 LogEntryHelper_FieldDependencyCannotBeResolved,
@@ -114,7 +114,7 @@ internal static class LogEntryHelper
             coordinate: coordinate,
             schema: schema);
 
-    public static LogEntry TypeNotDeclared(MissingType type, Schema schema)
+    public static LogEntry TypeNotDeclared(MissingTypeDefinition type, SchemaDefinition schema)
         => new(
             string.Format(LogEntryHelper_TypeNotDeclared, type.Name, schema.Name),
             LogEntryCodes.TypeNotDeclared,
@@ -125,7 +125,7 @@ internal static class LogEntryHelper
 
     public static LogEntry OutputFieldTypeMismatch(
         SchemaCoordinate schemaCoordinate,
-        OutputField source,
+        OutputFieldDefinition source,
         IType targetType,
         IType sourceType)
         => new(

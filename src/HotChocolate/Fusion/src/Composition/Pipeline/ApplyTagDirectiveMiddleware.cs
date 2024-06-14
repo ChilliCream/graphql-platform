@@ -22,7 +22,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     {
         var needsDirectiveType = false;
 
-        if (!context.FusionGraph.DirectiveTypes.TryGetDirective(WellKnownDirectives.Tag, out var tagDirectiveType))
+        if (!context.FusionGraph.DirectiveDefinitions.TryGetDirective(WellKnownDirectives.Tag, out var tagDirectiveType))
         {
             tagDirectiveType = new DirectiveType(WellKnownDirectives.Tag)
             {
@@ -42,7 +42,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                 {
                     new InputField(
                         WellKnownDirectives.Name,
-                        new NonNullType(context.FusionGraph.Types["String"])),
+                        new NonNullTypeDefinition(context.FusionGraph.TypeDefinitions["String"])),
                 },
             };
 
@@ -54,7 +54,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         if (context.GetTagContext().HasTags && needsDirectiveType)
         {
-            context.FusionGraph.DirectiveTypes.Add(tagDirectiveType);
+            context.FusionGraph.DirectiveDefinitions.Add(tagDirectiveType);
         }
     }
 
@@ -68,19 +68,19 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         ApplyDirectives(tagContext, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags, makePublic);
 
-        foreach (var type in context.FusionGraph.Types)
+        foreach (var type in context.FusionGraph.TypeDefinitions)
         {
             switch (type)
             {
-                case ObjectType objectType:
+                case ObjectTypeDefinition objectType:
                     Rewrite(context, tagContext, objectType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case InterfaceType interfaceType:
+                case InterfaceTypeDefinition interfaceType:
                     Rewrite(context, tagContext, interfaceType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case UnionType unionType:
+                case UnionTypeDefinition unionType:
                     Rewrite(context, tagContext, unionType, tagDirectiveType, tags, makePublic);
                     break;
 
@@ -92,7 +92,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                     Rewrite(context, tagContext, enumType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case ScalarType scalarType:
+                case ScalarTypeDefinition scalarType:
                     Rewrite(context, tagContext, scalarType, tagDirectiveType, tags, makePublic);
                     break;
 
@@ -101,7 +101,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
             }
         }
 
-        foreach (var directiveType in context.FusionGraph.DirectiveTypes)
+        foreach (var directiveType in context.FusionGraph.DirectiveDefinitions)
         {
             Rewrite(context, tagContext, directiveType, tagDirectiveType, tags, makePublic);
         }
@@ -128,7 +128,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        UnionType type,
+        UnionTypeDefinition type,
         DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
@@ -173,7 +173,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ScalarType type,
+        ScalarTypeDefinition type,
         DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
@@ -198,7 +198,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        OutputField field,
+        OutputFieldDefinition field,
         SchemaCoordinate parent,
         DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,

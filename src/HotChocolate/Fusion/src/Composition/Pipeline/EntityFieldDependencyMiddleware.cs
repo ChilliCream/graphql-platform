@@ -11,7 +11,7 @@ internal class EntityFieldDependencyMiddleware : IMergeMiddleware
     {
         foreach (var entity in context.Entities)
         {
-            var entityType = (ObjectType)context.FusionGraph.Types[entity.Name];
+            var entityType = (ObjectTypeDefinition)context.FusionGraph.TypeDefinitions[entity.Name];
             context.ApplyDependencies(entityType, entity.Metadata);
         }
 
@@ -26,7 +26,7 @@ static file class MergeEntitiesMiddlewareExtensions
 {
     public static void ApplyDependencies(
         this CompositionContext context,
-        ObjectType entityType,
+        ObjectTypeDefinition entityType,
         EntityMetadata metadata)
     {
         var arguments = new Dictionary<string, ITypeNode>();
@@ -49,7 +49,7 @@ static file class MergeEntitiesMiddlewareExtensions
                         arguments,
                         argumentRefLookup);
 
-                    if (!context.TryGetSubgraphMember<OutputField>(
+                    if (!context.TryGetSubgraphMember<OutputFieldDefinition>(
                         dependency.SubgraphName,
                         new SchemaCoordinate(entityType.Name, field.Name),
                         out var subgraphField))
@@ -81,8 +81,8 @@ static file class MergeEntitiesMiddlewareExtensions
 
     private static void ResolveDependencies(
         CompositionContext context,
-        ObjectType entityType,
-        OutputField entityField,
+        ObjectTypeDefinition entityType,
+        OutputFieldDefinition entityField,
         FieldDependency dependency,
         Dictionary<string, ITypeNode> arguments,
         Dictionary<string, string> argumentRefLookup)

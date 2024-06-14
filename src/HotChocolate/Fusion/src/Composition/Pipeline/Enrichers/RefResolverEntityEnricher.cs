@@ -83,9 +83,9 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
 
     private static void TryRegisterEntityResolver(
         EntityGroup entity,
-        ObjectType entityType,
-        OutputField entityResolverField,
-        Schema schema)
+        ObjectTypeDefinition entityType,
+        OutputFieldDefinition entityResolverField,
+        SchemaDefinition schema)
     {
         // Check if the query field type matches the entity type
         // and if it has any arguments that contain the @is directive

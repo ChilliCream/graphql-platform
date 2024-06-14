@@ -40,7 +40,7 @@ internal class NodeEntityEnricher : IEntityEnricher
         {
             if (schema.QueryType is not null &&
                 schema.QueryType.Fields.ContainsName("node") &&
-                schema.Types.TryGetType<InterfaceType>("Node", out var nodeType) &&
+                schema.TypeDefinitions.TryGetType<InterfaceTypeDefinition>("Node", out var nodeType) &&
                 type.Implements.Contains(nodeType))
             {
                 ResolveWithNode(entity, schema, type, entity.Name);
@@ -56,8 +56,8 @@ internal class NodeEntityEnricher : IEntityEnricher
 
     private static void ResolveWithNode(
         EntityGroup entity,
-        Schema sourceSchema,
-        ObjectType sourceType,
+        SchemaDefinition sourceSchema,
+        ObjectTypeDefinition sourceType,
         string targetName)
     {
         var arguments = new List<ArgumentNode>();
@@ -110,8 +110,8 @@ internal class NodeEntityEnricher : IEntityEnricher
 
     private static void ResolveWithNodes(
         EntityGroup entity,
-        Schema sourceSchema,
-        ObjectType sourceType,
+        SchemaDefinition sourceSchema,
+        ObjectTypeDefinition sourceType,
         string targetName)
     {
         var arguments = new List<ArgumentNode>();

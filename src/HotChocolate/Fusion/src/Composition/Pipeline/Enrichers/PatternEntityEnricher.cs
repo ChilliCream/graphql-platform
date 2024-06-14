@@ -71,10 +71,10 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
     private static void TryRegisterEntityResolver(
         EntityGroup entity,
-        ObjectType entityType,
-        OutputField entityResolverField,
-        OutputField keyField,
-        Schema schema)
+        ObjectTypeDefinition entityType,
+        OutputFieldDefinition entityResolverField,
+        OutputFieldDefinition keyField,
+        SchemaDefinition schema)
     {
         if (!TryResolveKeyArgument(entityResolverField, keyField, out var keyArg))
         {
@@ -127,8 +127,8 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     }
 
     private static bool TryResolveKeyArgument(
-        OutputField entityResolverField,
-        OutputField keyField,
+        OutputFieldDefinition entityResolverField,
+        OutputFieldDefinition keyField,
         [NotNullWhen(true)] out InputFieldDefinition? keyArgument)
     {
         if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))
@@ -170,10 +170,10 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
 
     private static void TryRegisterBatchEntityResolver(
         EntityGroup entity,
-        ObjectType entityType,
-        OutputField entityResolverField,
-        OutputField keyField,
-        Schema schema)
+        ObjectTypeDefinition entityType,
+        OutputFieldDefinition entityResolverField,
+        OutputFieldDefinition keyField,
+        SchemaDefinition schema)
     {
         if (!TryResolveBatchKeyArgument(entityResolverField, keyField, out var keyArg))
         {
@@ -240,8 +240,8 @@ internal sealed partial class PatternEntityEnricher : IEntityEnricher
     }
 
     private static bool TryResolveBatchKeyArgument(
-        OutputField entityResolverField,
-        OutputField keyField,
+        OutputFieldDefinition entityResolverField,
+        OutputFieldDefinition keyField,
         [NotNullWhen(true)] out InputFieldDefinition? keyArgument)
     {
         if (entityResolverField.Arguments.TryGetField(keyField.Name, out keyArgument))

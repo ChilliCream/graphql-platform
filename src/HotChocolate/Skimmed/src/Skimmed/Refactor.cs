@@ -1,11 +1,13 @@
+using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
 public static class Refactor
 {
-    public static bool RenameMember(this Schema schema, SchemaCoordinate coordinate, string newName)
+    public static bool RenameMember(this SchemaDefinition schema, SchemaCoordinate coordinate, string newName)
     {
         if (schema is null)
         {
@@ -23,29 +25,31 @@ public static class Refactor
         {
             if (member is INamedTypeDefinition nt)
             {
-                schema.Types.Remove(nt);
-                member.Name = newName;
-                schema.Types.Add(nt);
+                schema.TypeDefinitions.Remove(nt);
+                nt.Name = newName;
+                schema.TypeDefinitions.Add(nt);
+                return true;
             }
             else if (member is DirectiveDefinition dt)
             {
-                schema.DirectiveTypes.Remove(dt);
-                member.Name = newName;
-                schema.DirectiveTypes.Add(dt);
+                schema.DirectiveDefinitions.Remove(dt);
+                dt.Name = newName;
+                schema.DirectiveDefinitions.Add(dt);
+                return true;
             }
-            else
+            else if (member is IFieldDefinition field)
             {
-                member.Name = newName;
+                // TODO: we need to update the field collection
+                field.Name = newName;
+                return true;
             }
-
-            return true;
         }
 
         return false;
     }
 
     public static bool RemoveMember(
-        this Schema schema,
+        this SchemaDefinition schema,
         SchemaCoordinate coordinate,
         bool onRequiredRemoveParent = false)
     {
@@ -56,11 +60,11 @@ public static class Refactor
 
         if (coordinate.OfDirective)
         {
-            if (schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
+            if (schema.DirectiveDefinitions.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
-                    schema.DirectiveTypes.Remove(directive);
+                    schema.DirectiveDefinitions.Remove(directive);
 
                     var rewriter = new RemoveDirectiveRewriter();
                     rewriter.VisitSchema(schema, directive);
@@ -71,7 +75,7 @@ public static class Refactor
                 {
                     if (arg.Type.Kind is TypeKind.NonNull && arg.DefaultValue is null && onRequiredRemoveParent)
                     {
-                        schema.DirectiveTypes.Remove(directive);
+                        schema.DirectiveDefinitions.Remove(directive);
 
                         var rewriter = new RemoveDirectiveRewriter();
                         rewriter.VisitSchema(schema, directive);
@@ -89,11 +93,11 @@ public static class Refactor
             return false;
         }
 
-        if (schema.Types.TryGetType(coordinate.Name, out var type))
+        if (schema.TypeDefinitions.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
-                schema.Types.Remove(type);
+                schema.TypeDefinitions.Remove(type);
                 var rewriter = new RemoveTypeRewriter();
                 rewriter.VisitSchema(schema, type);
                 return true;
@@ -124,7 +128,7 @@ public static class Refactor
                             input.DefaultValue is null &&
                             onRequiredRemoveParent)
                         {
-                            schema.Types.Remove(type);
+                            schema.TypeDefinitions.Remove(type);
                             var rewriter = new RemoveTypeRewriter();
                             rewriter.VisitSchema(schema, type);
                             return true;
@@ -177,7 +181,7 @@ public static class Refactor
     }
 
     public static bool AddDirective(
-        this Schema schema,
+        this SchemaDefinition schema,
         SchemaCoordinate coordinate,
         Directive directive)
     {
@@ -240,7 +244,7 @@ public static class Refactor
 
                     foreach (var argument in directive.Arguments)
                     {
-                        if (!argument.Name.EqualsOrdinal(context.Arg))
+                        if (!argument.Name.Equals(context.Arg, StringComparison.Ordinal))
                         {
                             arguments.Add(argument);
                         }
@@ -263,10 +267,10 @@ public static class Refactor
     {
         // note: by removing fields this could clash with directive arguments
         // we should make this more robust and also remove these.
-        private readonly List<OutputField> _removeOutputFields = [];
+        private readonly List<OutputFieldDefinition> _removeOutputFields = [];
         private readonly List<InputFieldDefinition> _removeInputFields = [];
 
-        public override void VisitOutputFields(FieldDefinitionCollection<OutputField> fields, INamedTypeDefinition context)
+        public override void VisitOutputFields(FieldDefinitionCollection<OutputFieldDefinition> fields, INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -308,7 +312,7 @@ public static class Refactor
             }
         }
 
-        public override void VisitObjectType(ObjectType type, INamedTypeDefinition context)
+        public override void VisitObjectType(ObjectTypeDefinition type, INamedTypeDefinition context)
         {
             var current = type.Implements.Count - 1;
 
@@ -327,7 +331,7 @@ public static class Refactor
             base.VisitObjectType(type, context);
         }
 
-        public override void VisitUnionType(UnionType type, INamedTypeDefinition context)
+        public override void VisitUnionType(UnionTypeDefinition type, INamedTypeDefinition context)
         {
             var current = type.Types.Count - 1;
 
@@ -371,7 +375,7 @@ public static class Refactor
                 EnumValueNode node,
                 RewriterContext context)
             {
-                if (node.Value.EqualsOrdinal(context.Value))
+                if (node.Value.Equals(context.Value, StringComparison.Ordinal))
                 {
                     return null;
                 }
@@ -433,7 +437,7 @@ public static class Refactor
 
                 foreach (var item in node.Fields)
                 {
-                    if (!item.Name.Value.EqualsOrdinal(context.Name))
+                    if (!item.Name.Value.Equals(context.Name, StringComparison.Ordinal))
                     {
                         var rewritten = RewriteNodeOrDefault(item, context);
 

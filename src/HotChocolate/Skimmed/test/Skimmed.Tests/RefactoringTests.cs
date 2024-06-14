@@ -154,9 +154,9 @@ public class RefactoringTests
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
         var directiveType = new DirectiveDefinition("source");
-        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        directiveType.Arguments.Add(new("name", new NonNullTypeDefinition(schema.TypeDefinitions["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.DirectiveTypes.Add(directiveType);
+        schema.DirectiveDefinitions.Add(directiveType);
 
         // act
         var success = schema.AddDirective(
@@ -204,9 +204,9 @@ public class RefactoringTests
 
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
         var directiveType = new DirectiveDefinition("source");
-        directiveType.Arguments.Add(new("name", new NonNullType(schema.Types["String"])));
+        directiveType.Arguments.Add(new("name", new NonNullTypeDefinition(schema.TypeDefinitions["String"])));
         directiveType.Locations = DirectiveLocation.TypeSystem;
-        schema.DirectiveTypes.Add(directiveType);
+        schema.DirectiveDefinitions.Add(directiveType);
 
         // act
         var success = schema.AddDirective(

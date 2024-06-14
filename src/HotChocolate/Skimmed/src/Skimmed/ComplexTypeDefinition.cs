@@ -10,7 +10,7 @@ namespace HotChocolate.Skimmed;
 public abstract class ComplexTypeDefinition(string name) : INamedTypeDefinition
 {
     private string _name = name.EnsureGraphQLName();
-    private List<InterfaceType>? _implements;
+    private List<InterfaceTypeDefinition>? _implements;
     private DirectiveCollection? _directives;
     private FeatureCollection? _features;
 
@@ -33,7 +33,7 @@ public abstract class ComplexTypeDefinition(string name) : INamedTypeDefinition
     /// <summary>
     /// Gets the interfaces that are implemented by this type.
     /// </summary>
-    public IList<InterfaceType> Implements => _implements ??= [];
+    public IList<InterfaceTypeDefinition> Implements => _implements ??= [];
 
     /// <summary>
     /// Gets the fields of this type.

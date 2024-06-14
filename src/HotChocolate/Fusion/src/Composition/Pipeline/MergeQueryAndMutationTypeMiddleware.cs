@@ -26,9 +26,9 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
                 if (context.FusionGraph.QueryType is null)
                 {
-                    targetType = context.FusionGraph.QueryType = new ObjectType(schema.QueryType.Name);
+                    targetType = context.FusionGraph.QueryType = new ObjectTypeDefinition(schema.QueryType.Name);
                     targetType.MergeDescriptionWith(schema.QueryType);
-                    context.FusionGraph.Types.Add(targetType);
+                    context.FusionGraph.TypeDefinitions.Add(targetType);
                 }
 
                 MergeRootFields(
@@ -46,9 +46,9 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
                 if (context.FusionGraph.MutationType is null)
                 {
-                    targetType = context.FusionGraph.MutationType = new ObjectType(schema.MutationType.Name);
+                    targetType = context.FusionGraph.MutationType = new ObjectTypeDefinition(schema.MutationType.Name);
                     targetType.MergeDescriptionWith(schema.MutationType);
-                    context.FusionGraph.Types.Add(targetType);
+                    context.FusionGraph.TypeDefinitions.Add(targetType);
                 }
 
                 MergeRootFields(
@@ -69,9 +69,9 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
     private static void MergeRootFields(
         CompositionContext context,
-        Schema sourceSchema,
-        ObjectType sourceRootType,
-        ObjectType targetRootType,
+        SchemaDefinition sourceSchema,
+        ObjectTypeDefinition sourceRootType,
+        ObjectTypeDefinition targetRootType,
         OperationType operationType,
         HashSet<string> skip)
     {
@@ -131,7 +131,7 @@ file static class MergeQueryTypeMiddlewareExtensions
 {
     public static void ApplyResolvers(
         this CompositionContext context,
-        OutputField field,
+        OutputFieldDefinition field,
         SelectionSetNode selectionSet,
         string subgraphName)
     {
@@ -153,7 +153,7 @@ file static class MergeQueryTypeMiddlewareExtensions
 
     public static void ApplyVariable(
         this CompositionContext context,
-        OutputField field,
+        OutputFieldDefinition field,
         InputFieldDefinition argument,
         string subgraphName)
     {

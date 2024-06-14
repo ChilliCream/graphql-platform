@@ -1,26 +1,54 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Features;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSystemMemberDefinition<Schema>
+/// <summary>
+/// Represents a GraphQL schema definition.
+/// </summary>
+public sealed class SchemaDefinition
+    : INamedTypeSystemMemberDefinition<SchemaDefinition>
+    , IDirectivesProvider
+    , IFeatureProvider
 {
+    /// <inheritdoc />
     public string Name { get; set; } = "default";
 
+    /// <inheritdoc />
     public string? Description { get; set; }
 
-    public ObjectType? QueryType { get; set; }
+    /// <summary>
+    /// Gets or sets the query type.
+    /// </summary>
+    public ObjectTypeDefinition? QueryType { get; set; }
 
-    public ObjectType? MutationType { get; set; }
+    /// <summary>
+    /// Gets or sets the mutation type.
+    /// </summary>
+    public ObjectTypeDefinition? MutationType { get; set; }
 
-    public ObjectType? SubscriptionType { get; set; }
+    /// <summary>
+    /// Gets or sets the subscription type.
+    /// </summary>
+    public ObjectTypeDefinition? SubscriptionType { get; set; }
 
-    public TypeCollection Types { get; } = [];
+    /// <summary>
+    /// Gets the types that are defined in this schema.
+    /// </summary>
+    public TypeCollection TypeDefinitions { get; } = [];
 
-    public DirectiveDefinitionCollection DirectiveTypes { get; } = [];
+    /// <summary>
+    /// Gets the directives that are defined in this schema.
+    /// </summary>
+    public DirectiveDefinitionCollection DirectiveDefinitions { get; } = [];
 
+    /// <summary>
+    /// Gets the directives that are annotated to this schema.
+    /// </summary>
     public DirectiveCollection Directives { get; } = [];
 
-    public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
+    public IFeatureCollection Features { get; } = new FeatureCollection();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMemberDefinition"/> by its <see cref="SchemaCoordinate"/>.
@@ -69,7 +97,7 @@ public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSys
     {
         if (coordinate.OfDirective)
         {
-            if (DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
+            if (DirectiveDefinitions.TryGetDirective(coordinate.Name, out var directive))
             {
                 if (coordinate.ArgumentName is null)
                 {
@@ -88,7 +116,7 @@ public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSys
             return false;
         }
 
-        if (Types.TryGetType(coordinate.Name, out var type))
+        if (TypeDefinitions.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
@@ -146,5 +174,5 @@ public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSys
         return false;
     }
 
-    public static Schema Create(string name) => new() { Name = name, };
+    public static SchemaDefinition Create(string name) => new() { Name = name, };
 }

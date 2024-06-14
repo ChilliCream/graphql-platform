@@ -1571,7 +1571,7 @@ public class RequestPlannerTests
     }
 
     private static async Task<(DocumentNode UserRequest, Execution.Nodes.QueryPlan QueryPlan)> CreateQueryPlanAsync(
-        Skimmed.Schema fusionGraph,
+        Skimmed.SchemaDefinition fusionGraph,
         [StringSyntax("graphql")] string query)
     {
         var document = SchemaFormatter.FormatAsDocument(fusionGraph);

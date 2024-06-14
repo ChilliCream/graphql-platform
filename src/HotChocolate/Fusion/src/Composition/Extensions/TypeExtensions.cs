@@ -9,7 +9,7 @@ internal static class TypeExtensions
     public static void TryApplySource<T>(
         this CompositionContext context,
         T source,
-        Schema sourceSchema,
+        SchemaDefinition sourceSchema,
         T target)
         where T : ITypeSystemMemberDefinition, IHasContextData, IDirectivesProvider
         => TryApplySource(context, source, sourceSchema.Name, target);
@@ -33,7 +33,7 @@ internal static class TypeExtensions
     public static void ApplySource<T>(
         this CompositionContext context,
         T source,
-        Schema sourceSchema,
+        SchemaDefinition sourceSchema,
         T target)
         where T : ITypeSystemMemberDefinition, IHasContextData, IDirectivesProvider
         => ApplySource(context, source, sourceSchema.Name, target);

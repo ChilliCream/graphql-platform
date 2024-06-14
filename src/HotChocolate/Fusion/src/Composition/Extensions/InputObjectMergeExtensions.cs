@@ -14,9 +14,9 @@ internal static class InputObjectMergeExtensions
     public static InputFieldDefinition CreateField(
         this CompositionContext context,
         InputFieldDefinition source,
-        Schema targetSchema)
+        SchemaDefinition targetSchema)
     {
-        var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
+        var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.TypeDefinitions[n]);
         var target = new InputFieldDefinition(source.Name, targetFieldType);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);

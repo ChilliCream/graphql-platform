@@ -1,11 +1,13 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Skimmed;
 
 public abstract class SchemaVisitor<TContext>
 {
-    public virtual void VisitSchema(Schema schema, TContext context)
+    public virtual void VisitSchema(SchemaDefinition schema, TContext context)
     {
-        VisitTypes(schema.Types, context);
-        VisitDirectiveTypes(schema.DirectiveTypes, context);
+        VisitTypes(schema.TypeDefinitions, context);
+        VisitDirectiveTypes(schema.DirectiveDefinitions, context);
     }
 
     public virtual void VisitTypes(TypeCollection types, TContext context)
@@ -29,24 +31,24 @@ public abstract class SchemaVisitor<TContext>
                 break;
 
             case TypeKind.Interface:
-                VisitInterfaceType((InterfaceType)type, context);
+                VisitInterfaceType((InterfaceTypeDefinition)type, context);
                 break;
 
             case TypeKind.Object:
-                VisitObjectType((ObjectType)type, context);
+                VisitObjectType((ObjectTypeDefinition)type, context);
                 break;
 
             case TypeKind.Scalar:
-                if (type is MissingType)
+                if (type is MissingTypeDefinition)
                 {
                     break;
                 }
 
-                VisitScalarType((ScalarType)type, context);
+                VisitScalarType((ScalarTypeDefinition)type, context);
                 break;
 
             case TypeKind.Union:
-                VisitUnionType((UnionType)type, context);
+                VisitUnionType((UnionTypeDefinition)type, context);
                 break;
 
             default:
@@ -74,24 +76,24 @@ public abstract class SchemaVisitor<TContext>
         VisitInputFields(type.Fields, context);
     }
 
-    public virtual void VisitInterfaceType(InterfaceType type, TContext context)
+    public virtual void VisitInterfaceType(InterfaceTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
         VisitOutputFields(type.Fields, context);
     }
 
-    public virtual void VisitObjectType(ObjectType type, TContext context)
+    public virtual void VisitObjectType(ObjectTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
         VisitOutputFields(type.Fields, context);
     }
 
-    public virtual void VisitUnionType(UnionType type, TContext context)
+    public virtual void VisitUnionType(UnionTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
     }
 
-    public virtual void VisitScalarType(ScalarType type, TContext context)
+    public virtual void VisitScalarType(ScalarTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
     }
@@ -148,7 +150,7 @@ public abstract class SchemaVisitor<TContext>
         VisitDirectives(field.Directives, context);
     }
 
-    public virtual void VisitOutputFields(FieldDefinitionCollection<OutputField> fields, TContext context)
+    public virtual void VisitOutputFields(FieldDefinitionCollection<OutputFieldDefinition> fields, TContext context)
     {
         foreach (var field in fields)
         {
@@ -156,7 +158,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitOutputField(OutputField field, TContext context)
+    public virtual void VisitOutputField(OutputFieldDefinition field, TContext context)
     {
         VisitDirectives(field.Directives, context);
         VisitInputFields(field.Arguments, context);

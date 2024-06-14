@@ -93,7 +93,7 @@ internal static class MergeExtensions
 
             if (nullableSource.Equals(target, TypeComparison.Structural))
             {
-                return new NonNullType(nullableSource);
+                return new NonNullTypeDefinition(nullableSource);
             }
 
             if (nullableSource.Kind == target.Kind && nullableSource.Kind == TypeKind.List)

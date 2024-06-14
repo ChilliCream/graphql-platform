@@ -41,7 +41,7 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
 static file class ApplyRenameDirectiveMiddlewareExtensions
 {
     public static IEnumerable<RenameDirective> GetRenameDirectives(
-        this Schema schema,
+        this SchemaDefinition schema,
         CompositionContext context)
     {
         foreach (var directive in schema.Directives[RenameDirectiveName])

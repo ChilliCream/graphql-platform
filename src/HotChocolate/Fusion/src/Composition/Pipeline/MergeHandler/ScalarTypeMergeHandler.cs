@@ -21,12 +21,12 @@ internal sealed class ScalarTypeMergeHandler : ITypeMergeHandler
         }
 
         // Get the target scalar type.
-        var target = context.FusionGraph.Types[typeGroup.Name];
+        var target = context.FusionGraph.TypeDefinitions[typeGroup.Name];
 
         // Merge each part of the scalar type.
         foreach (var part in typeGroup.Parts)
         {
-            var source = (ScalarType)part.Type;
+            var source = (ScalarTypeDefinition)part.Type;
 
             // Try to apply the source scalar type to the target scalar type.
             context.TryApplySource(source, part.Schema, target);

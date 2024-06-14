@@ -14,7 +14,7 @@ public static class SchemaFormatter
             MaxDirectivesPerLine = 0,
         };
 
-    public static string FormatAsString(Schema schema, bool indented = true)
+    public static string FormatAsString(SchemaDefinition schema, bool indented = true)
     {
         var context = new VisitorContext();
         _visitor.VisitSchema(schema, context);
@@ -27,7 +27,7 @@ public static class SchemaFormatter
         return ((DocumentNode)context.Result!).ToString(_options);
     }
 
-    public static DocumentNode FormatAsDocument(Schema schema)
+    public static DocumentNode FormatAsDocument(SchemaDefinition schema)
     {
         var context = new VisitorContext();
         _visitor.VisitSchema(schema, context);
@@ -36,7 +36,7 @@ public static class SchemaFormatter
 
     private sealed class SchemaFormatterVisitor : SchemaVisitor<VisitorContext>
     {
-        public override void VisitSchema(Schema schema, VisitorContext context)
+        public override void VisitSchema(SchemaDefinition schema, VisitorContext context)
         {
             var definitions = new List<IDefinitionNode>();
 
@@ -85,10 +85,10 @@ public static class SchemaFormatter
                 definitions.Add(schemaDefinition);
             }
 
-            VisitTypes(schema.Types, context);
+            VisitTypes(schema.TypeDefinitions, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
-            VisitDirectiveTypes(schema.DirectiveTypes, context);
+            VisitDirectiveTypes(schema.DirectiveDefinitions, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
             context.Result = new DocumentNode(definitions);
@@ -116,7 +116,7 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<ObjectType>().OrderBy(t => t.Name))
+            foreach (var type in types.OfType<ObjectTypeDefinition>().OrderBy(t => t.Name))
             {
                 if (context.Schema?.QueryType == type ||
                    context.Schema?.MutationType == type ||
@@ -129,13 +129,13 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<InterfaceType>().OrderBy(t => t.Name))
+            foreach (var type in types.OfType<InterfaceTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<UnionType>().OrderBy(t => t.Name))
+            foreach (var type in types.OfType<UnionTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -153,7 +153,7 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<ScalarType>().OrderBy(t => t.Name))
+            foreach (var type in types.OfType<ScalarTypeDefinition>().OrderBy(t => t.Name))
             {
                 if (type is { IsSpecScalar: true, } || SpecScalarTypes.IsSpecScalar(type.Name))
                 {
@@ -183,7 +183,7 @@ public static class SchemaFormatter
             context.Result = definitionNodes;
         }
 
-        public override void VisitObjectType(ObjectType type, VisitorContext context)
+        public override void VisitObjectType(ObjectTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -208,7 +208,7 @@ public static class SchemaFormatter
                         fields);
         }
 
-        public override void VisitInterfaceType(InterfaceType type, VisitorContext context)
+        public override void VisitInterfaceType(InterfaceTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -256,7 +256,7 @@ public static class SchemaFormatter
                         fields);
         }
 
-        public override void VisitScalarType(ScalarType type, VisitorContext context)
+        public override void VisitScalarType(ScalarTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -324,7 +324,7 @@ public static class SchemaFormatter
                 directives);
         }
 
-        public override void VisitUnionType(UnionType type, VisitorContext context)
+        public override void VisitUnionType(UnionTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -362,7 +362,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitOutputFields(
-            FieldDefinitionCollection<OutputField> fields,
+            FieldDefinitionCollection<OutputFieldDefinition> fields,
             VisitorContext context)
         {
             var fieldNodes = new List<FieldDefinitionNode>();
@@ -376,7 +376,7 @@ public static class SchemaFormatter
             context.Result = fieldNodes;
         }
 
-        public override void VisitOutputField(OutputField field, VisitorContext context)
+        public override void VisitOutputField(OutputFieldDefinition field, VisitorContext context)
         {
             VisitInputFields(field.Arguments, context);
             var arguments = (List<InputValueDefinitionNode>)context.Result!;
@@ -526,7 +526,7 @@ public static class SchemaFormatter
 
     private sealed class VisitorContext
     {
-        public Schema? Schema { get; set; }
+        public SchemaDefinition? Schema { get; set; }
 
         public object? Result { get; set; }
     }

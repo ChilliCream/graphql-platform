@@ -21,7 +21,7 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
         var typeNames = new HashSet<string>();
         foreach (var schema in context.Subgraphs)
         {
-            foreach (var type in schema.Types)
+            foreach (var type in schema.TypeDefinitions)
             {
                 if (type == schema.QueryType ||
                     type == schema.MutationType ||
@@ -40,8 +40,8 @@ internal  sealed class EnrichEntityMiddleware : IMergeMiddleware
 
             foreach (var schema in context.Subgraphs)
             {
-                if (schema.Types.TryGetType(typeName, out var type) &&
-                    type is ObjectType objectType)
+                if (schema.TypeDefinitions.TryGetType(typeName, out var type) &&
+                    type is ObjectTypeDefinition objectType)
                 {
                     objectTypes.Add(new EntityPart(objectType, schema));
                 }

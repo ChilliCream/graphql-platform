@@ -1,20 +1,20 @@
+using HotChocolate.Types;
 using static HotChocolate.Skimmed.Properties.SkimmedResources;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class NonNullType : ITypeDefinition
+public sealed class StrictNonNullTypeDefinition : ITypeDefinition
 {
-    public NonNullType(ITypeDefinition nullableType)
+    public StrictNonNullTypeDefinition(ITypeDefinition nullableType)
     {
-        if (nullableType is null)
-        {
-            throw new ArgumentNullException(nameof(nullableType));
-        }
+        ArgumentNullException.ThrowIfNull(nullableType);
 
         if (nullableType.Kind is TypeKind.NonNull)
         {
-            throw new ArgumentException(NonNullType_InnerTypeCannotBeNonNull, nameof(nullableType));
+            throw new ArgumentException(
+                NonNullType_InnerTypeCannotBeNonNull,
+                nameof(nullableType));
         }
 
         NullableType = nullableType;
@@ -37,7 +37,7 @@ public sealed class NonNullType : ITypeDefinition
             return ReferenceEquals(this, other);
         }
 
-        return other is NonNullType otherNonNull &&
+        return other is NonNullTypeDefinition otherNonNull &&
             NullableType.Equals(otherNonNull.NullableType, comparison);
     }
 }

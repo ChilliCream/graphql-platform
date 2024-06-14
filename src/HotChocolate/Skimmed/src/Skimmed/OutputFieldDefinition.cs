@@ -1,23 +1,22 @@
 using HotChocolate.Features;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
 /// <summary>
-/// Represents a GraphQL input field definition.
+/// Represents a GraphQL output field definition.
 /// </summary>
-public sealed class InputFieldDefinition(string name, ITypeDefinition? type = null)
+public sealed class OutputFieldDefinition(string name)
     : IFieldDefinition
-    , INamedTypeSystemMemberDefinition<InputFieldDefinition>
+    , INamedTypeSystemMemberDefinition<OutputFieldDefinition>
 {
-    private ITypeDefinition _type = type ?? NotSetTypeDefinition.Default;
     private string _name = name.EnsureGraphQLName();
     private bool _isDeprecated;
     private string? _deprecationReason;
     private DirectiveCollection? _directives;
     private FeatureCollection? _features;
+    private InputFieldDefinitionCollection? _arguments;
 
     /// <inheritdoc />
     public string Name
@@ -28,12 +27,6 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
 
     /// <inheritdoc />
     public string? Description { get; set; }
-
-    /// <summary>
-    /// Gets or sets the default value for this input field.
-    /// </summary>
-    /// <value></value>
-    public IValueNode? DefaultValue { get; set; }
 
     /// <inheritdoc />
     public bool IsDeprecated
@@ -68,31 +61,39 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
     /// <inheritdoc />
     public DirectiveCollection Directives => _directives ??= [];
 
-    public ITypeDefinition Type
-    {
-        get => _type;
-        set => _type = value.ExpectInputType();
-    }
+    /// <summary>
+    /// Gets the arguments that are accepted by this field.
+    /// </summary>
+    public InputFieldDefinitionCollection Arguments => _arguments ??= [];
+
+    /// <summary>
+    /// Gets the type of the field.
+    /// </summary>
+    /// <value>
+    /// The type of the field.
+    /// </value>
+    public ITypeDefinition Type { get; set; } = NotSetTypeDefinition.Default;
+
     /// <inheritdoc />
     public IFeatureCollection Features => _features ??= new FeatureCollection();
 
     /// <summary>
-    /// Gets a string that represents the current object.
+    /// Gets the string representation of this instance.
     /// </summary>
     /// <returns>
-    /// A string that represents the current object.
+    /// The string representation of this instance.
     /// </returns>
     public override string ToString()
-        => RewriteInputField(this).ToString(true);
+        => RewriteOutputField(this).ToString(true);
 
     /// <summary>
-    /// Creates a new instance of <see cref="InputFieldDefinition"/>.
+    /// Creates a new output field definition.
     /// </summary>
     /// <param name="name">
-    /// The name of the input field.
+    /// The name of the output field definition.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="InputFieldDefinition"/>.
+    /// Returns a new instance of <see cref="OutputFieldDefinition"/>.
     /// </returns>
-    public static InputFieldDefinition Create(string name) => new(name);
+    public static OutputFieldDefinition Create(string name) => new(name);
 }

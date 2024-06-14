@@ -2,13 +2,13 @@ using HotChocolate.Skimmed;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
-internal sealed class AlignTypesVisitor(Schema schema) : SchemaVisitor<object>
+internal sealed class AlignTypesVisitor(SchemaDefinition schema) : SchemaVisitor<object>
 {
-    public override void VisitOutputField(OutputField field, object context)
+    public override void VisitOutputField(OutputFieldDefinition field, object context)
     {
         var type = field.Type.NamedType();
 
-        if (schema.Types.TryGetType(type.Name, out var schemaType) &&
+        if (schema.TypeDefinitions.TryGetType(type.Name, out var schemaType) &&
             !schemaType.Equals(type, TypeComparison.Reference))
         {
             field.Type = field.Type.ReplaceNameType(_ => schemaType);
@@ -21,7 +21,7 @@ internal sealed class AlignTypesVisitor(Schema schema) : SchemaVisitor<object>
     {
         var type = field.Type.NamedType();
 
-        if (schema.Types.TryGetType(type.Name, out var schemaType) &&
+        if (schema.TypeDefinitions.TryGetType(type.Name, out var schemaType) &&
             !schemaType.Equals(type, TypeComparison.Reference))
         {
             field.Type = field.Type.ReplaceNameType(_ => schemaType);
