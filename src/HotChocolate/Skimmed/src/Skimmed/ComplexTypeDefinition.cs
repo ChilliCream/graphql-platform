@@ -41,7 +41,7 @@ public abstract class ComplexTypeDefinition(string name) : INamedTypeDefinition
     /// <value>
     /// The fields of this type.
     /// </value>
-    public OutputFieldCollection Fields { get; } = [];
+    public OutputFieldDefinitionCollection Fields { get; } = [];
 
     /// <inheritdoc />
     public IFeatureCollection Features => _features ??= new FeatureCollection();

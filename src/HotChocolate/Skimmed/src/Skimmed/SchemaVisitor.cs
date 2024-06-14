@@ -25,7 +25,7 @@ public abstract class SchemaVisitor<TContext>
                 break;
 
             case TypeKind.InputObject:
-                VisitInputObjectType((InputObjectType)type, context);
+                VisitInputObjectType((InputObjectTypeDefinition)type, context);
                 break;
 
             case TypeKind.Interface:
@@ -68,7 +68,7 @@ public abstract class SchemaVisitor<TContext>
         VisitEnumValues(type.Values, context);
     }
 
-    public virtual void VisitInputObjectType(InputObjectType type, TContext context)
+    public virtual void VisitInputObjectType(InputObjectTypeDefinition type, TContext context)
     {
         VisitDirectives(type.Directives, context);
         VisitInputFields(type.Fields, context);
@@ -135,7 +135,7 @@ public abstract class SchemaVisitor<TContext>
 
     }
 
-    public virtual void VisitInputFields(FieldCollection<InputField> fields, TContext context)
+    public virtual void VisitInputFields(FieldDefinitionCollection<InputFieldDefinition> fields, TContext context)
     {
         foreach (var field in fields)
         {
@@ -143,12 +143,12 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitInputField(InputField field, TContext context)
+    public virtual void VisitInputField(InputFieldDefinition field, TContext context)
     {
         VisitDirectives(field.Directives, context);
     }
 
-    public virtual void VisitOutputFields(FieldCollection<OutputField> fields, TContext context)
+    public virtual void VisitOutputFields(FieldDefinitionCollection<OutputField> fields, TContext context)
     {
         foreach (var field in fields)
         {

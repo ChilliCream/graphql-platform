@@ -6,18 +6,18 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 namespace HotChocolate.Skimmed;
 
 /// <summary>
-/// Represents a GraphQL enum type definition.
+/// Represents a GraphQL input object type definition.
 /// </summary>
-public sealed class EnumTypeDefinition(string name)
+public sealed class InputObjectTypeDefinition(string name)
     : INamedTypeDefinition
-    , INamedTypeSystemMemberDefinition<EnumTypeDefinition>
+    , INamedTypeSystemMemberDefinition<InputObjectTypeDefinition>
 {
     private string _name = name.EnsureGraphQLName();
     private DirectiveCollection? _directives;
     private FeatureCollection? _features;
 
     /// <inheritdoc />
-    public TypeKind Kind => TypeKind.Enum;
+    public TypeKind Kind => TypeKind.InputObject;
 
     /// <inheritdoc />
     public string Name
@@ -33,27 +33,19 @@ public sealed class EnumTypeDefinition(string name)
     public DirectiveCollection Directives => _directives ??= [];
 
     /// <summary>
-    /// Gets the values of this enum type.
+    /// Gets the fields of this input object type definition.
     /// </summary>
     /// <value>
-    /// The values of this enum type.
+    /// The fields of this input object type definition.
     /// </value>
-    public EnumValueCollection Values { get; } = [];
+    public InputFieldDefinitionCollection Fields { get; } = [];
 
     /// <inheritdoc />
     public IFeatureCollection Features => _features ??= new FeatureCollection();
 
-    /// <summary>
-    /// Gets the string representation of this instance.
-    /// </summary>
-    /// <returns>
-    /// The string representation of this instance.
-    /// </returns>
-    public override string ToString()
-        => RewriteEnumType(this).ToString(true);
-
     /// <inheritdoc />
-    public bool Equals(ITypeDefinition? other) => Equals(other, TypeComparison.Reference);
+    public bool Equals(ITypeDefinition? other)
+        => Equals(other, TypeComparison.Reference);
 
     /// <inheritdoc />
     public bool Equals(ITypeDefinition? other, TypeComparison comparison)
@@ -63,17 +55,26 @@ public sealed class EnumTypeDefinition(string name)
             return ReferenceEquals(this, other);
         }
 
-        return other is EnumTypeDefinition otherEnum && otherEnum.Name.Equals(Name, StringComparison.Ordinal);
+        return other is InputObjectTypeDefinition otherInput && otherInput.Name.Equals(Name, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="EnumTypeDefinition"/>.
+    /// Gets the string representation of this instance.
+    /// </summary>
+    /// <returns>
+    /// The string representation of this instance.
+    /// </returns>
+    public override string ToString()
+        => RewriteInputObjectType(this).ToString(true);
+
+    /// <summary>
+    /// Creates a new input object type definition.
     /// </summary>
     /// <param name="name">
-    /// The name of the enum type.
+    /// The name of the input object type definition.
     /// </param>
     /// <returns>
-    /// Returns a new instance of <see cref="EnumTypeDefinition"/>.
+    /// Returns a new instance of <see cref="InputObjectTypeDefinition"/>.
     /// </returns>
-    public static EnumTypeDefinition Create(string name) => new(name);
+    public static InputObjectTypeDefinition Create(string name) => new(name);
 }

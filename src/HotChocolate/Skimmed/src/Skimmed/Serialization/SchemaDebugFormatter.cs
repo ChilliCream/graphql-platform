@@ -37,7 +37,7 @@ internal static class SchemaDebugFormatter
             type.Directives.Select(RewriteDirective).ToArray(),
             type.Types.Select(RewriteTypeRef).Cast<NamedTypeNode>().ToArray());
 
-    public static InputObjectTypeDefinitionNode RewriteInputObjectType(InputObjectType type)
+    public static InputObjectTypeDefinitionNode RewriteInputObjectType(InputObjectTypeDefinition type)
         => new InputObjectTypeDefinitionNode(
             null,
             new NameNode(type.Name),
@@ -88,7 +88,7 @@ internal static class SchemaDebugFormatter
             RewriteTypeRef(field.Type),
             field.Directives.Select(RewriteDirective).ToArray());
 
-    public static InputValueDefinitionNode RewriteInputField(InputField field)
+    public static InputValueDefinitionNode RewriteInputField(InputFieldDefinition field)
         => new InputValueDefinitionNode(
             null,
             new NameNode(field.Name),

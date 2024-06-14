@@ -75,7 +75,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
-                case InputObjectType sourceType:
+                case InputObjectTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
@@ -146,7 +146,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                     MergeEnumType(context, sourceType, schema);
                     break;
 
-                case InputObjectType sourceType:
+                case InputObjectTypeDefinition sourceType:
                     MergeInputType(context, sourceType, schema);
                     break;
 
@@ -217,10 +217,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void MergeInputType(
         CompositionContext context,
-        InputObjectType source,
+        InputObjectTypeDefinition source,
         Schema targetSchema)
     {
-        if (targetSchema.Types.TryGetType<InputObjectType>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<InputObjectTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 

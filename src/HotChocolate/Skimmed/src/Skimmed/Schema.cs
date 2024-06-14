@@ -110,7 +110,7 @@ public sealed class Schema : IDirectivesProvider, IHasContextData, INamedTypeSys
 
                 if (type.Kind is TypeKind.InputObject)
                 {
-                    var inputType = (InputObjectType)type;
+                    var inputType = (InputObjectTypeDefinition)type;
                     if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
                         member = input;

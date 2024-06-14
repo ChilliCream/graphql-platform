@@ -29,7 +29,7 @@ internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
                             break;
 
                         case TypeKind.InputObject:
-                            context.FusionGraph.Types.Add(new InputObjectType(type.Name));
+                            context.FusionGraph.Types.Add(new InputObjectTypeDefinition(type.Name));
                             break;
 
                         case TypeKind.Enum:

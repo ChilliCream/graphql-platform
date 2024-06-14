@@ -76,7 +76,7 @@ public static class SchemaParser
                         break;
 
                     case InputObjectTypeDefinitionNode:
-                        schema.Types.Add(new InputObjectType(typeDef.Name.Value));
+                        schema.Types.Add(new InputObjectTypeDefinition(typeDef.Name.Value));
                         break;
 
                     case InterfaceTypeDefinitionNode:
@@ -119,7 +119,7 @@ public static class SchemaParser
                         break;
 
                     case InputObjectTypeExtensionNode:
-                        var inputObjectType = new InputObjectType(typeExt.Name.Value);
+                        var inputObjectType = new InputObjectTypeDefinition(typeExt.Name.Value);
                         inputObjectType.ContextData.Add(TypeExtension, true);
                         schema.Types.Add(inputObjectType);
                         break;
@@ -174,7 +174,7 @@ public static class SchemaParser
                     case InputObjectTypeDefinitionNode typeDef:
                         BuildInputObjectType(
                             schema,
-                            (InputObjectType)schema.Types[typeDef.Name.Value],
+                            (InputObjectTypeDefinition)schema.Types[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -237,7 +237,7 @@ public static class SchemaParser
                     case InputObjectTypeExtensionNode typeDef:
                         ExtendInputObjectType(
                             schema,
-                            (InputObjectType)schema.Types[typeDef.Name.Value],
+                            (InputObjectTypeDefinition)schema.Types[typeDef.Name.Value],
                             typeDef);
                         break;
 
@@ -392,7 +392,7 @@ public static class SchemaParser
                     throw new Exception("");
                 }
 
-                var argument = new InputField(argumentNode.Name.Value);
+                var argument = new InputFieldDefinition(argumentNode.Name.Value);
                 argument.Description = argumentNode.Description?.Value;
                 argument.Type = schema.Types.ResolveType(argumentNode.Type);
                 argument.DefaultValue = argumentNode.DefaultValue;
@@ -414,7 +414,7 @@ public static class SchemaParser
 
     private static void BuildInputObjectType(
         Schema schema,
-        InputObjectType type,
+        InputObjectTypeDefinition type,
         InputObjectTypeDefinitionNode node)
     {
         type.Description = node.Description?.Value;
@@ -423,7 +423,7 @@ public static class SchemaParser
 
     private static void ExtendInputObjectType(
         Schema schema,
-        InputObjectType type,
+        InputObjectTypeDefinition type,
         InputObjectTypeDefinitionNodeBase node)
     {
         BuildDirectiveCollection(schema, type.Directives, node.Directives);
@@ -436,7 +436,7 @@ public static class SchemaParser
                 throw new Exception("");
             }
 
-            var field = new InputField(fieldNode.Name.Value);
+            var field = new InputFieldDefinition(fieldNode.Name.Value);
             field.Description = fieldNode.Description?.Value;
             field.Type = schema.Types.ResolveType(fieldNode.Type);
 
@@ -560,7 +560,7 @@ public static class SchemaParser
 
         foreach (var argumentNode in node.Arguments)
         {
-            var argument = new InputField(argumentNode.Name.Value);
+            var argument = new InputFieldDefinition(argumentNode.Name.Value);
             argument.Description = argumentNode.Description?.Value;
             argument.Type = schema.Types.ResolveType(argumentNode.Type);
             argument.DefaultValue = argumentNode.DefaultValue;

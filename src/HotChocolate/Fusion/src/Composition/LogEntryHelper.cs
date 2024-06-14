@@ -142,7 +142,7 @@ internal static class LogEntryHelper
 
     public static LogEntry InputFieldTypeMismatch(
         SchemaCoordinate schemaCoordinate,
-        InputField source,
+        InputFieldDefinition source,
         IType targetType,
         IType sourceType)
         => new(

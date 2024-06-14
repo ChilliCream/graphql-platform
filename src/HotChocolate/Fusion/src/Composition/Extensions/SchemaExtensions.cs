@@ -33,9 +33,9 @@ internal static class SchemaExtensions
         context.Name.Insert(0, type.Name);
         return context.Name.ToString();
     }
-    
+
     public static VariableDefinition CreateVariableField(
-        this InputField argument,
+        this InputFieldDefinition argument,
         IsDirective directive,
         string variableName)
     {

@@ -84,7 +84,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                     Rewrite(context, tagContext, unionType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case InputObjectType inputObjectType:
+                case InputObjectTypeDefinition inputObjectType:
                     Rewrite(context, tagContext, inputObjectType, tagDirectiveType, tags, makePublic);
                     break;
 
@@ -137,7 +137,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        InputObjectType type,
+        InputObjectTypeDefinition type,
         DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
@@ -217,7 +217,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        InputField field,
+        InputFieldDefinition field,
         SchemaCoordinate parent,
         DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,

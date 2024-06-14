@@ -24,14 +24,14 @@ internal static class ComplexTypeMergeExtensions
         // in the source with the corresponding type name in the target schema.
         foreach (var sourceArgument in source.Arguments)
         {
-            var targetArgument = new InputField(sourceArgument.Name);
+            var targetArgument = new InputFieldDefinition(sourceArgument.Name);
             targetArgument.MergeDescriptionWith(sourceArgument);
             targetArgument.DefaultValue = sourceArgument.DefaultValue;
 
             // Replace the type name of the argument in the source with the corresponding type name
             // in the target schema.
             targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
-            
+
             targetArgument.MergeDeprecationWith(sourceArgument);
 
             target.Arguments.Add(targetArgument);
@@ -85,7 +85,7 @@ internal static class ComplexTypeMergeExtensions
             if (source.Arguments.TryGetField(targetArgument.Name, out var sourceArgument))
             {
                 argMatchCount++;
-                
+
                 var mergedInputType = MergeInputType(sourceArgument.Type, targetArgument.Type);
 
                 if (mergedInputType is null)
@@ -98,7 +98,7 @@ internal static class ComplexTypeMergeExtensions
                             targetArgument.Type));
                     return;
                 }
-                
+
                 if(!targetArgument.Type.Equals(mergedInputType, TypeComparison.Structural))
                 {
                     targetArgument.Type = mergedInputType;

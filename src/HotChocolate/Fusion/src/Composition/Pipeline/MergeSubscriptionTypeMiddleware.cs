@@ -14,7 +14,7 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
             {
                 continue;
             }
-            
+
             var subscriptionType = context.FusionGraph.SubscriptionType!;
 
             if (context.FusionGraph.SubscriptionType is null)
@@ -23,7 +23,7 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
                 subscriptionType.MergeDescriptionWith(schema.SubscriptionType);
                 context.FusionGraph.Types.Add(subscriptionType);
             }
-            
+
             if (!subscriptionType.Name.EqualsOrdinal(schema.SubscriptionType.Name))
             {
                 context.Log.Write(
@@ -104,7 +104,7 @@ static file class MergeSubscriptionTypeMiddlewareExtensions
     public static void ApplyVariable(
         this CompositionContext context,
         OutputField field,
-        InputField argument,
+        InputFieldDefinition argument,
         string subgraphName)
     {
         field.Directives.Add(

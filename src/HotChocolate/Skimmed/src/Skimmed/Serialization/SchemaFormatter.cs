@@ -141,7 +141,7 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<InputObjectType>().OrderBy(t => t.Name))
+            foreach (var type in types.OfType<InputObjectTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -233,7 +233,7 @@ public static class SchemaFormatter
                         fields);
         }
 
-        public override void VisitInputObjectType(InputObjectType type, VisitorContext context)
+        public override void VisitInputObjectType(InputObjectTypeDefinition type, VisitorContext context)
         {
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
@@ -362,7 +362,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitOutputFields(
-            FieldCollection<OutputField> fields,
+            FieldDefinitionCollection<OutputField> fields,
             VisitorContext context)
         {
             var fieldNodes = new List<FieldDefinitionNode>();
@@ -396,7 +396,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitInputFields(
-            FieldCollection<InputField> fields,
+            FieldDefinitionCollection<InputFieldDefinition> fields,
             VisitorContext context)
         {
             var inputNodes = new List<InputValueDefinitionNode>();
@@ -410,7 +410,7 @@ public static class SchemaFormatter
             context.Result = inputNodes;
         }
 
-        public override void VisitInputField(InputField field, VisitorContext context)
+        public override void VisitInputField(InputFieldDefinition field, VisitorContext context)
         {
             VisitDirectives(field.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;

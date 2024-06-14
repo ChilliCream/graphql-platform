@@ -116,7 +116,7 @@ public static class Refactor
 
                 if (type.Kind is TypeKind.InputObject)
                 {
-                    var inputType = (InputObjectType) type;
+                    var inputType = (InputObjectTypeDefinition) type;
 
                     if (inputType.Fields.TryGetField(coordinate.MemberName, out var input))
                     {
@@ -264,9 +264,9 @@ public static class Refactor
         // note: by removing fields this could clash with directive arguments
         // we should make this more robust and also remove these.
         private readonly List<OutputField> _removeOutputFields = [];
-        private readonly List<InputField> _removeInputFields = [];
+        private readonly List<InputFieldDefinition> _removeInputFields = [];
 
-        public override void VisitOutputFields(FieldCollection<OutputField> fields, INamedTypeDefinition context)
+        public override void VisitOutputFields(FieldDefinitionCollection<OutputField> fields, INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -287,7 +287,7 @@ public static class Refactor
             }
         }
 
-        public override void VisitInputFields(FieldCollection<InputField> fields, INamedTypeDefinition context)
+        public override void VisitInputFields(FieldDefinitionCollection<InputFieldDefinition> fields, INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -349,7 +349,7 @@ public static class Refactor
 
     private sealed class RemoveEnumValueRewriter : SchemaVisitor<(EnumTypeDefinition Type, EnumValue Value)>
     {
-        public override void VisitInputField(InputField field, (EnumTypeDefinition Type, EnumValue Value) context)
+        public override void VisitInputField(InputFieldDefinition field, (EnumTypeDefinition Type, EnumValue Value) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))
@@ -407,9 +407,9 @@ public static class Refactor
         }
     }
 
-    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectType Type, InputField Field)>
+    private sealed class RemoveInputFieldRewriter : SchemaVisitor<(InputObjectTypeDefinition Type, InputFieldDefinition Field)>
     {
-        public override void VisitInputField(InputField field, (InputObjectType Type, InputField Field) context)
+        public override void VisitInputField(InputFieldDefinition field, (InputObjectTypeDefinition Type, InputFieldDefinition Field) context)
         {
             if (field.DefaultValue is not null &&
                 ReferenceEquals(field.Type.NamedType(), context.Type))

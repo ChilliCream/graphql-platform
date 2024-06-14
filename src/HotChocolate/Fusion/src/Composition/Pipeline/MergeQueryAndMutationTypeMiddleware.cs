@@ -32,11 +32,11 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 }
 
                 MergeRootFields(
-                    context, 
-                    schema, 
-                    schema.QueryType, 
-                    targetType, 
-                    OperationType.Query, 
+                    context,
+                    schema,
+                    schema.QueryType,
+                    targetType,
+                    OperationType.Query,
                     skipOnQuery);
             }
 
@@ -154,7 +154,7 @@ file static class MergeQueryTypeMiddlewareExtensions
     public static void ApplyVariable(
         this CompositionContext context,
         OutputField field,
-        InputField argument,
+        InputFieldDefinition argument,
         string subgraphName)
     {
         field.Directives.Add(

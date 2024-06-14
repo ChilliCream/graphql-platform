@@ -14,7 +14,7 @@ public sealed class DirectiveDefinition(string name)
     , IFeatureProvider
 {
     private string _name = name.EnsureGraphQLName();
-    private InputFieldCollection? _arguments;
+    private InputFieldDefinitionCollection? _arguments;
     private FeatureCollection? _features;
 
     /// <summary>
@@ -45,7 +45,7 @@ public sealed class DirectiveDefinition(string name)
     /// <summary>
     /// Gets the arguments that are defined on this directive.
     /// </summary>
-    public InputFieldCollection Arguments => _arguments ??= [];
+    public InputFieldDefinitionCollection Arguments => _arguments ??= [];
 
     /// <summary>
     /// Gets the locations where this directive can be applied.

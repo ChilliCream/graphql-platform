@@ -21,12 +21,12 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
         }
 
         // Get the target input object type from the fusion graph
-        var target = (InputObjectType)context.FusionGraph.Types[typeGroup.Name];
+        var target = (InputObjectTypeDefinition)context.FusionGraph.Types[typeGroup.Name];
 
         // Merge each part of the input object type into the target input object type
         foreach (var part in typeGroup.Parts)
         {
-            var source = (InputObjectType)part.Type;
+            var source = (InputObjectTypeDefinition)part.Type;
             MergeType(context, source, part.Schema, target, context.FusionGraph);
         }
 
@@ -35,9 +35,9 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
 
     private static void MergeType(
         CompositionContext context,
-        InputObjectType source,
+        InputObjectTypeDefinition source,
         Schema sourceSchema,
-        InputObjectType target,
+        InputObjectTypeDefinition target,
         Schema targetSchema)
     {
         // Try to apply the source input object type to the target input object type

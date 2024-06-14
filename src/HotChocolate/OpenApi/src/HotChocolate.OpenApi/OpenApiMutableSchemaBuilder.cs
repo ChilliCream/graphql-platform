@@ -302,7 +302,7 @@ internal sealed class OpenApiMutableSchemaBuilder
             {
                 var parameterName = GraphQLNamingHelper.CreateName(parameter.Name);
 
-                outputField.Arguments.Add(new Skimmed.InputField(parameterName)
+                outputField.Arguments.Add(new Skimmed.InputFieldDefinition(parameterName)
                 {
                     DefaultValue = CreateValueNodeFromOpenApiAny(parameter.Schema.Default),
                     Description = parameter.Description,
@@ -348,7 +348,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 ? inputArgumentName
                 : Skimmed.TypeExtensions.NamedType(inputType).Name.FirstCharacterToLower();
 
-            var inputField = new Skimmed.InputField(inputFieldName)
+            var inputField = new Skimmed.InputFieldDefinition(inputFieldName)
             {
                 Description = operation.RequestBody.Description,
                 Type = inputType,
@@ -476,7 +476,7 @@ internal sealed class OpenApiMutableSchemaBuilder
                 break;
 
             case JsonSchemaTypes.Object when isInput:
-                var inputObjectType = new Skimmed.InputObjectType(typeName)
+                var inputObjectType = new Skimmed.InputObjectTypeDefinition(typeName)
                 {
                     Description = openApiSchema.Description,
                 };
@@ -567,13 +567,13 @@ internal sealed class OpenApiMutableSchemaBuilder
         };
     }
 
-    private Skimmed.InputField CreateInputField(
+    private Skimmed.InputFieldDefinition CreateInputField(
         string schemaTitle,
         string propertyName,
         OpenApiSchema propertySchema,
         bool required = false)
     {
-        return new Skimmed.InputField(GraphQLNamingHelper.CreateName(propertyName))
+        return new Skimmed.InputFieldDefinition(GraphQLNamingHelper.CreateName(propertyName))
         {
             ContextData =
             {
