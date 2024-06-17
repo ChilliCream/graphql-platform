@@ -3,9 +3,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition.Types;
 
-public class LookupDirectiveDefinition : DirectiveDefinition
+public sealed class InternalDirectiveDefinition : DirectiveDefinition
 {
-    internal LookupDirectiveDefinition() : base(CompositeSchemaSpec.Lookup.Name)
+    internal InternalDirectiveDefinition() : base(CompositeSchemaSpec.Internal.Name)
     {
         Locations = DirectiveLocation.FieldDefinition;
     }
