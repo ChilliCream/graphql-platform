@@ -28,7 +28,6 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 {
                     targetType = context.FusionGraph.QueryType = new ObjectTypeDefinition(schema.QueryType.Name);
                     targetType.MergeDescriptionWith(schema.QueryType);
-                    context.FusionGraph.Types.Add(targetType);
                 }
 
                 MergeRootFields(

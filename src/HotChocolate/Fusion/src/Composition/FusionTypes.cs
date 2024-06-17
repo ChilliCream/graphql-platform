@@ -322,6 +322,7 @@ public sealed class FusionTypes
         =>  clientName is null
             ? new Directive(
                 Transport,
+                new ArgumentAssignment(SubgraphArg, subgraphName),
                 new ArgumentAssignment(LocationArg, location.ToString()),
                 new ArgumentAssignment(KindArg, "HTTP"))
             : new Directive(

@@ -18,7 +18,8 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 
     public bool TryGetType<T>(string name, [NotNullWhen(true)] out T? type) where T : INamedTypeDefinition
     {
-        if (_types.TryGetValue(name, out var namedType) && namedType is T casted)
+        if (_types.TryGetValue(name, out var namedType)
+            && namedType is T casted)
         {
             type = casted;
             return true;
@@ -35,6 +36,18 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
             throw new ArgumentNullException(nameof(item));
         }
 
+        if(_types.TryGetValue(item.Name, out var existing))
+        {
+            if (ReferenceEquals(existing, item))
+            {
+                return;
+            }
+
+            throw new ArgumentException(
+                $"The type `{item.Name}` is already defined.",
+                nameof(item));
+        }
+
         _types.Add(item.Name, item);
     }
 
@@ -45,8 +58,8 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
             throw new ArgumentNullException(nameof(item));
         }
 
-        if (_types.TryGetValue(item.Name, out var itemToDelete) &&
-            ReferenceEquals(item, itemToDelete))
+        if (_types.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete))
         {
             _types.Remove(item.Name);
             return true;
@@ -67,8 +80,8 @@ public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
             throw new ArgumentNullException(nameof(item));
         }
 
-        if (_types.TryGetValue(item.Name, out var itemToDelete) &&
-            ReferenceEquals(item, itemToDelete))
+        if (_types.TryGetValue(item.Name, out var itemToDelete)
+            && ReferenceEquals(item, itemToDelete))
         {
             return true;
         }

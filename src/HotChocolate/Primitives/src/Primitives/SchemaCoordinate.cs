@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static System.StringComparison;
-using static HotChocolate.Properties.PrimitiveResources;
+using static HotChocolate.Properties.PrimitivesResources;
 
 namespace HotChocolate;
 

@@ -34,7 +34,7 @@ public class SpecScalarTests
     {
         var type = BuiltIns.ID.Create();
         Assert.Equal(BuiltIns.ID.Name, type.Name);
-        Assert.False(type.IsSpecScalar);
+        Assert.True(type.IsSpecScalar);
         Assert.False(type.IsReadOnly);
     }
 
@@ -43,7 +43,7 @@ public class SpecScalarTests
     {
         var type = BuiltIns.Int.Create();
         Assert.Equal(BuiltIns.Int.Name, type.Name);
-        Assert.False(type.IsSpecScalar);
+        Assert.True(type.IsSpecScalar);
         Assert.False(type.IsReadOnly);
     }
 }

@@ -21,12 +21,17 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AbstractionResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Properties\PrimitivesResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitivesResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\PrimitiveResources.resx">
+    <EmbeddedResource Update="Properties\PrimitivesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>AbstractionResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>PrimitivesResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

@@ -494,14 +494,14 @@ public static class SchemaFormatter
         {
             const string defaultReason = "No longer supported.";
 
-            var arguments = reason is null
-                ? Array.Empty<ArgumentNode>()
-                : [new ArgumentNode(defaultReason, reason),];
+            if (string.IsNullOrEmpty(reason))
+            {
+                reason = defaultReason;
+            }
 
             return new DirectiveNode(
-                null,
                 new NameNode(BuiltIns.Deprecated.Name),
-                arguments);
+                new[] { new ArgumentNode(BuiltIns.Deprecated.Reason, reason) });
         }
 
         private static StringValueNode? CreateDescription(string? description)
