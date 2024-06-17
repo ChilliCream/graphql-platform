@@ -99,9 +99,9 @@ public sealed class OpenApiMutableSchemaBuilderTests
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
-            openApiDocument,
-            httpClientName: "SyntheticWithTags").Build();
+        var mutableSchema = OpenApiMutableSchemaBuilder
+            .Create(openApiDocument, httpClientName: "SyntheticWithTags")
+            .Build();
 
         // Assert
         var sdl = SchemaFormatter.FormatAsString(mutableSchema);

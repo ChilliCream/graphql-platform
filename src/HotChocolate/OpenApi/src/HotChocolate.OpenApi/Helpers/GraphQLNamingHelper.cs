@@ -53,7 +53,7 @@ internal static class GraphQLNamingHelper
         return stringBuilder.ToString();
     }
 
-    public static string CreateObjectWrapperTypeName(Skimmed.IType type)
+    public static string CreateObjectWrapperTypeName(Skimmed.ITypeDefinition type)
     {
         var typeName = JsonNamingPolicy.CamelCase.ConvertName(
             Skimmed.TypeExtensions.NamedType(type).Name).FirstCharacterToUpper();

@@ -1,8 +1,7 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
-using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
+using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -11,8 +10,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     public ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         Rewrite(context, context.Features.MakeTagsPublic());
-        return !context.Log.HasErrors 
-            ? next(context) 
+        return !context.Log.HasErrors
+            ? next(context)
             : ValueTask.CompletedTask;
     }
 
@@ -22,27 +21,29 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     {
         var needsDirectiveType = false;
 
-        if (!context.FusionGraph.DirectiveTypes.TryGetDirective(WellKnownDirectives.Tag, out var tagDirectiveType))
+        if (!context.FusionGraph.DirectiveDefinitions.TryGetDirective(
+                WellKnownDirectives.Tag,
+                out var tagDirectiveType))
         {
-            tagDirectiveType = new DirectiveType(WellKnownDirectives.Tag)
+            tagDirectiveType = new DirectiveDefinition(WellKnownDirectives.Tag)
             {
-                Locations = DirectiveLocation.Object |
-                    DirectiveLocation.Interface |
-                    DirectiveLocation.Union |
-                    DirectiveLocation.InputObject |
-                    DirectiveLocation.Enum |
-                    DirectiveLocation.Scalar |
-                    DirectiveLocation.FieldDefinition |
-                    DirectiveLocation.InputFieldDefinition |
-                    DirectiveLocation.ArgumentDefinition |
-                    DirectiveLocation.EnumValue |
-                    DirectiveLocation.Schema,
+                Locations = Types.DirectiveLocation.Object |
+                    Types.DirectiveLocation.Interface |
+                    Types.DirectiveLocation.Union |
+                    Types.DirectiveLocation.InputObject |
+                    Types.DirectiveLocation.Enum |
+                    Types.DirectiveLocation.Scalar |
+                    Types.DirectiveLocation.FieldDefinition |
+                    Types.DirectiveLocation.InputFieldDefinition |
+                    Types.DirectiveLocation.ArgumentDefinition |
+                    Types.DirectiveLocation.EnumValue |
+                    Types.DirectiveLocation.Schema,
                 IsRepeatable = true,
                 Arguments =
                 {
-                    new InputField(
+                    new InputFieldDefinition(
                         WellKnownDirectives.Name,
-                        new NonNullType(context.FusionGraph.Types["String"])),
+                        new NonNullTypeDefinition(context.FusionGraph.Types["String"])),
                 },
             };
 
@@ -54,13 +55,13 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         if (context.GetTagContext().HasTags && needsDirectiveType)
         {
-            context.FusionGraph.DirectiveTypes.Add(tagDirectiveType);
+            context.FusionGraph.DirectiveDefinitions.Add(tagDirectiveType);
         }
     }
 
     private static void Rewrite(
         CompositionContext context,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -72,27 +73,27 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         {
             switch (type)
             {
-                case ObjectType objectType:
+                case ObjectTypeDefinition objectType:
                     Rewrite(context, tagContext, objectType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case InterfaceType interfaceType:
+                case InterfaceTypeDefinition interfaceType:
                     Rewrite(context, tagContext, interfaceType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case UnionType unionType:
+                case UnionTypeDefinition unionType:
                     Rewrite(context, tagContext, unionType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case InputObjectType inputObjectType:
+                case InputObjectTypeDefinition inputObjectType:
                     Rewrite(context, tagContext, inputObjectType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case EnumType enumType:
+                case EnumTypeDefinition enumType:
                     Rewrite(context, tagContext, enumType, tagDirectiveType, tags, makePublic);
                     break;
 
-                case ScalarType scalarType:
+                case ScalarTypeDefinition scalarType:
                     Rewrite(context, tagContext, scalarType, tagDirectiveType, tags, makePublic);
                     break;
 
@@ -101,7 +102,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
             }
         }
 
-        foreach (var directiveType in context.FusionGraph.DirectiveTypes)
+        foreach (var directiveType in context.FusionGraph.DirectiveDefinitions)
         {
             Rewrite(context, tagContext, directiveType, tagDirectiveType, tags, makePublic);
         }
@@ -110,8 +111,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ComplexType type,
-        DirectiveType tagDirectiveType,
+        ComplexTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -128,8 +129,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        UnionType type,
-        DirectiveType tagDirectiveType,
+        UnionTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
         => ApplyDirectives(context, tagContext, type, new(type.Name), tagDirectiveType, tags, makePublic);
@@ -137,8 +138,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        InputObjectType type,
-        DirectiveType tagDirectiveType,
+        InputObjectTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -155,8 +156,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        EnumType type,
-        DirectiveType tagDirectiveType,
+        EnumTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -173,8 +174,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        ScalarType type,
-        DirectiveType tagDirectiveType,
+        ScalarTypeDefinition type,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
         => ApplyDirectives(context, tagContext, type, new(type.Name), tagDirectiveType, tags, makePublic);
@@ -182,8 +183,8 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        DirectiveType type,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition type,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -198,9 +199,9 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        OutputField field,
+        OutputFieldDefinition field,
         SchemaCoordinate parent,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -217,9 +218,9 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     private static void Rewrite(
         CompositionContext context,
         TagContext tagContext,
-        InputField field,
+        InputFieldDefinition field,
         SchemaCoordinate parent,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
     {
@@ -238,7 +239,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         TagContext tagContext,
         EnumValue value,
         SchemaCoordinate parent,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
         => ApplyDirectives(
@@ -255,10 +256,10 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         TagContext tagContext,
         T merged,
         SchemaCoordinate coordinate,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
-        where T : ITypeSystemMember, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         var parts = context.GetSubgraphMembers<T>(coordinate);
         ApplyDirectives(tagContext, merged, parts, tagDirectiveType, tags, makePublic);
@@ -273,10 +274,10 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
         TagContext tagContext,
         T merged,
         IEnumerable<T> parts,
-        DirectiveType tagDirectiveType,
+        DirectiveDefinition tagDirectiveType,
         HashSet<string> tags,
         bool makePublic)
-        where T : ITypeSystemMember, IHasDirectives
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         tags.Clear();
 
@@ -301,11 +302,11 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                     {
                         continue;
                     }
-                    
+
                     merged.Directives.Add(
                         new Directive(
                             tagDirectiveType,
-                            new Argument(WellKnownDirectives.Name, name)));
+                            new ArgumentAssignment(WellKnownDirectives.Name, name)));
                     tagContext.HasTags = true;
                 }
             }

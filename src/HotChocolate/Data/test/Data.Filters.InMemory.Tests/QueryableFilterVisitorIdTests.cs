@@ -458,12 +458,12 @@ public class QueryableFilterVisitorIdTests : IClassFixture<SchemaCache>
         // act
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
-                .SetDocument("{ root(where: { barShort: { neq: \"Rm9vOjEy==\"}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { neq: \"Rm9vOjEy\"}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
-                .SetDocument("{ root(where: { barShort: { neq: \"Rm9vOjEz==\"}}){ barShort}}")
+                .SetDocument("{ root(where: { barShort: { neq: \"Rm9vOjEz\"}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(

@@ -98,7 +98,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        ((ObjectType)schema.Types["Foo"]).Fields["field"]
+        ((ObjectTypeDefinition)schema.Types["Foo"]).Fields["field"]
             .ToString().MatchInlineSnapshot(
                 """
                 field: String
@@ -122,7 +122,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        ((ObjectType)schema.Types["Foo"]).Fields["field"]
+        ((ObjectTypeDefinition)schema.Types["Foo"]).Fields["field"]
             .ToString().MatchInlineSnapshot(
                 """
                 field(a: String): String
@@ -146,7 +146,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        ((InputObjectType)schema.Types["Foo"]).Fields["field"]
+        ((InputObjectTypeDefinition)schema.Types["Foo"]).Fields["field"]
             .ToString().MatchInlineSnapshot(
                 """
                 field: String

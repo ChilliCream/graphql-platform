@@ -25,6 +25,7 @@ static class Helpers
         Path.Combine("HotChocolate", "Marten"),
         Path.Combine("HotChocolate", "MongoDb"),
         Path.Combine("HotChocolate", "OpenApi"),
+        Path.Combine("HotChocolate", "Primitives"),
         Path.Combine("HotChocolate", "Raven"),
         Path.Combine("HotChocolate", "Skimmed"),
         Path.Combine("HotChocolate", "Fusion"),

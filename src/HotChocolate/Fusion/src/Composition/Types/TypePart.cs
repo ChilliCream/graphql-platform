@@ -12,5 +12,5 @@ namespace HotChocolate.Fusion.Composition;
 /// The schema that describes the operations and data types supported by the composite type.
 /// </param>
 internal sealed record TypePart(
-    INamedType Type,
-    Schema Schema);
+    INamedTypeDefinition Type,
+    SchemaDefinition Schema);
