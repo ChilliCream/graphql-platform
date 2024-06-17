@@ -34,7 +34,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                 context.Subgraphs.Add(schema);
             }
 
-            foreach (var missingType in schema.TypeDefinitions.OfType<MissingTypeDefinition>())
+            foreach (var missingType in schema.Types.OfType<MissingTypeDefinition>())
             {
                 context.Log.Write(TypeNotDeclared(missingType, schema));
             }
@@ -67,7 +67,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         SchemaDefinition schema,
         SchemaDefinition extension)
     {
-        foreach (var type in extension.TypeDefinitions)
+        foreach (var type in extension.Types)
         {
             switch (type)
             {
@@ -116,7 +116,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         SchemaDefinition targetSchema)
         where T : INamedTypeDefinition, INamedTypeSystemMemberDefinition<T>
     {
-        if (targetSchema.TypeDefinitions.TryGetType(sourceType.Name, out var targetType))
+        if (targetSchema.Types.TryGetType(sourceType.Name, out var targetType))
         {
             if (targetType.Kind != sourceType.Kind)
             {
@@ -130,7 +130,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         }
 
         targetType = T.Create(sourceType.Name);
-        targetSchema.TypeDefinitions.Add(targetType);
+        targetSchema.Types.Add(targetType);
     }
 
     private static void MergeTypes(
@@ -138,7 +138,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         SchemaDefinition schema,
         SchemaDefinition extension)
     {
-        foreach (var type in extension.TypeDefinitions)
+        foreach (var type in extension.Types)
         {
             switch (type)
             {
@@ -174,7 +174,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         EnumTypeDefinition source,
         SchemaDefinition targetSchema)
     {
-        if (targetSchema.TypeDefinitions.TryGetType<EnumTypeDefinition>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<EnumTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -220,7 +220,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         InputObjectTypeDefinition source,
         SchemaDefinition targetSchema)
     {
-        if (targetSchema.TypeDefinitions.TryGetType<InputObjectTypeDefinition>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<InputObjectTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -253,7 +253,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         SchemaDefinition targetSchema)
         where T : ComplexTypeDefinition
     {
-        if (targetSchema.TypeDefinitions.TryGetType<T>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<T>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -294,7 +294,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         ScalarTypeDefinition source,
         SchemaDefinition targetSchema)
     {
-        if (targetSchema.TypeDefinitions.TryGetType<ScalarTypeDefinition>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<ScalarTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -310,7 +310,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         UnionTypeDefinition source,
         SchemaDefinition targetSchema)
     {
-        if (targetSchema.TypeDefinitions.TryGetType<UnionTypeDefinition>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<UnionTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 

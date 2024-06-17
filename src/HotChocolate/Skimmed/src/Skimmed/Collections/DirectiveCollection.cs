@@ -5,7 +5,7 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a collection of directives.
 /// </summary>
-public sealed class DirectiveCollection : ICollection<Directive>
+public sealed class DirectiveCollection : IDirectiveCollection
 {
     private readonly List<Directive> _directives = [];
 
@@ -17,9 +17,8 @@ public sealed class DirectiveCollection : ICollection<Directive>
     {
         get
         {
-            var directives = _directives;
-            return directives.Count != 0
-                ? FindDirectives(directives, directiveName)
+            return _directives.Count != 0
+                ? FindDirectives(_directives, directiveName)
                 : [];
         }
     }
@@ -37,7 +36,7 @@ public sealed class DirectiveCollection : ICollection<Directive>
         }
     }
 
-    public Directive? FirstOrDefault(string name)
+    public Directive? FirstOrDefault(string directiveName)
     {
         var directives = _directives;
 
@@ -45,7 +44,7 @@ public sealed class DirectiveCollection : ICollection<Directive>
         {
             var directive = directives[i];
 
-            if (directive.Name.Equals(name, StringComparison.Ordinal))
+            if (directive.Name.Equals(directiveName, StringComparison.Ordinal))
             {
                 return directive;
             }
@@ -97,5 +96,4 @@ public sealed class DirectiveCollection : ICollection<Directive>
 
     IEnumerator IEnumerable.GetEnumerator()
         => GetEnumerator();
-
 }

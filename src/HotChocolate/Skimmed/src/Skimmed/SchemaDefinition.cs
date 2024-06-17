@@ -11,44 +11,171 @@ public sealed class SchemaDefinition
     : INamedTypeSystemMemberDefinition<SchemaDefinition>
     , IDirectivesProvider
     , IFeatureProvider
+    , ISealable
 {
+    private ObjectTypeDefinition? _queryType;
+    private ObjectTypeDefinition? _mutationType;
+    private ObjectTypeDefinition? _subscriptionType;
+    private ITypeDefinitionCollection? _typeDefinitions;
+    private IDirectiveDefinitionCollection? _directiveDefinitions;
+    private IDirectiveCollection? _directives;
+    private IFeatureCollection? _features;
+    private bool _isReadOnly;
+
     /// <inheritdoc />
     public string Name { get; set; } = "default";
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IDescriptionProvider.Description" />
     public string? Description { get; set; }
 
     /// <summary>
     /// Gets or sets the query type.
     /// </summary>
-    public ObjectTypeDefinition? QueryType { get; set; }
+    public ObjectTypeDefinition? QueryType
+    {
+        get => _queryType;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The type is sealed and cannot be modified.");
+            }
+
+            _queryType = value;
+
+            if (value is not null && !Types.Contains(value))
+            {
+                Types.Add(value);
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or sets the mutation type.
     /// </summary>
-    public ObjectTypeDefinition? MutationType { get; set; }
+    public ObjectTypeDefinition? MutationType
+    {
+        get => _mutationType;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The type is sealed and cannot be modified.");
+            }
+
+            _mutationType = value;
+
+            if (value is not null && !Types.Contains(value))
+            {
+                Types.Add(value);
+            }
+        }
+    }
 
     /// <summary>
     /// Gets or sets the subscription type.
     /// </summary>
-    public ObjectTypeDefinition? SubscriptionType { get; set; }
+    public ObjectTypeDefinition? SubscriptionType
+    {
+        get => _subscriptionType;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The type is sealed and cannot be modified.");
+            }
+
+            _subscriptionType = value;
+
+            if (value is not null && !Types.Contains(value))
+            {
+                Types.Add(value);
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the types that are defined in this schema.
     /// </summary>
-    public TypeCollection TypeDefinitions { get; } = [];
+    public ITypeDefinitionCollection Types
+        => _typeDefinitions ??= new TypeDefinitionCollection();
 
     /// <summary>
     /// Gets the directives that are defined in this schema.
     /// </summary>
-    public DirectiveDefinitionCollection DirectiveDefinitions { get; } = [];
+    public IDirectiveDefinitionCollection DirectiveDefinitions
+        => _directiveDefinitions ??= new DirectiveDefinitionCollection();
 
     /// <summary>
     /// Gets the directives that are annotated to this schema.
     /// </summary>
-    public DirectiveCollection Directives { get; } = [];
+    public IDirectiveCollection Directives
+        => _directives ??= new DirectiveCollection();
 
-    public IFeatureCollection Features { get; } = new FeatureCollection();
+    /// <inheritdoc />
+    public IFeatureCollection Features
+        => _features ??= new FeatureCollection();
+
+    public bool IsReadOnly => _isReadOnly;
+
+    /// <summary>
+    /// Seals this type and makes it read-only.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal void Seal()
+    {
+        if (_isReadOnly)
+        {
+            return;
+        }
+
+        if(_typeDefinitions is null || _typeDefinitions.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "A schema must have at least one type.");
+        }
+
+        _typeDefinitions = _typeDefinitions is null
+            ? ReadOnlyTypeDefinitionCollection.Empty
+            : ReadOnlyTypeDefinitionCollection.From(_typeDefinitions);
+
+        _directiveDefinitions = _directiveDefinitions is null
+            ? ReadOnlyDirectiveDefinitionCollection.Empty
+            : ReadOnlyDirectiveDefinitionCollection.From(_directiveDefinitions);
+
+        _directives = _directives is null
+            ? ReadOnlyDirectiveCollection.Empty
+            : ReadOnlyDirectiveCollection.From(_directives);
+
+        _features = _features is null
+            ? EmptyFeatureCollection.Default
+            : new ReadOnlyFeatureCollection(_features);
+
+        foreach (var typeDefinition in _typeDefinitions)
+        {
+            ((ISealable)typeDefinition).Seal();
+        }
+
+        foreach (var directiveDefinition in _directiveDefinitions)
+        {
+            ((ISealable)directiveDefinition).Seal();
+        }
+
+        foreach (var feature in _features)
+        {
+            if(feature.Value is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
+        _isReadOnly = true;
+    }
+
+    void ISealable.Seal() => Seal();
 
     /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMemberDefinition"/> by its <see cref="SchemaCoordinate"/>.
@@ -116,7 +243,7 @@ public sealed class SchemaDefinition
             return false;
         }
 
-        if (TypeDefinitions.TryGetType(coordinate.Name, out var type))
+        if (Types.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {

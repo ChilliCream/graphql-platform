@@ -95,7 +95,7 @@ internal static class CompositionContextExtensions
             else if (selection is InlineFragmentNode inlineFragment)
             {
                 if (inlineFragment.TypeCondition is null ||
-                    !context.FusionGraph.TypeDefinitions.TryGetType<ComplexTypeDefinition>(
+                    !context.FusionGraph.Types.TryGetType<ComplexTypeDefinition>(
                         inlineFragment.TypeCondition.Name.Value,
                         out var fragmentType))
                 {

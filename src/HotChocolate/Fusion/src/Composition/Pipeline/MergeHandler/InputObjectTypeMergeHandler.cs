@@ -21,7 +21,7 @@ internal sealed class InputObjectTypeMergeHandler : ITypeMergeHandler
         }
 
         // Get the target input object type from the fusion graph
-        var target = (InputObjectTypeDefinition)context.FusionGraph.TypeDefinitions[typeGroup.Name];
+        var target = (InputObjectTypeDefinition)context.FusionGraph.Types[typeGroup.Name];
 
         // Merge each part of the input object type into the target input object type
         foreach (var part in typeGroup.Parts)

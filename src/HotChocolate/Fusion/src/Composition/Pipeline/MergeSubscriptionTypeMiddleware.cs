@@ -21,7 +21,7 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
             {
                 subscriptionType = context.FusionGraph.SubscriptionType = new ObjectTypeDefinition(schema.SubscriptionType.Name);
                 subscriptionType.MergeDescriptionWith(schema.SubscriptionType);
-                context.FusionGraph.TypeDefinitions.Add(subscriptionType);
+                context.FusionGraph.Types.Add(subscriptionType);
             }
 
             if (!subscriptionType.Name.EqualsOrdinal(schema.SubscriptionType.Name))

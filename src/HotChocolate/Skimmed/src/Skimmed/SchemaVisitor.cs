@@ -6,13 +6,13 @@ public abstract class SchemaVisitor<TContext>
 {
     public virtual void VisitSchema(SchemaDefinition schema, TContext context)
     {
-        VisitTypes(schema.TypeDefinitions, context);
+        VisitTypes(schema.Types, context);
         VisitDirectiveTypes(schema.DirectiveDefinitions, context);
     }
 
-    public virtual void VisitTypes(TypeCollection types, TContext context)
+    public virtual void VisitTypes(ITypeDefinitionCollection typesDefinition, TContext context)
     {
-        foreach (var type in types)
+        foreach (var type in typesDefinition)
         {
             VisitType(type, context);
         }
@@ -56,7 +56,7 @@ public abstract class SchemaVisitor<TContext>
         }
     }
 
-    public virtual void VisitDirectiveTypes(DirectiveDefinitionCollection directiveTypes, TContext context)
+    public virtual void VisitDirectiveTypes(IDirectiveDefinitionCollection directiveTypes, TContext context)
     {
         foreach (var type in directiveTypes)
         {
@@ -98,7 +98,7 @@ public abstract class SchemaVisitor<TContext>
         VisitDirectives(type.Directives, context);
     }
 
-    public virtual void VisitEnumValues(EnumValueCollection values, TContext context)
+    public virtual void VisitEnumValues(IEnumValueCollection values, TContext context)
     {
         foreach (var value in values)
         {
@@ -111,7 +111,7 @@ public abstract class SchemaVisitor<TContext>
         VisitDirectives(value.Directives, context);
     }
 
-    public virtual void VisitDirectives(DirectiveCollection directives, TContext context)
+    public virtual void VisitDirectives(IDirectiveCollection directives, TContext context)
     {
         foreach (var directive in directives)
         {
@@ -137,7 +137,7 @@ public abstract class SchemaVisitor<TContext>
 
     }
 
-    public virtual void VisitInputFields(FieldDefinitionCollection<InputFieldDefinition> fields, TContext context)
+    public virtual void VisitInputFields(IFieldDefinitionCollection<InputFieldDefinition> fields, TContext context)
     {
         foreach (var field in fields)
         {
@@ -150,7 +150,7 @@ public abstract class SchemaVisitor<TContext>
         VisitDirectives(field.Directives, context);
     }
 
-    public virtual void VisitOutputFields(FieldDefinitionCollection<OutputFieldDefinition> fields, TContext context)
+    public virtual void VisitOutputFields(IFieldDefinitionCollection<OutputFieldDefinition> fields, TContext context)
     {
         foreach (var field in fields)
         {

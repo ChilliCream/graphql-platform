@@ -6,7 +6,7 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a GraphQL interface type definition.
 /// </summary>
-public sealed class InterfaceTypeDefinition(string name)
+public  class InterfaceTypeDefinition(string name)
     : ComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<InterfaceTypeDefinition>
 {

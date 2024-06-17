@@ -26,18 +26,18 @@ public sealed class MissingTypeDefinition(string name)
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Scalar;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="INamedTypeDefinition.Name" />
     public string Name
     {
         get => _name;
         set => _name = value.EnsureGraphQLName();
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="INamedTypeDefinition.Description" />
     public string? Description { get; set; }
 
     /// <inheritdoc />
-    public DirectiveCollection Directives => _directives ??= [];
+    public IDirectiveCollection Directives => _directives ??= [];
 
     /// <inheritdoc />
     public IFeatureCollection Features => _features ??= new FeatureCollection();

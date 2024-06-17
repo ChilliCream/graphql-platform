@@ -24,7 +24,7 @@ public class SchemaParserTests
 
         // assert
         Assert.Collection(
-            schema.TypeDefinitions.OrderBy(t => t.Name),
+            schema.Types.OrderBy(t => t.Name),
             type =>
             {
                 var fooType = Assert.IsType<ObjectTypeDefinition>(type);
@@ -61,7 +61,7 @@ public class SchemaParserTests
 
         // assert
         Assert.Collection(
-            schema.TypeDefinitions.OrderBy(t => t.Name),
+            schema.Types.OrderBy(t => t.Name),
             type =>
             {
                 var stringType = Assert.IsType<MissingTypeDefinition>(type);
@@ -98,7 +98,7 @@ public class SchemaParserTests
 
         // assert
         Assert.Collection(
-            schema.TypeDefinitions.OrderBy(t => t.Name),
+            schema.Types.OrderBy(t => t.Name),
             type =>
             {
                 var stringType = Assert.IsType<MissingTypeDefinition>(type);
@@ -108,7 +108,7 @@ public class SchemaParserTests
             {
                 var fooType = Assert.IsType<ObjectTypeDefinition>(type);
                 Assert.Equal("Foo", fooType.Name);
-                Assert.True(fooType.ContextData.ContainsKey(TypeExtension));
+                Assert.True(fooType.IsTypeExtension());
                 Assert.Collection(
                     fooType.Fields,
                     field =>

@@ -18,7 +18,7 @@ internal static class ComplexTypeMergeExtensions
 
         // Replace the type name of the field in the source with the corresponding type name
         // in the target schema.
-        target.Type = source.Type.ReplaceNameType(n => targetSchema.TypeDefinitions[n]);
+        target.Type = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
 
         // Copy each argument from the source to the target, replacing the type name of each argument
         // in the source with the corresponding type name in the target schema.
@@ -30,7 +30,7 @@ internal static class ComplexTypeMergeExtensions
 
             // Replace the type name of the argument in the source with the corresponding type name
             // in the target schema.
-            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.TypeDefinitions[n]);
+            targetArgument.Type = sourceArgument.Type.ReplaceNameType(n => targetSchema.Types[n]);
 
             targetArgument.MergeDeprecationWith(sourceArgument);
 

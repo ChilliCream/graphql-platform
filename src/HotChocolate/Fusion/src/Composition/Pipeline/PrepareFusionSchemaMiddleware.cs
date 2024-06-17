@@ -8,36 +8,36 @@ internal sealed class PrepareFusionSchemaMiddleware : IMergeMiddleware
     {
         foreach (var entity in context.Entities)
         {
-            context.FusionGraph.TypeDefinitions.Add(new ObjectTypeDefinition(entity.Name));
+            context.FusionGraph.Types.Add(new ObjectTypeDefinition(entity.Name));
         }
 
         foreach (var schema in context.Subgraphs)
         {
-            foreach (var type in schema.TypeDefinitions)
+            foreach (var type in schema.Types)
             {
                 if (type.Kind is not TypeKind.Object &&
-                    !context.FusionGraph.TypeDefinitions.ContainsName(type.Name))
+                    !context.FusionGraph.Types.ContainsName(type.Name))
                 {
                     switch (type.Kind)
                     {
                         case TypeKind.Interface:
-                            context.FusionGraph.TypeDefinitions.Add(new InterfaceTypeDefinition(type.Name));
+                            context.FusionGraph.Types.Add(new InterfaceTypeDefinition(type.Name));
                             break;
 
                         case TypeKind.Union:
-                            context.FusionGraph.TypeDefinitions.Add(new UnionTypeDefinition(type.Name));
+                            context.FusionGraph.Types.Add(new UnionTypeDefinition(type.Name));
                             break;
 
                         case TypeKind.InputObject:
-                            context.FusionGraph.TypeDefinitions.Add(new InputObjectTypeDefinition(type.Name));
+                            context.FusionGraph.Types.Add(new InputObjectTypeDefinition(type.Name));
                             break;
 
                         case TypeKind.Enum:
-                            context.FusionGraph.TypeDefinitions.Add(new EnumTypeDefinition(type.Name));
+                            context.FusionGraph.Types.Add(new EnumTypeDefinition(type.Name));
                             break;
 
                         case TypeKind.Scalar:
-                            context.FusionGraph.TypeDefinitions.Add(new ScalarTypeDefinition(type.Name));
+                            context.FusionGraph.Types.Add(new ScalarTypeDefinition(type.Name));
                             break;
 
                         default:

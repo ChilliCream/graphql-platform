@@ -6,7 +6,7 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a GraphQL object type definition.
 /// </summary>
-public sealed class ObjectTypeDefinition(string name)
+public class ObjectTypeDefinition(string name)
     : ComplexTypeDefinition(name)
     , INamedTypeSystemMemberDefinition<ObjectTypeDefinition>
 {

@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
-using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -36,22 +35,22 @@ public sealed class FusionTypes
                 nameof(fusionGraph));
         }
 
-        if (!_fusionGraph.TypeDefinitions.TryGetType<ScalarTypeDefinition>(SpecScalarTypes.Boolean, out var booleanType))
+        if (!_fusionGraph.Types.TryGetType<ScalarTypeDefinition>(BuiltIns.Boolean, out var booleanType))
         {
-            booleanType = new ScalarTypeDefinition(SpecScalarTypes.Boolean) { IsSpecScalar = true, };
-            _fusionGraph.TypeDefinitions.Add(booleanType);
+            booleanType = new ScalarTypeDefinition(BuiltIns.Boolean) { IsSpecScalar = true, };
+            _fusionGraph.Types.Add(booleanType);
         }
 
-        if (!_fusionGraph.TypeDefinitions.TryGetType<ScalarTypeDefinition>(SpecScalarTypes.Int, out var intType))
+        if (!_fusionGraph.Types.TryGetType<ScalarTypeDefinition>(BuiltIns.Int, out var intType))
         {
-            intType = new ScalarTypeDefinition(SpecScalarTypes.Int) { IsSpecScalar = true, };
-            _fusionGraph.TypeDefinitions.Add(intType);
+            intType = new ScalarTypeDefinition(BuiltIns.Int) { IsSpecScalar = true, };
+            _fusionGraph.Types.Add(intType);
         }
 
-        if (!_fusionGraph.TypeDefinitions.TryGetType<ScalarTypeDefinition>(SpecScalarTypes.String, out var stringType))
+        if (!_fusionGraph.Types.TryGetType<ScalarTypeDefinition>(BuiltIns.String, out var stringType))
         {
-            stringType = new ScalarTypeDefinition(SpecScalarTypes.String) { IsSpecScalar = true, };
-            _fusionGraph.TypeDefinitions.Add(stringType);
+            stringType = new ScalarTypeDefinition(BuiltIns.String) { IsSpecScalar = true, };
+            _fusionGraph.Types.Add(stringType);
         }
 
         Selection = RegisterScalarType(names.SelectionScalar);
@@ -125,7 +124,7 @@ public sealed class FusionTypes
     {
         var scalarType = new ScalarTypeDefinition(name);
         scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.TypeDefinitions.Add(scalarType);
+        _fusionGraph.Types.Add(scalarType);
         return scalarType;
     }
 
@@ -138,7 +137,7 @@ public sealed class FusionTypes
         argumentDef.Fields.Add(new InputFieldDefinition(NameArg, new NonNullTypeDefinition(typeName)));
         argumentDef.Fields.Add(new InputFieldDefinition(TypeArg, new NonNullTypeDefinition(type)));
         argumentDef.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.TypeDefinitions.Add(argumentDef);
+        _fusionGraph.Types.Add(argumentDef);
         return argumentDef;
     }
 
@@ -149,7 +148,7 @@ public sealed class FusionTypes
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
         resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.TypeDefinitions.Add(resolverKind);
+        _fusionGraph.Types.Add(resolverKind);
         return resolverKind;
     }
 

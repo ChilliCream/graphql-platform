@@ -23,7 +23,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        schema.TypeDefinitions["Foo"].ToString().MatchInlineSnapshot(
+        schema.Types["Foo"].ToString().MatchInlineSnapshot(
             """
             type Foo {
               field: String
@@ -48,7 +48,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        schema.TypeDefinitions["Foo"].ToString().MatchInlineSnapshot(
+        schema.Types["Foo"].ToString().MatchInlineSnapshot(
             """
             interface Foo {
               field: String
@@ -73,7 +73,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        schema.TypeDefinitions["Foo"].ToString().MatchInlineSnapshot(
+        schema.Types["Foo"].ToString().MatchInlineSnapshot(
             """
             input Foo {
               field: String
@@ -98,7 +98,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        ((ObjectTypeDefinition)schema.TypeDefinitions["Foo"]).Fields["field"]
+        ((ObjectTypeDefinition)schema.Types["Foo"]).Fields["field"]
             .ToString().MatchInlineSnapshot(
                 """
                 field: String
@@ -122,7 +122,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        ((ObjectTypeDefinition)schema.TypeDefinitions["Foo"]).Fields["field"]
+        ((ObjectTypeDefinition)schema.Types["Foo"]).Fields["field"]
             .ToString().MatchInlineSnapshot(
                 """
                 field(a: String): String
@@ -146,7 +146,7 @@ public class ToStringTests
         var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
 
         // assert
-        ((InputObjectTypeDefinition)schema.TypeDefinitions["Foo"]).Fields["field"]
+        ((InputObjectTypeDefinition)schema.Types["Foo"]).Fields["field"]
             .ToString().MatchInlineSnapshot(
                 """
                 field: String

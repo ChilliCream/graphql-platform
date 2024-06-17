@@ -8,7 +8,7 @@ internal sealed class AlignTypesVisitor(SchemaDefinition schema) : SchemaVisitor
     {
         var type = field.Type.NamedType();
 
-        if (schema.TypeDefinitions.TryGetType(type.Name, out var schemaType) &&
+        if (schema.Types.TryGetType(type.Name, out var schemaType) &&
             !schemaType.Equals(type, TypeComparison.Reference))
         {
             field.Type = field.Type.ReplaceNameType(_ => schemaType);
@@ -21,7 +21,7 @@ internal sealed class AlignTypesVisitor(SchemaDefinition schema) : SchemaVisitor
     {
         var type = field.Type.NamedType();
 
-        if (schema.TypeDefinitions.TryGetType(type.Name, out var schemaType) &&
+        if (schema.Types.TryGetType(type.Name, out var schemaType) &&
             !schemaType.Equals(type, TypeComparison.Reference))
         {
             field.Type = field.Type.ReplaceNameType(_ => schemaType);

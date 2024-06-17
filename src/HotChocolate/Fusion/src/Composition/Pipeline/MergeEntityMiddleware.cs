@@ -11,7 +11,7 @@ internal class MergeEntityMiddleware : IMergeMiddleware
     {
         foreach (var entity in context.Entities)
         {
-            var entityType = (ObjectTypeDefinition)context.FusionGraph.TypeDefinitions[entity.Name];
+            var entityType = (ObjectTypeDefinition)context.FusionGraph.Types[entity.Name];
 
             foreach (var part in entity.Parts)
             {
@@ -43,7 +43,7 @@ file static class MergeEntitiesMiddlewareExtensions
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
-                target.Implements.Add((InterfaceTypeDefinition)context.FusionGraph.TypeDefinitions[interfaceType.Name]);
+                target.Implements.Add((InterfaceTypeDefinition)context.FusionGraph.Types[interfaceType.Name]);
             }
         }
 

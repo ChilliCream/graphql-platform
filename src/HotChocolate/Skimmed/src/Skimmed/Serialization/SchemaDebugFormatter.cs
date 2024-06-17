@@ -117,7 +117,7 @@ internal static class SchemaDebugFormatter
     public static ArgumentNode RewriteArgument(ArgumentAssignment argument)
         => new ArgumentNode(null, new NameNode(argument.Name), argument.Value);
 
-    private static NameNode RewriteDirectiveLocation(Language.DirectiveLocation location)
+    private static NameNode RewriteDirectiveLocation(Types.DirectiveLocation location)
         => new NameNode(location.ToString());
 
     public static ITypeNode RewriteTypeRef(ITypeDefinition type)

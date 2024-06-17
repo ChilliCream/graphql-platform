@@ -11,29 +11,68 @@ namespace HotChocolate.Skimmed;
 public sealed class InputFieldDefinition(string name, ITypeDefinition? type = null)
     : IFieldDefinition
     , INamedTypeSystemMemberDefinition<InputFieldDefinition>
+    , ISealable
 {
     private ITypeDefinition _type = type ?? NotSetTypeDefinition.Default;
     private string _name = name.EnsureGraphQLName();
+    private string? _description;
     private bool _isDeprecated;
     private string? _deprecationReason;
-    private DirectiveCollection? _directives;
-    private FeatureCollection? _features;
+    private IDirectiveCollection? _directives;
+    private IFeatureCollection? _features;
+    private IValueNode? _defaultValue;
+    private bool _isReadOnly;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IFieldDefinition.Name" />
     public string Name
     {
         get => _name;
-        set => _name = value.EnsureGraphQLName();
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The field is sealed and cannot be modified.");
+            }
+
+            _name = value.EnsureGraphQLName();
+        }
     }
 
-    /// <inheritdoc />
-    public string? Description { get; set; }
+    /// <inheritdoc cref="IFieldDefinition.Description" />
+    public string? Description
+    {
+        get => _description;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The field is sealed and cannot be modified.");
+            }
+
+            _description = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the default value for this input field.
     /// </summary>
     /// <value></value>
-    public IValueNode? DefaultValue { get; set; }
+    public IValueNode? DefaultValue
+    {
+        get => _defaultValue;
+        set
+        {
+            if(_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The field is sealed and cannot be modified.");
+            }
+
+            _defaultValue = value;
+        }
+    }
 
     /// <inheritdoc />
     public bool IsDeprecated
@@ -41,6 +80,12 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
         get => _isDeprecated;
         set
         {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The field is sealed and cannot be modified.");
+            }
+
             _isDeprecated = value;
 
             if (!value)
@@ -56,6 +101,12 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
         get => _deprecationReason;
         set
         {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The field is sealed and cannot be modified.");
+            }
+
             _deprecationReason = value;
 
             if (!string.IsNullOrEmpty(value))
@@ -66,15 +117,68 @@ public sealed class InputFieldDefinition(string name, ITypeDefinition? type = nu
     }
 
     /// <inheritdoc />
-    public DirectiveCollection Directives => _directives ??= [];
+    public IDirectiveCollection Directives
+        => _directives ??= new DirectiveCollection();
 
     public ITypeDefinition Type
     {
         get => _type;
-        set => _type = value.ExpectInputType();
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The field is sealed and cannot be modified.");
+            }
+
+            _type = value.ExpectInputType();
+        }
     }
+
     /// <inheritdoc />
-    public IFeatureCollection Features => _features ??= new FeatureCollection();
+    public IFeatureCollection Features
+        => _features ??= new FeatureCollection();
+
+    /// <inheritdoc />
+    public bool IsReadOnly => _isReadOnly;
+
+    /// <summary>
+    /// Seals this type makes it read-only.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal void Seal()
+    {
+        if (_isReadOnly)
+        {
+            return;
+        }
+
+        if(_type is NotSetTypeDefinition or MissingTypeDefinition)
+        {
+            throw new InvalidOperationException(
+                "An input field must have a type.");
+        }
+
+        _directives = _directives is null
+            ? ReadOnlyDirectiveCollection.Empty
+            : ReadOnlyDirectiveCollection.From(_directives);
+
+        _features = _features is null
+            ? EmptyFeatureCollection.Default
+            : new ReadOnlyFeatureCollection(_features);
+
+        foreach (var feature in _features)
+        {
+            if(feature.Value is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
+        _isReadOnly = true;
+    }
+
+    void ISealable.Seal() => Seal();
 
     /// <summary>
     /// Gets a string that represents the current object.

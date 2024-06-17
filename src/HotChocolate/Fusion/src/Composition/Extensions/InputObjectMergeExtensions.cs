@@ -16,7 +16,7 @@ internal static class InputObjectMergeExtensions
         InputFieldDefinition source,
         SchemaDefinition targetSchema)
     {
-        var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.TypeDefinitions[n]);
+        var targetFieldType = source.Type.ReplaceNameType(n => targetSchema.Types[n]);
         var target = new InputFieldDefinition(source.Name, targetFieldType);
         target.MergeDescriptionWith(source);
         target.MergeDeprecationWith(source);

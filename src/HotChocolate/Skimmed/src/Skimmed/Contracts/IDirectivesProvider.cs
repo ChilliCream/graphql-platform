@@ -11,6 +11,6 @@ public interface IDirectivesProvider : ITypeSystemMemberDefinition
     /// <value>
     /// The directives of the type system member.
     /// </value>
-    DirectiveCollection Directives { get; }
+    IDirectiveCollection Directives { get; }
 }
 

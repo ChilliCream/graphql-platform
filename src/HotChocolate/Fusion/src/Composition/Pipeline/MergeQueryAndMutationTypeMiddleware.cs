@@ -28,7 +28,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 {
                     targetType = context.FusionGraph.QueryType = new ObjectTypeDefinition(schema.QueryType.Name);
                     targetType.MergeDescriptionWith(schema.QueryType);
-                    context.FusionGraph.TypeDefinitions.Add(targetType);
+                    context.FusionGraph.Types.Add(targetType);
                 }
 
                 MergeRootFields(
@@ -48,7 +48,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 {
                     targetType = context.FusionGraph.MutationType = new ObjectTypeDefinition(schema.MutationType.Name);
                     targetType.MergeDescriptionWith(schema.MutationType);
-                    context.FusionGraph.TypeDefinitions.Add(targetType);
+                    context.FusionGraph.Types.Add(targetType);
                 }
 
                 MergeRootFields(

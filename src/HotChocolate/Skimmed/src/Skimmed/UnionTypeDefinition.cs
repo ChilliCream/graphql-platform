@@ -8,34 +8,104 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a GraphQL union type definition.
 /// </summary>
-public sealed class UnionTypeDefinition(string name)
+public class UnionTypeDefinition(string name)
     : INamedTypeDefinition
     , INamedTypeSystemMemberDefinition<UnionTypeDefinition>
+    , ISealable
 {
     private string _name = name.EnsureGraphQLName();
-    private DirectiveCollection? _directives;
-    private FeatureCollection? _features;
+    private string? _description;
+    private IDirectiveCollection? _directives;
+    private IObjectTypeDefinitionCollection? _types;
+    private IFeatureCollection? _features;
+    private bool _isReadOnly;
 
     /// <inheritdoc />
     public TypeKind Kind => TypeKind.Union;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="INamedTypeDefinition.Name" />
     public string Name
     {
         get => _name;
-        set => _name = value.EnsureGraphQLName();
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The type is sealed and cannot be modified.");
+            }
+
+            _name = value.EnsureGraphQLName();
+        }
+    }
+
+    /// <inheritdoc cref="INamedTypeDefinition.Description" />
+    public string? Description
+    {
+        get => _description;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The type is sealed and cannot be modified.");
+            }
+
+            _description = value;
+        }
     }
 
     /// <inheritdoc />
-    public string? Description { get; set; }
+    public IDirectiveCollection Directives
+        => _directives ??= new DirectiveCollection();
+
+    /// <summary>
+    /// Gets the types that are part of this union.
+    /// </summary>
+    public IObjectTypeDefinitionCollection Types
+        => _types ??= new ObjectTypeDefinitionCollection();
 
     /// <inheritdoc />
-    public DirectiveCollection Directives => _directives ??= [];
+    public IFeatureCollection Features
+        => _features ??= new FeatureCollection();
 
-    public IList<ObjectTypeDefinition> Types { get; } = [];
+    public bool IsReadOnly => _isReadOnly;
 
-    /// <inheritdoc />
-    public IFeatureCollection Features => _features ??= new FeatureCollection();
+    /// <summary>
+    /// Seals this type and makes it read-only.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    protected internal void Seal()
+    {
+        if (_isReadOnly)
+        {
+            return;
+        }
+
+        _directives = _directives is null
+            ? ReadOnlyDirectiveCollection.Empty
+            : ReadOnlyDirectiveCollection.From(_directives);
+
+        _types = _types is null
+            ? ReadOnlyObjectTypeDefinitionCollection.Empty
+            : ReadOnlyObjectTypeDefinitionCollection.From(_types);
+
+        _features = _features is null
+            ? EmptyFeatureCollection.Default
+            : new ReadOnlyFeatureCollection(_features);
+
+        foreach (var feature in _features)
+        {
+            if(feature.Value is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
+        _isReadOnly = true;
+    }
+
+    void ISealable.Seal() => Seal();
 
     /// <summary>
     /// Get the string representation of the union type definition.
@@ -58,7 +128,8 @@ public sealed class UnionTypeDefinition(string name)
             return ReferenceEquals(this, other);
         }
 
-        return other is UnionTypeDefinition otherUnion && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
+        return other is UnionTypeDefinition otherUnion
+            && otherUnion.Name.Equals(Name, StringComparison.Ordinal);
     }
 
     /// <summary>

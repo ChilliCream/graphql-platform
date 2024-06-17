@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -33,6 +34,10 @@ public static class TypeExtensions
             TypeKind.NonNull => IsOutputType(((NonNullTypeDefinition)type).NullableType),
             _ => throw new NotSupportedException(),
         };
+
+    public static bool IsTypeExtension(this ITypeDefinition type)
+        => type is IFeatureProvider featureProvider
+            && featureProvider.Features.Get<TypeMetadata>() is { IsExtension: true };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ITypeDefinition InnerType(this ITypeDefinition type)

@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class TypeCollection : ICollection<INamedTypeDefinition>
+public sealed class TypeDefinitionCollection : ITypeDefinitionCollection
 {
     private readonly Dictionary<string, INamedTypeDefinition> _types = new(StringComparer.Ordinal);
 

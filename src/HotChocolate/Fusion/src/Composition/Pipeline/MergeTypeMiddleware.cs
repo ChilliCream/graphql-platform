@@ -22,7 +22,7 @@ internal sealed class MergeTypeMiddleware : IMergeMiddleware
 
         foreach (var schema in context.Subgraphs)
         {
-            foreach (var type in schema.TypeDefinitions)
+            foreach (var type in schema.Types)
             {
                 if (!groupedTypes.TryGetValue(type.Name, out var types))
                 {

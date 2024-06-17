@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -25,19 +24,21 @@ public static class Refactor
         {
             if (member is INamedTypeDefinition nt)
             {
-                schema.TypeDefinitions.Remove(nt);
+                schema.Types.Remove(nt);
                 nt.Name = newName;
-                schema.TypeDefinitions.Add(nt);
+                schema.Types.Add(nt);
                 return true;
             }
-            else if (member is DirectiveDefinition dt)
+
+            if (member is DirectiveDefinition dt)
             {
                 schema.DirectiveDefinitions.Remove(dt);
                 dt.Name = newName;
                 schema.DirectiveDefinitions.Add(dt);
                 return true;
             }
-            else if (member is IFieldDefinition field)
+
+            if (member is IFieldDefinition field)
             {
                 // TODO: we need to update the field collection
                 field.Name = newName;
@@ -93,11 +94,11 @@ public static class Refactor
             return false;
         }
 
-        if (schema.TypeDefinitions.TryGetType(coordinate.Name, out var type))
+        if (schema.Types.TryGetType(coordinate.Name, out var type))
         {
             if (coordinate.MemberName is null)
             {
-                schema.TypeDefinitions.Remove(type);
+                schema.Types.Remove(type);
                 var rewriter = new RemoveTypeRewriter();
                 rewriter.VisitSchema(schema, type);
                 return true;
@@ -128,7 +129,7 @@ public static class Refactor
                             input.DefaultValue is null &&
                             onRequiredRemoveParent)
                         {
-                            schema.TypeDefinitions.Remove(type);
+                            schema.Types.Remove(type);
                             var rewriter = new RemoveTypeRewriter();
                             rewriter.VisitSchema(schema, type);
                             return true;
@@ -208,7 +209,7 @@ public static class Refactor
     {
         private readonly List<Directive> _remove = [];
 
-        public override void VisitDirectives(DirectiveCollection directives, DirectiveDefinition directiveType)
+        public override void VisitDirectives(IDirectiveCollection directives, DirectiveDefinition directiveType)
         {
             foreach (var directive in directives)
             {
@@ -233,7 +234,7 @@ public static class Refactor
         private readonly List<(Directive, Directive)> _replace = [];
 
         public override void VisitDirectives(
-            DirectiveCollection directives,
+            IDirectiveCollection directives,
             (DirectiveDefinition Type, string Arg) context)
         {
             foreach (var directive in directives)
@@ -270,7 +271,9 @@ public static class Refactor
         private readonly List<OutputFieldDefinition> _removeOutputFields = [];
         private readonly List<InputFieldDefinition> _removeInputFields = [];
 
-        public override void VisitOutputFields(FieldDefinitionCollection<OutputFieldDefinition> fields, INamedTypeDefinition context)
+        public override void VisitOutputFields(
+            IFieldDefinitionCollection<OutputFieldDefinition> fields,
+            INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {
@@ -291,7 +294,9 @@ public static class Refactor
             }
         }
 
-        public override void VisitInputFields(FieldDefinitionCollection<InputFieldDefinition> fields, INamedTypeDefinition context)
+        public override void VisitInputFields(
+            IFieldDefinitionCollection<InputFieldDefinition> fields,
+            INamedTypeDefinition context)
         {
             foreach (var field in fields)
             {

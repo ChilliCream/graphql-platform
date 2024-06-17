@@ -21,7 +21,7 @@ internal sealed class EnumTypeMergeHandler : ITypeMergeHandler
         }
 
         // Get the target enum type from the fusion graph
-        var target = (EnumTypeDefinition)context.FusionGraph.TypeDefinitions[typeGroup.Name];
+        var target = (EnumTypeDefinition)context.FusionGraph.Types[typeGroup.Name];
 
         // Merge each part of the enum type into the target enum type
         foreach (var part in typeGroup.Parts)

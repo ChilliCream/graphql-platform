@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class DirectiveDefinitionCollection : ICollection<DirectiveDefinition>
+public sealed class DirectiveDefinitionCollection : IDirectiveDefinitionCollection
 {
     private readonly Dictionary<string, DirectiveDefinition> _types = new(StringComparer.Ordinal);
 

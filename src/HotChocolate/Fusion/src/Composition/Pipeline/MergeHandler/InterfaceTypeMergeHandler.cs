@@ -22,7 +22,7 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         }
 
         // Get the target interface type from the fusion graph.
-        var target = (InterfaceTypeDefinition)context.FusionGraph.TypeDefinitions[typeGroup.Name];
+        var target = (InterfaceTypeDefinition)context.FusionGraph.Types[typeGroup.Name];
 
         // Merge the parts of the interface type group into the target interface type.
         foreach (var part in typeGroup.Parts)
@@ -51,7 +51,7 @@ internal sealed class InterfaceTypeMergeHandler : ITypeMergeHandler
         {
             if (!target.Implements.Any(t => t.Name.EqualsOrdinal(interfaceType.Name)))
             {
-                target.Implements.Add((InterfaceTypeDefinition)context.FusionGraph.TypeDefinitions[interfaceType.Name]);
+                target.Implements.Add((InterfaceTypeDefinition)context.FusionGraph.Types[interfaceType.Name]);
             }
         }
 

@@ -9,13 +9,13 @@ internal sealed class RemoveFusionTypesMiddleware : IMergeMiddleware
     public ValueTask InvokeAsync(CompositionContext context, MergeDelegate next)
     {
         // Remove the fusion types from the GraphQL schema
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.Type);
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.TypeName);
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.Selection);
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.SelectionSet);
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.Uri);
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.ArgumentDefinition);
-        context.FusionGraph.TypeDefinitions.Remove(context.FusionTypes.ResolverKind);
+        context.FusionGraph.Types.Remove(context.FusionTypes.Type);
+        context.FusionGraph.Types.Remove(context.FusionTypes.TypeName);
+        context.FusionGraph.Types.Remove(context.FusionTypes.Selection);
+        context.FusionGraph.Types.Remove(context.FusionTypes.SelectionSet);
+        context.FusionGraph.Types.Remove(context.FusionTypes.Uri);
+        context.FusionGraph.Types.Remove(context.FusionTypes.ArgumentDefinition);
+        context.FusionGraph.Types.Remove(context.FusionTypes.ResolverKind);
 
         // Remove the fusion directives from the GraphQL schema
         context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Resolver);

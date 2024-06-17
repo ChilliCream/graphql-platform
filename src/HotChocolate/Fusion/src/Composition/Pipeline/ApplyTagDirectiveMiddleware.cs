@@ -1,7 +1,6 @@
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
-using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
@@ -42,7 +41,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                 {
                     new InputField(
                         WellKnownDirectives.Name,
-                        new NonNullTypeDefinition(context.FusionGraph.TypeDefinitions["String"])),
+                        new NonNullTypeDefinition(context.FusionGraph.Types["String"])),
                 },
             };
 
@@ -68,7 +67,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
 
         ApplyDirectives(tagContext, context.FusionGraph, context.Subgraphs, tagDirectiveType, tags, makePublic);
 
-        foreach (var type in context.FusionGraph.TypeDefinitions)
+        foreach (var type in context.FusionGraph.Types)
         {
             switch (type)
             {

@@ -40,7 +40,7 @@ internal class NodeEntityEnricher : IEntityEnricher
         {
             if (schema.QueryType is not null &&
                 schema.QueryType.Fields.ContainsName("node") &&
-                schema.TypeDefinitions.TryGetType<InterfaceTypeDefinition>("Node", out var nodeType) &&
+                schema.Types.TryGetType<InterfaceTypeDefinition>("Node", out var nodeType) &&
                 type.Implements.Contains(nodeType))
             {
                 ResolveWithNode(entity, schema, type, entity.Name);

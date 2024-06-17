@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Skimmed.Serialization;
 
@@ -85,7 +84,7 @@ public static class SchemaFormatter
                 definitions.Add(schemaDefinition);
             }
 
-            VisitTypes(schema.TypeDefinitions, context);
+            VisitTypes(schema.Types, context);
             definitions.AddRange((List<IDefinitionNode>)context.Result!);
 
             VisitDirectiveTypes(schema.DirectiveDefinitions, context);
@@ -94,7 +93,7 @@ public static class SchemaFormatter
             context.Result = new DocumentNode(definitions);
         }
 
-        public override void VisitTypes(TypeCollection types, VisitorContext context)
+        public override void VisitTypes(ITypeDefinitionCollection typesDefinition, VisitorContext context)
         {
             var definitionNodes = new List<IDefinitionNode>();
 
@@ -116,7 +115,7 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<ObjectTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<ObjectTypeDefinition>().OrderBy(t => t.Name))
             {
                 if (context.Schema?.QueryType == type ||
                    context.Schema?.MutationType == type ||
@@ -129,33 +128,33 @@ public static class SchemaFormatter
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<InterfaceTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<InterfaceTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<UnionTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<UnionTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<InputObjectTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<InputObjectTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<EnumTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<EnumTypeDefinition>().OrderBy(t => t.Name))
             {
                 VisitType(type, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
             }
 
-            foreach (var type in types.OfType<ScalarTypeDefinition>().OrderBy(t => t.Name))
+            foreach (var type in typesDefinition.OfType<ScalarTypeDefinition>().OrderBy(t => t.Name))
             {
-                if (type is { IsSpecScalar: true, } || SpecScalarTypes.IsSpecScalar(type.Name))
+                if (type is { IsSpecScalar: true, } || BuiltIns.IsBuiltInScalar(type.Name))
                 {
                     type.IsSpecScalar = true;
                     continue;
@@ -169,7 +168,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitDirectiveTypes(
-            DirectiveDefinitionCollection directiveTypes,
+            IDirectiveDefinitionCollection directiveTypes,
             VisitorContext context)
         {
             var definitionNodes = new List<IDefinitionNode>();
@@ -192,7 +191,7 @@ public static class SchemaFormatter
             var fields = (List<FieldDefinitionNode>)context.Result!;
 
             context.Result =
-                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                type.GetTypeMetadata().IsExtension
                     ? new ObjectTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
@@ -217,7 +216,7 @@ public static class SchemaFormatter
             var fields = (List<FieldDefinitionNode>)context.Result!;
 
             context.Result =
-                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                type.GetTypeMetadata().IsExtension
                     ? new InterfaceTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
@@ -242,7 +241,7 @@ public static class SchemaFormatter
             var fields = (List<InputValueDefinitionNode>)context.Result!;
 
             context.Result =
-                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                type.GetTypeMetadata().IsExtension
                     ? new InputObjectTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
@@ -262,7 +261,7 @@ public static class SchemaFormatter
             var directives = (List<DirectiveNode>)context.Result!;
 
             context.Result =
-                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                type.GetTypeMetadata().IsExtension
                     ? new ScalarTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
@@ -283,7 +282,7 @@ public static class SchemaFormatter
             var values = (List<EnumValueDefinitionNode>)context.Result!;
 
             context.Result =
-                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                type.GetTypeMetadata().IsExtension
                     ? new EnumTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
@@ -297,7 +296,7 @@ public static class SchemaFormatter
                         values);
         }
 
-        public override void VisitEnumValues(EnumValueCollection values, VisitorContext context)
+        public override void VisitEnumValues(IEnumValueCollection values, VisitorContext context)
         {
             var definitionNodes = new List<EnumValueDefinitionNode>();
 
@@ -330,7 +329,7 @@ public static class SchemaFormatter
             var directives = (List<DirectiveNode>)context.Result!;
 
             context.Result =
-                type.ContextData.ContainsKey(WellKnownContextData.TypeExtension)
+                type.GetTypeMetadata().IsExtension
                     ? new UnionTypeExtensionNode(
                         null,
                         new NameNode(type.Name),
@@ -362,7 +361,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitOutputFields(
-            FieldDefinitionCollection<OutputFieldDefinition> fields,
+            IFieldDefinitionCollection<OutputFieldDefinition> fields,
             VisitorContext context)
         {
             var fieldNodes = new List<FieldDefinitionNode>();
@@ -396,7 +395,7 @@ public static class SchemaFormatter
         }
 
         public override void VisitInputFields(
-            FieldDefinitionCollection<InputFieldDefinition> fields,
+            IFieldDefinitionCollection<InputFieldDefinition> fields,
             VisitorContext context)
         {
             var inputNodes = new List<InputValueDefinitionNode>();
@@ -426,7 +425,7 @@ public static class SchemaFormatter
                 directives);
         }
 
-        public override void VisitDirectives(DirectiveCollection directives, VisitorContext context)
+        public override void VisitDirectives(IDirectiveCollection directives, VisitorContext context)
         {
             var directiveNodes = new List<DirectiveNode>();
 
@@ -493,22 +492,19 @@ public static class SchemaFormatter
 
         private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
         {
-            if (WellKnownDirectives.DeprecationDefaultReason.EqualsOrdinal(reason))
-            {
-                reason = null;
-            }
+            const string defaultReason = "No longer supported.";
 
             var arguments = reason is null
                 ? Array.Empty<ArgumentNode>()
-                : [new ArgumentNode(WellKnownDirectives.DeprecationReasonArgument, reason),];
+                : [new ArgumentNode(defaultReason, reason),];
 
             return new DirectiveNode(
                 null,
-                new NameNode(WellKnownDirectives.Deprecated),
+                new NameNode(BuiltIns.Deprecated.Name),
                 arguments);
         }
 
-        private StringValueNode? CreateDescription(string? description)
+        private static StringValueNode? CreateDescription(string? description)
         {
             if (string.IsNullOrEmpty(description))
             {
@@ -518,7 +514,7 @@ public static class SchemaFormatter
             // Get rid of any unnecessary whitespace.
             description = description.Trim();
 
-            var isBlock = description.Contains("\n");
+            var isBlock = description.Contains('\n');
 
             return new StringValueNode(null, description, isBlock);
         }

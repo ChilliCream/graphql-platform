@@ -7,26 +7,52 @@ namespace HotChocolate.Skimmed;
 /// <summary>
 /// Represents a GraphQL output field definition.
 /// </summary>
-public sealed class OutputFieldDefinition(string name)
+public sealed class OutputFieldDefinition(string name, ITypeDefinition? type = null)
     : IFieldDefinition
     , INamedTypeSystemMemberDefinition<OutputFieldDefinition>
+    , ISealable
 {
     private string _name = name.EnsureGraphQLName();
+    private string? _description;
     private bool _isDeprecated;
     private string? _deprecationReason;
-    private DirectiveCollection? _directives;
-    private FeatureCollection? _features;
-    private InputFieldDefinitionCollection? _arguments;
+    private IDirectiveCollection? _directives;
+    private IFeatureCollection? _features;
+    private IInputFieldDefinitionCollection? _arguments;
+    private ITypeDefinition _type = type ?? NotSetTypeDefinition.Default;
+    private bool _isReadOnly;
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IFieldDefinition.Name" />
     public string Name
     {
         get => _name;
-        set => _name = value.EnsureGraphQLName();
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The value is sealed and cannot be modified.");
+            }
+
+            _name = value.EnsureGraphQLName();
+        }
     }
 
-    /// <inheritdoc />
-    public string? Description { get; set; }
+    /// <inheritdoc cref="IFieldDefinition.Description" />
+    public string? Description
+    {
+        get => _description;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The value is sealed and cannot be modified.");
+            }
+
+            _description = value;
+        }
+    }
 
     /// <inheritdoc />
     public bool IsDeprecated
@@ -34,11 +60,17 @@ public sealed class OutputFieldDefinition(string name)
         get => _isDeprecated;
         set
         {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The value is sealed and cannot be modified.");
+            }
+
             _isDeprecated = value;
 
             if (!value)
             {
-                DeprecationReason = null;
+                _deprecationReason = null;
             }
         }
     }
@@ -49,6 +81,12 @@ public sealed class OutputFieldDefinition(string name)
         get => _deprecationReason;
         set
         {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The value is sealed and cannot be modified.");
+            }
+
             _deprecationReason = value;
 
             if (!string.IsNullOrEmpty(value))
@@ -59,12 +97,14 @@ public sealed class OutputFieldDefinition(string name)
     }
 
     /// <inheritdoc />
-    public DirectiveCollection Directives => _directives ??= [];
+    public IDirectiveCollection Directives
+        => _directives ??= new DirectiveCollection();
 
     /// <summary>
     /// Gets the arguments that are accepted by this field.
     /// </summary>
-    public InputFieldDefinitionCollection Arguments => _arguments ??= [];
+    public IInputFieldDefinitionCollection Arguments
+        => _arguments ??= new InputFieldDefinitionCollection();
 
     /// <summary>
     /// Gets the type of the field.
@@ -72,10 +112,68 @@ public sealed class OutputFieldDefinition(string name)
     /// <value>
     /// The type of the field.
     /// </value>
-    public ITypeDefinition Type { get; set; } = NotSetTypeDefinition.Default;
+    public ITypeDefinition Type
+    {
+        get => _type;
+        set
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException(
+                    "The value is sealed and cannot be modified.");
+            }
+
+            _type = value;
+        }
+    }
 
     /// <inheritdoc />
-    public IFeatureCollection Features => _features ??= new FeatureCollection();
+    public IFeatureCollection Features
+        => _features ??= new FeatureCollection();
+
+    /// <inheritdoc />
+    public bool IsReadOnly => _isReadOnly;
+
+    /// <summary>
+    /// Seals this value and makes it read-only.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    internal void Seal()
+    {
+        if (_isReadOnly)
+        {
+            return;
+        }
+
+        _directives = _directives is null
+            ? ReadOnlyDirectiveCollection.Empty
+            : ReadOnlyDirectiveCollection.From(_directives);
+
+        _arguments = _arguments is null || _arguments.Count == 0
+            ? ReadOnlyInputFieldDefinitionCollection.Empty
+            : ReadOnlyInputFieldDefinitionCollection.From(_arguments);
+
+        _features = _features is null
+            ? EmptyFeatureCollection.Default
+            : new ReadOnlyFeatureCollection(_features);
+
+        foreach (var argument in _arguments)
+        {
+            argument.Seal();
+        }
+
+        foreach (var feature in _features)
+        {
+            if(feature.Value is ISealable sealable)
+            {
+                sealable.Seal();
+            }
+        }
+
+        _isReadOnly = true;
+    }
+
+    void ISealable.Seal() => Seal();
 
     /// <summary>
     /// Gets the string representation of this instance.

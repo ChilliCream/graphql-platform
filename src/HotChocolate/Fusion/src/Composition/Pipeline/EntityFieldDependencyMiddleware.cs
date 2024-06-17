@@ -11,7 +11,7 @@ internal class EntityFieldDependencyMiddleware : IMergeMiddleware
     {
         foreach (var entity in context.Entities)
         {
-            var entityType = (ObjectTypeDefinition)context.FusionGraph.TypeDefinitions[entity.Name];
+            var entityType = (ObjectTypeDefinition)context.FusionGraph.Types[entity.Name];
             context.ApplyDependencies(entityType, entity.Metadata);
         }
 
