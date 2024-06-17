@@ -1,61 +1,67 @@
 using System.Runtime.CompilerServices;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Skimmed;
 
 public static class TypeExtensions
 {
-    public static bool IsListType(this IType type)
+    public static bool IsListType(this ITypeDefinition type)
         => type.Kind switch
         {
             TypeKind.List => true,
-            TypeKind.NonNull when ((NonNullType) type).NullableType.Kind == TypeKind.List => true,
+            TypeKind.NonNull when ((NonNullTypeDefinition)type).NullableType.Kind == TypeKind.List => true,
             _ => false,
         };
 
-    public static bool IsInputType(this IType type)
+    public static bool IsInputType(this ITypeDefinition type)
         => type.Kind switch
         {
             TypeKind.Interface or TypeKind.Object or TypeKind.Union => false,
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => true,
-            TypeKind.List => IsInputType(((ListType)type).ElementType),
-            TypeKind.NonNull => IsInputType(((NonNullType)type).NullableType),
+            TypeKind.List => IsInputType(((ListTypeDefinition)type).ElementType),
+            TypeKind.NonNull => IsInputType(((NonNullTypeDefinition)type).NullableType),
             _ => throw new NotSupportedException(),
         };
 
-    public static bool IsOutputType(this IType type)
+    public static bool IsOutputType(this ITypeDefinition type)
         => type.Kind switch
         {
             TypeKind.Interface or TypeKind.Object or TypeKind.Union => true,
             TypeKind.InputObject or TypeKind.Enum or TypeKind.Scalar => false,
-            TypeKind.List => IsOutputType(((ListType)type).ElementType),
-            TypeKind.NonNull => IsOutputType(((NonNullType)type).NullableType),
+            TypeKind.List => IsOutputType(((ListTypeDefinition)type).ElementType),
+            TypeKind.NonNull => IsOutputType(((NonNullTypeDefinition)type).NullableType),
             _ => throw new NotSupportedException(),
         };
 
+    public static bool IsTypeExtension(this ITypeDefinition type)
+        => type is IFeatureProvider featureProvider
+            && featureProvider.Features.Get<TypeMetadata>() is { IsExtension: true };
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IType InnerType(this IType type)
+    public static ITypeDefinition InnerType(this ITypeDefinition type)
         => type switch
         {
-            ListType listType => listType.ElementType,
-            NonNullType nonNullType => nonNullType.NullableType,
+            ListTypeDefinition listType => listType.ElementType,
+            NonNullTypeDefinition nonNullType => nonNullType.NullableType,
             _ => type,
         };
 
-    public static INamedType NamedType(this IType type)
+    public static INamedTypeDefinition NamedType(this ITypeDefinition type)
     {
         while (true)
         {
             switch (type)
             {
-                case INamedType namedType:
+                case INamedTypeDefinition namedType:
                     return namedType;
 
-                case ListType listType:
+                case ListTypeDefinition listType:
                     type = listType.ElementType;
                     continue;
 
-                case NonNullType nonNullType:
+                case NonNullTypeDefinition nonNullType:
                     type = nonNullType.NullableType;
                     continue;
 
@@ -65,21 +71,21 @@ public static class TypeExtensions
         }
     }
 
-    public static ITypeNode ToTypeNode(this IType type)
+    public static ITypeNode ToTypeNode(this ITypeDefinition type)
         => type switch
         {
-            INamedType namedType => new NamedTypeNode(namedType.Name),
-            ListType listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
-            NonNullType nonNullType => new NonNullTypeNode((INullableTypeNode) ToTypeNode(nonNullType.NullableType)),
+            INamedTypeDefinition namedType => new NamedTypeNode(namedType.Name),
+            ListTypeDefinition listType => new ListTypeNode(ToTypeNode(listType.ElementType)),
+            NonNullTypeDefinition nonNullType => new NonNullTypeNode((INullableTypeNode)ToTypeNode(nonNullType.NullableType)),
             _ => throw new NotSupportedException(),
         };
 
-    public static IType ReplaceNameType(this IType type, Func<string, INamedType> newNamedType)
+    public static ITypeDefinition ReplaceNameType(this ITypeDefinition type, Func<string, INamedTypeDefinition> newNamedType)
         => type switch
         {
-            INamedType namedType => newNamedType(namedType.Name),
-            ListType listType => new ListType(ReplaceNameType(listType.ElementType, newNamedType)),
-            NonNullType nonNullType => new NonNullType(ReplaceNameType(nonNullType.NullableType, newNamedType)),
+            INamedTypeDefinition namedType => newNamedType(namedType.Name),
+            ListTypeDefinition listType => new ListTypeDefinition(ReplaceNameType(listType.ElementType, newNamedType)),
+            NonNullTypeDefinition nonNullType => new NonNullTypeDefinition(ReplaceNameType(nonNullType.NullableType, newNamedType)),
             _ => throw new NotSupportedException(),
         };
 }

@@ -18,13 +18,13 @@ internal sealed class RemoveFusionTypesMiddleware : IMergeMiddleware
         context.FusionGraph.Types.Remove(context.FusionTypes.ResolverKind);
 
         // Remove the fusion directives from the GraphQL schema
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Resolver);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Variable);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Source);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Node);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.ReEncodeId);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Transport);
-        context.FusionGraph.DirectiveTypes.Remove(context.FusionTypes.Fusion);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Resolver);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Variable);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Source);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Node);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.ReEncodeId);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Transport);
+        context.FusionGraph.DirectiveDefinitions.Remove(context.FusionTypes.Fusion);
 
         return next(context);
     }

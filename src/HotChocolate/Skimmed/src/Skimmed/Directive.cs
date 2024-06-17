@@ -2,14 +2,14 @@ using static HotChocolate.Skimmed.Serialization.SchemaDebugFormatter;
 
 namespace HotChocolate.Skimmed;
 
-public sealed class Directive : ITypeSystemMember
+public sealed class Directive : ITypeSystemMemberDefinition
 {
-    public Directive(DirectiveType type, params Argument[] arguments)
-        : this(type, (IReadOnlyList<Argument>)arguments)
+    public Directive(DirectiveDefinition type, params ArgumentAssignment[] arguments)
+        : this(type, (IReadOnlyList<ArgumentAssignment>)arguments)
     {
     }
 
-    public Directive(DirectiveType type, IReadOnlyList<Argument> arguments)
+    public Directive(DirectiveDefinition type, IReadOnlyList<ArgumentAssignment> arguments)
     {
         Type = type;
         Arguments = new(arguments);
@@ -17,9 +17,9 @@ public sealed class Directive : ITypeSystemMember
 
     public string Name => Type.Name;
 
-    public DirectiveType Type { get; }
+    public DirectiveDefinition Type { get; }
 
-    public ArgumentCollection Arguments { get; }
+    public ArgumentAssignmentCollection Arguments { get; }
 
     public override string ToString()
         => RewriteDirective(this).ToString(true);

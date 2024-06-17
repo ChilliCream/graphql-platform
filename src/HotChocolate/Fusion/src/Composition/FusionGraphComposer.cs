@@ -93,7 +93,7 @@ public sealed class FusionGraphComposer
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
-    public async ValueTask<Schema> ComposeAsync(
+    public async ValueTask<SchemaDefinition> ComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
         FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
@@ -139,7 +139,7 @@ public sealed class FusionGraphComposer
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
-    public async ValueTask<Schema?> TryComposeAsync(
+    public async ValueTask<SchemaDefinition?> TryComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
         FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
@@ -187,7 +187,7 @@ public sealed class FusionGraphComposer
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
-    public static async ValueTask<Schema> ComposeAsync(
+    public static async ValueTask<SchemaDefinition> ComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
         FusionFeatureCollection? features = null,
         string? fusionTypePrefix = null,

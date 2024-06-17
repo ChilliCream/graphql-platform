@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Skimmed.Serialization;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
-using IHasDirectives = HotChocolate.Skimmed.IHasDirectives;
+using IDirectivesProvider = HotChocolate.Skimmed.IDirectivesProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -34,7 +34,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
                 context.Subgraphs.Add(schema);
             }
 
-            foreach (var missingType in schema.Types.OfType<MissingType>())
+            foreach (var missingType in schema.Types.OfType<MissingTypeDefinition>())
             {
                 context.Log.Write(TypeNotDeclared(missingType, schema));
             }
@@ -43,7 +43,7 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         await next(context).ConfigureAwait(false);
     }
 
-    private static bool IsIncluded(Schema schema, IReadOnlySet<string> excludedTags)
+    private static bool IsIncluded(SchemaDefinition schema, IReadOnlySet<string> excludedTags)
     {
         if(schema.Directives.Count == 0)
         {
@@ -64,45 +64,45 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void CreateMissingTypes(
         CompositionContext context,
-        Schema schema,
-        Schema extension)
+        SchemaDefinition schema,
+        SchemaDefinition extension)
     {
         foreach (var type in extension.Types)
         {
             switch (type)
             {
-                case EnumType sourceType:
+                case EnumTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
-                case InputObjectType sourceType:
+                case InputObjectTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
-                case InterfaceType sourceType:
+                case InterfaceTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
-                case ObjectType sourceType:
+                case ObjectTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
-                case ScalarType sourceType:
+                case ScalarTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
 
-                case UnionType sourceType:
+                case UnionTypeDefinition sourceType:
                     TryCreateMissingType(context, sourceType, schema);
                     break;
             }
         }
 
-        foreach (var directiveType in extension.DirectiveTypes)
+        foreach (var directiveType in extension.DirectiveDefinitions)
         {
-            if (!schema.DirectiveTypes.ContainsName(directiveType.Name))
+            if (!schema.DirectiveDefinitions.ContainsName(directiveType.Name))
             {
-                schema.DirectiveTypes.Add(
-                    new DirectiveType(directiveType.Name)
+                schema.DirectiveDefinitions.Add(
+                    new DirectiveDefinition(directiveType.Name)
                     {
                         IsRepeatable = directiveType.IsRepeatable,
                     });
@@ -113,8 +113,8 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
     private static void TryCreateMissingType<T>(
         CompositionContext context,
         T sourceType,
-        Schema targetSchema)
-        where T : INamedType, INamedTypeSystemMember<T>
+        SchemaDefinition targetSchema)
+        where T : INamedTypeDefinition, INamedTypeSystemMemberDefinition<T>
     {
         if (targetSchema.Types.TryGetType(sourceType.Name, out var targetType))
         {
@@ -135,34 +135,34 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void MergeTypes(
         CompositionContext context,
-        Schema schema,
-        Schema extension)
+        SchemaDefinition schema,
+        SchemaDefinition extension)
     {
         foreach (var type in extension.Types)
         {
             switch (type)
             {
-                case EnumType sourceType:
+                case EnumTypeDefinition sourceType:
                     MergeEnumType(context, sourceType, schema);
                     break;
 
-                case InputObjectType sourceType:
+                case InputObjectTypeDefinition sourceType:
                     MergeInputType(context, sourceType, schema);
                     break;
 
-                case InterfaceType sourceType:
+                case InterfaceTypeDefinition sourceType:
                     MergeComplexType(context, sourceType, schema);
                     break;
 
-                case ObjectType sourceType:
+                case ObjectTypeDefinition sourceType:
                     MergeComplexType(context, sourceType, schema);
                     break;
 
-                case ScalarType sourceType:
+                case ScalarTypeDefinition sourceType:
                     MergeScalarType(sourceType, schema);
                     break;
 
-                case UnionType sourceType:
+                case UnionTypeDefinition sourceType:
                     MergeUnionType(sourceType, schema);
                     break;
             }
@@ -171,10 +171,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void MergeEnumType(
         CompositionContext context,
-        EnumType source,
-        Schema targetSchema)
+        EnumTypeDefinition source,
+        SchemaDefinition targetSchema)
     {
-        if (targetSchema.Types.TryGetType<EnumType>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<EnumTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -217,10 +217,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
 
     private static void MergeInputType(
         CompositionContext context,
-        InputObjectType source,
-        Schema targetSchema)
+        InputObjectTypeDefinition source,
+        SchemaDefinition targetSchema)
     {
-        if (targetSchema.Types.TryGetType<InputObjectType>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<InputObjectTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -250,8 +250,8 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
     private static void MergeComplexType<T>(
         CompositionContext context,
         T source,
-        Schema targetSchema)
-        where T : ComplexType
+        SchemaDefinition targetSchema)
+        where T : ComplexTypeDefinition
     {
         if (targetSchema.Types.TryGetType<T>(source.Name, out var target))
         {
@@ -291,10 +291,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
     }
 
     private static void MergeScalarType(
-        ScalarType source,
-        Schema targetSchema)
+        ScalarTypeDefinition source,
+        SchemaDefinition targetSchema)
     {
-        if (targetSchema.Types.TryGetType<ScalarType>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<ScalarTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -307,10 +307,10 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
     }
 
     private static void MergeUnionType(
-        UnionType source,
-        Schema targetSchema)
+        UnionTypeDefinition source,
+        SchemaDefinition targetSchema)
     {
-        if (targetSchema.Types.TryGetType<UnionType>(source.Name, out var target))
+        if (targetSchema.Types.TryGetType<UnionTypeDefinition>(source.Name, out var target))
         {
             MergeDirectives(source, target, targetSchema);
 
@@ -322,12 +322,12 @@ internal sealed class ParseSubgraphSchemaMiddleware : IMergeMiddleware
         }
     }
 
-    private static void MergeDirectives<T>(T source, T target, Schema targetSchema)
-        where T : ITypeSystemMember, IHasDirectives
+    private static void MergeDirectives<T>(T source, T target, SchemaDefinition targetSchema)
+        where T : ITypeSystemMemberDefinition, IDirectivesProvider
     {
         foreach (var sourceDirective in source.Directives)
         {
-            var targetDirectiveType = targetSchema.DirectiveTypes[sourceDirective.Name];
+            var targetDirectiveType = targetSchema.DirectiveDefinitions[sourceDirective.Name];
             var targetDirective = target.Directives.FirstOrDefault(sourceDirective.Name);
             var newTargetDirective = new Directive(targetDirectiveType, sourceDirective.Arguments);
 
