@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Skimmed\src\Skimmed\Skimmed.csproj" />
+  </ItemGroup>
+
+</Project>
