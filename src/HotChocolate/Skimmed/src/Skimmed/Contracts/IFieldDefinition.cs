@@ -33,4 +33,14 @@ public interface IFieldDefinition
     /// </summary>
     /// <value></value>
     ITypeDefinition Type { get; set; }
+
+    /// <summary>
+    /// Defines if this <see cref="ITypeSystemMemberDefinition"/> is deprecated.
+    /// </summary>
+    new bool IsDeprecated { get; set; }
+
+    /// <summary>
+    /// Gets the deprecation reason of this <see cref="ITypeSystemMemberDefinition"/>.
+    /// </summary>
+    new string? DeprecationReason { get; set; }
 }

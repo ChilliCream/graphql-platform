@@ -1,5 +1,6 @@
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 using static HotChocolate.Fusion.Composition.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion.Composition;
@@ -126,8 +127,8 @@ internal static class LogEntryHelper
     public static LogEntry OutputFieldTypeMismatch(
         SchemaCoordinate schemaCoordinate,
         OutputFieldDefinition source,
-        IType targetType,
-        IType sourceType)
+        ITypeDefinition targetType,
+        ITypeDefinition sourceType)
         => new(
             string.Format(
                 LogEntryHelper_OutputFieldTypeMismatch,
@@ -143,8 +144,8 @@ internal static class LogEntryHelper
     public static LogEntry InputFieldTypeMismatch(
         SchemaCoordinate schemaCoordinate,
         InputFieldDefinition source,
-        IType targetType,
-        IType sourceType)
+        ITypeDefinition targetType,
+        ITypeDefinition sourceType)
         => new(
             string.Format(
                 LogEntryHelper_OutputFieldTypeMismatch,

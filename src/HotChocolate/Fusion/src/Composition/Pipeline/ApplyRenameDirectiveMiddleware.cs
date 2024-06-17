@@ -1,8 +1,8 @@
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using static HotChocolate.Fusion.Composition.DirectivesHelper;
 using static HotChocolate.Fusion.Composition.LogEntryHelper;
-using INameProvider = HotChocolate.Skimmed.INameProvider;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -19,9 +19,9 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
             foreach (var directive in schema.GetRenameDirectives(context))
             {
                 if (schema.TryGetMember(directive.Coordinate, out INameProvider? member) &&
-                    member is IHasContextData memberWithContext)
+                    member is IFeatureProvider memberWithFeatures)
                 {
-                    memberWithContext.ContextData[WellKnownContextData.OriginalName] = member.Name;
+                    memberWithFeatures.SetOriginalName(member.Name);
                 }
 
                 if (!schema.RenameMember(directive.Coordinate, directive.NewName))
@@ -38,7 +38,7 @@ internal sealed class ApplyRenameDirectiveMiddleware : IMergeMiddleware
     }
 }
 
-static file class ApplyRenameDirectiveMiddlewareExtensions
+file static class ApplyRenameDirectiveMiddlewareExtensions
 {
     public static IEnumerable<RenameDirective> GetRenameDirectives(
         this SchemaDefinition schema,

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Skimmed;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Composition.Pipeline;
 
@@ -133,7 +134,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsListOf(IType type, IType entityType)
+    private static bool IsListOf(ITypeDefinition type, ITypeDefinition entityType)
     {
         if (type.Kind == TypeKind.NonNull)
         {
@@ -156,7 +157,7 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsListOfScalar(IType type)
+    private static bool IsListOfScalar(ITypeDefinition type)
     {
         if (type.Kind == TypeKind.NonNull)
         {

@@ -21,25 +21,27 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
     {
         var needsDirectiveType = false;
 
-        if (!context.FusionGraph.DirectiveDefinitions.TryGetDirective(WellKnownDirectives.Tag, out var tagDirectiveType))
+        if (!context.FusionGraph.DirectiveDefinitions.TryGetDirective(
+                WellKnownDirectives.Tag,
+                out var tagDirectiveType))
         {
-            tagDirectiveType = new DirectiveType(WellKnownDirectives.Tag)
+            tagDirectiveType = new DirectiveDefinition(WellKnownDirectives.Tag)
             {
-                Locations = DirectiveLocation.Object |
-                    DirectiveLocation.Interface |
-                    DirectiveLocation.Union |
-                    DirectiveLocation.InputObject |
-                    DirectiveLocation.Enum |
-                    DirectiveLocation.Scalar |
-                    DirectiveLocation.FieldDefinition |
-                    DirectiveLocation.InputFieldDefinition |
-                    DirectiveLocation.ArgumentDefinition |
-                    DirectiveLocation.EnumValue |
-                    DirectiveLocation.Schema,
+                Locations = Types.DirectiveLocation.Object |
+                    Types.DirectiveLocation.Interface |
+                    Types.DirectiveLocation.Union |
+                    Types.DirectiveLocation.InputObject |
+                    Types.DirectiveLocation.Enum |
+                    Types.DirectiveLocation.Scalar |
+                    Types.DirectiveLocation.FieldDefinition |
+                    Types.DirectiveLocation.InputFieldDefinition |
+                    Types.DirectiveLocation.ArgumentDefinition |
+                    Types.DirectiveLocation.EnumValue |
+                    Types.DirectiveLocation.Schema,
                 IsRepeatable = true,
                 Arguments =
                 {
-                    new InputField(
+                    new InputFieldDefinition(
                         WellKnownDirectives.Name,
                         new NonNullTypeDefinition(context.FusionGraph.Types["String"])),
                 },
@@ -304,7 +306,7 @@ internal sealed class ApplyTagDirectiveMiddleware : IMergeMiddleware
                     merged.Directives.Add(
                         new Directive(
                             tagDirectiveType,
-                            new Argument(WellKnownDirectives.Name, name)));
+                            new ArgumentAssignment(WellKnownDirectives.Name, name)));
                     tagContext.HasTags = true;
                 }
             }
