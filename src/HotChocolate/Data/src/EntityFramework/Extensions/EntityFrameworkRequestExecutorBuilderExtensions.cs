@@ -29,16 +29,11 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
         return builder;
     }
 
-    private sealed class PagingArgumentsParameterExpressionBuilder
-        : CustomParameterExpressionBuilder<PagingArguments>
+    private sealed class PagingArgumentsParameterExpressionBuilder()
+        : CustomParameterExpressionBuilder<PagingArguments>(ctx => MapArguments(ctx))
         , IParameterBindingFactory
         , IParameterBinding
     {
-        public PagingArgumentsParameterExpressionBuilder()
-            : base(ctx => MapArguments(ctx))
-        {
-        }
-
         public IParameterBinding Create(ParameterBindingContext context)
             => this;
 

@@ -12,7 +12,7 @@ public interface IFilterContext : IFilterInfo
     /// </summary>
     /// <param name="isHandled">If false, sorting is applied on the result of the resolver</param>
     void Handled(bool isHandled);
-    
+
     /// <summary>
     /// Specifies if a filter was defined.
     /// </summary>

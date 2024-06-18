@@ -49,6 +49,10 @@ public static class WellKnownTypes
     public const string CustomAttributeTypedArgument = "System.Reflection.CustomAttributeTypedArgument";
     public const string CustomAttributeNamedArgument = "System.Reflection.CustomAttributeNamedArgument";
     public const string BindingFlags = "System.Reflection.BindingFlags";
+    public const string HttpContext = "Microsoft.AspNetCore.Http.HttpContext";
+    public const string HttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
+    public const string HttpResponse = "Microsoft.AspNetCore.Http.HttpResponse";
+    public const string FieldNode = "HotChocolate.Language.FieldNode";
 
     public static HashSet<string> TypeClass { get; } =
     [

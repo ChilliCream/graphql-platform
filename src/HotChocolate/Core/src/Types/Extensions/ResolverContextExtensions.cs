@@ -94,7 +94,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the global state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetGlobalState<T>(
+    public static T GetGlobalState<T>(
         this IPureResolverContext context,
         string name)
     {
@@ -108,17 +108,9 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ContextData.TryGetValue(name, out var value))
+        if (context.ContextData.TryGetValue(name, out var value) && value is T typedValue)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return typedValue;
         }
 
         throw new ArgumentException(
@@ -207,7 +199,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the scoped state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetScopedState<T>(
+    public static T GetScopedState<T>(
         this IPureResolverContext context,
         string name)
     {
@@ -221,17 +213,10 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.ScopedContextData.TryGetValue(name, out var value))
+        if (context.ScopedContextData.TryGetValue(name, out var value) &&
+            value is T typedValue)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return typedValue;
         }
 
         throw new ArgumentException(
@@ -320,7 +305,7 @@ public static class ResolverContextExtensions
     /// <returns>
     /// Returns the local state for the specified <paramref name="name" />.
     /// </returns>
-    public static T? GetLocalState<T>(
+    public static T GetLocalState<T>(
         this IResolverContext context,
         string name)
     {
@@ -334,17 +319,10 @@ public static class ResolverContextExtensions
             throw String_NullOrEmpty(nameof(name));
         }
 
-        if (context.LocalContextData.TryGetValue(name, out var value))
+        if (context.LocalContextData.TryGetValue(name, out var value) &&
+            value is T casted)
         {
-            if (value is null)
-            {
-                return default;
-            }
-
-            if (value is T typedValue)
-            {
-                return typedValue;
-            }
+            return casted;
         }
 
         throw new ArgumentException(
@@ -362,7 +340,7 @@ public static class ResolverContextExtensions
     /// <param name="value">The new state value.</param>
     /// <typeparam name="T">The type of the state.</typeparam>
     public static void SetGlobalState<T>(
-        this IResolverContext context,
+        this IPureResolverContext context,
         string name,
         T value)
     {

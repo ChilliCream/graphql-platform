@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Sorting;
 
@@ -9,6 +10,8 @@ namespace HotChocolate.Data.Sorting;
 /// </summary>
 internal sealed class SortingContextParameterExpressionBuilder
     : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private const string _getSortingContext =
         nameof(SortingContextResolverContextExtensions.GetSortingContext);
@@ -34,4 +37,13 @@ internal sealed class SortingContextParameterExpressionBuilder
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Call(_getSortingContextMethod, context.ResolverContext);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)context.GetSortingContext()!;
+
+    public T Execute<T>(IPureResolverContext context)
+        => throw new NotSupportedException();
 }

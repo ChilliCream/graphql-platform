@@ -329,8 +329,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 else if (parameter.IsEventMessage())
                 {
                     _writer.WriteIndentedLine(
-                        "var args{0} = context.GetGlobalState<{1}>(" +
-                        "global::HotChocolate.WellKnownContextData.EventMessage)!;",
+                        "var args{0} = context.GetScopedState<{1}>(" +
+                        "global::HotChocolate.WellKnownContextData.EventMessage);",
                         i,
                         parameter.Type.ToFullyQualified());
                 }
@@ -348,16 +348,46 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         i,
                         parameter.Type.ToFullyQualified());
                 }
+                else if (parameter.IsHttpContext())
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))!;",
+                        i,
+                        WellKnownTypes.HttpContext);
+                }
+                else if (parameter.IsHttpRequest())
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))?.Request!;",
+                        i,
+                        WellKnownTypes.HttpContext);
+                }
+                else if (parameter.IsHttpResponse())
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))?.Response!;",
+                        i,
+                        WellKnownTypes.HttpContext);
+                }
                 else if (parameter.IsGlobalState(out var key))
                 {
-                    if (parameter.HasExplicitDefaultValue)
+                    if (parameter.IsSetState(out var stateTypeName))
+                    {
+                        _writer.WriteIndentedLine(
+                            "var args{0} = new HotChocolate.SetState<{1}>(" +
+                            "value => context.SetGlobalState(\"{2}\", value));",
+                            i,
+                            stateTypeName,
+                            key);
+                    }
+                    else if (parameter.HasExplicitDefaultValue)
                     {
                         var defaultValue = parameter.ExplicitDefaultValue;
 
                         var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}>({2}, {3})!;",
+                            "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\", {3});",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key,
@@ -366,7 +396,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     else if (parameter.IsNonNullable())
                     {
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalState<{1}>({2})!;",
+                            "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key);
@@ -374,7 +404,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     else
                     {
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}>({2})!;",
+                            "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\");",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key);
@@ -382,14 +412,23 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 }
                 else if (parameter.IsScopedState(out key))
                 {
-                    if (parameter.HasExplicitDefaultValue)
+                    if (parameter.IsSetState(out var stateTypeName))
+                    {
+                        _writer.WriteIndentedLine(
+                            "var args{0} = new HotChocolate.SetState<{1}>(" +
+                            "value => context.SetScopedState(\"{2}\", value));",
+                            i,
+                            stateTypeName,
+                            key);
+                    }
+                    else if (parameter.HasExplicitDefaultValue)
                     {
                         var defaultValue = parameter.ExplicitDefaultValue;
 
                         var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}>({2}, {3})!;",
+                            "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\", {3});",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key,
@@ -398,7 +437,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     else if (parameter.IsNonNullable())
                     {
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedState<{1}>({2})!;",
+                            "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key);
@@ -406,7 +445,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     else
                     {
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}>({2})!;",
+                            "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key);
@@ -414,14 +453,23 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 }
                 else if (parameter.IsLocalState(out key))
                 {
-                    if (parameter.HasExplicitDefaultValue)
+                    if (parameter.IsSetState(out var stateTypeName))
+                    {
+                        _writer.WriteIndentedLine(
+                            "var args{0} = new HotChocolate.SetState<{1}>(" +
+                            "value => context.SetLocalState(\"{2}\", value));",
+                            i,
+                            stateTypeName,
+                            key);
+                    }
+                    else if (parameter.HasExplicitDefaultValue)
                     {
                         var defaultValue = parameter.ExplicitDefaultValue;
 
                         var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}>({2}, {3})!;",
+                            "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\", {3});",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key,
@@ -430,7 +478,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     else if (parameter.IsNonNullable())
                     {
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalState<{1}>({2})!;",
+                            "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key);
@@ -438,7 +486,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     else
                     {
                         _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}>({2})!;",
+                            "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
                             i,
                             parameter.Type.ToFullyQualified(),
                             key);
