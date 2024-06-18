@@ -12,7 +12,7 @@ public sealed class OperationRegistrationInfo(OperationType type, string typeNam
     public bool Equals(ISyntaxInfo other)
         => other is OperationRegistrationInfo info && Equals(info);
 
-    private bool Equals(OperationRegistrationInfo? other)
+    private bool Equals(OperationRegistrationInfo other)
         => Type.Equals(Type)
             && TypeName.Equals(other.TypeName, StringComparison.Ordinal);
 

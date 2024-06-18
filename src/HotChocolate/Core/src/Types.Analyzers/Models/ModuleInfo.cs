@@ -12,7 +12,7 @@ public sealed class ModuleInfo(string moduleName, ModuleOptions options) : ISynt
     public bool Equals(ISyntaxInfo obj)
         => obj is ModuleInfo other && Equals(other);
 
-    private bool Equals(ModuleInfo? other)
+    private bool Equals(ModuleInfo other)
         => Options.Equals(other.Options)
             && string.Equals(ModuleName, other.ModuleName, StringComparison.Ordinal);
 

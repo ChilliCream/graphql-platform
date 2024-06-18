@@ -21,7 +21,7 @@ public sealed class DataLoaderDefaultsInfo(
     public bool Equals(ISyntaxInfo other)
         => other is DataLoaderDefaultsInfo info && Equals(info);
 
-    private bool Equals(DataLoaderDefaultsInfo? other)
+    private bool Equals(DataLoaderDefaultsInfo other)
         => Scoped.Equals(other.Scoped)
             && IsPublic.Equals(other.IsPublic)
             && IsInterfacePublic.Equals(other.IsInterfacePublic)
