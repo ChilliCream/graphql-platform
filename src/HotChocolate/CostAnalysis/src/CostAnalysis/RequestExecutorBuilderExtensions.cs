@@ -6,8 +6,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
 
+/// <summary>
+/// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
+/// </summary>
 public static class RequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Uses the default pipeline with the addition of the cost analysis middleware.
+    /// </summary>
+    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its
+    /// execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseDefaultPipelineWithCostAnalysis(
         this IRequestExecutorBuilder builder)
     {
@@ -25,6 +36,14 @@ public static class RequestExecutorBuilderExtensions
             .UseOperationExecution();
     }
 
+    /// <summary>
+    /// Uses the cost analysis middleware.
+    /// </summary>
+    /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its
+    /// execution.
+    /// </returns>
     public static IRequestExecutorBuilder UseCostAnalysis(
         this IRequestExecutorBuilder builder)
     {

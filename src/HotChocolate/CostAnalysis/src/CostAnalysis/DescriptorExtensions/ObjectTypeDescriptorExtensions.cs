@@ -3,7 +3,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis.DescriptorExtensions;
 
-public static class CostObjectFieldDescriptorExtensions
+/// <summary>
+/// Provides extension methods to <see cref="IObjectTypeDescriptor"/>.
+/// </summary>
+public static class ObjectTypeDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
@@ -11,19 +14,19 @@ public static class CostObjectFieldDescriptorExtensions
     /// weights when calculating the overall cost of a query or response.
     /// </summary>
     /// <param name="descriptor">
-    /// The object field descriptor.
+    /// The object type descriptor.
     /// </param>
     /// <param name="weight">
     /// The <c>weight</c> argument defines what value to add to the overall cost for every
-    /// appearance, or possible appearance, of this object field.
+    /// appearance, or possible appearance, of this object type.
     /// </param>
     /// <returns>
-    /// Returns the object field descriptor for configuration chaining.
+    /// Returns the object type descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IObjectFieldDescriptor Cost(this IObjectFieldDescriptor descriptor, string weight)
+    public static IObjectTypeDescriptor Cost(this IObjectTypeDescriptor descriptor, string weight)
     {
         if (descriptor is null)
         {

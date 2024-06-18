@@ -3,7 +3,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis.DescriptorExtensions;
 
-public static class CostInputFieldDescriptorExtensions
+/// <summary>
+/// Provides extension methods to <see cref="IArgumentDescriptor"/>.
+/// </summary>
+public static class ArgumentDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
@@ -11,19 +14,19 @@ public static class CostInputFieldDescriptorExtensions
     /// weights when calculating the overall cost of a query or response.
     /// </summary>
     /// <param name="descriptor">
-    /// The input field descriptor.
+    /// The argument descriptor.
     /// </param>
     /// <param name="weight">
     /// The <c>weight</c> argument defines what value to add to the overall cost for every
-    /// appearance, or possible appearance, of this input field.
+    /// appearance, or possible appearance, of this argument.
     /// </param>
     /// <returns>
-    /// Returns the input field descriptor for configuration chaining.
+    /// Returns the argument descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IInputFieldDescriptor Cost(this IInputFieldDescriptor descriptor, string weight)
+    public static IArgumentDescriptor Cost(this IArgumentDescriptor descriptor, string weight)
     {
         if (descriptor is null)
         {

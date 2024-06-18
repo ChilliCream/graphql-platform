@@ -3,7 +3,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis.DescriptorExtensions;
 
-public static class CostScalarTypeDescriptorExtensions
+/// <summary>
+/// Provides extension methods to <see cref="IScalarTypeDescriptor"/>.
+/// </summary>
+public static class ScalarTypeDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
