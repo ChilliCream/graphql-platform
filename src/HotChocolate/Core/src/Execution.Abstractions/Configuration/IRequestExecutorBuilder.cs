@@ -16,6 +16,4 @@ public interface IRequestExecutorBuilder
     /// Gets the application services.
     /// </summary>
     IServiceCollection Services { get; }
-
-    IRequestExecutorBuilder AddParameterExpressionBuilder<T>();
 }
