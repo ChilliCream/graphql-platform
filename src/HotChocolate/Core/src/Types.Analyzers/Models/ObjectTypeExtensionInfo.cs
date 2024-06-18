@@ -5,87 +5,40 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ObjectTypeExtensionInfo : ISyntaxInfo, IEquatable<ObjectTypeExtensionInfo>
+public sealed class ObjectTypeExtensionInfo(
+    INamedTypeSymbol type,
+    INamedTypeSymbol runtimeType,
+    IMethodSymbol? nodeResolver,
+    ImmutableArray<ISymbol> members,
+    ImmutableArray<Diagnostic> diagnostics,
+    ClassDeclarationSyntax classDeclarationSyntax)
+    : ISyntaxInfo
 {
-    public ObjectTypeExtensionInfo(
-        INamedTypeSymbol type,
-        INamedTypeSymbol runtimeType,
-        IMethodSymbol? nodeResolver,
-        ImmutableArray<ISymbol> members,
-        ImmutableArray<Diagnostic> diagnostics,
-        ClassDeclarationSyntax classDeclarationSyntax)
-    {
-        Name = type.ToFullyQualified();
-        NodeResolver = nodeResolver;
-        Members = members;
-        Type = type;
-        RuntimeType = runtimeType;
-        Diagnostics = diagnostics;
-        ClassDeclarationSyntax = classDeclarationSyntax;
-    }
+    public string Name { get; } = type.ToFullyQualified();
 
-    public string Name { get; }
+    public INamedTypeSymbol Type { get; } = type;
 
-    public INamedTypeSymbol Type { get; }
+    public INamedTypeSymbol RuntimeType { get; } = runtimeType;
 
-    public INamedTypeSymbol RuntimeType { get; }
+    public IMethodSymbol? NodeResolver { get; } = nodeResolver;
 
-    public IMethodSymbol? NodeResolver { get; }
+    public ImmutableArray<ISymbol> Members { get; } = members;
 
-    public ImmutableArray<ISymbol> Members { get; }
+    public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
 
-    public ImmutableArray<Diagnostic> Diagnostics { get; }
-
-    public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
-
-    public bool Equals(ObjectTypeExtensionInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Name == other.Name &&
-            ClassDeclarationSyntax.SyntaxTree.IsEquivalentTo(
-                other.ClassDeclarationSyntax.SyntaxTree);
-    }
-
-    public bool Equals(ISyntaxInfo other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return other is ObjectTypeExtensionInfo info && Equals(info);
-    }
+    public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
 
     public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj) || obj is ObjectTypeExtensionInfo other && Equals(other);
-    }
+        => obj is ObjectTypeExtensionInfo other && Equals(other);
+
+    public bool Equals(ISyntaxInfo obj)
+        => obj is ObjectTypeExtensionInfo other && Equals(other);
+
+    private bool Equals(ObjectTypeExtensionInfo other)
+        => string.Equals(Name, other.Name, StringComparison.Ordinal)
+            && ClassDeclarationSyntax.SyntaxTree.IsEquivalentTo(
+                other.ClassDeclarationSyntax.SyntaxTree);
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Name.GetHashCode() * 397) ^ ClassDeclarationSyntax.GetHashCode();
-        }
-    }
-
-    public static bool operator ==(ObjectTypeExtensionInfo? left, ObjectTypeExtensionInfo? right)
-        => Equals(left, right);
-
-    public static bool operator !=(ObjectTypeExtensionInfo? left, ObjectTypeExtensionInfo? right)
-        => !Equals(left, right);
+        => HashCode.Combine(Name, ClassDeclarationSyntax);
 }
