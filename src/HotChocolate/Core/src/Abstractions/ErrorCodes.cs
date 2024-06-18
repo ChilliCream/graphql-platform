@@ -270,20 +270,6 @@ public static class ErrorCodes
         public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
     }
 
-    public static class Stitching
-    {
-        public const string HttpRequestException = "HC0006";
-
-        public const string UnknownRequestException = "HC0007";
-
-        public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
-        public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
-        public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
-        public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
-        public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
-        public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
-    }
-
     public static class Spatial
     {
         /// <summary>
