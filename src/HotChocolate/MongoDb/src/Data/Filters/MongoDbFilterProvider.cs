@@ -27,19 +27,19 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
     /// <summary>
     /// The visitor that is used to traverse the incoming selection set an execute handlers
     /// </summary>
-    protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition> Visitor { get; } = 
+    protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition> Visitor { get; } =
         new(new MongoDbFilterCombinator());
 
     public override IQueryBuilder CreateBuilder<TEntityType>(string argumentName)
         => new MongoDbQueryBuilder(CreateFilterDefinition(argumentName));
-    
+
     private Func<IMiddlewareContext, MongoDbFilterDefinition?> CreateFilterDefinition(string argumentName)
         => context =>
         {
             // next we get the filter argument.
             var argument = context.Selection.Field.Arguments[argumentName];
             var filter = context.ArgumentLiteral<IValueNode>(argumentName);
-            
+
             // if no filter is defined we can stop here and yield back control.
             var skipFiltering = context.GetLocalStateOrDefault<bool>(SkipFilteringKey);
 
@@ -50,11 +50,11 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
             {
                 return null;
             }
-            
+
             var visitorContext = new MongoDbFilterVisitorContext(filterInput);
 
             Visitor.Visit(filter, visitorContext);
-                
+
             if (visitorContext.Errors.Count == 0)
             {
                 return visitorContext.CreateQuery();
@@ -65,7 +65,7 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
         };
 
     private sealed class MongoDbQueryBuilder(
-        Func<IMiddlewareContext, MongoDbFilterDefinition?> createFilterDef) 
+        Func<IMiddlewareContext, MongoDbFilterDefinition?> createFilterDef)
         : IQueryBuilder
     {
         public void Prepare(IMiddlewareContext context)
@@ -80,13 +80,14 @@ public class MongoDbFilterProvider : FilterProvider<MongoDbFilterVisitorContext>
             {
                 return;
             }
-            
-            var filterDef = context.GetLocalState<MongoDbFilterDefinition>(FilterDefinitionKey);
+
+            var filterDef = context.GetLocalStateOrDefault<MongoDbFilterDefinition>(FilterDefinitionKey);
+
             if (filterDef is null)
             {
                 return;
             }
-            
+
             context.Result = executable.WithFiltering(filterDef);
         }
     }

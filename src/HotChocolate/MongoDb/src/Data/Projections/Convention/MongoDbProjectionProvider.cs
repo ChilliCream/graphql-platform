@@ -73,7 +73,8 @@ public class MongoDbProjectionProvider : ProjectionProvider
                 return;
             }
 
-            var filterDef = context.GetLocalState<MongoDbProjectionDefinition>(ProjectionDefinitionKey);
+            var filterDef = context.GetLocalStateOrDefault<MongoDbProjectionDefinition>(ProjectionDefinitionKey);
+
             if (filterDef is null)
             {
                 return;

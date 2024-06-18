@@ -156,8 +156,8 @@ public static class PagingObjectFieldDescriptorExtensions
                     typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
                 }
 
-                if (typeRef is null && 
-                    d.Type is ExtendedTypeReference extendedTypeRef && 
+                if (typeRef is null &&
+                    d.Type is ExtendedTypeReference extendedTypeRef &&
                     c.TypeInspector.TryCreateTypeInfo(extendedTypeRef.Type, out var typeInfo) &&
                     GetElementType(typeInfo) is { } elementType)
                 {
@@ -175,7 +175,7 @@ public static class PagingObjectFieldDescriptorExtensions
     private static IExtendedType? GetElementType(ITypeInfo typeInfo)
     {
         var elementType = false;
-        
+
         for (var i = 0; i < typeInfo.Components.Count; i++)
         {
             var component = typeInfo.Components[i];
@@ -184,7 +184,7 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 return component.Type;
             }
-            
+
             if (component.Kind is TypeComponentKind.List)
             {
                 elementType = true;

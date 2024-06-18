@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
+public sealed class DataLoaderInfo : ISyntaxInfo
 {
     public DataLoaderInfo(
         AttributeSyntax attributeSyntax,
@@ -61,52 +61,18 @@ public sealed class DataLoaderInfo : ISyntaxInfo, IEquatable<DataLoaderInfo>
 
     public MethodDeclarationSyntax MethodSyntax { get; }
 
-    public bool Equals(DataLoaderInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return AttributeSyntax.Equals(other.AttributeSyntax) &&
-            MethodSyntax.Equals(other.MethodSyntax);
-    }
-    
-    public bool Equals(ISyntaxInfo other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return other is DataLoaderInfo info && Equals(info);
-    }
-
     public override bool Equals(object? obj)
-    {
-        return ReferenceEquals(this, obj)
-            || obj is DataLoaderInfo other && Equals(other);
-    }
+        => obj is DataLoaderInfo other && Equals(other);
+
+    public bool Equals(ISyntaxInfo obj)
+        => obj is DataLoaderInfo other && Equals(other);
+
+    private bool Equals(DataLoaderInfo other)
+        => AttributeSyntax.IsEquivalentTo(other.AttributeSyntax)
+            && MethodSyntax.IsEquivalentTo(other.MethodSyntax);
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            var hashCode = AttributeSyntax.GetHashCode();
-            hashCode = (hashCode * 397) ^ MethodSyntax.GetHashCode();
-            return hashCode;
-        }
-    }
+        => HashCode.Combine(AttributeSyntax, MethodSyntax);
 
     private static string GetDataLoaderName(string name, AttributeData attribute)
     {
