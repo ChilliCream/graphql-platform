@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -14,11 +13,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos)
-        => Execute(context, compilation, syntaxInfos);
+        => Execute(context, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
@@ -32,7 +30,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         sb.Clear();
 
-        WriteResolvers(context, compilation, syntaxInfos, sb);
+        WriteResolvers(context, syntaxInfos, sb);
 
         StringBuilderPool.Return(sb);
     }
@@ -91,7 +89,6 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteResolvers(
         SourceProductionContext context,
-        Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
@@ -135,13 +132,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
                 generator.AddParameterInitializer(resolverInfos, localTypeLookup);
 
-                foreach (var member in objectTypeExtension.Members)
+                foreach (var resolver in objectTypeExtension.Resolvers)
                 {
                     sb.AppendLine();
-                    generator.AddResolver(
-                        new ResolverName(objectTypeExtension.Type.Name, member.Name),
-                        member,
-                        compilation);
+                    generator.AddResolver(resolver);
                 }
 
                 generator.WriteEndClass();
