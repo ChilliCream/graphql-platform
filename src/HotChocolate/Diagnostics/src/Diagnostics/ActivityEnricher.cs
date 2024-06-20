@@ -506,9 +506,9 @@ public class ActivityEnricher
         activity.SetTag("graphql.selection.type", selection.Field.Type.Print());
         activity.SetTag("graphql.selection.path", path);
         activity.SetTag("graphql.selection.hierarchy", hierarchy);
-        activity.SetTag("graphql.selection.field.name", coordinate.FieldName);
+        activity.SetTag("graphql.selection.field.name", coordinate.MemberName);
         activity.SetTag("graphql.selection.field.coordinate", coordinate.ToString());
-        activity.SetTag("graphql.selection.field.declaringType", coordinate.TypeName);
+        activity.SetTag("graphql.selection.field.declaringType", coordinate.Name);
         activity.SetTag("graphql.selection.field.isDeprecated", selection.Field.IsDeprecated);
 
         void BuildPath()

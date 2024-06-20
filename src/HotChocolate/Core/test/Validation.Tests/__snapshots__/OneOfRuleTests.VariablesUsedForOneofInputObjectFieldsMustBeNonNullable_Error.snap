@@ -19,7 +19,7 @@
       }
     ],
     "Extensions": {
-      "field": "PetInput.cat",
+      "fieldCoordinate": "PetInput.cat",
       "specifiedBy": "https://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
       "rfc": "https://github.com/graphql/graphql-spec/pull/825"
     },

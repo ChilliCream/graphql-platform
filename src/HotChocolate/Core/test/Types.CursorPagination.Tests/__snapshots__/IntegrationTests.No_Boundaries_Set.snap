@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0052",
-        "field": "Query.letters"
+        "fieldCoordinate": "Query.letters"
       }
     }
   ],

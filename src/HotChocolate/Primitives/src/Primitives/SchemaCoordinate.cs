@@ -210,4 +210,6 @@ public readonly struct SchemaCoordinate : IEquatable<SchemaCoordinate>
 
     public static bool operator !=(SchemaCoordinate left, SchemaCoordinate right)
         => !left.Equals(right);
+
+    public static implicit operator SchemaCoordinate(string s) => Parse(s);
 }

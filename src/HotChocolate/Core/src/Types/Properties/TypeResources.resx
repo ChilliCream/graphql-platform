@@ -636,9 +636,6 @@ Type: `{0}`</value>
   <data name="SchemaBuilderExtensions_AddResolverConfig_ContextInvalid" xml:space="preserve">
     <value>The schema builder context is invalid.</value>
   </data>
-  <data name="SchemaBuilderExtensions_AddResolver_EmptyCoordinates" xml:space="preserve">
-    <value>Empty field coordinates are not allowed.</value>
-  </data>
   <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`.</value>
   </data>

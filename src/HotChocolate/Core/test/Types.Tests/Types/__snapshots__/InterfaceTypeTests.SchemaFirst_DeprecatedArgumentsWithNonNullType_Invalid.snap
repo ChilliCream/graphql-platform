@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Required argument Foo.bar(a) cannot be deprecated.",
+  "message": "Required argument Foo.bar(a:) cannot be deprecated.",
   "type": "Foo",
   "extensions": {
     "argument": "a",

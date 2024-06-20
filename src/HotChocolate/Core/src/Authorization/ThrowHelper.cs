@@ -9,8 +9,8 @@ internal static class ThrowHelper
         => new(AuthCoreResources.ThrowHelper_StateNotInitialized);
 
     public static InvalidOperationException UnauthorizedType(
-        FieldCoordinate fieldCoordinate)
-        => new(string.Format(AuthCoreResources.ThrowHelper_UnauthorizedType, fieldCoordinate));
+        SchemaCoordinate schemaCoordinate)
+        => new(string.Format(AuthCoreResources.ThrowHelper_UnauthorizedType, schemaCoordinate));
 
     public static InvalidOperationException UnableToResolveTypeReg()
         => new(AuthCoreResources.ThrowHelper_UnableToResolveTypeReg);

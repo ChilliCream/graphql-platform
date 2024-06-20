@@ -393,7 +393,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             else
             {
                 throw ThrowHelper.UnauthorizedType(
-                    new FieldCoordinate(typeName, fieldDef.Name));
+                    new SchemaCoordinate(typeName, fieldDef.Name));
             }
         }
     }
