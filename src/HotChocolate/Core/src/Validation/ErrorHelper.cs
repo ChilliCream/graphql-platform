@@ -663,7 +663,7 @@ internal static class ErrorHelper
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(type), type.Name)
-            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 
     public static IError OneOfVariablesMustBeNonNull(
@@ -680,7 +680,7 @@ internal static class ErrorHelper
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
             .SetExtension(nameof(field), field.ToString())
-            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 
     public static IError DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(
