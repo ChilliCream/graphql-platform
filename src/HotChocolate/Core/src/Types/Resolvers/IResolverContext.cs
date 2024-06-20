@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -59,6 +60,16 @@ public interface IResolverContext : IPureResolverContext
     /// and thus request operations should be cancelled.
     /// </summary>
     CancellationToken RequestAborted { get; }
+
+    /// <summary>
+    /// The parser used for parsing input values.
+    /// </summary>
+    internal InputParser Parser { get; }
+
+    /// <summary>
+    /// The <see cref="ITypeConverter"/> used to convert between types.
+    /// </summary>
+    internal ITypeConverter Converter { get; }
 
     /// <summary>
     /// Gets as required service from the dependency injection container.

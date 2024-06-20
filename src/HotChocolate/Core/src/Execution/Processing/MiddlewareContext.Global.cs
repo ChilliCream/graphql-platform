@@ -7,6 +7,7 @@ using HotChocolate.Execution.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing;
@@ -41,6 +42,10 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
         => ScopedContextData;
+
+    public InputParser Parser => _parser;
+
+    public ITypeConverter Converter => _operationContext.Converter;
 
     public CancellationToken RequestAborted { get; private set; }
 
