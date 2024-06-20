@@ -34,7 +34,7 @@ internal static class OperationContextExtensions
             var error = operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(path)
-                .AddLocation([selection.SyntaxNode])
+                .SetLocations([selection.SyntaxNode])
                 .Build();
 
             ReportError(operationContext, error, resolverContext, selection);

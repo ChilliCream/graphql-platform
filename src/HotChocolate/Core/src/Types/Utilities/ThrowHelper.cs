@@ -539,7 +539,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_MissingDirectiveIfArgument,
                 directive.Name.Value)
-            .AddLocation([directive])
+            .SetLocations([directive])
             .Build());
 
     public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)

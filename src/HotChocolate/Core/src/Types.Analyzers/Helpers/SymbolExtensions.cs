@@ -62,6 +62,23 @@ public static class SymbolExtensions
         return false;
     }
 
+    public static bool IsSetState(this IParameterSymbol parameter)
+    {
+        if (parameter.Type is INamedTypeSymbol namedTypeSymbol)
+        {
+            if (namedTypeSymbol is { IsGenericType: true, TypeArguments.Length: 1 })
+            {
+                if (namedTypeSymbol.Name == "SetState" &&
+                    namedTypeSymbol.ContainingNamespace.ToDisplayString() == "HotChocolate")
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static bool IsGlobalState(
         this IParameterSymbol parameter,
         [NotNullWhen(true)] out string? key)
@@ -174,6 +191,76 @@ public static class SymbolExtensions
         {
             if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.EventMessageAttribute)
             {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsService(
+        this IParameterSymbol parameter,
+        out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ServiceAttribute)
+            {
+                if (attributeData.ConstructorArguments.Length == 1 &&
+                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
+                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                {
+                    key = keyValue;
+                    return true;
+                }
+
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg is { Key: "Key", Value.Value: string namedKeyValue })
+                    {
+                        key = namedKeyValue;
+                        return true;
+                    }
+                }
+
+                key = null;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsArgument(
+        this IParameterSymbol parameter,
+        out string? key)
+    {
+        key = null;
+
+        foreach (var attributeData in parameter.GetAttributes())
+        {
+            if (attributeData.AttributeClass?.ToDisplayString() == WellKnownAttributes.ArgumentAttribute)
+            {
+                if (attributeData.ConstructorArguments.Length == 1 &&
+                    attributeData.ConstructorArguments[0].Kind == TypedConstantKind.Primitive &&
+                    attributeData.ConstructorArguments[0].Value is string keyValue)
+                {
+                    key = keyValue;
+                    return true;
+                }
+
+                foreach (var namedArg in attributeData.NamedArguments)
+                {
+                    if (namedArg is { Key: "Name", Value.Value: string namedKeyValue })
+                    {
+                        key = namedKeyValue;
+                        return true;
+                    }
+                }
+
+                key = null;
                 return true;
             }
         }

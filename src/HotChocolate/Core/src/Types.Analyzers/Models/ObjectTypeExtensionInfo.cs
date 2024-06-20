@@ -9,9 +9,9 @@ public sealed class ObjectTypeExtensionInfo(
     INamedTypeSymbol type,
     INamedTypeSymbol runtimeType,
     IMethodSymbol? nodeResolver,
-    ImmutableArray<ISymbol> members,
     ImmutableArray<Diagnostic> diagnostics,
-    ClassDeclarationSyntax classDeclarationSyntax)
+    ClassDeclarationSyntax classDeclarationSyntax,
+    ImmutableArray<Resolver> resolvers)
     : ISyntaxInfo
 {
     public string Name { get; } = type.ToFullyQualified();
@@ -22,11 +22,11 @@ public sealed class ObjectTypeExtensionInfo(
 
     public IMethodSymbol? NodeResolver { get; } = nodeResolver;
 
-    public ImmutableArray<ISymbol> Members { get; } = members;
-
     public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
+
+    public ImmutableArray<Resolver> Resolvers { get; } = resolvers;
 
     public override bool Equals(object? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
@@ -35,8 +35,8 @@ public sealed class ObjectTypeExtensionInfo(
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
     private bool Equals(ObjectTypeExtensionInfo other)
-        => string.Equals(Name, other.Name, StringComparison.Ordinal)
-            && ClassDeclarationSyntax.SyntaxTree.IsEquivalentTo(
+        => string.Equals(Name, other.Name, StringComparison.Ordinal) &&
+            ClassDeclarationSyntax.SyntaxTree.IsEquivalentTo(
                 other.ClassDeclarationSyntax.SyntaxTree);
 
     public override int GetHashCode()

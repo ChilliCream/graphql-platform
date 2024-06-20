@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -14,11 +13,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         SourceProductionContext context,
         Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos)
-        => Execute(context, compilation, syntaxInfos);
+        => Execute(context, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
@@ -32,7 +30,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         sb.Clear();
 
-        WriteResolvers(context, compilation, syntaxInfos, sb);
+        WriteResolvers(context, syntaxInfos, sb);
 
         StringBuilderPool.Return(sb);
     }
@@ -91,11 +89,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteResolvers(
         SourceProductionContext context,
-        Compilation compilation,
         ImmutableArray<ISyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
-        var localTypeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
         generator.WriteHeader();
@@ -122,26 +119,19 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
                 firstClass = false;
 
-                var resolverInfos = objectTypeExtension.Members
-                    .Select(m => CreateResolverInfo(objectTypeExtension, m))
-                    .ToList();
-
                 generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
 
-                if (generator.AddResolverDeclarations(resolverInfos))
+                if (generator.AddResolverDeclarations(objectTypeExtension.Resolvers))
                 {
                     sb.AppendLine();
                 }
 
-                generator.AddParameterInitializer(resolverInfos, localTypeLookup);
+                generator.AddParameterInitializer(objectTypeExtension.Resolvers, typeLookup);
 
-                foreach (var member in objectTypeExtension.Members)
+                foreach (var resolver in objectTypeExtension.Resolvers)
                 {
                     sb.AppendLine();
-                    generator.AddResolver(
-                        new ResolverName(objectTypeExtension.Type.Name, member.Name),
-                        member,
-                        compilation);
+                    generator.AddResolver(resolver, typeLookup);
                 }
 
                 generator.WriteEndClass();
@@ -152,11 +142,4 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
     }
-
-    private static ResolverInfo CreateResolverInfo(
-        ObjectTypeExtensionInfo objectTypeExtension,
-        ISymbol member)
-        => new ResolverInfo(
-            new ResolverName(objectTypeExtension.Type.Name, member.Name),
-            member as IMethodSymbol);
 }

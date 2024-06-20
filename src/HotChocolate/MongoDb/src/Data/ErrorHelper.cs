@@ -25,7 +25,7 @@ internal static class ErrorHelper
                 MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
             .SetExtension("filterType", filterType.Print())
@@ -44,7 +44,7 @@ internal static class ErrorHelper
                 MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())

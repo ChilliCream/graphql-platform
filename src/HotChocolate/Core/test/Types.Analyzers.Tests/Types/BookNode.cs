@@ -34,7 +34,7 @@ public static partial class BookNode
     public static string IdAndTitle([Parent] Book book)
         => $"{book.Id}: {book.Title}";
 
-    public static string GetBookUri([Parent] Book book, HttpContext context)
+    public static string GetBookUri([Parent] Book book, HttpContext context, [LocalState] string? foo = null)
         => context.Request.Path + $"/{book.Id}";
 
     [NodeResolver]

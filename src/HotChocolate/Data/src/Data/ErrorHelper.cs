@@ -28,7 +28,7 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
             .SetExtension("filterType", filterType.Print())
@@ -41,7 +41,7 @@ internal static class ErrorHelper
                 DataResources.SortingVisitor_ListInput_AreNotSupported,
                 field.DeclaringType.Name,
                 field.Name)
-            .AddLocation([node])
+            .AddLocation(node)
             .SetCode(ErrorCodes.Data.ListNotSupported)
             .SetExtension(nameof(field), field)
             .Build();
@@ -58,7 +58,7 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())
@@ -82,7 +82,7 @@ internal static class ErrorHelper
             .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
             .SetCode(ErrorCodes.Data.MoreThanOneElement)
             .SetPath(context.Path)
-            .AddLocation([context.Selection.SyntaxNode])
+            .AddLocation(context.Selection.SyntaxNode)
             .Build();
 
     public static IError ProjectionProvider_CreateMoreThanOneError() =>
@@ -94,7 +94,7 @@ internal static class ErrorHelper
     public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
-            .AddLocation([node])
+            .AddLocation(node)
             .SetCode(ErrorCodes.Data.FilteringProjectionFailed)
             .Build();
 
@@ -102,13 +102,12 @@ internal static class ErrorHelper
         ErrorBuilder.New()
             .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
             .SetCode(ErrorCodes.Data.SortingProjectionFailed)
-            .AddLocation([node])
+            .AddLocation(node)
             .Build();
 
     public static IError ProjectionVisitor_NodeFieldWasNotFound(IPageType pageType) =>
         ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
-                pageType.Name)
+            .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound, pageType.Name)
             .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
             .Build();
 }

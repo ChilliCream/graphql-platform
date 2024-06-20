@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -37,7 +38,8 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                     if (fullName.StartsWith(ObjectTypeAttribute, Ordinal) &&
                         attributeContainingTypeSymbol.TypeArguments.Length == 1 &&
                         attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol runtimeType &&
-                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol classSymbol)
+                        ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol
+                            classSymbol)
                     {
                         var diagnostics = ImmutableArray<Diagnostic>.Empty;
 
@@ -57,48 +59,74 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                                     Location.Create(possibleType.SyntaxTree, possibleType.Span)));
                         }
 
-                        var relevantMembers = classSymbol.GetMembers();
+                        var members = classSymbol.GetMembers();
+                        var resolvers = new Resolver[members.Length];
                         IMethodSymbol? nodeResolver = null;
+                        int i = 0;
 
-                        foreach (var member in classSymbol.GetMembers())
+                        foreach (var member in members)
                         {
                             if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
                             {
-                                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary, } methodSymbol)
+                                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                                 {
                                     if (methodSymbol.Skip())
                                     {
-                                        relevantMembers = relevantMembers.Remove(member);
                                         continue;
                                     }
 
-                                    if(methodSymbol.IsNodeResolver())
+                                    if (methodSymbol.IsNodeResolver())
                                     {
                                         nodeResolver = methodSymbol;
-                                        relevantMembers = relevantMembers.Remove(member);
                                     }
                                     else
                                     {
+                                        var parameters = methodSymbol.Parameters;
+                                        var resolverParameters = new ResolverParameter[parameters.Length];
+
+                                        for (var j = 0; j < parameters.Length; j++)
+                                        {
+                                            resolverParameters[j] =
+                                                ResolverParameter.Create(
+                                                    parameters[j],
+                                                    context.SemanticModel.Compilation);
+                                        }
+
+                                        resolvers[i++] = new Resolver(
+                                            classSymbol.Name,
+                                            methodSymbol,
+                                            methodSymbol.GetResultKind(),
+                                            resolverParameters.ToImmutableArray());
                                         continue;
                                     }
                                 }
 
                                 if (member is IPropertySymbol)
                                 {
-                                    continue;
+                                    resolvers[i++] = new Resolver(
+                                        classSymbol.Name,
+                                        member,
+                                        ResolverResultKind.Pure,
+                                        ImmutableArray<ResolverParameter>.Empty);
                                 }
                             }
+                        }
 
-                            relevantMembers = relevantMembers.Remove(member);
+                        if (i > 0 && i < resolvers.Length)
+                        {
+                            Array.Resize(ref resolvers, i);
                         }
 
                         syntaxInfo = new ObjectTypeExtensionInfo(
                             classSymbol,
                             runtimeType,
                             nodeResolver,
-                            relevantMembers,
                             diagnostics,
-                            possibleType);
+                            possibleType,
+                            i == 0
+                                ? ImmutableArray<Resolver>.Empty
+                                : resolvers.ToImmutableArray());
+
                         return true;
                     }
                 }

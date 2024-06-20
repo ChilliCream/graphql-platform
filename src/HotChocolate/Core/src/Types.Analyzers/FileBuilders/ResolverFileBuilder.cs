@@ -1,10 +1,8 @@
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -48,13 +46,13 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    public bool AddResolverDeclarations(IEnumerable<ResolverInfo> resolvers)
+    public bool AddResolverDeclarations(IEnumerable<Resolver> resolvers)
     {
         var first = true;
 
         foreach (var resolver in resolvers)
         {
-            if (resolver.Skip)
+            if (resolver.Parameters.Length == 0)
             {
                 continue;
             }
@@ -69,15 +67,15 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
             _writer.WriteIndentedLine(
                 "private readonly static global::{0}[] _args_{1}_{2} = new global::{0}[{3}];",
                 WellKnownTypes.ParameterBinding,
-                resolver.Name.TypeName,
-                resolver.Name.MemberName,
-                resolver.ParameterCount);
+                resolver.TypeName,
+                resolver.Member.Name,
+                resolver.Parameters.Length);
         }
 
         return !first;
     }
 
-    public void AddParameterInitializer(IEnumerable<ResolverInfo> resolvers, ILocalTypeLookup typeLookup)
+    public void AddParameterInitializer(IEnumerable<Resolver> resolvers, ILocalTypeLookup typeLookup)
     {
         _writer.WriteIndentedLine(
             "public static void InitializeBindings(global::{0} bindingResolver)",
@@ -88,7 +86,12 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
             var first = true;
             foreach (var resolver in resolvers)
             {
-                if (resolver is not { Skip: false, Method: not null })
+                if (resolver.Parameters.Length == 0)
+                {
+                    continue;
+                }
+
+                if (resolver.Member is not IMethodSymbol method)
                 {
                     continue;
                 }
@@ -117,31 +120,58 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     _writer.WriteIndentedLine(
                         "        | global::{0}.Static;",
                         WellKnownTypes.BindingFlags);
-                    _writer.WriteIndentedLine(
-                        "var type = typeof(global::{0});",
-                        resolver.Method.ContainingType.ToDisplayString());
+                    _writer.WriteLine();
+                    _writer.WriteIndentedLine("var type = typeof({0});", method.ContainingType.ToFullyQualified());
+                    _writer.WriteIndentedLine("global::System.Reflection.MethodInfo resolver = default!;");
+                    _writer.WriteIndentedLine("global::System.Reflection.ParameterInfo[] parameters = default!;");
                     first = false;
                 }
 
                 _writer.WriteLine();
-                _writer.WriteIndentedLine(
-                    "var resolver_{0}_{1} = type.GetMethod(\"{1}\", bindingFlags, [{2}])!;",
-                    resolver.Name.TypeName,
-                    resolver.Name.MemberName,
-                    string.Join(", ", resolver.Method.Parameters.Select(
-                        p => $"typeof(global::{ToDisplayString(p.Type, resolver, typeLookup)})")));
+                _writer.WriteIndentedLine("resolver = type.GetMethod(");
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine("\"{0}\",", resolver.Member.Name);
+                    _writer.WriteIndentedLine("bindingFlags,");
+                    if (resolver.Parameters.Length == 0)
+                    {
+                        _writer.WriteIndentedLine("global::System.Array.Empty<global::System.Type>());");
+                    }
+                    else
+                    {
+                        _writer.WriteIndentedLine("new global::System.Type[]");
+                        _writer.WriteIndentedLine("{");
+                        using (_writer.IncreaseIndent())
+                        {
+                            for (var i = 0; i < resolver.Parameters.Length; i++)
+                            {
+                                var parameter = resolver.Parameters[i];
 
-                _writer.WriteIndentedLine(
-                    "var parameters_{0}_{1} = resolver_{0}_{1}.GetParameters();",
-                    resolver.Name.TypeName,
-                    resolver.Name.MemberName);
+                                if (i > 0)
+                                {
+                                    _writer.Write(',');
+                                    _writer.WriteLine();
+                                }
 
-                for (var i = 0; i < resolver.Method.Parameters.Length; i++)
+                                _writer.WriteIndented(
+                                    "typeof({0})",
+                                    ToFullyQualifiedString(parameter.Type, method, typeLookup));
+                            }
+                        }
+
+                        _writer.WriteLine();
+                        _writer.WriteIndentedLine("});");
+                    }
+                }
+
+                _writer.WriteIndentedLine("parameters = resolver.GetParameters();");
+
+                for (var i = 0; i < method.Parameters.Length; i++)
                 {
                     _writer.WriteIndentedLine(
-                        "_args_{0}_{1}[{2}] = bindingResolver.GetBinding(parameters_{0}_{1}[{2}]);",
-                        resolver.Name.TypeName,
-                        resolver.Name.MemberName,
+                        "_args_{0}_{1}[{2}] = bindingResolver.GetBinding(parameters[{2}]);",
+                        resolver.TypeName,
+                        resolver.Member.Name,
                         i);
                 }
             }
@@ -150,51 +180,58 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    private static string ToDisplayString(ITypeSymbol type, ResolverInfo resolver, ILocalTypeLookup typeLookup)
+    private static string ToFullyQualifiedString(
+        ITypeSymbol type,
+        IMethodSymbol resolverMethod,
+        ILocalTypeLookup typeLookup)
     {
         if (type.TypeKind is TypeKind.Error &&
-            typeLookup.TryGetTypeName(type, resolver, out var typeDisplayName))
+            typeLookup.TryGetTypeName(type, resolverMethod, out var typeDisplayName))
         {
             return typeDisplayName;
         }
 
-        return type.ToDisplayString();
+        return type.ToFullyQualified();
     }
 
-    public void AddResolver(ResolverName resolverName, ISymbol member, Compilation compilation)
+    public void AddResolver(Resolver resolver, ILocalTypeLookup typeLookup)
     {
-        if (member is IMethodSymbol method)
+        if (resolver.Member is IMethodSymbol resolverMethod)
         {
-            switch (method.GetResultKind())
+            switch (resolver.ResultKind)
             {
                 case ResolverResultKind.Invalid:
                     return;
 
-                case ResolverResultKind.Pure:
-                    AddStaticPureResolver(resolverName, method, compilation);
+                case ResolverResultKind.Pure when resolver.IsPure:
+                    AddStaticPureResolver(resolver, resolverMethod, typeLookup);
+                    return;
+
+                case ResolverResultKind.Pure when !resolver.IsPure:
+                    AddStaticStandardResolver(resolver, false, resolverMethod, typeLookup);
                     return;
 
                 case ResolverResultKind.Task:
                 case ResolverResultKind.TaskAsyncEnumerable:
-                    AddStaticStandardResolver(resolverName, method, true, compilation);
+                    AddStaticStandardResolver(resolver, true, resolverMethod, typeLookup);
                     return;
 
                 case ResolverResultKind.Executable:
                 case ResolverResultKind.Queryable:
                 case ResolverResultKind.AsyncEnumerable:
-                    AddStaticStandardResolver(resolverName, method, false, compilation);
+                    AddStaticStandardResolver(resolver, false, resolverMethod, typeLookup);
                     return;
             }
         }
 
-        AddStaticPropertyResolver(resolverName, member);
+        AddStaticPropertyResolver(resolver);
     }
 
     private void AddStaticStandardResolver(
-        ResolverName resolverName,
-        IMethodSymbol method,
+        Resolver resolver,
         bool async,
-        Compilation compilation)
+        IMethodSymbol resolverMethod,
+        ILocalTypeLookup typeLookup)
     {
         _writer.WriteIndented("public static ");
 
@@ -204,40 +241,37 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         }
 
         _writer.WriteLine(
-            "global::{0}<{1}?> {2}_{3}(global::{4} context)",
+            "global::{0}<global::{1}?> {2}_{3}(global::{4} context)",
             WellKnownTypes.ValueTask,
             WellKnownTypes.Object,
-            resolverName.TypeName,
-            resolverName.MemberName,
+            resolver.TypeName,
+            resolver.Member.Name,
             WellKnownTypes.ResolverContext);
         _writer.WriteIndentedLine("{");
         using (_writer.IncreaseIndent())
         {
-            AddResolverArguments(resolverName, method, compilation);
+            AddResolverArguments(resolver, resolverMethod, typeLookup);
 
             if (async)
             {
                 _writer.WriteIndentedLine(
                     "var result = await {0}.{1}({2});",
-                    method.ContainingType.ToFullyQualified(),
-                    resolverName.MemberName,
-                    GetResolverArguments(method));
+                    resolver.Member.ContainingType.ToFullyQualified(),
+                    resolver.Member.Name,
+                    GetResolverArguments(resolver.Parameters.Length));
 
-                _writer.WriteIndentedLine(
-                    "return result;",
-                    WellKnownTypes.ValueTask,
-                    WellKnownTypes.Object);
+                _writer.WriteIndentedLine("return result;");
             }
             else
             {
                 _writer.WriteIndentedLine(
                     "var result = {0}.{1}({2});",
-                    method.ContainingType.ToFullyQualified(),
-                    resolverName.MemberName,
-                    GetResolverArguments(method));
+                    resolver.Member.ContainingType.ToFullyQualified(),
+                    resolver.Member.Name,
+                    GetResolverArguments(resolver.Parameters.Length));
 
                 _writer.WriteIndentedLine(
-                    "return new global::{0}<{1}?>(result);",
+                    "return new global::{0}<global::{1}?>(result);",
                     WellKnownTypes.ValueTask,
                     WellKnownTypes.Object);
             }
@@ -246,24 +280,24 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    private void AddStaticPureResolver(ResolverName resolverName, IMethodSymbol method, Compilation compilation)
+    private void AddStaticPureResolver(Resolver resolver, IMethodSymbol resolverMethod, ILocalTypeLookup typeLookup)
     {
         _writer.WriteIndentedLine(
-            "public static {0}? {1}_{2}(global::{3} context)",
+            "public static global::{0}? {1}_{2}(global::{3} context)",
             WellKnownTypes.Object,
-            resolverName.TypeName,
-            resolverName.MemberName,
+            resolver.TypeName,
+            resolver.Member.Name,
             WellKnownTypes.PureResolverContext);
         _writer.WriteIndentedLine("{");
         using (_writer.IncreaseIndent())
         {
-            AddResolverArguments(resolverName, method, compilation);
+            AddResolverArguments(resolver, resolverMethod, typeLookup);
 
             _writer.WriteIndentedLine(
                 "var result = {0}.{1}({2});",
-                method.ContainingType.ToFullyQualified(),
-                resolverName.MemberName,
-                GetResolverArguments(method));
+                resolver.Member.ContainingType.ToFullyQualified(),
+                resolver.Member.Name,
+                GetResolverArguments(resolver.Parameters.Length));
 
             _writer.WriteIndentedLine("return result;");
         }
@@ -271,250 +305,241 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    private void AddStaticPropertyResolver(ResolverName resolverName, ISymbol method)
+    private void AddStaticPropertyResolver(Resolver resolver)
     {
         _writer.WriteIndentedLine(
-            "public static {0}? {1}_{2}(global::{3} context)",
+            "public static global::{0}? {1}_{2}(global::{3} context)",
             WellKnownTypes.Object,
-            resolverName.TypeName,
-            resolverName.MemberName,
+            resolver.TypeName,
+            resolver.Member.Name,
             WellKnownTypes.PureResolverContext);
         _writer.WriteIndentedLine("{");
         using (_writer.IncreaseIndent())
         {
             _writer.WriteIndentedLine(
                 "var result = {0}.{1};",
-                method.ContainingType.ToFullyQualified(),
-                resolverName.MemberName);
+                resolver.Member.ContainingType.ToFullyQualified(),
+                resolver.Member.Name);
 
-            _writer.WriteIndentedLine(
-                "return result;",
-                WellKnownTypes.ValueTask,
-                WellKnownTypes.Object);
+            _writer.WriteIndentedLine("return result;");
         }
 
         _writer.WriteIndentedLine("}");
     }
 
-    private void AddResolverArguments(ResolverName resolverName, IMethodSymbol method, Compilation compilation)
+    private void AddResolverArguments(Resolver resolver, IMethodSymbol resolverMethod, ILocalTypeLookup typeLookup)
     {
-        if (method.Parameters.Length > 0)
+        if (resolver.Parameters.Length <= 0)
         {
-            for (var i = 0; i < method.Parameters.Length; i++)
-            {
-                var parameter = method.Parameters[i];
+            return;
+        }
 
-                if (parameter.IsParent())
-                {
+        for (var i = 0; i < resolver.Parameters.Length; i++)
+        {
+            var parameter = resolver.Parameters[i];
+
+            switch (parameter.Kind)
+            {
+                case ResolverParameterKind.Parent:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.Parent<{1}>();",
                         i,
-                        method.Parameters[i].Type.ToFullyQualified());
-                }
-                else if (parameter.IsCancellationToken())
-                {
+                        resolver.Parameters[i].Type.ToFullyQualified());
+                    break;
+
+                case ResolverParameterKind.CancellationToken:
                     _writer.WriteIndentedLine("var args{0} = context.RequestAborted;", i);
-                }
-                else if (parameter.IsClaimsPrincipal())
-                {
+                    break;
+                case ResolverParameterKind.ClaimsPrincipal:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<{1}>(\"ClaimsPrincipal\");",
                         i,
                         WellKnownTypes.ClaimsPrincipal);
-                }
-                else if (parameter.IsDocumentNode())
-                {
+                    break;
+                case ResolverParameterKind.DocumentNode:
                     _writer.WriteIndentedLine("var args{0} = context.Operation.Document;", i);
-                }
-                else if (parameter.IsEventMessage())
-                {
+                    break;
+                case ResolverParameterKind.EventMessage:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetScopedState<{1}>(" +
                         "global::HotChocolate.WellKnownContextData.EventMessage);",
                         i,
                         parameter.Type.ToFullyQualified());
-                }
-                else if (parameter.IsFieldNode())
-                {
+                    break;
+                case ResolverParameterKind.FieldNode:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.Selection.SyntaxNode",
                         i,
                         parameter.Type.ToFullyQualified());
-                }
-                else if (parameter.IsOutputField(compilation))
-                {
+                    break;
+                case ResolverParameterKind.OutputField:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.Selection.Field",
                         i,
                         parameter.Type.ToFullyQualified());
-                }
-                else if (parameter.IsHttpContext())
-                {
+                    break;
+                case ResolverParameterKind.HttpContext:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))!;",
                         i,
                         WellKnownTypes.HttpContext);
-                }
-                else if (parameter.IsHttpRequest())
-                {
+                    break;
+                case ResolverParameterKind.HttpRequest:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))?.Request!;",
                         i,
                         WellKnownTypes.HttpContext);
-                }
-                else if (parameter.IsHttpResponse())
-                {
+                    break;
+                case ResolverParameterKind.HttpResponse:
                     _writer.WriteIndentedLine(
                         "var args{0} = context.GetGlobalState<global::{1}>(nameof(global::{1}))?.Response!;",
                         i,
                         WellKnownTypes.HttpContext);
-                }
-                else if (parameter.IsGlobalState(out var key))
+                    break;
+                case ResolverParameterKind.GetGlobalState when parameter.Parameter.HasExplicitDefaultValue:
                 {
-                    if (parameter.IsSetState(out var stateTypeName))
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = new HotChocolate.SetState<{1}>(" +
-                            "value => context.SetGlobalState(\"{2}\", value));",
-                            i,
-                            stateTypeName,
-                            key);
-                    }
-                    else if (parameter.HasExplicitDefaultValue)
-                    {
-                        var defaultValue = parameter.ExplicitDefaultValue;
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
 
-                        var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
-
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\", {3});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key,
-                            defaultValueString);
-                    }
-                    else if (parameter.IsNonNullable())
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key);
-                    }
-                    else
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key);
-                    }
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\", {3});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key,
+                        defaultValueString);
+                    break;
                 }
-                else if (parameter.IsScopedState(out key))
+                case ResolverParameterKind.GetGlobalState when !parameter.IsNullable:
                 {
-                    if (parameter.IsSetState(out var stateTypeName))
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = new HotChocolate.SetState<{1}>(" +
-                            "value => context.SetScopedState(\"{2}\", value));",
-                            i,
-                            stateTypeName,
-                            key);
-                    }
-                    else if (parameter.HasExplicitDefaultValue)
-                    {
-                        var defaultValue = parameter.ExplicitDefaultValue;
-
-                        var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
-
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\", {3});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key,
-                            defaultValueString);
-                    }
-                    else if (parameter.IsNonNullable())
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key);
-                    }
-                    else
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key);
-                    }
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalState<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
+                    break;
                 }
-                else if (parameter.IsLocalState(out key))
+                case ResolverParameterKind.GetGlobalState:
                 {
-                    if (parameter.IsSetState(out var stateTypeName))
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = new HotChocolate.SetState<{1}>(" +
-                            "value => context.SetLocalState(\"{2}\", value));",
-                            i,
-                            stateTypeName,
-                            key);
-                    }
-                    else if (parameter.HasExplicitDefaultValue)
-                    {
-                        var defaultValue = parameter.ExplicitDefaultValue;
-
-                        var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
-
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\", {3});",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key,
-                            defaultValueString);
-                    }
-                    else if (parameter.IsNonNullable())
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key);
-                    }
-                    else
-                    {
-                        _writer.WriteIndentedLine(
-                            "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
-                            i,
-                            parameter.Type.ToFullyQualified(),
-                            key);
-                    }
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetGlobalStateOrDefault<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
+                    break;
                 }
-                else
+                case ResolverParameterKind.SetGlobalState:
+                    _writer.WriteIndentedLine(
+                        "var args{0} = new HotChocolate.SetState<{1}>(" +
+                        "value => context.SetGlobalState(\"{2}\", value));",
+                        i,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
+                        parameter.Key);
+                    break;
+                case ResolverParameterKind.GetScopedState when parameter.Parameter.HasExplicitDefaultValue:
                 {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
+
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\", {3});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
+                case ResolverParameterKind.GetScopedState when !parameter.IsNullable:
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedState<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
+                    break;
+                }
+                case ResolverParameterKind.GetScopedState:
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetScopedStateOrDefault<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
+                    break;
+                }
+                case ResolverParameterKind.SetScopedState:
+                    _writer.WriteIndentedLine(
+                        "var args{0} = new HotChocolate.SetState<{1}>(" +
+                        "value => context.SetScopedState(\"{2}\", value));",
+                        i,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
+                        parameter.Key);
+                    break;
+                case ResolverParameterKind.GetLocalState when parameter.Parameter.HasExplicitDefaultValue:
+                {
+                    var defaultValue = parameter.Parameter.ExplicitDefaultValue;
+                    var defaultValueString = ConvertDefaultValueToString(defaultValue, parameter.Type);
+
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\", {3});",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key,
+                        defaultValueString);
+                    break;
+                }
+                case ResolverParameterKind.GetLocalState when !parameter.IsNullable:
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalState<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
+                    break;
+                }
+                case ResolverParameterKind.GetLocalState:
+                {
+                    _writer.WriteIndentedLine(
+                        "var args{0} = context.GetLocalStateOrDefault<{1}>(\"{2}\");",
+                        i,
+                        parameter.Type.ToFullyQualified(),
+                        parameter.Key);
+                    break;
+                }
+                case ResolverParameterKind.SetLocalState:
+                    _writer.WriteIndentedLine(
+                        "var args{0} = new HotChocolate.SetState<{1}>(" +
+                        "value => context.SetLocalState(\"{2}\", value));",
+                        i,
+                        ((INamedTypeSymbol)parameter.Type).TypeArguments[0].ToFullyQualified(),
+                        parameter.Key);
+                    break;
+
+                case ResolverParameterKind.Service:
+                case ResolverParameterKind.Argument:
+                case ResolverParameterKind.Unknown:
                     _writer.WriteIndentedLine(
                         "var args{0} = _args_{1}_{2}[{0}].Execute<{3}>(context);",
                         i,
-                        resolverName.TypeName,
-                        resolverName.MemberName,
-                        method.Parameters[i].Type.ToFullyQualified());
-                }
+                        resolver.TypeName,
+                        resolver.Member.Name,
+                        ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }
 
-    private string GetResolverArguments(IMethodSymbol method)
+    private string GetResolverArguments(int parameterCount)
     {
-        if (method.Parameters.Length == 0)
+        if (parameterCount == 0)
         {
             return string.Empty;
         }
 
         var arguments = new StringBuilder();
 
-        for (var i = 0; i < method.Parameters.Length; i++)
+        for (var i = 0; i < parameterCount; i++)
         {
             if (i > 0)
             {
@@ -567,94 +592,5 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         }
 
         return defaultValue.ToString();
-    }
-}
-
-public interface ILocalTypeLookup
-{
-    bool TryGetTypeName(ITypeSymbol type, ResolverInfo resolver, [NotNullWhen(true)] out string? typeDisplayName);
-}
-
-public sealed class DefaultLocalTypeLookup(ImmutableArray<ISyntaxInfo> syntaxInfos) : ILocalTypeLookup
-{
-    private Dictionary<string, List<string>>? _typeNameLookup;
-
-    public bool TryGetTypeName(ITypeSymbol type, ResolverInfo resolver, [NotNullWhen(true)] out string? typeDisplayName)
-    {
-        var typeNameLookup = GetTypeNameLookup();
-
-        if(!typeNameLookup.TryGetValue(type.Name, out var typeNames))
-        {
-            typeDisplayName = null;
-            return false;
-        }
-
-        if(typeNames.Count == 1)
-        {
-            typeDisplayName = typeNames[0];
-            return true;
-        }
-
-        if (resolver.Method is not null)
-        {
-            foreach (var namespaceString in GetContainingNamespaces(resolver.Method))
-            {
-                if (typeNames.Contains($"{namespaceString}.{type.Name}"))
-                {
-                    typeDisplayName = typeNames[0];
-                    return true;
-                }
-            }
-        }
-
-        typeDisplayName = type.Name;
-        return true;
-    }
-
-    private Dictionary<string, List<string>> GetTypeNameLookup()
-    {
-        if (_typeNameLookup is null)
-        {
-            _typeNameLookup = new Dictionary<string, List<string>>();
-            foreach (var dataLoaderInfo in syntaxInfos.OfType<DataLoaderInfo>())
-            {
-                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.Name, out var typeNames))
-                {
-                    typeNames = [];
-                    _typeNameLookup[dataLoaderInfo.Name] = typeNames;
-                }
-
-                typeNames.Add(dataLoaderInfo.FullName);
-
-                if (!_typeNameLookup.TryGetValue(dataLoaderInfo.InterfaceName, out typeNames))
-                {
-                    typeNames = [];
-                    _typeNameLookup[dataLoaderInfo.InterfaceName] = typeNames;
-                }
-
-                typeNames.Add(dataLoaderInfo.InterfaceFullName);
-            }
-        }
-
-        return _typeNameLookup;
-    }
-
-    private IEnumerable<string> GetContainingNamespaces(IMethodSymbol methodSymbol)
-    {
-        var namespaces = new HashSet<string>();
-        var syntaxTree = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree;
-
-        if (syntaxTree != null)
-        {
-            var root = syntaxTree.GetRoot();
-            var namespaceDeclarations = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>();
-
-            foreach (var namespaceDeclaration in namespaceDeclarations)
-            {
-                namespaces.Add(namespaceDeclaration.Name.ToString());
-            }
-        }
-
-        return namespaces;
     }
 }
