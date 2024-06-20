@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
@@ -46,7 +47,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    public bool AddResolverDeclarations(IEnumerable<Resolver> resolvers)
+    public bool AddResolverDeclarations(ImmutableArray<Resolver> resolvers)
     {
         var first = true;
 

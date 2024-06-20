@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Generators;
 
-public sealed class DefaultLocalTypeLookup(ImmutableArray<ISyntaxInfo> syntaxInfos) : ILocalTypeLookup
+public sealed class DefaultLocalTypeLookup(ImmutableArray<SyntaxInfo> syntaxInfos) : ILocalTypeLookup
 {
     private Dictionary<string, List<string>>? _typeNameLookup;
 

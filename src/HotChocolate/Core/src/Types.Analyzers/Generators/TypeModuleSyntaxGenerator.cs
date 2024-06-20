@@ -13,13 +13,13 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
         => Execute(context, compilation, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -43,7 +43,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteConfiguration(
         SourceProductionContext context,
-        List<ISyntaxInfo> syntaxInfos,
+        List<SyntaxInfo> syntaxInfos,
         ModuleInfo module)
     {
         using var generator = new ModuleFileBuilder(module.ModuleName, "Microsoft.Extensions.DependencyInjection");
@@ -157,7 +157,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteDataLoader(
         SourceProductionContext context,
-        List<ISyntaxInfo> syntaxInfos,
+        List<SyntaxInfo> syntaxInfos,
         DataLoaderDefaultsInfo defaults)
     {
         var dataLoaders = new List<DataLoaderInfo>();
@@ -257,7 +257,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteOperationTypes(
         SourceProductionContext context,
-        List<ISyntaxInfo> syntaxInfos,
+        List<SyntaxInfo> syntaxInfos,
         ModuleInfo module)
     {
         var operations = new List<OperationInfo>();

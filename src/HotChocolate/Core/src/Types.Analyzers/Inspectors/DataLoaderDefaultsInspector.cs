@@ -15,7 +15,7 @@ public class DataLoaderDefaultsInspector : ISyntaxInspector
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is AttributeListSyntax attributeList)
         {
