@@ -209,6 +209,8 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
     private class IsSelectedBinding(string key) : IParameterBinding
     {
+        public ArgumentKind Kind => ArgumentKind.LocalState;
+
         public T Execute<T>(IResolverContext context)
             => context.GetLocalState<T>(key)!;
 

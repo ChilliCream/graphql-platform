@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
@@ -46,9 +47,9 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteIndentedLine("}");
     }
 
-    public bool AddResolverDeclarations(IEnumerable<Resolver> resolvers)
+    public bool AddResolverDeclarations(ImmutableArray<Resolver> resolvers)
     {
-        var first = true;
+        var any = false;
 
         foreach (var resolver in resolvers)
         {
@@ -57,12 +58,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 continue;
             }
 
-            if (!first)
-            {
-                _writer.WriteLine();
-            }
-
-            first = false;
+            any = true;
 
             _writer.WriteIndentedLine(
                 "private readonly static global::{0}[] _args_{1}_{2} = new global::{0}[{3}];",
@@ -72,7 +68,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 resolver.Parameters.Length);
         }
 
-        return !first;
+        return any;
     }
 
     public void AddParameterInitializer(IEnumerable<Resolver> resolvers, ILocalTypeLookup typeLookup)
@@ -173,6 +169,49 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                         resolver.TypeName,
                         resolver.Member.Name,
                         i);
+                }
+
+                if (resolver.IsNodeResolver)
+                {
+                    _writer.WriteLine();
+
+                    _writer.WriteIndentedLine("int argumentCount = 0;");
+
+                    _writer.WriteLine();
+
+                    using (_writer.WriteForEach("binding", $"_args_{resolver.TypeName}_{resolver.Member.Name}"))
+                    {
+                        using (_writer.WriteIfClause(
+                           "binding.Kind == global::{0}.Argument",
+                           WellKnownTypes.ArgumentKind))
+                        {
+                            _writer.WriteIndentedLine("argumentCount++;");
+                        }
+                    }
+
+                    _writer.WriteLine();
+
+                    using (_writer.WriteIfClause("argumentCount > 1"))
+                    {
+                        _writer.WriteIndentedLine(
+                            "throw new global::{0}(",
+                            WellKnownTypes.SchemaException);
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine(
+                                "global::{0}.New()",
+                                WellKnownTypes.SchemaErrorBuilder);
+                            using (_writer.IncreaseIndent())
+                            {
+                                _writer.WriteIndentedLine(
+                                    ".SetMessage(\"The node resolver `{0}.{1}` mustn't have more than one " +
+                                    "argument. Node resolvers can only have a single argument called `id`.\")",
+                                    resolver.Member.ContainingType.ToDisplayString(),
+                                    resolver.Member.Name);
+                                _writer.WriteIndentedLine(".Build());");
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -329,7 +368,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
 
     private void AddResolverArguments(Resolver resolver, IMethodSymbol resolverMethod, ILocalTypeLookup typeLookup)
     {
-        if (resolver.Parameters.Length <= 0)
+        if (resolver.Parameters.Length == 0)
         {
             return;
         }
@@ -337,6 +376,18 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         for (var i = 0; i < resolver.Parameters.Length; i++)
         {
             var parameter = resolver.Parameters[i];
+
+            if(resolver.IsNodeResolver
+               && parameter.Kind is ResolverParameterKind.Argument or ResolverParameterKind.Unknown
+               && (parameter.Name == "id" || parameter.Key == "id"))
+            {
+                _writer.WriteIndentedLine(
+                    "var args{0} = context.GetLocalState<{1}>(" +
+                    "global::HotChocolate.WellKnownContextData.InternalId);",
+                    i,
+                    parameter.Type.ToFullyQualified());
+                continue;
+            }
 
             switch (parameter.Kind)
             {
