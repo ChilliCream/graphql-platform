@@ -8,11 +8,12 @@ using HotChocolate.Internal;
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class SelectionParameterExpressionBuilder()
-    : LambdaParameterExpressionBuilder<IPureResolverContext, object>(ctx => ctx.Selection)
+    : LambdaParameterExpressionBuilder<object>(ctx => ctx.Selection, isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
-    public override ArgumentKind Kind => ArgumentKind.Selection;
+    public override ArgumentKind Kind
+        => ArgumentKind.Selection;
 
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(ISelection).IsAssignableFrom(parameter.ParameterType);
@@ -24,8 +25,5 @@ internal sealed class SelectionParameterExpressionBuilder()
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Selection;
-
-    public T Execute<T>(IPureResolverContext context)
-        => (T)(object)context.Selection;
+        => (T)context.Selection;
 }

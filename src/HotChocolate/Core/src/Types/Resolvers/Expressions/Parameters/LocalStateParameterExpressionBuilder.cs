@@ -14,7 +14,8 @@ internal class LocalStateParameterExpressionBuilder
     private static readonly PropertyInfo _localContextDataProperty =
         ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
 
-    protected override PropertyInfo ContextDataProperty => _localContextDataProperty;
+    protected override PropertyInfo ContextDataProperty
+        => _localContextDataProperty;
 
     private static readonly MethodInfo _setLocalState =
         typeof(ExpressionHelper).GetMethod(

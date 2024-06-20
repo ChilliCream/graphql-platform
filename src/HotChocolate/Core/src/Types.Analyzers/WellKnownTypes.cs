@@ -34,7 +34,7 @@ public static class WellKnownTypes
     public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
     public const string ResolverContext = "HotChocolate.Resolvers.IResolverContext";
-    public const string PureResolverContext = "HotChocolate.Resolvers.IPureResolverContext";
+    public const string PureResolverContext = "HotChocolate.Resolvers.IResolverContext";
     public const string ParameterBinding = "HotChocolate.Internal.IParameterBinding";
     public const string MemoryMarshal = "System.Runtime.InteropServices.MemoryMarshal";
     public const string Unsafe = "System.Runtime.CompilerServices.Unsafe";

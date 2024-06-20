@@ -6,12 +6,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.ParameterExpressionBuilders;
 
-internal sealed class HttpResponseParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IPureResolverContext, HttpResponse>
+internal sealed class HttpResponseParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<HttpResponse>(ctx => GlobalStateHelpers.GetHttpResponse(ctx), isPure: true)
 {
-    public HttpResponseParameterExpressionBuilder()
-        : base(ctx => GlobalStateHelpers.GetHttpResponse(ctx)) { }
-
     public override ArgumentKind Kind => ArgumentKind.GlobalState;
 
     public override bool CanHandle(ParameterInfo parameter)

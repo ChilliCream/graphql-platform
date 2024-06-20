@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,7 +39,4 @@ internal sealed class CancellationTokenParameterExpressionBuilder
 
     public T Execute<T>(IResolverContext context)
         => (T)(object)context.RequestAborted;
-
-    public T Execute<T>(IPureResolverContext context)
-        => throw new NotSupportedException();
 }

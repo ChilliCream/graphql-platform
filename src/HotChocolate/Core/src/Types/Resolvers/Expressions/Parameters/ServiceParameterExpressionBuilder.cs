@@ -28,6 +28,7 @@ internal sealed class ServiceParameterExpressionBuilder
     {
 #if NET8_0_OR_GREATER
         var attribute = context.Parameter.GetCustomAttribute<ServiceAttribute>()!;
+
         if (!string.IsNullOrEmpty(attribute.Key))
         {
             return ServiceExpressionHelper.Build(context.Parameter, context.ResolverContext, attribute.Key);
@@ -44,7 +45,7 @@ internal sealed class ServiceParameterExpressionBuilder
         => new ServiceParameterBinding();
 #endif
 
-    private sealed class ServiceParameterBinding : ParameterBinding
+    private sealed class ServiceParameterBinding : IParameterBinding
     {
 #if NET8_0_OR_GREATER
         public ServiceParameterBinding(ParameterInfo parameter)
@@ -56,9 +57,9 @@ internal sealed class ServiceParameterExpressionBuilder
         public string? Key { get; }
 #endif
 
-        public override ArgumentKind Kind => ArgumentKind.Service;
+        public ArgumentKind Kind => ArgumentKind.Service;
 
-        public override T Execute<T>(IPureResolverContext context)
+        public T Execute<T>(IResolverContext context) where T : notnull
         {
 #if NET8_0_OR_GREATER
             if (Key is not null)

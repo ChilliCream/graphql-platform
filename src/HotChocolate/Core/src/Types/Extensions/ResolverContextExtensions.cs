@@ -25,7 +25,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T? GetGlobalStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -61,7 +61,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T GetGlobalStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name,
         T defaultValue)
     {
@@ -95,7 +95,7 @@ public static class ResolverContextExtensions
     /// Returns the global state for the specified <paramref name="name" />.
     /// </returns>
     public static T GetGlobalState<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -130,7 +130,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T? GetScopedStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -166,7 +166,7 @@ public static class ResolverContextExtensions
     /// could not be found or casted to <typeparamref name="T" />.
     /// </returns>
     public static T GetScopedStateOrDefault<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name,
         T defaultValue)
     {
@@ -200,7 +200,7 @@ public static class ResolverContextExtensions
     /// Returns the scoped state for the specified <paramref name="name" />.
     /// </returns>
     public static T GetScopedState<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name)
     {
         if (context is null)
@@ -340,7 +340,7 @@ public static class ResolverContextExtensions
     /// <param name="value">The new state value.</param>
     /// <typeparam name="T">The type of the state.</typeparam>
     public static void SetGlobalState<T>(
-        this IPureResolverContext context,
+        this IResolverContext context,
         string name,
         T value)
     {

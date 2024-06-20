@@ -38,10 +38,10 @@ internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
 
     private static class Resolvers
     {
-        public static string Name(IPureResolverContext context)
+        public static string Name(IResolverContext context)
             => context.Parent<DirectiveNode>().Name.Value;
 
-        public static object Arguments(IPureResolverContext context)
+        public static object Arguments(IResolverContext context)
             => context.Parent<DirectiveNode>().Arguments;
     }
 

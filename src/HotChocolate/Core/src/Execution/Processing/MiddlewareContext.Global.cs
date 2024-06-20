@@ -39,9 +39,6 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public IVariableValueCollection Variables => _operationContext.Variables;
 
-    IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-        => ScopedContextData;
-
     public CancellationToken RequestAborted { get; private set; }
 
     public bool HasCleanupTasks => _cleanupTasks.Count > 0;

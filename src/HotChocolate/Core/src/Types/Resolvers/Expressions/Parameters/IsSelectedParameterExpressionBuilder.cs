@@ -213,8 +213,5 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
         public T Execute<T>(IResolverContext context)
             => context.GetLocalState<T>(key)!;
-
-        public T Execute<T>(IPureResolverContext context)
-            => throw new NotSupportedException();
     }
 }
