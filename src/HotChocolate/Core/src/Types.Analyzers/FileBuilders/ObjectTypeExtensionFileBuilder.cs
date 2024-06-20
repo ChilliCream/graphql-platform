@@ -1,7 +1,6 @@
 using System.Text;
 using HotChocolate.Types.Analyzers.Helpers;
 using HotChocolate.Types.Analyzers.Models;
-using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
@@ -85,9 +84,9 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                 }
             }
 
-            if (objectTypeExtension.Members.Length > 0)
+            if (objectTypeExtension.Resolvers.Length > 0)
             {
-                foreach (var member in objectTypeExtension.Members)
+                foreach (var resolver in objectTypeExtension.Resolvers)
                 {
                     _writer.WriteLine();
                     _writer.WriteIndentedLine("descriptor");
@@ -96,24 +95,23 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                     {
                         _writer.WriteIndentedLine(
                             ".Field(thisType.GetMember(\"{0}\", bindingFlags)[0])",
-                            member.Name);
+                            resolver.Member.Name);
 
-                        if (member is IMethodSymbol method &&
-                            method.GetResultKind() is not ResolverResultKind.Pure)
-                        {
-                            _writer.WriteIndentedLine(
-                                ".Extend().Definition.Resolver = {0}Resolvers.{1}_{2};",
-                                objectTypeExtension.Type.ToDisplayString(),
-                                objectTypeExtension.Type.Name,
-                                member.Name);
-                        }
-                        else
+                        if (resolver.IsPure)
                         {
                             _writer.WriteIndentedLine(
                                 ".Extend().Definition.PureResolver = {0}Resolvers.{1}_{2};",
                                 objectTypeExtension.Type.ToDisplayString(),
                                 objectTypeExtension.Type.Name,
-                                member.Name);
+                                resolver.Member.Name);
+                        }
+                        else
+                        {
+                            _writer.WriteIndentedLine(
+                                ".Extend().Definition.Resolver = {0}Resolvers.{1}_{2};",
+                                objectTypeExtension.Type.ToDisplayString(),
+                                objectTypeExtension.Type.Name,
+                                resolver.Member.Name);
                         }
                     }
                 }

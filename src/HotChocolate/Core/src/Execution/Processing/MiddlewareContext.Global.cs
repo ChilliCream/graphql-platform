@@ -59,7 +59,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
-                .AddLocation([_selection.SyntaxNode])
+                .SetLocations([_selection.SyntaxNode])
                 .Build());
     }
 
@@ -89,7 +89,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             var errorBuilder = _operationContext.ErrorHandler
                 .CreateUnexpectedError(exception)
                 .SetPath(Path)
-                .AddLocation([_selection.SyntaxNode]);
+                .SetLocations([_selection.SyntaxNode]);
 
             configure?.Invoke(errorBuilder);
 

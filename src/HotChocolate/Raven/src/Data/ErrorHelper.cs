@@ -18,7 +18,7 @@ internal static class ErrorHelper
                 RavenDataResources.ErrorHelper_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())

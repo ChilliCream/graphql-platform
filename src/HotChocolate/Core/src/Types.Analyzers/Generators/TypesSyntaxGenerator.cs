@@ -92,7 +92,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
         ImmutableArray<ISyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
-        var localTypeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
         generator.WriteHeader();
@@ -119,23 +119,19 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
                 firstClass = false;
 
-                var resolverInfos = objectTypeExtension.Members
-                    .Select(m => CreateResolverInfo(objectTypeExtension, m))
-                    .ToList();
-
                 generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
 
-                if (generator.AddResolverDeclarations(resolverInfos))
+                if (generator.AddResolverDeclarations(objectTypeExtension.Resolvers))
                 {
                     sb.AppendLine();
                 }
 
-                generator.AddParameterInitializer(resolverInfos, localTypeLookup);
+                generator.AddParameterInitializer(objectTypeExtension.Resolvers, typeLookup);
 
                 foreach (var resolver in objectTypeExtension.Resolvers)
                 {
                     sb.AppendLine();
-                    generator.AddResolver(resolver);
+                    generator.AddResolver(resolver, typeLookup);
                 }
 
                 generator.WriteEndClass();
@@ -146,11 +142,4 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
     }
-
-    private static ResolverInfo CreateResolverInfo(
-        ObjectTypeExtensionInfo objectTypeExtension,
-        ISymbol member)
-        => new ResolverInfo(
-            new ResolverName(objectTypeExtension.Type.Name, member.Name),
-            member as IMethodSymbol);
 }

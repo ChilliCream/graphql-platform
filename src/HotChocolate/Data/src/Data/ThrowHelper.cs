@@ -121,7 +121,7 @@ internal static class ThrowHelper
         new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(DataResources.FilterConvention_CouldNotConvertValue)
-                .AddLocation([node])
+                .AddLocation(node)
                 .Build());
 
     public static SchemaException FilterObjectFieldDescriptorExtensions_CannotInfer() =>

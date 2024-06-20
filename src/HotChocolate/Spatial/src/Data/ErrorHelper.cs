@@ -19,7 +19,7 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
@@ -37,7 +37,7 @@ internal static class ErrorHelper
                 DataResources.CouldNotCreateFilterForOperation,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
@@ -55,7 +55,7 @@ internal static class ErrorHelper
                 DataResources.ErrorHelper_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())
             .Build();
