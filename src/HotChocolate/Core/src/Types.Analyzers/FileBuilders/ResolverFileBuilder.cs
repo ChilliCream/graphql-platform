@@ -120,10 +120,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                     _writer.WriteIndentedLine(
                         "        | global::{0}.Static;",
                         WellKnownTypes.BindingFlags);
-                    _writer.WriteIndentedLine(
-                        "var type = typeof({0});",
-                        method.ContainingType.ToFullyQualified());
                     _writer.WriteLine();
+                    _writer.WriteIndentedLine("var type = typeof({0});", method.ContainingType.ToFullyQualified());
                     _writer.WriteIndentedLine("global::System.Reflection.MethodInfo resolver = default!;");
                     _writer.WriteIndentedLine("global::System.Reflection.ParameterInfo[] parameters = default!;");
                     first = false;
@@ -133,7 +131,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 _writer.WriteIndentedLine("resolver = type.GetMethod(");
                 using (_writer.IncreaseIndent())
                 {
-                    _writer.WriteIndentedLine("\"{0}\",", resolver.TypeName);
+                    _writer.WriteIndentedLine("\"{0}\",", resolver.Member.Name);
                     _writer.WriteIndentedLine("bindingFlags,");
                     if (resolver.Parameters.Length == 0)
                     {
@@ -161,6 +159,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                             }
                         }
 
+                        _writer.WriteLine();
                         _writer.WriteIndentedLine("});");
                     }
                 }
