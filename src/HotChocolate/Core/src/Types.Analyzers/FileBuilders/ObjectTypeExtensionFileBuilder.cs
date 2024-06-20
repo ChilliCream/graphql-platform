@@ -52,7 +52,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
 
         using (_writer.IncreaseIndent())
         {
-            if (objectTypeExtension.Members.Length > 0)
+            if (objectTypeExtension.Resolvers.Length > 0)
             {
                 _writer.WriteIndentedLine("const global::{0} bindingFlags =", WellKnownTypes.BindingFlags);
                 using (_writer.IncreaseIndent())
@@ -120,7 +120,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
             _writer.WriteLine();
             _writer.WriteIndentedLine("Configure(descriptor);");
 
-            if (objectTypeExtension.Members.Length > 0)
+            if (objectTypeExtension.Resolvers.Length > 0)
             {
                 _writer.WriteLine();
                 _writer.WriteIndentedLine("descriptor.Extend().Context.OnSchemaCreated(");

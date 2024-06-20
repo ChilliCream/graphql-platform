@@ -1,10 +1,11 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HotChocolate.Types.Analyzers.FileBuilders;
+namespace HotChocolate.Types.Analyzers.Generators;
 
 public sealed class DefaultLocalTypeLookup(ImmutableArray<ISyntaxInfo> syntaxInfos) : ILocalTypeLookup
 {

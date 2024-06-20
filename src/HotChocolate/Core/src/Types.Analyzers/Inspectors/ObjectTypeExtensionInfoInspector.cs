@@ -59,27 +59,25 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                                     Location.Create(possibleType.SyntaxTree, possibleType.Span)));
                         }
 
-                        var relevantMembers = classSymbol.GetMembers();
-                        var resolvers = new Resolver[relevantMembers.Length];
+                        var members = classSymbol.GetMembers();
+                        var resolvers = new Resolver[members.Length];
                         IMethodSymbol? nodeResolver = null;
                         int i = 0;
 
-                        foreach (var member in classSymbol.GetMembers())
+                        foreach (var member in members)
                         {
                             if (member.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal)
                             {
-                                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary, } methodSymbol)
+                                if (member is IMethodSymbol { MethodKind: MethodKind.Ordinary } methodSymbol)
                                 {
                                     if (methodSymbol.Skip())
                                     {
-                                        relevantMembers = relevantMembers.Remove(member);
                                         continue;
                                     }
 
                                     if (methodSymbol.IsNodeResolver())
                                     {
                                         nodeResolver = methodSymbol;
-                                        relevantMembers = relevantMembers.Remove(member);
                                     }
                                     else
                                     {
@@ -110,11 +108,8 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                                         member,
                                         ResolverResultKind.Pure,
                                         ImmutableArray<ResolverParameter>.Empty);
-                                    continue;
                                 }
                             }
-
-                            relevantMembers = relevantMembers.Remove(member);
                         }
 
                         if (i > 0 && i < resolvers.Length)
@@ -126,7 +121,6 @@ public class ObjectTypeExtensionInfoInspector : ISyntaxInspector
                             classSymbol,
                             runtimeType,
                             nodeResolver,
-                            relevantMembers,
                             diagnostics,
                             possibleType,
                             i == 0

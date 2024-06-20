@@ -1,8 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
-namespace HotChocolate.Types.Analyzers.FileBuilders;
+namespace HotChocolate.Types.Analyzers.Generators;
 
 public interface ILocalTypeLookup
 {
