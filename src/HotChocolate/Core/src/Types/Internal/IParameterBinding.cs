@@ -5,6 +5,8 @@ namespace HotChocolate.Internal;
 
 public interface IParameterBinding
 {
+    ArgumentKind Kind { get; }
+
     T Execute<T>(IResolverContext context);
 
     T Execute<T>(IPureResolverContext context);
@@ -13,6 +15,8 @@ public interface IParameterBinding
 
 public abstract class ParameterBinding : IParameterBinding
 {
+    public abstract ArgumentKind Kind { get; }
+
     public virtual T Execute<T>(IResolverContext context)
         => Execute<T>((IPureResolverContext)context);
 

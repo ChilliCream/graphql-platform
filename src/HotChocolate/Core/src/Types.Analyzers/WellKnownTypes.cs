@@ -53,6 +53,9 @@ public static class WellKnownTypes
     public const string HttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
     public const string HttpResponse = "Microsoft.AspNetCore.Http.HttpResponse";
     public const string FieldNode = "HotChocolate.Language.FieldNode";
+    public const string ArgumentKind = "HotChocolate.Internal.ArgumentKind";
+    public const string SchemaException = "HotChocolate.SchemaException";
+    public const string SchemaErrorBuilder = "HotChocolate.SchemaErrorBuilder";
 
     public static HashSet<string> TypeClass { get; } =
     [

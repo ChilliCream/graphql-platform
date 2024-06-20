@@ -91,6 +91,8 @@ internal class ArgumentParameterExpressionBuilder
 
     private sealed class ArgumentBinding(string name) : ParameterBinding
     {
+        public override ArgumentKind Kind => ArgumentKind.Argument;
+
         public override T Execute<T>(IPureResolverContext context)
             => context.ArgumentValue<T>(name);
     }

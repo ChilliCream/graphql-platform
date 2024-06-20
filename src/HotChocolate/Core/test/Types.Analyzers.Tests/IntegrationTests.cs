@@ -92,6 +92,27 @@ public class IntegrationTests
         result.MatchMarkdownSnapshot();
     }
 
+    [Fact]
+    public async Task Query_Extension_Node_Resolver()
+    {
+        // arrange
+        var services = CreateApplicationServices();
+        var executor = await services.GetRequiredService<IRequestExecutorResolver>().GetRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                node(id: "QXV0aG9yOjE=") {
+                    __typename
+                }
+            }
+            """);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
     private static IServiceProvider CreateApplicationServices(
         Action<IServiceCollection>? configure = null)
     {

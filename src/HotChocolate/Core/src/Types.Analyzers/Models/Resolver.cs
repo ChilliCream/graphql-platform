@@ -19,6 +19,8 @@ public sealed class Resolver(
             && resultKind is ResolverResultKind.Pure
             && parameters.All(t => t.IsPure);
 
+    public bool IsNodeResolver => isNodeResolver;
+
     public ResolverResultKind ResultKind => resultKind;
 
     public ImmutableArray<ResolverParameter> Parameters => parameters;

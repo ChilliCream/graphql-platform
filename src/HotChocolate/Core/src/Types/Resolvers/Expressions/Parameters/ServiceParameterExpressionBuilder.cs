@@ -56,6 +56,8 @@ internal sealed class ServiceParameterExpressionBuilder
         public string? Key { get; }
 #endif
 
+        public override ArgumentKind Kind => ArgumentKind.Service;
+
         public override T Execute<T>(IPureResolverContext context)
         {
 #if NET8_0_OR_GREATER
