@@ -85,7 +85,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                 {
                     _writer.WriteIndentedLine(".ImplementsNode()");
                     _writer.WriteIndentedLine(
-                        ".ResolveNode({0}Resolvers.{1}_{2}().Resolver);",
+                        ".ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
                         objectTypeExtension.Type.ToDisplayString(),
                         objectTypeExtension.Type.Name,
                         objectTypeExtension.NodeResolver.Member.Name);
