@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -21,7 +23,7 @@ namespace HotChocolate.Validation.Rules;
 /// Field selections on scalars or enums are never allowed,
 /// because they are the leaf nodes of any GraphQL query.
 ///
-/// Conversely the leaf field selections of GraphQL queries
+/// Conversely, the leaf field selections of GraphQL queries
 /// must be of type scalar or enum. Leaf selections on objects,
 /// interfaces, and unions without subfields are disallowed.
 ///
@@ -331,7 +333,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static bool IsParentTypeAligned(FieldInfo fieldA, FieldInfo fieldB)
         => ReferenceEquals(fieldA.DeclaringType, fieldB.DeclaringType) ||
-            !fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType();
+            (!fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType());
 
     private static bool AreArgumentsIdentical(FieldNode fieldA, FieldNode fieldB)
     {
@@ -421,7 +423,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return streamB is null;
         }
 
-        // if stream a is not nullable and stream b is null then we cannot merge.
+        // if stream A is not nullable and stream b is null then we cannot merge.
         if (streamB is null)
         {
             return false;

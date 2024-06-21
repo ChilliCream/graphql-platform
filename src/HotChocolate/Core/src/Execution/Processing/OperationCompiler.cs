@@ -623,7 +623,7 @@ public sealed partial class OperationCompiler
                 context.Fragments.Add(fragment);
                 _hasIncrementalParts = true;
 
-                // if we have if condition flags there will be a runtime validation if something
+                // if we have if-condition flags there will be a runtime validation if something
                 // shall be deferred, so we need to prepare for both cases.
                 //
                 // this means that we will collect the fields with our if condition flags as
