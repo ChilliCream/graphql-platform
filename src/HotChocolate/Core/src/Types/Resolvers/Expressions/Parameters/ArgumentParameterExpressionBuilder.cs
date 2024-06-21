@@ -93,6 +93,8 @@ internal class ArgumentParameterExpressionBuilder
     {
         public ArgumentKind Kind => ArgumentKind.Argument;
 
+        public bool IsPure => true;
+
         public T Execute<T>(IResolverContext context)
             => context.ArgumentValue<T>(name);
     }

@@ -65,9 +65,16 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                     }
                 }
 
+                _writer.WriteLine();
+
                 _writer.WriteIndentedLine(
                     "var thisType = typeof({0});",
                     objectTypeExtension.Type.ToFullyQualified());
+                _writer.WriteIndentedLine(
+                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
+                _writer.WriteIndentedLine(
+                    "global::{0}Resolvers.InitializeBindings(bindingResolver);",
+                    objectTypeExtension.Type.ToDisplayString());
             }
 
             if (objectTypeExtension.NodeResolver is not null)
@@ -78,7 +85,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                 {
                     _writer.WriteIndentedLine(".ImplementsNode()");
                     _writer.WriteIndentedLine(
-                        ".ResolveNode({0}Resolvers.{1}_{2});",
+                        ".ResolveNode({0}Resolvers.{1}_{2}().Resolver);",
                         objectTypeExtension.Type.ToDisplayString(),
                         objectTypeExtension.Type.Name,
                         objectTypeExtension.NodeResolver.Member.Name);
@@ -99,9 +106,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                             resolver.Member.Name);
 
                         _writer.WriteIndentedLine(
-                            resolver.IsPure
-                                ? ".Extend().Definition.PureResolver = {0}Resolvers.{1}_{2};"
-                                : ".Extend().Definition.Resolver = {0}Resolvers.{1}_{2};",
+                            ".Extend().Definition.Resolvers = {0}Resolvers.{1}_{2}();",
                             objectTypeExtension.Type.ToDisplayString(),
                             objectTypeExtension.Type.Name,
                             resolver.Member.Name);
@@ -111,28 +116,6 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
 
             _writer.WriteLine();
             _writer.WriteIndentedLine("Configure(descriptor);");
-
-            if (objectTypeExtension.Resolvers.Length > 0)
-            {
-                _writer.WriteLine();
-                _writer.WriteIndentedLine("descriptor.Extend().Context.OnSchemaCreated(");
-                using (_writer.IncreaseIndent())
-                {
-                    _writer.WriteIndentedLine("schema =>");
-                    _writer.WriteIndentedLine("{");
-                    using (_writer.IncreaseIndent())
-                    {
-                        _writer.WriteIndentedLine("var services = schema.Services.GetApplicationServices();");
-                        _writer.WriteIndentedLine(
-                            "var bindingResolver = services.GetRequiredService<global::{0}>();",
-                            WellKnownTypes.ParameterBindingResolver);
-                        _writer.WriteIndentedLine(
-                            "global::{0}Resolvers.InitializeBindings(bindingResolver);",
-                            objectTypeExtension.Type.ToDisplayString());
-                    }
-                    _writer.WriteIndentedLine("});");
-                }
-            }
         }
 
         _writer.WriteIndentedLine("}");

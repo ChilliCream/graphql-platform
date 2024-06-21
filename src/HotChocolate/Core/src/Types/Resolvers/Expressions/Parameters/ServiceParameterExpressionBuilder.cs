@@ -59,6 +59,8 @@ internal sealed class ServiceParameterExpressionBuilder
 
         public ArgumentKind Kind => ArgumentKind.Service;
 
+        public bool IsPure => true;
+
         public T Execute<T>(IResolverContext context) where T : notnull
         {
 #if NET8_0_OR_GREATER

@@ -39,6 +39,8 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
 
         public ArgumentKind Kind => ArgumentKind.Custom;
 
+        public bool IsPure => false;
+
         public T Execute<T>(IResolverContext context)
             => (T)(object)MapArguments(context);
 

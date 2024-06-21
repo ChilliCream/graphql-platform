@@ -94,6 +94,20 @@ public class CodeWriter : TextWriter
         return new Block(DecreaseIndent);
     }
 
+    public IDisposable WriteMethod(string accessModifier, string returnType, string methodName, params string[] parameters)
+    {
+        WriteIndented("{0} {1} {2}(", accessModifier, returnType, methodName);
+
+        if (parameters.Length > 0)
+        {
+            Write(string.Join(", ", parameters));
+        }
+
+        Write(")");
+        WriteLine();
+        return WithCurlyBrace();
+    }
+
     public IDisposable WriteForEach(string item, string collection)
     {
         WriteIndentedLine("foreach(var {0} in {1})", item, collection);

@@ -211,6 +211,8 @@ internal sealed class IsSelectedParameterExpressionBuilder
     {
         public ArgumentKind Kind => ArgumentKind.LocalState;
 
+        public bool IsPure => false;
+
         public T Execute<T>(IResolverContext context)
             => context.GetLocalState<T>(key)!;
     }

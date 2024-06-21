@@ -7,6 +7,8 @@ public interface IParameterBinding
 {
     ArgumentKind Kind { get; }
 
+    bool IsPure { get; }
+
     T Execute<T>(IResolverContext context);
 }
 
