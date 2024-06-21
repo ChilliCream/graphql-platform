@@ -23,6 +23,8 @@ type Address {
 type Author implements Entity & Node {
   books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
   someInfo: String!
+  additionalInfo(someArg: String!): String!
+  additionalInfo1(someArg1: String! someArg2: String!): String!
   id: ID!
   name: String!
   address: Address
