@@ -42,7 +42,4 @@ internal sealed class InferredServiceParameterExpressionBuilder(IServiceProvider
 
     public T Execute<T>(IResolverContext context) where T : notnull
         => context.Service<T>();
-
-    public T Execute<T>(IPureResolverContext context) where T : notnull
-        => context.Service<T>();
 }

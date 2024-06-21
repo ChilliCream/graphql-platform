@@ -5,7 +5,7 @@ public sealed class DataLoaderDefaultsInfo(
     bool? isPublic,
     bool? isInterfacePublic,
     bool registerServices)
-    : ISyntaxInfo
+    : SyntaxInfo
 {
     public bool? Scoped { get; } = scoped;
 
@@ -18,7 +18,7 @@ public sealed class DataLoaderDefaultsInfo(
     public override bool Equals(object? obj)
         => obj is DataLoaderDefaultsInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo other)
+    public override bool Equals(SyntaxInfo other)
         => other is DataLoaderDefaultsInfo info && Equals(info);
 
     private bool Equals(DataLoaderDefaultsInfo other)

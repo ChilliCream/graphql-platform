@@ -34,7 +34,6 @@ public static class WellKnownTypes
     public const string RequestExecutorBuilder = "HotChocolate.Execution.Configuration.IRequestExecutorBuilder";
     public const string FieldResolverDelegate = "HotChocolate.Resolvers.FieldResolverDelegate";
     public const string ResolverContext = "HotChocolate.Resolvers.IResolverContext";
-    public const string PureResolverContext = "HotChocolate.Resolvers.IPureResolverContext";
     public const string ParameterBinding = "HotChocolate.Internal.IParameterBinding";
     public const string MemoryMarshal = "System.Runtime.InteropServices.MemoryMarshal";
     public const string Unsafe = "System.Runtime.CompilerServices.Unsafe";
@@ -53,6 +52,11 @@ public static class WellKnownTypes
     public const string HttpRequest = "Microsoft.AspNetCore.Http.HttpRequest";
     public const string HttpResponse = "Microsoft.AspNetCore.Http.HttpResponse";
     public const string FieldNode = "HotChocolate.Language.FieldNode";
+    public const string ArgumentKind = "HotChocolate.Internal.ArgumentKind";
+    public const string SchemaException = "HotChocolate.SchemaException";
+    public const string SchemaErrorBuilder = "HotChocolate.SchemaErrorBuilder";
+    public const string InvalidOperationException = "System.InvalidOperationException";
+    public const string FieldResolverDelegates = "HotChocolate.Resolvers.FieldResolverDelegates";
 
     public static HashSet<string> TypeClass { get; } =
     [

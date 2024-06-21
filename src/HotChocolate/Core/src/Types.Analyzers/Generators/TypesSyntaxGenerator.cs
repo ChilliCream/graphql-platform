@@ -12,12 +12,12 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
         => Execute(context, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -37,7 +37,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteTypes(
         SourceProductionContext context,
-        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
         var firstNamespace = true;
@@ -60,11 +60,6 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             {
                 if (objectTypeExtension.Diagnostics.Length > 0)
                 {
-                    foreach (var diagnostic in objectTypeExtension.Diagnostics)
-                    {
-                        context.ReportDiagnostic(diagnostic);
-                    }
-
                     continue;
                 }
 
@@ -89,7 +84,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteResolvers(
         SourceProductionContext context,
-        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
         var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
@@ -119,16 +114,23 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
                 firstClass = false;
 
+                var resolvers = objectTypeExtension.Resolvers;
+
+                if (objectTypeExtension.NodeResolver is not null)
+                {
+                    resolvers = resolvers.Add(objectTypeExtension.NodeResolver);
+                }
+
                 generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
 
-                if (generator.AddResolverDeclarations(objectTypeExtension.Resolvers))
+                if (generator.AddResolverDeclarations(resolvers))
                 {
                     sb.AppendLine();
                 }
 
-                generator.AddParameterInitializer(objectTypeExtension.Resolvers, typeLookup);
+                generator.AddParameterInitializer(resolvers, typeLookup);
 
-                foreach (var resolver in objectTypeExtension.Resolvers)
+                foreach (var resolver in resolvers)
                 {
                     sb.AppendLine();
                     generator.AddResolver(resolver, typeLookup);
