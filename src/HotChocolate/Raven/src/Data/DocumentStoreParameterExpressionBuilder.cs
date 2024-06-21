@@ -10,15 +10,10 @@ using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
 namespace HotChocolate.Data.Raven;
 
-internal sealed class DocumentStoreParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IResolverContext, IAsyncDocumentSession>
+internal sealed class DocumentStoreParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<IAsyncDocumentSession>(ctx => ctx.AsyncSession(), isPure: false)
     , IParameterFieldConfiguration
 {
-    public DocumentStoreParameterExpressionBuilder()
-        : base(ctx => ctx.AsyncSession())
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.Service;
 
     public override bool CanHandle(ParameterInfo parameter)

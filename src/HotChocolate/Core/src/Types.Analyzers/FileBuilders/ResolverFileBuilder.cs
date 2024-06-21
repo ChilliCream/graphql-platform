@@ -242,12 +242,8 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
                 case ResolverResultKind.Invalid:
                     return;
 
-                case ResolverResultKind.Pure when resolver.IsPure:
+                case ResolverResultKind.Pure:
                     AddStaticPureResolver(resolver, resolverMethod, typeLookup);
-                    return;
-
-                case ResolverResultKind.Pure when !resolver.IsPure:
-                    AddStaticStandardResolver(resolver, false, resolverMethod, typeLookup);
                     return;
 
                 case ResolverResultKind.Task:
@@ -272,7 +268,30 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         IMethodSymbol resolverMethod,
         ILocalTypeLookup typeLookup)
     {
-        _writer.WriteIndented("public static ");
+        using (_writer.WriteMethod(
+           "public static",
+           returnType: WellKnownTypes.FieldResolverDelegates,
+           methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
+        {
+            using (_writer.WriteIfClause(condition: "!_bindingsInitialized"))
+            {
+                _writer.WriteIndentedLine(
+                    "throw new global::{0}(\"The bindings must be initialized before the resolvers can be created.\");",
+                    WellKnownTypes.InvalidOperationException);
+            }
+
+            _writer.WriteLine();
+
+            _writer.WriteIndentedLine(
+                "return new global::{0}(resolver: {1}_{2}_Resolver);",
+                WellKnownTypes.FieldResolverDelegates,
+                resolver.TypeName,
+                resolver.Member.Name);
+        }
+
+        _writer.WriteLine();
+
+        _writer.WriteIndented("private static ");
 
         if (async)
         {
@@ -280,7 +299,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         }
 
         _writer.WriteLine(
-            "global::{0}<global::{1}?> {2}_{3}(global::{4} context)",
+            "global::{0}<global::{1}?> {2}_{3}_Resolver(global::{4} context)",
             WellKnownTypes.ValueTask,
             WellKnownTypes.Object,
             resolver.TypeName,
@@ -321,12 +340,82 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
 
     private void AddStaticPureResolver(Resolver resolver, IMethodSymbol resolverMethod, ILocalTypeLookup typeLookup)
     {
+        using (_writer.WriteMethod(
+           "public static",
+           returnType: WellKnownTypes.FieldResolverDelegates,
+           methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
+        {
+            using (_writer.WriteIfClause(condition: "!_bindingsInitialized"))
+            {
+                _writer.WriteIndentedLine(
+                    "throw new global::{0}(\"The bindings must be initialized before the resolvers can be created.\");",
+                    WellKnownTypes.InvalidOperationException);
+            }
+
+            if (resolver.Parameters.Length > 0 && resolver.Parameters.Any(t => t.Kind == ResolverParameterKind.Unknown))
+            {
+                _writer.WriteLine();
+
+                var firstParam = true;
+                _writer.WriteIndented("var isPure = ");
+
+                for (var i = 0; i < resolver.Parameters.Length; i++)
+                {
+                    var parameter = resolver.Parameters[i];
+                    if (parameter.Kind == ResolverParameterKind.Unknown)
+                    {
+                        if (!firstParam)
+                        {
+                            _writer.Write(" && ");
+                        }
+
+                        firstParam = false;
+
+                        _writer.Write(
+                            "_args_{0}_{1}[{2}].IsPure",
+                            resolver.TypeName,
+                            resolver.Member.Name,
+                            i);
+                    }
+                }
+
+                _writer.WriteLine(";");
+
+                _writer.WriteLine();
+
+                _writer.WriteIndentedLine("return isPure");
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine(
+                        "? new global::{0}(pureResolver: {1}_{2}_Resolver)",
+                        WellKnownTypes.FieldResolverDelegates,
+                        resolver.TypeName,
+                        resolver.Member.Name);
+                    _writer.WriteIndentedLine(
+                        ": new global::{0}(resolver: c => new({1}_{2}_Resolver(c)));",
+                        WellKnownTypes.FieldResolverDelegates,
+                        resolver.TypeName,
+                        resolver.Member.Name);
+                }
+            }
+            else
+            {
+                _writer.WriteIndentedLine(
+                    "return new global::{0}(pureResolver: {1}_{2}_Resolver);",
+                    WellKnownTypes.FieldResolverDelegates,
+                    resolver.TypeName,
+                    resolver.Member.Name);
+            }
+        }
+
+        _writer.WriteLine();
+
         _writer.WriteIndentedLine(
-            "public static global::{0}? {1}_{2}(global::{3} context)",
+            "private static global::{0}? {1}_{2}_Resolver(global::{3} context)",
             WellKnownTypes.Object,
             resolver.TypeName,
             resolver.Member.Name,
-            WellKnownTypes.PureResolverContext);
+            WellKnownTypes.ResolverContext);
         _writer.WriteIndentedLine("{");
         using (_writer.IncreaseIndent())
         {
@@ -346,12 +435,35 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
 
     private void AddStaticPropertyResolver(Resolver resolver)
     {
+        using (_writer.WriteMethod(
+           "public static",
+           returnType: WellKnownTypes.FieldResolverDelegates,
+           methodName: $"{resolver.TypeName}_{resolver.Member.Name}"))
+        {
+            using (_writer.WriteIfClause(condition: "!_bindingsInitialized"))
+            {
+                _writer.WriteIndentedLine(
+                    "throw new global::{0}(\"The bindings must be initialized before the resolvers can be created.\");",
+                    WellKnownTypes.InvalidOperationException);
+            }
+
+            _writer.WriteLine();
+
+            _writer.WriteIndentedLine(
+                "return new global::{0}(pureResolver: {1}_{2}_Resolver);",
+                WellKnownTypes.FieldResolverDelegates,
+                resolver.TypeName,
+                resolver.Member.Name);
+        }
+
+        _writer.WriteLine();
+
         _writer.WriteIndentedLine(
             "public static global::{0}? {1}_{2}(global::{3} context)",
             WellKnownTypes.Object,
             resolver.TypeName,
             resolver.Member.Name,
-            WellKnownTypes.PureResolverContext);
+            WellKnownTypes.ResolverContext);
         _writer.WriteIndentedLine("{");
         using (_writer.IncreaseIndent())
         {

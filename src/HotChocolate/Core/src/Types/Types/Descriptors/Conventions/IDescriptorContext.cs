@@ -74,6 +74,11 @@ public interface IDescriptorContext : IHasContextData, IDisposable
     INodeIdSerializerAccessor NodeIdSerializerAccessor { get; }
 
     /// <summary>
+    /// Gets the parameter binding resolver.
+    /// </summary>
+    IParameterBindingResolver ParameterBindingResolver { get; }
+
+    /// <summary>
     /// Gets the registered type discovery handlers.
     /// </summary>
     ReadOnlySpan<TypeDiscoveryHandler> GetTypeDiscoveryHandlers();

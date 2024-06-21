@@ -43,7 +43,4 @@ internal sealed class FilterContextParameterExpressionBuilder
 
     public T Execute<T>(IResolverContext context)
         => (T)context.GetFilterContext()!;
-
-    public T Execute<T>(IPureResolverContext context)
-        => throw new NotSupportedException();
 }

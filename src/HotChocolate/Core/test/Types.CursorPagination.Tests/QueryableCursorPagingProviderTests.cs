@@ -524,9 +524,6 @@ public class QueryableCursorPagingProviderTests
 
         public Path Path => throw new NotImplementedException();
 
-        IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-            => ScopedContextData;
-
         public T Parent<T>()
         {
             throw new NotImplementedException();
