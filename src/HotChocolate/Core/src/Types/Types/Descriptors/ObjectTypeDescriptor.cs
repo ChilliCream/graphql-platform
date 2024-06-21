@@ -66,6 +66,18 @@ public class ObjectTypeDescriptor
                 Context,
                 this,
                 Definition.FieldBindingType);
+
+            if (Definition.AttributeBindingTypes.Length > 0)
+            {
+                foreach (var type in Definition.AttributeBindingTypes)
+                {
+                    Context.TypeInspector.ApplyAttributes(
+                        Context,
+                        this,
+                        type);
+                }
+            }
+
             Definition.AttributesAreApplied = true;
         }
 
