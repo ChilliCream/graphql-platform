@@ -669,17 +669,17 @@ internal static class ErrorHelper
     public static IError OneOfVariablesMustBeNonNull(
         this IDocumentValidatorContext context,
         ISyntaxNode node,
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         string variableName)
         => ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_OneOfVariablesMustBeNonNull,
                 variableName,
-                field.FieldName,
-                field.TypeName)
+                fieldCoordinate.MemberName!,
+                fieldCoordinate.Name)
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
-            .SetExtension(nameof(field), field.ToString())
+            .SetFieldCoordinate(fieldCoordinate)
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 

@@ -449,7 +449,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public string Name => _nodeField.Name;
 
-        public FieldCoordinate Coordinate => _nodeField.Coordinate;
+        public SchemaCoordinate Coordinate => _nodeField.Coordinate;
 
         public Type RuntimeType => _runtimeType;
 
