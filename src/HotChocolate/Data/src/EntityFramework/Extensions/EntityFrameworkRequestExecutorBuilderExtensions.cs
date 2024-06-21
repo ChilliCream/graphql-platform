@@ -37,11 +37,12 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
         public IParameterBinding Create(ParameterBindingContext context)
             => this;
 
+        public ArgumentKind Kind => ArgumentKind.Custom;
+
+        public bool IsPure => false;
+
         public T Execute<T>(IResolverContext context)
             => (T)(object)MapArguments(context);
-
-        public T Execute<T>(IPureResolverContext context)
-            => throw new NotSupportedException();
 
         private static PagingArguments MapArguments(IResolverContext context)
             => MapArguments(context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments));

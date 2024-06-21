@@ -276,9 +276,6 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public Path Path => _context.Path;
 
-        IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-            => ScopedContextData;
-
         public IServiceProvider RequestServices => _context.RequestServices;
 
         public string ResponseName => _context.ResponseName;

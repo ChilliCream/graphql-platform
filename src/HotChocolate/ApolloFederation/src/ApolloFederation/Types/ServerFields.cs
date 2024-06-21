@@ -18,7 +18,7 @@ public static class ServerFields
         descriptor.Type<NonNullType<ObjectType<_Service>>>().Resolve(_service);
         descriptor.Definition.PureResolver = Resolve;
 
-        static _Service Resolve(IPureResolverContext ctx)
+        static _Service Resolve(IResolverContext ctx)
             => _service;
 
         return descriptor.CreateDefinition();

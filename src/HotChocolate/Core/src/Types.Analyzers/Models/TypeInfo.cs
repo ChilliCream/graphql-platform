@@ -1,13 +1,13 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class TypeInfo(string name) : ISyntaxInfo
+public sealed class TypeInfo(string name) : SyntaxInfo
 {
     public string Name { get; } = name;
 
     public override bool Equals(object? obj)
         => obj is TypeInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo? other)
+    public override bool Equals(SyntaxInfo? other)
         => other is TypeInfo info && Equals(info);
 
     private bool Equals(TypeInfo other)
