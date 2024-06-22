@@ -12,8 +12,8 @@ namespace HotChocolate.CostAnalysis;
 
 internal sealed class CostAnalysisVisitor2 : TypeDocumentValidatorVisitor
 {
-    private readonly Dictionary<SelectionSetNode, double> _selectionSetCost = new();
-    private readonly Dictionary<string, FieldInfo> _fieldMap = new();
+    private readonly Dictionary<SelectionSetNode, CostSummary> _selectionSetCost = new();
+    private readonly HashSet<string> _processed = new();
 
     protected override ISyntaxVisitorAction Enter(
         OperationDefinitionNode node,
@@ -126,65 +126,45 @@ internal sealed class CostAnalysisVisitor2 : TypeDocumentValidatorVisitor
         {
             context.SelectionSets.Pop();
 
-            if (context.FieldSets.TryGetValue(node, out var fields))
+            if (!context.FieldSets.TryGetValue(node, out var fields))
             {
-                var type = context.Types.Peek().NamedType();
+                return Continue;
+            }
 
-                if (type.IsObjectType())
-                {
-                    _selectionSetCost[node] = CalculateSelectionSetCost((ObjectType)type, fields);
-                }
-                else
-                {
-                    var max = 0.0;
+            if (!_selectionSetCost.TryGetValue(node, out var costSummary))
+            {
+                costSummary = new CostSummary();
+                _selectionSetCost.Add(node, costSummary);
+            }
 
-                    foreach (var possibleType in context.Schema.GetPossibleTypes(type))
+            var type = context.Types.Peek().NamedType();
+
+            if (type is ObjectType objectType)
+            {
+                costSummary.FieldCost = CalculateSelectionSetCost(objectType, fields, _processed, GetSelectionSetCost);
+                _processed.Clear();
+            }
+            else
+            {
+                var max = 0.0;
+
+                foreach (var possibleType in context.Schema.GetPossibleTypes(type))
+                {
+                    var cost = CalculateSelectionSetCost(possibleType, fields, _processed, GetSelectionSetCost);
+
+                    if (max < cost)
                     {
-                        var cost = CalculateSelectionSetCost(possibleType, fields);
-
-                        if (max < cost)
-                        {
-                            max = cost;
-                        }
+                        max = cost;
                     }
 
-                    _selectionSetCost[node] = max;
+                    _processed.Clear();
                 }
 
-                _fieldMap.Clear();
+                costSummary.FieldCost = max;
             }
         }
 
         return Continue;
-    }
-
-    private double CalculateSelectionSetCost(ObjectType possibleType, IList<FieldInfo> fields)
-    {
-        var cost = 0.0;
-
-        foreach (var field in fields)
-        {
-            if (!_fieldMap.ContainsKey(field.ResponseName)
-                && field.DeclaringType.NamedType().IsAssignableFrom(possibleType)
-                && possibleType.Fields.TryGetField(field.Field.Name.Value, out var objectField))
-            {
-                var fieldCost = objectField.GetCostWeight();
-
-                if (objectField.Type.IsCompositeType() && field.Field.SelectionSet is not null)
-                {
-                    fieldCost += _selectionSetCost[field.Field.SelectionSet];
-                }
-
-                if (objectField.Type.IsListType())
-                {
-                    fieldCost *= objectField.GetListSize(field.Field);
-                }
-
-                cost += fieldCost;
-            }
-        }
-
-        return cost;
     }
 
     protected override ISyntaxVisitorAction VisitChildren(
@@ -223,9 +203,53 @@ internal sealed class CostAnalysisVisitor2 : TypeDocumentValidatorVisitor
         return false;
     }
 
+    private CostSummary GetSelectionSetCost(SelectionSetNode selectionSetNode)
+        => _selectionSetCost[selectionSetNode];
+
+    private static double CalculateSelectionSetCost(
+        ObjectType possibleType,
+        IList<FieldInfo> fields,
+        HashSet<string> processed,
+        Func<SelectionSetNode, CostSummary> getSelectionSetCost)
+    {
+        var cost = 0.0;
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            var field = fields[i];
+
+            if (!processed.Add(field.ResponseName) &&
+                field.DeclaringType.NamedType().IsAssignableFrom(possibleType) &&
+                possibleType.Fields.TryGetField(field.Field.Name.Value, out var objectField))
+            {
+                var fieldCost = objectField.GetCostWeight();
+
+                if (objectField.Type.IsCompositeType() && field.Field.SelectionSet is not null)
+                {
+                    fieldCost += getSelectionSetCost(field.Field.SelectionSet).FieldCost;
+                }
+
+                if (objectField.Type.IsListType())
+                {
+                    fieldCost *= objectField.GetListSize(field.Field);
+                }
+
+                cost += fieldCost;
+            }
+        }
+
+        return cost;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool IsTypeNameField(string fieldName)
         => fieldName.EqualsOrdinal(IntrospectionFields.TypeName);
+
+    private sealed class CostSummary
+    {
+        public double TypeCost { get; set; }
+        public double FieldCost { get; set; }
+    }
 }
 
 file static class Helpers
