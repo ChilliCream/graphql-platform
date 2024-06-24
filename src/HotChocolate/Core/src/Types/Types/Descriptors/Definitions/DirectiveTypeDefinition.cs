@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
@@ -91,6 +92,16 @@ public class DirectiveTypeDefinition : DefinitionBase, IHasRuntimeType
     /// Gets or sets the delegate to extract the field values from the runtime value.
     /// </summary>
     public Action<object, object?[]>? GetFieldData { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to parse a directive literal to an instance of this directive.
+    /// </summary>
+    public Func<DirectiveNode, object>? Parse { get; set; }
+
+    /// <summary>
+    /// Gets or sets the delegate to format an instance of this directive to a directive literal.
+    /// </summary>
+    public Func<object, DirectiveNode>? Format { get; set; }
 
     public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {

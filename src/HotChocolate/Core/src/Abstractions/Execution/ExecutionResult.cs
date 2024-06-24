@@ -9,7 +9,7 @@ namespace HotChocolate.Execution;
 /// </summary>
 public abstract class ExecutionResult : IExecutionResult
 {
-    private Func<ValueTask>[] _cleanupTasks = Array.Empty<Func<ValueTask>>();
+    private Func<ValueTask>[] _cleanupTasks = [];
     private bool _disposed;
 
     protected ExecutionResult()
@@ -27,6 +27,8 @@ public abstract class ExecutionResult : IExecutionResult
 
     /// <inheritdoc cref="IExecutionResult" />
     public abstract IReadOnlyDictionary<string, object?>? ContextData { get; }
+
+    private protected Func<ValueTask>[] CleanupTasks => _cleanupTasks;
 
     /// <inheritdoc cref="IExecutionResult" />
     public void RegisterForCleanup(Func<ValueTask> clean)

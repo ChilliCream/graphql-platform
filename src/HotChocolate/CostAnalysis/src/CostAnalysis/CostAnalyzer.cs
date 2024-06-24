@@ -247,18 +247,19 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
             {
                 var typeCost = 0.0;
                 var fieldCost = objectField.GetFieldWeight();
+                var selectionSetCost = 0.0;
                 var listSizeDirective = objectField.Directives
                     .FirstOrDefault<ListSizeDirective>()
                     ?.AsValue<ListSizeDirective>();
 
                 listSizeDirective.ValidateRequireOneSlicingArgument(field.Field);
 
-                if (objectField.Type.IsCompositeType() && field.Field.SelectionSet is not null)
+                if (objectField.Type.NamedType().IsCompositeType() && field.Field.SelectionSet is not null)
                 {
-                    fieldCost += getSelectionSetCost(field.Field.SelectionSet).FieldCost;
+                    selectionSetCost += getSelectionSetCost(field.Field.SelectionSet).FieldCost;
                 }
 
-                if (fieldCost > 0)
+                if (fieldCost > 0 || selectionSetCost > 0)
                 {
                     // We only calculate a type cost for the fields return
                     // type if the field itself has a cost.
@@ -287,9 +288,10 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                     // by the estimated list size.
                     var listSize = objectField.GetListSize(arguments, listSizeDirective, context.Variables);
                     typeCost *= listSize;
-                    fieldCost *= listSize;
+                    selectionSetCost *= listSize;
                 }
 
+                fieldCost += selectionSetCost;
                 typeCostSum += typeCost;
                 fieldCostSum += fieldCost;
             }
@@ -423,7 +425,7 @@ file static class Helpers
 
             if (argumentCount != 1)
             {
-                // lets add a validation error here and abort the cost calculation
+                // todo: lets add a validation error here and abort the cost calculation
                 throw new Exception("");
             }
         }

@@ -71,11 +71,18 @@ public sealed class ResponseStream : ExecutionResult, IResponseStream
     public ResponseStream WithOnFirstResult(
         IReadOnlyList<Func<IOperationResult, IOperationResult>> onFirstResult)
     {
-        return new ResponseStream(
+        var newStream = new ResponseStream(
             _resultStreamFactory,
             Kind,
             ContextData,
             onFirstResult);
+
+        foreach (var cleanupTask in CleanupTasks)
+        {
+            newStream.RegisterForCleanup(cleanupTask);
+        }
+
+        return newStream;
     }
 
     private class OperationResultStream(

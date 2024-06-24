@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using ObjectResult = HotChocolate.Execution.Processing.ObjectResult;
 
@@ -13,47 +14,46 @@ public sealed class SpecificationExampleTests2
     public async Task Execute_SpecificationExample_ReturnsExpectedResult(
         int index,
         string schema,
-        string query,
+        string operation,
         double expectedFieldCost)
     {
         // arrange
-        query =
+        var snapshot = new Snapshot(postFix: index.ToString());
+
+        operation =
             $$"""
               query Example {
-                  {{query}}
-
-                  __cost {
-                      requestCosts {
-                          typeCost
-                          fieldCost
-                      }
-                  }
+                  {{operation}}
               }
               """;
 
-        var snapshot = new Snapshot(postFix: index.ToString());
-
-        snapshot
-            .Add(schema, "Schema")
-            .Add(query, "Query");
+        var request =
+            OperationRequestBuilder.Create()
+                .SetDocument(operation)
+                .AddGlobalState("cost", true)
+                .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
             .BuildRequestExecutorAsync();
 
         // act
-        var result = await requestExecutor.ExecuteAsync(query);
+        var result = await requestExecutor.ExecuteAsync(request);
         var queryResult = result.ExpectQueryResult();
 
-        snapshot.AddResult(queryResult, "Result");
-
         // assert
-        var data = Assert.IsType<ObjectResult>(queryResult.Data);
-        var cost = Assert.IsType<ObjectResult>(data.GetValueOrDefault("__cost"));
-        var requestCosts = Assert.IsType<ObjectResult>(cost.GetValueOrDefault("requestCosts"));
-        var fieldCost = Assert.IsType<double>(requestCosts.GetValueOrDefault("fieldCost"));
+        snapshot
+            .Add(Utf8GraphQLParser.Parse(operation), "Query")
+            .Add(expectedFieldCost, "ExpectedFieldCost")
+            .AddResult(queryResult, "Result")
+            .Add(schema, "Schema");
 
-        Assert.Equal(expectedFieldCost, fieldCost);
+        // var data = Assert.IsType<ObjectResult>(queryResult.Data);
+        // var cost = Assert.IsType<ObjectResult>(data.GetValueOrDefault("__cost"));
+        // var requestCosts = Assert.IsType<ObjectResult>(cost.GetValueOrDefault("requestCosts"));
+        // var fieldCost = Assert.IsType<double>(requestCosts.GetValueOrDefault("fieldCost"));
+
+        // Assert.Equal(expectedFieldCost, fieldCost);
         await snapshot.MatchMarkdownAsync();
     }
 

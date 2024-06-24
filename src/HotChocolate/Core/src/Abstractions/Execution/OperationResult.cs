@@ -142,17 +142,19 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     public OperationResult WithExtensions(
         IReadOnlyDictionary<string, object?>? extensions)
         => new OperationResult(
-            Data,
-            Errors,
-            extensions,
-            ContextData,
-            Items,
-            Incremental,
-            Label,
-            Path,
-            HasNext,
-            RequestIndex,
-            VariableIndex);
+            data: Data,
+            errors: Errors,
+            extension: extensions,
+            contextData: ContextData,
+            items: Items,
+            incremental: Incremental,
+            label: Label,
+            path: Path,
+            hasNext: HasNext,
+            cleanupTasks: CleanupTasks,
+            isDataSet: IsDataSet,
+            requestIndex: RequestIndex,
+            variableIndex: VariableIndex);
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ToDictionary()

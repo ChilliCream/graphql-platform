@@ -70,7 +70,16 @@ public sealed class OperationResultBatch : ExecutionResult
     /// Returns a new <see cref="OperationResultBatch"/> with the specified results.
     /// </returns>
     public OperationResultBatch WithResults(IReadOnlyList<IExecutionResult> results)
-        => new(results, ContextData);
+    {
+        var newBatch = new OperationResultBatch(results, ContextData);
+
+        foreach (var cleanupTask in CleanupTasks)
+        {
+            newBatch.RegisterForCleanup(cleanupTask);
+        }
+
+        return newBatch;
+    }
 
     private static async ValueTask RunCleanUp(IReadOnlyList<IExecutionResult> results)
     {
