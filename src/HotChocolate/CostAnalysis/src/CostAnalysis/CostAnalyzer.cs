@@ -449,8 +449,8 @@ file static class Helpers
                     }
                 }
 
-                var defaultValue = field.Arguments[slicingArgumentName].DefaultValue;
-                if (defaultValue is IntValueNode defaultValueNode)
+                if (field.Arguments.TryGetField(slicingArgumentName, out var argument)
+                    && argument.DefaultValue is IntValueNode defaultValueNode)
                 {
                     slicingValues[index++] = defaultValueNode.ToInt32();
                 }

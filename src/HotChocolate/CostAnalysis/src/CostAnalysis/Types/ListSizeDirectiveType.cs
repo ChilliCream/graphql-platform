@@ -9,7 +9,7 @@ using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
-/// The purpose of the <c>@listSize</c> directive is to either inform the static analysis about the
+/// The purpose of the <c>@listSize</c> directive is to either inform the static-analysis about the
 /// size of returned lists (if that information is statically available), or to point the analysis
 /// to where to find that information.
 /// </summary>
@@ -146,7 +146,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
         arguments.Add(new ArgumentNode(RequireOneSlicingArgument, directive.RequireOneSlicingArgument));
 
-        return new DirectiveNode(_name, arguments.MoveToImmutable());
+        return new DirectiveNode(_name, arguments.ToImmutableArray());
     }
 }
 

@@ -1,5 +1,35 @@
 # Execute_SpecificationExample_ReturnsExpectedResult
 
+## Query
+
+```graphql
+query Example {
+  topProducts
+}
+```
+
+## ExpectedFieldCost
+
+```json
+5.0
+```
+
+## Result
+
+```text
+{
+  "data": {
+    "topProducts": null
+  },
+  "extensions": {
+    "cost": {
+      "fieldCost": 5,
+      "typeCost": 1
+    }
+  }
+}
+```
+
 ## Schema
 
 ```text
@@ -9,45 +39,5 @@ type Query {
 }
 
 input Filter { field: Boolean! }
-```
-
-## Query
-
-```text
-query Example {
-    topProducts
-
-    __cost {
-        requestCosts {
-            fieldCostByLocation { path, cost }
-            fieldCost
-        }
-    }
-}
-```
-
-## Result
-
-```text
-{
-  "data": {
-    "topProducts": null,
-    "__cost": {
-      "requestCosts": {
-        "fieldCostByLocation": [
-          {
-            "path": "Example.topProducts",
-            "cost": 5
-          },
-          {
-            "path": "Example",
-            "cost": 5
-          }
-        ],
-        "fieldCost": 5
-      }
-    }
-  }
-}
 ```
 

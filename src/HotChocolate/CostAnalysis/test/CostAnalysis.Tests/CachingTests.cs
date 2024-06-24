@@ -26,32 +26,21 @@ public sealed class CachingTests
             }
             """;
 
-        const string query =
+        const string operation =
             """
             query {
                 examples(limit: 10) {
                     exampleField1
                     exampleField2
                 }
-
-                __cost {
-                    requestCosts {
-                        fieldCounts { name, value }
-                        typeCounts { name, value }
-                        inputTypeCounts { name, value }
-                        inputFieldCounts { name, value }
-                        argumentCounts { name, value }
-                        directiveCounts { name, value }
-
-                        fieldCost
-                        typeCost
-
-                        fieldCostByLocation { path, cost }
-                        typeCostByLocation { path, cost }
-                    }
-                }
             }
             """;
+
+        var request =
+            OperationRequestBuilder.Create()
+                .SetDocument(operation)
+                .AddGlobalState("cost", true)
+                .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
@@ -61,8 +50,8 @@ public sealed class CachingTests
             .GetRequiredService<ICostMetricsCache>();
 
         // act
-        await requestExecutor.ExecuteAsync(query);
-        await requestExecutor.ExecuteAsync(query);
+        await requestExecutor.ExecuteAsync(request);
+        await requestExecutor.ExecuteAsync(request);
 
         // assert
         Assert.Equal(1, cache.Misses);
@@ -78,7 +67,9 @@ public sealed class CachingTests
             .UseField(next => next);
 
         requestExecutorBuilder.Services.Replace(
-            new ServiceDescriptor(typeof(ICostMetricsCache), new FakeCostMetricsCache()));
+            new ServiceDescriptor(
+                typeof(ICostMetricsCache),
+                new FakeCostMetricsCache()));
 
         return requestExecutorBuilder;
     }

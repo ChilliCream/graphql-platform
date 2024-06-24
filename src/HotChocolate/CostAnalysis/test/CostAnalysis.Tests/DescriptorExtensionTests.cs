@@ -154,8 +154,8 @@ public sealed class DescriptorExtensionTests
 
         // assert
         Assert.Equal(10, listSizeDirective.AssumedSize);
-        Assert.Equal(["first", "last"], listSizeDirective.SlicingArguments);
-        Assert.Equal(["edges", "nodes"], listSizeDirective.SizedFields);
+        Assert.Equal(["first", "last"], listSizeDirective.SlicingArguments, StringComparer.Ordinal);
+        Assert.Equal(["edges", "nodes"], listSizeDirective.SizedFields, StringComparer.Ordinal);
         Assert.False(listSizeDirective.RequireOneSlicingArgument);
     }
 

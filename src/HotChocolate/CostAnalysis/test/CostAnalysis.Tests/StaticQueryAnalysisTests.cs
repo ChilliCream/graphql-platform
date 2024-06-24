@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,9 +14,11 @@ public sealed class StaticQueryAnalysisTests
     public async Task Execute_ListQuery_ReturnsExpectedResult(
         int index,
         string schema,
-        string query)
+        string operation)
     {
         // arrange
+        var snapshot = new Snapshot(postFix: index.ToString());
+
         schema =
             $$"""
             type Query {
@@ -28,10 +31,10 @@ public sealed class StaticQueryAnalysisTests
             }
             """;
 
-        query =
+        operation =
             $$"""
             query {
-                {{query}}
+                {{operation}}
 
                 __cost {
                     requestCosts {
@@ -46,23 +49,25 @@ public sealed class StaticQueryAnalysisTests
             }
             """;
 
-        var snapshot = new Snapshot(postFix: index.ToString());
-
-        snapshot
-            .Add(schema, "Schema")
-            .Add(query, "Query");
+        var request =
+            OperationRequestBuilder.Create()
+                .SetDocument(operation)
+                .AddGlobalState("cost", true)
+                .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
             .BuildRequestExecutorAsync();
 
         // act
-        var result = await requestExecutor.ExecuteAsync(query);
-
-        snapshot.AddResult(result.ExpectQueryResult(), "Result");
+        var result = await requestExecutor.ExecuteAsync(request);
 
         // assert
-        await snapshot.MatchMarkdownAsync();
+        await snapshot
+            .Add(Utf8GraphQLParser.Parse(operation), "Query")
+            .AddResult(result.ExpectQueryResult(), "Result")
+            .Add(schema, "Schema")
+            .MatchMarkdownAsync();
     }
 
     [Theory]
@@ -70,9 +75,11 @@ public sealed class StaticQueryAnalysisTests
     public async Task Execute_ConnectionQuery_ReturnsExpectedResult(
         int index,
         string schema,
-        string query)
+        string operation)
     {
         // arrange
+        var snapshot = new Snapshot(postFix: index.ToString());
+
         schema =
             $$"""
             type Query {
@@ -120,41 +127,32 @@ public sealed class StaticQueryAnalysisTests
             }
             """;
 
-        query =
+        operation =
             $$"""
             query {
-                {{query}}
-
-                __cost {
-                    requestCosts {
-                        fieldCounts { name, value }
-                        typeCounts { name, value }
-                        inputTypeCounts { name, value }
-                        inputFieldCounts { name, value }
-                        argumentCounts { name, value }
-                        directiveCounts { name, value }
-                    }
-                }
+                {{operation}}
             }
             """;
 
-        var snapshot = new Snapshot(postFix: index.ToString());
-
-        snapshot
-            .Add(schema, "Schema")
-            .Add(query, "Query");
+        var request =
+            OperationRequestBuilder.Create()
+                .SetDocument(operation)
+                .AddGlobalState("cost", true)
+                .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
             .AddDocumentFromString(schema)
             .BuildRequestExecutorAsync();
 
         // act
-        var result = await requestExecutor.ExecuteAsync(query);
-
-        snapshot.AddResult(result.ExpectQueryResult(), "Result");
+        var result = await requestExecutor.ExecuteAsync(request);
 
         // assert
-        await snapshot.MatchMarkdownAsync();
+        await snapshot
+            .Add(Utf8GraphQLParser.Parse(operation), "Query")
+            .AddResult(result.ExpectQueryResult(), "Result")
+            .Add(schema, "Schema")
+            .MatchMarkdownAsync();
     }
 
     public static TheoryData<int, string, string> ListQueryData()

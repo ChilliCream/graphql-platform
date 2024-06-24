@@ -1,5 +1,37 @@
 # Execute_SpecificationExample_ReturnsExpectedResult
 
+## Query
+
+```graphql
+query Example {
+  users(max: 5) {
+    age
+  }
+}
+```
+
+## ExpectedFieldCost
+
+```json
+11.0
+```
+
+## Result
+
+```text
+{
+  "data": {
+    "users": null
+  },
+  "extensions": {
+    "cost": {
+      "fieldCost": 11,
+      "typeCost": 6
+    }
+  }
+}
+```
+
 ## Schema
 
 ```text
@@ -10,56 +42,6 @@ type User {
 
 type Query {
     users(max: Int): [User] @listSize(slicingArguments: ["max"])
-}
-```
-
-## Query
-
-```text
-query Example {
-    users(max: 5) {
-    age
-}
-
-    __cost {
-        requestCosts {
-            fieldCostByLocation { path, cost }
-            fieldCost
-        }
-    }
-}
-```
-
-## Result
-
-```text
-{
-  "data": {
-    "users": null,
-    "__cost": {
-      "requestCosts": {
-        "fieldCostByLocation": [
-          {
-            "path": "Example.users",
-            "cost": 11
-          },
-          {
-            "path": "Example.users(max:)",
-            "cost": 0
-          },
-          {
-            "path": "Example.users.age",
-            "cost": 10
-          },
-          {
-            "path": "Example",
-            "cost": 11
-          }
-        ],
-        "fieldCost": 11
-      }
-    }
-  }
 }
 ```
 

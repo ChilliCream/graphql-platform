@@ -107,8 +107,8 @@ public sealed class AttributeTests
 
         // assert
         Assert.Equal(10, costDirective.AssumedSize);
-        Assert.Equal(["first", "last"], costDirective.SlicingArguments);
-        Assert.Equal(["edges", "nodes"], costDirective.SizedFields);
+        Assert.Equal(["first", "last"], costDirective.SlicingArguments, StringComparer.Ordinal);
+        Assert.Equal(["edges", "nodes"], costDirective.SizedFields, StringComparer.Ordinal);
         Assert.False(costDirective.RequireOneSlicingArgument);
     }
 

@@ -1,5 +1,37 @@
 # Execute_SpecificationExample_ReturnsExpectedResult
 
+## Query
+
+```graphql
+query Example {
+  mostPopularProduct {
+    field
+  }
+}
+```
+
+## ExpectedFieldCost
+
+```json
+5.0
+```
+
+## Result
+
+```text
+{
+  "data": {
+    "mostPopularProduct": null
+  },
+  "extensions": {
+    "cost": {
+      "fieldCost": 5,
+      "typeCost": 2
+    }
+  }
+}
+```
+
 ## Schema
 
 ```text
@@ -10,49 +42,5 @@ type Query {
 
 input Approximate { field: Boolean! }
 type Product { field: Boolean! }
-```
-
-## Query
-
-```text
-query Example {
-    mostPopularProduct { field }
-
-    __cost {
-        requestCosts {
-            fieldCostByLocation { path, cost }
-            fieldCost
-        }
-    }
-}
-```
-
-## Result
-
-```text
-{
-  "data": {
-    "mostPopularProduct": null,
-    "__cost": {
-      "requestCosts": {
-        "fieldCostByLocation": [
-          {
-            "path": "Example.mostPopularProduct",
-            "cost": 5
-          },
-          {
-            "path": "Example.mostPopularProduct.field",
-            "cost": 0
-          },
-          {
-            "path": "Example",
-            "cost": 5
-          }
-        ],
-        "fieldCost": 5
-      }
-    }
-  }
-}
 ```
 
