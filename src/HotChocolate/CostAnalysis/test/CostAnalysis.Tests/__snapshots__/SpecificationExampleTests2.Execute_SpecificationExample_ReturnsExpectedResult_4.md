@@ -25,8 +25,8 @@ query Example {
   },
   "extensions": {
     "cost": {
-      "fieldCost": 5,
-      "typeCost": 1
+      "fieldCost": 2,
+      "typeCost": 2
     }
   }
 }

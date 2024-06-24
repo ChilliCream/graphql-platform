@@ -42,19 +42,12 @@ public sealed class SpecificationExampleTests2
         var queryResult = result.ExpectQueryResult();
 
         // assert
-        snapshot
+        await snapshot
             .Add(Utf8GraphQLParser.Parse(operation), "Query")
             .Add(expectedFieldCost, "ExpectedFieldCost")
             .AddResult(queryResult, "Result")
-            .Add(schema, "Schema");
-
-        // var data = Assert.IsType<ObjectResult>(queryResult.Data);
-        // var cost = Assert.IsType<ObjectResult>(data.GetValueOrDefault("__cost"));
-        // var requestCosts = Assert.IsType<ObjectResult>(cost.GetValueOrDefault("requestCosts"));
-        // var fieldCost = Assert.IsType<double>(requestCosts.GetValueOrDefault("fieldCost"));
-
-        // Assert.Equal(expectedFieldCost, fieldCost);
-        await snapshot.MatchMarkdownAsync();
+            .Add(schema, "Schema")
+            .MatchMarkdownAsync();
     }
 
     public static TheoryData<int, string, string, double> SpecificationExampleData()

@@ -109,11 +109,6 @@ public static class RequestExecutorBuilderExtensions
                     });
                 })
             .AddDirectiveType<CostDirectiveType>()
-            .AddDirectiveType<ListSizeDirectiveType>()
-            .AddType<CostByLocationType>()
-            .AddType<CostCountTypeType>()
-            .AddType<CostMetricsType>()
-            .AddType<CostType>()
-            .TryAddTypeInterceptor<CostIntrospectionTypeInterceptor>();
+            .AddDirectiveType<ListSizeDirectiveType>();
     }
 }

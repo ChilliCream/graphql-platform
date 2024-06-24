@@ -6,6 +6,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
+using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -13,12 +14,24 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
 {
     private readonly Dictionary<SelectionSetNode, CostSummary> _selectionSetCost = new();
     private readonly HashSet<string> _processed = new();
+    private readonly InputCostVisitor _inputCostVisitor = new();
+    private InputCostVisitorContext? _inputCostVisitorContext;
 
     public CostMetrics Analyze(OperationDefinitionNode operation, IDocumentValidatorContext context)
     {
         Visit(operation, context);
+
         var summary = _selectionSetCost[operation.SelectionSet];
-        return new CostMetrics { TypeCost = summary.TypeCost, FieldCost = summary.FieldCost };
+
+        _selectionSetCost.Clear();
+        _processed.Clear();
+        _inputCostVisitorContext = null;
+
+        return new CostMetrics
+        {
+            TypeCost = summary.TypeCost,
+            FieldCost = summary.FieldCost
+        };
     }
 
     protected override ISyntaxVisitorAction Enter(
@@ -35,6 +48,12 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
         OperationDefinitionNode node,
         IDocumentValidatorContext context)
     {
+        // add operation cost
+        var type = context.Types.Peek();
+        var cost = type.GetTypeWeight();
+        var summary = _selectionSetCost[node.SelectionSet];
+        summary.TypeCost += cost;
+
         return base.Leave(node, context);
     }
 
@@ -104,7 +123,7 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union, } &&
+            type.NamedType() is { Kind: TypeKind.Union } &&
             HasFields(node))
         {
             return Skip;
@@ -150,13 +169,10 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                 var result = CalculateSelectionSetCost(
                     objectType,
                     fields,
-                    _processed,
-                    GetSelectionSetCost,
                     context);
 
                 costSummary.TypeCost = result.TypeCost;
                 costSummary.FieldCost = result.FieldCost;
-                _processed.Clear();
             }
             else
             {
@@ -165,8 +181,6 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                     var result = CalculateSelectionSetCost(
                         possibleType,
                         fields,
-                        _processed,
-                        GetSelectionSetCost,
                         context);
 
                     if (costSummary.TypeCost < result.TypeCost)
@@ -178,8 +192,6 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                     {
                         costSummary.FieldCost = result.FieldCost;
                     }
-
-                    _processed.Clear();
                 }
             }
         }
@@ -227,48 +239,56 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
     private CostSummary GetSelectionSetCost(SelectionSetNode selectionSetNode)
         => _selectionSetCost[selectionSetNode];
 
-    private static (double TypeCost, double FieldCost) CalculateSelectionSetCost(
+    private (double TypeCost, double FieldCost) CalculateSelectionSetCost(
         ObjectType possibleType,
         IList<FieldInfo> fields,
-        HashSet<string> processed,
-        Func<SelectionSetNode, CostSummary> getSelectionSetCost,
         IDocumentValidatorContext context)
     {
+        _processed.Clear();
+
         var typeCostSum = 0.0;
         var fieldCostSum = 0.0;
 
         for (var i = 0; i < fields.Count; i++)
         {
-            var field = fields[i];
+            var fieldInfo = fields[i];
+            var fieldNode = fieldInfo.SyntaxNode;
 
-            if (processed.Add(field.ResponseName) &&
-                field.DeclaringType.NamedType().IsAssignableFrom(possibleType) &&
-                possibleType.Fields.TryGetField(field.Field.Name.Value, out var objectField))
+            if (_processed.Add(fieldInfo.ResponseName) &&
+                fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType) &&
+                possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field))
             {
-                var typeCost = 0.0;
-                var fieldCost = objectField.GetFieldWeight();
+                var typeCost = field.GetTypeWeight();
+                var fieldCost = field.GetFieldWeight();
                 var selectionSetCost = 0.0;
-                var listSizeDirective = objectField.Directives
+                var listSizeDirective = field.Directives
                     .FirstOrDefault<ListSizeDirective>()
                     ?.AsValue<ListSizeDirective>();
 
-                listSizeDirective.ValidateRequireOneSlicingArgument(field.Field);
+                listSizeDirective.ValidateRequireOneSlicingArgument(fieldNode);
 
-                if (objectField.Type.NamedType().IsCompositeType() && field.Field.SelectionSet is not null)
+                if (fieldNode.Arguments.Count > 0)
                 {
-                    selectionSetCost += getSelectionSetCost(field.Field.SelectionSet).FieldCost;
+                    foreach (var argumentNode in fieldNode.Arguments)
+                    {
+                        if (field.Arguments.TryGetField(argumentNode.Name.Value, out var argument))
+                        {
+                            fieldCost += argument.GetFieldWeight();
+                            _inputCostVisitorContext ??= new InputCostVisitorContext();
+                            _inputCostVisitor.CalculateCost(argument, argumentNode, _inputCostVisitorContext);
+                            fieldCost += _inputCostVisitorContext.Cost;
+                        }
+                    }
                 }
 
-                if (fieldCost > 0 || selectionSetCost > 0)
+                if (field.Type.NamedType().IsCompositeType() && fieldNode.SelectionSet is not null)
                 {
-                    // We only calculate a type cost for the fields return
-                    // type if the field itself has a cost.
-                    typeCost = objectField.GetTypeWeight();
+                    selectionSetCost += GetSelectionSetCost(fieldNode.SelectionSet).FieldCost;
                 }
 
-                if (objectField.Type.IsListType())
+                if (field.Type.IsListType())
                 {
-                    var arguments = field.Field.Arguments;
+                    var arguments = fieldNode.Arguments;
                     var parentField = context.OutputFields.PeekOrDefault();
 
                     if (listSizeDirective is null && parentField is not null)
@@ -277,7 +297,7 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                             .FirstOrDefault<ListSizeDirective>()
                             ?.AsValue<ListSizeDirective>();
 
-                        if(parentListSizeDirective?.SizedFields.Contains(objectField.Name) ?? false)
+                        if (parentListSizeDirective?.SizedFields.Contains(field.Name) ?? false)
                         {
                             listSizeDirective = parentListSizeDirective;
                             arguments = context.Path.PeekOrDefault<ISyntaxNode, FieldNode>()!.Arguments;
@@ -286,7 +306,7 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
 
                     // if the field is a list type we are multiplying the cost
                     // by the estimated list size.
-                    var listSize = objectField.GetListSize(arguments, listSizeDirective, context.Variables);
+                    var listSize = field.GetListSize(arguments, listSizeDirective, context.Variables);
                     typeCost *= listSize;
                     selectionSetCost *= listSize;
                 }
@@ -317,7 +337,9 @@ file static class Helpers
     public static double GetFieldWeight(this IOutputField field)
     {
         // Use weight from @cost directive.
-        var costDirective = field.Directives.FirstOrDefault<CostDirective>()?.AsValue<CostDirective>();
+        var costDirective = field.Directives
+            .FirstOrDefault<CostDirective>()
+            ?.AsValue<CostDirective>();
 
         if (costDirective is not null)
         {
@@ -325,13 +347,69 @@ file static class Helpers
         }
 
         // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
-        // "Weights for all composite input and output types default to "1.0""
-        return field.Type.IsCompositeType() || field.Type.IsListType() ? 1.0 : 0.0;
+        // "Fields returning scalar and enum types, arguments of scalar and enum types,
+        // as well as input fields of scalar and enum types all default to "0.0"."
+        return field.Type.NamedType().IsCompositeType() || field.Type.IsListType() ? 1.0 : 0.0;
+    }
+
+    public static double GetFieldWeight(this IInputField field)
+    {
+        // Use weight from @cost directive.
+        var costDirective = field.Directives
+            .FirstOrDefault<CostDirective>()
+            ?.AsValue<CostDirective>();
+
+        if (costDirective is not null)
+        {
+            return costDirective.Weight;
+        }
+
+        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
+        // "Fields returning scalar and enum types, arguments of scalar and enum types,
+        // as well as input fields of scalar and enum types all default to "0.0"."
+        return field.Type.NamedType().IsInputObjectType() ? 1.0 : 0.0;
     }
 
     public static double GetTypeWeight(this IOutputField field)
     {
-        return 1.0;
+        var namedType = field.Type.NamedType();
+
+        if (namedType is IHasDirectives directiveProvider)
+        {
+            var costDirective = directiveProvider.Directives
+                .FirstOrDefault<CostDirective>()
+                ?.AsValue<CostDirective>();
+
+            if (costDirective is not null)
+            {
+                return costDirective.Weight;
+            }
+        }
+
+        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
+        // "Weights for all composite input and output types default to "1.0""
+        return namedType.IsCompositeType() ? 1.0 : 0.0;
+    }
+
+    public static double GetTypeWeight(this IType type)
+    {
+        var namedType = type.NamedType();
+
+        if (namedType is IHasDirectives directiveProvider)
+        {
+            var costDirective = directiveProvider.Directives
+                .FirstOrDefault<CostDirective>()
+                ?.AsValue<CostDirective>();
+
+            if (costDirective is not null)
+            {
+                return costDirective.Weight;
+            }
+        }
+
+        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
+        // "Weights for all composite input and output types default to "1.0""
+        return namedType.IsCompositeType() ? 1.0 : 0.0;
     }
 
     public static double GetListSize(
@@ -342,7 +420,7 @@ file static class Helpers
     {
         const int defaultListSize = 1;
 
-        if(listSizeDirective is null)
+        if (listSizeDirective is null)
         {
             return defaultListSize;
         }
@@ -429,5 +507,97 @@ file static class Helpers
                 throw new Exception("");
             }
         }
+    }
+}
+
+internal class InputCostVisitorContext
+{
+    public List<IInputType> Types { get; } = new();
+
+    public List<IInputField> Fields { get; } = new();
+
+    public List<InputObjectType> Backlog { get; } = new();
+
+    public HashSet<IInputType> Processed { get; } = new();
+
+    public double Cost { get; set; }
+
+    public void Reset()
+    {
+        Types.Clear();
+        Fields.Clear();
+        Cost = 0;
+    }
+}
+
+internal sealed class InputCostVisitor : SyntaxWalker<InputCostVisitorContext>
+{
+    public double CalculateCost(IInputField argument, ArgumentNode argumentNode, InputCostVisitorContext context)
+    {
+        context.Reset();
+
+        context.Types.Push(argument.Type);
+        context.Fields.Push(argument);
+
+        Visit(argumentNode.Value, context);
+        return context.Cost;
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        ObjectFieldNode node,
+        InputCostVisitorContext context)
+    {
+        if (context.Types.TryPeek(out var type) &&
+            type.NamedType() is InputObjectType inputObject &&
+            inputObject.Fields.TryGetField(node.Name.Value, out var field))
+        {
+            context.Cost += field.GetFieldWeight();
+            context.Types.Push(field.Type);
+            context.Fields.Push(field);
+            return Continue;
+        }
+
+        return Skip;
+    }
+
+    protected override ISyntaxVisitorAction Leave(
+        ObjectFieldNode node,
+        InputCostVisitorContext context)
+    {
+        context.Types.Pop();
+        context.Fields.Pop();
+        return base.Leave(node, context);
+    }
+
+    protected override ISyntaxVisitorAction Enter(
+        VariableNode node,
+        InputCostVisitorContext context)
+    {
+        if (context.Types.TryPeek(out var type))
+        {
+            var cost = 0.0;
+
+            var namedInputType = type.NamedType();
+            if (namedInputType is InputObjectType inputObjectType)
+            {
+                context.Backlog.Push(inputObjectType);
+                while (context.Backlog.TryPop(out var current))
+                {
+                    foreach (var field in current.Fields)
+                    {
+                        cost += field.GetFieldWeight();
+                        if (field.Type.NamedType() is InputObjectType next && context.Processed.Add(next))
+                        {
+                            context.Backlog.Push(next);
+                        }
+                    }
+                }
+            }
+
+            context.Cost += cost;
+            return Continue;
+        }
+
+        return Skip;
     }
 }

@@ -235,7 +235,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         {
             if (fields.Count == 1)
             {
-                if (fields[0].Field.SelectionSet is { } selectionSet &&
+                if (fields[0].SyntaxNode.SelectionSet is { } selectionSet &&
                     context.FieldSets.TryGetValue(selectionSet, out var fieldSet))
                 {
                     fields = fieldSet;
@@ -254,15 +254,15 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             {
                 var fieldB = fields[j];
 
-                if (ReferenceEquals(fieldA.Field, fieldB.Field) ||
+                if (ReferenceEquals(fieldA.SyntaxNode, fieldB.SyntaxNode) ||
                     !fieldA.ResponseName.EqualsOrdinal(fieldB.ResponseName))
                 {
                     continue;
                 }
 
                 if (SameResponseShape(
-                        fieldA.Type.RewriteNullability(fieldA.Field.Required),
-                        fieldB.Type.RewriteNullability(fieldB.Field.Required)) &&
+                        fieldA.Type.RewriteNullability(fieldA.SyntaxNode.Required),
+                        fieldB.Type.RewriteNullability(fieldB.SyntaxNode.Required)) &&
                     SameStreamDirective(fieldA, fieldB))
                 {
                     if (!IsParentTypeAligned(fieldA, fieldB))
@@ -270,8 +270,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                         continue;
                     }
 
-                    if (BySyntax.Equals(fieldA.Field.Name, fieldB.Field.Name) &&
-                        AreArgumentsIdentical(fieldA.Field, fieldB.Field))
+                    if (BySyntax.Equals(fieldA.SyntaxNode.Name, fieldB.SyntaxNode.Name) &&
+                        AreArgumentsIdentical(fieldA.SyntaxNode, fieldB.SyntaxNode))
                     {
                         var pair = new FieldInfoPair(fieldA, fieldB);
                         if (context.ProcessedFieldPairs.Add(pair))
@@ -279,12 +279,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             context.NextFieldPairs.Add(pair);
                         }
                     }
-                    else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
+                    else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                     {
                         context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                     }
                 }
-                else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
+                else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                 {
                     context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                 }
@@ -297,8 +297,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         FieldInfo fieldA,
         FieldInfo fieldB)
     {
-        if (fieldA.Field.SelectionSet is { } a &&
-            fieldB.Field.SelectionSet is { } b &&
+        if (fieldA.SyntaxNode.SelectionSet is { } a &&
+            fieldB.SyntaxNode.SelectionSet is { } b &&
             context.FieldSets.TryGetValue(a, out var al) &&
             context.FieldSets.TryGetValue(b, out var bl))
         {
@@ -414,8 +414,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static bool SameStreamDirective(FieldInfo fieldA, FieldInfo fieldB)
     {
-        var streamA = fieldA.Field.GetStreamDirectiveNode();
-        var streamB = fieldB.Field.GetStreamDirectiveNode();
+        var streamA = fieldA.SyntaxNode.GetStreamDirectiveNode();
+        var streamB = fieldB.SyntaxNode.GetStreamDirectiveNode();
 
         // if both fields do not have any stream directive they are mergeable.
         if (streamA is null)

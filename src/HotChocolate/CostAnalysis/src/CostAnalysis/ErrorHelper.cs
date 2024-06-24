@@ -18,7 +18,7 @@ internal static class ErrorHelper
                 }),
             contextData: new Dictionary<string, object?>
             {
-                { HotChocolate.WellKnownContextData.ValidationErrors, true } // FIXME: Should this remain?
+                { WellKnownContextData.ValidationErrors, true } // FIXME: Should this remain?
             });
     }
 
@@ -35,7 +35,7 @@ internal static class ErrorHelper
                 }),
             contextData: new Dictionary<string, object?>
             {
-                { HotChocolate.WellKnownContextData.ValidationErrors, true } // FIXME: Should this remain?
+                { WellKnownContextData.ValidationErrors, true } // FIXME: Should this remain?
             });
     }
 }

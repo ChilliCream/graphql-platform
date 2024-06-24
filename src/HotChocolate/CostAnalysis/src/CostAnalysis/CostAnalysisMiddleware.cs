@@ -4,7 +4,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
