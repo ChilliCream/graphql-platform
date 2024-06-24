@@ -1,5 +1,4 @@
-using HotChocolate.CostAnalysis.DescriptorExtensions;
-using HotChocolate.CostAnalysis.Directives;
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
@@ -14,7 +13,7 @@ public sealed class DescriptorExtensionTests
             .AddQueryType(d => d
                 .Name(OperationTypeNames.Query)
                 .Field("field")
-                .Argument("a", a => a.Type<StringType>().Cost("5.0"))
+                .Argument("a", a => a.Type<StringType>().Cost(5.0))
                 .Type<StringType>())
             .AddDirectiveType<CostDirectiveType>()
             .Use(next => next)
@@ -29,7 +28,7 @@ public sealed class DescriptorExtensionTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("5.0", costDirective.Weight);
+        Assert.Equal(5.0, costDirective.Weight);
     }
 
     [Fact]
@@ -42,8 +41,8 @@ public sealed class DescriptorExtensionTests
                 .Field("field")
                 .Type<StringType>())
             .AddDirectiveType<CostDirectiveType>()
-            .AddEnumType(d => d.Name("Example").Cost("5.0").Value("EnumMember1"))
-            .AddEnumType<ExampleEnum>(d => d.Cost("10.0"))
+            .AddEnumType(d => d.Name("Example").Cost(5.0).Value("EnumMember1"))
+            .AddEnumType<ExampleEnum>(d => d.Cost(10.0))
             .Use(next => next)
             .Create();
 
@@ -56,8 +55,8 @@ public sealed class DescriptorExtensionTests
         var costDirective2 = directive2.AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("5.0", costDirective1.Weight);
-        Assert.Equal("10.0", costDirective2.Weight);
+        Assert.Equal(5.0, costDirective1.Weight);
+        Assert.Equal(10.0, costDirective2.Weight);
     }
 
     [Fact]
@@ -75,7 +74,7 @@ public sealed class DescriptorExtensionTests
                     .Name("input")
                     .Field("field")
                     .Type<StringType>()
-                    .Cost("5.0"))
+                    .Cost(5.0))
             .Use(next => next)
             .Create();
 
@@ -84,7 +83,7 @@ public sealed class DescriptorExtensionTests
         var costDirective = directive.AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("5.0", costDirective.Weight);
+        Assert.Equal(5.0, costDirective.Weight);
     }
 
     [Fact]
@@ -96,7 +95,7 @@ public sealed class DescriptorExtensionTests
                 .Name(OperationTypeNames.Query)
                 .Field("field")
                 .Type<StringType>()
-                .Cost("5.0"))
+                .Cost(5.0))
             .AddDirectiveType<CostDirectiveType>()
             .Use(next => next)
             .Create();
@@ -106,7 +105,7 @@ public sealed class DescriptorExtensionTests
         var costDirective = directive.AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("5.0", costDirective.Weight);
+        Assert.Equal(5.0, costDirective.Weight);
     }
 
     [Fact]
@@ -116,7 +115,7 @@ public sealed class DescriptorExtensionTests
         var schema = SchemaBuilder.New()
             .AddQueryType(d => d
                 .Name(OperationTypeNames.Query)
-                .Cost("5.0")
+                .Cost(5.0)
                 .Field("field")
                 .Type<StringType>())
             .AddDirectiveType<CostDirectiveType>()
@@ -128,7 +127,7 @@ public sealed class DescriptorExtensionTests
         var costDirective = directive.AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("5.0", costDirective.Weight);
+        Assert.Equal(5.0, costDirective.Weight);
     }
 
     [Fact]

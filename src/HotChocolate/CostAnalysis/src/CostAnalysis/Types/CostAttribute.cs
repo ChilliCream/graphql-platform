@@ -1,9 +1,9 @@
 using System.Reflection;
-using HotChocolate.CostAnalysis.Directives;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.CostAnalysis.Properties.CostAnalysisResources;
 
-namespace HotChocolate.CostAnalysis.Attributes;
+namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
 /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
@@ -19,7 +19,7 @@ namespace HotChocolate.CostAnalysis.Attributes;
     | AttributeTargets.Struct)]
 public sealed class CostAttribute : DescriptorAttribute
 {
-    private readonly string _weight;
+    private readonly double _weight;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CostAttribute"/>.
@@ -28,13 +28,8 @@ public sealed class CostAttribute : DescriptorAttribute
     /// The <c>weight</c> argument defines what value to add to the overall cost for every
     /// appearance, or possible appearance, of a type, field, argument, etc.
     /// </param>
-    public CostAttribute(string weight)
+    public CostAttribute(double weight)
     {
-        if (weight is null)
-        {
-            throw new ArgumentNullException(nameof(weight));
-        }
-
         _weight = weight;
     }
 

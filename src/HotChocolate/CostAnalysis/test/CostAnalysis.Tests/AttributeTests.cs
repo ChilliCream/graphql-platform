@@ -1,5 +1,4 @@
-using HotChocolate.CostAnalysis.Attributes;
-using HotChocolate.CostAnalysis.Directives;
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
@@ -19,7 +18,7 @@ public sealed class AttributeTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("8.0", costDirective.Weight);
+        Assert.Equal(8.0, costDirective.Weight);
     }
 
     [Fact]
@@ -34,7 +33,7 @@ public sealed class AttributeTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("0.0", costDirective.Weight);
+        Assert.Equal(0.0, costDirective.Weight);
     }
 
     [Fact]
@@ -49,7 +48,7 @@ public sealed class AttributeTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("-3.0", costDirective.Weight);
+        Assert.Equal(-3.0, costDirective.Weight);
     }
 
     [Fact]
@@ -64,7 +63,7 @@ public sealed class AttributeTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("5.0", costDirective.Weight);
+        Assert.Equal(5.0, costDirective.Weight);
     }
 
     [Fact]
@@ -78,7 +77,7 @@ public sealed class AttributeTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("10.0", costDirective.Weight);
+        Assert.Equal(10.0, costDirective.Weight);
     }
 
     [Fact]
@@ -92,7 +91,7 @@ public sealed class AttributeTests
             .AsValue<CostDirective>();
 
         // assert
-        Assert.Equal("1.0", costDirective.Weight);
+        Assert.Equal(1.0, costDirective.Weight);
     }
 
     [Fact]
@@ -134,16 +133,16 @@ public sealed class AttributeTests
             SlicingArguments = ["first", "last"],
             SizedFields = ["edges", "nodes"],
             RequireOneSlicingArgument = false)]
-        [Cost("5.0")]
+        [Cost(5.0)]
         // ReSharper disable once UnusedMember.Local
-        public static List<Example> GetExamples([Cost("8.0")] ExampleInput _)
+        public static List<Example> GetExamples([Cost(8.0)] ExampleInput _)
         {
             return [new Example(ExampleEnum.Member)];
         }
     }
 
     [ObjectType]
-    [Cost("10.0")]
+    [Cost(10.0)]
     private sealed class Example(ExampleEnum field)
     {
         // ReSharper disable once UnusedMember.Local
@@ -154,16 +153,16 @@ public sealed class AttributeTests
     // ReSharper disable once ClassNeverInstantiated.Local
     private sealed class ExampleInput(string field)
     {
-        [Cost("-3.0")]
+        [Cost(-3.0)]
         // ReSharper disable once UnusedMember.Local
         public string Field { get; set; } = field;
     }
 
-    [Cost("1.0")]
+    [Cost(1.0)]
     // ReSharper disable once ClassNeverInstantiated.Local
     private sealed class ExampleScalar() : StringType("ExampleScalar");
 
     [EnumType]
-    [Cost("0.0")]
+    [Cost(0.0)]
     private enum ExampleEnum { Member }
 }

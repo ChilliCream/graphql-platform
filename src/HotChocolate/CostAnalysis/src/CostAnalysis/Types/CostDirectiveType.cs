@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CostAnalysis.Directives;
+namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
 /// The purpose of the <c>cost</c> directive is to define a <c>weight</c> for GraphQL types, fields,
@@ -30,6 +30,7 @@ public sealed class CostDirectiveType : DirectiveType<CostDirective>
 
         descriptor
             .Argument(t => t.Weight)
+            .Type<NonNullType<StringType>>()
             .Description(
                 "The `weight` argument defines what value to add to the overall cost for every " +
                 "appearance, or possible appearance, of a type, field, argument, etc.");

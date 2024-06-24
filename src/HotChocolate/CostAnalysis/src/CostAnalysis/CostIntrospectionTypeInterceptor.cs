@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.CostAnalysis.WellKnownContextData;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -59,7 +58,7 @@ internal sealed class CostIntrospectionTypeInterceptor : TypeInterceptor
 
         static Cost Resolver(IPureResolverContext ctx)
         {
-            var requestCosts = (CostMetrics)ctx.ContextData[RequestCosts]!;
+            var requestCosts = (CostMetrics)ctx.ContextData[WellKnownContextData.CostMetricsKey]!;
 
             return new Cost(requestCosts);
         }

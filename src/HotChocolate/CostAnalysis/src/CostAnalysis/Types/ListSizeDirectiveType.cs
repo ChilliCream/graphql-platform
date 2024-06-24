@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CostAnalysis.Directives;
+namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
 /// The purpose of the <c>@listSize</c> directive is to either inform the static analysis about the
@@ -24,12 +24,14 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
         descriptor
             .Argument(t => t.AssumedSize)
+            .Type<IntType>()
             .Description(
                 "The `assumedSize` argument can be used to statically define the maximum length " +
                 "of a list returned by a field.");
 
         descriptor
             .Argument(t => t.SlicingArguments)
+            .Type<ListType<NonNullType<StringType>>>()
             .Description(
                 "The `slicingArguments` argument can be used to define which of the field's " +
                 "arguments with numeric type are slicing arguments, so that their value " +
@@ -38,6 +40,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
         descriptor
             .Argument(t => t.SizedFields)
+            .Type<ListType<NonNullType<StringType>>>()
             .Description(
                 "The `sizedFields` argument can be used to define that the value of the " +
                 "`assumedSize` argument or of a slicing argument does not affect the size of a " +
@@ -46,6 +49,7 @@ public sealed class ListSizeDirectiveType : DirectiveType<ListSizeDirective>
 
         descriptor
             .Argument(t => t.RequireOneSlicingArgument)
+            .Type<NonNullType<BooleanType>>()
             .DefaultValue(true)
             .Description(
                 "The `requireOneSlicingArgument` argument can be used to inform the static " +

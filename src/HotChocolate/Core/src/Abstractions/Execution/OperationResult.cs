@@ -130,6 +130,30 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     /// <inheritdoc />
     public bool IsDataSet { get; }
 
+    /// <summary>
+    /// Creates a new <see cref="OperationResult"/> with the specified extension data.
+    /// </summary>
+    /// <param name="extensions">
+    /// The extension data that shall be added to the result.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="OperationResult"/> that represents the result.
+    /// </returns>
+    public OperationResult WithExtensions(
+        IReadOnlyDictionary<string, object?>? extensions)
+        => new OperationResult(
+            Data,
+            Errors,
+            extensions,
+            ContextData,
+            Items,
+            Incremental,
+            Label,
+            Path,
+            HasNext,
+            RequestIndex,
+            VariableIndex);
+
     /// <inheritdoc />
     public IReadOnlyDictionary<string, object?> ToDictionary()
         => OperationResultHelper.ToDictionary(this);

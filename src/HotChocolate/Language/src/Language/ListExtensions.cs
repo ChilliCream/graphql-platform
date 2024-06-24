@@ -78,6 +78,22 @@ public static class ListExtensions
         return defaultValue;
     }
 
+    public static TSearch? PeekOrDefault<T, TSearch>(this IList<T> list, TSearch? defaultValue = default)
+    {
+        if (list.Count > 0)
+        {
+            for (var i = list.Count - 1; i >= 0; i--)
+            {
+                if (list[i] is TSearch item)
+                {
+                    return item;
+                }
+            }
+        }
+
+        return defaultValue;
+    }
+
     public static void Push<T>(this IList<T> list, T item)
     {
         list.Add(item);

@@ -1,4 +1,4 @@
-namespace HotChocolate.CostAnalysis.Directives;
+namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
 /// The purpose of the <c>cost</c> directive is to define a <c>weight</c> for GraphQL types, fields,
@@ -8,7 +8,7 @@ namespace HotChocolate.CostAnalysis.Directives;
 /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-The-Cost-Directive">
 /// Specification URL
 /// </seealso>
-public sealed class CostDirective(string weight)
+public sealed class CostDirective(double weight)
 {
     /// <summary>
     /// The <c>weight</c> argument defines what value to add to the overall cost for every
@@ -17,5 +17,5 @@ public sealed class CostDirective(string weight)
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight">
     /// Specification URL
     /// </seealso>
-    public string Weight { get; } = weight;
+    public double Weight { get; } = weight;
 }

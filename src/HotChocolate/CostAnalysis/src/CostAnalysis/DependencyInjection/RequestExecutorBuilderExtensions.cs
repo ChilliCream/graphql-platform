@@ -1,10 +1,10 @@
+using HotChocolate.CostAnalysis;
 using HotChocolate.CostAnalysis.Caching;
-using HotChocolate.CostAnalysis.Directives;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate.CostAnalysis;
+namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 /// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
@@ -29,8 +29,8 @@ public static class RequestExecutorBuilderExtensions
             .UseDocumentCache()
             .UseDocumentParser()
             .UseDocumentValidation()
-            .UseOperationCache()
             .UseCostAnalysis()
+            .UseOperationCache()
             .UseOperationResolver()
             .UseOperationVariableCoercion()
             .UseOperationExecution();
@@ -81,13 +81,8 @@ public static class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        builder.ConfigureSchema(
-            (serviceProvider, _) =>
-            {
-                var options = serviceProvider.GetRequiredService<CostAnalysisOptions>();
-
-                configure(options);
-            });
+        builder.ConfigureSchemaServices(
+            services => services.AddSingleton(configure));
 
         return builder;
     }
@@ -95,10 +90,24 @@ public static class RequestExecutorBuilderExtensions
     internal static IRequestExecutorBuilder AddCostAnalysis(this IRequestExecutorBuilder builder)
     {
         builder.Services
-            .AddSingleton<CostAnalysisOptions>()
             .AddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
 
         return builder
+            .ConfigureSchemaServices(
+                services =>
+                {
+                    services.TryAddSingleton<CostAnalysisOptions>(sp =>
+                    {
+                        var options = new CostAnalysisOptions();
+
+                        foreach (var configure in sp.GetServices<Action<CostAnalysisOptions>>())
+                        {
+                            configure(options);
+                        }
+
+                        return options;
+                    });
+                })
             .AddDirectiveType<CostDirectiveType>()
             .AddDirectiveType<ListSizeDirectiveType>()
             .AddType<CostByLocationType>()

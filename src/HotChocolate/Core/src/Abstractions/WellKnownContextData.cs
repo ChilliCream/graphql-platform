@@ -314,4 +314,8 @@ public static class WellKnownContextData
     /// Type key to access the pattern validation tasks.
     /// </summary>
     public const string PatternValidationTasks = "HotChocolate.Validation.PatternValidationTasks";
+
+    public const string RequestCosts = "HotChocolate.CostAnalysis.RequestCosts";
+
+    public const string CostMetricsKey = "HotChocolate.CostAnalysis.CostMetricsKey";
 }

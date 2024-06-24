@@ -1,7 +1,7 @@
-using HotChocolate.CostAnalysis.Directives;
-using HotChocolate.Types;
+// ReSharper disable CheckNamespace
+using HotChocolate.CostAnalysis.Types;
 
-namespace HotChocolate.CostAnalysis.DescriptorExtensions;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides extension methods to <see cref="IArgumentDescriptor"/>.
@@ -26,7 +26,7 @@ public static class ArgumentDescriptorExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IArgumentDescriptor Cost(this IArgumentDescriptor descriptor, string weight)
+    public static IArgumentDescriptor Cost(this IArgumentDescriptor descriptor, double weight)
     {
         if (descriptor is null)
         {

@@ -1,7 +1,10 @@
-using HotChocolate.CostAnalysis.Directives;
+// ReSharper disable CheckNamespace
+
+using System.Collections.Immutable;
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Types;
 
-namespace HotChocolate.CostAnalysis.DescriptorExtensions;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides extension methods to <see cref="IObjectFieldDescriptor"/>.
@@ -26,7 +29,7 @@ public static class ObjectFieldDescriptorExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IObjectFieldDescriptor Cost(this IObjectFieldDescriptor descriptor, string weight)
+    public static IObjectFieldDescriptor Cost(this IObjectFieldDescriptor descriptor, double weight)
     {
         if (descriptor is null)
         {
@@ -67,8 +70,8 @@ public static class ObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor ListSize(
         this IObjectFieldDescriptor descriptor,
         int? assumedSize = null,
-        List<string>? slicingArguments = null,
-        List<string>? sizedFields = null,
+        ImmutableArray<string>? slicingArguments = null,
+        ImmutableArray<string>? sizedFields = null,
         bool requireOneSlicingArgument = true)
     {
         if (descriptor is null)

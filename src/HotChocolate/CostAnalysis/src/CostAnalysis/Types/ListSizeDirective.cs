@@ -1,4 +1,6 @@
-namespace HotChocolate.CostAnalysis.Directives;
+using System.Collections.Immutable;
+
+namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
 /// The purpose of the <c>@listSize</c> directive is to either inform the static analysis about the
@@ -10,8 +12,8 @@ namespace HotChocolate.CostAnalysis.Directives;
 /// </seealso>
 public sealed class ListSizeDirective(
     int? assumedSize = null,
-    List<string>? slicingArguments = null,
-    List<string>? sizedFields = null,
+    ImmutableArray<string>? slicingArguments = null,
+    ImmutableArray<string>? sizedFields = null,
     bool requireOneSlicingArgument = true)
 {
     /// <summary>
@@ -31,7 +33,8 @@ public sealed class ListSizeDirective(
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-slicingArguments">
     /// Specification URL
     /// </seealso>
-    public List<string>? SlicingArguments { get; } = slicingArguments;
+    public ImmutableArray<string> SlicingArguments { get; }
+        = slicingArguments ?? ImmutableArray<string>.Empty;
 
     /// <summary>
     /// The <c>sizedFields</c> argument can be used to define that the value of the
@@ -41,7 +44,8 @@ public sealed class ListSizeDirective(
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-sizedFields">
     /// Specification URL
     /// </seealso>
-    public List<string>? SizedFields { get; } = sizedFields;
+    public ImmutableArray<string> SizedFields { get; }
+        = sizedFields ?? ImmutableArray<string>.Empty;
 
     /// <summary>
     /// The <c>requireOneSlicingArgument</c> argument can be used to inform the static analysis that

@@ -1,7 +1,7 @@
-using HotChocolate.CostAnalysis.Directives;
-using HotChocolate.Types;
+// ReSharper disable CheckNamespace
+using HotChocolate.CostAnalysis.Types;
 
-namespace HotChocolate.CostAnalysis.DescriptorExtensions;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Provides extension methods to <see cref="IScalarTypeDescriptor"/>.
@@ -26,7 +26,7 @@ public static class ScalarTypeDescriptorExtensions
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IScalarTypeDescriptor Cost(this IScalarTypeDescriptor descriptor, string weight)
+    public static IScalarTypeDescriptor Cost(this IScalarTypeDescriptor descriptor, double weight)
     {
         if (descriptor is null)
         {

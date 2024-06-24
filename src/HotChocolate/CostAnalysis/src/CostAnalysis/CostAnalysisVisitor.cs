@@ -1,11 +1,10 @@
 using System.Diagnostics;
-using HotChocolate.CostAnalysis.Directives;
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Validation;
 using static HotChocolate.CostAnalysis.WellKnownArgumentNames;
-using CostDirective = HotChocolate.CostAnalysis.Directives.CostDirective;
 using IHasDirectives = HotChocolate.Types.IHasDirectives;
 
 namespace HotChocolate.CostAnalysis;
@@ -572,7 +571,7 @@ internal sealed class CostAnalysisVisitor() : TypeDocumentValidatorVisitor(
 
             if (costDirective is not null)
             {
-                return double.Parse(costDirective.Weight);
+                return costDirective.Weight;
             }
         }
 
@@ -592,7 +591,7 @@ internal sealed class CostAnalysisVisitor() : TypeDocumentValidatorVisitor(
 
             if (costDirective is not null)
             {
-                return double.Parse(costDirective.Weight);
+                return costDirective.Weight;
             }
         }
 
@@ -612,7 +611,7 @@ internal sealed class CostAnalysisVisitor() : TypeDocumentValidatorVisitor(
 
             if (costDirective is not null)
             {
-                return double.Parse(costDirective.Weight);
+                return costDirective.Weight;
             }
         }
 

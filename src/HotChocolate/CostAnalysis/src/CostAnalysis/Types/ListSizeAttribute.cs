@@ -1,13 +1,13 @@
+using System.Collections.Immutable;
 using System.Reflection;
-using HotChocolate.CostAnalysis.Directives;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.CostAnalysis.Attributes;
+namespace HotChocolate.CostAnalysis.Types;
 
 /// <summary>
 /// Applies the <c>@listSize</c> directive. The purpose of the <c>@listSize</c> directive is to
-/// either inform the static analysis about the size of returned lists (if that information is
+/// either inform the static analysis of the size of returned lists (if that information is
 /// statically available), or to point the analysis to where to find that information.
 /// </summary>
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
@@ -48,8 +48,8 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
         descriptor.Directive(
             new ListSizeDirective(
                 _assumedSize,
-                SlicingArguments?.ToList(),
-                SizedFields?.ToList(),
+                SlicingArguments?.ToImmutableArray(),
+                SizedFields?.ToImmutableArray(),
                 RequireOneSlicingArgument));
     }
 }
