@@ -82,7 +82,7 @@ internal static class ResultHelper
                         case OperationResult operationResult:
                             costMetricsMap ??= CreateCostMetricsMap(costMetrics);
                             results[i] = operationResult.WithExtensions(
-                                AddCostMetrics(operationResult.Extensionses, costMetricsMap));
+                                AddCostMetrics(operationResult.Extensions, costMetricsMap));
                             break;
 
                         case ResponseStream responseStream:
@@ -105,7 +105,7 @@ internal static class ResultHelper
         OperationResult operationResult,
         CostMetrics costMetrics)
     {
-        var extensions = AddCostMetrics(operationResult.Extensionses, costMetrics);
+        var extensions = AddCostMetrics(operationResult.Extensions, costMetrics);
         return operationResult.WithExtensions(extensions);
     }
 
@@ -120,7 +120,7 @@ internal static class ResultHelper
             onFirstResult =
                 ImmutableArray.Create<Func<IOperationResult, IOperationResult>>(
                     result => result is OperationResult operationResult
-                        ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensionses, costMetrics))
+                        ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensions, costMetrics))
                         : result);
 
             return responseStream.WithOnFirstResult(onFirstResult);
@@ -130,7 +130,7 @@ internal static class ResultHelper
         {
             onFirstResult = immutable.Add(
                 result => result is OperationResult operationResult
-                    ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensionses, costMetrics))
+                    ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensions, costMetrics))
                     : result);
 
             return responseStream.WithOnFirstResult(onFirstResult);
@@ -140,7 +140,7 @@ internal static class ResultHelper
         builder.AddRange(onFirstResult);
         builder.Add(
             result => result is OperationResult operationResult
-                ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensionses, costMetrics))
+                ? operationResult.WithExtensions(AddCostMetrics(operationResult.Extensions, costMetrics))
                 : result);
         return responseStream.WithOnFirstResult(builder.ToImmutable());
     }

@@ -42,7 +42,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Data = data;
         Items = items;
         Errors = errors;
-        Extensionses = extensions;
+        Extensions = extensions;
         ContextData = contextData;
         Incremental = incremental;
         Label = label;
@@ -83,7 +83,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Data = data;
         Items = items;
         Errors = errors;
-        Extensionses = extensions;
+        Extensions = extensions;
         ContextData = contextData;
         Incremental = incremental;
         Label = label;
@@ -118,7 +118,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     public IReadOnlyList<IError>? Errors { get; }
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?>? Extensionses { get; }
+    public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<IOperationResult>? Incremental { get; }

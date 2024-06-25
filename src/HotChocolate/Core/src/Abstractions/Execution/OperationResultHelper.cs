@@ -27,9 +27,9 @@ internal static class OperationResultHelper
             formatted[_data] = result.Data;
         }
 
-        if (result.Extensionses is { Count: > 0, })
+        if (result.Extensions is { Count: > 0, })
         {
-            formatted[_extensions] = result.Extensionses;
+            formatted[_extensions] = result.Extensions;
         }
 
         return formatted;

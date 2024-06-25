@@ -55,7 +55,7 @@ public interface IOperationResult : IExecutionResult
     /// Gets the additional information that are passed along
     /// with the result and will be serialized for transport.
     /// </summary>
-    IReadOnlyDictionary<string, object?>? Extensionses { get; }
+    IReadOnlyDictionary<string, object?>? Extensions { get; }
 
     /// <summary>
     /// Gets the incremental patches provided with this result.
