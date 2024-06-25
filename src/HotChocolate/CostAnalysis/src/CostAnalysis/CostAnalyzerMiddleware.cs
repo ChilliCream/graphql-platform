@@ -12,10 +12,10 @@ namespace HotChocolate.CostAnalysis;
 
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
-    CostOptions options,
+    [SchemaService] CostOptions options,
     DocumentValidatorContextPool contextPool,
     ICostMetricsCache cache,
-    IExecutionDiagnosticEvents diagnosticEvents)
+    [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
     public async ValueTask InvokeAsync(IRequestContext context)
     {
@@ -138,7 +138,7 @@ internal sealed class CostAnalyzerMiddleware(
             var options = core.SchemaServices.GetRequiredService<CostOptions>();
             var contextPool = core.Services.GetRequiredService<DocumentValidatorContextPool>();
             var cache = core.Services.GetRequiredService<ICostMetricsCache>();
-            var diagnosticEvents = core.Services.GetRequiredService<IExecutionDiagnosticEvents>();
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
             var middleware = new CostAnalyzerMiddleware(
                 next,
