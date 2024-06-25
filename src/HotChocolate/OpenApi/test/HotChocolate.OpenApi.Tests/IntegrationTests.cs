@@ -1,7 +1,10 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.OpenApi.Extensions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
 namespace HotChocolate.OpenApi.Tests;
