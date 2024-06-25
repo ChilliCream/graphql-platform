@@ -32,7 +32,7 @@
   },
   "extensions": {
     "cost": {
-      "fieldCost": 10,
+      "fieldCost": 42,
       "typeCost": 52
     }
   }

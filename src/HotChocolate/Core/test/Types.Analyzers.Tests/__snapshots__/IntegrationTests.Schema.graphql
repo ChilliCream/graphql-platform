@@ -21,10 +21,10 @@ type Address {
 }
 
 type Author implements Entity & Node {
-  books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+  books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   id: ID!
   name: String!
-  address: Address
+  address: Address @cost(weight: "10")
 }
 
 "A connection to a list of items."
@@ -47,8 +47,8 @@ type AuthorsEdge {
 
 type Book implements Node & Entity {
   id: ID!
-  author: Author
-  chapter("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ChapterConnection
+  author: Author @cost(weight: "10")
+  chapter("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ChapterConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
   idAndTitle: String!
   title: String!
   genre: BookGenre!
@@ -73,8 +73,8 @@ type BooksEdge {
 }
 
 type Chapter implements Node {
-  id: ID!
-  book: Book
+  id: ID! @cost(weight: "10")
+  book: Book @cost(weight: "10")
   number: Int!
   title: String!
   bookId: Int!
@@ -103,7 +103,7 @@ type CreateBookPayload {
 }
 
 type Mutation {
-  createBook(input: CreateBookInput!): CreateBookPayload!
+  createBook(input: CreateBookInput!): CreateBookPayload! @cost(weight: "10")
 }
 
 "Information about pagination in a connection."
@@ -120,16 +120,16 @@ type PageInfo {
 
 type Query {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node
+  node("ID of the object." id: ID!): Node @cost(weight: "10")
   "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  addressById(id: Int!): Address
-  queryFieldCollocatedWithAuthor: String!
-  books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
-  bookById(id: Int!): Book
-  authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
-  authorById(id: ID!): Author
-  staticField: String!
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
+  addressById(id: Int!): Address @cost(weight: "10")
+  queryFieldCollocatedWithAuthor: String! @cost(weight: "10")
+  books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  bookById(id: Int!): Book @cost(weight: "10")
+  authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection @listSize(assumedSize: 50, slicingArguments: [ "first", "last" ], sizedFields: [ "edges", "nodes" ], requireOneSlicingArgument: false) @cost(weight: "10")
+  authorById(id: ID!): Author @cost(weight: "10")
+  staticField: String! @cost(weight: "10")
 }
 
 input CreateBookInput {
@@ -142,3 +142,9 @@ enum BookGenre {
   FICTION
   NON_FICTION
 }
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
+directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean! = true) on FIELD_DEFINITION

@@ -8,7 +8,7 @@ schema
   @transport(subgraph: "Products", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
   @node(subgraph: "Accounts", types: [ "User" ])
   @node(subgraph: "Reviews", types: [ "User", "Review" ])
-  @node(subgraph: "Products", types: [ "ProductConfiguration", "Product", "ProductBookmark" ]) {
+  @node(subgraph: "Products", types: [ "ProductBookmark", "ProductConfiguration", "Product" ]) {
   query: Query
   mutation: Mutation
   subscription: Subscription
