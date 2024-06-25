@@ -6,46 +6,7 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "products",
-        2,
-        "price"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "products",
-        1,
-        "price"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 5,
-          "column": 5
-        }
-      ],
-      "path": [
-        "products",
-        0,
-        "price"
-      ]
+      "message": "Internal Execution Error"
     }
   ],
   "data": {

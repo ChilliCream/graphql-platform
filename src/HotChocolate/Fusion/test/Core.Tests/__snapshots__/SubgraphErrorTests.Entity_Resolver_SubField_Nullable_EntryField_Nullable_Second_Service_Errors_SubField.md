@@ -9,8 +9,8 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 6,
-          "column": 5
+          "line": 1,
+          "column": 52
         }
       ],
       "path": [

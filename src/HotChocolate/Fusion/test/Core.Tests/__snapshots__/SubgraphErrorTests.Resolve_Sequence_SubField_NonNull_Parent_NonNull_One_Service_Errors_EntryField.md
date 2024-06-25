@@ -9,6 +9,19 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
+          "line": 1,
+          "column": 52
+        }
+      ],
+      "path": [
+        "product",
+        "brand"
+      ]
+    },
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
           "line": 6,
           "column": 7
         }
@@ -17,7 +30,10 @@
         "product",
         "brand",
         "name"
-      ]
+      ],
+      "extensions": {
+        "code": "HC0018"
+      }
     }
   ],
   "data": {

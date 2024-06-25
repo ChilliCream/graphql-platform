@@ -6,17 +6,7 @@
 {
   "errors": [
     {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 6,
-          "column": 5
-        }
-      ],
-      "path": [
-        "productById",
-        "score"
-      ]
+      "message": "Top Level Error"
     }
   ],
   "data": {

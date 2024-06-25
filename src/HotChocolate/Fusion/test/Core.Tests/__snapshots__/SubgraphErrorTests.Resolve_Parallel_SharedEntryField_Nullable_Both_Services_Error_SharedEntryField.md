@@ -9,8 +9,20 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 2,
-          "column": 3
+          "line": 1,
+          "column": 24
+        }
+      ],
+      "path": [
+        "viewer"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 24
         }
       ],
       "path": [
