@@ -43,7 +43,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -60,7 +65,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -128,7 +138,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -145,7 +160,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]

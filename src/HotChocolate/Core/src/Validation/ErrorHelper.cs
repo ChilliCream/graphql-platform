@@ -266,7 +266,7 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FieldsAreNotMergeable)
-            .SetLocations([fieldA.Field, fieldB.Field])
+            .SetLocations([fieldA.SyntaxNode, fieldB.SyntaxNode])
             .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
             .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)
             .SetExtension("fieldA", fieldA.SyntaxNode.Name.Value)
