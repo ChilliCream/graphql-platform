@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Descriptors.Definitions.TypeDependencyFulfilled;
@@ -101,6 +104,9 @@ internal sealed class TypeInitializer
 
         // we can now build pairs to bring together types and their type extensions.
         MergeTypeExtensions();
+
+        // before we start completing types we will compile the resolvers.
+        CompileResolvers();
 
         // last we complete the types. Completing types means that we will assign all
         // the fields resolving all missing parts and then making the types immutable.
@@ -415,6 +421,94 @@ internal sealed class TypeInitializer
                 // update dependencies
                 registeredType.Dependencies.AddRange(extension.Dependencies);
                 _typeRegistry.Register(registeredType);
+            }
+        }
+    }
+
+    private void CompileResolvers()
+    {
+        foreach (var registeredType in _typeRegistry.Types)
+        {
+            if (registeredType.Type is ObjectType objectType)
+            {
+                foreach (var field in objectType.Definition!.Fields)
+                {
+                    if (!field.Resolvers.HasResolvers)
+                    {
+                        field.Resolvers = CompileResolver(field, _context.ResolverCompiler);
+                    }
+                }
+            }
+        }
+    }
+
+    private static FieldResolverDelegates CompileResolver(
+        ObjectFieldDefinition definition,
+        IResolverCompiler resolverCompiler)
+    {
+        var resolvers = definition.Resolvers;
+
+        if (resolvers.HasResolvers)
+        {
+            return resolvers;
+        }
+
+        if (definition.Expression is LambdaExpression lambdaExpression)
+        {
+            resolvers = resolverCompiler.CompileResolve(
+                lambdaExpression,
+                definition.SourceType ??
+                definition.Member?.ReflectedType ??
+                definition.Member?.DeclaringType ??
+                typeof(object),
+                definition.ResolverType);
+        }
+        else if (definition.ResolverMember is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.ResolverMember,
+                definition.SourceType ??
+                definition.Member?.ReflectedType ??
+                definition.Member?.DeclaringType ??
+                typeof(object),
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+        else if (definition.Member is not null)
+        {
+            var map = TypeMemHelper.RentArgumentNameMap();
+            BuildArgumentLookup(definition, map);
+
+            resolvers = resolverCompiler.CompileResolve(
+                definition.Member,
+                definition.SourceType ??
+                definition.Member.ReflectedType ??
+                definition.Member.DeclaringType,
+                definition.ResolverType,
+                map,
+                definition.GetParameterExpressionBuilders());
+
+            TypeMemHelper.Return(map);
+        }
+
+        return resolvers;
+
+        static void BuildArgumentLookup(
+            ObjectFieldDefinition definition,
+            Dictionary<ParameterInfo, string> argumentNames)
+        {
+            foreach (var argument in definition.Arguments)
+            {
+                if (argument.Parameter is not null)
+                {
+                    argumentNames[argument.Parameter] = argument.Name;
+                }
             }
         }
     }

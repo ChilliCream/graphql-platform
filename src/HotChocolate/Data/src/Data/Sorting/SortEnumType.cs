@@ -7,8 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting;
 
-public class SortEnumType
-    : EnumType
+public class SortEnumType : EnumType
 {
     private Action<ISortEnumTypeDescriptor>? _configure;
 

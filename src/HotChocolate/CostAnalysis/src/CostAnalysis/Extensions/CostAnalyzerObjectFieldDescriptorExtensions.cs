@@ -9,7 +9,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Provides extension methods to <see cref="IObjectFieldDescriptor"/>.
 /// </summary>
-public static class ObjectFieldDescriptorExtensions
+public static class CostAnalyzerObjectFieldDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a

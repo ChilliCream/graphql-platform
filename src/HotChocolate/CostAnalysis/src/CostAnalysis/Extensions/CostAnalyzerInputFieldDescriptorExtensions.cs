@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Provides extension methods to <see cref="IInputFieldDescriptor"/>.
 /// </summary>
-public static class InputFieldDescriptorExtensions
+public static class CostAnalyzerInputFieldDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a

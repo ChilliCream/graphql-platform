@@ -19,6 +19,7 @@ public class SortFieldDescriptor
     {
         Definition.Name = fieldName;
         Definition.Scope = scope;
+        Definition.Flags = FieldFlags.SortOperationField;
     }
 
     protected SortFieldDescriptor(
@@ -31,6 +32,7 @@ public class SortFieldDescriptor
 
         Definition.Expression = expression;
         Definition.Scope = scope;
+        Definition.Flags = FieldFlags.SortOperationField;
         if (Definition.Expression is LambdaExpression lambda)
         {
             Definition.Type = convention.GetFieldType(lambda.ReturnType);
@@ -53,6 +55,7 @@ public class SortFieldDescriptor
         Definition.Description = convention.GetFieldDescription(member);
         Definition.Type = convention.GetFieldType(member);
         Definition.Scope = scope;
+        Definition.Flags = FieldFlags.SortOperationField;
     }
 
     protected internal SortFieldDescriptor(
@@ -61,6 +64,7 @@ public class SortFieldDescriptor
         : base(context)
     {
         Definition.Scope = scope;
+        Definition.Flags = FieldFlags.SortOperationField;
     }
 
     protected internal new SortFieldDefinition Definition
@@ -75,7 +79,7 @@ public class SortFieldDescriptor
         SortFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, Member: not null, })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);

@@ -196,13 +196,13 @@ public sealed class OperationResultBuilder
             builder._errors = [..result.Errors,];
         }
 
-        if (result.Extensions is ExtensionData ext)
+        if (result.Extensionses is ExtensionData ext)
         {
             builder._extensionData = new ExtensionData(ext);
         }
-        else if (result.Extensions is not null)
+        else if (result.Extensionses is not null)
         {
-            builder._extensionData = new ExtensionData(result.Extensions);
+            builder._extensionData = new ExtensionData(result.Extensionses);
         }
 
         if (result.ContextData is ExtensionData cd)

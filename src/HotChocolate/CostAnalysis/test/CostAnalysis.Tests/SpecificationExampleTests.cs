@@ -30,7 +30,7 @@ public sealed class SpecificationExampleTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument(operation)
-                .AddGlobalState("cost", true)
+                .ReportCost()
                 .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
@@ -171,6 +171,6 @@ public sealed class SpecificationExampleTests
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
-            .UseDefaultPipelineWithCostAnalysis()
+            .ModifyCostOptions(o => o.DefaultResolverCost = null)
             .UseField(next => next);
 }

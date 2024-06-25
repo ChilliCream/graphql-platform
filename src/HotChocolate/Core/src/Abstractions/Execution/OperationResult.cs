@@ -13,7 +13,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     internal OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         IReadOnlyList<IError>? errors,
-        IReadOnlyDictionary<string, object?>? extension,
+        IReadOnlyDictionary<string, object?>? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IReadOnlyList<object?>? items,
         IReadOnlyList<IOperationResult>? incremental,
@@ -23,10 +23,12 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Func<ValueTask>[] cleanupTasks,
         bool isDataSet,
         int? requestIndex,
-        int? variableIndex)
+        int? variableIndex,
+        bool skipValidation = false)
         : base(cleanupTasks)
     {
-        if (data is null &&
+        if (!skipValidation &&
+            data is null &&
             items is null &&
             errors is null &&
             incremental is null &&
@@ -40,7 +42,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Data = data;
         Items = items;
         Errors = errors;
-        Extensions = extension;
+        Extensionses = extensions;
         ContextData = contextData;
         Incremental = incremental;
         Label = label;
@@ -57,7 +59,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     public OperationResult(
         IReadOnlyDictionary<string, object?>? data,
         IReadOnlyList<IError>? errors = null,
-        IReadOnlyDictionary<string, object?>? extension = null,
+        IReadOnlyDictionary<string, object?>? extensions = null,
         IReadOnlyDictionary<string, object?>? contextData = null,
         IReadOnlyList<object?>? items = null,
         IReadOnlyList<IOperationResult>? incremental = null,
@@ -81,7 +83,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         Data = data;
         Items = items;
         Errors = errors;
-        Extensions = extension;
+        Extensionses = extensions;
         ContextData = contextData;
         Incremental = incremental;
         Label = label;
@@ -116,7 +118,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
     public IReadOnlyList<IError>? Errors { get; }
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+    public IReadOnlyDictionary<string, object?>? Extensionses { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<IOperationResult>? Incremental { get; }
@@ -144,7 +146,7 @@ public sealed class OperationResult : ExecutionResult, IOperationResult
         => new OperationResult(
             data: Data,
             errors: Errors,
-            extension: extensions,
+            extensions: extensions,
             contextData: ContextData,
             items: Items,
             incremental: Incremental,

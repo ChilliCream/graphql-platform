@@ -150,7 +150,7 @@ internal sealed class ConnectionType
         Definition!.IsOfType = IsOfTypeWithRuntimeType;
         base.OnBeforeCompleteType(context, definition);
     }
-    
+
     private bool IsOfTypeWithRuntimeType(
         IResolverContext context,
         object? result) =>
@@ -163,7 +163,7 @@ internal sealed class ConnectionType
         var definition = new ObjectTypeDefinition
         {
             Description = ConnectionType_Description,
-            RuntimeType = typeof(Connection),
+            RuntimeType = typeof(Connection)
         };
 
         definition.Fields.Add(new(
@@ -177,13 +177,13 @@ internal sealed class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { CustomSettings = { ContextDataKeys.Edges, }, });
+        { CustomSettings = { ContextDataKeys.Edges } });
 
         definition.Fields.Add(new(
             Names.Nodes,
             ConnectionType_Nodes_Description,
             pureResolver: GetNodes)
-        { CustomSettings = { ContextDataKeys.Nodes, }, });
+        { CustomSettings = { ContextDataKeys.Nodes } });
 
         if (withTotalCount)
         {

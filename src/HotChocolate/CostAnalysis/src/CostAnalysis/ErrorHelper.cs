@@ -1,41 +1,38 @@
 using HotChocolate.CostAnalysis.Properties;
+using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 
 namespace HotChocolate.CostAnalysis;
 
 internal static class ErrorHelper
 {
-    public static IOperationResult MaxFieldCostReached(double fieldCost, double maxFieldCost)
-    {
-        return OperationResultBuilder.CreateError(
+    public static IExecutionResult MaxFieldCostReached(
+        CostMetrics costMetrics,
+        double maxFieldCost,
+        bool reportMetrics)
+        => ResultHelper.CreateError(
             new Error(
                 CostAnalysisResources.ErrorHelper_MaxFieldCostReached,
-                ErrorCodes.Execution.ComplexityExceeded, // FIXME: Add error code.
+                ErrorCodes.Execution.ComplexityExceeded,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(fieldCost), fieldCost },
+                    { "fieldCost", costMetrics.FieldCost },
                     { nameof(maxFieldCost), maxFieldCost }
                 }),
-            contextData: new Dictionary<string, object?>
-            {
-                { WellKnownContextData.ValidationErrors, true } // FIXME: Should this remain?
-            });
-    }
+            reportMetrics ? costMetrics : null);
 
-    public static IOperationResult MaxTypeCostReached(double typeCost, double maxTypeCost)
-    {
-        return OperationResultBuilder.CreateError(
+    public static IExecutionResult MaxTypeCostReached(
+        CostMetrics costMetrics,
+        double maxTypeCost,
+        bool reportMetrics)
+        => ResultHelper.CreateError(
             new Error(
                 CostAnalysisResources.ErrorHelper_MaxTypeCostReached,
-                ErrorCodes.Execution.ComplexityExceeded, // FIXME: Add error code.
+                ErrorCodes.Execution.ComplexityExceeded,
                 extensions: new Dictionary<string, object?>
                 {
-                    { nameof(typeCost), typeCost },
+                    { "typeCost", costMetrics.TypeCost },
                     { nameof(maxTypeCost), maxTypeCost }
                 }),
-            contextData: new Dictionary<string, object?>
-            {
-                { WellKnownContextData.ValidationErrors, true } // FIXME: Should this remain?
-            });
-    }
+            reportMetrics ? costMetrics : null);
 }

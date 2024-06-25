@@ -1,13 +1,12 @@
 // ReSharper disable CheckNamespace
 using HotChocolate.CostAnalysis.Types;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types;
 
 /// <summary>
-/// Provides extension methods to <see cref="IObjectTypeDescriptor"/>.
+/// Provides extension methods to <see cref="IScalarTypeDescriptor"/>.
 /// </summary>
-public static class ObjectTypeDescriptorExtensions
+public static class CostAnalyzerScalarTypeDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a
@@ -15,19 +14,19 @@ public static class ObjectTypeDescriptorExtensions
     /// weights when calculating the overall cost of a query or response.
     /// </summary>
     /// <param name="descriptor">
-    /// The object type descriptor.
+    /// The scalar type descriptor.
     /// </param>
     /// <param name="weight">
     /// The <c>weight</c> argument defines what value to add to the overall cost for every
-    /// appearance, or possible appearance, of this object type.
+    /// appearance, or possible appearance, of this scalar type.
     /// </param>
     /// <returns>
-    /// Returns the object type descriptor for configuration chaining.
+    /// Returns the scalar type descriptor for configuration chaining.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IObjectTypeDescriptor Cost(this IObjectTypeDescriptor descriptor, double weight)
+    public static IScalarTypeDescriptor Cost(this IScalarTypeDescriptor descriptor, double weight)
     {
         if (descriptor is null)
         {

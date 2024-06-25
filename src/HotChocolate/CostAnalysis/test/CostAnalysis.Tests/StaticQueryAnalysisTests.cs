@@ -41,7 +41,7 @@ public sealed class StaticQueryAnalysisTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument(operation)
-                .AddGlobalState("cost", true)
+                .ReportCost()
                 .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
@@ -126,7 +126,7 @@ public sealed class StaticQueryAnalysisTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument(operation)
-                .AddGlobalState("cost", true)
+                .ReportCost()
                 .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
@@ -270,7 +270,7 @@ public sealed class StaticQueryAnalysisTests
     {
         return new ServiceCollection()
             .AddGraphQLServer()
-            .UseDefaultPipelineWithCostAnalysis()
+            .ModifyCostOptions(o => o.DefaultResolverCost = null)
             .AddResolver(
                 "Query",
                 "example",

@@ -50,7 +50,7 @@ internal sealed class QueryCacheMiddleware
             context.Result = new OperationResult(
                 queryResult.Data,
                 queryResult.Errors,
-                queryResult.Extensions,
+                queryResult.Extensionses,
                 contextData,
                 queryResult.Items,
                 queryResult.Incremental,

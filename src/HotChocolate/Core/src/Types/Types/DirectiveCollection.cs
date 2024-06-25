@@ -81,7 +81,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         return null;
     }
-    
+
     /// <inheritdoc />
     public Directive? FirstOrDefault<TRuntimeType>()
     {
@@ -230,7 +230,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         // If we had any errors while building the directives list we will
         // clean the null entries out so that the list is consistent.
-        // We only do that so we can collect other schema errors as well and do
+        // We only do that, so we can collect other schema errors as well and do
         // not have to fully fail here but have one SchemaException at the end of
         // the schema creation that contains a list of errors.
         if (hasErrors)

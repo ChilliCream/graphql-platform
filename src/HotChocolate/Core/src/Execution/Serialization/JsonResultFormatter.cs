@@ -347,7 +347,7 @@ public sealed partial class JsonResultFormatter : IOperationResultFormatter, IEx
         WriteData(writer, result);
         WriteItems(writer, result.Items);
         WriteIncremental(writer, result.Incremental);
-        WriteExtensions(writer, result.Extensions);
+        WriteExtensions(writer, result.Extensionses);
         WritePatchInfo(writer, result);
         WriteHasNext(writer, result);
 

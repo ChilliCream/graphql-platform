@@ -103,7 +103,7 @@ public interface ISortConventionDescriptor
 
     /// <summary>
     /// Defines the argument name of the sort used by
-    /// <see cref="SortObjectFieldDescriptorExtensions.UseSorting(IObjectFieldDescriptor, string?)"/>
+    /// <see cref="SortingObjectFieldDescriptorExtensions.UseSorting(IObjectFieldDescriptor, string?)"/>
     /// </summary>
     /// <param name="argumentName">The argument name.</param>
     /// <exception cref="ArgumentNullException">

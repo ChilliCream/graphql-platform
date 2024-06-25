@@ -39,7 +39,7 @@ public sealed class CachingTests
         var request =
             OperationRequestBuilder.Create()
                 .SetDocument(operation)
-                .AddGlobalState("cost", true)
+                .ReportCost()
                 .Build();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
@@ -63,7 +63,6 @@ public sealed class CachingTests
     {
         var requestExecutorBuilder = new ServiceCollection()
             .AddGraphQLServer()
-            .UseDefaultPipelineWithCostAnalysis()
             .UseField(next => next);
 
         requestExecutorBuilder.Services.Replace(

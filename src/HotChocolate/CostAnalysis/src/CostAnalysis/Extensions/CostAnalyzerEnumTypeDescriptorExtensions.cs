@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Provides extension methods to <see cref="IEnumTypeDescriptor"/>.
 /// </summary>
-public static class EnumTypeDescriptorExtensions
+public static class CostAnalyzerEnumTypeDescriptorExtensions
 {
     /// <summary>
     /// Applies the <c>@cost</c> directive. The purpose of the <c>cost</c> directive is to define a

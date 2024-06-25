@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("HotChocolate.CostAnalysis")]
+
 // legacy
 [assembly: InternalsVisibleTo("HotChocolate.Types")]
 [assembly: InternalsVisibleTo("HotChocolate.Execution")]

@@ -14,4 +14,9 @@ internal enum FieldFlags
     Stream = 32,
     Sealed = 64,
     TypeNameField = 128,
+    FilterArgument = 256,
+    FilterOperationField = 512,
+    FilterExpensiveOperationField = 1024,
+    SortArgument = 2048,
+    SortOperationField = 4096
 }

@@ -170,6 +170,7 @@ public static class FilterObjectFieldDescriptorExtensions
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
+                        Flags = FieldFlags.FilterArgument
                     };
 
                     definition.Arguments.Add(argumentDefinition);
