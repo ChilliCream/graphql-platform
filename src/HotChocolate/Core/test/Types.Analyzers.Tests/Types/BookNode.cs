@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Types;
 
@@ -31,6 +33,9 @@ public static partial class BookNode
 
     public static string IdAndTitle([Parent] Book book)
         => $"{book.Id}: {book.Title}";
+
+    public static string GetBookUri([Parent] Book book, HttpContext context, [LocalState] string? foo = null)
+        => context.Request.Path + $"/{book.Id}";
 
     [NodeResolver]
     public static async Task<Book?> GetBookByIdAsync(

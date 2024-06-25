@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "code": "HC0051",
-        "field": "Query.letters",
+        "fieldCoordinate": "Query.letters",
         "requestedItems": 51,
         "maxAllowedItems": 50
       }

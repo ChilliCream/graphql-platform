@@ -249,7 +249,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             resolverArguments.Add(
                 new ResolverArgument(
                     argument.Name,
-                    new FieldCoordinate(inputTypeName, argument.Name),
+                    new SchemaCoordinate(inputTypeName, memberName: argument.Name),
                     _completionContext.GetType<IInputType>(argument.Type!),
                     runtimeType,
                     defaultValue,

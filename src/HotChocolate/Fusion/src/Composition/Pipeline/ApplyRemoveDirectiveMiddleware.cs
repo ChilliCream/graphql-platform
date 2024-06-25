@@ -34,7 +34,7 @@ internal sealed class ApplyRemoveDirectiveMiddleware : IMergeMiddleware
 file static class ApplyRemoveDirectiveMiddlewareExtensions
 {
     public static IEnumerable<RemoveDirective> GetRemoveDirectives(
-        this Schema schema,
+        this SchemaDefinition schema,
         CompositionContext context)
     {
         foreach (var directive in schema.Directives[RemoveDirectiveName])

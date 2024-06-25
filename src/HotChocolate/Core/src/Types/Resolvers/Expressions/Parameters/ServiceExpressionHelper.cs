@@ -12,17 +12,17 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 /// </summary>
 internal static class ServiceExpressionHelper
 {
-    private const string _service = nameof(IPureResolverContext.Service);
+    private const string _service = nameof(IResolverContext.Service);
 
     private static readonly MethodInfo _getServiceMethod =
-        ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
+        ParameterExpressionBuilderHelpers.ContextType.GetMethods().First(
             method => method.Name.Equals(_service, StringComparison.Ordinal) &&
                 method.IsGenericMethod &&
                 method.GetParameters().Length == 0);
 
 #if NET8_0_OR_GREATER
     private static readonly MethodInfo _getKeyedServiceMethod =
-        ParameterExpressionBuilderHelpers.PureContextType.GetMethods().First(
+        ParameterExpressionBuilderHelpers.ContextType.GetMethods().First(
             method => method.Name.Equals(_service, StringComparison.Ordinal) &&
                 method.IsGenericMethod &&
                 method.GetParameters().Length == 1);

@@ -31,7 +31,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 {
                     ValidatePipeline(
                         validationContext.Type,
-                        new FieldCoordinate(validationContext.Type.Name, field.Name),
+                        new SchemaCoordinate(validationContext.Type.Name, field.Name),
                         field.MiddlewareDefinitions);
                 }
             }
@@ -40,7 +40,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     private void ValidatePipeline(
         ITypeSystemObject type,
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         IList<FieldMiddlewareDefinition> middlewareDefinitions)
     {
         _names.Clear();
@@ -123,7 +123,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         {
             throw new SchemaException(
                 ErrorHelper.DuplicateDataMiddlewareDetected(
-                    field,
+                    fieldCoordinate,
                     type,
                     duplicates));
         }
@@ -132,7 +132,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         {
             throw new SchemaException(
                 ErrorHelper.MiddlewareOrderInvalid(
-                    field,
+                    fieldCoordinate,
                     type,
                     PrintPipeline(middlewareDefinitions)));
         }

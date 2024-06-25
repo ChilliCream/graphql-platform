@@ -362,7 +362,7 @@ internal sealed class FieldCollector
 
         ITypeSystemObject IField.DeclaringType => throw new NotImplementedException();
 
-        public FieldCoordinate Coordinate => throw new NotImplementedException();
+        public SchemaCoordinate Coordinate => throw new NotImplementedException();
 
         public int Index => 0;
 

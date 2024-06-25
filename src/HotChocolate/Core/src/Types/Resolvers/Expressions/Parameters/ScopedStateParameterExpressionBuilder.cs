@@ -132,7 +132,4 @@ internal class ScopedStateParameterExpressionBuilder
 
     public T Execute<T>(IResolverContext context)
         => throw new NotSupportedException();
-
-    public T Execute<T>(IPureResolverContext context)
-        => throw new NotSupportedException();
 }

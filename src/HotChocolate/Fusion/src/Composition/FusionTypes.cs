@@ -3,7 +3,6 @@ using HotChocolate.Language;
 using HotChocolate.Skimmed;
 using HotChocolate.Utilities;
 using static HotChocolate.Fusion.FusionDirectiveArgumentNames;
-using DirectiveLocation = HotChocolate.Skimmed.DirectiveLocation;
 
 namespace HotChocolate.Fusion.Composition;
 
@@ -12,10 +11,10 @@ namespace HotChocolate.Fusion.Composition;
 /// </summary>
 public sealed class FusionTypes
 {
-    private readonly Schema _fusionGraph;
+    private readonly SchemaDefinition _fusionGraph;
     private readonly bool _prefixSelf;
 
-    public FusionTypes(Schema fusionGraph, string? prefix = null, bool prefixSelf = false)
+    public FusionTypes(SchemaDefinition fusionGraph, string? prefix = null, bool prefixSelf = false)
     {
         if (fusionGraph is null)
         {
@@ -28,29 +27,29 @@ public sealed class FusionTypes
 
         Prefix = prefix ?? string.Empty;
 
-        if (_fusionGraph.ContextData.TryGetValue(nameof(FusionTypes), out var value) &&
-            (value is not string prefixValue || !Prefix.EqualsOrdinal(prefixValue)))
+        var metadata = fusionGraph.Features.Get<FusionSchemaMetadata>();
+        if(metadata is not null && !metadata.Prefix.EqualsOrdinal(prefix))
         {
             throw new ArgumentException(
                 CompositionResources.FusionTypes_EnsureInitialized_Failed,
                 nameof(fusionGraph));
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Boolean, out var booleanType))
+        if (!_fusionGraph.Types.TryGetType<ScalarTypeDefinition>(BuiltIns.Boolean.Name, out var booleanType))
         {
-            booleanType = new ScalarType(SpecScalarTypes.Boolean) { IsSpecScalar = true, };
+            booleanType = new ScalarTypeDefinition(BuiltIns.Boolean.Name) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(booleanType);
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.Int, out var intType))
+        if (!_fusionGraph.Types.TryGetType<ScalarTypeDefinition>(BuiltIns.Int.Name, out var intType))
         {
-            intType = new ScalarType(SpecScalarTypes.Int) { IsSpecScalar = true, };
+            intType = new ScalarTypeDefinition(BuiltIns.Int.Name) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(intType);
         }
 
-        if (!_fusionGraph.Types.TryGetType<ScalarType>(SpecScalarTypes.String, out var stringType))
+        if (!_fusionGraph.Types.TryGetType<ScalarTypeDefinition>(BuiltIns.String.Name, out var stringType))
         {
-            stringType = new ScalarType(SpecScalarTypes.String) { IsSpecScalar = true, };
+            stringType = new ScalarTypeDefinition(BuiltIns.String.Name) { IsSpecScalar = true, };
             _fusionGraph.Types.Add(stringType);
         }
 
@@ -93,62 +92,62 @@ public sealed class FusionTypes
 
     private string Prefix { get; }
 
-    public ScalarType Selection { get; }
+    public ScalarTypeDefinition Selection { get; }
 
-    public ScalarType SelectionSet { get; }
+    public ScalarTypeDefinition SelectionSet { get; }
 
-    public ScalarType TypeName { get; }
+    public ScalarTypeDefinition TypeName { get; }
 
-    public ScalarType Type { get; }
+    public ScalarTypeDefinition Type { get; }
 
-    public ScalarType Uri { get; }
+    public ScalarTypeDefinition Uri { get; }
 
-    public InputObjectType ArgumentDefinition { get; }
+    public InputObjectTypeDefinition ArgumentDefinition { get; }
 
-    public EnumType ResolverKind { get; }
+    public EnumTypeDefinition ResolverKind { get; }
 
-    public DirectiveType Resolver { get; }
+    public DirectiveDefinition Resolver { get; }
 
-    public DirectiveType Variable { get; }
+    public DirectiveDefinition Variable { get; }
 
-    public DirectiveType Source { get; }
+    public DirectiveDefinition Source { get; }
 
-    public DirectiveType Node { get; }
+    public DirectiveDefinition Node { get; }
 
-    public DirectiveType ReEncodeId { get; }
+    public DirectiveDefinition ReEncodeId { get; }
 
-    public DirectiveType Transport { get; }
+    public DirectiveDefinition Transport { get; }
 
-    public DirectiveType Fusion { get; }
+    public DirectiveDefinition Fusion { get; }
 
-    private ScalarType RegisterScalarType(string name)
+    private ScalarTypeDefinition RegisterScalarType(string name)
     {
-        var scalarType = new ScalarType(name);
-        scalarType.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        var scalarType = new ScalarTypeDefinition(name);
+        scalarType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
         _fusionGraph.Types.Add(scalarType);
         return scalarType;
     }
 
-    private InputObjectType RegisterArgumentDefType(
+    private InputObjectTypeDefinition RegisterArgumentDefType(
         string name,
-        ScalarType typeName,
-        ScalarType type)
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition type)
     {
-        var argumentDef = new InputObjectType(name);
-        argumentDef.Fields.Add(new InputField(NameArg, new NonNullType(typeName)));
-        argumentDef.Fields.Add(new InputField(TypeArg, new NonNullType(type)));
-        argumentDef.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        var argumentDef = new InputObjectTypeDefinition(name);
+        argumentDef.Fields.Add(new InputFieldDefinition(NameArg, new NonNullTypeDefinition(typeName)));
+        argumentDef.Fields.Add(new InputFieldDefinition(TypeArg, new NonNullTypeDefinition(type)));
+        argumentDef.Features.Set(new FusionTypeMetadata { IsFusionType = true });
         _fusionGraph.Types.Add(argumentDef);
         return argumentDef;
     }
 
-    private EnumType RegisterResolverKindType(string name)
+    private EnumTypeDefinition RegisterResolverKindType(string name)
     {
-        var resolverKind = new EnumType(name);
+        var resolverKind = new EnumTypeDefinition(name);
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Fetch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Batch));
         resolverKind.Values.Add(new EnumValue(FusionEnumValueNames.Subscribe));
-        resolverKind.ContextData.Add(WellKnownContextData.IsFusionType, true);
+        resolverKind.Features.Set(new FusionTypeMetadata { IsFusionType = true });
         _fusionGraph.Types.Add(resolverKind);
         return resolverKind;
     }
@@ -159,9 +158,9 @@ public sealed class FusionTypes
         FieldNode select)
         => new Directive(
             Variable,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(NameArg, variableName),
-            new Argument(SelectArg, select.ToString(false)));
+            new ArgumentAssignment(SubgraphArg, subgraphName),
+            new ArgumentAssignment(NameArg, variableName),
+            new ArgumentAssignment(SelectArg, select.ToString(false)));
 
     public Directive CreateVariableDirective(
         string subgraphName,
@@ -169,36 +168,36 @@ public sealed class FusionTypes
         string argumentName)
         => new Directive(
             Variable,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(NameArg, variableName),
-            new Argument(ArgumentArg, argumentName));
+            new ArgumentAssignment(SubgraphArg, subgraphName),
+            new ArgumentAssignment(NameArg, variableName),
+            new ArgumentAssignment(ArgumentArg, argumentName));
 
-    private DirectiveType RegisterVariableDirectiveType(
+    private DirectiveDefinition RegisterVariableDirectiveType(
         string name,
-        ScalarType typeName,
-        ScalarType selection)
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition selection)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Arguments.Add(new InputField(NameArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(SelectArg, selection));
-        directiveType.Arguments.Add(new InputField(ArgumentArg, typeName));
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Locations |= DirectiveLocation.Object;
-        directiveType.Locations |= DirectiveLocation.FieldDefinition;
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        var directiveType = new DirectiveDefinition(name);
+        directiveType.Arguments.Add(new InputFieldDefinition(NameArg, new NonNullTypeDefinition(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, selection));
+        directiveType.Arguments.Add(new InputFieldDefinition(ArgumentArg, typeName));
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
+        directiveType.Locations |= Types.DirectiveLocation.Object;
+        directiveType.Locations |= Types.DirectiveLocation.FieldDefinition;
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
     public Directive CreateReEncodeIdDirective()
         => new Directive(ReEncodeId);
 
-    private DirectiveType RegisterReEncodeIdDirectiveType(string name)
+    private DirectiveDefinition RegisterReEncodeIdDirectiveType(string name)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations |= DirectiveLocation.FieldDefinition;
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        var directiveType = new DirectiveDefinition(name);
+        directiveType.Locations |= Types.DirectiveLocation.FieldDefinition;
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -208,7 +207,7 @@ public sealed class FusionTypes
         Dictionary<string, ITypeNode>? arguments = null,
         EntityResolverKind kind = EntityResolverKind.Single)
     {
-        var directiveArgs = new List<Argument>
+        var directiveArgs = new List<ArgumentAssignment>
         {
             new(SubgraphArg, subgraphName), new(SelectArg, select.ToString(false)),
         };
@@ -229,7 +228,7 @@ public sealed class FusionTypes
                             argumentDef.Value.ToString(false))));
             }
 
-            directiveArgs.Add(new Argument(ArgumentsArg, new ListValueNode(argumentDefs)));
+            directiveArgs.Add(new ArgumentAssignment(ArgumentsArg, new ListValueNode(argumentDefs)));
         }
 
         if (kind != EntityResolverKind.Single)
@@ -241,27 +240,27 @@ public sealed class FusionTypes
                 _ => throw new NotSupportedException(),
             };
 
-            directiveArgs.Add(new Argument(KindArg, kindValue));
+            directiveArgs.Add(new ArgumentAssignment(KindArg, kindValue));
         }
 
         return new Directive(Resolver, directiveArgs);
     }
 
-    private DirectiveType RegisterResolverDirectiveType(
+    private DirectiveDefinition RegisterResolverDirectiveType(
         string name,
-        ScalarType typeName,
-        InputObjectType argumentDef,
-        ScalarType selectionSet,
-        EnumType resolverKind)
+        ScalarTypeDefinition typeName,
+        InputObjectTypeDefinition argumentDef,
+        ScalarTypeDefinition selectionSet,
+        EnumTypeDefinition resolverKind)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations |= DirectiveLocation.Object;
-        directiveType.Arguments.Add(new InputField(SelectArg, new NonNullType(selectionSet)));
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(ArgumentsArg, new ListType(new NonNullType(argumentDef))));
-        directiveType.Arguments.Add(new InputField(KindArg, resolverKind));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        var directiveType = new DirectiveDefinition(name);
+        directiveType.Locations |= Types.DirectiveLocation.Object;
+        directiveType.Arguments.Add(new InputFieldDefinition(SelectArg, new NonNullTypeDefinition(selectionSet)));
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(ArgumentsArg, new ListTypeDefinition(new NonNullTypeDefinition(argumentDef))));
+        directiveType.Arguments.Add(new InputFieldDefinition(KindArg, resolverKind));
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -269,56 +268,53 @@ public sealed class FusionTypes
         => originalName is null
             ? new Directive(
                 Source,
-                new Argument(SubgraphArg, subgraphName))
+                new ArgumentAssignment(SubgraphArg, subgraphName))
             : new Directive(
                 Source,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(NameArg, originalName));
+                new ArgumentAssignment(SubgraphArg, subgraphName),
+                new ArgumentAssignment(NameArg, originalName));
 
-    private DirectiveType RegisterSourceDirectiveType(string name, ScalarType typeName)
+    private DirectiveDefinition RegisterSourceDirectiveType(string name, ScalarTypeDefinition typeName)
     {
-        var directiveType = new DirectiveType(name)
+        var directiveType = new DirectiveDefinition(name)
         {
-            Locations = DirectiveLocation.Object |
-                DirectiveLocation.FieldDefinition |
-                DirectiveLocation.Enum |
-                DirectiveLocation.EnumValue |
-                DirectiveLocation.InputObject |
-                DirectiveLocation.InputFieldDefinition |
-                DirectiveLocation.Scalar,
+            Locations = Types.DirectiveLocation.Object |
+                Types.DirectiveLocation.FieldDefinition |
+                Types.DirectiveLocation.Enum |
+                Types.DirectiveLocation.EnumValue |
+                Types.DirectiveLocation.InputObject |
+                Types.DirectiveLocation.InputFieldDefinition |
+                Types.DirectiveLocation.Scalar,
             Arguments =
             {
-                new InputField(SubgraphArg, new NonNullType(typeName)),
-                new InputField(NameArg, typeName),
-            },
-            ContextData =
-            {
-                [WellKnownContextData.IsFusionType] = true,
+                new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)),
+                new InputFieldDefinition(NameArg, typeName),
             },
         };
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
-    public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectType> types)
+    public Directive CreateNodeDirective(string subgraphName, IReadOnlyCollection<ObjectTypeDefinition> types)
     {
         var temp = types.Select(t => new StringValueNode(t.Name)).ToArray();
 
         return new Directive(
             Node,
-            new Argument(SubgraphArg, subgraphName),
-            new Argument(TypesArg, new ListValueNode(null, temp)));
+            new ArgumentAssignment(SubgraphArg, subgraphName),
+            new ArgumentAssignment(TypesArg, new ListValueNode(null, temp)));
     }
 
-    private DirectiveType RegisterNodeDirectiveType(string name, ScalarType typeName)
+    private DirectiveDefinition RegisterNodeDirectiveType(string name, ScalarTypeDefinition typeName)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.Schema;
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
+        var directiveType = new DirectiveDefinition(name);
+        directiveType.Locations = Types.DirectiveLocation.Schema;
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
         directiveType.Arguments.Add(
-            new InputField(TypesArg, new NonNullType(new ListType(new NonNullType(typeName)))));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+            new InputFieldDefinition(TypesArg, new NonNullTypeDefinition(new ListTypeDefinition(new NonNullTypeDefinition(typeName)))));
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -326,30 +322,30 @@ public sealed class FusionTypes
         =>  clientName is null
             ? new Directive(
                 Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "HTTP"))
+                new ArgumentAssignment(SubgraphArg, subgraphName),
+                new ArgumentAssignment(LocationArg, location.ToString()),
+                new ArgumentAssignment(KindArg, "HTTP"))
             : new Directive(
                 Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(ClientGroupArg, clientName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "HTTP"));
+                new ArgumentAssignment(SubgraphArg, subgraphName),
+                new ArgumentAssignment(ClientGroupArg, clientName),
+                new ArgumentAssignment(LocationArg, location.ToString()),
+                new ArgumentAssignment(KindArg, "HTTP"));
 
-    private DirectiveType RegisterTransportDirectiveType(
+    private DirectiveDefinition RegisterTransportDirectiveType(
         string name,
-        ScalarType stringType,
-        ScalarType typeName,
-        ScalarType uri)
+        ScalarTypeDefinition stringType,
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition uri)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.FieldDefinition;
-        directiveType.Arguments.Add(new InputField(SubgraphArg, new NonNullType(typeName)));
-        directiveType.Arguments.Add(new InputField(ClientGroupArg, typeName));
-        directiveType.Arguments.Add(new InputField(LocationArg, uri));
-        directiveType.Arguments.Add(new InputField(KindArg, new NonNullType(stringType)));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        var directiveType = new DirectiveDefinition(name);
+        directiveType.Locations = Types.DirectiveLocation.FieldDefinition;
+        directiveType.Arguments.Add(new InputFieldDefinition(SubgraphArg, new NonNullTypeDefinition(typeName)));
+        directiveType.Arguments.Add(new InputFieldDefinition(ClientGroupArg, typeName));
+        directiveType.Arguments.Add(new InputFieldDefinition(LocationArg, uri));
+        directiveType.Arguments.Add(new InputFieldDefinition(KindArg, new NonNullTypeDefinition(stringType)));
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
         return directiveType;
     }
 
@@ -357,45 +353,45 @@ public sealed class FusionTypes
         =>  clientName is null
             ? new Directive(
                 Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "WebSocket"))
+                new ArgumentAssignment(SubgraphArg, subgraphName),
+                new ArgumentAssignment(LocationArg, location.ToString()),
+                new ArgumentAssignment(KindArg, "WebSocket"))
             : new Directive(
                 Transport,
-                new Argument(SubgraphArg, subgraphName),
-                new Argument(ClientGroupArg, clientName),
-                new Argument(LocationArg, location.ToString()),
-                new Argument(KindArg, "WebSocket"));
+                new ArgumentAssignment(SubgraphArg, subgraphName),
+                new ArgumentAssignment(ClientGroupArg, clientName),
+                new ArgumentAssignment(LocationArg, location.ToString()),
+                new ArgumentAssignment(KindArg, "WebSocket"));
 
-    private DirectiveType RegisterFusionDirectiveType(
+    private DirectiveDefinition RegisterFusionDirectiveType(
         string name,
-        ScalarType typeName,
-        ScalarType boolean,
-        ScalarType integer)
+        ScalarTypeDefinition typeName,
+        ScalarTypeDefinition boolean,
+        ScalarTypeDefinition integer)
     {
-        var directiveType = new DirectiveType(name);
-        directiveType.Locations = DirectiveLocation.Schema;
-        directiveType.Arguments.Add(new InputField(PrefixArg, typeName));
-        directiveType.Arguments.Add(new InputField(PrefixSelfArg, boolean));
-        directiveType.Arguments.Add(new InputField(VersionArg, integer));
-        directiveType.ContextData.Add(WellKnownContextData.IsFusionType, true);
-        _fusionGraph.DirectiveTypes.Add(directiveType);
+        var directiveType = new DirectiveDefinition(name);
+        directiveType.Locations = Types.DirectiveLocation.Schema;
+        directiveType.Arguments.Add(new InputFieldDefinition(PrefixArg, typeName));
+        directiveType.Arguments.Add(new InputFieldDefinition(PrefixSelfArg, boolean));
+        directiveType.Arguments.Add(new InputFieldDefinition(VersionArg, integer));
+        directiveType.Features.Set(new FusionTypeMetadata { IsFusionType = true });
+        _fusionGraph.DirectiveDefinitions.Add(directiveType);
 
         if (string.IsNullOrEmpty(Prefix))
         {
             _fusionGraph.Directives.Add(
                 new Directive(
                     directiveType,
-                    new Argument(VersionArg, 1)));
+                    new ArgumentAssignment(VersionArg, 1)));
         }
         else
         {
             _fusionGraph.Directives.Add(
                 new Directive(
                     directiveType,
-                    new Argument(PrefixArg, Prefix),
-                    new Argument(PrefixSelfArg, _prefixSelf),
-                    new Argument(VersionArg, 1)));
+                    new ArgumentAssignment(PrefixArg, Prefix),
+                    new ArgumentAssignment(PrefixSelfArg, _prefixSelf),
+                    new ArgumentAssignment(VersionArg, 1)));
         }
 
         return directiveType;

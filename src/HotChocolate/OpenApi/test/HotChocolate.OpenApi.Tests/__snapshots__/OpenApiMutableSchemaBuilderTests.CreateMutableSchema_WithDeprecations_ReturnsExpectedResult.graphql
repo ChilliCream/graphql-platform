@@ -4,16 +4,16 @@ schema {
 
 type Mutation {
   post(boolean: Boolean
-    @deprecated postInput: PostInput): PostResponse200!
-    @deprecated
+    @deprecated(reason: "No longer supported.") postInput: PostInput): PostResponse200!
+    @deprecated(reason: "No longer supported.")
 }
 
 type PostResponse200 {
   example: Boolean
-    @deprecated
+    @deprecated(reason: "No longer supported.")
 }
 
 input PostInput {
   example: Boolean
-    @deprecated
+    @deprecated(reason: "No longer supported.")
 }

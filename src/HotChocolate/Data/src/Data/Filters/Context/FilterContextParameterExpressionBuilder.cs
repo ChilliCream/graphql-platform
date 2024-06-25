@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters;
 
@@ -9,6 +10,8 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 internal sealed class FilterContextParameterExpressionBuilder
     : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private const string _getFilterContext =
         nameof(FilterContextResolverContextExtensions.GetFilterContext);
@@ -34,4 +37,10 @@ internal sealed class FilterContextParameterExpressionBuilder
     /// <inheritdoc />
     public Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Call(_getFilterContextMethod, context.ResolverContext);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)context.GetFilterContext()!;
 }

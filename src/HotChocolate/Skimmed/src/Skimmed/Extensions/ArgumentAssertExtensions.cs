@@ -14,7 +14,7 @@ internal static class ArgumentAssertExtensions
         return value;
     }
 
-    public static IType ExpectInputType(this IType type, [CallerArgumentExpression("type")] string name = "type")
+    public static ITypeDefinition ExpectInputType(this ITypeDefinition type, [CallerArgumentExpression("type")] string name = "type")
     {
         if (type is null)
         {

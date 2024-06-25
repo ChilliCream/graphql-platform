@@ -39,7 +39,6 @@
     <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
     <InternalsVisibleTo Include="HotChocolate.Types.Sorting" />
     <InternalsVisibleTo Include="HotChocolate.Types.Selections" />
-    <InternalsVisibleTo Include="HotChocolate.Stitching" />
 
     <!--Tests-->
     <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />

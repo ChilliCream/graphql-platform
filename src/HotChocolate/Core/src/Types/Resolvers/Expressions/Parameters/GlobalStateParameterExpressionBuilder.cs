@@ -57,7 +57,7 @@ internal sealed class GlobalStateParameterExpressionBuilder
             : BuildGetter(parameter, key, contextData);
     }
 
-    private Expression BuildSetter(
+    private static Expression BuildSetter(
         ParameterInfo parameter,
         ConstantExpression key,
         MemberExpression contextData)
@@ -74,7 +74,7 @@ internal sealed class GlobalStateParameterExpressionBuilder
             key);
     }
 
-    private Expression BuildGetter(
+    private static Expression BuildGetter(
         ParameterInfo parameter,
         ConstantExpression key,
         MemberExpression contextData)
@@ -105,8 +105,5 @@ internal sealed class GlobalStateParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => throw new NotSupportedException();
-
-    public T Execute<T>(IPureResolverContext context)
         => throw new NotSupportedException();
 }

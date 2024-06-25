@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("HotChocolate.Types")]
 [assembly: InternalsVisibleTo("HotChocolate.Execution")]
 [assembly: InternalsVisibleTo("HotChocolate.Validation")]
-[assembly: InternalsVisibleTo("HotChocolate.Stitching")]
 
 // tests
 [assembly: InternalsVisibleTo("HotChocolate.Abstractions.Tests")]

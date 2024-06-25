@@ -25,7 +25,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ObjectTypePartialKeywordMissing =
         new(
-            id: "HC00XX",
+            id: "HC0080",
             title: "Partial Keyword Missing.",
             messageFormat: "A split object type class needs to be a partial class.",
             category: "TypeSystem",
@@ -34,9 +34,27 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ObjectTypeStaticKeywordMissing =
         new(
-            id: "HC00XX",
+            id: "HC0081",
             title: "Static Keyword Missing.",
             messageFormat: "A split object type class needs to be a static class.",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor TooManyNodeResolverArguments =
+        new(
+            id: "HCXXXX",
+            title: "Too Many Arguments.",
+            messageFormat: "A node resolver can only have a single field argument called `id`.",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InvalidNodeResolverArgumentName =
+        new(
+            id: "HCXXXX",
+            title: "Invalid Argument Name.",
+            messageFormat: "A node resolver can only have a single field argument called `id`.",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

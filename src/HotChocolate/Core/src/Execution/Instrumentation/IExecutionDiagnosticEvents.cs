@@ -373,9 +373,9 @@ public interface IExecutionDiagnosticEvents
     void RetrievedOperationFromCache(IRequestContext context);
 
     /// <summary>
-    /// During execution we allow components like the DataLoader or schema stitching to
-    /// defer execution of data resolvers to be executed in batches. If the execution engine
-    /// has nothing to execute anymore these batches will be dispatched for execution.
+    /// During execution we allow components like the DataLoader to defer execution of data
+    /// resolvers to be executed in batches. If the execution engine has nothing to execute anymore
+    /// these batches will be dispatched for execution.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an

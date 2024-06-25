@@ -205,13 +205,13 @@ internal sealed class ConnectionType
         => field.CustomSettings.Count > 0 &&
            field.CustomSettings[0].Equals(ContextDataKeys.Nodes);
 
-    private static IPageInfo GetPagingInfo(IPureResolverContext context)
+    private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<Connection>().Info;
 
-    private static IReadOnlyCollection<IEdge> GetEdges(IPureResolverContext context)
+    private static IReadOnlyCollection<IEdge> GetEdges(IResolverContext context)
         => context.Parent<Connection>().Edges;
 
-    private static IEnumerable<object?> GetNodes(IPureResolverContext context)
+    private static IEnumerable<object?> GetNodes(IResolverContext context)
         => context.Parent<Connection>().Edges.Select(t => t.Node);
 
     private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)

@@ -13,7 +13,7 @@ internal sealed class SchemaParameterExpressionBuilder
     , IParameterBinding
 {
     private static readonly PropertyInfo _schema =
-        PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
+        ContextType.GetProperty(nameof(IResolverContext.Schema))!;
 
     public ArgumentKind Kind => ArgumentKind.Schema;
 
@@ -34,8 +34,5 @@ internal sealed class SchemaParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Schema;
-
-    public T Execute<T>(IPureResolverContext context)
-        => (T)(object)context.Schema;
+        => (T)context.Schema;
 }

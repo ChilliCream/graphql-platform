@@ -275,7 +275,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .AddLocation([syntaxNode])
+            .AddLocation(syntaxNode)
             .Build();
 
         // assert
@@ -293,7 +293,7 @@ public class ErrorBuilderTests
         // act
         var error = ErrorBuilder.New()
             .SetMessage("bar")
-            .AddLocation([syntaxNode])
+            .AddLocation(syntaxNode)
             .Build();
 
         // assert

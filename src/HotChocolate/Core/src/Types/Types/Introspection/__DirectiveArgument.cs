@@ -39,10 +39,10 @@ internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
 
     private static class Resolvers
     {
-        public static string Name(IPureResolverContext context)
+        public static string Name(IResolverContext context)
             => context.Parent<ArgumentNode>().Name.Value;
 
-        public static string Value(IPureResolverContext context)
+        public static string Value(IResolverContext context)
             => context.Parent<ArgumentNode>().Value.Print(indented: false);
     }
 

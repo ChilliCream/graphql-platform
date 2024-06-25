@@ -22,7 +22,9 @@ public interface IErrorBuilder
 
     IErrorBuilder AddLocation(int line, int column);
 
-    IErrorBuilder AddLocation<T>(IReadOnlyList<T>? syntaxNodes) where T : ISyntaxNode;
+    IErrorBuilder AddLocation(ISyntaxNode syntaxNode);
+
+    IErrorBuilder SetLocations<T>(IReadOnlyList<T>? syntaxNodes) where T : ISyntaxNode;
 
     IErrorBuilder ClearLocations();
 

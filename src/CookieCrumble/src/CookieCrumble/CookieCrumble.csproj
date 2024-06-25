@@ -34,9 +34,8 @@
     <ProjectReference Include="..\..\..\HotChocolate\AspNetCore\src\Transport.Abstractions\HotChocolate.Transport.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <ProjectReference Include="..\..\..\HotChocolate\Fusion\src\Core\HotChocolate.Fusion.csproj" />
-    <ProjectReference Include="..\..\..\HotChocolate\Skimmed\src\Skimmed\Skimmed.csproj" />
   </ItemGroup>
 
 </Project>

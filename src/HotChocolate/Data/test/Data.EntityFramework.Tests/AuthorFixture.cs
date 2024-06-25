@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -51,6 +52,7 @@ public class AuthorFixture : IDisposable
 
     public void Dispose()
     {
+        SqliteConnection.ClearAllPools();
         File.Delete(_fileName);
     }
 }

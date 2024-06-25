@@ -16,8 +16,8 @@ public sealed record LogEntry
         string? code = null,
         LogSeverity severity = LogSeverity.Error,
         SchemaCoordinate? coordinate = null,
-        ITypeSystemMember? member = null,
-        Schema? schema = null,
+        ITypeSystemMemberDefinition? member = null,
+        SchemaDefinition? schema = null,
         Exception? exception = null,
         object? extension = null)
     {
@@ -54,12 +54,12 @@ public sealed record LogEntry
     /// <summary>
     /// Gets the type system member associated with this log entry.
     /// </summary>
-    public ITypeSystemMember? Member { get; }
+    public ITypeSystemMemberDefinition? Member { get; }
 
     /// <summary>
     /// Gets the schema associated with this log entry.
     /// </summary>
-    public Schema? Schema { get; }
+    public SchemaDefinition? Schema { get; }
 
     /// <summary>
     /// Gets the exception associated with this log entry.
@@ -79,8 +79,8 @@ public sealed record LogEntry
         out string? code,
         out LogSeverity kind,
         out SchemaCoordinate? coordinate,
-        out ITypeSystemMember? member,
-        out Schema? schema,
+        out ITypeSystemMemberDefinition? member,
+        out SchemaDefinition? schema,
         out Exception? exception,
         out object? extension)
     {

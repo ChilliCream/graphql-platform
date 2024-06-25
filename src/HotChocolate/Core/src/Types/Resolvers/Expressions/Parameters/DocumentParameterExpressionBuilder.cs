@@ -6,16 +6,13 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class DocumentParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IPureResolverContext, DocumentNode>
+internal sealed class DocumentParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<DocumentNode>(
+        ctx => ctx.Operation.Document,
+        isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
-    public DocumentParameterExpressionBuilder()
-        : base(ctx => ctx.Operation.Document)
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.DocumentSyntax;
 
     public override bool CanHandle(ParameterInfo parameter)
@@ -25,8 +22,5 @@ internal sealed class DocumentParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.Operation.Document;
-
-    public T Execute<T>(IPureResolverContext context)
         => (T)(object)context.Operation.Document;
 }

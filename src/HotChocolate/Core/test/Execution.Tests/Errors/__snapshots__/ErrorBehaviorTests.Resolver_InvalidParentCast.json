@@ -7,7 +7,7 @@
         "bar"
       ],
       "extensions": {
-        "field": "Foo.bar",
+        "fieldCoordinate": "Foo.bar",
         "code": "HC0053"
       }
     }
