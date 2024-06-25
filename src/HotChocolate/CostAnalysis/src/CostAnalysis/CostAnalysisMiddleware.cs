@@ -100,7 +100,7 @@ internal sealed class CostAnalysisMiddleware(
                 case OperationResultBatch result:
                 {
                     var results = new IExecutionResult[result.Results.Count];
-                    ImmutableDictionary<string, object?>? costMetricsMap = null;
+                    IImmutableDictionary<string, object?>? costMetricsMap = null;
 
                     for (var i = 0; i < result.Results.Count; i++)
                     {
@@ -200,7 +200,7 @@ internal sealed class CostAnalysisMiddleware(
 
     private static IReadOnlyDictionary<string, object?> AddCostMetrics(
         IReadOnlyDictionary<string, object?>? extensions,
-        ImmutableDictionary<string, object?> costMetrics)
+        IImmutableDictionary<string, object?> costMetrics)
     {
         const string costKey = "cost";
 
@@ -220,10 +220,10 @@ internal sealed class CostAnalysisMiddleware(
         return builder.ToImmutable();
     }
 
-    private static ImmutableDictionary<string, object?> CreateCostMetricsMap(
+    private static IImmutableDictionary<string, object?> CreateCostMetricsMap(
         CostMetrics costMetrics)
     {
-        var builder = ImmutableDictionary.CreateBuilder<string, object?>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<string, object?>(StringComparer.Ordinal);
         builder.Add("fieldCost", costMetrics.FieldCost);
         builder.Add("typeCost", costMetrics.TypeCost);
         return builder.ToImmutable();

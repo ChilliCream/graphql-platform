@@ -35,11 +35,44 @@
 
 ```text
 {
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
+  "data": {
+    "examples1": {
+      "pageInfo": {
+        "hasNextPage": true
+      },
+      "edges": [
+        {
+          "node": {
+            "field1": true,
+            "field2": {
+              "pageInfo": {
+                "hasNextPage": true
+              },
+              "edges": [
+                {
+                  "node": {
+                    "field1": true,
+                    "field2": 1
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "nodes": [
+        {
+          "field1": true
+        }
+      ]
     }
-  ]
+  },
+  "extensions": {
+    "cost": {
+      "fieldCost": 144,
+      "typeCost": 253
+    }
+  }
 }
 ```
 

@@ -1,5 +1,37 @@
 # Execute_ListQuery_ReturnsExpectedResult
 
+## Query
+
+```graphql
+{
+  examples {
+    field1
+    field2
+  }
+}
+```
+
+## Result
+
+```text
+{
+  "data": {
+    "examples": [
+      {
+        "field1": true,
+        "field2": 1
+      }
+    ]
+  },
+  "extensions": {
+    "cost": {
+      "fieldCost": 1,
+      "typeCost": 11
+    }
+  }
+}
+```
+
 ## Schema
 
 ```text
@@ -11,37 +43,6 @@ type Query {
 type Example {
     field1: Boolean!
     field2: Int!
-}
-```
-
-## Query
-
-```text
-query {
-    examples { field1, field2 }
-
-    __cost {
-        requestCosts {
-            fieldCounts { name, value }
-            typeCounts { name, value }
-            inputTypeCounts { name, value }
-            inputFieldCounts { name, value }
-            argumentCounts { name, value }
-            directiveCounts { name, value }
-        }
-    }
-}
-```
-
-## Result
-
-```text
-{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error"
-    }
-  ]
 }
 ```
 

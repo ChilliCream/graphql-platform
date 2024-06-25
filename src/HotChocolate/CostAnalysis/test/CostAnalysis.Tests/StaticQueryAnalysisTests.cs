@@ -35,17 +35,6 @@ public sealed class StaticQueryAnalysisTests
             $$"""
             query {
                 {{operation}}
-
-                __cost {
-                    requestCosts {
-                        fieldCounts { name, value }
-                        typeCounts { name, value }
-                        inputTypeCounts { name, value }
-                        inputFieldCounts { name, value }
-                        argumentCounts { name, value }
-                        directiveCounts { name, value }
-                    }
-                }
             }
             """;
 

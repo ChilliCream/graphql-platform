@@ -283,7 +283,9 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
 
                 if (field.Type.NamedType().IsCompositeType() && fieldNode.SelectionSet is not null)
                 {
-                    selectionSetCost += GetSelectionSetCost(fieldNode.SelectionSet).FieldCost;
+                    var selectionSetCostSummary = GetSelectionSetCost(fieldNode.SelectionSet);
+                    selectionSetCost += selectionSetCostSummary.FieldCost;
+                    typeCost += selectionSetCostSummary.TypeCost;
                 }
 
                 if (field.Type.IsListType())
