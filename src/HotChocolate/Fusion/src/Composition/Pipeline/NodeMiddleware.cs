@@ -17,15 +17,15 @@ internal sealed class NodeMiddleware : IMergeMiddleware
         {
             fusionGraph.QueryType.Fields.TryGetField("nodes", out var nodesField);
 
-            var nodes = new HashSet<ObjectType>();
+            var nodes = new HashSet<ObjectTypeDefinition>();
 
             foreach (var schema in context.Subgraphs)
             {
                 nodes.Clear();
 
-                if (schema.Types.TryGetType<InterfaceType>("Node", out var nodeInterface))
+                if (schema.Types.TryGetType<InterfaceTypeDefinition>("Node", out var nodeInterface))
                 {
-                    foreach (var possibleNode in schema.Types.OfType<ObjectType>())
+                    foreach (var possibleNode in schema.Types.OfType<ObjectTypeDefinition>())
                     {
                         if (possibleNode.Implements.Contains(nodeInterface))
                         {
@@ -34,7 +34,7 @@ internal sealed class NodeMiddleware : IMergeMiddleware
 
                             if (possibleNode.TryGetOriginalName(out var originalNodeName) &&
                                 !originalNodeName.EqualsOrdinal(nodeName) &&
-                                fusionGraph.Types.TryGetType<ObjectType>(nodeName, out var node) &&
+                                fusionGraph.Types.TryGetType<ObjectTypeDefinition>(nodeName, out var node) &&
                                 node.Fields.TryGetField("id", out var idField) &&
                                 !node.Directives.ContainsName(fusionTypes.ReEncodeId.Name))
                             {

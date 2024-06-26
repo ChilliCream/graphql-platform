@@ -1,5 +1,35 @@
 # Execute_SpecificationExample_ReturnsExpectedResult
 
+## Query
+
+```graphql
+query Example {
+  topProducts(filter: { approx: { field: true } })
+}
+```
+
+## ExpectedFieldCost
+
+```json
+8.0
+```
+
+## Result
+
+```text
+{
+  "data": {
+    "topProducts": null
+  },
+  "extensions": {
+    "cost": {
+      "fieldCost": 8,
+      "typeCost": 1
+    }
+  }
+}
+```
+
 ## Schema
 
 ```text
@@ -13,57 +43,5 @@ type Query {
 }
 
 input Approximate { field: Boolean! }
-```
-
-## Query
-
-```text
-query Example {
-    topProducts(filter: { approx: { field: true } })
-
-    __cost {
-        requestCosts {
-            fieldCostByLocation { path, cost }
-            fieldCost
-        }
-    }
-}
-```
-
-## Result
-
-```text
-{
-  "data": {
-    "topProducts": null,
-    "__cost": {
-      "requestCosts": {
-        "fieldCostByLocation": [
-          {
-            "path": "Example.topProducts",
-            "cost": 8
-          },
-          {
-            "path": "Example.topProducts(filter:)",
-            "cost": 3
-          },
-          {
-            "path": "Example.topProducts(filter:).approx",
-            "cost": -12
-          },
-          {
-            "path": "Example.topProducts(filter:).approx.field",
-            "cost": 0
-          },
-          {
-            "path": "Example",
-            "cost": 8
-          }
-        ],
-        "fieldCost": 8
-      }
-    }
-  }
-}
 ```
 

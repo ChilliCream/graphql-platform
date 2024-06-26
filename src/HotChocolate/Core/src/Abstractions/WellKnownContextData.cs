@@ -301,6 +301,11 @@ public static class WellKnownContextData
     public const string PagingArguments = "HotChocolate.Types.PagingArguments";
 
     /// <summary>
+    /// Type key to access the paging options.
+    /// </summary>
+    public const string PagingOptions = "HotChocolate.Types.PagingOptions";
+
+    /// <summary>
     /// Type key to access the object type configuration hooks in the schema builder context data.
     /// </summary>
     public const string ObjectTypeConfigurations = "HotChocolate.Types.ObjectTypeConfigurations";
@@ -314,4 +319,19 @@ public static class WellKnownContextData
     /// Type key to access the pattern validation tasks.
     /// </summary>
     public const string PatternValidationTasks = "HotChocolate.Validation.PatternValidationTasks";
+
+    /// <summary>
+    /// The key to retrieve the cost metrics from the global state.
+    /// </summary>
+    public const string CostMetrics = "HotChocolate.CostAnalysis.CostMetricsKey";
+
+    /// <summary>
+    /// The key to set the flag that the cost should be reported in the response.
+    /// </summary>
+    public const string ReporCostInResponse = "HotChocolate.CostAnalysis.ReporCost";
+
+    /// <summary>
+    /// The key to set the flag that only the cost should be validated and the request should not be executed.
+    /// </summary>
+    public const string ValidateCost = "HotChocolate.CostAnalysis.OnlyValidateCost";
 }

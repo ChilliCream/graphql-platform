@@ -7,9 +7,8 @@ namespace HotChocolate.Language;
 
 public ref partial struct Utf8GraphQLParser
 {
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal NameNode ParseName()
+    private NameNode ParseName()
     {
         var start = Start();
         var name = ExpectName();
@@ -22,9 +21,8 @@ public ref partial struct Utf8GraphQLParser
         );
     }
 
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal bool MoveNext() => _reader.MoveNext();
+    private bool MoveNext() => _reader.MoveNext();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private TokenInfo Start()
@@ -70,13 +68,11 @@ public ref partial struct Utf8GraphQLParser
         throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.Name, _reader.Kind);
     }
 
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectColon() => Expect(TokenKind.Colon);
+    private void ExpectColon() => Expect(TokenKind.Colon);
 
-    // note: this is internal for the stitching legacy layer
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectDollar() => Expect(TokenKind.Dollar);
+    private void ExpectDollar() => Expect(TokenKind.Dollar);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectAt() => Expect(TokenKind.At);
@@ -100,9 +96,8 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectSpread() => Expect(TokenKind.Spread);
 
-    // note: this is internal for legacy stitching
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
+    private void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ExpectRightBrace() => Expect(TokenKind.RightBrace);

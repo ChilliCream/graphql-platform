@@ -61,12 +61,6 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     public bool IsEndOfFile => _reader.Kind is TokenKind.EndOfFile;
 
-    // note: we added this internal access for legacy stitching.
-    /// <summary>
-    /// Provides internal access to the underlying GraphQL reader.
-    /// </summary>
-    internal Utf8GraphQLReader Reader => _reader;
-
     public DocumentNode Parse()
     {
         _parsedNodes = 0;

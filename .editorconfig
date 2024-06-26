@@ -9,6 +9,10 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 rulers = 120
 
+# ReSharper properties
+resharper_align_multiline_statement_conditions = false
+resharper_braces_for_ifelse = not_required
+
 [*.md]
 trim_trailing_whitespace = false
 

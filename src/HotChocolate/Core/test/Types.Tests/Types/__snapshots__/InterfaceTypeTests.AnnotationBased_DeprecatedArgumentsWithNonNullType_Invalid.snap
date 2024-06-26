@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Required argument DeprecatedNonNullInterface.deprecated(deprecated) cannot be deprecated.",
+  "message": "Required argument DeprecatedNonNullInterface.deprecated(deprecated:) cannot be deprecated.",
   "type": "DeprecatedNonNullInterface",
   "extensions": {
     "argument": "deprecated",

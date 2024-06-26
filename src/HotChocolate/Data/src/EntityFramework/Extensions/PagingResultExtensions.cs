@@ -49,8 +49,8 @@ public static class PagingResultExtensions
         return new Connection<T>(
             page.Items.Select(t => new Edge<T>(t, page.CreateCursor)).ToArray(),
             new ConnectionPageInfo(
-                page.HasPreviousPage,
                 page.HasNextPage,
+                page.HasPreviousPage,
                 CreateCursor(page.First, page.CreateCursor),
                 CreateCursor(page.Last, page.CreateCursor)));
     }

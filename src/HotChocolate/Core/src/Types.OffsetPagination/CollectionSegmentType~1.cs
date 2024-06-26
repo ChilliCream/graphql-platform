@@ -108,10 +108,10 @@ internal class CollectionSegmentType
         return definition;
     }
 
-    private static IPageInfo GetPagingInfo(IPureResolverContext context)
+    private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<CollectionSegment>().Info;
 
-    private static IEnumerable<object?> GetItems(IPureResolverContext context)
+    private static IEnumerable<object?> GetItems(IResolverContext context)
         => context.Parent<CollectionSegment>().Items;
 
     private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)

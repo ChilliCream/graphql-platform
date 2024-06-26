@@ -14,6 +14,23 @@ public static partial class AuthorNode
         CancellationToken cancellationToken)
         => await repository.GetBooksByAuthorAsync(author.Id, cancellationToken);
 
+    public static async Task<string> GetSomeInfo(
+        [Parent] Author author,
+        ISomeInfoByIdDataLoader dataLoader,
+        CancellationToken cancellationToken)
+        => await dataLoader.LoadAsync(author.Id, cancellationToken);
+
+    public static string GetAdditionalInfo(
+        [Parent] Author author,
+        string someArg)
+        => someArg;
+
+    public static string GetAdditionalInfo1(
+        [Parent] Author author,
+        string someArg1,
+        string someArg2)
+        => someArg1 + someArg2;
+
 
     [Query]
     public static string QueryFieldCollocatedWithAuthor() => "hello";

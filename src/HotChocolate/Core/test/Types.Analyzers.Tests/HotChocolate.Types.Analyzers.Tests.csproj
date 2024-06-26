@@ -7,8 +7,8 @@
     <IsPackable>false</IsPackable>
     <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);HotChocolate.Execution.Generated</InterceptorsPreviewNamespaces>
 
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+    <!--EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath-->
   </PropertyGroup>
 
   <PropertyGroup>

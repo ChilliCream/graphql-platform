@@ -38,12 +38,17 @@ public static class ErrorCodes
         /// <summary>
         /// The operation complexity was exceeded.
         /// </summary>
-        public const string ComplexityExceeded = "HC0047";
+        public const string CostExceeded = "HC0047";
 
         /// <summary>
         /// The analyzer needs a documentId, operationId, document and coerced variables.
         /// </summary>
-        public const string ComplexityStateInvalid = "HC0048";
+        public const string CostStateInvalid = "HC0048";
+
+        /// <summary>
+        /// One slicing argument is required
+        /// </summary>
+        public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
         public const string MustBeInputType = "HC0017";
@@ -268,20 +273,6 @@ public static class ErrorCodes
     {
         public const string FilterObjectType = "FILTER_OBJECT_TYPE";
         public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
-    }
-
-    public static class Stitching
-    {
-        public const string HttpRequestException = "HC0006";
-
-        public const string UnknownRequestException = "HC0007";
-
-        public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
-        public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
-        public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
-        public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
-        public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
-        public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
     }
 
     public static class Spatial

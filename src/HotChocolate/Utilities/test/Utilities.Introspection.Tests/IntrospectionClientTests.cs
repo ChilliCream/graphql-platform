@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Net.Http;
-using Snapshooter.Xunit;
+using CookieCrumble;
 using Xunit;
 using HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -55,7 +55,11 @@ public class IntrospectionClientTests(TestServerFactory serverFactory) : ServerT
         var schema = await IntrospectionClient.IntrospectServerAsync(client);
 
         // assert
+#if NET7_0_OR_GREATER
         schema.ToString(true).MatchSnapshot();
+#else
+        schema.ToString(true).MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]

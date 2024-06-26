@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Features;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -7,18 +8,8 @@ namespace HotChocolate.OpenApi.TypeInterceptors;
 /// <summary>
 /// Copies OpenAPI-related context data from the skimmed schema to the type definitions.
 /// </summary>
-public sealed class ContextDataTypeInterceptor(Skimmed.Schema schema) : TypeInterceptor
+public sealed class ContextDataTypeInterceptor(Skimmed.SchemaDefinition schema) : TypeInterceptor
 {
-    private static readonly List<string> CopyKeys =
-    [
-        WellKnownContextData.OpenApiInputFieldName,
-        WellKnownContextData.OpenApiIsErrorsField,
-        WellKnownContextData.OpenApiPropertyName,
-        WellKnownContextData.OpenApiResolver,
-        WellKnownContextData.OpenApiTypeMap,
-        WellKnownContextData.OpenApiUseParentResult,
-    ];
-
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
@@ -43,74 +34,95 @@ public sealed class ContextDataTypeInterceptor(Skimmed.Schema schema) : TypeInte
         }
     }
 
-    private void CopyContextData(SchemaCoordinate coordinate, IDefinition typeDef)
+    private void CopyContextData(SchemaCoordinate coordinate, IDefinition memberDef)
     {
-        Skimmed.ITypeSystemMember? type = null;
+        Skimmed.ITypeSystemMemberDefinition? member = null;
 
         switch (coordinate.Name)
         {
             case OperationTypeNames.Mutation:
                 if (coordinate.MemberName is null)
                 {
-                    type = schema.MutationType;
+                    member = schema.MutationType;
                 }
                 else
                 {
-                    if (schema.MutationType!.Fields.TryGetField(
-                            coordinate.MemberName, out var field))
+                    if (schema.MutationType!.Fields.TryGetField(coordinate.MemberName, out var field))
                     {
-                        type = field;
+                        member = field;
                     }
                 }
-
                 break;
 
             case OperationTypeNames.Query:
                 if (coordinate.MemberName is null)
                 {
-                    type = schema.QueryType;
+                    member = schema.QueryType;
                 }
                 else
                 {
-                    if (schema.QueryType!.Fields.TryGetField(
-                            coordinate.MemberName, out var field))
+                    if (schema.QueryType!.Fields.TryGetField(coordinate.MemberName, out var field))
                     {
-                        type = field;
+                        member = field;
                     }
                 }
-
                 break;
 
             default:
             {
-                if (!schema.TryGetMember(coordinate, out type))
+                if (!schema.TryGetMember(coordinate, out member))
                 {
                     return;
                 }
-
                 break;
             }
         }
 
-        if (type is IHasContextData typeWithContextData)
+        if (member is IFeatureProvider featureProvider)
         {
-            foreach (var key in CopyKeys)
+            var typeMetadata = featureProvider.Features.Get<OpenApiTypeMetadata>();
+            if(typeMetadata?.TypeMap is not null)
             {
-                if (typeWithContextData.ContextData.TryGetValue(key, out var value))
+                memberDef.ContextData[WellKnownContextData.OpenApiTypeMap] = typeMetadata.TypeMap;
+            }
+
+            var fieldMetadata = featureProvider.Features.Get<OpenApiFieldMetadata>();
+            if (fieldMetadata is not null)
+            {
+                if (fieldMetadata.InputFieldName is not null)
                 {
-                    typeDef.ContextData[key] = value;
+                    memberDef.ContextData[WellKnownContextData.OpenApiInputFieldName] = fieldMetadata.InputFieldName;
+                }
+
+                if (fieldMetadata.IsErrorsField)
+                {
+                    memberDef.ContextData[WellKnownContextData.OpenApiIsErrorsField] = true;
+                }
+
+                if (fieldMetadata.PropertyName is not null)
+                {
+                    memberDef.ContextData[WellKnownContextData.OpenApiPropertyName] = fieldMetadata.PropertyName;
+                }
+
+                if (fieldMetadata.Resolver is not null)
+                {
+                    memberDef.ContextData[WellKnownContextData.OpenApiResolver] = fieldMetadata.Resolver;
+                }
+
+                if (fieldMetadata.UseParentResult)
+                {
+                    memberDef.ContextData[WellKnownContextData.OpenApiUseParentResult] = true;
                 }
             }
         }
 
-        switch (typeDef)
+        switch (memberDef)
         {
             case InterfaceTypeDefinition i:
                 foreach (var field in i.Fields)
                 {
                     CopyContextData(new SchemaCoordinate(i.Name, field.Name), field);
                 }
-
                 break;
 
             case ObjectTypeDefinition o:
@@ -118,7 +130,6 @@ public sealed class ContextDataTypeInterceptor(Skimmed.Schema schema) : TypeInte
                 {
                     CopyContextData(new SchemaCoordinate(o.Name, field.Name), field);
                 }
-
                 break;
         }
     }

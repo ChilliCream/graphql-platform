@@ -31,9 +31,8 @@ public class Snapshot
             new HttpResponseSnapshotValueFormatter(),
             new OperationResultSnapshotValueFormatter(),
             new JsonElementSnapshotValueFormatter(),
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
             new QueryPlanSnapshotValueFormatter(),
-            new SkimmedSchemaSnapshotValueFormatter(),
 #endif
         });
     private static readonly JsonSnapshotValueFormatter _defaultFormatter = new();
