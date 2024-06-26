@@ -134,7 +134,6 @@ internal sealed class CostAnalyzerMiddleware(
         validatorContext.ContextData = requestContext.ContextData;
     }
 
-
     public static RequestCoreMiddleware Create()
     {
         return (core, next) =>

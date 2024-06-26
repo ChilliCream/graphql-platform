@@ -551,6 +551,7 @@ internal sealed class TypeInitializer
         var processed = new HashSet<TypeReference>();
         var batch = new List<RegisteredType>(GetInitialBatch(fulfilled));
         var failed = false;
+        batch.Sort(DirectivesFirst.Instance);
 
         while (!failed && processed.Count < _typeRegistry.Count && batch.Count > 0)
         {
@@ -572,6 +573,7 @@ internal sealed class TypeInitializer
             {
                 batch.Clear();
                 batch.AddRange(GetNextBatch(processed));
+                batch.Sort(DirectivesFirst.Instance);
             }
         }
 
@@ -752,5 +754,45 @@ internal sealed class TypeInitializer
         public OperationType Kind { get; } = kind;
 
         public bool IsInitialized { get; } = true;
+    }
+
+    private sealed class DirectivesFirst : IComparer<RegisteredType>
+    {
+        public static DirectivesFirst Instance { get; } = new();
+
+        public int Compare(RegisteredType? x, RegisteredType? y)
+        {
+            if (x is null)
+            {
+                if (y is null)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+
+            if (y is null)
+            {
+                return 1;
+            }
+
+            if (x.Kind == TypeKind.Directive)
+            {
+                if (y.Kind == TypeKind.Directive)
+                {
+                    return 0;
+                }
+
+                return -1;
+            }
+
+            if (y.Kind == TypeKind.Directive)
+            {
+                return 1;
+            }
+
+            return 0;
+        }
     }
 }

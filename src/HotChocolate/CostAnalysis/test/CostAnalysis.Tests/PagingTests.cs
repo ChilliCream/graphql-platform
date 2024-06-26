@@ -4,6 +4,7 @@ using HotChocolate.Data;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -52,6 +53,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -104,6 +106,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -156,6 +159,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
@@ -208,6 +212,7 @@ public class PagingTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
+                .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false })
                 .AddFiltering()
                 .AddSorting()
                 .BuildRequestExecutorAsync();
