@@ -24,7 +24,7 @@ query Example {
     "users": null
   },
   "extensions": {
-    "cost": {
+    "operationCost": {
       "fieldCost": 11,
       "typeCost": 6
     }

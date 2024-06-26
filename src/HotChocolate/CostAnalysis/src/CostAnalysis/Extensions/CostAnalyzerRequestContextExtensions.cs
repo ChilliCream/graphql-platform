@@ -46,7 +46,7 @@ internal static class CostAnalyzerRequestContextExtensions
             return CostAnalyzerMode.Analysis;
         }
 
-        if (context.ContextData.ContainsKey(WellKnownContextData.ReporCostInResponse))
+        if (context.ContextData.ContainsKey(WellKnownContextData.ReportCost))
         {
             return CostAnalyzerMode.EnforceAndReport;
         }

@@ -1,6 +1,7 @@
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Linq;
@@ -251,6 +252,7 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
         .AddRavenProjections()
         .AddRavenSorting()
         .AddRavenPagingProviders()
+        .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false})
         .RegisterDocumentStore()
         .AddQueryType<Query>()
         .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

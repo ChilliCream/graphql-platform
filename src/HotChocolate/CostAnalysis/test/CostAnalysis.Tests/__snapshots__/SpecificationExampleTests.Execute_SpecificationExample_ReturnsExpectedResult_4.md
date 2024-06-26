@@ -24,7 +24,7 @@ query Example {
     "mostPopularProduct": null
   },
   "extensions": {
-    "cost": {
+    "operationCost": {
       "fieldCost": 2,
       "typeCost": 2
     }

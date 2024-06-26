@@ -31,7 +31,7 @@ query($where: BookFilterInput) {
     }
   },
   "extensions": {
-    "cost": {
+    "operationCost": {
       "fieldCost": 901,
       "typeCost": 52
     }

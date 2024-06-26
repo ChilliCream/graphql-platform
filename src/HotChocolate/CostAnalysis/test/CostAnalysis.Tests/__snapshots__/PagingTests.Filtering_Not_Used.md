@@ -31,7 +31,7 @@
     }
   },
   "extensions": {
-    "cost": {
+    "operationCost": {
       "fieldCost": 11,
       "typeCost": 52
     }

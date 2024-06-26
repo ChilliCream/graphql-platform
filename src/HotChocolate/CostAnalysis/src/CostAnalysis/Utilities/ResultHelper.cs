@@ -5,6 +5,13 @@ namespace HotChocolate.CostAnalysis.Utilities;
 
 internal static class ResultHelper
 {
+    private static readonly ImmutableDictionary<string, object?> _validationError
+        = ImmutableDictionary<string, object?>.Empty
+            .Add(WellKnownContextData.ValidationErrors, true);
+    private static readonly ImmutableDictionary<string, object?> _ok
+        = ImmutableDictionary<string, object?>.Empty
+            .Add(WellKnownContextData.HttpStatusCode, 200);
+
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {
         return error is AggregateError aggregateError
@@ -15,10 +22,7 @@ internal static class ResultHelper
                 extensions: costMetrics is not null
                     ? CreateCostMetricsMap(costMetrics)
                     : null,
-                contextData: new Dictionary<string, object?>
-                {
-                    { WellKnownContextData.ValidationErrors, true }
-                });
+                contextData: _validationError);
     }
 
     public static IExecutionResult CreateError(IReadOnlyList<IError> errors, CostMetrics? costMetrics)
@@ -29,10 +33,7 @@ internal static class ResultHelper
             extensions: costMetrics is not null
                 ? CreateCostMetricsMap(costMetrics)
                 : null,
-            contextData: new Dictionary<string, object?>
-            {
-                { WellKnownContextData.ValidationErrors, true }
-            });
+            contextData: _validationError);
     }
 
     public static IExecutionResult CreateResult(this CostMetrics costMetrics)
@@ -43,7 +44,7 @@ internal static class ResultHelper
             data: null,
             errors: null,
             extensions: extensions,
-            contextData: null,
+            contextData: _ok,
             items: null,
             incremental: null,
             label: null,
@@ -157,7 +158,7 @@ internal static class ResultHelper
         IReadOnlyDictionary<string, object?>? extensions,
         IImmutableDictionary<string, object?> costMetrics)
     {
-        const string costKey = "cost";
+        const string costKey = "operationCost";
 
         if(extensions is null || extensions.Count == 0)
         {

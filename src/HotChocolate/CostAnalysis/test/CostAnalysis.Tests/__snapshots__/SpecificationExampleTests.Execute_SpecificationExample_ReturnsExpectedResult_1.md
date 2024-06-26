@@ -22,7 +22,7 @@ query Example {
     "topProducts": null
   },
   "extensions": {
-    "cost": {
+    "operationCost": {
       "fieldCost": 5,
       "typeCost": 1
     }

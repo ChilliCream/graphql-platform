@@ -328,10 +328,10 @@ public static class WellKnownContextData
     /// <summary>
     /// The key to set the flag that the cost should be reported in the response.
     /// </summary>
-    public const string ReporCostInResponse = "HotChocolate.CostAnalysis.ReporCost";
+    public const string ReportCost = "HotChocolate.CostAnalysis.ReportCost";
 
     /// <summary>
     /// The key to set the flag that only the cost should be validated and the request should not be executed.
     /// </summary>
-    public const string ValidateCost = "HotChocolate.CostAnalysis.OnlyValidateCost";
+    public const string ValidateCost = "HotChocolate.CostAnalysis.ValidateCost";
 }

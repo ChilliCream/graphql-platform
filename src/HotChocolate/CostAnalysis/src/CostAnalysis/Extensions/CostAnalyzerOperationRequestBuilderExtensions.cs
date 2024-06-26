@@ -8,12 +8,12 @@ public static class CostAnalyzerOperationRequestBuilderExtensions
     public static OperationRequestBuilder ReportCost(this OperationRequestBuilder builder)
     {
         builder.RemoveGlobalState(WellKnownContextData.ValidateCost);
-        return builder.AddGlobalState(WellKnownContextData.ReporCostInResponse, true);
+        return builder.AddGlobalState(WellKnownContextData.ReportCost, true);
     }
 
     public static OperationRequestBuilder ValidateCost(this OperationRequestBuilder builder)
     {
-        builder.RemoveGlobalState(WellKnownContextData.ReporCostInResponse);
+        builder.RemoveGlobalState(WellKnownContextData.ReportCost);
         return builder.AddGlobalState(WellKnownContextData.ValidateCost, true);
     }
 }
