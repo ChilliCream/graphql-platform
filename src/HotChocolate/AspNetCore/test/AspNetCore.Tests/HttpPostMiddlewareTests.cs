@@ -504,7 +504,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                         hero(episode: NEW_HOPE)
                         {
                             name
-                            friends {
+                            friends(first: 10) {
                                 nodes @stream(initialCount: 1 label: ""foo"") {
                                     name
                                 }

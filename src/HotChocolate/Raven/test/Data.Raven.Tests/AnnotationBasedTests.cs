@@ -129,7 +129,7 @@ public class AnnotationBasedTests(RavenDBResource<CustomRavenDBDefaultOptions> r
             """);
 
         // assert
-        await Snapshot.Create().AddResult(result).MatchAsync();
+        result.MatchSnapshot();
     }
 
     [Fact]
