@@ -18,5 +18,9 @@ internal enum FieldFlags
     FilterOperationField = 512,
     FilterExpensiveOperationField = 1024,
     SortArgument = 2048,
-    SortOperationField = 4096
+    SortOperationField = 4096,
+    Connection = 8192,
+    CollectionSegment = 16384,
+    SkipArgument = 32768,
+    TotalCount = 65536
 }
