@@ -176,8 +176,7 @@ internal static class CostAnalyzerUtilities
 
             if (argumentCount != 1)
             {
-                // todo: lets add a validation error here and abort the cost calculation
-                throw new Exception("");
+                throw new GraphQLException(ErrorHelper.ExactlyOneSlicingArgMustBeDefined(node));
             }
         }
     }

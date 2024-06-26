@@ -10,12 +10,31 @@ namespace HotChocolate.CostAnalysis.Types;
 /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-The-List-Size-Directive">
 /// Specification URL
 /// </seealso>
-public sealed class ListSizeDirective(
-    int? assumedSize = null,
-    ImmutableArray<string>? slicingArguments = null,
-    ImmutableArray<string>? sizedFields = null,
-    bool requireOneSlicingArgument = true)
+public sealed class ListSizeDirective
 {
+    /// <summary>
+    /// The purpose of the <c>@listSize</c> directive is to either inform the static analysis about the
+    /// size of returned lists (if that information is statically available), or to point the analysis
+    /// to where to find that information.
+    /// </summary>
+    /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-The-List-Size-Directive">
+    /// Specification URL
+    /// </seealso>
+    public ListSizeDirective(int? assumedSize = null,
+        ImmutableArray<string>? slicingArguments = null,
+        ImmutableArray<string>? sizedFields = null,
+        bool? requireOneSlicingArgument = null)
+    {
+        AssumedSize = assumedSize;
+        SlicingArguments = slicingArguments ?? ImmutableArray<string>.Empty;
+        SizedFields = sizedFields ?? ImmutableArray<string>.Empty;
+
+        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
+        // Per default, requireOneSlicingArgument is enabled,
+        // and has to be explicitly disabled if not desired for a field.
+        RequireOneSlicingArgument = SlicingArguments is { Length: > 0 } && (requireOneSlicingArgument ?? true);
+    }
+
     /// <summary>
     /// The <c>assumedSize</c> argument can be used to statically define the maximum length of a
     /// list returned by a field.
@@ -23,7 +42,7 @@ public sealed class ListSizeDirective(
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-assumedSize">
     /// Specification URL
     /// </seealso>
-    public int? AssumedSize { get; } = assumedSize;
+    public int? AssumedSize { get; }
 
     /// <summary>
     /// The <c>slicingArguments</c> argument can be used to define which of the field's arguments
@@ -34,7 +53,6 @@ public sealed class ListSizeDirective(
     /// Specification URL
     /// </seealso>
     public ImmutableArray<string> SlicingArguments { get; }
-        = slicingArguments ?? ImmutableArray<string>.Empty;
 
     /// <summary>
     /// The <c>sizedFields</c> argument can be used to define that the value of the
@@ -45,7 +63,6 @@ public sealed class ListSizeDirective(
     /// Specification URL
     /// </seealso>
     public ImmutableArray<string> SizedFields { get; }
-        = sizedFields ?? ImmutableArray<string>.Empty;
 
     /// <summary>
     /// The <c>requireOneSlicingArgument</c> argument can be used to inform the static analysis that
@@ -56,5 +73,5 @@ public sealed class ListSizeDirective(
     /// <seealso href="https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument">
     /// Specification URL
     /// </seealso>
-    public bool RequireOneSlicingArgument { get; } = requireOneSlicingArgument;
+    public bool RequireOneSlicingArgument { get; }
 }

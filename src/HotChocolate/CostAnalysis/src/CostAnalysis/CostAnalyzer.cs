@@ -11,18 +11,12 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.CostAnalysis;
 
-internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
+internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorVisitor
 {
     private readonly Dictionary<SelectionSetNode, CostSummary> _selectionSetCost = new();
     private readonly HashSet<string> _processed = new();
     private readonly InputCostVisitor _inputCostVisitor = new();
-    private readonly CostOptions _options;
     private InputCostVisitorContext? _inputCostVisitorContext;
-
-    public CostAnalyzer(CostOptions options)
-    {
-        _options = options;
-    }
 
     public CostMetrics Analyze(OperationDefinitionNode operation, IDocumentValidatorContext context)
     {
@@ -124,12 +118,15 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
         SelectionSetNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out var type) && type.NamedType() is { Kind: TypeKind.Union } && HasFields(node))
+        if (context.Types.TryPeek(out var type)
+            && type.NamedType() is { Kind: TypeKind.Union }
+            && HasFields(node))
         {
             return Skip;
         }
 
-        if (context.Path.TryPeek(out var parent) && parent.Kind is SyntaxKind.OperationDefinition or SyntaxKind.Field)
+        if (context.Path.TryPeek(out var parent)
+            && parent.Kind is SyntaxKind.OperationDefinition or SyntaxKind.Field)
         {
             context.SelectionSets.Push(node);
         }
@@ -222,7 +219,6 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
             var selection = selectionSet.Selections[i];
-
             if (selection.Kind is SyntaxKind.Field)
             {
                 if (!IsTypeNameField(((FieldNode)selection).Name.Value))
@@ -257,6 +253,11 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                 && fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType)
                 && possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field))
             {
+                // https://ibm.github.io/graphql-specs/cost-spec.html#sec-Field-Cost
+                // First, add up the raw cost of field f by calculating the sum of:
+                // - The weight of field f
+                // - The sum of the cost of all directives on field f
+                // - The sum of the cost of all arguments on field f
                 var typeCost = field.GetTypeWeight();
                 var fieldCost = field.GetFieldWeight();
                 var selectionSetCost = 0.0;
@@ -279,9 +280,9 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
 
                             if ((argument.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument
                                 && argumentNode.Value.Kind == SyntaxKind.Variable
-                                && _options.Filtering.VariableMultiplier.HasValue)
+                                && options.Filtering.VariableMultiplier.HasValue)
                             {
-                                argumentCost *= _options.Filtering.VariableMultiplier.Value;
+                                argumentCost *= options.Filtering.VariableMultiplier.Value;
                             }
 
                             fieldCost += argumentCost;
@@ -322,6 +323,16 @@ internal sealed class CostAnalyzer : TypeDocumentValidatorVisitor
                 }
 
                 fieldCost += selectionSetCost;
+
+                // https://ibm.github.io/graphql-specs/cost-spec.html#sec-Field-Cost
+                // https://ibm.github.io/graphql-specs/cost-spec.html#sel-IALJJHPDABAB4Biqc
+                // Second, if this sum is negative then round it up to zero
+                if(fieldCost < 0)
+                {
+                    fieldCost = 0;
+                }
+
+                // last we sum up the field cost and the type cost for the selection-set.
                 typeCostSum += typeCost;
                 fieldCostSum += fieldCost;
             }

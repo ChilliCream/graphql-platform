@@ -38,12 +38,17 @@ public static class ErrorCodes
         /// <summary>
         /// The operation complexity was exceeded.
         /// </summary>
-        public const string ComplexityExceeded = "HC0047";
+        public const string CostExceeded = "HC0047";
 
         /// <summary>
         /// The analyzer needs a documentId, operationId, document and coerced variables.
         /// </summary>
-        public const string ComplexityStateInvalid = "HC0048";
+        public const string CostStateInvalid = "HC0048";
+
+        /// <summary>
+        /// One slicing argument is required
+        /// </summary>
+        public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
         public const string MustBeInputType = "HC0017";

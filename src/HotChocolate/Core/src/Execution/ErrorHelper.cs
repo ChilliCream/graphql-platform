@@ -209,7 +209,7 @@ internal static class ErrorHelper
         OperationResultBuilder.CreateError(
             new Error(
                 ErrorHelper_MaxComplexityReached,
-                ErrorCodes.Execution.ComplexityExceeded,
+                ErrorCodes.Execution.CostExceeded,
                 extensions: new Dictionary<string, object?>
                 {
                     { nameof(complexity), complexity },
@@ -223,13 +223,13 @@ internal static class ErrorHelper
     public static IError MaxComplexityReached() =>
         new Error(
             ErrorHelper_MaxComplexityReached,
-            ErrorCodes.Execution.ComplexityExceeded);
+            ErrorCodes.Execution.CostExceeded);
 
     public static IOperationResult StateInvalidForComplexityAnalyzer() =>
         OperationResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
-                .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
 
     public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)

@@ -54,7 +54,11 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                             ? _forwardAndBackwardSlicingArgs
                             : _forwardSlicingArgs;
 
-                    var requirePagingBoundaries = options.RequirePagingBoundaries ?? RequirePagingBoundaries;
+                    // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
+                    // Per default, requireOneSlicingArgument is enabled,
+                    // and has to be explicitly disabled if not desired for a field.
+                    var requirePagingBoundaries =
+                        slicingArgs.Length > 0 && (options.RequirePagingBoundaries ?? true);
 
                     fieldDef.AddDirective(
                         new ListSizeDirective(

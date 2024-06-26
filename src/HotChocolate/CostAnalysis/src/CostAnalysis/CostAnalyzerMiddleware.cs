@@ -81,6 +81,11 @@ internal sealed class CostAnalyzerMiddleware(
                 }
             }
         }
+        catch (GraphQLException ex)
+        {
+            context.Result = ResultHelper.CreateError(ex.Errors, null);
+            return;
+        }
         finally
         {
             if (validatorContext is not null)
