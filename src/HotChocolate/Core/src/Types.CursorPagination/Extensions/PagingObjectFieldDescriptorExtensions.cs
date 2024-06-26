@@ -133,6 +133,7 @@ public static class PagingObjectFieldDescriptorExtensions
             {
                 var pagingOptions = c.GetSettings(options);
                 var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
 
                 CreatePagingArguments(d.Arguments, backward, pagingOptions.LegacySupport ?? false);
 

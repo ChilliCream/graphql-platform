@@ -1,0 +1,13 @@
+{
+  "data": {
+    "human": {
+      "name": "Luke Skywalker"
+    }
+  },
+  "extensions": {
+    "operationCost": {
+      "fieldCost": 1,
+      "typeCost": 2
+    }
+  }
+}

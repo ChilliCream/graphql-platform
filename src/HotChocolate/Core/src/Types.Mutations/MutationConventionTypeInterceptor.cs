@@ -549,7 +549,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         }
     }
 
-    
+
 
     private static Options CreateOptions(
         IDictionary<string, object?> contextData)
@@ -603,6 +603,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
+        _typeInitializer.CompileResolvers(registeredType);
 
         if (registeredType.Type is ObjectType errorObject &&
             errorObject.RuntimeType != typeof(object))
@@ -650,6 +651,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     {
         var registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
+        _typeInitializer.CompileResolvers(registeredType);
     }
 
     private void RegisterErrorType(
@@ -660,6 +662,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         {
             var registeredType = _typeInitializer.InitializeType(type);
             _typeInitializer.CompleteTypeName(registeredType);
+            _typeInitializer.CompileResolvers(registeredType);
         }
         catch (SchemaException ex)
             when (ex.Errors[0].Code.EqualsOrdinal(ErrorCodes.Schema.DuplicateTypeName))
