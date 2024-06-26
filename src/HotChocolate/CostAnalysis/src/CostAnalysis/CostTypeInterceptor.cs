@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -25,6 +24,8 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
     private CostOptions _options = default!;
 
+    internal override uint Position => int.MaxValue;
+
     internal override void InitializeContext(
         IDescriptorContext context,
         TypeInitializer typeInitializer,
@@ -41,10 +42,10 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
-                if (fieldDef.State.Count > 0 &&
-                    fieldDef.State.TryGetValue(WellKnownContextData.PagingOptions, out var value) &&
-                    value is PagingOptions options &&
-                    !fieldDef.HasListSizeDirective())
+                if (fieldDef.State.Count > 0
+                    && fieldDef.State.TryGetValue(WellKnownContextData.PagingOptions, out var value)
+                    && value is PagingOptions options
+                    && !fieldDef.HasListSizeDirective())
                 {
                     var assumedSize = options.MaxPageSize ?? MaxPageSize;
 
@@ -66,17 +67,17 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
 
                 foreach (var argumentDef in fieldDef.Arguments)
                 {
-                    if ((argumentDef.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument &&
-                        _options.Sorting.DefaultSortArgumentCost.HasValue &&
-                        !fieldDef.HasCostDirective())
+                    if ((argumentDef.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument
+                        && _options.Sorting.DefaultSortArgumentCost.HasValue
+                        && !fieldDef.HasCostDirective())
                     {
                         argumentDef.AddDirective(
                             new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
                             completionContext.DescriptorContext.TypeInspector);
                     }
-                    else if ((argumentDef.Flags & FieldFlags.SortArgument) == FieldFlags.SortArgument &&
-                        _options.Filtering.DefaultFilterArgumentCost.HasValue &&
-                        !fieldDef.HasCostDirective())
+                    else if ((argumentDef.Flags & FieldFlags.SortArgument) == FieldFlags.SortArgument
+                        && _options.Filtering.DefaultFilterArgumentCost.HasValue
+                        && !fieldDef.HasCostDirective())
                     {
                         argumentDef.AddDirective(
                             new CostDirective(_options.Filtering.DefaultFilterArgumentCost.Value),
@@ -90,26 +91,26 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in inputObjectTypeDef.Fields)
             {
-                if ((fieldDef.Flags & FieldFlags.FilterOperationField) == FieldFlags.FilterOperationField &&
-                    _options.Filtering.DefaultFilterOperationCost.HasValue &&
-                    !fieldDef.HasCostDirective())
+                if ((fieldDef.Flags & FieldFlags.FilterOperationField) == FieldFlags.FilterOperationField
+                    && _options.Filtering.DefaultFilterOperationCost.HasValue
+                    && !fieldDef.HasCostDirective())
                 {
                     fieldDef.AddDirective(
                         new CostDirective(_options.Filtering.DefaultFilterOperationCost.Value),
                         completionContext.DescriptorContext.TypeInspector);
                 }
-                else if ((fieldDef.Flags & FieldFlags.FilterExpensiveOperationField) ==
-                    FieldFlags.FilterExpensiveOperationField &&
-                    _options.Filtering.DefaultExpensiveFilterOperationCost.HasValue &&
-                    !fieldDef.HasCostDirective())
+                else if ((fieldDef.Flags & FieldFlags.FilterExpensiveOperationField)
+                    == FieldFlags.FilterExpensiveOperationField
+                    && _options.Filtering.DefaultExpensiveFilterOperationCost.HasValue
+                    && !fieldDef.HasCostDirective())
                 {
                     fieldDef.AddDirective(
                         new CostDirective(_options.Filtering.DefaultExpensiveFilterOperationCost.Value),
                         completionContext.DescriptorContext.TypeInspector);
                 }
-                else if ((fieldDef.Flags & FieldFlags.SortOperationField) == FieldFlags.SortOperationField &&
-                    _options.Sorting.DefaultSortOperationCost.HasValue &&
-                    !fieldDef.HasCostDirective())
+                else if ((fieldDef.Flags & FieldFlags.SortOperationField) == FieldFlags.SortOperationField
+                    && _options.Sorting.DefaultSortOperationCost.HasValue
+                    && !fieldDef.HasCostDirective())
                 {
                     fieldDef.AddDirective(
                         new CostDirective(_options.Sorting.DefaultSortOperationCost.Value),
@@ -125,9 +126,9 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
-                if (fieldDef.PureResolver is null &&
-                    _options.DefaultResolverCost.HasValue &&
-                    !fieldDef.HasCostDirective())
+                if (fieldDef.PureResolver is null
+                    && _options.DefaultResolverCost.HasValue
+                    && !fieldDef.HasCostDirective())
                 {
                     fieldDef.AddDirective(
                         new CostDirective(_options.DefaultResolverCost.Value),
