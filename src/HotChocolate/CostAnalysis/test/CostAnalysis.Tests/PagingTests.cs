@@ -243,6 +243,21 @@ public class PagingTests
         [UseFiltering]
         [UseSorting]
         public IQueryable<Book> GetBooks() => new List<Book>().AsQueryable();
+
+        [UsePaging(ConnectionName = "BooksTotal", IncludeTotalCount = true)]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Book> GetBooksWithTotalCount() => new List<Book>().AsQueryable();
+
+        [UseOffsetPaging]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Book> GetBooksOffset() => new List<Book>().AsQueryable();
+
+        [UseOffsetPaging(CollectionSegmentName = "BooksTotal", IncludeTotalCount = true)]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Book> GetBooksOffsetWithTotalCount() => new List<Book>().AsQueryable();
     }
 
     public class Book

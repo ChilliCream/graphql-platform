@@ -191,7 +191,10 @@ internal sealed class ConnectionType
                 Names.TotalCount,
                 ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync));
+                resolver: GetTotalCountAsync)
+            {
+                Flags = FieldFlags.TotalCount
+            });
         }
 
         return definition;
