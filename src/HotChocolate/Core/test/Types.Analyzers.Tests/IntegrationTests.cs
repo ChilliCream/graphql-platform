@@ -125,7 +125,7 @@ public class IntegrationTests
             .AddSingleton<ChapterRepository>();
 
         serviceCollection
-            .AddGraphQLServer()
+            .AddGraphQLServer(disableCostAnalyzer: true)
             .AddCustomModule()
             .AddGlobalObjectIdentification()
             .AddMutationConventions();

@@ -163,7 +163,7 @@ internal sealed class ConnectionType
         var definition = new ObjectTypeDefinition
         {
             Description = ConnectionType_Description,
-            RuntimeType = typeof(Connection),
+            RuntimeType = typeof(Connection)
         };
 
         definition.Fields.Add(new(
@@ -177,13 +177,13 @@ internal sealed class ConnectionType
             ConnectionType_Edges_Description,
             edgesType,
             pureResolver: GetEdges)
-        { CustomSettings = { ContextDataKeys.Edges, }, });
+        { CustomSettings = { ContextDataKeys.Edges } });
 
         definition.Fields.Add(new(
             Names.Nodes,
             ConnectionType_Nodes_Description,
             pureResolver: GetNodes)
-        { CustomSettings = { ContextDataKeys.Nodes, }, });
+        { CustomSettings = { ContextDataKeys.Nodes } });
 
         if (withTotalCount)
         {
@@ -191,7 +191,10 @@ internal sealed class ConnectionType
                 Names.TotalCount,
                 ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync));
+                resolver: GetTotalCountAsync)
+            {
+                Flags = FieldFlags.TotalCount
+            });
         }
 
         return definition;

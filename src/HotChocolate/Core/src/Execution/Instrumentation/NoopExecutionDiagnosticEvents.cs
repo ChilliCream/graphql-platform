@@ -27,16 +27,13 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
-    public IDisposable AnalyzeOperationComplexity(IRequestContext context) => this;
+    public IDisposable AnalyzeOperationCost(IRequestContext context) => this;
 
     public void OperationComplexityAnalyzerCompiled(IRequestContext context)
     {
     }
 
-    public void OperationComplexityResult(
-        IRequestContext context,
-        int complexity,
-        int allowedComplexity)
+    public void OperationCost(IRequestContext context, double fieldCost, double typeCost)
     {
     }
 

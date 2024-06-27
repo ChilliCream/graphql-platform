@@ -82,11 +82,11 @@ public static class PagingHelper
         }
 
         return type;
-        
+
         IExtendedType ResolveType()
         {
             // if an explicit result type is defined we will type it since it expresses the
-            // intend.
+            // intent.
             if (definition.ResultType is not null)
             {
                 return typeInspector.GetType(definition.ResultType);

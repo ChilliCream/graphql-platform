@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
     <InternalsVisibleTo Include="HotChocolate.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Types.Errors" />
