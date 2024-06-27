@@ -1,6 +1,8 @@
 using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Data;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -64,12 +66,12 @@ public class PagingTests
         // assert
         var expectation =
             JsonDocument.Parse(
-            """
-            {
-                "fieldCost": 6,
-                "typeCost": 52
-            }
-            """);
+                """
+                {
+                    "fieldCost": 6,
+                    "typeCost": 52
+                }
+                """);
 
         await snapshot
             .Add(operation, "Operation")
@@ -77,6 +79,96 @@ public class PagingTests
             .Add(response, "Response")
             .MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_By_Default_With_Connections()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.Create()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Nested_Boundaries()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books {
+                        nodes {
+                            title
+                            authors {
+                                nodes {
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.Create()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
 
     [Fact]
     public async Task Filtering_Specific_Filter_Used()
@@ -117,12 +209,12 @@ public class PagingTests
         // assert
         var expectation =
             JsonDocument.Parse(
-            """
-            {
-                "fieldCost": 9,
-                "typeCost": 52
-            }
-            """);
+                """
+                {
+                    "fieldCost": 9,
+                    "typeCost": 52
+                }
+                """);
 
         await snapshot
             .Add(operation, "Operation")
@@ -170,12 +262,12 @@ public class PagingTests
         // assert
         var expectation =
             JsonDocument.Parse(
-            """
-            {
-                "fieldCost": 10,
-                "typeCost": 52
-            }
-            """);
+                """
+                {
+                    "fieldCost": 10,
+                    "typeCost": 52
+                }
+                """);
 
         await snapshot
             .Add(operation, "Operation")
@@ -223,12 +315,12 @@ public class PagingTests
         // assert
         var expectation =
             JsonDocument.Parse(
-            """
-            {
-                "fieldCost": 10,
-                "typeCost": 52
-            }
-            """);
+                """
+                {
+                    "fieldCost": 10,
+                    "typeCost": 52
+                }
+                """);
 
         await snapshot
             .Add(operation, "Operation")
@@ -240,28 +332,53 @@ public class PagingTests
     public class Query
     {
         [UsePaging]
-        [UseFiltering]
-        [UseSorting]
+        [UseFiltering<BookFilterInputType>]
+        [UseSorting<BookSortInputType>]
         public IQueryable<Book> GetBooks() => new List<Book>().AsQueryable();
 
         [UsePaging(ConnectionName = "BooksTotal", IncludeTotalCount = true)]
-        [UseFiltering]
-        [UseSorting]
+        [UseFiltering<BookFilterInputType>]
+        [UseSorting<BookSortInputType>]
         public IQueryable<Book> GetBooksWithTotalCount() => new List<Book>().AsQueryable();
 
         [UseOffsetPaging]
-        [UseFiltering]
-        [UseSorting]
+        [UseFiltering<BookFilterInputType>]
+        [UseSorting<BookSortInputType>]
         public IQueryable<Book> GetBooksOffset() => new List<Book>().AsQueryable();
 
         [UseOffsetPaging(CollectionSegmentName = "BooksTotal", IncludeTotalCount = true)]
-        [UseFiltering]
-        [UseSorting]
+        [UseFiltering<BookFilterInputType>]
+        [UseSorting<BookSortInputType>]
         public IQueryable<Book> GetBooksOffsetWithTotalCount() => new List<Book>().AsQueryable();
     }
 
     public class Book
     {
         public required string Title { get; set; }
+
+        [UsePaging] public List<Author> Authors => new();
+    }
+
+    public class Author
+    {
+        public required string Name { get; set; }
+    }
+
+    public class BookFilterInputType : FilterInputType<Book>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(t => t.Title);
+        }
+    }
+
+    public class BookSortInputType : SortInputType<Book>
+    {
+        protected override void Configure(ISortInputTypeDescriptor<Book> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(t => t.Title);
+        }
     }
 }

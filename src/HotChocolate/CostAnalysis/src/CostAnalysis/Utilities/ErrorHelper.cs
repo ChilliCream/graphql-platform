@@ -1,9 +1,8 @@
 using HotChocolate.CostAnalysis.Properties;
-using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
-namespace HotChocolate.CostAnalysis;
+namespace HotChocolate.CostAnalysis.Utilities;
 
 internal static class ErrorHelper
 {
@@ -38,10 +37,26 @@ internal static class ErrorHelper
             reportMetrics ? costMetrics : null);
 
     public static IError ExactlyOneSlicingArgMustBeDefined(
-        FieldNode fieldNode)
-        => ErrorBuilder.New()
+        FieldNode fieldNode,
+        IList<ISyntaxNode> path)
+    {
+        var errorPath = new List<object>();
+
+        foreach (var node in path)
+        {
+            if (node is FieldNode field)
+            {
+                errorPath.Add(field.Name.Value);
+            }
+        }
+
+        errorPath.Add(fieldNode.Name.Value);
+
+        return ErrorBuilder.New()
             .SetMessage("Exactly one slicing argument must be defined.")
             .SetCode(ErrorCodes.Execution.OneSlicingArgumentRequired)
             .AddLocation(fieldNode)
+            .SetPath(errorPath)
             .Build();
+    }
 }

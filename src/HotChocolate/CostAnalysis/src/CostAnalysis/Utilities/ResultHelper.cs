@@ -14,25 +14,33 @@ internal static class ResultHelper
 
     public static IExecutionResult CreateError(IError error, CostMetrics? costMetrics)
     {
+        IReadOnlyDictionary<string, object?>? extensions = null;
+        if (costMetrics is not null)
+        {
+            extensions = AddCostMetrics(extensions, costMetrics);
+        }
+
         return error is AggregateError aggregateError
             ? CreateError(aggregateError.Errors, costMetrics)
             : new OperationResult(
                 null,
                 ImmutableArray.Create(error),
-                extensions: costMetrics is not null
-                    ? CreateCostMetricsMap(costMetrics)
-                    : null,
+                extensions: extensions,
                 contextData: _validationError);
     }
 
     public static IExecutionResult CreateError(IReadOnlyList<IError> errors, CostMetrics? costMetrics)
     {
+        IReadOnlyDictionary<string, object?>? extensions = null;
+        if (costMetrics is not null)
+        {
+            extensions = AddCostMetrics(extensions, costMetrics);
+        }
+
         return new OperationResult(
             null,
             errors,
-            extensions: costMetrics is not null
-                ? CreateCostMetricsMap(costMetrics)
-                : null,
+            extensions: extensions,
             contextData: _validationError);
     }
 
