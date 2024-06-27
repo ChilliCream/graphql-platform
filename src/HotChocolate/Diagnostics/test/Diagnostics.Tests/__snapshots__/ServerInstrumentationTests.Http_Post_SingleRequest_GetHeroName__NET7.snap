@@ -78,6 +78,18 @@
               "event": []
             },
             {
+              "OperationName": "AnalyzeOperationCost",
+              "DisplayName": "Analyze Operation Complexity",
+              "Status": "Unset",
+              "tags": [
+                {
+                  "Key": "graphql.operation.id",
+                  "Value": "a570a6bff748b5916eadf153261d9c6d"
+                }
+              ],
+              "event": []
+            },
+            {
               "OperationName": "CompileOperation",
               "DisplayName": "Compile Operation",
               "Status": "Ok",

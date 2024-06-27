@@ -244,6 +244,7 @@ public class FluentApiTests : IClassFixture<RavenDBResource<CustomRavenDBDefault
         .AddRavenProjections()
         .AddRavenSorting()
         .AddRavenPagingProviders()
+        .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = false})
         .RegisterDocumentStore()
         .AddQueryType<QueryType>()
         .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

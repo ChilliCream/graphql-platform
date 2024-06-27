@@ -52,7 +52,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
 
         using (_writer.IncreaseIndent())
         {
-            if (objectTypeExtension.Resolvers.Length > 0)
+            if (objectTypeExtension.Resolvers.Length > 0 || objectTypeExtension.NodeResolver is not null)
             {
                 _writer.WriteIndentedLine("const global::{0} bindingFlags =", WellKnownTypes.BindingFlags);
                 using (_writer.IncreaseIndent())
