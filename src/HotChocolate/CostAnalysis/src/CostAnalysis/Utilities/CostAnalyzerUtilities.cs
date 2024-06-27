@@ -156,7 +156,8 @@ internal static class CostAnalyzerUtilities
 
     public static void ValidateRequireOneSlicingArgument(
         this ListSizeDirective? listSizeDirective,
-        FieldNode node)
+        FieldNode node,
+        IList<ISyntaxNode> path)
     {
         // The `requireOneSlicingArgument` argument can be used to inform the static analysis
         // that it should expect that exactly one of the defined slicing arguments is present in
@@ -176,7 +177,7 @@ internal static class CostAnalyzerUtilities
 
             if (argumentCount != 1)
             {
-                throw new GraphQLException(ErrorHelper.ExactlyOneSlicingArgMustBeDefined(node));
+                throw new GraphQLException(ErrorHelper.ExactlyOneSlicingArgMustBeDefined(node, path));
             }
         }
     }
