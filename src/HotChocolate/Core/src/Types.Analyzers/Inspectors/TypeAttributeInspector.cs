@@ -16,7 +16,7 @@ public sealed class TypeAttributeInspector : ISyntaxInspector
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
         {

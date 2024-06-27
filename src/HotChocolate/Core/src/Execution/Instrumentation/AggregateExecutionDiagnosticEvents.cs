@@ -77,34 +77,23 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
-    public IDisposable AnalyzeOperationComplexity(IRequestContext context)
+    public IDisposable AnalyzeOperationCost(IRequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];
 
         for (var i = 0; i < _listeners.Length; i++)
         {
-            scopes[i] = _listeners[i].AnalyzeOperationComplexity(context);
+            scopes[i] = _listeners[i].AnalyzeOperationCost(context);
         }
 
         return new AggregateActivityScope(scopes);
     }
 
-    public void OperationComplexityAnalyzerCompiled(IRequestContext context)
+    public void OperationCost(IRequestContext context, double fieldCost, double typeCost)
     {
         for (var i = 0; i < _listeners.Length; i++)
         {
-            _listeners[i].OperationComplexityAnalyzerCompiled(context);
-        }
-    }
-
-    public void OperationComplexityResult(
-        IRequestContext context,
-        int complexity,
-        int allowedComplexity)
-    {
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            _listeners[i].OperationComplexityResult(context, complexity, allowedComplexity);
+            _listeners[i].OperationCost(context, fieldCost, typeCost);
         }
     }
 

@@ -33,7 +33,22 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddTypeExtension<SubscriptionsExtensions>()
                     .AddStarWarsRepositories()
                     .AddInMemorySubscriptions()
-                    .UseAutomaticPersistedQueryPipeline()
+                    .UseInstrumentation()
+                    .UseExceptions()
+                    .UseTimeout()
+                    .UseDocumentCache()
+                    .UseReadPersistedQuery()
+                    .UseAutomaticPersistedQueryNotFound()
+                    .UseWritePersistedQuery()
+                    .UseDocumentParser()
+                    .UseDocumentValidation()
+#if NET7_0_OR_GREATER
+                    .UseCostAnalyzer()
+#endif
+                    .UseOperationCache()
+                    .UseOperationResolver()
+                    .UseOperationVariableCoercion()
+                    .UseOperationExecution()
                     .ConfigureSchemaServices(
                         s => s.AddSingleton<IOperationDocumentStorage, TestOperationDocumentStorage>())
                     .ModifyOptions(
@@ -102,7 +117,8 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             .WithOptions(new GraphQLServerOptions
                             {
                                 EnableBatching = true,
-                                AllowedGetOperations = AllowedGetOperations.Query | AllowedGetOperations.Subscription,
+                                AllowedGetOperations =
+                                    AllowedGetOperations.Query | AllowedGetOperations.Subscription,
                             });
 
                         configureConventions?.Invoke(builder);
@@ -112,12 +128,11 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                         endpoints.MapGraphQL("/upload", "upload");
                         endpoints.MapGraphQL("/starwars", "StarWars");
                         endpoints.MapGraphQL("/test", "test");
-                        endpoints.MapGraphQL("/batching").
-                            WithOptions(new GraphQLServerOptions
-                            {
-                                // with defaults
-                                // EnableBatching = false
-                            });
+                        endpoints.MapGraphQL("/batching").WithOptions(new GraphQLServerOptions
+                        {
+                            // with defaults
+                            // EnableBatching = false
+                        });
                     }));
     }
 

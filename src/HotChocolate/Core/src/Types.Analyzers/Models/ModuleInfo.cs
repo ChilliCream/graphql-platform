@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ModuleInfo(string moduleName, ModuleOptions options) : ISyntaxInfo
+public sealed class ModuleInfo(string moduleName, ModuleOptions options) : SyntaxInfo
 {
     public string ModuleName { get; } = moduleName;
 
@@ -9,7 +9,7 @@ public sealed class ModuleInfo(string moduleName, ModuleOptions options) : ISynt
     public override bool Equals(object? obj)
         => obj is ModuleInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo obj)
+    public override bool Equals(SyntaxInfo obj)
         => obj is ModuleInfo other && Equals(other);
 
     private bool Equals(ModuleInfo other)

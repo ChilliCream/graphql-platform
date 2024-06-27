@@ -174,15 +174,6 @@
   <data name="SingleValueExtensionData_KeyIsEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="FieldCoordinate_Parse_InvalidComponentCount" xml:space="preserve">
-    <value>A field coordinate must consist of the type and a field separated by a `.`.</value>
-  </data>
-  <data name="FieldCoordinate_Parse_InvalidFieldComponentCount" xml:space="preserve">
-    <value>A field coordinate must consist of the type, field and a maximum of one argument.</value>
-  </data>
-  <data name="FieldCoordinate_Parse_InvalidFormat" xml:space="preserve">
-    <value>The string has an invalid format.</value>
-  </data>
   <data name="AggregateError_Message" xml:space="preserve">
     <value>For error details look at the `Errors` property.</value>
   </data>

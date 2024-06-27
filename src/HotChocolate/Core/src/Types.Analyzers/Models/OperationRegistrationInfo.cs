@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class OperationRegistrationInfo(OperationType type, string typeName) : ISyntaxInfo
+public sealed class OperationRegistrationInfo(OperationType type, string typeName) : SyntaxInfo
 {
     public OperationType Type { get; } = type;
 
@@ -9,11 +9,11 @@ public sealed class OperationRegistrationInfo(OperationType type, string typeNam
     public override bool Equals(object? obj)
         => obj is OperationRegistrationInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo other)
+    public override bool Equals(SyntaxInfo other)
         => other is OperationRegistrationInfo info && Equals(info);
 
     private bool Equals(OperationRegistrationInfo other)
-        => Type.Equals(Type)
+        => Type.Equals(other.Type)
             && TypeName.Equals(other.TypeName, StringComparison.Ordinal);
 
     public override int GetHashCode()

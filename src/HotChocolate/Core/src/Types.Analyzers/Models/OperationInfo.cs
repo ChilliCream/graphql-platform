@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class OperationInfo(OperationType type, string typeName, string methodName) : ISyntaxInfo
+public sealed class OperationInfo(OperationType type, string typeName, string methodName) : SyntaxInfo
 {
     public OperationType Type { get; } = type;
 
@@ -11,7 +11,7 @@ public sealed class OperationInfo(OperationType type, string typeName, string me
     public override bool Equals(object? obj)
         => obj is OperationInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo obj)
+    public override bool Equals(SyntaxInfo obj)
         => obj is OperationInfo info && Equals(info);
 
     private bool Equals(OperationInfo other)

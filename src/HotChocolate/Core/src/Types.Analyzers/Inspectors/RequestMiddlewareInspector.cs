@@ -12,7 +12,7 @@ internal sealed class RequestMiddlewareInspector : ISyntaxInspector
 {
     public IReadOnlyList<ISyntaxFilter> Filters => [MiddlewareMethod.Instance];
 
-    public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+    public bool TryHandle(GeneratorSyntaxContext context, [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is InvocationExpressionSyntax
             {

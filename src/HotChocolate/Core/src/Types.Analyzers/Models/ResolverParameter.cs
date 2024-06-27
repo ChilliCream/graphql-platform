@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Analyzers.Models;
 
 public sealed class ResolverParameter
 {
-    private ResolverParameter(IParameterSymbol parameter, string? key, ResolverParameterKind kind)
+    public ResolverParameter(IParameterSymbol parameter, string? key, ResolverParameterKind kind)
     {
         Parameter = parameter;
         Kind = kind;

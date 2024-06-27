@@ -9,7 +9,7 @@ public sealed class RequestMiddlewareInfo(
     (string, int, int) location,
     List<RequestMiddlewareParameterInfo> ctorParameters,
     List<RequestMiddlewareParameterInfo> invokeParameters)
-    : ISyntaxInfo
+    : SyntaxInfo
 {
     public string Name { get; } = name;
 
@@ -26,7 +26,7 @@ public sealed class RequestMiddlewareInfo(
     public override bool Equals(object? obj)
         => obj is RequestMiddlewareInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo obj)
+    public override bool Equals(SyntaxInfo obj)
         => obj is RequestMiddlewareInfo other && Equals(other);
 
     private bool Equals(RequestMiddlewareInfo other)

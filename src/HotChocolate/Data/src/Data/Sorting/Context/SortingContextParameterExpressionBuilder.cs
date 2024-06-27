@@ -21,7 +21,7 @@ internal sealed class SortingContextParameterExpressionBuilder
             .GetMethods(BindingFlags.Static | BindingFlags.Public)
             .First(method => method.Name.Equals(_getSortingContext, StringComparison.Ordinal));
 
-    /// <inheritdoc />
+    /// <inheritdoc cref="IParameterExpressionBuilder.Kind" />
     public ArgumentKind Kind => ArgumentKind.Service;
 
     /// <inheritdoc />
@@ -43,7 +43,4 @@ internal sealed class SortingContextParameterExpressionBuilder
 
     public T Execute<T>(IResolverContext context)
         => (T)context.GetSortingContext()!;
-
-    public T Execute<T>(IPureResolverContext context)
-        => throw new NotSupportedException();
 }

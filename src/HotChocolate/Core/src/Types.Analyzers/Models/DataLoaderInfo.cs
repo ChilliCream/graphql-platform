@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class DataLoaderInfo : ISyntaxInfo
+public sealed class DataLoaderInfo : SyntaxInfo
 {
     public DataLoaderInfo(
         AttributeSyntax attributeSyntax,
@@ -64,7 +64,7 @@ public sealed class DataLoaderInfo : ISyntaxInfo
     public override bool Equals(object? obj)
         => obj is DataLoaderInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo obj)
+    public override bool Equals(SyntaxInfo obj)
         => obj is DataLoaderInfo other && Equals(other);
 
     private bool Equals(DataLoaderInfo other)

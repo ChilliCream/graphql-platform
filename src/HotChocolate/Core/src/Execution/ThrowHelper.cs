@@ -251,25 +251,25 @@ internal static class ThrowHelper
         new("The specified object was not initialized and is no longer usable.");
 
     public static GraphQLException ResolverContext_CannotCastParent(
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         Path path,
         Type requestType,
         Type parentType)
         => new(ErrorBuilder.New()
             .SetMessage(
                 ThrowHelper_ResolverContext_CannotCastParent,
-                field,
+                fieldCoordinate,
                 parentType,
                 requestType)
             .SetPath(path)
-            .SetExtension(nameof(field), field.ToString())
+            .SetFieldCoordinate(fieldCoordinate)
             .SetCode(ErrorCodes.Execution.CannotCastParent)
             .Build());
 
     public static GraphQLException OneOfFieldMustBeNonNull(
-        FieldCoordinate field)
+        SchemaCoordinate field)
         => new(ErrorBuilder.New()
-            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.FieldName))
+            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.MemberName))
             .SetCode(ErrorCodes.Execution.OneOfFieldMustBeNonNull)
             .SetExtension(nameof(field), field.ToString())
             .Build());

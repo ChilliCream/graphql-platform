@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class TypeExtensionInfo(string name, bool isStatic, OperationType type = OperationType.No) : ISyntaxInfo
+public sealed class TypeExtensionInfo(string name, bool isStatic, OperationType type = OperationType.No) : SyntaxInfo
 {
     public string Name { get; } = name;
 
@@ -11,7 +11,7 @@ public sealed class TypeExtensionInfo(string name, bool isStatic, OperationType 
     public override bool Equals(object? obj)
         => obj is TypeExtensionInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo? other)
+    public override bool Equals(SyntaxInfo? other)
         => other is TypeExtensionInfo info && Equals(info);
 
     private bool Equals(TypeExtensionInfo other)

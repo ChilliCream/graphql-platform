@@ -7,16 +7,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class ObjectTypeParameterExpressionBuilder
-    : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectType>
+internal sealed class ObjectTypeParameterExpressionBuilder()
+    : LambdaParameterExpressionBuilder<IObjectType>(ctx => ctx.ObjectType, isPure: true)
     , IParameterBindingFactory
     , IParameterBinding
 {
-    public ObjectTypeParameterExpressionBuilder()
-        : base(ctx => ctx.ObjectType)
-    {
-    }
-
     public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
     public override bool CanHandle(ParameterInfo parameter)
@@ -36,8 +31,5 @@ internal sealed class ObjectTypeParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => (T)(object)context.ObjectType;
-
-    public T Execute<T>(IPureResolverContext context)
-        => (T)(object)context.ObjectType;
+        => (T)context.ObjectType;
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Utilities;
@@ -56,6 +57,11 @@ public class ObjectTypeDefinition
     /// The type that shall be used to infer fields from.
     /// </summary>
     public Type? FieldBindingType { get; set; }
+
+    /// <summary>
+    /// Gets the type that can provide attributes to this type.
+    /// </summary>
+    public ImmutableArray<Type> AttributeBindingTypes { get; set; } = ImmutableArray<Type>.Empty;
 
     /// <summary>
     /// Runtime types that also represent this GraphQL type.
@@ -205,6 +211,11 @@ public class ObjectTypeDefinition
             }
         }
 
+        if(AttributeBindingTypes.Length > 0)
+        {
+            target.AttributeBindingTypes = AttributeBindingTypes;
+        }
+
         target.FieldBindingType = FieldBindingType;
         target.IsOfType = IsOfType;
         target.IsExtension = IsExtension;
@@ -230,6 +241,11 @@ public class ObjectTypeDefinition
         {
             target._fieldIgnores ??= [];
             target._fieldIgnores.AddRange(_fieldIgnores);
+        }
+
+        if(AttributeBindingTypes.Length > 0)
+        {
+            target.AttributeBindingTypes = target.AttributeBindingTypes.AddRange(AttributeBindingTypes);
         }
 
         foreach (var field in Fields)

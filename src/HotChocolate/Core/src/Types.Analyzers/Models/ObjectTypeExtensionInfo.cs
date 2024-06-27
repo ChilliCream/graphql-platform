@@ -8,11 +8,10 @@ namespace HotChocolate.Types.Analyzers.Models;
 public sealed class ObjectTypeExtensionInfo(
     INamedTypeSymbol type,
     INamedTypeSymbol runtimeType,
-    IMethodSymbol? nodeResolver,
-    ImmutableArray<Diagnostic> diagnostics,
+    Resolver? nodeResolver,
     ClassDeclarationSyntax classDeclarationSyntax,
     ImmutableArray<Resolver> resolvers)
-    : ISyntaxInfo
+    : SyntaxInfo
 {
     public string Name { get; } = type.ToFullyQualified();
 
@@ -20,9 +19,7 @@ public sealed class ObjectTypeExtensionInfo(
 
     public INamedTypeSymbol RuntimeType { get; } = runtimeType;
 
-    public IMethodSymbol? NodeResolver { get; } = nodeResolver;
-
-    public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
+    public Resolver? NodeResolver { get; } = nodeResolver;
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
 
@@ -31,7 +28,7 @@ public sealed class ObjectTypeExtensionInfo(
     public override bool Equals(object? obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo obj)
+    public override bool Equals(SyntaxInfo obj)
         => obj is ObjectTypeExtensionInfo other && Equals(other);
 
     private bool Equals(ObjectTypeExtensionInfo other)

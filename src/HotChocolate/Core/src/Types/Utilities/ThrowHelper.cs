@@ -277,7 +277,7 @@ internal static class ThrowHelper
             .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
-            .SetExtension(nameof(field), field.Coordinate.ToString());
+            .SetFieldCoordinate(field.Coordinate);
 
         return new(builder.Build(), type, path);
     }
@@ -294,7 +294,7 @@ internal static class ThrowHelper
 
         if (field is not null)
         {
-            builder.SetExtension(nameof(field), field.Coordinate.ToString());
+            builder.SetFieldCoordinate(field.Coordinate);
         }
 
         return new(builder.Build(), type, path);

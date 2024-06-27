@@ -266,11 +266,11 @@ internal static class ErrorHelper
     {
         return ErrorBuilder.New()
             .SetMessage(Resources.ErrorHelper_FieldsAreNotMergeable)
-            .SetLocations([fieldA.Field, fieldB.Field])
+            .SetLocations([fieldA.SyntaxNode, fieldB.SyntaxNode])
             .SetExtension("declaringTypeA", fieldA.DeclaringType.NamedType().Name)
             .SetExtension("declaringTypeB", fieldB.DeclaringType.NamedType().Name)
-            .SetExtension("fieldA", fieldA.Field.Name.Value)
-            .SetExtension("fieldB", fieldB.Field.Name.Value)
+            .SetExtension("fieldA", fieldA.SyntaxNode.Name.Value)
+            .SetExtension("fieldB", fieldB.SyntaxNode.Name.Value)
             .SetExtension("typeA", fieldA.Type.Print())
             .SetExtension("typeB", fieldB.Type.Print())
             .SetExtension("responseNameA", fieldA.ResponseName)
@@ -669,18 +669,18 @@ internal static class ErrorHelper
     public static IError OneOfVariablesMustBeNonNull(
         this IDocumentValidatorContext context,
         ISyntaxNode node,
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         string variableName)
         => ErrorBuilder.New()
             .SetMessage(
                 Resources.ErrorHelper_OneOfVariablesMustBeNonNull,
                 variableName,
-                field.FieldName,
-                field.TypeName)
+                fieldCoordinate.MemberName!,
+                fieldCoordinate.Name)
             .SetLocations([node])
             .SetPath(context.CreateErrorPath())
-            .SetExtension(nameof(field), field.ToString())
-            .SpecifiedBy("sec-OneOf-Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .SetFieldCoordinate(fieldCoordinate)
+            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 
     public static IError DeferAndStreamNotAllowedOnMutationOrSubscriptionRoot(

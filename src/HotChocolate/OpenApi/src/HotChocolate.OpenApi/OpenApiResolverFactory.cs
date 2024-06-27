@@ -82,7 +82,7 @@ internal static class OpenApiResolverFactory
     }
 
     private static HttpRequestMessage CreateRequest(
-        IPureResolverContext resolverContext,
+        IResolverContext resolverContext,
         OpenApiOperationWrapper operationWrapper)
     {
         var operation = operationWrapper.Operation;
@@ -171,7 +171,7 @@ internal static class OpenApiResolverFactory
 
     private static object? GetArgumentValue(
         OpenApiParameter parameter,
-        IPureResolverContext resolverContext)
+        IResolverContext resolverContext)
     {
         // Try to get the argument value from a link parameter.
         if (resolverContext.ContextData.TryGetValue(

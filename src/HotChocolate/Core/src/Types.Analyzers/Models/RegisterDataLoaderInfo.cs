@@ -1,13 +1,13 @@
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class RegisterDataLoaderInfo(string name) : ISyntaxInfo
+public sealed class RegisterDataLoaderInfo(string name) : SyntaxInfo
 {
     public string Name { get; } = name;
 
     public override bool Equals(object? obj)
         => obj is RegisterDataLoaderInfo other && Equals(other);
 
-    public bool Equals(ISyntaxInfo other)
+    public override bool Equals(SyntaxInfo other)
         => other is RegisterDataLoaderInfo info && Equals(info);
 
     private bool Equals(RegisterDataLoaderInfo other)
