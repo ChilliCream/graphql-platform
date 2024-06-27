@@ -12,8 +12,8 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
-using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.ApolloFederation.FederationContextData;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 using static HotChocolate.Types.TagHelper;
 
 namespace HotChocolate.ApolloFederation;
@@ -95,7 +95,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         _registeredTypes = true;
         yield return _typeInspector.GetTypeRef(typeof(_Service));
-        yield return _typeInspector.GetTypeRef(typeof(_EntityType));
+        if (_entityTypes.Count > 0)
+        {
+            yield return _typeInspector.GetTypeRef(typeof(_EntityType));
+        }
         yield return _typeInspector.GetTypeRef(typeof(_AnyType));
         yield return _typeInspector.GetTypeRef(typeof(FieldSetType));
 
@@ -283,14 +286,6 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
     }
 
-    public override void OnTypesInitialized()
-    {
-        if (_entityTypes.Count == 0)
-        {
-            throw EntityType_NoEntities();
-        }
-    }
-
     public override void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
@@ -388,7 +383,10 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         var objectTypeDefinition = (ObjectTypeDefinition)definition!;
         objectTypeDefinition.Fields.Add(ServerFields.CreateServiceField(_context));
-        objectTypeDefinition.Fields.Add(ServerFields.CreateEntitiesField(_context));
+        if (_entityTypes.Count > 0)
+        {
+            objectTypeDefinition.Fields.Add(ServerFields.CreateEntitiesField(_context));
+        }
     }
 
     private void ApplyMethodLevelReferenceResolvers(
@@ -432,8 +430,15 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectType objectType,
         ObjectTypeDefinition objectTypeDefinition)
     {
-        if (objectTypeDefinition.Directives.Any(d => d.Value is KeyDirective) ||
-            objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker)))
+        if (objectTypeDefinition.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective &&
+            ((KeyDirective)keyDirective.Value).Resolvable)
+        {
+            _entityTypes.Add(objectType);
+            return;
+        }
+
+        if (objectTypeDefinition.Fields.Any(f => f.ContextData.TryGetValue(KeyMarker, out var resolvable) &&
+                resolvable is true))
         {
             _entityTypes.Add(objectType);
         }
@@ -457,11 +462,22 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
         IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
         var fieldSet = new StringBuilder();
+        bool? resolvable = null;
 
         foreach (var fieldDefinition in fields)
         {
-            if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
+            if (fieldDefinition.ContextData.TryGetValue(KeyMarker, out var value) &&
+                value is bool currentResolvable)
             {
+                if (resolvable is null)
+                {
+                    resolvable = currentResolvable;
+                }
+                else if (resolvable != currentResolvable)
+                {
+                    throw Key_FieldSet_ResolvableMustBeConsistent(fieldDefinition.Member!);
+                }
+
                 if (fieldSet.Length > 0)
                 {
                     fieldSet.Append(' ');
@@ -472,7 +488,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         }
 
         // add the key directive with the dynamically generated field set.
-        AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
+        AddKeyDirective(objectTypeDefinition, fieldSet.ToString(), resolvable ?? true);
 
         // register dependency to the key directive so that it is completed before
         // we complete this type.
@@ -486,9 +502,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             discoveryContext.Dependencies.Add(new(directiveDefinition.Type));
         }
 
-        // since this type has now a key directive we also need to add this type to
-        // the _Entity union type.
-        _entityTypes.Add(objectType);
+        if (resolvable ?? true)
+        {
+            // since this type has now a key directive we also need to add this type to
+            // the _Entity union type provided that the key is resolvable.
+            _entityTypes.Add(objectType);
+        }
     }
 
     private void AddMemberTypesToTheEntityUnionType(
@@ -507,11 +526,12 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
 
     private void AddKeyDirective(
         ObjectTypeDefinition objectTypeDefinition,
-        string fieldSet)
+        string fieldSet,
+        bool resolvable)
     {
         objectTypeDefinition.Directives.Add(
             new DirectiveDefinition(
-                new KeyDirective(fieldSet),
+                new KeyDirective(fieldSet, resolvable),
                 _keyDirectiveReference));
     }
 }
