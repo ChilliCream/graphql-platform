@@ -63,29 +63,27 @@ internal sealed class GraphQLOverWebSocketProtocolHandler : IProtocolHandler
 
             case MessageType.Pong:
                 // we do nothing and just accept the pong as a valid message.
-                break;
+                return default;
 
             case MessageType.Next:
                 context.Messages.OnNext(NextMessage.From(message));
-                break;
+                return default;
 
             case MessageType.Error:
                 context.Messages.OnNext(ErrorMessage.From(message));
-                break;
+                return default;
 
             case MessageType.Complete:
                 context.Messages.OnNext(CompleteMessage.From(message));
-                break;
+                return default;
 
             case MessageType.ConnectionAccept:
                 context.Messages.OnNext(ConnectionAcceptMessage.Default);
-                break;
+                return default;
 
-            case MessageType.None:
+            default:
                 return FatalError(context, cancellationToken);
         }
-
-        return default;
 
         static async ValueTask FatalError(
             SocketClientContext context,
