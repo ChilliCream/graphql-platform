@@ -53,19 +53,11 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     }
 
     /// <inheritdoc />
-    public virtual IDisposable AnalyzeOperationComplexity(IRequestContext context)
+    public virtual IDisposable AnalyzeOperationCost(IRequestContext context)
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual void OperationComplexityAnalyzerCompiled(IRequestContext context)
-    {
-    }
-
-    /// <inheritdoc />
-    public virtual void OperationComplexityResult(
-        IRequestContext context,
-        int complexity,
-        int allowedComplexity)
+    public virtual void OperationCost(IRequestContext context, double fieldCost, double typeCost)
     {
     }
 

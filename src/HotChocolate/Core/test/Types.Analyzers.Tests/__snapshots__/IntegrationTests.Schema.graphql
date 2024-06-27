@@ -78,6 +78,7 @@ type BooksEdge {
 
 type Chapter implements Node {
   id: ID!
+  fooBar: String!
   book: Book
   number: Int!
   title: String!
