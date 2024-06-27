@@ -173,10 +173,9 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
 
         // assert
         Assert.Collection(ex.Errors,
-            item =>
-            {
-                Assert.Contains("The specified key attributes must share the same resolvable values when annotated on multiple fields.", item.Message);
-            });
+            item => Assert.Contains(
+                "The specified key attributes must share the same resolvable "
+                + "values when annotated on multiple fields.", item.Message));
     }
 
     [Fact]

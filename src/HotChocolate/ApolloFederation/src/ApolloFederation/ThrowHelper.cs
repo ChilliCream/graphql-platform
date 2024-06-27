@@ -134,7 +134,9 @@ internal static class ThrowHelper
 
         return new SchemaException(
             SchemaErrorBuilder.New()
-                .SetMessage("The specified key attributes must shared the same resolvable values when annotated on multiple fields.")
+                .SetMessage(
+                    "The specified key attributes must share the same resolvable " +
+                    "values when annotated on multiple fields.")
                 .SetExtension("type", type.FullName ?? type.Name)
                 .SetExtension("member", member.Name)
                 // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
