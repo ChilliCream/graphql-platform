@@ -9,16 +9,19 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 1,
-          "column": 24
+          "line": 4,
+          "column": 5
         }
       ],
       "path": [
-        "viewer"
+        "viewer",
+        "name"
       ]
     }
   ],
-  "data": {}
+  "data": {
+    "viewer": null
+  }
 }
 ```
 

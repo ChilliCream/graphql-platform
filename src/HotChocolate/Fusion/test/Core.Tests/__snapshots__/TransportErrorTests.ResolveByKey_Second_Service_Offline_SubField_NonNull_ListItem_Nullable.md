@@ -6,7 +6,7 @@
 {
   "errors": [
     {
-      "message": "Cannot return null for non-nullable field.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
           "line": 5,
@@ -17,13 +17,10 @@
         "products",
         2,
         "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
+      ]
     },
     {
-      "message": "Cannot return null for non-nullable field.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
           "line": 5,
@@ -34,13 +31,10 @@
         "products",
         1,
         "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
+      ]
     },
     {
-      "message": "Cannot return null for non-nullable field.",
+      "message": "Unexpected Execution Error",
       "locations": [
         {
           "line": 5,
@@ -51,13 +45,7 @@
         "products",
         0,
         "price"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Internal Execution Error"
+      ]
     }
   ],
   "data": {

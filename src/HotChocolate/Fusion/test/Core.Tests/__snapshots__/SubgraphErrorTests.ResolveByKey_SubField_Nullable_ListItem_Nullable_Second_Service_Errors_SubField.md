@@ -9,13 +9,13 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 1,
-          "column": 98
+          "line": 5,
+          "column": 5
         }
       ],
       "path": [
         "products",
-        0,
+        1,
         "price"
       ]
     }

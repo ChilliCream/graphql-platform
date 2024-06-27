@@ -6,10 +6,20 @@
 {
   "errors": [
     {
-      "message": "Top Level Error"
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 5
+        }
+      ],
+      "path": [
+        "viewer",
+        "userId"
+      ]
     }
   ],
-  "data": {}
+  "data": null
 }
 ```
 

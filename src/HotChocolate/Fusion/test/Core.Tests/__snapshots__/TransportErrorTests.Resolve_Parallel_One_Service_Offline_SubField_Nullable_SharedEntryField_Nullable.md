@@ -6,7 +6,17 @@
 {
   "errors": [
     {
-      "message": "Internal Execution Error"
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "path": [
+        "viewer",
+        "name"
+      ]
     }
   ],
   "data": {

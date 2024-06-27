@@ -6,7 +6,18 @@
 {
   "errors": [
     {
-      "message": "Internal Execution Error"
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 6,
+          "column": 7
+        }
+      ],
+      "path": [
+        "product",
+        "brand",
+        "name"
+      ]
     }
   ],
   "data": {

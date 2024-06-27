@@ -9,16 +9,24 @@
       "message": "Unexpected Execution Error",
       "locations": [
         {
-          "line": 1,
-          "column": 29
+          "line": 6,
+          "column": 5
         }
       ],
       "path": [
-        "productById"
+        "productById",
+        "score"
       ]
     }
   ],
-  "data": {}
+  "data": {
+    "productById": {
+      "id": "1",
+      "name": "string",
+      "price": 123.456,
+      "score": null
+    }
+  }
 }
 ```
 
