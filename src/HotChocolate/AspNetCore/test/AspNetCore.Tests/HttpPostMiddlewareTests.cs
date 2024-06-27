@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using CookieCrumble;
 using CookieCrumble.Formatters;
@@ -10,17 +9,13 @@ using HotChocolate.Execution.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpPostMiddlewareTests : ServerTestBase
+public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri _url = new("http://localhost:5000/graphql");
-
-    public HttpPostMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory) { }
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -509,7 +504,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         hero(episode: NEW_HOPE)
                         {
                             name
-                            friends {
+                            friends(first: 10) {
                                 nodes @stream(initialCount: 1 label: ""foo"") {
                                     name
                                 }

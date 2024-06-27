@@ -35,4 +35,30 @@ internal static class HttpContextExtensions
 
         return false;
     }
+
+    public static string? TryGetCostSwitch(this HttpContext context)
+    {
+        var headers = context.Request.Headers;
+        if (headers.TryGetValue(HttpHeaderKeys.Cost, out var values))
+        {
+            var value = values.FirstOrDefault();
+
+            if (value is null)
+            {
+                return null;
+            }
+
+            if(value.Equals(HttpHeaderValues.ReportCost, StringComparison.OrdinalIgnoreCase))
+            {
+                return WellKnownContextData.ReportCost;
+            }
+
+            if(value.Equals(HttpHeaderValues.ValidateCost, StringComparison.OrdinalIgnoreCase))
+            {
+                return WellKnownContextData.ValidateCost;
+            }
+        }
+
+        return null;
+    }
 }

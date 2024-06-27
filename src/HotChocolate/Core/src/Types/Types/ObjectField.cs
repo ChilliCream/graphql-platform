@@ -167,8 +167,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
             options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
             isIntrospectionField;
 
-        var resolvers = CompileResolver(context, definition);
-
+        var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
 
         if (resolvers.PureResolver is not null && IsPureContext())
@@ -204,81 +203,13 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         {
             Middleware = middleware;
         }
+        return;
 
         bool IsPureContext()
         {
             return skipMiddleware ||
                 (context.GlobalComponents.Count == 0 &&
                     fieldMiddlewareDefinitions.Count == 0);
-        }
-    }
-
-    private static FieldResolverDelegates CompileResolver(
-        ITypeCompletionContext context,
-        ObjectFieldDefinition definition)
-    {
-        var resolvers = definition.Resolvers;
-
-        if (!resolvers.HasResolvers)
-        {
-            if (definition.Expression is LambdaExpression lambdaExpression)
-            {
-                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
-                    lambdaExpression,
-                    definition.SourceType ??
-                    definition.Member?.ReflectedType ??
-                    definition.Member?.DeclaringType ??
-                    typeof(object),
-                    definition.ResolverType);
-            }
-            else if (definition.ResolverMember is not null)
-            {
-                var map = TypeMemHelper.RentArgumentNameMap();
-                BuildArgumentLookup(definition, map);
-
-                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
-                    definition.ResolverMember,
-                    definition.SourceType ??
-                    definition.Member?.ReflectedType ??
-                    definition.Member?.DeclaringType ??
-                    typeof(object),
-                    definition.ResolverType,
-                    map,
-                    definition.GetParameterExpressionBuilders());
-
-                TypeMemHelper.Return(map);
-            }
-            else if (definition.Member is not null)
-            {
-                var map = TypeMemHelper.RentArgumentNameMap();
-                BuildArgumentLookup(definition, map);
-
-                resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
-                    definition.Member,
-                    definition.SourceType ??
-                    definition.Member.ReflectedType ??
-                    definition.Member.DeclaringType,
-                    definition.ResolverType,
-                    map,
-                    definition.GetParameterExpressionBuilders());
-
-                TypeMemHelper.Return(map);
-            }
-        }
-
-        return resolvers;
-
-        static void BuildArgumentLookup(
-            ObjectFieldDefinition definition,
-            Dictionary<ParameterInfo, string> argumentNames)
-        {
-            foreach (var argument in definition.Arguments)
-            {
-                if (argument.Parameter is not null)
-                {
-                    argumentNames[argument.Parameter] = argument.Name;
-                }
-            }
         }
     }
 }

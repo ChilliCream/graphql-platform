@@ -34,6 +34,12 @@ public class DefaultHttpRequestInterceptor : IHttpRequestInterceptor
             requestBuilder.TryAddGlobalState(WellKnownContextData.IncludeQueryPlan, true);
         }
 
+        var costSwitch = context.TryGetCostSwitch();
+        if (costSwitch is not null)
+        {
+            requestBuilder.TryAddGlobalState(costSwitch, true);
+        }
+
         return default;
     }
 }

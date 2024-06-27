@@ -12,10 +12,10 @@ using static HotChocolate.Types.UnwrapFieldMiddlewareHelper;
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types;
 
-public static class SortObjectFieldDescriptorExtensions
+public static class SortingObjectFieldDescriptorExtensions
 {
     private static readonly MethodInfo _factoryTemplate =
-        typeof(SortObjectFieldDescriptorExtensions)
+        typeof(SortingObjectFieldDescriptorExtensions)
             .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
     /// <summary>
@@ -173,6 +173,7 @@ public static class SortObjectFieldDescriptorExtensions
                     {
                         Name = argumentPlaceholder,
                         Type = argumentTypeReference,
+                        Flags = FieldFlags.SortArgument
                     };
 
                     argumentDefinition.Configurations.Add(

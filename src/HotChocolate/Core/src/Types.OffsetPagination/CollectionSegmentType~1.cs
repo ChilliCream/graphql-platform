@@ -102,7 +102,10 @@ internal class CollectionSegmentType
             definition.Fields.Add(new(
                 Names.TotalCount,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync));
+                resolver: GetTotalCountAsync)
+            {
+                Flags = FieldFlags.TotalCount
+            });
         }
 
         return definition;

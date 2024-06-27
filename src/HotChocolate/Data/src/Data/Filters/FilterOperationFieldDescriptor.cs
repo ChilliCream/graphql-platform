@@ -20,6 +20,7 @@ public class FilterOperationFieldDescriptor
         Definition.Name = convention.GetOperationName(operationId);
         Definition.Description = convention.GetOperationDescription(operationId);
         Definition.Scope = scope;
+        Definition.Flags = FieldFlags.FilterOperationField;
     }
 
     protected internal new FilterOperationFieldDefinition Definition => base.Definition;
@@ -28,8 +29,8 @@ public class FilterOperationFieldDescriptor
         FilterOperationFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
-        if (Definition is { AttributesAreApplied: false, Property: not null, })
+
+        if (Definition is { AttributesAreApplied: false, Property: not null })
         {
             Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
             Definition.AttributesAreApplied = true;
