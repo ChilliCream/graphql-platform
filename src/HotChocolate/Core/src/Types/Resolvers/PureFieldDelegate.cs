@@ -8,4 +8,4 @@ namespace HotChocolate.Resolvers;
 /// <returns>
 /// Returns the resolver result.
 /// </returns>
-public delegate object? PureFieldDelegate(IPureResolverContext context);
+public delegate object? PureFieldDelegate(IResolverContext context);

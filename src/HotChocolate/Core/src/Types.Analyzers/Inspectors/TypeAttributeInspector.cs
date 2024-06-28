@@ -1,17 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.StringComparison;
 using static HotChocolate.Types.Analyzers.WellKnownAttributes;
+using TypeInfo = HotChocolate.Types.Analyzers.Models.TypeInfo;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public sealed class TypeAttributeInspector : ISyntaxInspector
 {
+    public IReadOnlyList<ISyntaxFilter> Filters => [TypeWithAttribute.Instance];
+
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is BaseTypeDeclarationSyntax { AttributeLists.Count: > 0, } possibleType)
         {

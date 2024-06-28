@@ -92,6 +92,7 @@ public abstract partial class ScalarType
         {
             return true;
         }
+
         return RuntimeType.IsInstanceOfType(runtimeValue);
     }
 

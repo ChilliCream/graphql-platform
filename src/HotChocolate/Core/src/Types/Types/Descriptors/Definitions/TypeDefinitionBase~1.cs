@@ -27,7 +27,7 @@ public class TypeDefinitionBase : DefinitionBase, ITypeDefinition
     public bool NeedsNameCompletion { get; set; }
 
     /// <summary>
-    /// Gets or sets the .net type representation of this type.
+    /// Gets or sets the .NET type representation of this type.
     /// </summary>
     public virtual Type RuntimeType
     {

@@ -33,7 +33,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
     private ExtensionData _schemaContextData = default!;
     private ITypeCompletionContext _queryContext = default!;
 
-    internal override uint Position => uint.MaxValue;
+    internal override uint Position => uint.MaxValue - 50;
 
     internal override void InitializeContext(
         IDescriptorContext context,
@@ -393,7 +393,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             else
             {
                 throw ThrowHelper.UnauthorizedType(
-                    new FieldCoordinate(typeName, fieldDef.Name));
+                    new SchemaCoordinate(typeName, fieldDef.Name));
             }
         }
     }

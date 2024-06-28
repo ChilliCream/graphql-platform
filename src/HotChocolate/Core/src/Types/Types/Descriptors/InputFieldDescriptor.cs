@@ -63,7 +63,7 @@ public class InputFieldDescriptor
     protected override void OnCreateDefinition(InputFieldDefinition definition)
     {
         Context.Descriptors.Push(this);
-        
+
         if (Definition is { AttributesAreApplied: false, Property: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
@@ -77,7 +77,7 @@ public class InputFieldDescriptor
 
         Context.Descriptors.Pop();
     }
-    
+
     /// <inheritdoc />
     public IInputFieldDescriptor Name(string value)
     {

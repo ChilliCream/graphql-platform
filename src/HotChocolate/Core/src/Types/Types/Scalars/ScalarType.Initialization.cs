@@ -37,7 +37,7 @@ public abstract partial class ScalarType
 
     protected override ScalarTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {
-        var descriptor = ScalarTypeDescriptor.New(context.DescriptorContext, Name, Description);
+        var descriptor = ScalarTypeDescriptor.New(context.DescriptorContext, Name, Description, GetType());
         Configure(descriptor);
         return descriptor.CreateDefinition();
     }

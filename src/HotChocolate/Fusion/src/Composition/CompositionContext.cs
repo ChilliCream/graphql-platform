@@ -59,7 +59,7 @@ internal sealed class CompositionContext
     /// <summary>
     /// Gets the subgraph schemas.
     /// </summary>
-    public List<Schema> Subgraphs { get; } = [];
+    public List<SchemaDefinition> Subgraphs { get; } = [];
 
     /// <summary>
     /// Get the grouped subgraph entities.
@@ -69,7 +69,7 @@ internal sealed class CompositionContext
     /// <summary>
     /// Gets the fusion graph schema.
     /// </summary>
-    public Schema FusionGraph { get; }
+    public SchemaDefinition FusionGraph { get; }
 
     /// <summary>
     /// Gets the fusion types.
@@ -105,7 +105,7 @@ internal sealed class CompositionContext
     /// <returns>
     /// Returns the subgraph schema.
     /// </returns>
-    public Schema GetSubgraphSchema(string subgraphName)
+    public SchemaDefinition GetSubgraphSchema(string subgraphName)
         => Subgraphs.First(t => t.Name.EqualsOrdinal(subgraphName));
 
     /// <summary>
@@ -130,11 +130,11 @@ internal sealed class CompositionContext
         string subgraphName,
         SchemaCoordinate coordinate,
         [NotNullWhen(true)] out T? member)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
         => GetSubgraphSchema(subgraphName).TryGetMember(coordinate, out member);
 
     public IEnumerable<T> GetSubgraphMembers<T>(SchemaCoordinate coordinate)
-        where T : ITypeSystemMember
+        where T : ITypeSystemMemberDefinition
     {
         foreach (var subgraph in Subgraphs)
         {
