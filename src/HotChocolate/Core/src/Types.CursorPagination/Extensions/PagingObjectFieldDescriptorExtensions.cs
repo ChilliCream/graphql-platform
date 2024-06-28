@@ -136,7 +136,7 @@ public static class PagingObjectFieldDescriptorExtensions
                 d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
                 d.Flags |= FieldFlags.Connection;
 
-                CreatePagingArguments(d.Arguments, backward, pagingOptions.LegacySupport ?? false);
+                CreatePagingArguments(d.Arguments, backward);
 
                 if (string.IsNullOrEmpty(connectionName))
                 {
@@ -223,7 +223,7 @@ public static class PagingObjectFieldDescriptorExtensions
                 d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
                 d.Flags |= FieldFlags.Connection;
 
-                CreatePagingArguments(d.Arguments, backward, pagingOptions.LegacySupport ?? false);
+                CreatePagingArguments(d.Arguments, backward);
 
                 if (string.IsNullOrEmpty(connectionName))
                 {
@@ -259,12 +259,6 @@ public static class PagingObjectFieldDescriptorExtensions
     public static IObjectFieldDescriptor AddPagingArguments(
         this IObjectFieldDescriptor descriptor,
         bool allowBackwardPagination)
-        => AddPagingArguments(descriptor, allowBackwardPagination, false);
-
-    public static IObjectFieldDescriptor AddPagingArguments(
-        this IObjectFieldDescriptor descriptor,
-        bool allowBackwardPagination,
-        bool legacySupport)
     {
         if (descriptor == null)
         {
@@ -273,8 +267,7 @@ public static class PagingObjectFieldDescriptorExtensions
 
         CreatePagingArguments(
             descriptor.Extend().Definition.Arguments,
-            allowBackwardPagination,
-            legacySupport);
+            allowBackwardPagination);
 
         return descriptor;
     }
@@ -286,12 +279,6 @@ public static class PagingObjectFieldDescriptorExtensions
     public static IInterfaceFieldDescriptor AddPagingArguments(
         this IInterfaceFieldDescriptor descriptor,
         bool allowBackwardPagination)
-        => AddPagingArguments(descriptor, allowBackwardPagination, false);
-
-    public static IInterfaceFieldDescriptor AddPagingArguments(
-        this IInterfaceFieldDescriptor descriptor,
-        bool allowBackwardPagination,
-        bool legacySupport)
     {
         if (descriptor == null)
         {
@@ -300,22 +287,16 @@ public static class PagingObjectFieldDescriptorExtensions
 
         CreatePagingArguments(
             descriptor.Extend().Definition.Arguments,
-            allowBackwardPagination,
-            legacySupport);
+            allowBackwardPagination);
 
         return descriptor;
     }
 
     private static void CreatePagingArguments(
         IList<ArgumentDefinition> arguments,
-        bool allowBackwardPagination,
-        bool legacySupport)
+        bool allowBackwardPagination)
     {
-        var intType =
-            legacySupport
-                ? TypeReference.Parse(ScalarNames.PaginationAmount)
-                : TypeReference.Parse(ScalarNames.Int);
-
+        var intType = TypeReference.Parse(ScalarNames.Int);
         var stringType = TypeReference.Parse(ScalarNames.String);
 
         arguments.AddOrUpdate(First, PagingArguments_First_Description, intType);
