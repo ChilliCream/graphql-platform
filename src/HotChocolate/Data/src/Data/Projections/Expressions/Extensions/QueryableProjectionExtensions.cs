@@ -42,10 +42,10 @@ public static class QueryableProjectExtensions
     /// The resolver context of the resolver that is annotated with UseProjection
     /// </param>
     /// <returns>The projected enumerable</returns>
-    public static QueryableExecutable<T> Project<T>(
-        this QueryableExecutable<T> enumerable,
+    public static IQueryableExecutable<T> Project<T>(
+        this IQueryableExecutable<T> enumerable,
         IResolverContext context) =>
-        ExecuteProject(enumerable, context, typeof(QueryableExecutable<T>));
+        ExecuteProject(enumerable, context, typeof(IQueryableExecutable<T>));
 
     private static T ExecuteProject<T>(
         this T input,

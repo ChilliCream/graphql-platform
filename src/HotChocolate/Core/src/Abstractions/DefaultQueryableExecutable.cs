@@ -4,12 +4,24 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using static HotChocolate.ExecutableErrorHelper;
 
 namespace HotChocolate;
 
-internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Executable<T>
+internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<IQueryable<T>, string>? printer = null)
+    : Executable<T>
+    , IQueryableExecutable<T>
 {
+    private readonly Func<IQueryable<T>, string> _printer = printer ?? (q => q.ToString() ?? string.Empty);
+
     public override object Source => source;
+
+    public bool IsInMemory { get; } = source is EnumerableQuery;
+
+    IQueryable<T> IQueryableExecutable<T>.Source => source;
+
+    public IQueryableExecutable<T> WithSource(IQueryable<T> src)
+        => new DefaultQueryableExecutable<T>(src);
 
     public override ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
     {
@@ -26,10 +38,14 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Exec
         if (source is IAsyncEnumerable<T> asyncEnumerable)
         {
             await using var enumerator = asyncEnumerable.GetAsyncEnumerator(cancellationToken);
-            return await enumerator.MoveNextAsync() ? enumerator.Current : default;
+            return await enumerator.MoveNextAsync().ConfigureAwait(false) ? enumerator.Current : default;
         }
 
+#if NET6_0_OR_GREATER
         return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken).WaitAsync(cancellationToken);
+#else
+        return await Task.Run(() => source.FirstOrDefault<T>(), cancellationToken);
+#endif
     }
 
     public override ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken = default)
@@ -47,13 +63,13 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Exec
         if (source is IAsyncEnumerable<T> asyncEnumerable)
         {
             await using var enumerator = asyncEnumerable.GetAsyncEnumerator(cancellationToken);
-            if (await enumerator.MoveNextAsync())
+            if (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 var result = enumerator.Current;
 
-                if (await enumerator.MoveNextAsync())
+                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    throw new InvalidOperationException("Sequence contains more than one element.");
+                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
                 }
 
                 return result;
@@ -62,7 +78,11 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Exec
             return default;
         }
 
+#if NET6_0_OR_GREATER
         return await Task.Run(() => source.SingleOrDefault<T>(), cancellationToken).WaitAsync(cancellationToken);
+#else
+        return await Task.Run(() => source.SingleOrDefault<T>(), cancellationToken);
+#endif
     }
 
     public override ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default)
@@ -89,10 +109,14 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Exec
             return result;
         }
 
+#if NET6_0_OR_GREATER
         return await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
+#else
+        return await Task.Run(() => source.ToList(), cancellationToken);
+#endif
     }
 
-    public async override IAsyncEnumerable<T> ToAsyncEnumerable(
+    public override async IAsyncEnumerable<T> ToAsyncEnumerable(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (source is IAsyncEnumerable<T> asyncEnumerable)
@@ -111,7 +135,11 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Exec
         }
         else
         {
+#if NET6_0_OR_GREATER
             var list = await Task.Run(() => source.ToList(), cancellationToken).WaitAsync(cancellationToken);
+#else
+            var list = await Task.Run(() => source.ToList(), cancellationToken);
+#endif
 
             foreach (var element in list)
             {
@@ -119,4 +147,6 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source) : Exec
             }
         }
     }
+
+    public override string Print() => _printer(source);
 }
