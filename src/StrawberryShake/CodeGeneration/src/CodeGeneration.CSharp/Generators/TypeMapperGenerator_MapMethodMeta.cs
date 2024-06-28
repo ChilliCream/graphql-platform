@@ -129,7 +129,7 @@ public partial class TypeMapperGenerator
             .SetCondition($"{propertyName} is null")
             .AddCode(
                 isNonNullType
-                    ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                    ? CodeLineBuilder.From("return default;")
                     : CodeLineBuilder.From("return null;"));
 
         return CodeBlockBuilder
@@ -164,7 +164,7 @@ public partial class TypeMapperGenerator
                     argString = NullCheckBuilder
                         .Inline()
                         .SetCondition(argString)
-                        .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException));
+                        .SetCode(CodeInlineBuilder.From("default"));
                 }
 
                 return mapperMethodCall

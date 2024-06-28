@@ -133,8 +133,7 @@ public partial class TypeMapperGenerator
                             NullCheckBuilder
                                 .Inline()
                                 .SetCondition($"{matchedTypeName}.{prop.Name}")
-                                .SetCode(ExceptionBuilder.Inline(
-                                    TypeNames.ArgumentNullException)));
+                                .SetCode(CodeInlineBuilder.From("default")));
                 }
             }
             else
