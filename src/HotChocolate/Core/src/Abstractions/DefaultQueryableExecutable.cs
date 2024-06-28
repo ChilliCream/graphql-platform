@@ -52,7 +52,7 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
     {
         if (source is EnumerableQuery)
         {
-            return new ValueTask<T?>(source.SingleOrDefault());
+            return new ValueTask<T?>(SingleOrDefaultSync(source));
         }
 
         return SingleOrDefaultFromDataSourceAsync(cancellationToken);
@@ -79,10 +79,39 @@ internal sealed class DefaultQueryableExecutable<T>(IQueryable<T> source, Func<I
         }
 
 #if NET6_0_OR_GREATER
-        return await Task.Run(() => source.SingleOrDefault<T>(), cancellationToken).WaitAsync(cancellationToken);
+        return await Task.Run(() => SingleOrDefaultSync(source), cancellationToken).WaitAsync(cancellationToken);
 #else
-        return await Task.Run(() => source.SingleOrDefault<T>(), cancellationToken);
+        return await Task.Run(() => SingleOrDefaultSync(source), cancellationToken);
 #endif
+    }
+
+    private static T? SingleOrDefaultSync(IQueryable<T> query)
+    {
+        var enumerator = query.GetEnumerator();
+
+        try
+        {
+            if (enumerator.MoveNext())
+            {
+                var obj = enumerator.Current;
+
+                if(enumerator.MoveNext())
+                {
+                    throw new GraphQLException(SequenceContainsMoreThanOneElement());
+                }
+
+                return obj;
+            }
+
+            return default;
+        }
+        finally
+        {
+            if(enumerator is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 
     public override ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken = default)
