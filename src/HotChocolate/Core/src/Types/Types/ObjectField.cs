@@ -223,9 +223,10 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
                 || (Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment
                 || Type.IsListType()))
         {
-            ResultPostProcessor = ResolverHelpers.CreateListPostProcessor(
-                context.TypeInspector,
-                definition.ResultType ?? RuntimeType);
+            ResultPostProcessor =
+                ResolverHelpers.CreateListPostProcessor(
+                    context.TypeInspector,
+                    GetResultType(definition, RuntimeType));
         }
 
         return;
@@ -233,6 +234,17 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         bool IsPureContext()
         {
             return skipMiddleware || (context.GlobalComponents.Count == 0 && fieldMiddlewareDefinitions.Count == 0);
+        }
+
+        static Type GetResultType(ObjectFieldDefinition definition, Type runtimeType)
+        {
+            if (definition.ResultType == null
+                || definition.ResultType == typeof(object))
+            {
+                return runtimeType;
+            }
+
+            return definition.ResultType;
         }
     }
 }
