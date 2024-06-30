@@ -9,6 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration.CSharp" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
+    <InternalsVisibleTo Include="StrawberryShake.Core" />
+    <InternalsVisibleTo Include="StrawberryShake.Transport.Http" />
+    <InternalsVisibleTo Include="StrawberryShake.Transport.InMemory" />
+    <InternalsVisibleTo Include="StrawberryShake.Transport.WebSockets" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
