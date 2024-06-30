@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Types.Analyzers.FileBuilders;
 using HotChocolate.Types.Analyzers.Helpers;
-using HotChocolate.Types.Analyzers.Inspectors;
 using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
@@ -13,13 +12,12 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
-        => Execute(context, compilation, syntaxInfos);
+        ImmutableArray<SyntaxInfo> syntaxInfos)
+        => Execute(context, syntaxInfos);
 
     private static void Execute(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {
@@ -32,14 +30,14 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         sb.Clear();
 
-        WriteResolvers(context, compilation, syntaxInfos, sb);
+        WriteResolvers(context, syntaxInfos, sb);
 
         StringBuilderPool.Return(sb);
     }
 
     private static void WriteTypes(
         SourceProductionContext context,
-        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
         var firstNamespace = true;
@@ -62,11 +60,6 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
             {
                 if (objectTypeExtension.Diagnostics.Length > 0)
                 {
-                    foreach (var diagnostic in objectTypeExtension.Diagnostics)
-                    {
-                        context.ReportDiagnostic(diagnostic);
-                    }
-
                     continue;
                 }
 
@@ -91,11 +84,10 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
     private static void WriteResolvers(
         SourceProductionContext context,
-        Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
         StringBuilder sb)
     {
-        var localTypeLookup = new DefaultLocalTypeLookup(syntaxInfos);
+        var typeLookup = new DefaultLocalTypeLookup(syntaxInfos);
 
         var generator = new ResolverFileBuilder(sb);
         generator.WriteHeader();
@@ -122,26 +114,26 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
                 }
                 firstClass = false;
 
-                var resolverInfos = objectTypeExtension.Members
-                    .Select(m => CreateResolverInfo(objectTypeExtension, m))
-                    .ToList();
+                var resolvers = objectTypeExtension.Resolvers;
+
+                if (objectTypeExtension.NodeResolver is not null)
+                {
+                    resolvers = resolvers.Add(objectTypeExtension.NodeResolver);
+                }
 
                 generator.WriteBeginClass(objectTypeExtension.Type.Name + "Resolvers");
 
-                if (generator.AddResolverDeclarations(resolverInfos))
+                if (generator.AddResolverDeclarations(resolvers))
                 {
                     sb.AppendLine();
                 }
 
-                generator.AddParameterInitializer(resolverInfos, localTypeLookup);
+                generator.AddParameterInitializer(resolvers, typeLookup);
 
-                foreach (var member in objectTypeExtension.Members)
+                foreach (var resolver in resolvers)
                 {
                     sb.AppendLine();
-                    generator.AddResolver(
-                        new ResolverName(objectTypeExtension.Type.Name, member.Name),
-                        member,
-                        compilation);
+                    generator.AddResolver(resolver, typeLookup);
                 }
 
                 generator.WriteEndClass();
@@ -152,11 +144,4 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
         context.AddSource(WellKnownFileNames.ResolversFile, sb.ToString());
     }
-
-    private static ResolverInfo CreateResolverInfo(
-        ObjectTypeExtensionInfo objectTypeExtension,
-        ISymbol member)
-        => new ResolverInfo(
-            new ResolverName(objectTypeExtension.Type.Name, member.Name),
-            member as IMethodSymbol);
 }

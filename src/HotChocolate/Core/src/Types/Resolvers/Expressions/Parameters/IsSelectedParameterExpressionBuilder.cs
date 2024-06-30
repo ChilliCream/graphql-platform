@@ -209,10 +209,11 @@ internal sealed class IsSelectedParameterExpressionBuilder
 
     private class IsSelectedBinding(string key) : IParameterBinding
     {
+        public ArgumentKind Kind => ArgumentKind.LocalState;
+
+        public bool IsPure => false;
+
         public T Execute<T>(IResolverContext context)
             => context.GetLocalState<T>(key)!;
-
-        public T Execute<T>(IPureResolverContext context)
-            => throw new NotSupportedException();
     }
 }

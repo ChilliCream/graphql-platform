@@ -65,7 +65,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
     private static bool Predicate(SyntaxNode node)
         => _predicate(node);
 
-    private static ISyntaxInfo? Transform(GeneratorSyntaxContext context)
+    private static SyntaxInfo? Transform(GeneratorSyntaxContext context)
     {
         for (var i = 0; i < _inspectors.Length; i++)
         {
@@ -81,18 +81,29 @@ public class GraphQLServerGenerator : IIncrementalGenerator
     private static void Execute(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
-        for (var i = 0; i < _generators.Length; i++)
+        foreach (var syntaxInfo in syntaxInfos.AsSpan())
         {
-            _generators[i].Generate(context, compilation, syntaxInfos);
+            if (syntaxInfo.Diagnostics.Length > 0)
+            {
+                foreach (var diagnostic in syntaxInfo.Diagnostics.AsSpan())
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
+            }
+        }
+
+        foreach (var generator in _generators.AsSpan())
+        {
+            generator.Generate(context, compilation, syntaxInfos);
         }
     }
 }
 
 file static class Extensions
 {
-    public static IncrementalValuesProvider<ISyntaxInfo> WhereNotNull(
-        this IncrementalValuesProvider<ISyntaxInfo?> source)
+    public static IncrementalValuesProvider<SyntaxInfo> WhereNotNull(
+        this IncrementalValuesProvider<SyntaxInfo?> source)
         => source.Where(static t => t is not null)!;
 }

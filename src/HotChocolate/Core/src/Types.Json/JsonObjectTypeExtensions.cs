@@ -241,7 +241,7 @@ public static class JsonObjectTypeExtensions
                     {
                         return null;
                     }
-                    
+
                     return DateTime.Parse(
                         property.Value.GetString()!,
                         CultureInfo.InvariantCulture,
@@ -265,10 +265,10 @@ public static class JsonObjectTypeExtensions
         }
     }
 
-    private static IEnumerable<JsonElement> ToEnumerable(this IPureResolverContext context)
+    private static IEnumerable<JsonElement> ToEnumerable(this IResolverContext context)
         => context.Parent<JsonElement>().EnumerateArray();
 
-    private static JsonElement? GetProperty(this IPureResolverContext context, string propertyName)
+    private static JsonElement? GetProperty(this IResolverContext context, string propertyName)
         => context.Parent<JsonElement>().TryGetProperty(propertyName, out var element)
             ? element
             : null;

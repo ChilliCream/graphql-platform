@@ -82,7 +82,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<ReviewRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<ReviewsQuery>()
                 .AddMutationType<ReviewsMutation>()
                 .AddSubscriptionType<ReviewsSubscription>()
@@ -105,7 +105,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<Reviews2.ReviewRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<Reviews2.ReviewsQuery>()
                 .AddMutationType<Reviews2.ReviewsMutation>()
                 .AddSubscriptionType<Reviews2.ReviewsSubscription>()
@@ -128,7 +128,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<UserRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<AccountQuery>()
                 .AddMutationType<AccountMutation>()
                 .AddMutationConventions()
@@ -149,7 +149,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<ProductRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<ProductQuery>()
                 .AddMutationType<ProductMutation>()
                 .AddGlobalObjectIdentification()
@@ -170,7 +170,7 @@ public sealed class DemoProject : IDisposable
         var shipping = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<ShippingQuery>()
                 .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -188,7 +188,7 @@ public sealed class DemoProject : IDisposable
         var appointment = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<AppointmentQuery>()
                 .AddObjectType<Appointments.Patient1>()
                 .AddObjectType<Patient2>()
@@ -208,7 +208,7 @@ public sealed class DemoProject : IDisposable
         var patient1 = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<Patient1Query>()
                 .AddGlobalObjectIdentification()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -226,7 +226,7 @@ public sealed class DemoProject : IDisposable
         var books = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<BookQuery>()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
@@ -243,7 +243,7 @@ public sealed class DemoProject : IDisposable
          var authors = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<AuthorQuery>()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
@@ -437,7 +437,7 @@ public sealed class DemoProject : IDisposable
                 authorsClient.BaseAddress,
                 new Uri("ws://localhost:5000/graphql"),
                 authorsSchema,
-                authors),    
+                authors),
             new MockHttpClientFactory(httpClients),
             new MockWebSocketConnectionFactory(webSocketClients));
     }

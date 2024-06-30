@@ -61,10 +61,7 @@ public static class Scalars
         { ScalarNames.Any, typeof(AnyType) },
         
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
-        { ScalarNames.JSON, typeof(JsonType) },
-
-        // legacy support
-        { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
+        { ScalarNames.JSON, typeof(JsonType) }
     };
 
     private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()

@@ -126,6 +126,10 @@ public sealed partial class DescriptorContext : IDescriptorContext
         => _schemaServices.GetRequiredService<INodeIdSerializerAccessor>();
 
     /// <inheritdoc />
+    public IParameterBindingResolver ParameterBindingResolver
+        => Services.GetRequiredService<IApplicationServiceProvider>().GetRequiredService<IParameterBindingResolver>();
+
+    /// <inheritdoc />
     public IDictionary<string, object?> ContextData { get; }
 
     /// <inheritdoc />
