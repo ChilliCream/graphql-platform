@@ -1,9 +1,10 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data;
 
-public class QueryableExecutable<T> : IExecutable<T>
+public class QueryableExecutable<T> : IQueryableExecutable<T>
 {
     public QueryableExecutable(IQueryable<T> queryable)
     {
@@ -30,10 +31,9 @@ public class QueryableExecutable<T> : IExecutable<T>
     /// <param name="source">The source that should be set</param>
     /// <returns>The new instance of an enumerable executable</returns>
     public virtual QueryableExecutable<T> WithSource(IQueryable<T> source)
-    {
-        return new QueryableExecutable<T>(source);
-    }
+        => new(source);
 
+    /// <inheritdoc />
     public virtual async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
     {
         if (Source is not IAsyncEnumerable<T> ae)
@@ -54,6 +54,62 @@ public class QueryableExecutable<T> : IExecutable<T>
     async ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
         => await ToListAsync(cancellationToken);
 
+    public async IAsyncEnumerable<T> ToAsyncEnumerable([EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (Source is IAsyncEnumerable<T> asyncEnumerable)
+        {
+            await foreach (var element in asyncEnumerable.WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                yield return element;
+            }
+        }
+        else if (Source is EnumerableQuery)
+        {
+            foreach (var element in Source)
+            {
+                yield return element;
+            }
+        }
+        else
+        {
+            var list = await Task.Run(() => Source.ToList(), cancellationToken).WaitAsync(cancellationToken);
+
+            foreach (var element in list)
+            {
+                yield return element;
+            }
+        }
+    }
+
+    async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (Source is IAsyncEnumerable<T> asyncEnumerable)
+        {
+            await foreach (var element in asyncEnumerable.WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                yield return element;
+            }
+        }
+        else if (Source is EnumerableQuery)
+        {
+            foreach (var element in Source)
+            {
+                yield return element;
+            }
+        }
+        else
+        {
+            var list = await Task.Run(() => Source.ToList(), cancellationToken).WaitAsync(cancellationToken);
+
+            foreach (var element in list)
+            {
+                yield return element;
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public virtual async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
     {
         if (Source is IAsyncEnumerable<T> ae)
@@ -75,6 +131,7 @@ public class QueryableExecutable<T> : IExecutable<T>
     async ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
         => await FirstOrDefaultAsync(cancellationToken);
 
+    /// <inheritdoc />
     public virtual async ValueTask<T?> SingleOrDefaultAsync(
         CancellationToken cancellationToken)
     {
@@ -94,7 +151,7 @@ public class QueryableExecutable<T> : IExecutable<T>
 
             if (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                throw new GraphQLException( ProjectionProvider_CreateMoreThanOneError());
+                throw new GraphQLException(ProjectionProvider_CreateMoreThanOneError());
             }
 
             return result;
@@ -113,8 +170,5 @@ public class QueryableExecutable<T> : IExecutable<T>
     async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
         => await SingleOrDefaultAsync(cancellationToken);
 
-    public virtual string Print()
-    {
-        return Source.ToString() ?? "";
-    }
+    public virtual string Print() => Source.ToString() ?? "";
 }

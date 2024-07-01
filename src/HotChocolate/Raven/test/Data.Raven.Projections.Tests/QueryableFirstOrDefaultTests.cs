@@ -153,7 +153,8 @@ public class QueryableFirstOrDefaultTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.Create()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             foo {
                                 barString
@@ -165,7 +166,8 @@ public class QueryableFirstOrDefaultTests
                                 }
                             }
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         // assert

@@ -25,6 +25,10 @@ type Author implements Entity & Node {
   someInfo: String!
   additionalInfo(someArg: String!): String!
   additionalInfo1(someArg1: String! someArg2: String!): String!
+  authorsPure: [Author!]!
+  authorsQuery: [Author!]!
+  authorsNeedsPostProcessor: [Author!]!
+  authorsHasPostProcessor: [Author!]!
   id: ID!
   name: String!
   address: Address

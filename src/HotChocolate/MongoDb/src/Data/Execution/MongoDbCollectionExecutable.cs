@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -69,6 +70,43 @@ public class MongoDbCollectionExecutable<T> : MongoDbExecutable<T>
         return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
+    public override async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var serializers = _collection.Settings.SerializerRegistry;
+        IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
+
+        var options = Options as FindOptions<T> ?? new FindOptions<T>();
+        var filters = new BsonDocument();
+
+        if (Sorting is not null)
+        {
+            options.Sort = Sorting.Render(bsonSerializer, serializers);
+        }
+
+        if (Projection is not null)
+        {
+            options.Projection = Projection.Render(bsonSerializer, serializers);
+        }
+
+        if (Filters is not null)
+        {
+            filters = Filters.Render(bsonSerializer, serializers);
+        }
+
+        var cursor = await _collection
+            .FindAsync(filters, options, cancellationToken)
+            .ConfigureAwait(false);
+
+        while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+        {
+            foreach (var document in cursor.Current)
+            {
+                yield return document;
+            }
+        }
+    }
     /// <inheritdoc />
     public override async ValueTask<T?> FirstOrDefaultAsync(
         CancellationToken cancellationToken) =>

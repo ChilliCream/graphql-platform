@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
@@ -562,6 +563,28 @@ public class CodeFirstTests
 
         public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
             => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
+
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
 
         ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.SingleOrDefault());

@@ -4,9 +4,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
+using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -81,7 +84,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
 
     /// <summary>
     /// Gets the pure field resolver. The pure field resolver is only available if this field
-    /// can be resolved without side-effects. The execution engine will prefer this resolver
+    /// can be resolved without side effects. The execution engine will prefer this resolver
     /// variant if it is available and there are no executable directives that add a middleware
     /// to this field.
     /// </summary>
@@ -91,6 +94,11 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     /// Gets the subscription resolver.
     /// </summary>
     public SubscribeResolverDelegate? SubscribeResolver { get; }
+
+    /// <summary>
+    /// Gets the result post processor.
+    /// </summary>
+    public IResolverResultPostProcessor? ResultPostProcessor { get; private set; }
 
     /// <summary>
     /// Gets the associated member of the runtime type for this field.
@@ -164,8 +172,7 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         }
 
         var skipMiddleware =
-            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields &&
-            isIntrospectionField;
+            options.FieldMiddleware is not FieldMiddlewareApplication.AllFields && isIntrospectionField;
 
         var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
@@ -203,13 +210,67 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
         {
             Middleware = middleware;
         }
+
+        ResultPostProcessor = definition.ResultPostProcessor;
+
+        // if the source generator has configured this field we will not try to infer a post processor with
+        // reflection.
+        if ((Flags & FieldFlags.SourceGenerator) != FieldFlags.SourceGenerator
+            && ResultPostProcessor is null
+            && PureResolver is null
+            && ((Flags & FieldFlags.Stream) == FieldFlags.Stream
+                || (Flags & FieldFlags.Connection) == FieldFlags.Connection
+                || (Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment
+                || Type.IsListType()))
+        {
+            ResultPostProcessor =
+                ResolverHelpers.CreateListPostProcessor(
+                    context.TypeInspector,
+                    GetResultType(definition, RuntimeType));
+        }
+
         return;
 
         bool IsPureContext()
         {
-            return skipMiddleware ||
-                (context.GlobalComponents.Count == 0 &&
-                    fieldMiddlewareDefinitions.Count == 0);
+            return skipMiddleware || (context.GlobalComponents.Count == 0 && fieldMiddlewareDefinitions.Count == 0);
+        }
+
+        static Type GetResultType(ObjectFieldDefinition definition, Type runtimeType)
+        {
+            if (definition.ResultType == null
+                || definition.ResultType == typeof(object))
+            {
+                return runtimeType;
+            }
+
+            return definition.ResultType;
         }
     }
+}
+
+file static class ResolverHelpers
+{
+    private static readonly MethodInfo _createListPostProcessor =
+        typeof(ResolverHelpers).GetMethod(
+            nameof(CreateListPostProcessor),
+            BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    public static IResolverResultPostProcessor? CreateListPostProcessor(ITypeInspector inspector, Type type)
+    {
+        var extendedType = inspector.GetType(type);
+
+        if (extendedType.IsArrayOrList)
+        {
+            var elementType = extendedType.ElementType!.Type;
+            var generic = _createListPostProcessor.MakeGenericMethod(elementType);
+            return (IResolverResultPostProcessor?)generic.Invoke(null, []);
+        }
+
+        return null;
+    }
+
+
+    private static IResolverResultPostProcessor CreateListPostProcessor<T>()
+        => new ListPostProcessor<T>();
 }

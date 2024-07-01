@@ -425,6 +425,8 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public SubscribeResolverDelegate? SubscribeResolver => _nodeField.SubscribeResolver;
 
+        public IResolverResultPostProcessor? ResultPostProcessor => _nodeField.ResultPostProcessor;
+
         public MemberInfo? Member => _nodeField.Member;
 
         public MemberInfo? ResolverMember => _nodeField.ResolverMember;
