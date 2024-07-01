@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="StrawberryShake.Abstractions.Tests" />
     <InternalsVisibleTo Include="StrawberryShake.Core.Tests" />
   </ItemGroup>
 
