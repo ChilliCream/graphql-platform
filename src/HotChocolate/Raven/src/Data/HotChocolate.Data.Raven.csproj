@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven.Projections.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="RavenDataResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>RavenDataResources.Designer.cs</LastGenOutput>

@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="StrawberryShake.Transport.InMemory.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
     <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
