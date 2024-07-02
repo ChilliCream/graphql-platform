@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion;
 
 public class AutomaticMockingTests
 {
-        [Fact]
+    [Fact]
     public async Task Object()
     {
         var request = """

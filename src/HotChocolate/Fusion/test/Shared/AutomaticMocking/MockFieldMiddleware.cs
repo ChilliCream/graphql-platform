@@ -84,7 +84,14 @@ internal sealed class MockFieldMiddleware
             if (context.Selection.Arguments.ContainsName("ids"))
             {
                 var ids = context.ArgumentValue<object[]>("ids");
-                if (fieldType.IsListType() && namedFieldType.IsObjectType())
+
+                IType nullableType = fieldType;
+                if (fieldType.IsNonNullType())
+                {
+                    nullableType = fieldType.InnerType();
+                }
+
+                if (nullableType.IsListType() && namedFieldType.IsObjectType())
                 {
                     context.Result = CreateListOfObjects(ids, nullIndex);
                     return ValueTask.CompletedTask;
@@ -102,13 +109,13 @@ internal sealed class MockFieldMiddleware
             }
         }
 
-        if (fieldType.IsObjectType() || fieldType.IsAbstractType())
+        if (fieldType.IsObjectType())
         {
             context.Result = CreateObject();
         }
         else if (fieldType.IsListType())
         {
-            if (namedFieldType.IsObjectType() || namedFieldType.IsAbstractType())
+            if (namedFieldType.IsObjectType())
             {
                 context.Result = CreateListOfObjects(null, nullIndex);
             }
