@@ -1,7 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>https://ibm.github.io/graphql-specs/cost-spec.html#sec-__cost</summary>
-internal sealed class CostMetrics
+public sealed class CostMetrics
 {
     /// <summary>https://ibm.github.io/graphql-specs/cost-spec.html#sec-Field-Cost</summary>
     public double FieldCost { get; set; } = 0;
