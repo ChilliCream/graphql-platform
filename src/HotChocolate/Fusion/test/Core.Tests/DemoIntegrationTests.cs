@@ -1861,6 +1861,53 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         Assert.Null(result.ExpectQueryResult().Errors);
     }
 
+    [Fact]
+    public async Task Nodes_Field_With_Single_Selection()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph = await new FusionGraphComposer(logFactory: _logFactory).ComposeAsync(
+            new[]
+            {
+                demoProject.Products.ToConfiguration()
+            }, new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+              nodes(ids: ["UHJvZHVjdDox", "UHJvZHVjdDoy", "UHJvZHVjdDoz"]) {
+                ... on Product {
+                  id
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
+
+        Assert.Null(result.ExpectQueryResult().Errors);
+    }
+
     public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
     {
         private GatewayConfiguration _configuration;
