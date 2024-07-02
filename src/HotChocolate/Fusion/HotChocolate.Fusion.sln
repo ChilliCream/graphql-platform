@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.Tests.Shared", "test\Shared\HotChocolate.Fusion.Tests.Shared.csproj", "{7C2BD6EE-D899-4269-AA5B-5CD3CA433953}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fusion.SourceSchema", "src\SourceSchema\HotChocolate.Fusion.SourceSchema.csproj", "{5A0F102A-6BB7-484E-9898-564B27779233}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -82,6 +84,10 @@ Global
 		{7C2BD6EE-D899-4269-AA5B-5CD3CA433953}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C2BD6EE-D899-4269-AA5B-5CD3CA433953}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C2BD6EE-D899-4269-AA5B-5CD3CA433953}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A0F102A-6BB7-484E-9898-564B27779233}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A0F102A-6BB7-484E-9898-564B27779233}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A0F102A-6BB7-484E-9898-564B27779233}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A0F102A-6BB7-484E-9898-564B27779233}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BFF3B578-BAF7-4197-8DE5-091D53FB74B0} = {C831C01A-D213-4682-B19D-9946A72B0F77}
@@ -95,5 +101,6 @@ Global
 		{A5D42FCF-BF47-49EE-AAD9-B7B79E61D5B9} = {9973827C-F78F-412D-BD95-7D589C3FAA53}
 		{0564D85A-0CC5-4029-8660-7FF15E1034FD} = {9973827C-F78F-412D-BD95-7D589C3FAA53}
 		{7C2BD6EE-D899-4269-AA5B-5CD3CA433953} = {9973827C-F78F-412D-BD95-7D589C3FAA53}
+		{5A0F102A-6BB7-484E-9898-564B27779233} = {C831C01A-D213-4682-B19D-9946A72B0F77}
 	EndGlobalSection
 EndGlobal
