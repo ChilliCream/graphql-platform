@@ -19,6 +19,51 @@ public class ErrorTests(ITestOutputHelper output)
     private readonly Func<ICompositionLog> _logFactory = () => new TestCompositionLog(output);
 
     [Fact]
+    public async Task ReplaceMessageWithErrorFilter()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        // act
+        var fusionGraph =
+            await new FusionGraphComposer(logFactory: _logFactory)
+                .ComposeAsync(
+                    new[]
+                    {
+                        demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                    },
+                    new FusionFeatureCollection(FusionFeatures.NodeField));
+
+        var executor = await new ServiceCollection()
+            .AddSingleton(demoProject.HttpClientFactory)
+            .AddSingleton(demoProject.WebSocketConnectionFactory)
+            .AddFusionGatewayServer()
+            .ConfigureFromDocument(SchemaFormatter.FormatAsDocument(fusionGraph))
+            .ModifyFusionOptions(options => options.IncludeDebugInfo = true)
+            .AddErrorFilter(error => error.WithMessage("REPLACED MESSAGE"))
+            .BuildRequestExecutorAsync();
+
+        var request = Parse(
+            """
+            {
+                errorField
+            }
+            """);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder
+                .Create()
+                .SetDocument(request)
+                .Build());
+
+        // assert
+        var snapshot = new Snapshot();
+        CollectSnapshotData(snapshot, request, result);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task TopLevelResolveSubgraphError()
     {
         // arrange

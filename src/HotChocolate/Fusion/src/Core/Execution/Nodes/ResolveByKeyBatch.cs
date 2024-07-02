@@ -153,6 +153,7 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             {
                 ExtractErrors(
                     context.Result,
+                    context.ErrorHandler,
                     response.Errors,
                     batchState.SelectionSetResult,
                     pathLength + 1,

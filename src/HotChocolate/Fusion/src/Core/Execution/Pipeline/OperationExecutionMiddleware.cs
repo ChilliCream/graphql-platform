@@ -22,7 +22,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
     [SchemaService] GraphQLClientFactory clientFactory,
     [SchemaService] NodeIdParser nodeIdParser,
     [SchemaService] FusionOptions options,
-    [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
+    [SchemaService] IFusionDiagnosticEvents diagnosticEvents,
+    [SchemaService] IErrorHandler errorHandler)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -44,6 +45,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(options));
     private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
         ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+    private readonly IErrorHandler _errorHandler = errorHandler
+        ?? throw new ArgumentNullException(nameof(errorHandler));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
@@ -76,7 +79,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     _nodeIdSerializer,
                     _nodeIdParser,
                     _fusionOptionsAccessor,
-                    diagnosticEvents);
+                    _diagnosticEvents,
+                    _errorHandler);
 
             using (federatedQueryContext.DiagnosticEvents.ExecuteFederatedQuery(context))
             {
@@ -117,6 +121,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
             var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
             var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<FusionOptions>();
             var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
+            var errorHandler = core.SchemaServices.GetRequiredService<IErrorHandler>();
             var middleware = new DistributedOperationExecutionMiddleware(
                 next,
                 contextFactory,
@@ -125,7 +130,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 clientFactory,
                 nodeIdParser,
                 fusionOptionsAccessor,
-                diagnosticEvents);
+                diagnosticEvents,
+                errorHandler);
             return async context =>
             {
                 var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();

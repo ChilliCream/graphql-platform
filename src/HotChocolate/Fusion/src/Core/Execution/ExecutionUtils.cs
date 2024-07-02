@@ -487,6 +487,7 @@ internal static class ExecutionUtils
 
     public static void ExtractErrors(
         ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
         JsonElement errors,
         ObjectResult selectionSetResult,
         int pathDepth,
@@ -500,12 +501,13 @@ internal static class ExecutionUtils
         var path = PathHelper.CreatePathFromContext(selectionSetResult);
         foreach (var error in errors.EnumerateArray())
         {
-            ExtractError(resultBuilder, error, path, pathDepth, addDebugInfo);
+            ExtractError(resultBuilder, errorHandler, error, path, pathDepth, addDebugInfo);
         }
     }
 
     private static void ExtractError(
         ResultBuilder resultBuilder,
+        IErrorHandler errorHandler,
         JsonElement error,
         Path parentPath,
         int pathDepth,
@@ -564,7 +566,9 @@ internal static class ExecutionUtils
                 }
             }
 
-            resultBuilder.AddError(errorBuilder.Build());
+            var handledError = errorHandler.Handle(errorBuilder.Build());
+
+            resultBuilder.AddError(handledError);
         }
     }
 
