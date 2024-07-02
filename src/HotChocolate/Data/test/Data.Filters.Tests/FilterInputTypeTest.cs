@@ -2,6 +2,7 @@ using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -375,6 +376,35 @@ public class FilterInputTypeTest : FilterTestBase
 
         // assert
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Execute_CoerceWhereArgument_MatchesSnapshot()
+    {
+        object? where = null;
+
+        // arrange
+        var builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("bars")
+                    .UseFiltering()
+                    .Use(next => async context =>
+                    {
+                        where = context.ArgumentValue<object>("where");
+                        await next(context);
+                    })
+                    .Resolve(new List<Bar>()));
+
+        var schema = builder.Create();
+
+        // act
+        schema.MakeExecutable().Execute(
+            """{ bars(where: { baz: { contains: "test" } }) { baz } }""");
+
+        // assert
+        where.MatchSnapshot(extension: ".json");
     }
 
     public class FooDirectiveType

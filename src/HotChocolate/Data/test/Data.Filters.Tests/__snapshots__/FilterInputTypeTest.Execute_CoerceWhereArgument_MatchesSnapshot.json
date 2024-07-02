@@ -1,0 +1,19 @@
+{
+  "and": null,
+  "or": null,
+  "baz": {
+    "and": null,
+    "or": null,
+    "eq": null,
+    "neq": null,
+    "contains": "test",
+    "ncontains": null,
+    "in": null,
+    "nin": null,
+    "startsWith": null,
+    "nstartsWith": null,
+    "endsWith": null,
+    "nendsWith": null
+  },
+  "qux": null
+}
