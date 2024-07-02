@@ -2,6 +2,7 @@ using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Shared;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshot = CookieCrumble.Snapshot;
@@ -10,6 +11,26 @@ namespace HotChocolate.Fusion;
 
 internal static class TestHelper
 {
+    // TODO: Temporary
+    public static async Task<IExecutionResult> ProduceProperError(string schemaText, string request)
+    {
+        var subgraph = await TestSubgraph.CreateAsync(schemaText);
+        var executor = await subgraph.TestServer.Services.GetRequestExecutorAsync();
+
+        return await executor.ExecuteAsync(request);
+    }
+
+    public static void MatchMarkdownSnapshot(
+        string requestText,
+        IExecutionResult result)
+    {
+        var snapshot = new Snapshot();
+        var request = Utf8GraphQLParser.Parse(requestText);
+
+        CollectSnapshotData(snapshot, request, result);
+        snapshot.MatchMarkdownSnapshot();
+    }
+
     public static void CollectSnapshotData(
         Snapshot snapshot,
         DocumentNode request,
@@ -37,7 +58,7 @@ internal static class TestHelper
         QueryPlan? plan = null;
 
         await foreach (var item in result.ExpectResponseStream()
-            .ReadResultsAsync().WithCancellation(cancellationToken))
+                           .ReadResultsAsync().WithCancellation(cancellationToken))
         {
             if (item.ContextData is not null &&
                 item.ContextData.TryGetValue("queryPlan", out var value) &&
