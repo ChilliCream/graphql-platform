@@ -46,12 +46,12 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
@@ -83,12 +83,12 @@ public class MongoDbCollectionTests : IClassFixture<MongoResource>
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
                 .Build());
 

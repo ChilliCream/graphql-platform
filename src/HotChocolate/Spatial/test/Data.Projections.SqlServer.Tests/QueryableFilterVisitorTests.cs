@@ -49,7 +49,7 @@ public class QueryableProjectionVisitorTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root {

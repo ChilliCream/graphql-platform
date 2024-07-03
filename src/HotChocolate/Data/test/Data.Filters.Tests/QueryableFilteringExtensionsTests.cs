@@ -38,7 +38,7 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
@@ -59,7 +59,7 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
@@ -80,7 +80,7 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ typeMismatch(where: {bar: {eq: true}}) { bar baz }}")
                 .Build());
 
@@ -104,7 +104,7 @@ public class QueryableFilteringExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
                 .Build());
 

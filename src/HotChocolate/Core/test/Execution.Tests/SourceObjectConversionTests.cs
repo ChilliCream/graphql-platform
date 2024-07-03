@@ -50,7 +50,7 @@ public class SourceObjectConversionTests
 
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo { qux } }")
                 .Build();
 

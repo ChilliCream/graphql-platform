@@ -96,7 +96,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     {
@@ -124,7 +124,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -160,7 +160,7 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     {
@@ -188,7 +188,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -218,7 +218,7 @@ public class ProjectToTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {
@@ -245,7 +245,7 @@ public class ProjectToTests
         // act
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                     query Test {

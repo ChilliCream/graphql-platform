@@ -30,7 +30,7 @@ public class QueryableSortingExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ shouldWork(order: {bar: DESC}) { bar baz }}")
                 .Build());
 
@@ -51,7 +51,7 @@ public class QueryableSortingExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ typeMismatch(order: {bar: DESC}) { bar baz }}")
                 .Build());
 
@@ -75,7 +75,7 @@ public class QueryableSortingExtensionsTests
         // act
         var res1 = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("{ missingMiddleware { bar baz }}")
                 .Build());
 
