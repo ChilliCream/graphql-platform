@@ -8,6 +8,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -218,6 +219,18 @@ public partial class Schema
         }
 
         return _directiveTypes.TryGetValue(directiveName, out directiveType);
+    }
+
+    Type? INodeIdRuntimeTypeLookup.GetNodeIdRuntimeType(string typeName)
+    {
+        if (TryGetType<ObjectType>(typeName, out var type)
+            && type.IsImplementing("Node")
+            && type.Fields.TryGetField("id", out var field))
+        {
+            return field.RuntimeType;
+        }
+
+        return null;
     }
 
     /// <summary>

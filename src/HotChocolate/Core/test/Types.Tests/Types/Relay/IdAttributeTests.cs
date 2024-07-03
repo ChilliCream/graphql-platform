@@ -22,14 +22,6 @@ public class IdAttributeTests
     public async Task Id_On_Arguments()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
-
         var intId = Convert.ToBase64String("Query:1"u8);
         var stringId = Convert.ToBase64String("Query:abc"u8);
         var guidId = Convert.ToBase64String(
@@ -37,13 +29,12 @@ public class IdAttributeTests
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
+                .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(@"query foo (
                                 $intId: ID!
@@ -88,13 +79,12 @@ public class IdAttributeTests
         // arrange
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
+                .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(@"query foo {
                                 interceptedId(id: 1)
@@ -110,25 +100,17 @@ public class IdAttributeTests
     public async Task Id_On_Objects()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String("Some:1"u8);
         var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
+                .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo ($someId: ID! $someIntId: ID!) {
@@ -167,25 +149,17 @@ public class IdAttributeTests
     public async Task Id_On_Objects_Given_Nulls()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String("Some:1"u8);
         var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
+                .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo (
@@ -272,34 +246,28 @@ public class IdAttributeTests
     public async Task Id_On_Objects_InvalidType()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
+                .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
+                            """
+                            query foo ($someId: ID!) {
+                                foo(input: { someId: $someId someIds: [$someId] }) {
+                                    someId
+                                    ... on FooPayload {
+                                        someIds
                                     }
-                                }")
+                                }
+                            }
+                            """)
                         .SetVariableValues(new Dictionary<string, object?> { {"someId", someId }, })
                         .Build());
 
@@ -315,27 +283,28 @@ public class IdAttributeTests
     public async Task Id_On_Objects_InvalidId()
     {
         // arrange
-        var someId = "abc";
+        const string someId = "abc";
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
+                .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
+                            """
+                            query foo ($someId: ID!) {
+                                foo(input: { someId: $someId someIds: [$someId] }) {
+                                    someId
+                                    ... on FooPayload {
+                                        someIds
                                     }
-                                }")
+                                }
+                            }
+                            """)
                         .SetVariableValues(new Dictionary<string, object?> { {"someId", someId}, })
                         .Build());
 
@@ -348,23 +317,26 @@ public class IdAttributeTests
     }
 
     [Fact]
-    public void Id_Type_Is_Correctly_Inferred()
+    public async Task Id_Type_Is_Correctly_Inferred()
     {
-        SchemaBuilder.New()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .Create()
-            .ToString()
-            .MatchSnapshot();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .BuildSchemaAsync();
+
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
-    public void EnsureIdIsOnlyAppliedOnce()
+    public async Task EnsureIdIsOnlyAppliedOnce()
     {
         var inspector = new TestTypeInterceptor();
 
-        SchemaBuilder.New()
+        await new ServiceCollection()
+            .AddGraphQLServer()
             .AddQueryType(d =>
             {
                 d.Name("Query");
@@ -372,7 +344,7 @@ public class IdAttributeTests
             })
             .AddGlobalObjectIdentification(false)
             .TryAddTypeInterceptor(inspector)
-            .Create();
+            .BuildSchemaAsync();
 
         Assert.Equal(1, inspector.Count);
     }

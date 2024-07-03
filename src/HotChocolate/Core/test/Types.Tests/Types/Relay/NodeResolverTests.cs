@@ -15,13 +15,13 @@ public class NodeResolverTests
     public async Task NodeResolver_ResolveNode()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddType<EntityType>()
-            .AddQueryType<Query>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -36,19 +36,19 @@ public class NodeResolverTests
     public async Task NodeResolver_ResolveNode_DynamicField()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddObjectType<Entity>(d =>
-            {
-                d.ImplementsNode()
-                    .ResolveNode<string>(
-                        (_, id) => Task.FromResult(new Entity { Name = id, }))
-                    .Resolve(ctx => ctx.Parent<Entity>().Id);
-            })
-            .AddQueryType<Query>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddObjectType<Entity>(d =>
+                {
+                    d.ImplementsNode()
+                        .ResolveNode<string>(
+                            (_, id) => Task.FromResult(new Entity { Name = id, }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
+                })
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -63,19 +63,19 @@ public class NodeResolverTests
     public async Task NodeResolver_ResolveNode_DynamicFieldObject()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddObjectType<Entity>(d =>
-            {
-                d.ImplementsNode()
-                    .ResolveNode<string>((_, id) =>
-                        Task.FromResult(new Entity { Name = id, }))
-                    .Resolve(ctx => ctx.Parent<Entity>().Id);
-            })
-            .AddQueryType<Query>()
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddObjectType<Entity>(d =>
+                {
+                    d.ImplementsNode()
+                        .ResolveNode<string>((_, id) =>
+                            Task.FromResult(new Entity { Name = id, }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
+                })
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -90,29 +90,29 @@ public class NodeResolverTests
     public async Task NodeResolverObject_ResolveNode_DynamicField()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddObjectType(d =>
-            {
-                d.Name("Entity");
-                d.ImplementsNode()
-                    .ResolveNode<string>(
-                        (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
-                    .Resolve(ctx => ctx.Parent<Entity>().Id);
-                d.Field("name")
-                    .Type<StringType>()
-                    .Resolve(t => t.Parent<Entity>().Name);
-            })
-            .AddQueryType(d =>
-            {
-                d.Name("Query")
-                    .Field("entity")
-                    .Type(new NamedTypeNode("Entity"))
-                    .Resolve(new Entity { Name = "foo", });
-            })
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddObjectType(d =>
+                {
+                    d.Name("Entity");
+                    d.ImplementsNode()
+                        .ResolveNode<string>(
+                            (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
+                    d.Field("name")
+                        .Type<StringType>()
+                        .Resolve(t => t.Parent<Entity>().Name);
+                })
+                .AddQueryType(d =>
+                {
+                    d.Name("Query")
+                        .Field("entity")
+                        .Type(new NamedTypeNode("Entity"))
+                        .Resolve(new Entity { Name = "foo", });
+                })
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
@@ -127,29 +127,29 @@ public class NodeResolverTests
     public async Task NodeResolverObject_ResolveNode_DynamicFieldObject()
     {
         // arrange
-        var schema = SchemaBuilder.New()
-            .AddGlobalObjectIdentification()
-            .AddObjectType(d =>
-            {
-                d.Name("Entity");
-                d.ImplementsNode()
-                    .ResolveNode<string>(
-                        (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
-                    .Resolve(ctx => ctx.Parent<Entity>().Id);
-                d.Field("name")
-                    .Type<StringType>()
-                    .Resolve(t => t.Parent<Entity>().Name);
-            })
-            .AddQueryType(d =>
-            {
-                d.Name("Query")
-                    .Field("entity")
-                    .Type(new NamedTypeNode("Entity"))
-                    .Resolve(new Entity { Name = "foo", });
-            })
-            .Create();
-
-        var executor = schema.MakeExecutable();
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddObjectType(d =>
+                {
+                    d.Name("Entity");
+                    d.ImplementsNode()
+                        .ResolveNode<string>(
+                            (_, id) => Task.FromResult<object>(new Entity { Name = id, }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
+                    d.Field("name")
+                        .Type<StringType>()
+                        .Resolve(t => t.Parent<Entity>().Name);
+                })
+                .AddQueryType(d =>
+                {
+                    d.Name("Query")
+                        .Field("entity")
+                        .Type(new NamedTypeNode("Entity"))
+                        .Resolve(new Entity { Name = "foo", });
+                })
+                .BuildRequestExecutorAsync();
 
         // act
         var result = await executor.ExecuteAsync(
