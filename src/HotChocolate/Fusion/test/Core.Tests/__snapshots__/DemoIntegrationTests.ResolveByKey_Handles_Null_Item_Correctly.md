@@ -17,27 +17,6 @@
         "viewer",
         "recommendedResalableProducts",
         "edges",
-        2,
-        "node",
-        "product",
-        "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 13
-        }
-      ],
-      "path": [
-        "viewer",
-        "recommendedResalableProducts",
-        "edges",
         1,
         "node",
         "product",
@@ -46,30 +25,6 @@
       "extensions": {
         "code": "HC0018"
       }
-    },
-    {
-      "message": "Cannot return null for non-nullable field.",
-      "locations": [
-        {
-          "line": 9,
-          "column": 13
-        }
-      ],
-      "path": [
-        "viewer",
-        "recommendedResalableProducts",
-        "edges",
-        0,
-        "node",
-        "product",
-        "name"
-      ],
-      "extensions": {
-        "code": "HC0018"
-      }
-    },
-    {
-      "message": "Unexpected Execution Error"
     }
   ],
   "data": {
@@ -78,7 +33,10 @@
         "edges": [
           {
             "node": {
-              "product": null
+              "product": {
+                "id": "UHJvZHVjdDox",
+                "name": "Table"
+              }
             }
           },
           {
@@ -88,7 +46,10 @@
           },
           {
             "node": {
-              "product": null
+              "product": {
+                "id": "UHJvZHVjdDoz",
+                "name": "Chair"
+              }
             }
           }
         ]
