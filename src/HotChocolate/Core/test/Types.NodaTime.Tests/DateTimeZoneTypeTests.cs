@@ -57,7 +57,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Amsterdam" }, })
                     .Build());
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: DateTimeZone!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "Europe/Hamster" }, })
                     .Build());
@@ -80,7 +80,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"Europe/Amsterdam\") }")
                     .Build());
             Assert.Equal("Europe/Amsterdam", Assert.IsType<OperationResult>(result).Data!["test"]);
@@ -90,7 +90,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"Europe/Hamster\") }")
                     .Build());
             Assert.Null(Assert.IsType<OperationResult>(result).Data);

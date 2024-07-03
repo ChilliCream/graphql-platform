@@ -36,7 +36,7 @@ public class ResolverContextStateExtensionTests
                 d.Field("foo").Resolve(ctx => ctx.GetUser()?.Identity?.Name);
             })
             .ExecuteRequestAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ foo }")
                     .SetUser(user)
                     .Build())

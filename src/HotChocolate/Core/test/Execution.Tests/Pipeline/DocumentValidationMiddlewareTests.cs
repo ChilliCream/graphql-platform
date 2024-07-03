@@ -27,7 +27,7 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -69,7 +69,7 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -112,7 +112,7 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -156,7 +156,7 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -199,7 +199,7 @@ public class DocumentValidationMiddlewareTests
             new NoopExecutionDiagnosticEvents(),
             validator.Object);
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();

@@ -167,14 +167,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barShort: ASC}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barShort: DESC}}) " +
                     "{ foo{ barShort}}}")
@@ -197,14 +197,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barShort: ASC}}) " +
                     "{ foo{ barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barShort: DESC}}) " +
                     "{ foo{ barShort}}}")
@@ -226,14 +226,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: ASC}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: DESC}}) " +
                     "{ foo{ barEnum}}}")
@@ -255,14 +255,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: ASC}}) " +
                     "{ foo{ barEnum}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barEnum: DESC}}) " +
                     "{ foo{ barEnum}}}")
@@ -284,14 +284,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barString: ASC}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barString: DESC}}) " +
                     "{ foo{ barString}}}")
@@ -313,14 +313,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barString: ASC}}) " +
                     "{ foo{ barString}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barString: DESC}}) " +
                     "{ foo{ barString}}}")
@@ -342,14 +342,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: ASC}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: DESC}}) " +
                     "{ foo{ barBool}}}")
@@ -371,14 +371,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: ASC}}) " +
                     "{ foo{ barBool}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: DESC}}) " +
                     "{ foo{ barBool}}}")
@@ -400,14 +400,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
                     "{ foo{ barBool barShort}}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"
                         {
@@ -424,14 +424,14 @@ public class QueryableSortVisitorObjectTests : IClassFixture<SchemaCache>
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
                     "{ foo{ barBool barShort}}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root(order: [

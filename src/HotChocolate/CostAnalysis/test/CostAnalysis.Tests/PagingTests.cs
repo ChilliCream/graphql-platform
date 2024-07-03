@@ -46,7 +46,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -99,7 +99,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -146,7 +146,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -189,7 +189,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -242,7 +242,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -295,7 +295,7 @@ public class PagingTests
                 """);
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();

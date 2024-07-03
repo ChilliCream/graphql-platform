@@ -28,7 +28,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-02-21 (Hebrew Civil)" }, })
                         .Build());
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             IExecutionResult? result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: LocalDate!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?> { { "arg", "2020-02-20T17:42:59 (Hebrew Civil)" }, })
@@ -56,7 +56,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-02-20 (Hebrew Civil)\") }")
                         .Build());
 
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59 (Hebrew Civil)\") }")
                         .Build());
 

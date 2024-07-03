@@ -43,7 +43,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .CreateScope();
 
         var result = await scope.ServiceProvider.ExecuteRequestAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(scope.ServiceProvider)
                 .Build());
@@ -64,7 +64,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider();
 
         var result = await service.ExecuteRequestAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(service)
                 .Build());
@@ -85,7 +85,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider();
 
         var result = await service.ExecuteRequestAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ books { title } }")
                 .SetServices(service)
                 .Build());

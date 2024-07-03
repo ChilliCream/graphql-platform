@@ -26,7 +26,7 @@ public class CustomCursorHandlerTests
         Snapshot.FullName();
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ items { nodes } }")
                 .Build();
 

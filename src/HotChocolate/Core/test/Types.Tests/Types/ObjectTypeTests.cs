@@ -1170,7 +1170,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ desc }")
                 .SetGlobalState(InitialValue, new Foo())
                 .Build());
@@ -1481,7 +1481,7 @@ public class ObjectTypeTests : TypeTestBase
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ bar baz }")
                 .SetGlobalState(
                     InitialValue,

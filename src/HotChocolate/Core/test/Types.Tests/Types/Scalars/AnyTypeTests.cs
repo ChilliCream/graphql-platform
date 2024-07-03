@@ -405,7 +405,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", new List<object> { "abc", } }, })
                 .Build());
@@ -432,7 +432,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object>
@@ -471,7 +471,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", "bar" }, })
                 .Build());
@@ -498,7 +498,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", 123 }, })
                 .Build());
@@ -525,7 +525,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", 1.2 }, })
                 .Build());
@@ -552,7 +552,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", new { a = "b", } }, })
                 .Build());
@@ -579,7 +579,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object>
@@ -610,7 +610,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(
                     new Dictionary<string, object>
@@ -641,7 +641,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", false }, })
                 .Build());
@@ -668,7 +668,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query ($foo: Any) { foo(input: $foo) }")
                 .SetVariableValues(new Dictionary<string, object> { { "foo", null }, })
                 .Build());

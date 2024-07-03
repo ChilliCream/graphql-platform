@@ -28,7 +28,7 @@ public sealed class SpecificationExampleTests
               """;
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();

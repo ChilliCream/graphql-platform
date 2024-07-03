@@ -21,13 +21,13 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", true }, })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", false }, })
                 .Build());
@@ -50,13 +50,13 @@ public class QueryableFilterVisitorVariablesTests(SchemaCache cache) : IClassFix
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", true}, })
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(new Dictionary<string, object?> { { "where", false}, })
                 .Build());

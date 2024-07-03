@@ -92,7 +92,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -144,7 +144,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
                 .SetDocument(request)
                 .Build());
@@ -198,7 +198,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetVariableValues(new Dictionary<string, object?> { { "skip", true } })
                 .SetDocument(request)
                 .Build());
@@ -244,7 +244,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -289,7 +289,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -341,7 +341,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -391,7 +391,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -441,7 +441,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -492,7 +492,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build(),
             cts.Token);
@@ -554,7 +554,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -604,7 +604,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -654,7 +654,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -705,7 +705,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -757,7 +757,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -810,7 +810,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -856,7 +856,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "first", 2 }, })
                 .Build());
@@ -913,7 +913,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -964,7 +964,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1014,7 +1014,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", 1 }, })
                 .Build());
@@ -1064,7 +1064,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1116,7 +1116,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1169,7 +1169,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id }, })
                 .Build());
@@ -1222,7 +1222,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         var result = await executorProxy.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -1245,7 +1245,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
 
         result = await executorProxy.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -1287,7 +1287,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 
@@ -1338,7 +1338,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1390,7 +1390,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(
                     new Dictionary<string, object?>
@@ -1451,7 +1451,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1505,7 +1505,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1561,7 +1561,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1621,7 +1621,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1680,7 +1680,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1745,7 +1745,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
@@ -1792,7 +1792,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "after", null }, })
                 .Build());
@@ -1848,7 +1848,7 @@ public class DemoIntegrationTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", "UHJvZHVjdDox" }, { "first", 1 }, })
                 .Build());
