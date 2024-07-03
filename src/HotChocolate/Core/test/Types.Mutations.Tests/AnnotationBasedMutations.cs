@@ -517,7 +517,7 @@ public class AnnotationBasedMutations
                 .AddGlobalObjectIdentification()
                 .ExecuteRequestAsync(
                     OperationRequestBuilder
-                        .Create()
+                        .New()
                         .SetDocument(
                             """
                             mutation($id: ID!) {

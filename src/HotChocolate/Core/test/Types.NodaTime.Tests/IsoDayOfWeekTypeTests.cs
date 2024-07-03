@@ -73,7 +73,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesMonday()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 1 }, })
                     .Build());
@@ -85,7 +85,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesSunday()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 7 }, })
                     .Build());
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseZero()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 0 }, })
                     .Build());
@@ -110,7 +110,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseEight()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", 8 }, })
                     .Build());
@@ -123,7 +123,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseNegativeNumbers()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: IsoDayOfWeek!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", -2 }, })
                     .Build());

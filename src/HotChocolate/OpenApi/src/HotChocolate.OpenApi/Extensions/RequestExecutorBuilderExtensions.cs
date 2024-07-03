@@ -25,7 +25,7 @@ public static class RequestExecutorBuilderExtensions
         var openApiStringReader = new OpenApiStringReader();
         var openApiDocument = openApiStringReader.Read(openApiDocumentText, out _);
 
-        var mutableSchemaBuilder = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchemaBuilder = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName);
 

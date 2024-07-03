@@ -112,7 +112,7 @@ internal sealed class FusionExecutionContext : IDisposable
 
     public string ReformatId(string formattedId, string subgraphName)
     {
-        var id = _idSerializer.Parse(formattedId);
+        var id = _idSerializer.Parse(formattedId, Schema);
         var typeName = Configuration.GetTypeName(subgraphName, id.TypeName);
         return _idSerializer.Format(typeName, id.InternalId);
     }

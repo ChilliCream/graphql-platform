@@ -14,7 +14,7 @@ public sealed class OpenApiMutableSchemaBuilderTests
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "PetStoreExpanded").Build();
 
@@ -31,7 +31,7 @@ public sealed class OpenApiMutableSchemaBuilderTests
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "PetStoreExpanded").AddMutationConventions().Build();
 
@@ -48,7 +48,7 @@ public sealed class OpenApiMutableSchemaBuilderTests
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "SyntheticWithDefaultValues").Build();
 
@@ -65,7 +65,7 @@ public sealed class OpenApiMutableSchemaBuilderTests
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "SyntheticWithDeprecations").Build();
 
@@ -82,7 +82,7 @@ public sealed class OpenApiMutableSchemaBuilderTests
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "SyntheticWithLinks").Build();
 
@@ -100,7 +100,7 @@ public sealed class OpenApiMutableSchemaBuilderTests
 
         // Act
         var mutableSchema = OpenApiMutableSchemaBuilder
-            .Create(openApiDocument, httpClientName: "SyntheticWithTags")
+            .New(openApiDocument, httpClientName: "SyntheticWithTags")
             .Build();
 
         // Assert

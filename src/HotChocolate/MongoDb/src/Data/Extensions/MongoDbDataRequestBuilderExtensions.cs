@@ -74,14 +74,16 @@ public static class MongoDbDataRequestBuilderExtensions
     /// </returns>
     public static IRequestExecutorBuilder AddObjectIdConverters(
         this IRequestExecutorBuilder builder,
-        bool compressGlobalIds = true) =>
-        builder
+        bool compressGlobalIds = true)
+    {
+        builder.AddNodeIdValueSerializer(
+            new ObjectIdNodeIdValueSerializer(compressGlobalIds));
+
+        return builder
             .BindRuntimeType<ObjectId, StringType>()
             .AddTypeConverter<ObjectId, string>(x => x.ToString())
-            .AddTypeConverter<string, ObjectId>(x => new ObjectId(x))
-            .ConfigureSchemaServices(
-                s => s.AddSingleton<INodeIdValueSerializer>(
-                    new ObjectIdNodeIdValueSerializer(compressGlobalIds)));
+            .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
+    }
 
     /// <summary>
     /// Adds the MongoDB cursor and offset paging providers.

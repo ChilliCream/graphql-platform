@@ -82,7 +82,7 @@ public class FileUploadTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"file", new StreamFile("abc", () => stream) }, })
                 .Build(),
@@ -138,7 +138,7 @@ public class FileUploadTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { {"input", input }, })
                 .Build(),
@@ -202,7 +202,7 @@ public class FileUploadTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .SetVariableValues(new Dictionary<string, object?> { { "input", input } })
                 .Build(),
