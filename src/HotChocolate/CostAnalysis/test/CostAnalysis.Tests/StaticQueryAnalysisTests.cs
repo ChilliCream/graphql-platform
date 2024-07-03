@@ -39,7 +39,7 @@ public sealed class StaticQueryAnalysisTests
             """;
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();
@@ -124,7 +124,7 @@ public sealed class StaticQueryAnalysisTests
             """;
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();

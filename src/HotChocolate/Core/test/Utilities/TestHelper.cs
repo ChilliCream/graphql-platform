@@ -195,7 +195,7 @@ public static class TestHelper
     {
         configuration ??= new TestConfiguration();
 
-        var builder = OperationRequestBuilder.Create().SetDocument(query);
+        var builder = OperationRequestBuilder.New().SetDocument(query);
 
         if (configuration.Services is { } services)
         {

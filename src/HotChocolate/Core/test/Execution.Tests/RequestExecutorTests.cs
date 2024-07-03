@@ -79,7 +79,7 @@ public class RequestExecutorTests
 
         var executor = schema.MakeExecutable();
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ foo }")
             .Build();
 

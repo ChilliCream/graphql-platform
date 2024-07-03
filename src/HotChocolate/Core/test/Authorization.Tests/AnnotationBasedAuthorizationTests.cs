@@ -619,7 +619,7 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     """
                     query($id: ID!) {
@@ -678,7 +678,7 @@ public class AnnotationBasedAuthorizationTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     """
                     query($id: ID!) {

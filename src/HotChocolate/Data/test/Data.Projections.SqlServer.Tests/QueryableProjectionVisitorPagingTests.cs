@@ -32,7 +32,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { bar baz } }}")
                 .Build());
 
@@ -53,7 +53,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { baz } }}")
                 .Build());
 
@@ -74,7 +74,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { bar baz }} }}")
                 .Build());
 
@@ -95,7 +95,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { baz }} }}")
                 .Build());
 
@@ -116,7 +116,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
                 .Build());
 
@@ -137,7 +137,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
                 .Build());
 
@@ -158,7 +158,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { bar baz } }}")
                 .Build());
 
@@ -179,7 +179,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes { baz } }}")
                 .Build());
 
@@ -200,7 +200,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { bar baz }} }}")
                 .Build());
 
@@ -221,7 +221,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ edges { node { baz }} }}")
                 .Build());
 
@@ -242,7 +242,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { bar }} }}")
                 .Build());
 
@@ -263,7 +263,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ baz } edges { node { baz }} }}")
                 .Build());
 
@@ -284,7 +284,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ bar list { barBaz } } }}")
                 .Build());
 
@@ -305,7 +305,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ nodes{ bar paging { nodes {barBaz }} } }}")
                 .Build());
 
@@ -326,7 +326,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(take:10, skip:1){ items { bar baz } }}")
                 .Build());
 
@@ -347,7 +347,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { bar baz } }}")
                 .Build());
 
@@ -368,7 +368,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { baz } }}")
                 .Build());
 
@@ -389,7 +389,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { bar baz } }}")
                 .Build());
 
@@ -410,7 +410,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items { baz } }}")
                 .Build());
 
@@ -431,7 +431,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items{ bar list { barBaz } } }}")
                 .Build());
 
@@ -452,7 +452,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ items{ bar paging { nodes {barBaz }} } }}")
                 .Build());
 
@@ -473,7 +473,7 @@ public class QueryableProjectionVisitorPagingTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
                 .Build());
 

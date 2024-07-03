@@ -26,7 +26,7 @@ public class ArgumentTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(@"{
                         arrayOfScalarsA: arrayOfScalars(values: 1)
                         arrayOfScalarsB: arrayOfScalars(values: [1, 2])

@@ -361,7 +361,7 @@ public class CodeFirstTests
     public async Task EnsureThatArgumentDefaultIsUsedWhenVariableValueIsOmitted()
     {
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("query($v: String) { foo(value: $v) }")
                 .Build();
 

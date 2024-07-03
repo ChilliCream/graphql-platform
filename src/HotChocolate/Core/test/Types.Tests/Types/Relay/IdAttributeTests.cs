@@ -44,7 +44,7 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(@"query foo (
                                 $intId: ID!
                                 $nullIntId: ID = null
@@ -95,7 +95,7 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(@"query foo {
                                 interceptedId(id: 1)
                                 interceptedIds(id: [1, 2])
@@ -129,7 +129,7 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo ($someId: ID! $someIntId: ID!) {
                                 foo(input: {
@@ -186,7 +186,7 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo (
                                 $someId: ID! $someIntId: ID!
@@ -241,7 +241,7 @@ public class IdAttributeTests
         // act
         var result = await executor
             .ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"query foo($someId: ID! $someIntId: ID!) {
                                 foo(input: {
@@ -290,7 +290,7 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo ($someId: ID!) {
                                     foo(input: { someId: $someId someIds: [$someId] }) {
@@ -326,7 +326,7 @@ public class IdAttributeTests
                 .Create()
                 .MakeExecutable()
                 .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             @"query foo ($someId: ID!) {
                                     foo(input: { someId: $someId someIds: [$someId] }) {
