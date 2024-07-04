@@ -1,9 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Pagination;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : ExpressionVisitor
 {

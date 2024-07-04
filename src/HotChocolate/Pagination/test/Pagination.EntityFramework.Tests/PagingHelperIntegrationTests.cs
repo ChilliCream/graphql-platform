@@ -52,6 +52,41 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource) : IClassF
     }
 
     [Fact]
+    public async Task GetDefaultPage2()
+    {
+        // Arrange
+        var connectionString = CreateConnectionString();
+        await SeedAsync(connectionString);
+
+        // Act
+        var result = await new ServiceCollection()
+            .AddScoped(_ => new CatalogContext(connectionString))
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddPagingArguments()
+            .ExecuteRequestAsync(
+                """
+                {
+                    brands2 {
+                        nodes {
+                            id
+                            name
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }
+                """);
+
+        // Assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task GetSecondPage_With_2_Items()
     {
         // Arrange
@@ -126,5 +161,19 @@ public class IntegrationPagingHelperTests(PostgreSqlResource resource) : IClassF
                 .ThenBy(t => t.Id)
                 .ToPageAsync(arguments, cancellationToken: ct)
                 .ToConnectionAsync();
+
+        [UsePaging]
+        public async Task<Connection<Brand>> GetBrands2Async(
+            CatalogContext context,
+            PagingArguments arguments,
+            CancellationToken ct)
+        {
+            var page = await context.Brands
+                .OrderBy(t => t.Name)
+                .ThenBy(t => t.Id)
+                .ToPageAsync(arguments, cancellationToken: ct);
+
+            return page.ToConnection();
+        }
     }
 }

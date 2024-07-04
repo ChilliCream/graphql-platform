@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Data.EntityFramework.Helpers</PackageId>
-    <AssemblyName>HotChocolate.Data.EntityFramework.Helpers</AssemblyName>
-    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <PackageId>HotChocolate.Pagination.EntityFramework</PackageId>
+    <AssemblyName>HotChocolate.Pagination.EntityFramework</AssemblyName>
+    <RootNamespace>HotChocolate.Pagination</RootNamespace>
     <Description>Provides helper classes to implement cursor paging in a layered architecture without the need to reference HotChocolate GraphQL libraries.</Description>
   </PropertyGroup>
 
@@ -12,9 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
+    <ProjectReference Include="..\Pagination.Core\HotChocolate.Pagination.Core.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
   </ItemGroup>

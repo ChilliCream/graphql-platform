@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 internal static class CursorFormatter
 {

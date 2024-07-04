@@ -2,12 +2,12 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 internal static class CursorParser
 {
     private const byte _separator = (byte)':';
-    
+
     public static object[] Parse(string cursor, ReadOnlySpan<DataSetKey> keys)
     {
         if (cursor == null)
@@ -16,10 +16,10 @@ internal static class CursorParser
         }
 
         if (keys.Length == 0)
-        {   
+        {
             throw new ArgumentException("The number of keys must be greater than zero.", nameof(keys));
         }
-        
+
         var buffer = ArrayPool<byte>.Shared.Rent(cursor.Length * 4);
         var bufferSpan = buffer.AsSpan();
         var length = Encoding.UTF8.GetBytes(cursor, bufferSpan);
@@ -59,7 +59,7 @@ internal static class CursorParser
                 key++;
             }
         }
-        
+
         ArrayPool<byte>.Shared.Return(buffer);
         return parsedCursor;
     }

@@ -2,7 +2,7 @@ using System.Buffers.Text;
 using System.Reflection;
 using System.Text;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 internal sealed class DataSetKey
 {
@@ -50,7 +50,7 @@ internal sealed class DataSetKey
 
             return value;
         }
-        
+
         if (typeof(int) == Property.PropertyType)
         {
             if (!Utf8Parser.TryParse(cursorValue, out int value, out _))
@@ -60,7 +60,7 @@ internal sealed class DataSetKey
 
             return value;
         }
-        
+
         if (typeof(long) == Property.PropertyType)
         {
             if (!Utf8Parser.TryParse(cursorValue, out long value, out _))
@@ -70,8 +70,8 @@ internal sealed class DataSetKey
 
             return value;
         }
-        
-        
+
+
         if (typeof(Guid) == Property.PropertyType)
         {
             if (!Utf8Parser.TryParse(cursorValue, out Guid value, out _))
@@ -103,19 +103,19 @@ internal sealed class DataSetKey
             var data = (short)Property.GetValue(instance)!;
             return Utf8Formatter.TryFormat(data, span, out written);
         }
-        
+
         if (typeof(int) == Property.PropertyType)
         {
             var data = (int)Property.GetValue(instance)!;
             return Utf8Formatter.TryFormat(data, span, out written);
         }
-        
+
         if (typeof(long) == Property.PropertyType)
         {
             var data = (long)Property.GetValue(instance)!;
             return Utf8Formatter.TryFormat(data, span, out written);
         }
-        
+
         if (typeof(Guid) == Property.PropertyType)
         {
             var data = (Guid)Property.GetValue(instance)!;
