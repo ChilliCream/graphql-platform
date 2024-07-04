@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Clients;
-using static HotChocolate.Fusion.Execution.ExecutorUtils;
+using static HotChocolate.Fusion.Execution.ExecutionUtils;
 using static HotChocolate.Fusion.Execution.Nodes.ResolverNodeBase;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -17,7 +17,6 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </param>
 internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, config)
 {
-
     /// <summary>
     /// Gets the kind of this node.
     /// </summary>
@@ -40,6 +39,11 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         RequestState state,
         CancellationToken cancellationToken)
     {
+        if (CanBeSkipped(context))
+        {
+            return;
+        }
+
         if (!state.TryGetState(SelectionSet, out var executionState))
         {
             return;
@@ -69,8 +73,9 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
                 ProcessResponses(context, executionState, requests, responses, SubgraphName);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
+            context.DiagnosticEvents.ResolveError(ex);
             var error = context.OperationContext.ErrorHandler.CreateUnexpectedError(ex);
             context.Result.AddError(error.Build());
         }
@@ -129,20 +134,22 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
         ref var request = ref MemoryMarshal.GetArrayDataReference(requests);
         ref var response = ref MemoryMarshal.GetArrayDataReference(responses);
         ref var end = ref Unsafe.Add(ref state, executionStates.Count);
+        var pathLength = Path.Length;
 
         while (Unsafe.IsAddressLessThan(ref state, ref end))
         {
             var data = UnwrapResult(response);
             var selectionSet = state.SelectionSet;
-            var selectionResults = state.SelectionSetData;
+            var selectionSetData = state.SelectionSetData;
+            var selectionSetResult = state.SelectionSetResult;
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
-            ExtractErrors(context.Result, response.Errors, context.ShowDebugInfo);
+            ExtractErrors(context.Result, response.Errors, selectionSetResult, pathLength, context.ShowDebugInfo);
 
             // we extract the selection data from the request and add it to the
             // workItem results.
-            ExtractSelectionResults(SelectionSet, subgraphName, data, selectionResults);
+            ExtractSelectionResults(SelectionSet, subgraphName, data, selectionSetData);
 
             // next we need to extract any variables that we need for followup requests.
             ExtractVariables(data, context.QueryPlan, selectionSet, exportKeys, variableValues);

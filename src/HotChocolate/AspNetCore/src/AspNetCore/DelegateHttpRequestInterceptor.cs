@@ -14,7 +14,7 @@ internal sealed class DelegateHttpRequestInterceptor : DefaultHttpRequestInterce
     public override async ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         await _interceptor(context, requestExecutor, requestBuilder, cancellationToken);

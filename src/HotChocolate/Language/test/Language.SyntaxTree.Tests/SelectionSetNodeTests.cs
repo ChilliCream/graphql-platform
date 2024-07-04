@@ -161,7 +161,7 @@ public class SelectionSetNodeTests
     public void CreateSelectionSet()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -191,7 +191,7 @@ public class SelectionSetNodeTests
     public void WithLocation()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -223,7 +223,7 @@ public class SelectionSetNodeTests
     public void WithSelections()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode

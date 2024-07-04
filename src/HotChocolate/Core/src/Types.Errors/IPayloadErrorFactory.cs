@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 public interface IPayloadErrorFactory<in TException, out TError> where TException : Exception
 {
     /// <summary>
-    /// Translates a exception of type <typeparamref name="TException"/> to a GraphQL error of
+    /// Translates an exception of type <typeparamref name="TException"/> to a GraphQL error of
     /// type <typeparamref name="TError"/>
     /// </summary>
     /// <param name="exception">

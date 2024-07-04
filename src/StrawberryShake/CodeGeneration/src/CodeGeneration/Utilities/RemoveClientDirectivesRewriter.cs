@@ -5,11 +5,11 @@ using HotChocolate.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<ISyntaxVisitorContext>
+internal sealed class RemoveClientDirectivesRewriter : SyntaxRewriter<object?>
 {
     private const string _returns = "returns";
 
-    protected override FieldNode RewriteField(FieldNode node, ISyntaxVisitorContext context)
+    protected override FieldNode RewriteField(FieldNode node, object? context)
     {
         var current = node;
 

@@ -82,7 +82,7 @@ public class InMemoryConnection : IInMemoryConnection
 
             switch (executionResult)
             {
-                case IQueryResult queryResult:
+                case HotChocolate.Execution.IOperationResult queryResult:
                 {
                     queryResult.WriteTo(writer);
                     yield return new Response<JsonDocument>(Parse(writer.GetWrittenMemory()), null);

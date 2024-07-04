@@ -285,9 +285,9 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string RequestExecutorBuilder_Convention_NotSuppported {
+        internal static string RequestExecutorBuilder_Convention_NotSupported {
             get {
-                return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSuppported", resourceCulture);
+                return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSupported", resourceCulture);
             }
         }
         

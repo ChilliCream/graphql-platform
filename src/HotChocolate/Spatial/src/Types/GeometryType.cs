@@ -11,15 +11,15 @@ public sealed class GeometryType
     , IGeoJsonObjectType
     , IGeoJsonInputType
 {
-    [ActivatorUtilitiesConstructor]
-    public GeometryType() : base(GeometryTypeName)
-    {
-    }
-
     public GeometryType(
         string name,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, bind)
+    {
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public GeometryType() : base(GeometryTypeName)
     {
     }
 

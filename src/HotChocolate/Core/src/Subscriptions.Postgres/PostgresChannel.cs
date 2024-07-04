@@ -175,9 +175,9 @@ internal sealed class PostgresChannel : IAsyncDisposable
                 command.CommandText = $"""UNLISTEN "{_channelName}" """;
                 await command.ExecuteNonQueryAsync();
             }
-            catch (Exception)
+            catch
             {
-                // we swallow any exception because we dont care about the connection state
+                // we swallow any exception because we don't care about the connection state
             }
         }
     }

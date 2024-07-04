@@ -30,5 +30,5 @@ Result:
 
 SQL:
 ---------------
-from 'Bars' as _s1 select { Foo : { ObjectArray : _s1.Foo.ObjectArray.slice(0, 2).map(function(p2){return {Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}};}) } }
+from 'Bars' as _s1 select { Foo : { ObjectArray : _s1.Foo.ObjectArray.slice(0, 2).map(p2=>({Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}})) } }
 ---------------

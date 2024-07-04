@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using CookieCrumble;
 using CookieCrumble.Formatters;
@@ -10,17 +9,13 @@ using HotChocolate.Execution.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using static HotChocolate.Execution.Serialization.JsonNullIgnoreCondition;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpPostMiddlewareTests : ServerTestBase
+public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri _url = new("http://localhost:5000/graphql");
-
-    public HttpPostMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory) { }
 
     [Fact]
     public async Task Simple_IsAlive_Test()
@@ -191,35 +186,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Complexity_Exceeded()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: c => c.AddGraphQLServer().ModifyRequestOptions(
-                o =>
-                {
-                    o.Complexity.Enable = true;
-                    o.Complexity.MaximumAllowed = 1;
-                }));
-
-        // act
-        var result =
-            await server.PostAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                    {
-                        HERO: hero {
-                            name
-                        }
-                    }",
-                });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task SingleRequest_GetHeroName_With_EnumVariable()
     {
         // arrange
@@ -280,7 +246,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
     private class CustomFormatter : DefaultHttpResponseFormatter
     {
         protected override void OnWriteResponseHeaders(
-            IQueryResult result,
+            IOperationResult result,
             FormatInfo format,
             IHeaderDictionary headers)
         {
@@ -417,33 +383,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Apollo_Tracing_Invalid_Field()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: s => s
-                .AddGraphQLServer()
-                .AddApolloTracing());
-
-        // act
-        var response = await server.PostRawAsync(
-            new ClientQueryRequest
-            {
-                Query =
-                    @"{
-                        hero123(episode: NEW_HOPE)
-                        {
-                            name
-                        }
-                    }",
-            },
-            enableApolloTracing: true);
-
-        // assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
-
-    [Fact]
     public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
     {
         // arrange
@@ -565,7 +504,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
                         hero(episode: NEW_HOPE)
                         {
                             name
-                            friends {
+                            friends(first: 10) {
                                 nodes @stream(initialCount: 1 label: ""foo"") {
                                     name
                                 }
@@ -1017,286 +956,6 @@ public class HttpPostMiddlewareTests : ServerTestBase
     }
 
     [Fact]
-    public async Task BatchRequest_GetHero_And_GetHuman()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostAsync(
-                new List<ClientQueryRequest>
-                {
-                    new ClientQueryRequest
-                    {
-                        Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }",
-                    },
-                    new ClientQueryRequest
-                    {
-                        Query = @"
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }",
-                    },
-                });
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: sp => sp.AddHttpResponseFormatter());
-
-        // act
-        var response =
-            await server.SendPostRequestAsync(
-                JsonConvert.SerializeObject(
-                    new List<ClientQueryRequest>
-                    {
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }",
-                        },
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }",
-                        },
-                    }),
-                "/graphql");
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            throw new Exception("GraphQL endpoint not found.");
-        }
-
-        var result = await response.Content.ReadAsStringAsync();
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_GetHero_And_GetHuman()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query =
-                        @"query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }",
-                },
-                "getHero, getHuman");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task BatchRequest_GetHero_And_GetHuman_MultiPart_Batching_Disabled()
-    {
-        // arrange
-        var server = CreateStarWarsServer(
-            configureServices: sp => sp.AddHttpResponseFormatter());
-
-        // act
-        var response =
-            await server.SendPostRequestAsync(
-                JsonConvert.SerializeObject(
-                    new List<ClientQueryRequest>
-                    {
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }",
-                        },
-                        new ClientQueryRequest
-                        {
-                            Query = @"
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }",
-                        },
-                    }),
-                path: "/batching");
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            throw new Exception("GraphQL endpoint not found.");
-        }
-
-        var result = await response.Content.ReadAsStringAsync();
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_GetHero_And_GetHuman_Batching_Disabled()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query =
-                        @"query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }",
-                },
-                "getHero, getHuman",
-                path: "/batching");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query =
-                        @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }",
-                },
-                "getHero",
-                createOperationParameter: s => "batchOperations=" + s);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_Invalid_BatchingParameter_2()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }
-
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }",
-                },
-                "getHero, getHuman",
-                createOperationParameter: s => "batchOperations=[" + s);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task OperationBatchRequest_Invalid_BatchingParameter_3()
-    {
-        // arrange
-        var server = CreateStarWarsServer();
-
-        // act
-        var result =
-            await server.PostOperationAsync(
-                new ClientQueryRequest
-                {
-                    Query = @"
-                            query getHero {
-                                hero(episode: EMPIRE) {
-                                    id @export
-                                }
-                            }
-
-                            query getHuman {
-                                human(id: $id) {
-                                    name
-                                }
-                            }",
-                },
-                "getHero, getHuman",
-                createOperationParameter: s => "batchOperations=" + s);
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Throw_Custom_GraphQL_Error()
     {
         // arrange
@@ -1438,7 +1097,7 @@ public class HttpPostMiddlewareTests : ServerTestBase
         public override ValueTask OnCreateAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             throw new GraphQLException("MyCustomError");

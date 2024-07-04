@@ -17,17 +17,6 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalDateType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public LocalDateType()
-        : this(
-            WellKnownScalarTypes.LocalDate,
-            ScalarResources.LocalDateType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LocalDateType"/> class.
-    /// </summary>
     public LocalDateType(
         string name,
         string? description = null,
@@ -35,6 +24,17 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalDateType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LocalDateType()
+        : this(
+            WellKnownScalarTypes.LocalDate,
+            ScalarResources.LocalDateType_Description)
+    {
     }
 
     public override IValueNode ParseResult(object? resultValue)
@@ -51,7 +51,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
 
     protected override DateTime ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out DateTime? value))
+        if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
             return value.Value;
         }
@@ -90,7 +90,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
             case null:
                 runtimeValue = null;
                 return true;
-            case string s when TryDeserializeFromString(s, out DateTime? d):
+            case string s when TryDeserializeFromString(s, out var d):
                 runtimeValue = d;
                 return true;
             case DateTimeOffset d:
@@ -119,7 +119,7 @@ public class LocalDateType : ScalarType<DateTime, StringValueNode>
                 serialized,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
-                out DateTime dt))
+                out var dt))
         {
             value = dt;
             return true;

@@ -430,10 +430,10 @@ public class RavenAsyncDocumentQueryTests
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
+                            OperationResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("query", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -75,6 +77,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -110,6 +113,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -148,12 +152,14 @@ public class QueryableCursorPagingProviderTests
 
         var pagingDetails = new CursorPagingArguments();
         var context = new MockContext(pagingDetails);
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(after: connection.Info.StartCursor, first: 2);
         context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -192,12 +198,14 @@ public class QueryableCursorPagingProviderTests
 
         var pagingDetails = new CursorPagingArguments(first: 5);
         var context = new MockContext(pagingDetails);
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(before: connection.Info.EndCursor, last: 2);
         context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -238,6 +246,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -260,6 +269,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -280,12 +290,15 @@ public class QueryableCursorPagingProviderTests
 
         var pagingDetails = new CursorPagingArguments(first: 1);
         var context = new MockContext(pagingDetails);
+
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         pagingDetails = new CursorPagingArguments(after: connection.Info.EndCursor, first: 2);
         context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -308,6 +321,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -339,6 +353,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -388,6 +403,7 @@ public class QueryableCursorPagingProviderTests
         var context = new MockContext(pagingDetails);
 
         // act
+        pagingHandler.PublishPagingArguments(context);
         var connection = (Connection)await pagingHandler.SliceAsync(context, list);
 
         // assert
@@ -444,11 +460,8 @@ public class QueryableCursorPagingProviderTests
             set => throw new NotImplementedException();
         }
 
-        public IImmutableDictionary<string, object?> LocalContextData
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
+        public IImmutableDictionary<string, object?> LocalContextData { get; set; } =
+            ImmutableDictionary<string, object?>.Empty;
 
         public CancellationToken RequestAborted => default;
 
@@ -480,6 +493,16 @@ public class QueryableCursorPagingProviderTests
             throw new NotImplementedException();
         }
 
+        public ISelectionCollection Select()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISelectionCollection Select(string fieldName)
+        {
+            throw new NotImplementedException();
+        }
+
         public T GetQueryRoot<T>()
         {
             throw new NotImplementedException();
@@ -501,9 +524,6 @@ public class QueryableCursorPagingProviderTests
         public IVariableValueCollection Variables => throw new NotImplementedException();
 
         public Path Path => throw new NotImplementedException();
-
-        IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-            => ScopedContextData;
 
         public T Parent<T>()
         {
@@ -592,36 +612,50 @@ public class QueryableCursorPagingProviderTests
         public IDictionary<string, object?> ContextData => throw new NotImplementedException();
     }
 
-    private sealed class MockExecutable<T> : IExecutable<T>
-        where T : class
+    private sealed class MockExecutable<T>(IEnumerable<T> source) : IExecutable<T> where T : class
     {
-        private readonly IEnumerable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IEnumerable<T> source)
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            _source = source;
+            var queryable = await new ValueTask<IEnumerable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public object Source => _source;
-
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return new(_source.ToList());
+            var queryable = await new ValueTask<IEnumerable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new(_source.FirstOrDefault());
-        }
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new(_source.SingleOrDefault());
-        }
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
-        public string Print()
-        {
-            return _source.ToString()!;
-        }
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
+
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
+
+        public string Print() => source.ToString()!;
     }
 }

@@ -22,32 +22,35 @@ public class IntegrationTests : IClassFixture<RedisResource>
     public async Task ExecutePersistedQuery()
     {
         // arrange
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        
+        await storage.SaveAsync(
+            documentId, 
+            new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database)
+                .AddRedisOperationDocumentStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -57,37 +60,37 @@ public class IntegrationTests : IClassFixture<RedisResource>
     public async Task ExecutePersistedQuery_After_Expiration()
     {
         // arrange
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
 
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database, TimeSpan.FromMilliseconds(10))
+                .AddRedisOperationDocumentStorage(_ => _database, TimeSpan.FromMilliseconds(10))
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
         // ... write query to cache
-        var cache = executor.Services.GetRequiredService<IWriteStoredQueries>();
-        await cache.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        var cache = executor.Services.GetRequiredService<IOperationDocumentStorage>();
+        await cache.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         // ... wait for query to expire
         await Task.Delay(100).ConfigureAwait(false);
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         Assert.Collection(
@@ -103,32 +106,32 @@ public class IntegrationTests : IClassFixture<RedisResource>
     public async Task ExecutePersistedQuery_Before_Expiration()
     {
         // arrange
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisQueryStorage(_database, TimeSpan.FromMilliseconds(10000));
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database)
+                .AddRedisOperationDocumentStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         Assert.Null(result.ExpectQueryResult().Errors);
@@ -140,9 +143,9 @@ public class IntegrationTests : IClassFixture<RedisResource>
     public async Task ExecutePersistedQuery_ApplicationDI()
     {
         // arrange
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -151,17 +154,17 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
-                .AddRedisQueryStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
+                .AddRedisOperationDocumentStorage(sp => sp.GetRequiredService<IConnectionMultiplexer>())
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
@@ -169,7 +172,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // act
         var result =
-            await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -179,9 +182,9 @@ public class IntegrationTests : IClassFixture<RedisResource>
     public async Task ExecutePersistedQuery_ApplicationDI_Default()
     {
         // arrange
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
@@ -190,17 +193,17 @@ public class IntegrationTests : IClassFixture<RedisResource>
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
                 // and in the redis storage setup refer to that instance.
-                .AddRedisQueryStorage()
+                .AddRedisOperationDocumentStorage()
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
@@ -208,7 +211,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // act
         var result =
-            await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+            await executor.ExecuteAsync(OperationRequest.FromId(documentId));
 
         // assert
         result.MatchSnapshot();
@@ -218,25 +221,25 @@ public class IntegrationTests : IClassFixture<RedisResource>
     public async Task ExecutePersistedQuery_NotFound()
     {
         // arrange
-        var queryId = Guid.NewGuid().ToString("N");
+        var documentId = new OperationDocumentId(Guid.NewGuid().ToString("N"));
         var storage = new RedisQueryStorage(_database);
-        await storage.WriteQueryAsync(queryId, new QuerySourceText("{ __typename }"));
+        await storage.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddRedisQueryStorage(_ => _database)
+                .AddRedisOperationDocumentStorage(_ => _database)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
@@ -244,7 +247,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
 
         // act
         var result =
-            await executor.ExecuteAsync(new QueryRequest(queryId: "does_not_exist"));
+            await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         result.MatchSnapshot();

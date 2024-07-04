@@ -1,7 +1,6 @@
 using CookieCrumble;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Skimmed.Serialization;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
 
@@ -26,11 +25,9 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
             });
 
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
+        fusionConfig.MatchSnapshot(extension: ".graphql");
     }
-    
+
     [Fact]
     public async Task Accounts_And_Reviews_Infer_Patterns()
     {
@@ -46,9 +43,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
             });
 
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
+        fusionConfig.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -67,9 +62,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
                 demoProject.Products.ToConfiguration(ProductsExtensionSdl),
             });
 
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
+        fusionConfig.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -89,9 +82,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
+        fusionConfig.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -111,9 +102,7 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
             },
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
+        fusionConfig.MatchSnapshot(extension: ".graphql");
     }
 
     [Fact]
@@ -132,8 +121,6 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
                 demoProject.Products.ToConfiguration(),
             });
 
-        SchemaFormatter
-            .FormatAsString(fusionConfig)
-            .MatchSnapshot(extension: ".graphql");
+        fusionConfig.MatchSnapshot(extension: ".graphql");
     }
 }

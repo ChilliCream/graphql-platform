@@ -93,7 +93,7 @@ conventionDescriptor
     .Name("equals")
     .Description("Compares the value of the input to the value of the field");
 ```
-  
+
 With this configuration, all equals operations are now no longer names `eq` but `equals` and have a description.
 
 If you want to create your own operations, you have to choose an identifier.
@@ -158,7 +158,7 @@ public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
-        desciptor.AddDefaults();
+        descriptor.AddDefaults();
     }
 
     public override NameString GetTypeName(Type runtimeType) =>
@@ -257,13 +257,13 @@ You can override `TryHandleOperation` to handle operations.
 
 ## The Context
 
-As the visitor and the field handlers are singletons, a context object is passed along with the traversion of input objects.
+As the visitor and the field handlers are singletons, a context object is passed along with the traversal of input objects.
 Field handlers can push data on this context, to make it available for other handlers further down in the tree.
 
 The context contains `Types`, `Operations`, `Errors` and `Scopes`. It is very provider-specific what data you need to store in the context.
 In the case of the `IQueryable` provider, it also contains `RuntimeTypes` and knows if the source is `InMemory` or a database call.
 
-With `Scopes` it is possible to add multiple logical layers to a context. In the case of `IQuerable` this is needed, whenever a new closure starts:
+With `Scopes` it is possible to add multiple logical layers to a context. In the case of `IQueryable` this is needed, whenever a new closure starts:
 
 ```csharp
 //          /------------------------ SCOPE 1 -----------------------------\
@@ -306,7 +306,7 @@ To make it simpler, this is roughly what occurs during the visitation:
           # instance[0] = y
           # level[0] = []
           any: {
-            # Push poperty Address.Street onto the scope
+            # Push property Address.Street onto the scope
             # instance[1] = y.Street
             # level[1] = []
             street: {
@@ -315,7 +315,7 @@ To make it simpler, this is roughly what occurs during the visitation:
               # level[2] = [y.Street == "221B Baker Street"]
               eq: "221B Baker Street"
             }
-            # Combine everything of the current level and pop the porperty street from the instance
+            # Combine everything of the current level and pop the property street from the instance
             # instance[1] = y.Street
             # level[1] = [y.Street == "221B Baker Street"]
           }
@@ -323,11 +323,11 @@ To make it simpler, this is roughly what occurs during the visitation:
           # instance[2] = x.Company.Addresses
           # level[2] = [x.Company.Addresses.Any(y => y.Street == "221B Baker Street")]
         }
-        # Combine everything of the current level and pop the porperty street from the instance
+        # Combine everything of the current level and pop the property street from the instance
         # instance[1] = x.Company
         # level[1] = [x.Company.Addresses.Any(y => y.Street == "221B Baker Street")]
       }
-      # Combine everything of the current level and pop the porperty street from the instance
+      # Combine everything of the current level and pop the property street from the instance
       # instance[0] = x
       # level[0] = [x.Company.Addresses.Any(y => y.Street == "221B Baker Street")]
     }
@@ -346,7 +346,7 @@ The following example creates a `StringOperationHandler` that supports case inse
 ```csharp
 // The QueryableStringOperationHandler already has an implementation of CanHandle
 // It checks if the field is declared in a string operation type and also checks if
-// the operation of this field uses the `Operation` specified in the override property 
+// the operation of this field uses the `Operation` specified in the override property
 // further below
 public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHandler
 {
@@ -366,7 +366,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
         IValueNode value,
         object parsedValue)
     {
-        // We get the instance of the context. This is the expression path to the propert
+        // We get the instance of the context. This is the expression path to the property
         // e.g. ~> y.Street
         Expression property = context.GetInstance();
 
@@ -374,7 +374,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
         // e.g. ~> eq: "221B Baker Street"
         if (parsedValue is string str)
         {
-            // Creates and returnes the operation
+            // Creates and returns the operation
             // e.g. ~> y.Street.ToLower() == "221b baker street"
             return Expression.Equal(
                 Expression.Call(property, _toLower),

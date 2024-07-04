@@ -167,7 +167,7 @@ public sealed class WebSocketClient : IWebSocketClient
             return;
         }
 
-        if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
+        if (MemoryMarshal.TryGetArray(message, out var buffer))
         {
             await _socket.SendAsync(
                 buffer,
@@ -192,7 +192,7 @@ public sealed class WebSocketClient : IWebSocketClient
             WebSocketReceiveResult? socketResult = null;
             do
             {
-                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                var memory = writer.GetMemory(_maxMessageSize);
                 try
                 {
                     if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
@@ -214,7 +214,7 @@ public sealed class WebSocketClient : IWebSocketClient
                     break;
                 }
 
-                FlushResult result = await writer
+                var result = await writer
                     .FlushAsync(cancellationToken)
                     .ConfigureAwait(false);
 

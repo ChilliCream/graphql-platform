@@ -21,7 +21,7 @@ You will need to add a package reference to `HotChocolate.Stitching.Redis` to al
 A domain service has to _publish the schema definition_.
 The schema is published on the initialization of the schema.
 By default, a schema is lazy and only initialized when the first request is sent.
-You can also initialize the schema on startup with `IntitializeOnStartup`.
+You can also initialize the schema on startup with `InitializeOnStartup`.
 Every schema requires a unique name. This name is used in several places to reference the schema.
 By calling `PublishSchemaDefinition` you can configure how the schema should be published.
 

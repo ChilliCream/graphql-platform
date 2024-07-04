@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class ExtractOperationContext : ISyntaxVisitorContext
+internal sealed class ExtractOperationContext
 {
     private readonly DocumentNode _document;
     private int _index = -1;

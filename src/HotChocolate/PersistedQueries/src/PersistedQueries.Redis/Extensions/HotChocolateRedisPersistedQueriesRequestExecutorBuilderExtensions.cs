@@ -24,7 +24,7 @@ public static class HotChocolateRedisPersistedQueriesRequestExecutorBuilderExten
     /// <param name="queryExpiration">
     /// A timeout after which a query is removed from the Redis cache.
     /// </param>
-    public static IRequestExecutorBuilder AddRedisQueryStorage(
+    public static IRequestExecutorBuilder AddRedisOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IDatabase> databaseFactory,
         TimeSpan? queryExpiration = null)
@@ -40,7 +40,7 @@ public static class HotChocolateRedisPersistedQueriesRequestExecutorBuilderExten
         }
 
         return builder.ConfigureSchemaServices(
-            s => s.AddRedisQueryStorage(
+            s => s.AddRedisOperationDocumentStorage(
                 sp => databaseFactory(sp.GetCombinedServices()),
                 queryExpiration));
     }
@@ -58,7 +58,7 @@ public static class HotChocolateRedisPersistedQueriesRequestExecutorBuilderExten
     /// <param name="queryExpiration">
     /// A timeout after which a query is removed from the Redis cache.
     /// </param>
-    public static IRequestExecutorBuilder AddRedisQueryStorage(
+    public static IRequestExecutorBuilder AddRedisOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, IConnectionMultiplexer> multiplexerFactory,
         TimeSpan? queryExpiration = null)
@@ -74,7 +74,7 @@ public static class HotChocolateRedisPersistedQueriesRequestExecutorBuilderExten
         }
 
         return builder.ConfigureSchemaServices(
-            s => s.AddRedisQueryStorage(
+            s => s.AddRedisOperationDocumentStorage(
                 sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase(),
                 queryExpiration));
     }
@@ -90,7 +90,7 @@ public static class HotChocolateRedisPersistedQueriesRequestExecutorBuilderExten
     /// <param name="queryExpiration">
     /// A timeout after which a query is removed from the Redis cache.
     /// </param>
-    public static IRequestExecutorBuilder AddRedisQueryStorage(
+    public static IRequestExecutorBuilder AddRedisOperationDocumentStorage(
         this IRequestExecutorBuilder builder,
         TimeSpan? queryExpiration = null)
     {
@@ -99,85 +99,8 @@ public static class HotChocolateRedisPersistedQueriesRequestExecutorBuilderExten
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.AddRedisQueryStorage(
+        return builder.AddRedisOperationDocumentStorage(
             sp => sp.GetRequiredService<IConnectionMultiplexer>(),
             queryExpiration);
-    }
-
-    /// <summary>
-    /// Adds a redis read-only query storage to the services collection.
-    /// </summary>
-    /// <param name="builder">
-    /// The service collection to which the services are added.
-    /// </param>
-    /// <param name="databaseFactory">
-    /// A factory that resolves the redis database that
-    /// shall be used for persistence.
-    /// </param>
-    public static IRequestExecutorBuilder AddReadOnlyRedisQueryStorage(
-        this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, IDatabase> databaseFactory)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (databaseFactory is null)
-        {
-            throw new ArgumentNullException(nameof(databaseFactory));
-        }
-
-        return builder.ConfigureSchemaServices(
-            s => s.AddReadOnlyRedisQueryStorage(
-                sp => databaseFactory(sp.GetCombinedServices())));
-    }
-
-    /// <summary>
-    /// Adds a redis read-only query storage to the services collection.
-    /// </summary>
-    /// <param name="builder">
-    /// The service collection to which the services are added.
-    /// </param>
-    /// <param name="multiplexerFactory">
-    /// A factory that resolves the redis connection multiplexer.
-    /// </param>
-    public static IRequestExecutorBuilder AddReadOnlyRedisQueryStorage(
-        this IRequestExecutorBuilder builder,
-        Func<IServiceProvider, IConnectionMultiplexer> multiplexerFactory)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        if (multiplexerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(multiplexerFactory));
-        }
-
-        return builder.ConfigureSchemaServices(
-            s => s.AddReadOnlyRedisQueryStorage(
-                sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase()));
-    }
-
-    /// <summary>
-    /// Adds a redis read-only query storage to the services collection
-    /// and uses the first <see cref="IConnectionMultiplexer"/>
-    /// registered on the application services.
-    /// </summary>
-    /// <param name="builder">
-    /// The service collection to which the services are added.
-    /// </param>
-    public static IRequestExecutorBuilder AddReadOnlyRedisQueryStorage(
-        this IRequestExecutorBuilder builder)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        return builder.AddReadOnlyRedisQueryStorage(
-            sp => sp.GetRequiredService<IConnectionMultiplexer>());
     }
 }

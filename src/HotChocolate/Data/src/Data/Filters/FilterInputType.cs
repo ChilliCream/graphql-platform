@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
@@ -102,12 +100,12 @@ public class FilterInputType
             switch (fieldDefinition)
             {
                 case FilterOperationFieldDefinition operation:
-                    fields[index] = new FilterOperationField(operation);
+                    fields[index] = new FilterOperationField(operation, index);
                     index++;
                     break;
 
                 case FilterFieldDefinition field:
-                    fields[index] = new FilterField(field);
+                    fields[index] = new FilterField(field, index);
                     index++;
                     break;
             }

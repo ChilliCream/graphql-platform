@@ -46,7 +46,7 @@
   <data name="ChannelWriter_ConnectionEstablished" xml:space="preserve">
     <value>The postgres writer has established a connection and is ready to send messages over the channel</value>
   </data>
-  <data name="ChannelWriter_Disconnectd" xml:space="preserve">
+  <data name="ChannelWriter_Disconnected" xml:space="preserve">
     <value>The postgres writer is disconnected and is no longer sending messages over the channel</value>
   </data>
   <data name="ChannelWriter_FailedToSend" xml:space="preserve">

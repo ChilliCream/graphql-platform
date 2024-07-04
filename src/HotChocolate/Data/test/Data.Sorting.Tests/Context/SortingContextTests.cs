@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
@@ -48,6 +46,80 @@ public class SortingContextTests
         var operation = Assert.IsType<SortingValue>(field.Value).Value;
         Assert.Equal("title", field.Field.Name);
         Assert.Equal("DESC", operation);
+    }
+    
+    [Fact]
+    public async Task When_Sorting_Is_Empty_IsDefined_Should_Be_False()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query =
+            """
+            {
+              test {
+                title
+              }
+            }
+            """;
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        Assert.False(context!.IsDefined);
+    }
+    
+    [Fact]
+    public async Task When_Sorting_Is_Set_IsDefined_Should_Be_True()
+    {
+        // arrange
+        ISortingContext? context = null;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x
+                .Name("Query")
+                .Field("test")
+                .Type<ListType<ObjectType<Book>>>()
+                .UseSorting()
+                .Resolve(x =>
+                {
+                    context = x.GetSortingContext();
+                    return Array.Empty<Book>();
+                }))
+            .AddSorting()
+            .BuildRequestExecutorAsync();
+
+        // act
+        const string query = 
+            """
+            {
+              test(order: { title: DESC }) {
+                title
+              }
+            }
+            """;
+
+        await executor.ExecuteAsync(query);
+
+        // assert
+        Assert.NotNull(context);
+        Assert.True(context!.IsDefined);
     }
 
     [Fact]

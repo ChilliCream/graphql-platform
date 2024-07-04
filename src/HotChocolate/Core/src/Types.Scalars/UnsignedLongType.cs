@@ -11,17 +11,6 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public UnsignedLongType()
-        : this(
-            WellKnownScalarTypes.UnsignedLong,
-            ScalarResources.UnsignedLongType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
-    /// </summary>
     public UnsignedLongType(
         string name,
         string? description = null,
@@ -29,6 +18,17 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
         : base(name, ulong.MinValue, ulong.MaxValue, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UnsignedLongType()
+        : this(
+            WellKnownScalarTypes.UnsignedLong,
+            ScalarResources.UnsignedLongType_Description)
+    {
     }
 
     /// <inheritdoc />

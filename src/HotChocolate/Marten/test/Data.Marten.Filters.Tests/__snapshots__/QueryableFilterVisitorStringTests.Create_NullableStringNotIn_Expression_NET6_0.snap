@@ -9,7 +9,7 @@ testatestAndtestb Result:
 
 testatestAndtestb SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT(d.data ->> 'Bar' = ANY(:p0))
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT(d.data ->> 'Bar' = ANY(:p0));
 ---------------
 
 testbtestAndNull Result:
@@ -23,7 +23,7 @@ testbtestAndNull Result:
 
 testbtestAndNull SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT(d.data ->> 'Bar' = ANY(:p0))
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT(d.data ->> 'Bar' = ANY(:p0));
 ---------------
 
 testatest Result:
@@ -41,5 +41,5 @@ testatest Result:
 
 testatest SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT(d.data ->> 'Bar' = ANY(:p0))
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foonullable as d where NOT(d.data ->> 'Bar' = ANY(:p0));
 ---------------

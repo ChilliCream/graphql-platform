@@ -58,6 +58,8 @@ public class InterfaceTypeDescriptor
     protected override void OnCreateDefinition(
         InterfaceTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -82,6 +84,8 @@ public class InterfaceTypeDescriptor
         Definition.Fields.AddRange(fields.Values);
 
         base.OnCreateDefinition(definition);
+
+        Context.Descriptors.Pop();
     }
 
     protected virtual void OnCompleteFields(

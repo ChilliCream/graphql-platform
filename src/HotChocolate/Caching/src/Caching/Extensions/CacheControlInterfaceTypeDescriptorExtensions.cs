@@ -12,7 +12,7 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
     /// The <see cref="IInterfaceTypeDescriptor"/>.
     /// </param>
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, fields of this
+    /// The maximum time, in seconds, fields of this
     /// type should be cached.
     /// </param>
     /// <param name="scope">
@@ -37,7 +37,7 @@ public static class CacheControlInterfaceTypeDescriptorExtensions
     /// The <see cref="IInterfaceTypeDescriptor{T}"/>.
     /// </param>
     /// <param name="maxAge">
-    /// The maximum time, in Milliseconds, fields of this
+    /// The maximum time, in seconds, fields of this
     /// type should be cached.
     /// </param>
     /// <param name="scope">

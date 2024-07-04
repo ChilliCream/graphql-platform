@@ -11,15 +11,15 @@ public class InputObjectType<T> : InputObjectType
 {
     private Action<IInputObjectTypeDescriptor<T>>? _configure;
 
+    public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
+    {
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+    }
+
     [ActivatorUtilitiesConstructor]
     public InputObjectType()
     {
         _configure = Configure;
-    }
-
-    public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
-    {
-        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(

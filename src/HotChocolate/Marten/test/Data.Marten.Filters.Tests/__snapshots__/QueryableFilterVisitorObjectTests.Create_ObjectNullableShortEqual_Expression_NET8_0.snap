@@ -15,7 +15,7 @@
 
 12 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = :p0;
 ---------------
 
 13 Result:
@@ -35,7 +35,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnull
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where CAST(d.data -> 'Foo' ->> 'BarShort' as smallint) = :p0;
 ---------------
 
 null Result:
@@ -55,5 +55,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where d.data -> 'Foo' ->> 'BarShort' is null
+select d.id, d.data from public.mt_doc_queryablefiltervisitorobjecttests_barnullable as d where d.data -> 'Foo' ->> 'BarShort' is null;
 ---------------

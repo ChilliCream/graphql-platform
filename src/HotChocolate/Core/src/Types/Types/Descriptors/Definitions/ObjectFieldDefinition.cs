@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -120,6 +121,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
     public SubscribeResolverDelegate? SubscribeResolver { get; set; }
 
     /// <summary>
+    /// Gets or sets the result post processor that shall be applied to the resolver result.
+    /// </summary>
+    public IResolverResultPostProcessor? ResultPostProcessor { get; set; }
+
+    /// <summary>
     /// A list of middleware components which will be used to form the field pipeline.
     /// </summary>
     public IList<FieldMiddlewareDefinition> MiddlewareDefinitions
@@ -199,6 +205,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             }
         }
     }
+
+    /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    public DependencyInjectionScope? DependencyInjectionScope { get; set; }
 
     /// <summary>
     /// Defines that the resolver pipeline returns an
@@ -319,8 +330,10 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         target.SubscribeResolver = SubscribeResolver;
         target.IsIntrospectionField = IsIntrospectionField;
         target.IsParallelExecutable = IsParallelExecutable;
+        target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
         target.SubscribeWith = SubscribeWith;
+        target.ResultPostProcessor = ResultPostProcessor;
     }
 
     internal void MergeInto(ObjectFieldDefinition target)
@@ -356,6 +369,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         if (!IsParallelExecutable)
         {
             target.IsParallelExecutable = false;
+        }
+
+        if(DependencyInjectionScope.HasValue)
+        {
+            target.DependencyInjectionScope = DependencyInjectionScope;
         }
 
         if (!HasStreamResult)
@@ -407,6 +425,11 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
         {
             target.SubscribeWith = SubscribeWith;
         }
+
+        if (ResultPostProcessor is not null)
+        {
+            target.ResultPostProcessor = ResultPostProcessor;
+        }
     }
 
     private static void CleanMiddlewareDefinitions<T>(
@@ -439,7 +462,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
             {
                 definitionsCleaned = true;
             }
-
 
             if (!definitionsCleaned)
             {

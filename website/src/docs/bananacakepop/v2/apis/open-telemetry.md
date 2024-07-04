@@ -30,12 +30,12 @@ public void ConfigureServices(IServiceCollection services)
     services
         .AddGraphQLServer()
         .AddQueryType<Query>()
-        .AddBananaCakePopServices(x => 
+        .AddBananaCakePopServices(x =>
         {
             x.ApiKey = "<<your-api-key>>";
             x.ApiId = "QXBpCmc5NGYwZTIzNDZhZjQ0NjBmYTljNDNhZDA2ZmRkZDA2Ng==";
             x.Stage = "dev";
-        })                
+        })
         .AddInstrumentation(); // Enable the graphql telemetry
 
     services
@@ -52,17 +52,17 @@ public void ConfigureServices(IServiceCollection services)
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `AddBananaCakePopServices` without explicitly passing parameters.
 >
->- `BCP_API_KEY` maps to `ApiKey`
->- `BCP_API_ID` maps to `ApiId`
->- `BCP_STAGE` maps to `Stage`
+> - `BCP_API_KEY` maps to `ApiKey`
+> - `BCP_API_ID` maps to `ApiId`
+> - `BCP_STAGE` maps to `Stage`
 >
->```csharp
->public void ConfigureServices(IServiceCollection services)
->{
+> ```csharp
+> public void ConfigureServices(IServiceCollection services)
+> {
 >    services
 >        .AddGraphQLServer()
 >        .AddQueryType<Query>()
->        .AddBananaCakePopServices() 
+>        .AddBananaCakePopServices()
 >        .AddInstrumentation(); // Enable the graphql telemetry
 >
 >    services
@@ -72,10 +72,10 @@ public void ConfigureServices(IServiceCollection services)
 >            x.AddAspNetCoreInstrumentation();
 >            x.AddBananaCakePopExporter();
 >        });
->}
->```
+> }
+> ```
 >
->In this setup, the API key, ID, and stage are set through environment variables.
+> In this setup, the API key, ID, and stage are set through environment variables.
 
 # Monitoring Dashboard
 
@@ -103,7 +103,7 @@ The throughput graph shows you the operations per minute over time. You can see 
 You can track how many requests are done by each client. This helps you to understand which client is impacting your system the most.
 To track this, your clients need to send two headers with each request:
 
-- `GraphQL-Client-Id` - The id of the client. You can get the id from the client by execution `barsita client list` in your terminal.
+- `GraphQL-Client-Id` - The id of the client. You can get the id from the client by execution `barista client list` in your terminal.
 - `GraphQL-Client-Version` - The version of the client
 
 ## Errors
@@ -114,7 +114,7 @@ Shows you the number of operations with errors over time.
 ## Insights
 
 ![Image](images/telemetry-7.png)
-This insights show you a list of executed operations. You can see the latency, the throughput and also how many percent of the operations had errors. You also have a column impact, which will help you to understand which operations are impacting your system the most.  You can sort the columns by clicking on the column header.
+This insights show you a list of executed operations. You can see the latency, the throughput and also how many percent of the operations had errors. You also have a column impact, which will help you to understand which operations are impacting your system the most. You can sort the columns by clicking on the column header.
 
 By clicking on an operation, you can see the telemetry information about the operation and it's traces.
 

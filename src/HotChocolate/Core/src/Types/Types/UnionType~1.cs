@@ -11,16 +11,16 @@ public class UnionType<T> : UnionType
 {
     private Action<IUnionTypeDescriptor>? _configure;
 
-    [ActivatorUtilitiesConstructor]
-    public UnionType()
-    {
-        _configure = Configure;
-    }
-
     public UnionType(Action<IUnionTypeDescriptor> configure)
     {
         _configure = configure
             ?? throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public UnionType()
+    {
+        _configure = Configure;
     }
 
     protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)

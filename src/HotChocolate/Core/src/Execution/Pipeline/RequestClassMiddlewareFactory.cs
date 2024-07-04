@@ -100,8 +100,7 @@ internal static class RequestClassMiddlewareFactory
         
         AddService<IErrorHandler>(list, schemaServices);
         AddService<IExecutionDiagnosticEvents>(list, schemaServices);
-        AddService<IWriteStoredQueries>(list, schemaServices);
-        AddService<IReadStoredQueries>(list, schemaServices);
+        AddService<IOperationDocumentStorage>(list, schemaServices);
         AddService<QueryExecutor>(list, schemaServices);
         AddService<IEnumerable<IOperationCompilerOptimizer>>(list, schemaServices);
         AddService<SubscriptionExecutor>(list, schemaServices);
@@ -146,9 +145,6 @@ internal static class RequestClassMiddlewareFactory
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
             typeof(IRequestExecutorOptionsAccessor),
-            Expression.Constant(options)));
-        parameterHandlers.Add(new TypeParameterHandler(
-            typeof(IComplexityAnalyzerOptionsAccessor),
             Expression.Constant(options)));
         parameterHandlers.Add(new TypeParameterHandler(
             typeof(IPersistedQueryOptionsAccessor),

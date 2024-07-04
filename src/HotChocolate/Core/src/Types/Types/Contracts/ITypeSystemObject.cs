@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace HotChocolate.Types;
 
 public interface ITypeSystemObject
@@ -5,6 +7,4 @@ public interface ITypeSystemObject
     , IHasDescription
     , IHasReadOnlyContextData
     , IHasScope
-    , ITypeSystemMember
-{
-}
+    , ITypeSystemMember;

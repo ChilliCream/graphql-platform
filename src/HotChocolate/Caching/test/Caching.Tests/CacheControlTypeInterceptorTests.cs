@@ -49,6 +49,24 @@ public class CacheControlTypeInterceptorTests
     }
 
     [Fact]
+    public async Task QueryFields_ApplyDefaults_DifferentDefaultScope()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddDocumentFromString(@"
+                type Query {
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200, scope: PUBLIC)
+                }
+            ")
+            .UseField(_ => _)
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task QueryFields_ApplyDefaults_False()
     {
         await new ServiceCollection()
@@ -103,6 +121,18 @@ public class CacheControlTypeInterceptorTests
             .AddQueryType<Query>()
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task DataResolvers_ApplyDefaults_DifferentDefaultScope()
+    {
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddCacheControl()
+            .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }

@@ -1,30 +1,59 @@
 using System.Collections;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
 
-public class MockExecutable<T> : IExecutable<T>
+public class MockExecutable<T>(IQueryable<T> set) : IExecutable<T>
     where T : class
 {
-    private readonly DbSet<T> _dbSet;
+    public object Source => set;
 
-    public MockExecutable(DbSet<T> dbSet)
+    async ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+        => await set.ToListAsync(cancellationToken);
+
+    public async ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+        => await set.ToListAsync(cancellationToken);
+
+    async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        _dbSet = dbSet;
+        await foreach(var item in ToAsyncEnumerable(cancellationToken))
+        {
+            yield return item;
+        }
     }
 
-    public object Source => _dbSet;
+    public async IAsyncEnumerable<T> ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if(set is IAsyncEnumerable<T> asyncEnumerable)
+        {
+            await foreach(var item in asyncEnumerable.WithCancellation(cancellationToken))
+            {
+                yield return item;
+            }
+        }
+        else
+        {
+            foreach(var item in set)
+            {
+                yield return item;
+            }
+        }
+    }
 
-    public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
-        await _dbSet.ToListAsync(cancellationToken);
+    async ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.FirstOrDefaultAsync(cancellationToken);
 
-    public async ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken) =>
-        await _dbSet.FirstOrDefaultAsync(cancellationToken);
+    public async ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.FirstOrDefaultAsync(cancellationToken);
 
-    public async ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken) =>
-        await _dbSet.SingleOrDefaultAsync(cancellationToken);
+    async ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.SingleOrDefaultAsync(cancellationToken);
 
-    public string Print() => _dbSet.ToString()!;
+    public async ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        => await set.SingleOrDefaultAsync(cancellationToken);
+
+    public string Print() => set.ToString()!;
 }

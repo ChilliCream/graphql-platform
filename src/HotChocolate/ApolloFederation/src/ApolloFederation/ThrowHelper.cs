@@ -84,18 +84,6 @@ internal static class ThrowHelper
             scalarType);
 
     /// <summary>
-    /// The schema doesn't contain any types with a key directive
-    /// and therefore no entities. An Apollo federation service
-    /// needs at least one entity.
-    /// </summary>
-    public static SchemaException EntityType_NoEntities() =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(ThrowHelper_EntityType_NoEntities)
-                // .SetCode(ErrorCodes.ApolloFederation.NoEntitiesDeclared)
-                .Build());
-
-    /// <summary>
     /// The apollo gateway tries to resolve an entity for which no
     /// EntityResolver method was found.
     /// </summary>
@@ -120,16 +108,35 @@ internal static class ThrowHelper
                 .Build());
 
     /// <summary>
-    /// The key attribute is used on the type level without specifying the fieldset.
+    /// The key attribute is used on the field level whilst specifying the fieldset.
     /// </summary>
     public static SchemaException Key_FieldSet_MustBeEmpty(
         MemberInfo member)
     {
         var type = member.ReflectedType ?? member.DeclaringType!;
-        
+
         return new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage("The specified key attribute must not specify a fieldset when annotated to a field.")
+                .SetExtension("type", type.FullName ?? type.Name)
+                .SetExtension("member", member.Name)
+                // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
+                .Build());
+    }
+
+    /// <summary>
+    /// The key attribute is used on the field level with inconsistent resolvable values.
+    /// </summary>
+    public static SchemaException Key_FieldSet_ResolvableMustBeConsistent(
+        MemberInfo member)
+    {
+        var type = member.ReflectedType ?? member.DeclaringType!;
+
+        return new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified key attributes must share the same resolvable " +
+                    "values when annotated on multiple fields.")
                 .SetExtension("type", type.FullName ?? type.Name)
                 .SetExtension("member", member.Name)
                 // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
@@ -209,10 +216,10 @@ internal static class ThrowHelper
                     ThrowHelper_FederationVersion_Unknown,
                     version)
                 .Build());
-    
+
     public static SchemaException Contact_Not_Repeatable() =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage("The @contact directive is not repeatable and can.")
-                .Build()); 
+                .Build());
 }

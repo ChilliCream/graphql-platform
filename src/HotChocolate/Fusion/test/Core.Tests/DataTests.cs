@@ -50,15 +50,15 @@ public class DataTests(ITestOutputHelper output)
 
         // act
         await using var result = await executor.ExecuteAsync(
-            QueryRequestBuilder
+            OperationRequestBuilder
                 .New()
-                .SetQuery(request)
-                .Create());
+                .SetDocument(request)
+                .Build());
 
         // assert
         var snapshot = new Snapshot();
-        CollectSnapshotData(snapshot, request, result, fusionGraph);
-        await snapshot.MatchAsync();
+        CollectSnapshotData(snapshot, request, result);
+        await snapshot.MatchMarkdownAsync();
 
         Assert.Null(result.ExpectQueryResult().Errors);
     }

@@ -8,14 +8,6 @@ namespace HotChocolate.Types;
 /// </summary>
 public class UnsignedShortType : IntegerTypeBase<ushort>
 {
-    [ActivatorUtilitiesConstructor]
-    public UnsignedShortType()
-        : this(
-            WellKnownScalarTypes.UnsignedShort,
-            ScalarResources.UnsignedShortType_Description)
-    {
-    }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="UnsignedShortType"/> class.
     /// </summary>
@@ -26,6 +18,17 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
         : base(name, ushort.MinValue, ushort.MaxValue, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UnsignedShortType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UnsignedShortType()
+        : this(
+            WellKnownScalarTypes.UnsignedShort,
+            ScalarResources.UnsignedShortType_Description)
+    {
     }
 
     /// <inheritdoc />

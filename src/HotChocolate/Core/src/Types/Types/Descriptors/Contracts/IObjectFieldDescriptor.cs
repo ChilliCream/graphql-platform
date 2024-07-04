@@ -223,7 +223,7 @@ public interface IObjectFieldDescriptor
     /// }
     /// ]]>
     /// </code>
-    /// The GetFoo method cann be mapped like:
+    /// The GetFoo method can be mapped like:
     /// <code>
     /// <![CDATA[
     /// descriptor

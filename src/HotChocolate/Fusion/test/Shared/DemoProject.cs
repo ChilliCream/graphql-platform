@@ -8,6 +8,7 @@ using HotChocolate.Fusion.Shared.Reviews;
 using HotChocolate.Fusion.Shared.Shipping;
 using HotChocolate.Fusion.Shared.Books;
 using HotChocolate.Fusion.Shared.Authors;
+using HotChocolate.Fusion.Shared.Resale;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
@@ -33,6 +34,7 @@ public sealed class DemoProject : IDisposable
         DemoSubgraph patient1,
         DemoSubgraph books,
         DemoSubgraph authors,
+        DemoSubgraph resale,
         IHttpClientFactory clientFactory,
         IWebSocketConnectionFactory webSocketConnectionFactory)
     {
@@ -46,6 +48,7 @@ public sealed class DemoProject : IDisposable
         Patient1 = patient1;
         Books = books;
         Authors = authors;
+        Resale = resale;
         HttpClientFactory = clientFactory;
         WebSocketConnectionFactory = webSocketConnectionFactory;
     }
@@ -72,6 +75,8 @@ public sealed class DemoProject : IDisposable
 
     public DemoSubgraph Authors { get; }
 
+    public DemoSubgraph Resale { get; }
+
     public static async Task<DemoProject> CreateAsync(CancellationToken ct = default)
     {
         var disposables = new List<IDisposable>();
@@ -82,7 +87,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<ReviewRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<ReviewsQuery>()
                 .AddMutationType<ReviewsMutation>()
                 .AddSubscriptionType<ReviewsSubscription>()
@@ -105,7 +110,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<Reviews2.ReviewRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<Reviews2.ReviewsQuery>()
                 .AddMutationType<Reviews2.ReviewsMutation>()
                 .AddSubscriptionType<Reviews2.ReviewsSubscription>()
@@ -128,7 +133,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<UserRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<AccountQuery>()
                 .AddMutationType<AccountMutation>()
                 .AddMutationConventions()
@@ -149,7 +154,7 @@ public sealed class DemoProject : IDisposable
             s => s
                 .AddRouting()
                 .AddSingleton<ProductRepository>()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<ProductQuery>()
                 .AddMutationType<ProductMutation>()
                 .AddGlobalObjectIdentification()
@@ -170,7 +175,7 @@ public sealed class DemoProject : IDisposable
         var shipping = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<ShippingQuery>()
                 .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -188,7 +193,7 @@ public sealed class DemoProject : IDisposable
         var appointment = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<AppointmentQuery>()
                 .AddObjectType<Appointments.Patient1>()
                 .AddObjectType<Patient2>()
@@ -208,7 +213,7 @@ public sealed class DemoProject : IDisposable
         var patient1 = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<Patient1Query>()
                 .AddGlobalObjectIdentification()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
@@ -226,7 +231,7 @@ public sealed class DemoProject : IDisposable
         var books = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<BookQuery>()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
@@ -243,7 +248,7 @@ public sealed class DemoProject : IDisposable
          var authors = testServerFactory.Create(
             s => s
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer(disableCostAnalyzer: true)
                 .AddQueryType<AuthorQuery>()
                 .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
             c => c
@@ -255,6 +260,26 @@ public sealed class DemoProject : IDisposable
         authorsClient.BaseAddress = new Uri("http://localhost:5000/graphql");
         var authorsSchema = await IntrospectionClient
             .IntrospectServerAsync(authorsClient, ct)
+            .ConfigureAwait(false);
+
+        var resale = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddGraphQLServer(disableCostAnalyzer: true)
+                .AddQueryType<ResaleQuery>()
+                .AddGlobalObjectIdentification()
+                .AddMutationConventions()
+                .AddUploadType()
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(resale);
+
+        var resaleClient = resale.CreateClient();
+        resaleClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var resaleSchema = await IntrospectionClient
+            .IntrospectServerAsync(resaleClient, ct)
             .ConfigureAwait(false);
 
         var httpClients = new Dictionary<string, Func<HttpClient>>
@@ -349,6 +374,16 @@ public sealed class DemoProject : IDisposable
                     return httpClient;
                 }
             },
+            {
+                "Resale", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = resale.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
+                    return httpClient;
+                }
+            },
         };
 
         var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>
@@ -379,6 +414,9 @@ public sealed class DemoProject : IDisposable
             },
             {
                 "Authors", () => new MockWebSocketConnection(authors.CreateWebSocketClient())
+            },
+            {
+                "Resale", () => new MockWebSocketConnection(resale.CreateWebSocketClient())
             },
         };
 
@@ -437,7 +475,13 @@ public sealed class DemoProject : IDisposable
                 authorsClient.BaseAddress,
                 new Uri("ws://localhost:5000/graphql"),
                 authorsSchema,
-                authors),    
+                authors),
+            new DemoSubgraph(
+                "Resale",
+                resaleClient.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                resaleSchema,
+                resale),
             new MockHttpClientFactory(httpClients),
             new MockWebSocketConnectionFactory(webSocketClients));
     }

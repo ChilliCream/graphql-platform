@@ -22,10 +22,10 @@ public static class TypeConverterExtensions
 
         if (typeConverter.TryConvert(
             typeof(TFrom), typeof(TTo),
-            source, out var conv)
-            && conv is TTo convcasted)
+            source, out var c)
+            && c is TTo convertedCasted)
         {
-            converted = convcasted;
+            converted = convertedCasted;
             return true;
         }
 

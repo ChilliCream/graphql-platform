@@ -4,9 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution;
 
-public class OrderedDictionary : OrderedDictionary<string, object?>
-{
-}
+public class OrderedDictionary : OrderedDictionary<string, object?>;
 
 public class OrderedDictionary<TKey, TValue>
     : IDictionary<TKey, TValue>

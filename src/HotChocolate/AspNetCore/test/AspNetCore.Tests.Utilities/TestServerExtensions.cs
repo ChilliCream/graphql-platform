@@ -233,8 +233,7 @@ public static class TestServerExtensions
         ClientQueryRequest request,
         string path = "/graphql")
     {
-        var response =
-            await SendGetRequestAsync(testServer, request.ToString().Replace("+", "%2B"), path);
+        var response = await SendGetRequestAsync(testServer, request.ToString().Replace("+", "%2B"), path);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {

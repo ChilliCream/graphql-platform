@@ -20,7 +20,7 @@ public static class SpatialOperationHandlerHelper
             {
                 if (objectValueNode.Fields[i].Name.Value == fieldName)
                 {
-                    ObjectFieldNode fieldValue = objectValueNode.Fields[i];
+                    var fieldValue = objectValueNode.Fields[i];
                     IInputField field = inputType.Fields[fieldName];
 
                     if (inputParser.ParseLiteral(fieldValue.Value, field) is T val)

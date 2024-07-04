@@ -1,11 +1,12 @@
 ---
 title: "Organizations"
 ---
+
 This guide will walk you through the features and functionalities of BCP Organizations, a structure designed to help teams and individuals work efficiently and effectively on GraphQL related services.
 
 # What is an Organization
 
- An organization typically represents an entire entity or a larger unit within an entity. Each organization can host multiple workspaces, allowing further categorization and organization of resources. A workspace might correspond to a specific project, a specific team within the organization, or a group of related APIs.
+An organization typically represents an entire entity or a larger unit within an entity. Each organization can host multiple workspaces, allowing further categorization and organization of resources. A workspace might correspond to a specific project, a specific team within the organization, or a group of related APIs.
 
 Each BCP user has a personal organization. This is a private space for individual work or for projects that are not associated with any team or company organization. The personal organization is not visible to other users, is created by default and cannot be deleted.
 
@@ -20,7 +21,7 @@ You will be redirected to the management portal. Here you can create a new organ
 ![Picture showing the create button in the management portal](images/create-1.png)
 
 Each organization has a unique name and a display name which can be set during creation.
-The name must be lowercase and may only include dashes (-) and underscores (_).
+The name must be lowercase and may only include dashes (-) and underscores (\_).
 
 ![Screenshot of the create organization screen](images/create-2.png)
 
@@ -30,7 +31,7 @@ To manage your organizations, you have to open the management portal.
 
 ![Screenshot showing the manage button in the organization switcher](images/manage-0.png)
 
-In the client app, you can do this by clicking Manage Organizations'  and then 'Manage' on the organization that you like to manage.
+In the client app, you can do this by clicking Manage Organizations' and then 'Manage' on the organization that you like to manage.
 
 You can also navigate to [here](https://identity.chillicream.com/Organizations) to open the management portal and press 'Manage' on the organization that you like to manage.
 

@@ -22,7 +22,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foo as d order by CAST(d.data ->> 'BarEnum' as integer)
+select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foo as d order by CAST(d.data ->> 'BarEnum' as integer);
 ---------------
 
 DESC Result:
@@ -49,5 +49,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foo as d order by CAST(d.data ->> 'BarEnum' as integer) desc
+select d.id, d.data from public.mt_doc_queryablesortvisitorenumtests_foo as d order by CAST(d.data ->> 'BarEnum' as integer) desc;
 ---------------

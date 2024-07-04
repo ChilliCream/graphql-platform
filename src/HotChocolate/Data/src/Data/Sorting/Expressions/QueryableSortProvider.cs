@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -95,7 +92,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        if (input is QueryableExecutable<TEntityType> { InMemory: var inMemory, })
+        if (input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, })
         {
             return inMemory;
         }
@@ -165,7 +162,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
         {
             IQueryable<TEntityType> q => sort(q),
             IEnumerable<TEntityType> q => sort(q.AsQueryable()),
-            QueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
+            IQueryableExecutable<TEntityType> q => q.WithSource(sort(q.Source)),
             _ => input,
         };
 
@@ -178,7 +175,7 @@ public class QueryableSortProvider : SortProvider<QueryableSortContext>
 
             // if no sort is defined we can stop here and yield back control.
             var skipSorting = context.GetLocalStateOrDefault<bool>(SkipSortingKey);
-            
+
             // ensure sorting is only applied once
             context.SetLocalState(SkipSortingKey, true);
 

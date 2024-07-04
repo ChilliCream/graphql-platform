@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Execution.Serialization;
 using HotChocolate.Utilities;
@@ -149,6 +150,25 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     return;
                 }
             }
+            catch (GraphQLRequestException ex)
+            {
+                if (!root.TryGetProperty(Id, out idProp) ||
+                    idProp.ValueKind is not JsonValueKind.String ||
+                    string.IsNullOrEmpty(idProp.GetString()))
+                {
+                    await connection.CloseAsync(
+                        Apollo_OnReceive_InvalidMessageType,
+                        CloseReasons.InvalidMessage,
+                        cancellationToken);
+                    return;
+                }
+
+                await SendErrorMessageAsync(
+                    session,
+                    idProp.GetString()!,
+                    ex.Errors,
+                    cancellationToken);
+            }
             catch (SyntaxException ex)
             {
                 if (!root.TryGetProperty(Id, out idProp) ||
@@ -216,7 +236,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
     public async ValueTask SendResultMessageAsync(
         ISocketSession session,
         string operationSessionId,
-        IQueryResult result,
+        IOperationResult result,
         CancellationToken cancellationToken)
     {
         using var arrayWriter = new ArrayWriter();
@@ -325,7 +345,8 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             message = null;
             return false;
         }
-
+        
+        DefaultHttpRequestParser.EnsureValidQueryId(request);
         message = new DataStartMessage(id, request[0]);
         return true;
     }

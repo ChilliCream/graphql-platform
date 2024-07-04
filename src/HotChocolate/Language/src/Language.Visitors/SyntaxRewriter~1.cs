@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace HotChocolate.Language.Visitors;
 
 /// <summary>
@@ -10,9 +7,7 @@ namespace HotChocolate.Language.Visitors;
 /// <typeparam name="TContext">
 /// The context type.
 /// </typeparam>
-public class SyntaxRewriter<TContext>
-    : ISyntaxRewriter<TContext>
-    where TContext : ISyntaxVisitorContext
+public class SyntaxRewriter<TContext> : ISyntaxRewriter<TContext>
 {
     public virtual ISyntaxNode? Rewrite(ISyntaxNode node, TContext context)
     {

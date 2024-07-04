@@ -31,17 +31,6 @@ public class HexColorType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="HexColorType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public HexColorType()
-        : this(
-            WellKnownScalarTypes.HexColor,
-            ScalarResources.HexColorType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HexColorType"/> class.
-    /// </summary>
     public HexColorType(
         string name,
         string? description = null,
@@ -51,6 +40,17 @@ public class HexColorType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HexColorType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public HexColorType()
+        : this(
+            WellKnownScalarTypes.HexColor,
+            ScalarResources.HexColorType_Description)
     {
     }
 

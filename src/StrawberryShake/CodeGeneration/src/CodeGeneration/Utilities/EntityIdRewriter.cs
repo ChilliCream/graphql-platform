@@ -115,14 +115,9 @@ internal sealed class EntityIdRewriter : SyntaxRewriter<EntityIdRewriter.Context
         return rewriter.RewriteDocument(document, new Context(schema))!;
     }
 
-    public class Context : ISyntaxVisitorContext
+    public class Context(ISchema schema)
     {
-        public Context(ISchema schema)
-        {
-            Schema = schema;
-        }
-
-        public ISchema Schema { get; }
+        public ISchema Schema { get; } = schema;
 
         public Stack<INamedType> Types { get; } = new();
 

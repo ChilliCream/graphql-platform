@@ -222,7 +222,8 @@ This means you can write the following query against the schema described before
 
 ```graphql
 query fetchUser {
-  user { # active is not needed
+  user {
+    # active is not needed
     name
   }
 }

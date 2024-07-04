@@ -4,14 +4,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Caching;
 
-internal sealed class DefaultDocumentCache : IDocumentCache
+internal sealed class DefaultDocumentCache(int capacity = 100) : IDocumentCache
 {
-    private readonly Cache<DocumentNode> _cache;
-
-    public DefaultDocumentCache(int capacity = 100)
-    {
-        _cache = new Cache<DocumentNode>(capacity);
-    }
+    private readonly Cache<DocumentNode> _cache = new(capacity);
 
     public int Capacity => _cache.Capacity;
 

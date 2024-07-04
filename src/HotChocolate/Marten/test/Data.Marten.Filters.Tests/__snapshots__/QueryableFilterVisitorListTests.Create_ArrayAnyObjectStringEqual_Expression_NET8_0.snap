@@ -9,7 +9,7 @@ false Result:
 
 false SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where (CAST(d.data ->> 'FooNested' as jsonb) is null or jsonb_array_length(CAST(d.data ->> 'FooNested' as jsonb)) = 0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where d.data @? '$ ? (@.FooNested[*] == null || @.FooNested[*].size() == 0)';
 ---------------
 
 true Result:
@@ -89,5 +89,5 @@ true Result:
 
 true SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where (CAST(d.data ->> 'FooNested' as jsonb) is not null and jsonb_array_length(CAST(d.data ->> 'FooNested' as jsonb)) > 0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorlisttests_foo as d where d.data @? '$ ? (@.FooNested[*] != null && @.FooNested[*].size() > 0)';
 ---------------

@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
@@ -37,6 +36,19 @@ public class IdFilterTypeInterceptorTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task Filtering_Should_InferType_When_AnnotatedGeneric()
+    {
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
+            .AddType(new FilterInputType<FooIdGeneric>())
+            .AddFiltering()
+            .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class Foo
     {
         public string? Bar { get; }
@@ -45,6 +57,12 @@ public class IdFilterTypeInterceptorTests
     public class FooId
     {
         [ID]
+        public string? Bar { get; }
+    }
+
+    public class FooIdGeneric
+    {
+        [ID<Foo>]
         public string? Bar { get; }
     }
 }

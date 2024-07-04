@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using CookieCrumble;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;

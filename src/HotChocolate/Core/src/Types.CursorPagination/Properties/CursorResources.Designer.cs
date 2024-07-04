@@ -104,5 +104,11 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("ThrowHelper_InvalidIndexCursor_Message", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_PagingHandler_MinPageSize {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PagingHandler_MinPageSize", resourceCulture);
+            }
+        }
     }
 }

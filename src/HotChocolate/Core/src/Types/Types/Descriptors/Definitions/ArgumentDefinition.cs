@@ -48,6 +48,8 @@ public class ArgumentDefinition : FieldDefinitionBase
     public IList<IInputValueFormatter> Formatters =>
         _formatters ??= [];
 
+    public virtual Type? GetRuntimeType() => RuntimeType ?? Parameter?.ParameterType;
+
     public IReadOnlyList<IInputValueFormatter> GetFormatters()
     {
         if (_formatters is null)

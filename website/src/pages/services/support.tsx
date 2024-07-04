@@ -59,18 +59,6 @@ const SupportPage: FC = () => {
       checklist: ["Public Slack channel"],
     },
     {
-      title: "Starter",
-      price: "$2,500",
-      billed: "/year",
-      description: "For small teams experimenting on non-critical projects.",
-      action: {
-        message: "Contact Sales",
-        url: "mailto:contact@chillicream.com?subject=Starter Support",
-      },
-      scope: "Everything in Community, plus",
-      checklist: ["Up to 2 critical incidents", "Private Slack channel"],
-    },
-    {
       title: "Professional",
       price: "$5,000",
       billed: "/year",
@@ -84,7 +72,6 @@ const SupportPage: FC = () => {
       checklist: [
         "Up to 5 critical incidents",
         "Up to 2 non-critical incidents",
-        "Private issue tracking board",
       ],
     },
     {
@@ -184,9 +171,6 @@ const SupportPage: FC = () => {
                 <strong>Community</strong>
               </dd>
               <dd>
-                <strong>Starter</strong>
-              </dd>
-              <dd>
                 <strong>Professional</strong>
               </dd>
               <dd>
@@ -202,10 +186,6 @@ const SupportPage: FC = () => {
               </dt>
               <dd>
                 <NoneIcon />
-              </dd>
-              <dd>
-                <p>2</p>
-                <small>next business day</small>
               </dd>
               <dd>
                 <p>5</p>
@@ -224,9 +204,6 @@ const SupportPage: FC = () => {
               <dt>
                 <p>Non-critical incidents</p>
               </dt>
-              <dd>
-                <NoneIcon />
-              </dd>
               <dd>
                 <NoneIcon />
               </dd>
@@ -259,9 +236,6 @@ const SupportPage: FC = () => {
               <dd>
                 <CheckIcon />
               </dd>
-              <dd>
-                <CheckIcon />
-              </dd>
             </dl>
             <dl>
               <dt>
@@ -269,9 +243,6 @@ const SupportPage: FC = () => {
               </dt>
               <dd>
                 <NoneIcon />
-              </dd>
-              <dd>
-                <CheckIcon />
               </dd>
               <dd>
                 <CheckIcon />
@@ -299,17 +270,11 @@ const SupportPage: FC = () => {
               <dd>
                 <CheckIcon />
               </dd>
-              <dd>
-                <CheckIcon />
-              </dd>
             </dl>
             <dl>
               <dt>
                 <p>Email support</p>
               </dt>
-              <dd>
-                <NoneIcon />
-              </dd>
               <dd>
                 <NoneIcon />
               </dd>
@@ -337,9 +302,6 @@ const SupportPage: FC = () => {
                 <NoneIcon />
               </dd>
               <dd>
-                <NoneIcon />
-              </dd>
-              <dd>
                 <CheckIcon />
               </dd>
             </dl>
@@ -357,9 +319,6 @@ const SupportPage: FC = () => {
                 <NoneIcon />
               </dd>
               <dd>
-                <NoneIcon />
-              </dd>
-              <dd>
                 <CheckIcon />
               </dd>
             </dl>
@@ -367,9 +326,6 @@ const SupportPage: FC = () => {
               <dt>
                 <p>Status reviews</p>
               </dt>
-              <dd>
-                <NoneIcon />
-              </dd>
               <dd>
                 <NoneIcon />
               </dd>
@@ -483,14 +439,14 @@ const FeatureMatrix = styled.div`
     align-self: center;
 
     & dl {
-      grid-template-columns: 20% repeat(5, 1fr);
+      grid-template-columns: 25% repeat(4, 1fr);
     }
   }
 
   & dl {
     margin: 0 -0.5em;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     min-width: 960px;
     min-height: 2.5em;
     background-color: ${THEME_COLORS.background};

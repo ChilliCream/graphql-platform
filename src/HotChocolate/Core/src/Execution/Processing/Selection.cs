@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Properties;
@@ -17,6 +18,8 @@ public class Selection : ISelection
     private long[] _includeConditions;
     private long _streamIfCondition;
     private Flags _flags;
+    private FieldNode _syntaxNode;
+    private FieldNode[] _syntaxNodes;
 
     public Selection(
         int id,
@@ -36,7 +39,8 @@ public class Selection : ISelection
         DeclaringType = declaringType;
         Field = field;
         Type = type;
-        SyntaxNode = syntaxNode;
+        _syntaxNode = syntaxNode;
+        _syntaxNodes = [syntaxNode];
         ResponseName = responseName;
         Arguments = arguments ?? _emptyArguments;
         ResolverPipeline = resolverPipeline;
@@ -72,7 +76,8 @@ public class Selection : ISelection
         DeclaringType = selection.DeclaringType;
         Field = selection.Field;
         Type = selection.Type;
-        SyntaxNode = selection.SyntaxNode;
+        _syntaxNode = selection._syntaxNode;
+        _syntaxNodes = selection._syntaxNodes;
         ResponseName = selection.ResponseName;
         ResolverPipeline = selection.ResolverPipeline;
         PureResolver = selection.PureResolver;
@@ -112,12 +117,15 @@ public class Selection : ISelection
     public bool IsList => (_flags & Flags.List) == Flags.List;
 
     /// <inheritdoc />
-    public FieldNode SyntaxNode { get; private set; }
+    public FieldNode SyntaxNode => _syntaxNode;
+
+    /// <inheritdoc />
+    public IReadOnlyList<FieldNode> SyntaxNodes => _syntaxNodes;
 
     public int SelectionSetId { get; private set; }
 
     /// <inheritdoc />
-    public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
+    public SelectionSetNode? SelectionSet => _syntaxNode.SelectionSet;
 
     /// <inheritdoc />
     public string ResponseName { get; }
@@ -192,7 +200,7 @@ public class Selection : ISelection
     }
 
     public override string ToString()
-        => SyntaxNode.ToString();
+        => _syntaxNode.ToString();
 
     internal void AddSelection(FieldNode selectionSyntax, long includeCondition = 0)
     {
@@ -216,9 +224,15 @@ public class Selection : ISelection
             _includeConditions[next] = includeCondition;
         }
 
-        if (!SyntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
+        if (!_syntaxNode.Equals(selectionSyntax, SyntaxComparison.Syntax))
         {
-            SyntaxNode = MergeField(SyntaxNode, selectionSyntax);
+            // enlarge the syntax nodes array and add the new syntax node.
+            var temp = new FieldNode[_syntaxNodes.Length + 1];
+            Array.Copy(_syntaxNodes, temp, _syntaxNodes.Length);
+            temp[_syntaxNodes.Length] = selectionSyntax;
+            _syntaxNodes = temp;
+
+            _syntaxNode = MergeField(_syntaxNode, selectionSyntax);
         }
     }
 

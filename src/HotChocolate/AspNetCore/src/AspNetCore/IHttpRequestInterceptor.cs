@@ -26,6 +26,6 @@ public interface IHttpRequestInterceptor
     ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 }

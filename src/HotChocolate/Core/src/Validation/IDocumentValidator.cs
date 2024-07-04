@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation;
@@ -45,7 +46,7 @@ public interface IDocumentValidator
     ValueTask<DocumentValidatorResult> ValidateAsync(
         ISchema schema,
         DocumentNode document,
-        string documentId,
+        OperationDocumentId documentId,
         IDictionary<string, object?> contextData,
         bool onlyNonCacheable,
         CancellationToken cancellationToken = default);

@@ -1,5 +1,8 @@
 namespace HotChocolate.Language;
 
+/// <summary>
+/// Represents the parsed GraphQL request JSON object.
+/// </summary>
 public sealed class GraphQLRequest
 {
     public GraphQLRequest(
@@ -7,7 +10,7 @@ public sealed class GraphQLRequest
         string? queryId = null,
         string? queryHash = null,
         string? operationName = null,
-        IReadOnlyDictionary<string, object?>? variables = null,
+        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variables = null,
         IReadOnlyDictionary<string, object?>? extensions = null)
     {
         if (query is null && queryId is null)
@@ -31,7 +34,7 @@ public sealed class GraphQLRequest
 
     public string? OperationName { get; }
 
-    public IReadOnlyDictionary<string, object?>? Variables { get; }
+    public IReadOnlyList<IReadOnlyDictionary<string, object?>>? Variables { get; }
 
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
 }

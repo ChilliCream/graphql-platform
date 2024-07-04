@@ -12,18 +12,6 @@ public class UploadType : ScalarType<IFile, FileValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UploadType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public UploadType()
-        : this(
-            "Upload",
-            UploadResources.UploadType_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UploadType"/> class.
-    /// </summary>
     public UploadType(
         string name,
         string? description = null,
@@ -31,6 +19,18 @@ public class UploadType : ScalarType<IFile, FileValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UploadType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UploadType()
+        : this(
+            "Upload",
+            UploadResources.UploadType_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     public override IValueNode ParseResult(object? resultValue)

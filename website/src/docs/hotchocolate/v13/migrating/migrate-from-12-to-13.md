@@ -196,7 +196,7 @@ Previously only the first character in a property or method name was lowercased 
 
 **Before**
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> iPAddress
 PLZ --> pLZ
@@ -204,7 +204,7 @@ PLZ --> pLZ
 
 **After**
 
-```
+```text
 FooBar --> fooBar
 IPAddress --> ipAddress
 PLZ --> plz
@@ -350,7 +350,7 @@ public class Subscription
 public class Subscription
 {
     [Subscribe]
-    // What's inbetween the curly braces must match an argument name.
+    // What's in between the curly braces must match an argument name.
     [Topic("{author}")]
     public Book BookPublished(string author, [EventMessage] Book book)
         => book;
@@ -501,13 +501,13 @@ We aligned the naming of state related APIs:
 - `IResolverContext.SetLocalValue` --> `IResolverContext.SetLocalState`
 - `IResolverContext.RemoveLocalValue` --> `IResolverContext.RemoveLocalState`
 
-### IQueryRequestBuilder
+### OperationRequestBuilder
 
-- `IQueryRequestBuilder.SetProperties` --> `IQueryRequestBuilder.InitializeGlobalState`
-- `IQueryRequestBuilder.SetProperty` --> `IQueryRequestBuilder.SetGlobalState`
-- `IQueryRequestBuilder.AddProperty` --> `IQueryRequestBuilder.AddGlobalState`
-- `IQueryRequestBuilder.TryAddProperty` --> `IQueryRequestBuilder.TryAddGlobalState`
-- `IQueryRequestBuilder.TryRemoveProperty` --> `IQueryRequestBuilder.RemoveGlobalState`
+- `OperationRequestBuilder.SetProperties` --> `OperationRequestBuilder.InitializeGlobalState`
+- `OperationRequestBuilder.SetProperty` --> `OperationRequestBuilder.SetGlobalState`
+- `OperationRequestBuilder.AddProperty` --> `OperationRequestBuilder.AddGlobalState`
+- `OperationRequestBuilder.TryAddProperty` --> `OperationRequestBuilder.TryAddGlobalState`
+- `OperationRequestBuilder.TryRemoveProperty` --> `OperationRequestBuilder.RemoveGlobalState`
 
 <!--
 TODO: Link to new docs once done

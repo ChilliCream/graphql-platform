@@ -229,13 +229,13 @@ While Hot Chocolate's internals rely heavily on Microsoft's dependency injection
 
 You can switch out the service provider used for GraphQL requests, as long as your dependency injection container implements the [`IServiceProvider`](https://docs.microsoft.com/dotnet/api/system.iserviceprovider) interface.
 
-To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v12/server/interceptors#setservices) on the [`IQueryRequestBuilder`](/docs/hotchocolate/v12/server/interceptors#iqueryrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v12/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v12/server/interceptors#isocketsessioninterceptor).
+To switch out the service provider you need to call [`SetServices`](/docs/hotchocolate/v12/server/interceptors#setservices) on the [`OperationRequestBuilder`](/docs/hotchocolate/v12/server/interceptors#operationrequestbuilder) in both the [`IHttpRequestInterceptor`](/docs/hotchocolate/v12/server/interceptors#ihttprequestinterceptor) and the [`ISocketSessionInterceptor`](/docs/hotchocolate/v12/server/interceptors#isocketsessioninterceptor).
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override async ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         // keeping this line is important!
@@ -249,7 +249,7 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 {
     public override async ValueTask OnRequestAsync(ISocketConnection connection,
-        IQueryRequestBuilder requestBuilder,
+        OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         // keeping this line is important!

@@ -1,6 +1,5 @@
 using System;
 using HotChocolate;
-using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -1611,8 +1610,4 @@ public static partial class SchemaRequestExecutorBuilderExtensions
 
         return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName));
     }
-
-    public static IRequestExecutorBuilder AddExportDirectiveType(
-        this IRequestExecutorBuilder builder) =>
-        builder.AddDirectiveType<ExportDirectiveType>();
 }

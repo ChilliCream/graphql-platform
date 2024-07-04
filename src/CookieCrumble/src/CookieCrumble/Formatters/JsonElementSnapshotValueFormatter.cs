@@ -4,12 +4,12 @@ using System.Text.Json;
 
 namespace CookieCrumble.Formatters;
 
-internal sealed class JsonElementSnapshotValueFormatter : SnapshotValueFormatter<JsonElement>
+internal sealed class JsonElementSnapshotValueFormatter() : SnapshotValueFormatter<JsonElement>("json")
 {
     private readonly JsonSerializerOptions _options =
         new(JsonSerializerDefaults.Web)
         {
-            WriteIndented = true, 
+            WriteIndented = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         };
 
@@ -19,15 +19,5 @@ internal sealed class JsonElementSnapshotValueFormatter : SnapshotValueFormatter
         var span = snapshot.GetSpan(buffer.Length);
         buffer.AsSpan().CopyTo(span);
         snapshot.Advance(buffer.Length);
-    }
-
-    protected override void FormatMarkdown(IBufferWriter<byte> snapshot, JsonElement value)
-    {
-        snapshot.Append("```json");
-        snapshot.AppendLine();
-        Format(snapshot, value);
-        snapshot.AppendLine();
-        snapshot.Append("```");
-        snapshot.AppendLine();
     }
 }

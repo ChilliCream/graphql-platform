@@ -69,7 +69,7 @@ app.listen(3000, () => {
 You can also use it in the `self` mode for a self-hosted version:
 
 ```javascript
-bcpMiddleware({ mode: "self" }) // for `self` hosted version
+bcpMiddleware({ mode: "self" }); // for `self` hosted version
 ```
 
 # Extended configuration

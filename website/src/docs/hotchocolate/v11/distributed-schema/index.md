@@ -32,7 +32,7 @@ _Schema of the Address Service_
 
 ```sdl
 type Query {
-  addressOfPerson(persondId: ID!): Address
+  addressOfPerson(personId: ID!): Address
 }
 
 type Address {

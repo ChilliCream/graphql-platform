@@ -293,3 +293,5 @@ curl -g 'http://localhost:5000/graphql/?extensions={"persistedQuery":{"version":
 ```json
 { "data": { "__typename": "Query" } }
 ```
+
+<!-- spell-checker:ignore yeex -->

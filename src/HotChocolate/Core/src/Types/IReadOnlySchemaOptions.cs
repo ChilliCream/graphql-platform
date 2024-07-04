@@ -185,4 +185,14 @@ public interface IReadOnlySchemaOptions
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
+    
+    /// <summary>
+    /// Specifies the default dependency injection scope for query fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
+    
+    /// <summary>
+    /// Specifies the default dependency injection scope for mutation fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
 }

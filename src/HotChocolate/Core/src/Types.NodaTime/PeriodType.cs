@@ -17,14 +17,6 @@ public class PeriodType : StringToClassBaseType<Period>
     /// <summary>
     /// Initializes a new instance of <see cref="PeriodType"/>.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public PeriodType() : this(PeriodPattern.Roundtrip)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="PeriodType"/>.
-    /// </summary>
     public PeriodType(params IPattern<Period>[] allowedPatterns) : base("Period")
     {
         if (allowedPatterns.Length == 0)
@@ -35,6 +27,14 @@ public class PeriodType : StringToClassBaseType<Period>
         _allowedPatterns = allowedPatterns;
         _serializationPattern = allowedPatterns[0];
         Description = NodaTimeResources.PeriodType_Description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="PeriodType"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public PeriodType() : this(PeriodPattern.Roundtrip)
+    {
     }
 
     /// <inheritdoc />

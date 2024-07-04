@@ -22,24 +22,24 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddFileSystemQueryStorage(cacheDirectory)
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(queryId));
 
         // assert
         File.Delete(cachedQuery);
@@ -60,24 +60,24 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddFileSystemQueryStorage(cacheDirectory)
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: "does_not_exist"));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         File.Delete(cachedQuery);

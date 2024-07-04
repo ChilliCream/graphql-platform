@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <PackageId>HotChocolate.Diagnostics</PackageId>
@@ -13,18 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>

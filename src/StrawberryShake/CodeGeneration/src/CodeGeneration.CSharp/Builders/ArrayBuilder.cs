@@ -9,7 +9,7 @@ public class ArrayBuilder : ICode
     private string? _type;
     private bool _determineStatement = true;
     private bool _setReturn;
-    private readonly List<ICode> _assigment = [];
+    private readonly List<ICode> _assignment = [];
 
     private ArrayBuilder()
     {
@@ -23,7 +23,7 @@ public class ArrayBuilder : ICode
 
     public ArrayBuilder AddAssignment(ICode code)
     {
-        _assigment.Add(code);
+        _assignment.Add(code);
         return this;
     }
 
@@ -71,11 +71,11 @@ public class ArrayBuilder : ICode
 
         using (writer.IncreaseIndent())
         {
-            for (var i = 0; i < _assigment.Count; i++)
+            for (var i = 0; i < _assignment.Count; i++)
             {
                 writer.WriteIndent();
-                _assigment[i].Build(writer);
-                if (i != _assigment.Count - 1)
+                _assignment[i].Build(writer);
+                if (i != _assignment.Count - 1)
                 {
                     writer.Write(",");
                     writer.WriteLine();

@@ -14,17 +14,6 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public UtcOffsetType()
-        : this(
-            WellKnownScalarTypes.UtcOffset,
-            ScalarResources.UtcOffsetType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
-    /// </summary>
     public UtcOffsetType(
         string name,
         string? description = null,
@@ -34,6 +23,17 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         Description = description;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UtcOffsetType()
+        : this(
+            WellKnownScalarTypes.UtcOffset,
+            ScalarResources.UtcOffsetType_Description)
+    {
+    }
+
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)
     {
@@ -41,8 +41,8 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
         {
             null => NullValueNode.Default,
 
-            string s when OffsetLookup.TryDeserialize(s, out TimeSpan timespan) =>
-                ParseValue(timespan),
+            string s when OffsetLookup.TryDeserialize(s, out var timeSpan) =>
+                ParseValue(timeSpan),
 
             TimeSpan ts => ParseValue(ts),
 
@@ -53,7 +53,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     /// <inheritdoc />
     protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
     {
-        if (OffsetLookup.TryDeserialize(valueSyntax.Value, out TimeSpan parsed))
+        if (OffsetLookup.TryDeserialize(valueSyntax.Value, out var parsed))
         {
             return parsed;
         }
@@ -97,7 +97,7 @@ public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
             case null:
                 runtimeValue = null;
                 return true;
-            case string s when OffsetLookup.TryDeserialize(s, out TimeSpan timeSpan):
+            case string s when OffsetLookup.TryDeserialize(s, out var timeSpan):
                 runtimeValue = timeSpan;
                 return true;
             case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out _):

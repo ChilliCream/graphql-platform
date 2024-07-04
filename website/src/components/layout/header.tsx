@@ -435,7 +435,7 @@ interface DeveloperNavItemProps {
 
 const DeveloperNavItem: FC<DeveloperNavItemProps> = ({ products, tools }) => {
   const workshop = useSelector<State, WorkshopsState[number] | undefined>(
-    (state) => state.workshops.find(({ hero, active }) => hero && active)
+    (state) => state.workshops.find(({ hero, active, self, }) => hero && active && self === false)
   );
 
   const [subNav, navHandlers, linkHandlers] = useSubNav((hideSubNav) => (

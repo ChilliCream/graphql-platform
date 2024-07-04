@@ -188,12 +188,12 @@ internal sealed class NodeRequestDocumentFormatter(
                 onlyIntrospection = false;
             }
 
-            selectionNodes.Add(
-                CreateSelectionNode(
-                    context,
-                    executionStep,
-                    selection,
-                    typeContext.Fields[selection.Field.Name]));
+            AddSelectionNode(
+                context,
+                executionStep,
+                selection,
+                typeContext.Fields[selection.Field.Name],
+                selectionNodes);
 
             if (!selection.Arguments.IsFullyCoercedNoErrors)
             {

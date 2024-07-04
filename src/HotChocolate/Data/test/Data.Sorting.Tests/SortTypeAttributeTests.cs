@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -53,8 +52,8 @@ public class SortTypeAttributeTests
         [SortFieldAttributeTest] public string Field { get; set; } = default!;
     }
 
-    public class GenericTypeSortAttribute
-        : DescriptorAttribute
+    [AttributeUsageAttribute(AttributeTargets.Class, AllowMultiple = false)]
+    public class GenericTypeSortAttribute : DescriptorAttribute
     {
         public static string TypeName { get; } = "ThisIsATest";
 

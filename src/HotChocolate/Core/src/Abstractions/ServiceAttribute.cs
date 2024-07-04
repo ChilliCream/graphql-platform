@@ -11,12 +11,8 @@ public class ServiceAttribute : Attribute
     /// <summary>
     /// Marks a resolver parameter as a service that shall be injected by the execution engine.
     /// </summary>
-    /// <param name="kind">
-    /// The scope of the service.
-    /// </param>
-    public ServiceAttribute(ServiceKind kind = ServiceKind.Default)
+    public ServiceAttribute()
     {
-        Kind = kind;
     }
 
 #if NET8_0_OR_GREATER
@@ -26,13 +22,9 @@ public class ServiceAttribute : Attribute
     /// <param name="key">
     /// A key that shall be used to resolve the service.
     /// </param>
-    /// <param name="kind">
-    /// The scope of the service.
-    /// </param>
-    public ServiceAttribute(string key, ServiceKind kind = ServiceKind.Default)
+    public ServiceAttribute(string key)
     {
         Key = key;
-        Kind = kind;
     }
     
     /// <summary>
@@ -40,10 +32,4 @@ public class ServiceAttribute : Attribute
     /// </summary>
     public string? Key { get; }
 #endif
-
-    /// <summary>
-    /// Gets the service kind which specifies the way the service
-    /// shall be injected and handled by the execution engine.
-    /// </summary>
-    public ServiceKind Kind { get; }
 }

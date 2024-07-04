@@ -210,7 +210,7 @@ public class ErrorBehaviorTests
     {
         public Task<string?> Error1()
         {
-            throw new QueryException("query error 1");
+            throw new GraphQLException("query error 1");
         }
 
         public Task<string?> Error2()
@@ -229,7 +229,7 @@ public class ErrorBehaviorTests
         public async Task<string?> Error4()
         {
             await Task.Delay(1);
-            throw new QueryException("query error 4");
+            throw new GraphQLException("query error 4");
         }
 
         public async Task<string?> Error5()
@@ -249,7 +249,7 @@ public class ErrorBehaviorTests
 
         public string? Error7()
         {
-            throw new QueryException("query error 7");
+            throw new GraphQLException("query error 7");
         }
 
         public string? Error8()
@@ -264,7 +264,7 @@ public class ErrorBehaviorTests
                 .Build();
         }
 
-        public string? Error10 => throw new QueryException("query error 10");
+        public string? Error10 => throw new GraphQLException("query error 10");
 
         public string? Error11 => throw new Exception("query error 11");
 

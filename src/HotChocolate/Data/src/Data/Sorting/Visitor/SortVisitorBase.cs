@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;

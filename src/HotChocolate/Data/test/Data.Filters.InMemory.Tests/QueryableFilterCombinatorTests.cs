@@ -4,7 +4,6 @@
 // ReSharper disable UnusedType.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 

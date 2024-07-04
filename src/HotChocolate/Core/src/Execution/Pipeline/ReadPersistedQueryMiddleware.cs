@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
 using HotChocolate.Validation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -9,25 +11,24 @@ internal sealed class ReadPersistedQueryMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly IReadStoredQueries _persistedQueryStore;
+    private readonly IOperationDocumentStorage _operationDocumentStorage;
 
-    public ReadPersistedQueryMiddleware(
-        RequestDelegate next,
-        IExecutionDiagnosticEvents diagnosticEvents,
-        IReadStoredQueries persistedQueryStore)
+    private ReadPersistedQueryMiddleware(RequestDelegate next,
+        [SchemaService] IExecutionDiagnosticEvents diagnosticEvents,
+        [SchemaService] IOperationDocumentStorage operationDocumentStorage)
     {
         _next = next ??
             throw new ArgumentNullException(nameof(next));
         _diagnosticEvents = diagnosticEvents ??
             throw new ArgumentNullException(nameof(diagnosticEvents));
-        _persistedQueryStore = persistedQueryStore ??
-            throw new ArgumentNullException(nameof(persistedQueryStore));
+        _operationDocumentStorage = operationDocumentStorage ??
+            throw new ArgumentNullException(nameof(operationDocumentStorage));
     }
 
     public async ValueTask InvokeAsync(IRequestContext context)
     {
         if (context.Document is null &&
-            context.Request.Query is null)
+            context.Request.Document is null)
         {
             await TryLoadQueryAsync(context).ConfigureAwait(false);
         }
@@ -37,23 +38,33 @@ internal sealed class ReadPersistedQueryMiddleware
 
     private async ValueTask TryLoadQueryAsync(IRequestContext context)
     {
-        var queryId =
-            context.Request.QueryId ??
+        var documentId =
+            context.Request.DocumentId ??
             context.DocumentId ??
             context.DocumentHash ??
-            context.Request.QueryHash;
-
-        if (queryId is not null)
+            context.Request.DocumentHash;
+        
+        if (!OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            var queryDocument =
-                await _persistedQueryStore.TryReadQueryAsync(
-                    queryId, context.RequestAborted)
+            var operationDocument =
+                await _operationDocumentStorage.TryReadAsync(
+                    documentId.Value, context.RequestAborted)
                     .ConfigureAwait(false);
 
-            if (queryDocument is not null)
+            if (operationDocument is OperationDocument parsedDoc)
             {
-                context.DocumentId = queryId;
-                context.Document = queryDocument.Document;
+                context.DocumentId = documentId;
+                context.Document = parsedDoc.Document;
+                context.ValidationResult = DocumentValidatorResult.Ok;
+                context.IsCachedDocument = true;
+                context.IsPersistedDocument = true;
+                _diagnosticEvents.RetrievedDocumentFromStorage(context);
+            }
+            
+            if (operationDocument is OperationDocumentSourceText sourceTextDoc)
+            {
+                context.DocumentId = documentId;
+                context.Document = Utf8GraphQLParser.Parse(sourceTextDoc.AsSpan());
                 context.ValidationResult = DocumentValidatorResult.Ok;
                 context.IsCachedDocument = true;
                 context.IsPersistedDocument = true;
@@ -61,4 +72,13 @@ internal sealed class ReadPersistedQueryMiddleware
             }
         }
     }
+    
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
+            var persistedQueryStore = core.SchemaServices.GetRequiredService<IOperationDocumentStorage>();
+            var middleware = new ReadPersistedQueryMiddleware(next, diagnosticEvents, persistedQueryStore);
+            return context => middleware.InvokeAsync(context);
+        };
 }

@@ -26,7 +26,7 @@ public class SchemaFirstTests
                 "{ test testProp }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -58,7 +58,7 @@ public class SchemaFirstTests
                 "{ foo(bar: { baz: \"hello\"}) }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -85,7 +85,7 @@ public class SchemaFirstTests
                 "{ enumValue }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -112,7 +112,7 @@ public class SchemaFirstTests
                 "{ setEnumValue(value:BAZ_BAR) }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 
@@ -146,7 +146,7 @@ public class SchemaFirstTests
                 "{ enumInInputObject(payload: { value:BAZ } ) }");
 
         // assert
-        Assert.Null(Assert.IsType<QueryResult>(result).Errors);
+        Assert.Null(Assert.IsType<OperationResult>(result).Errors);
         result.MatchSnapshot();
     }
 

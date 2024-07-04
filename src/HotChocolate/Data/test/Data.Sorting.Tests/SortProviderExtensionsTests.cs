@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Types.Descriptors;

@@ -14,6 +14,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Language.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Language.Web.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Language" />
+    <InternalsVisibleTo Include="HotChocolate.Subscriptions" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Utilities.Introspection" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Language.Utf8\HotChocolate.Language.Utf8.csproj" />
   </ItemGroup>
 

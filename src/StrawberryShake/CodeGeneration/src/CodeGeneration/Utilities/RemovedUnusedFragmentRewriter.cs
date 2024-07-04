@@ -46,7 +46,7 @@ internal sealed class RemovedUnusedFragmentRewriter
         return rewriter.RewriteDocument(document, context);
     }
 
-    internal sealed class Context : ISyntaxVisitorContext
+    internal sealed class Context
     {
         public HashSet<string> Used { get; } = [];
     }

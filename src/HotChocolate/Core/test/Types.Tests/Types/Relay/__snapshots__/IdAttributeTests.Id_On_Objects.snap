@@ -1,5 +1,5 @@
 ﻿{
-  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyCmQx\",\n      \"someNullableId\": \"QmFyCmQx\",\n      \"someIds\": [\n        \"QmFyCmkx\"\n      ],\n      \"someNullableIds\": [\n        \"QmFyCmkx\"\n      ]\n    }\n  }\n}",
-  "someId": "U29tZQpkMQ==",
-  "someIntId": "U29tZQppMQ=="
+  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyOjE=\",\n      \"someNullableId\": \"QmFyOjE=\",\n      \"someIds\": [\n        \"QmF6OjE=\"\n      ],\n      \"someNullableIds\": [\n        \"QmF6OjE=\"\n      ]\n    }\n  }\n}",
+  "someId": "U29tZTox",
+  "someIntId": "U29tZTox"
 }

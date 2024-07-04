@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Processing
             objectResult.SetValueUnsafe(capacity - 1, "ghi", "def");
 
             // act
-            ObjectFieldResult value = objectResult.TryGetValue("def", out var index);
+            var value = objectResult.TryGetValue("def", out var index);
 
             // assert
             Assert.Equal("def", value?.Name);

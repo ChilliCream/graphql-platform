@@ -1,6 +1,6 @@
 ---
 title: "Operation Reporting"
---- 
+---
 
 ![Image](images/operation-reporting-1.png)
 
@@ -37,21 +37,21 @@ public void ConfigureServices(IServiceCollection services)
 >
 > Alternatively, you can set the required values using environment variables. This method allows you to call `AddBananaCakePopServices` without explicitly passing parameters.
 >
->- `BCP_API_KEY` maps to `ApiKey`
->- `BCP_API_ID` maps to `ApiId`
->- `BCP_STAGE` maps to `Stage`
+> - `BCP_API_KEY` maps to `ApiKey`
+> - `BCP_API_ID` maps to `ApiId`
+> - `BCP_STAGE` maps to `Stage`
 >
->```csharp
->public void ConfigureServices(IServiceCollection services)
->{
+> ```csharp
+> public void ConfigureServices(IServiceCollection services)
+> {
 >    services
 >        .AddGraphQLServer()
 >        .AddQueryType<Query>()
->        .AddBananaCakePopServices() 
->}
->```
+>        .AddBananaCakePopServices()
+> }
+> ```
 >
->In this setup, the API key, ID, and stage are set through environment variables.
+> In this setup, the API key, ID, and stage are set through environment variables.
 
 # Viewing Reported Operations
 

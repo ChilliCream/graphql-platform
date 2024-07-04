@@ -92,7 +92,7 @@ public class FlagsEnumInterceptor : TypeInterceptor
     {
         foreach (var field in fields)
         {
-            if (IsFlagsEnum(field.Type, out Type? t))
+            if (IsFlagsEnum(field.Type, out var t))
             {
                 var type = CreateInputObjectType(t);
                 field.Type = CreateTypeReference(field.Type, type.Name);
@@ -303,27 +303,27 @@ public class FlagsEnumInterceptor : TypeInterceptor
             {
                 // byte, sbyte
                 case 1:
-                    byte b =
+                    var b =
                         (byte)(Unsafe.As<T, byte>(ref e) | Unsafe.As<T, byte>(ref flag));
 
                     return Unsafe.As<byte, T>(ref b);
 
                 //short, ushort
                 case 2:
-                    short s =
+                    var s =
                         (short)(Unsafe.As<T, short>(ref e) | Unsafe.As<T, short>(ref flag));
 
                     return Unsafe.As<short, T>(ref s);
 
                 //int, uint
                 case 4:
-                    uint i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
+                    var i = Unsafe.As<T, uint>(ref e) | Unsafe.As<T, uint>(ref flag);
 
                     return Unsafe.As<uint, T>(ref i);
 
                 //long , ulong
                 case 8:
-                    ulong l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
+                    var l = Unsafe.As<T, ulong>(ref e) | Unsafe.As<T, ulong>(ref flag);
 
                     return Unsafe.As<ulong, T>(ref l);
 

@@ -39,34 +39,7 @@ internal sealed partial class WorkScheduler
         _pause.TryContinue();
     }
 
-    /// <summary>
-    /// Registers work with the task backlog.
-    /// </summary>
-    public void Register(IReadOnlyList<IExecutionTask> tasks)
-    {
-        AssertNotPooled();
-
-        lock (_sync)
-        {
-            for (var i = 0; i < tasks.Count; i++)
-            {
-                var task = tasks[i];
-                task.IsRegistered = true;
-
-                if (task.IsSerial)
-                {
-                    _serial.Push(task);
-                }
-                else
-                {
-                    _work.Push(task);
-                }
-            }
-        }
-
-        _pause.TryContinue();
-    }
-
+#if NET6_0_OR_GREATER
     /// <summary>
     /// Registers work with the task backlog.
     /// </summary>
@@ -94,6 +67,35 @@ internal sealed partial class WorkScheduler
 
         _pause.TryContinue();
     }
+#else
+    /// <summary>
+    /// Registers work with the task backlog.
+    /// </summary>
+    public void Register(IReadOnlyList<IExecutionTask> tasks)
+    {
+        AssertNotPooled();
+
+        lock (_sync)
+        {
+            for (var i = 0; i < tasks.Count; i++)
+            {
+                var task = tasks[i];
+                task.IsRegistered = true;
+
+                if (task.IsSerial)
+                {
+                    _serial.Push(task);
+                }
+                else
+                {
+                    _work.Push(task);
+                }
+            }
+        }
+
+        _pause.TryContinue();
+    }
+#endif
 
     /// <summary>
     /// Complete a task

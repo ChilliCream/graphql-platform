@@ -16,7 +16,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorstringtests_foo as d order by d.data ->> 'Bar'
+select d.id, d.data from public.mt_doc_queryablesortvisitorstringtests_foo as d order by d.data ->> 'Bar';
 ---------------
 
 DESC Result:
@@ -37,5 +37,5 @@ DESC Result:
 
 DESC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorstringtests_foo as d order by d.data ->> 'Bar' desc
+select d.id, d.data from public.mt_doc_queryablesortvisitorstringtests_foo as d order by d.data ->> 'Bar' desc;
 ---------------

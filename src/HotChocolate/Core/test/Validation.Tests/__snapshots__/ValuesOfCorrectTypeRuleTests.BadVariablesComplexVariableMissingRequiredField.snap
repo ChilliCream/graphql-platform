@@ -13,35 +13,6 @@
       "field": "intField",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Input-Object-Field-Names"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "ObjectField",
-      "Location": {
-        "Start": 64,
-        "End": 76,
-        "Line": 2,
-        "Column": 64
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 64,
-          "End": 73,
-          "Line": 2,
-          "Column": 64
-        },
-        "Value": "intField"
-      },
-      "Value": {
-        "Kind": "IntValue",
-        "Location": {
-          "Start": 74,
-          "End": 76,
-          "Line": 2,
-          "Column": 74
-        },
-        "Value": "3"
-      }
-    }
+    "Exception": null
   }
 ]

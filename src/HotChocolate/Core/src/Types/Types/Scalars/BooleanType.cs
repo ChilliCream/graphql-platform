@@ -16,18 +16,6 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="BooleanType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public BooleanType()
-        : this(
-            ScalarNames.Boolean,
-            TypeResources.BooleanType_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BooleanType"/> class.
-    /// </summary>
     public BooleanType(
         string name,
         string? description = null,
@@ -35,6 +23,18 @@ public class BooleanType : ScalarType<bool, BooleanValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BooleanType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public BooleanType()
+        : this(
+            ScalarNames.Boolean,
+            TypeResources.BooleanType_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     protected override bool ParseLiteral(BooleanValueNode valueSyntax)

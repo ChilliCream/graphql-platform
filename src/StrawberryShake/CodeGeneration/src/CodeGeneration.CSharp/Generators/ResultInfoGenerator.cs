@@ -66,8 +66,8 @@ public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
             constructorBuilder.AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide(GetLeftPropertyAssignment(prop.Name))
-                    .SetRighthandSide(paramName));
+                    .SetLeftHandSide(GetLeftPropertyAssignment(prop.Name))
+                    .SetRightHandSide(paramName));
         }
 
         classBuilder

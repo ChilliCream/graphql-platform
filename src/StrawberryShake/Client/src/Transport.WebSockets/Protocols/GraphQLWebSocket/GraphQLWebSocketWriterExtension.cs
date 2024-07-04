@@ -106,7 +106,7 @@ internal static class GraphQLWebSocketWriterExtension
         GraphQLWebSocketMessageType type)
     {
         writer.Writer.WritePropertyName("type");
-        ReadOnlySpan<byte> typeToWriter = type switch
+        var typeToWriter = type switch
         {
             GraphQLWebSocketMessageType.ConnectionInit => ConnectionInitialize,
             GraphQLWebSocketMessageType.ConnectionAccept => ConnectionAccept,

@@ -10,7 +10,7 @@ namespace HotChocolate.ApolloFederation.Types;
 /// directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
 ///
 /// # federation v2 definition
-/// directive @requires(fields: FieldSet!) on FIELD_DEFINITON
+/// directive @requires(fields: FieldSet!) on FIELD_DEFINITION
 /// </code>
 ///
 /// The @requires directive is used to specify external (provided by other subgraphs)

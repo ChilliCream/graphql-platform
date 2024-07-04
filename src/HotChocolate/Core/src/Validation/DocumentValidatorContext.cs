@@ -34,7 +34,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
         }
     }
 
-    public string DocumentId { get; set; } = default!;
+    public OperationDocumentId DocumentId { get; set; }
 
     public OperationType? OperationType { get; set; }
 

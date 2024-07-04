@@ -87,9 +87,9 @@ namespace HotChocolate.Subscriptions.Postgres {
             }
         }
         
-        internal static string ChannelWriter_Disconnectd {
+        internal static string ChannelWriter_Disconnected {
             get {
-                return ResourceManager.GetString("ChannelWriter_Disconnectd", resourceCulture);
+                return ResourceManager.GetString("ChannelWriter_Disconnected", resourceCulture);
             }
         }
         

@@ -46,7 +46,7 @@ public ref partial struct Utf8GraphQLRequestParser
             throw new SyntaxException(_reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.String,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var name = _reader.GetString();
@@ -65,7 +65,7 @@ public ref partial struct Utf8GraphQLRequestParser
             throw new SyntaxException(_reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBracket,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var list = new List<object>();

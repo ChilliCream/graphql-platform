@@ -82,7 +82,7 @@ internal static class PackageHelper
             extensions.Add(Utf8GraphQLParser.Parse(extension));
         }
 
-        using Package package = Package.Open(stream, FileMode.Create);
+        using var package = Package.Open(stream, FileMode.Create);
         await AddSchemaToPackageAsync(package, schema);
         await AddTransportConfigToPackage(package, transportConfig);
         await AddSchemaExtensionsToPackage(package, extensions);

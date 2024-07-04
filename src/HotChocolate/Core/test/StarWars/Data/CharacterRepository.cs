@@ -32,7 +32,7 @@ public class CharacterRepository
 
     public ICharacter GetCharacter(string id)
     {
-        if (_characters.TryGetValue(id, out ICharacter c))
+        if (_characters.TryGetValue(id, out var c))
         {
             return c;
         }
@@ -41,7 +41,7 @@ public class CharacterRepository
 
     public Human GetHuman(string id)
     {
-        if (_characters.TryGetValue(id, out ICharacter c)
+        if (_characters.TryGetValue(id, out var c)
             && c is Human h)
         {
             return h;
@@ -51,7 +51,7 @@ public class CharacterRepository
 
     public Droid GetDroid(string id)
     {
-        if (_characters.TryGetValue(id, out ICharacter c)
+        if (_characters.TryGetValue(id, out var c)
             && c is Droid d)
         {
             return d;
@@ -61,18 +61,18 @@ public class CharacterRepository
 
     public IEnumerable<object> Search(string text)
     {
-        IEnumerable<ICharacter> filteredCharacters = _characters.Values
+        var filteredCharacters = _characters.Values
             .Where(t => t.Name.Contains(text));
 
-        foreach (ICharacter character in filteredCharacters)
+        foreach (var character in filteredCharacters)
         {
             yield return character;
         }
 
-        IEnumerable<Starship> filteredStarships = _starships.Values
+        var filteredStarships = _starships.Values
             .Where(t => t.Name.Contains(text));
 
-        foreach (Starship starship in filteredStarships)
+        foreach (var starship in filteredStarships)
         {
             yield return starship;
         }

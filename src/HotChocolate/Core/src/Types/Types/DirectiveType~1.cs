@@ -12,15 +12,15 @@ public class DirectiveType<TDirective> : DirectiveType where TDirective : class
 {
     private Action<IDirectiveTypeDescriptor<TDirective>>? _configure;
 
+    public DirectiveType(Action<IDirectiveTypeDescriptor<TDirective>> configure)
+    {
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+    }
+
     [ActivatorUtilitiesConstructor]
     public DirectiveType()
     {
         _configure = Configure;
-    }
-
-    public DirectiveType(Action<IDirectiveTypeDescriptor<TDirective>> configure)
-    {
-        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
     }
 
     protected override DirectiveTypeDefinition CreateDefinition(

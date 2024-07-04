@@ -75,30 +75,19 @@ public class SchemaCoordinateVisitorTests
             s => Assert.Equal("ghi", s));
     }
 
-    public class CustomSyntaxWalker : SyntaxWalker
+    public class CustomSyntaxWalker(List<string> list) 
+        : SyntaxWalker(new() { VisitNames = true, })
     {
-        private readonly List<string> _list;
-
-        public CustomSyntaxWalker(List<string> list)
-            : base(new() { VisitNames = true, })
+        protected override ISyntaxVisitorAction Enter(NameNode node, object context)
         {
-            _list = list;
-        }
-
-        protected override ISyntaxVisitorAction Enter(NameNode node, ISyntaxVisitorContext context)
-        {
-            _list.Add(node.Value);
+            list.Add(node.Value);
             return DefaultAction;
         }
     }
 
-    public class CustomGenericSyntaxWalker : SyntaxWalker<CustomContext>
+    public class CustomGenericSyntaxWalker() 
+        : SyntaxWalker<CustomContext>(new SyntaxVisitorOptions { VisitNames = true, })
     {
-        public CustomGenericSyntaxWalker()
-            : base(new() { VisitNames = true, })
-        {
-        }
-
         protected override ISyntaxVisitorAction Enter(NameNode node, CustomContext context)
         {
             context.List.Add(node.Value);
@@ -106,13 +95,8 @@ public class SchemaCoordinateVisitorTests
         }
     }
 
-    public class CustomContext : ISyntaxVisitorContext
+    public class CustomContext(List<string> list)
     {
-        public CustomContext(List<string> list)
-        {
-            List = list;
-        }
-
-        public List<string> List { get; }
+        public List<string> List { get; } = list;
     }
 }

@@ -1,8 +1,8 @@
 ---
-title:  Workspaces
+title: Workspaces
 ---
 
-Workspaces are logical groups within an organization.  A workspace could represent a team, a department, or a group of APIs that are related to each other.
+Workspaces are logical groups within an organization. A workspace could represent a team, a department, or a group of APIs that are related to each other.
 
 Each workspace has its own APIs, documents, API documents, environments, and more. You cannot share resources between workspaces.
 

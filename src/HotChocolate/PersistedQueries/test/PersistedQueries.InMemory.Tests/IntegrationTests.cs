@@ -21,17 +21,17 @@ public class IntegrationTests
                 .AddMemoryCache()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddInMemoryQueryStorage()
+                .AddInMemoryOperationDocumentStorage()
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
@@ -41,10 +41,10 @@ public class IntegrationTests
         var cache = services.GetRequiredService<IMemoryCache>();
         var executor = await services.GetRequestExecutorAsync();
 
-        await cache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(document)))!;
+        cache.GetOrCreate(queryId, _ => new OperationDocument(document));
 
         // act
-        var result = await executor.ExecuteAsync(new QueryRequest(queryId: queryId));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId(queryId));
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -59,17 +59,17 @@ public class IntegrationTests
                 .AddMemoryCache()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddInMemoryQueryStorage()
+                .AddInMemoryOperationDocumentStorage()
                 .UseRequest(n => async c =>
                 {
                     await n(c);
 
-                    if (c.IsPersistedDocument && c.Result is IQueryResult r)
+                    if (c.IsPersistedDocument && c.Result is IOperationResult r)
                     {
-                        c.Result = QueryResultBuilder
+                        c.Result = OperationResultBuilder
                             .FromResult(r)
                             .SetExtension("persistedDocument", true)
-                            .Create();
+                            .Build();
                     }
                 })
                 .UsePersistedQueryPipeline()
@@ -79,8 +79,7 @@ public class IntegrationTests
         var executor = await services.GetRequestExecutorAsync();
 
         // act
-        var result =
-            await executor.ExecuteAsync(new QueryRequest(queryId: "does_not_exist"));
+        var result = await executor.ExecuteAsync(OperationRequest.FromId("does_not_exist"));
 
         // assert
         result.ToJson().MatchSnapshot();

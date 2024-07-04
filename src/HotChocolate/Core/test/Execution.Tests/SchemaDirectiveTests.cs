@@ -142,7 +142,7 @@ public class SchemaDirectiveTests
 
                 if (directive.Type.Name != "upper")
                 {
-                    throw new QueryException("Not the upper directive.");
+                    throw new GraphQLException("Not the upper directive.");
                 }
 
                 if (context.Result is string s)
@@ -166,7 +166,7 @@ public class SchemaDirectiveTests
 
                 if (directive.Type.Name != "lower")
                 {
-                    throw new QueryException("Not the lower directive.");
+                    throw new GraphQLException("Not the lower directive.");
                 }
 
                 if (context.Result is string s)

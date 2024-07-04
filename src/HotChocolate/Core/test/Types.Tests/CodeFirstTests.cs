@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CookieCrumble;
@@ -209,6 +210,27 @@ public class CodeFirstTests
         schema.MatchSnapshot();
     }
 
+    [Fact]
+    public async Task EnumerableArgs_Are_Inferred_As_List()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithEnumerableArg>()
+                .BuildSchemaAsync();
+        
+        schema.MatchInlineSnapshot(
+            """
+            schema {
+              query: QueryWithEnumerableArg
+            }
+            
+            type QueryWithEnumerableArg {
+              foo(foo: [String!]!): String!
+            }
+            """);
+    }
+    
     public class Query
     {
         public string SayHello(string name) =>
@@ -244,6 +266,12 @@ public class CodeFirstTests
             Greetings? arg6,
             CancellationToken cancellationToken) =>
             throw new NotImplementedException();
+    }
+
+    public class QueryWithEnumerableArg
+    {
+        public string GetFoo(IEnumerable<string> foo) 
+            => "foo";
     }
 
     public class GenericWrapper<T>

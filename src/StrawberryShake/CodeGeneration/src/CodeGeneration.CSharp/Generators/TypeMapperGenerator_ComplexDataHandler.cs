@@ -145,8 +145,8 @@ public partial class TypeMapperGenerator
 
         block.AddCode(AssignmentBuilder
             .New()
-            .SetLefthandSide(variableName)
-            .SetRighthandSide(constructorCall));
+            .SetLeftHandSide(variableName)
+            .SetRightHandSide(constructorCall));
 
         return IfBuilder
             .New()

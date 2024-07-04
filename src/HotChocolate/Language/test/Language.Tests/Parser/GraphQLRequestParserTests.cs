@@ -212,11 +212,13 @@ public class GraphQLRequestParserTests
 
         var buffer = Encoding.UTF8.GetBytes(request.Query);
         var expectedHash = Convert.ToBase64String(
-            SHA1.Create().ComputeHash(buffer));
-
+            SHA1.Create().ComputeHash(buffer))
+            .Replace("/", "_")
+            .Replace("+", "-")
+            .TrimEnd('=');
+            
         var source = Encoding.UTF8.GetBytes(
-            JsonConvert.SerializeObject(request
-                ).NormalizeLineBreaks());
+            JsonConvert.SerializeObject(request).NormalizeLineBreaks());
 
         var cache = new DocumentCache();
 
@@ -270,8 +272,11 @@ public class GraphQLRequestParserTests
 
         var buffer = Encoding.UTF8.GetBytes(request.Query);
         var expectedHash = Convert.ToBase64String(
-            SHA1.Create().ComputeHash(buffer));
-
+            SHA1.Create().ComputeHash(buffer))
+            .Replace("/", "_")
+            .Replace("+", "-")
+            .TrimEnd('=');
+        
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
@@ -313,8 +318,11 @@ public class GraphQLRequestParserTests
 
         var buffer = Encoding.UTF8.GetBytes(request.Query);
         var expectedHash = Convert.ToBase64String(
-            SHA1.Create().ComputeHash(buffer));
-
+            SHA1.Create().ComputeHash(buffer))
+            .Replace("/", "_")
+            .Replace("+", "-")
+            .TrimEnd('=');
+        
         var cache = new DocumentCache();
 
         var requestParser = new Utf8GraphQLRequestParser(
@@ -576,7 +584,7 @@ public class GraphQLRequestParserTests
             {
                 Assert.Null(r.OperationName);
                 Assert.Equal("hashOfQuery", r.QueryId);
-                Assert.Empty(r.Variables!);
+                Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                 Assert.Null(r.Query);
                 Assert.Null(r.QueryHash);
@@ -605,7 +613,7 @@ public class GraphQLRequestParserTests
             r =>
             {
                 Assert.Null(r.OperationName);
-                Assert.Empty(r.Variables!);
+                Assert.Collection(r.Variables!, Assert.Empty);
                 Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                 Assert.NotNull(r.Query);
 

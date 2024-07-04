@@ -4,8 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-#nullable enable
-
 namespace HotChocolate;
 
 public sealed class ExtensionData

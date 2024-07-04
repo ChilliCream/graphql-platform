@@ -1,7 +1,16 @@
 ﻿{
   "errors": [
     {
-      "message": "The value isAsd is not known for type FlagsEnumFlagsInput"
+      "message": "The value isAsd is not known for type FlagsEnumFlagsInput",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "test"
+      ]
     }
   ],
   "data": {

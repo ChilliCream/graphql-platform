@@ -11,15 +11,6 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public ByteArrayType()
-        : this(ScalarNames.ByteArray, bind: BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
-    /// </summary>
     public ByteArrayType(
         string name,
         string? description = null,
@@ -27,6 +18,15 @@ public class ByteArrayType : ScalarType<byte[], StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ByteArrayType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public ByteArrayType()
+        : this(ScalarNames.ByteArray, bind: BindingBehavior.Implicit)
+    {
     }
 
     protected override byte[] ParseLiteral(StringValueNode valueSyntax)

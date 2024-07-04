@@ -35,7 +35,7 @@ public class Query
 }
 ```
 
-> Note: .NET's `[Obsolete("reason")]` attribute is handled in the same way as  `[GraphQLDeprecated("reason")]`.
+> Note: .NET's `[Obsolete("reason")]` attribute is handled in the same way as `[GraphQLDeprecated("reason")]`.
 
 </Annotation>
 <Code>

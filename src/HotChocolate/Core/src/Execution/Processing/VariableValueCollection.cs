@@ -5,15 +5,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
-internal class VariableValueCollection : IVariableValueCollection
+internal class VariableValueCollection(
+    Dictionary<string, VariableValueOrLiteral> coercedValues)
+    : IVariableValueCollection
 {
-    private readonly Dictionary<string, VariableValueOrLiteral> _coercedValues;
-
-    public VariableValueCollection(Dictionary<string, VariableValueOrLiteral> coercedValues)
-    {
-        _coercedValues = coercedValues;
-    }
-
     public static VariableValueCollection Empty { get; } =
         new(new Dictionary<string, VariableValueOrLiteral>());
 
@@ -24,7 +19,7 @@ internal class VariableValueCollection : IVariableValueCollection
             return value;
         }
 
-        if (_coercedValues.ContainsKey(name))
+        if (coercedValues.ContainsKey(name))
         {
             throw ThrowHelper.VariableNotOfType(name, typeof(T));
         }
@@ -39,7 +34,7 @@ internal class VariableValueCollection : IVariableValueCollection
             throw new ArgumentNullException(nameof(name));
         }
 
-        if (_coercedValues.TryGetValue(name, out var variableValue))
+        if (coercedValues.TryGetValue(name, out var variableValue))
         {
             var requestedType = typeof(T);
 
@@ -86,7 +81,7 @@ internal class VariableValueCollection : IVariableValueCollection
 
     public IEnumerator<VariableValue> GetEnumerator()
     {
-        foreach (var item in _coercedValues)
+        foreach (var item in coercedValues)
         {
             var type = item.Value.Type;
             var value = item.Value.ValueLiteral;

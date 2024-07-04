@@ -28,6 +28,7 @@ internal sealed class QueryableCursorPagination<TEntity>
     {
         var list = new List<IndexEdge<TEntity>>();
 
+        // ReSharper disable once SuspiciousTypeConversion.Global
         if (query is IAsyncEnumerable<TEntity> enumerable)
         {
             var index = offset;

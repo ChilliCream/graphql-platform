@@ -9,20 +9,17 @@ namespace HotChocolate.ApolloFederation;
 public class EntityTypeTests
 {
     [Fact]
-    public async Task TestEntityTypeCodeFirstNoEntities_ShouldThrow()
+    public async Task TestEntityTypeCodeFirstNoEntities_ShouldOmitEntityField()
     {
-        async Task CreateSchema()
-        {
-            // arrange
-            await new ServiceCollection()
+        // arrange
+        var schema = await new ServiceCollection()
                 .AddGraphQL()
                 .AddApolloFederation()
                 .AddQueryType<Query<Address>>()
                 .BuildSchemaAsync();
-        }
 
-        var exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
-        Assert.Contains(ThrowHelper_EntityType_NoEntities, exception.Message);
+        // act/assert
+        Assert.False(schema.TryGetType<_EntityType>("_Entity", out _));
     }
 
     [Fact]
@@ -98,7 +95,7 @@ public class EntityTypeTests
         Assert.Collection(entityType.Types.Values,
             t => Assert.Equal("UserWithNestedKeyClassAttribute", t.Name));
     }
-    
+
     public sealed class Query<T>
     {
         public T GetEntity(int id) => default!;

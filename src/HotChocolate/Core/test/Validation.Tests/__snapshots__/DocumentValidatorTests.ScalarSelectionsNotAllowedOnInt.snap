@@ -25,64 +25,6 @@
       "responseName": "barkVolume",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [],
-      "Required": null,
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 80,
-          "End": 167,
-          "Line": 4,
-          "Column": 36
-        },
-        "Selections": [
-          {
-            "Kind": "Field",
-            "Alias": null,
-            "Arguments": [],
-            "Required": null,
-            "SelectionSet": null,
-            "Location": {
-              "Start": 110,
-              "End": 145,
-              "Line": 5,
-              "Column": 29
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 110,
-                "End": 145,
-                "Line": 5,
-                "Column": 29
-              },
-              "Value": "sinceWhen"
-            },
-            "Directives": []
-          }
-        ]
-      },
-      "Location": {
-        "Start": 69,
-        "End": 167,
-        "Line": 4,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 69,
-          "End": 81,
-          "Line": 4,
-          "Column": 25
-        },
-        "Value": "barkVolume"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

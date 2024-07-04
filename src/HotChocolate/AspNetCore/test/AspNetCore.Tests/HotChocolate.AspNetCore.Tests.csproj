@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
     <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
     <ProjectReference Include="..\..\src\Transport.Sockets.Client\HotChocolate.Transport.Sockets.Client.csproj" />
     <ProjectReference Include="..\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
   </ItemGroup>

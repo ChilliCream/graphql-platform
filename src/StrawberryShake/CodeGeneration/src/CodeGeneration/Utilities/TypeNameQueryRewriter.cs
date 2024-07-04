@@ -87,7 +87,7 @@ internal sealed class TypeNameQueryRewriter : SyntaxRewriter<TypeNameQueryRewrit
         return rewriter.RewriteDocument(document, new());
     }
 
-    public class Context : ISyntaxVisitorContext
+    public class Context
     {
         public Stack<ISyntaxNode> Nodes { get; } = new();
     }

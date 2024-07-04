@@ -17,5 +17,5 @@ public enum FederationVersion
     Federation27 = 2_7,
     // default to latest-1
     Default = Federation26,
-    Latest = Federation27
+    Latest = Federation27,
 }

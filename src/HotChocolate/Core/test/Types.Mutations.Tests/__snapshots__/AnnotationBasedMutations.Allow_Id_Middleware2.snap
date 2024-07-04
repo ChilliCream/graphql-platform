@@ -1,10 +1,20 @@
 {
-  "data": {
-    "doSomething": {
-      "user": {
-        "name": "Foo",
-        "id": "aaf5f036-948e-444d-ada5-36e6513d52cd"
+  "errors": [
+    {
+      "message": "The node ID string has an invalid format.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 5
+        }
+      ],
+      "path": [
+        "doSomething"
+      ],
+      "extensions": {
+        "originalValue": "Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA=="
       }
     }
-  }
+  ],
+  "data": null
 }

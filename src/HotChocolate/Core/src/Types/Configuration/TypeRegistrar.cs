@@ -32,7 +32,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
             throw new ArgumentNullException(nameof(typeLookup));
         _context = context ??
             throw new ArgumentNullException(nameof(context));
-        _interceptor = typeInterceptor ?? 
+        _interceptor = typeInterceptor ??
             throw new ArgumentNullException(nameof(typeInterceptor));
         _schemaServices = context.Services;
         _applicationServices = context.Services.GetService<IApplicationServiceProvider>();
@@ -61,15 +61,15 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         {
             return;
         }
-        
+
         RegisterTypeAndResolveReferences(registeredType);
 
-        if (obj is not IHasRuntimeType hasRuntimeType || 
+        if (obj is not IHasRuntimeType hasRuntimeType ||
             hasRuntimeType.RuntimeType == typeof(object))
         {
             return;
         }
-            
+
         var runtimeTypeRef =
             _context.TypeInspector.GetTypeRef(
                 hasRuntimeType.RuntimeType,
@@ -82,7 +82,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
         {
             return;
         }
-                
+
         MarkResolved(runtimeTypeRef);
         _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
     }
@@ -131,7 +131,7 @@ internal sealed partial class TypeRegistrar : ITypeRegistrar
 
     public IReadOnlyCollection<TypeReference> GetUnhandled()
     {
-        // we are having a list and the hashset here to keep the order.
+        // we are having a list and the hash set here to keep the order.
         var unhandled = new List<TypeReference>();
         var registered = new HashSet<TypeReference>();
 

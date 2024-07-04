@@ -32,15 +32,15 @@ public class ObjectType<T> : ObjectType
     /// <summary>
     /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public ObjectType()
-        => _configure = Configure;
+    public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
+        => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     /// <summary>
     /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
     /// </summary>
-    public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
-        => _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+    [ActivatorUtilitiesConstructor]
+    public ObjectType()
+        => _configure = Configure;
 
     protected override ObjectTypeDefinition CreateDefinition(
         ITypeDiscoveryContext context)
@@ -64,3 +64,4 @@ public class ObjectType<T> : ObjectType
     protected sealed override void Configure(IObjectTypeDescriptor descriptor)
         => throw new NotSupportedException();
 }
+

@@ -700,24 +700,24 @@ public class DefaultTypeInspectorTests
 
 
         public string ShouldBeFound(
-            [SomeAttribute]
+            [Some]
             object o) => null;
     }
 
     public class TaskObjectMethodWithTypeAttribute
     {
-        public Task<object> ShouldNotBeFound() => null;
+        public Task<object> ShouldNotBeFound() => null!;
 
         [GraphQLType(typeof(StringType))]
-        public Task<object> ShouldBeFound() => null;
+        public Task<object> ShouldBeFound() => null!;
     }
 
     public class TaskObjectMethodWithDescriptorAttribute
     {
-        public Task<object> ShouldNotBeFound() => null;
+        public Task<object> ShouldNotBeFound() => null!;
 
-        [SomeAttribute]
-        public Task<object> ShouldBeFound() => null;
+        [Some]
+        public Task<object> ShouldBeFound() => null!;
     }
 
     public class ValueTaskObjectMethodWithTypeAttribute
@@ -736,8 +736,8 @@ public class DefaultTypeInspectorTests
         public ValueTask<object> ShouldBeFound() => default;
     }
 
-    public sealed class SomeAttribute
-        : DescriptorAttribute
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+    public sealed class SomeAttribute : DescriptorAttribute
     {
         protected internal override void TryConfigure(
             IDescriptorContext context,

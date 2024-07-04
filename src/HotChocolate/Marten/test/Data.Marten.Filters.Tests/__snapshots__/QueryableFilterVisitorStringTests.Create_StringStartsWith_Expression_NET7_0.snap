@@ -13,7 +13,7 @@ testa Result:
 
 testa SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where (d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where (d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0);
 ---------------
 
 testb Result:
@@ -31,7 +31,7 @@ testb Result:
 
 testb SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where (d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorstringtests_foo as d where (d.data ->> 'Bar' is not null and d.data ->> 'Bar' LIKE :p0);
 ---------------
 
 null

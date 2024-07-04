@@ -24,37 +24,7 @@
       "argument": "req1",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 88,
-        "End": 100,
-        "Line": 4,
-        "Column": 38
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 88,
-          "End": 93,
-          "Line": 4,
-          "Column": 38
-        },
-        "Value": "req1"
-      },
-      "Value": {
-        "Kind": "StringValue",
-        "Location": {
-          "Start": 94,
-          "End": 100,
-          "Line": 4,
-          "Column": 44
-        },
-        "Value": "one",
-        "Block": false
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "The argument `x` is required.",
@@ -81,62 +51,7 @@
       "argument": "x",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 88,
-            "End": 100,
-            "Line": 4,
-            "Column": 38
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 88,
-              "End": 93,
-              "Line": 4,
-              "Column": 38
-            },
-            "Value": "req1"
-          },
-          "Value": {
-            "Kind": "StringValue",
-            "Location": {
-              "Start": 94,
-              "End": 100,
-              "Line": 4,
-              "Column": 44
-            },
-            "Value": "one",
-            "Block": false
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 75,
-        "End": 122,
-        "Line": 4,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 75,
-          "End": 88,
-          "Line": 4,
-          "Column": 25
-        },
-        "Value": "multipleReqs"
-      },
-      "Directives": []
-    }
+    "Exception": null
   },
   {
     "Message": "The argument `y` is required.",
@@ -163,61 +78,6 @@
       "argument": "y",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Field",
-      "Alias": null,
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 88,
-            "End": 100,
-            "Line": 4,
-            "Column": 38
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 88,
-              "End": 93,
-              "Line": 4,
-              "Column": 38
-            },
-            "Value": "req1"
-          },
-          "Value": {
-            "Kind": "StringValue",
-            "Location": {
-              "Start": 94,
-              "End": 100,
-              "Line": 4,
-              "Column": 44
-            },
-            "Value": "one",
-            "Block": false
-          }
-        }
-      ],
-      "Required": null,
-      "SelectionSet": null,
-      "Location": {
-        "Start": 75,
-        "End": 122,
-        "Line": 4,
-        "Column": 25
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 75,
-          "End": 88,
-          "Line": 4,
-          "Column": 25
-        },
-        "Value": "multipleReqs"
-      },
-      "Directives": []
-    }
+    "Exception": null
   }
 ]

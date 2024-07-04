@@ -171,8 +171,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                     .AddCode(
                         AssignmentBuilder
                             .New()
-                            .SetLefthandSide(fieldName)
-                            .SetRighthandSide(
+                            .SetLeftHandSide(fieldName)
+                            .SetRightHandSide(
                                 MethodCallBuilder
                                     .Inline()
                                     .SetMethodName(
@@ -240,8 +240,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {_request}")
-                    .SetRighthandSide(CreateRequestMethodCall(descriptor)))
+                    .SetLeftHandSide($"var {_request}")
+                    .SetRightHandSide(CreateRequestMethodCall(descriptor)))
             .AddCode(
                 MethodCallBuilder
                     .New()
@@ -281,8 +281,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {_request}")
-                    .SetRighthandSide(CreateRequestMethodCall(operationDescriptor)))
+                    .SetLeftHandSide($"var {_request}")
+                    .SetRightHandSide(CreateRequestMethodCall(operationDescriptor)))
             .AddEmptyLine()
             .AddCode(
                 MethodCallBuilder
@@ -358,8 +358,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_variables}")
-                        .SetRighthandSide(
+                        .SetLeftHandSide($"var {_variables}")
+                        .SetRightHandSide(
                             MethodCallBuilder
                                 .Inline()
                                 .SetNew()
@@ -393,8 +393,8 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                 method.AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_files}")
-                        .SetRighthandSide(
+                        .SetLeftHandSide($"var {_files}")
+                        .SetRightHandSide(
                             MethodCallBuilder
                                 .Inline()
                                 .SetNew()
@@ -485,13 +485,13 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var path{field.Name}")
-                        .SetRighthandSide($"path + \".{field.FieldName}\""))
+                        .SetLeftHandSide($"var path{field.Name}")
+                        .SetRightHandSide($"path + \".{field.FieldName}\""))
                 .AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var value{field.Name}")
-                        .SetRighthandSide($"value.{field.Name}"))
+                        .SetLeftHandSide($"var value{field.Name}")
+                        .SetRightHandSide($"value.{field.Name}"))
                 .AddCode(
                     BuildUploadFileMapper(field.Type, $"path{field.Name}", $"value{field.Name}"))
                 .AddEmptyLine();
@@ -528,15 +528,15 @@ public class OperationServiceGenerator : ClassBaseGenerator<OperationDescriptor>
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {counterVariable}")
-                        .SetRighthandSide("0"))
+                        .SetLeftHandSide($"var {counterVariable}")
+                        .SetRightHandSide("0"))
                     .AddCode(ForEachBuilder
                         .New()
                         .SetLoopHeader($"var {innerVariable} in {checkedVariable}")
                         .AddCode(AssignmentBuilder
                             .New()
-                            .SetLefthandSide($"var {innerPathVariable}")
-                            .SetRighthandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
+                            .SetLeftHandSide($"var {innerPathVariable}")
+                            .SetRightHandSide($"{pathVariable} + \".\" + ({counterVariable}++)"))
                         .AddEmptyLine()
                         .AddCode(BuildUploadFileMapper(lt, innerPathVariable, innerVariable)));
 

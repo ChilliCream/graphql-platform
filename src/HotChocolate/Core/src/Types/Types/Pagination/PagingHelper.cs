@@ -82,11 +82,11 @@ public static class PagingHelper
         }
 
         return type;
-        
+
         IExtendedType ResolveType()
         {
             // if an explicit result type is defined we will type it since it expresses the
-            // intend.
+            // intent.
             if (definition.ResultType is not null)
             {
                 return typeInspector.GetType(definition.ResultType);
@@ -107,10 +107,12 @@ public static class PagingHelper
     }
 
     private static FieldMiddleware CreateMiddleware(
-        IPagingHandler handler) =>
-        FieldClassMiddlewareFactory.Create(
-            typeof(PagingMiddleware),
-            (typeof(IPagingHandler), handler));
+        IPagingHandler handler)
+        => next =>
+        {
+            var middleware = new PagingMiddleware(next, handler);
+            return context => middleware.InvokeAsync(context);
+        };
 
     public static IExtendedType GetSchemaType(
         IDescriptorContext context,

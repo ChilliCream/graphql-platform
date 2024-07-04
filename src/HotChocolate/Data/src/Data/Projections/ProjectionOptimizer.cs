@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections;

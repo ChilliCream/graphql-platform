@@ -14,13 +14,13 @@ public class AssignmentBuilder : ICode
 
     public static AssignmentBuilder New() => new();
 
-    public AssignmentBuilder SetLefthandSide(ICode value)
+    public AssignmentBuilder SetLeftHandSide(ICode value)
     {
         _leftHandSide = value;
         return this;
     }
 
-    public AssignmentBuilder SetLefthandSide(string value)
+    public AssignmentBuilder SetLeftHandSide(string value)
     {
         _leftHandSide = new CodeInlineBuilder().SetText(value);
         return this;
@@ -32,13 +32,13 @@ public class AssignmentBuilder : ICode
         return this;
     }
 
-    public AssignmentBuilder SetRighthandSide(ICode value)
+    public AssignmentBuilder SetRightHandSide(ICode value)
     {
         _rightHandSide = value;
         return this;
     }
 
-    public AssignmentBuilder SetRighthandSide(string value)
+    public AssignmentBuilder SetRightHandSide(string value)
     {
         _rightHandSide = new CodeInlineBuilder().SetText(value);
         return this;

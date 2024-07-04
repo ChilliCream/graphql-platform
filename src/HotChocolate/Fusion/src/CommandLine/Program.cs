@@ -5,14 +5,12 @@ namespace HotChocolate.Fusion.CommandLine;
 public static class Program
 {
     [RequiresUnreferencedCode("HotChocolate.Fusion is not trim compatible.")]
-    public static async Task Main(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         var builder = App.CreateBuilder();
 
         var app = builder.Build();
 
-        await app.InvokeAsync(args);        
+        return await app.InvokeAsync(args);
     }
 }
-
-

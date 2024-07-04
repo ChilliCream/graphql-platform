@@ -52,7 +52,7 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 
     [Fact]
@@ -326,9 +326,9 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
-    
+
     [Fact]
     public async Task Compose_With_Tag()
     {
@@ -344,10 +344,10 @@ public class ComposeCommandTests : CommandTestBase
 
         var packageFile = CreateTempFile(Extensions.FusionPackage);
         var gatewayConfig = Path.Combine(
-            Path.GetDirectoryName(packageFile)!, 
+            Path.GetDirectoryName(packageFile)!,
             Path.GetFileNameWithoutExtension(packageFile) + "-settings.json");
         File.Delete(packageFile);
-        
+
         await File.WriteAllTextAsync(gatewayConfig, FileResource.Open("test2.gateway-config.json"), Encoding.UTF8);
 
         // act
@@ -373,6 +373,6 @@ public class ComposeCommandTests : CommandTestBase
             snapshot.Add(subgraph, $"{subgraph.Name} Subgraph Configuration");
         }
 
-        snapshot.MatchSnapshot();
+        await snapshot.MatchMarkdownAsync();
     }
 }

@@ -11,7 +11,7 @@ public class ReviewRepository
 
     public void AddReview(Episode episode, Review review)
     {
-        if (!_data.TryGetValue(episode, out List<Review> reviews))
+        if (!_data.TryGetValue(episode, out var reviews))
         {
             reviews = [];
             _data[episode] = reviews;
@@ -22,7 +22,7 @@ public class ReviewRepository
 
     public IEnumerable<Review> GetReviews(Episode episode)
     {
-        if (_data.TryGetValue(episode, out List<Review> reviews))
+        if (_data.TryGetValue(episode, out var reviews))
         {
             return reviews;
         }

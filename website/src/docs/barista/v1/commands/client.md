@@ -25,6 +25,8 @@ barista client publish  \
 
 - `--api-key <api-key>`: Specifies the API key used for authentication. It doesn't have to be provided when you are logged in. Otherwise, it's the secret that `barista api-key create` returns. You can set it from the environment variable `BARISTA_API_KEY`.
 
+- `--wait-for-approval`: Waits for a user to approve the schema change in the app in case of a breaking change.
+
 # Unpublish a Client
 
 The `barista client unpublish` command is used to unpublish a client version from a stage.
@@ -114,3 +116,5 @@ barista client show Q2xpZW50CmdiMDk4MDEyODM0MTI0MDIxNDgxMjQzMTI0MTI=
 **Arguments:**
 
 - `<id>`: The ID of the client whose details you want to show. This ID can be retrieved with the `barista client list` command.
+
+<!-- spell-checker:ignore Cmdi, Yjdh -->

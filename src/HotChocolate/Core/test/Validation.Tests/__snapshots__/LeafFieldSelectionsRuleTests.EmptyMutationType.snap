@@ -14,29 +14,6 @@
       "type": "Mutation",
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 17,
-        "End": 42,
-        "Line": 2,
-        "Column": 17
-      },
-      "Name": null,
-      "Operation": "Mutation",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 26,
-          "End": 42,
-          "Line": 2,
-          "Column": 26
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   }
 ]

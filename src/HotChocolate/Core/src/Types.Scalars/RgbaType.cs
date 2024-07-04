@@ -31,17 +31,6 @@ public class RgbaType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="RgbaType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public RgbaType()
-        : this(
-            WellKnownScalarTypes.Rgba,
-            ScalarResources.RgbaType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RgbaType"/> class.
-    /// </summary>
     public RgbaType(
         string name,
         string? description = null,
@@ -51,6 +40,17 @@ public class RgbaType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RgbaType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public RgbaType()
+        : this(
+            WellKnownScalarTypes.Rgba,
+            ScalarResources.RgbaType_Description)
     {
     }
 

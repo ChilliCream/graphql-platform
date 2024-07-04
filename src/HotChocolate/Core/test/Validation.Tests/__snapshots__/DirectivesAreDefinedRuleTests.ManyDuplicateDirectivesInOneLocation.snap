@@ -12,27 +12,7 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 146,
-        "End": 159,
-        "Line": 6,
-        "Column": 39
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 147,
-          "End": 159,
-          "Line": 6,
-          "Column": 40
-        },
-        "Value": "directiveA"
-      },
-      "Arguments": []
-    }
+    "Exception": null
   },
   {
     "Message": "Only one of each directive is allowed per location.",
@@ -47,26 +27,6 @@
     "Extensions": {
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Directives-Are-Unique-Per-Location"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 158,
-        "End": 187,
-        "Line": 6,
-        "Column": 51
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 159,
-          "End": 187,
-          "Line": 6,
-          "Column": 52
-        },
-        "Value": "directiveA"
-      },
-      "Arguments": []
-    }
+    "Exception": null
   }
 ]

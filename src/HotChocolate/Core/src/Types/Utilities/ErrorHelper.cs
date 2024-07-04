@@ -402,18 +402,18 @@ internal static class ErrorHelper
             .Build();
 
     public static ISchemaError MiddlewareOrderInvalid(
-        FieldCoordinate field,
+        SchemaCoordinate fieldCoordinate,
         ITypeSystemObject type,
         string currentOrder)
         => SchemaErrorBuilder.New()
-            .SetMessage(ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+            .SetMessage(ErrorHelper_MiddlewareOrderInvalid, fieldCoordinate, currentOrder)
             .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
             .SetTypeSystemObject(type)
-            .SetExtension(nameof(field), field)
+            .SetExtension(nameof(fieldCoordinate), fieldCoordinate)
             .Build();
 
     public static ISchemaError DuplicateDataMiddlewareDetected(
-        FieldCoordinate field,
+        SchemaCoordinate field,
         ITypeSystemObject type,
         IEnumerable<string> duplicateMiddleware)
         => SchemaErrorBuilder.New()
@@ -438,11 +438,11 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, FieldNode fieldNode)
+    public static IError Relay_NoNodeResolver(string typeName, Path path, IReadOnlyList<FieldNode> fieldNodes)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
-            .SetSyntaxNode(fieldNode)
+            .SetLocations(fieldNodes)
             .Build();
 
     public static ISchemaError NodeResolver_MustHaveExactlyOneIdArg(
@@ -480,7 +480,7 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        FieldNode fieldNode,
+        IReadOnlyList<FieldNode> fieldNodes,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
@@ -489,7 +489,7 @@ internal static class ErrorHelper
                 ErrorHelper_FetchedToManyNodesAtOnce,
                 maxAllowedNodes,
                 requestNodes)
-            .AddLocation(fieldNode)
+            .SetLocations(fieldNodes)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.FetchedToManyNodesAtOnce)
             .Build();
@@ -536,7 +536,7 @@ internal static class ErrorHelper
                 string.Join(", ", duplicateFieldNames),
                 @is,
                 coordinate.ToString())
-            .SetCode(ErrorCodes.Schema.DupplicateFieldNames)
+            .SetCode(ErrorCodes.Schema.DuplicateFieldNames)
             .SetTypeSystemObject(type)
             .Build();
     }

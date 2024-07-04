@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data;
@@ -14,8 +13,8 @@ public static class EntityFrameworkEnumerableExtensions
     /// Returns an <see cref="IExecutable{T}"/>.
     /// </returns>
     public static IExecutable<T> AsExecutable<T>(
-        this DbSet<T> source) where T : class =>
-        new EntityFrameworkExecutable<T>(source);
+        this DbSet<T> source) where T : class
+        => Executable.From(source, s => s.ToQueryString());
 
     /// <summary>
     /// Creates an entity framework executable for a <see cref="IQueryable{T}"/>
@@ -26,6 +25,6 @@ public static class EntityFrameworkEnumerableExtensions
     /// Returns an <see cref="IExecutable{T}"/>.
     /// </returns>
     public static IExecutable<T> AsEntityFrameworkExecutable<T>(
-        this IQueryable<T> source) =>
-        new EntityFrameworkExecutable<T>(source);
+        this IQueryable<T> source)
+        => Executable.From(source, s => s.ToQueryString());
 }

@@ -29,7 +29,7 @@ internal static class CodeBlockBuilderExtensions
         return methodCallBuilder;
     }
 
-    public static AssignmentBuilder AddAssigment(
+    public static AssignmentBuilder AddAssignment(
         this CodeBlockBuilder builder,
         string? assignedTo = null)
     {
@@ -38,7 +38,7 @@ internal static class CodeBlockBuilderExtensions
 
         if (assignedTo is not null)
         {
-            assignmentBuilder.SetLefthandSide(assignedTo);
+            assignmentBuilder.SetLeftHandSide(assignedTo);
         }
 
         builder.AddCode(assignmentBuilder);

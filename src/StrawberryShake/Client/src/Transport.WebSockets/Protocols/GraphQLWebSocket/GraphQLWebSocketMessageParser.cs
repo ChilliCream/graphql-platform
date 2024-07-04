@@ -94,7 +94,7 @@ internal ref struct GraphQLWebSocketMessageParser
     private void ParseMessageProperty(ref GraphQLWebSocketMessage message)
     {
         Expect(JsonTokenType.PropertyName);
-        ReadOnlySpan<byte> fieldName = _reader.ValueSpan;
+        var fieldName = _reader.ValueSpan;
 
         _reader.Read();
         switch (fieldName[0])
@@ -132,7 +132,7 @@ internal ref struct GraphQLWebSocketMessageParser
 
     private GraphQLWebSocketMessageType ParseMessageType()
     {
-        ReadOnlySpan<byte> typeName = _reader.ValueSpan;
+        var typeName = _reader.ValueSpan;
         if (typeName.IsEmpty)
         {
             throw ThrowHelper.Serialization_MessageHadNoTypeSpecified();

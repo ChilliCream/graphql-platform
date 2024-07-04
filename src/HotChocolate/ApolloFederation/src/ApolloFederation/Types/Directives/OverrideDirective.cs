@@ -55,7 +55,7 @@ public sealed class OverrideDirective(string from)
     /// Name of the subgraph to be overridden
     /// </param>
     /// <param name="label">
-    /// Optional label that will be evaulated at runtime to determine whether field should be overriden
+    /// Optional label that will be evaluated at runtime to determine whether field should be overridden
     /// </param>
     public OverrideDirective(string from, string? label = null) : this(from)
     {

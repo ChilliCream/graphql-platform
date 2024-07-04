@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 
 namespace GreenDonut;
 
-public class DataLoader<TKey, TValue> : DataLoaderBase<TKey, TValue> where TKey : notnull
+public class DataLoader<TKey, TValue>(
+    FetchDataDelegate<TKey, TValue> fetch,
+    IBatchScheduler batchScheduler,
+    DataLoaderOptions? options = null)
+    : DataLoaderBase<TKey, TValue>(batchScheduler, options)
+    where TKey : notnull
 {
-    private readonly FetchDataDelegate<TKey, TValue> _fetch;
-
-    public DataLoader(
-        FetchDataDelegate<TKey, TValue> fetch,
-        IBatchScheduler batchScheduler,
-        DataLoaderOptions? options = null)
-        : base(batchScheduler, options)
-    {
-        _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
-    }
+    private readonly FetchDataDelegate<TKey, TValue> _fetch = 
+        fetch ?? throw new ArgumentNullException(nameof(fetch));
 
     protected override ValueTask FetchAsync(
         IReadOnlyList<TKey> keys,

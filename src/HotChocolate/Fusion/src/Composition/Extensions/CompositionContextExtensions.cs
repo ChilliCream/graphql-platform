@@ -34,7 +34,7 @@ internal static class CompositionContextExtensions
     /// <returns></returns>
     public static bool CanResolveDependency(
         this CompositionContext context,
-        ComplexType complexType,
+        ComplexTypeDefinition complexType,
         FieldNode fieldRef)
     {
         return CanResolve(context, complexType, fieldRef, context.SupportedBy);
@@ -42,7 +42,7 @@ internal static class CompositionContextExtensions
 
     private static bool CanResolve(
         CompositionContext context,
-        ComplexType complexType,
+        ComplexTypeDefinition complexType,
         FieldNode fieldRef,
         ISet<string> supportedBy)
     {
@@ -59,7 +59,7 @@ internal static class CompositionContextExtensions
 
         if (fieldRef.SelectionSet is not null)
         {
-            if (fieldDef.Type.NamedType() is not ComplexType namedType)
+            if (fieldDef.Type.NamedType() is not ComplexTypeDefinition namedType)
             {
                 return false;
             }
@@ -77,7 +77,7 @@ internal static class CompositionContextExtensions
 
     private static bool CanResolveChildren(
         CompositionContext context,
-        ComplexType complexType,
+        ComplexTypeDefinition complexType,
         SelectionSetNode selectionSet,
         ISet<string> supportedBy)
     {
@@ -95,7 +95,7 @@ internal static class CompositionContextExtensions
             else if (selection is InlineFragmentNode inlineFragment)
             {
                 if (inlineFragment.TypeCondition is null ||
-                    !context.FusionGraph.Types.TryGetType<ComplexType>(
+                    !context.FusionGraph.Types.TryGetType<ComplexTypeDefinition>(
                         inlineFragment.TypeCondition.Name.Value,
                         out var fragmentType))
                 {

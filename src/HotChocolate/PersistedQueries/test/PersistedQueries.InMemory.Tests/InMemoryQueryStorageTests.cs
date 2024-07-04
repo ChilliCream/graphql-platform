@@ -14,24 +14,24 @@ public class InMemoryQueryStorageTests
         // arrange
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddMemoryCache();
-        serviceCollection.AddInMemoryQueryStorage();
+        serviceCollection.AddInMemoryOperationDocumentStorage();
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
         var memoryCache = services.GetRequiredService<IMemoryCache>();
-        var queryStorage = services.GetRequiredService<InMemoryQueryStorage>();
+        var queryStorage = services.GetRequiredService<IOperationDocumentStorage>();
 
         const string queryId = "abc";
         var query = Utf8GraphQLParser.Parse("{ __typename }");
 
         // act
-        await queryStorage.WriteQueryAsync(
-            queryId,
-            new QueryDocument(query),
+        await queryStorage.SaveAsync(
+            new OperationDocumentId(queryId),
+            new OperationDocument(query),
             CancellationToken.None);
 
         // assert
         Assert.True(memoryCache.TryGetValue(queryId, out var o));
-        await Assert.IsType<Task<QueryDocument>>(o);
+        Assert.IsType<OperationDocument>(o);
     }
 
     [Fact]
@@ -40,23 +40,23 @@ public class InMemoryQueryStorageTests
         // arrange
         var serviceCollection = new ServiceCollection();
         serviceCollection.AddMemoryCache();
-        serviceCollection.AddInMemoryQueryStorage();
+        serviceCollection.AddInMemoryOperationDocumentStorage();
 
         IServiceProvider services = serviceCollection.BuildServiceProvider();
         var memoryCache = services.GetRequiredService<IMemoryCache>();
-        var queryStorage = services.GetRequiredService<InMemoryQueryStorage>();
+        var queryStorage = services.GetRequiredService<IOperationDocumentStorage>();
 
         const string queryId = "abc";
         var query = Utf8GraphQLParser.Parse("{ __typename }");
-        await memoryCache.GetOrCreate(queryId, _ => Task.FromResult(new QueryDocument(query)))!;
+        memoryCache.GetOrCreate(queryId, _ => new OperationDocument(query));
 
         // act
-        var document = await queryStorage.TryReadQueryAsync(
-            queryId,
+        var document = await queryStorage.TryReadAsync(
+            new OperationDocumentId(queryId),
             CancellationToken.None);
 
         // assert
         Assert.NotNull(document);
-        Assert.Same(query, document!.Document);
+        Assert.Same(query, Assert.IsType<OperationDocument>(document).Document);
     }
 }

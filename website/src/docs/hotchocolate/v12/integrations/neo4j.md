@@ -219,3 +219,5 @@ query GetPersons {
   }
 }
 ```
+
+<!-- spell-checker:ignore Shorton -->

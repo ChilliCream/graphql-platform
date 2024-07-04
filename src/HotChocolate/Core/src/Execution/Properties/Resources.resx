@@ -237,7 +237,7 @@
   <data name="ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty" xml:space="preserve">
     <value>The query cannot be null or empty.</value>
   </data>
-  <data name="RequestExecutorBuilder_Convention_NotSuppported" xml:space="preserve">
+  <data name="RequestExecutorBuilder_Convention_NotSupported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
   </data>
   <data name="RootValueResolver_Resolve_CannotCreateInstance" xml:space="preserve">

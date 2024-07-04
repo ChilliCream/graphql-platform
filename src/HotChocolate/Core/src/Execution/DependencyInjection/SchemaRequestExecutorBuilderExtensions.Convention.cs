@@ -90,7 +90,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                Resources.RequestExecutorBuilder_Convention_NotSuppported,
+                Resources.RequestExecutorBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -122,14 +122,14 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                Resources.RequestExecutorBuilder_Convention_NotSuppported,
+                Resources.RequestExecutorBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
         if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
         {
             throw new ArgumentException(
-                Resources.RequestExecutorBuilder_Convention_NotSuppported,
+                Resources.RequestExecutorBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -213,7 +213,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                Resources.RequestExecutorBuilder_Convention_NotSuppported,
+                Resources.RequestExecutorBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
@@ -245,14 +245,14 @@ public static partial class SchemaRequestExecutorBuilderExtensions
         if (!typeof(IConvention).IsAssignableFrom(convention))
         {
             throw new ArgumentException(
-                Resources.RequestExecutorBuilder_Convention_NotSuppported,
+                Resources.RequestExecutorBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 
         if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
         {
             throw new ArgumentException(
-                Resources.RequestExecutorBuilder_Convention_NotSuppported,
+                Resources.RequestExecutorBuilder_Convention_NotSupported,
                 nameof(convention));
         }
 

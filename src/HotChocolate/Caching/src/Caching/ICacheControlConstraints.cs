@@ -10,12 +10,12 @@ public interface ICacheConstraints
 {
     /// <summary>
     /// The maximum time the query result shall be cached,
-    /// in Milliseconds.
+    /// in seconds.
     /// </summary>
     int MaxAge { get; }
 
     /// <summary>
-    /// The scope of the <see cref="IQueryResult"/> that shall be cached.
+    /// The scope of the <see cref="IOperationResult"/> that shall be cached.
     /// </summary>
     CacheControlScope Scope { get; }
 }

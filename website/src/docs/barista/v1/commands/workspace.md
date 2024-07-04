@@ -44,6 +44,6 @@ barista workspace show abc123
 
 The `barista workspace current` command is used to show the name of the currently selected workspace.
 
-```
+```shell
 barista workspace current
 ```

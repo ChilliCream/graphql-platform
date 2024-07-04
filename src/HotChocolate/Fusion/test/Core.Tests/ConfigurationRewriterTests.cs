@@ -41,7 +41,7 @@ public class ConfigurationRewriterTests
         var snapshot = new Snapshot();
         snapshot.Add(configuration, "Original:");
         snapshot.Add(rewritten, "Rewritten:");
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
 
         // this should not throw
         var reader = new FusionGraphConfigurationReader();

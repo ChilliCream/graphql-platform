@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CookieCrumble;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -23,7 +24,7 @@ public class DocumentValidatorTests
             await queryValidator.ValidateAsync(
                 schema,
                 null!,
-                "",
+                new OperationDocumentId("abc"),
                 new Dictionary<string, object>(),
                 false);
 
@@ -42,7 +43,7 @@ public class DocumentValidatorTests
             await queryValidator.ValidateAsync(
                 null!,
                 new DocumentNode(null, new List<IDefinitionNode>()),
-                "",
+                new OperationDocumentId("abc"),
                 new Dictionary<string, object>(),
                 false);
 
@@ -54,18 +55,18 @@ public class DocumentValidatorTests
     public async Task QueryWithTypeSystemDefinitions()
     {
         await ExpectErrors(
-            @"
-                query getDogName {
-                    dog {
-                        name
-                        color
-                    }
+            """
+            query getDogName {
+                dog {
+                    name
+                    color
                 }
+            }
 
-                extend type Dog {
-                    color: String
-                }
-            ",
+            extend type Dog {
+                color: String
+            }
+            """,
             t => Assert.Equal(
                 "A document containing TypeSystemDefinition " +
                 "is invalid for execution.",
@@ -80,21 +81,21 @@ public class DocumentValidatorTests
     public async Task QueryWithOneAnonymousAndOneNamedOperation()
     {
         await ExpectErrors(
-            @"
-                {
-                    dog {
+            """
+            {
+                dog {
+                    name
+                }
+            }
+
+            query getName {
+                dog {
+                    owner {
                         name
                     }
                 }
-
-                query getName {
-                    dog {
-                        owner {
-                            name
-                        }
-                    }
-                }
-            ",
+            }
+            """,
             t =>
             {
                 Assert.Equal(
@@ -109,23 +110,23 @@ public class DocumentValidatorTests
     public async Task TwoQueryOperationsWithTheSameName()
     {
         await ExpectErrors(
-            @"
-                query getName {
-                    dog {
+            """
+            query getName {
+                dog {
+                    name
+                }
+            }
+
+            query getName {
+                dog {
+                    owner {
                         name
                     }
                 }
-
-                query getName {
-                    dog {
-                        owner {
-                            name
-                        }
-                    }
-                }
-            ",
+            }
+            """,
             t => Assert.Equal(
-                $"The operation name `getName` is not unique.",
+                "The operation name `getName` is not unique.",
                 t.Message));
     }
 
@@ -745,7 +746,7 @@ public class DocumentValidatorTests
         var result = await validator.ValidateAsync(
             schema,
             document,
-            "",
+            new OperationDocumentId("abc"),
             new Dictionary<string, object>(),
             false);
 
@@ -878,7 +879,7 @@ public class DocumentValidatorTests
         var result = await validator.ValidateAsync(
             schema,
             query,
-            "",
+            new OperationDocumentId("abc"),
             new Dictionary<string, object>(),
             false);
 
@@ -904,7 +905,7 @@ public class DocumentValidatorTests
         var result = await validator.ValidateAsync(
             schema,
             query,
-            "",
+            new OperationDocumentId("abc"),
             new Dictionary<string, object>(),
             false);
 

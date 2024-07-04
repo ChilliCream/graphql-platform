@@ -178,6 +178,39 @@ public class IntegrationTests
     }
 
     [Fact]
+    public async Task MinPageSizeReached_First()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters(first: -1) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task MaxPageSizeReached_First()
     {
         Snapshot.FullName();
@@ -195,6 +228,39 @@ public class IntegrationTests
             .ExecuteAsync(@"
                 {
                     letters(first: 3) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task MinPageSizeReached_Last()
+    {
+        Snapshot.FullName();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider()
+                .GetRequestExecutorAsync();
+
+        await executor
+            .ExecuteAsync(@"
+                {
+                    letters(last: -1) {
                         edges {
                             node
                             cursor
@@ -869,53 +935,6 @@ public class IntegrationTests
             .AddGraphQL()
             .AddQueryType<BackwardQuery>()
             .ExecuteRequestAsync("{ foos { nodes } }")
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task LegacySupport_Schema()
-    {
-        Snapshot.FullName();
-
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<QueryType>()
-            .SetPagingOptions(new PagingOptions { LegacySupport = true, })
-            .BuildSchemaAsync()
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task LegacySupport_Query()
-    {
-        Snapshot.FullName();
-
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .SetPagingOptions(new PagingOptions { LegacySupport = true, })
-                .Services
-                .BuildServiceProvider()
-                .GetRequestExecutorAsync();
-
-        await executor
-            .ExecuteAsync(@"
-                query($first: PaginationAmount = 2){
-                    letters(first: $first) {
-                        edges {
-                            node
-                            cursor
-                        }
-                        nodes
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }")
             .MatchSnapshotAsync();
     }
 

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace CookieCrumble;
 
 /// <summary>
@@ -33,5 +35,15 @@ public static class TestEnvironment
             Environment.GetEnvironmentVariable("CI_BUILD"),
             out var result) &&
             result;
+    }
+
+    public static CancellationTokenSource CreateCancellationTokenSource(TimeSpan? timeSpan = null)
+    {
+        if (Debugger.IsAttached)
+        {
+            return new CancellationTokenSource();
+        }
+
+        return new CancellationTokenSource(timeSpan ?? TimeSpan.FromSeconds(10));
     }
 }

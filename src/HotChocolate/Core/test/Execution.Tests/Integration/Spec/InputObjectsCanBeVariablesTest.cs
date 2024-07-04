@@ -14,27 +14,25 @@ public class InputObjectsCanBeVariablesTest
         Snapshot.FullName();
 
         await ExpectValid(
-            @"
-                    query ($a: String $b: String) {
-                        anything(foo: {
-                            a: $a
-                            b: $b
-                        }) {
-                            a
-                            b
-                        }
+                """
+                query ($a: String $b: String) {
+                    anything(foo: {
+                        a: $a
+                        b: $b
+                    }) {
+                        a
+                        b
                     }
-                ",
+                }
+                """,
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValue(
-                    "a",
-                    "a"
-                )
-                .SetVariableValue(
-                    "b",
-                    "b"
-                )
-        ).MatchSnapshotAsync();
+            r => r.SetVariableValues(
+                    new Dictionary<string, object> 
+                    { 
+                        { "a", "a" },
+                        { "b", "b" },
+                    }))
+            .MatchSnapshotAsync();
     }
 
     [Fact]
@@ -43,23 +41,20 @@ public class InputObjectsCanBeVariablesTest
         Snapshot.FullName();
 
         await ExpectValid(
-            @"
-                    query ($a: String) {
-                        anything(foo: {
-                            a: $a
-                            b: ""b""
-                        }) {
-                            a
-                            b
-                        }
-                    }
-                ",
+            """
+            query ($a: String) {
+                anything(foo: {
+                    a: $a
+                    b: "b"
+                }) {
+                    a
+                    b
+                }
+            }
+            """,
             r => r.AddQueryType<Query>(),
-            r => r.SetVariableValue(
-                "a",
-                "a"
-            )
-        ).MatchSnapshotAsync();
+            r => r.SetVariableValues(new Dictionary<string, object> { { "a", "a" }, }))
+            .MatchSnapshotAsync();
     }
 
     [Fact]

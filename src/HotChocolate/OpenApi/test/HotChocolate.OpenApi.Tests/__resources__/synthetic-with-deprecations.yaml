@@ -1,0 +1,36 @@
+openapi: 3.0.0
+
+info:
+  title: Synthetic with deprecations
+  version: 1.0.0
+
+paths:
+  /:
+    post:
+      deprecated: true # On FIELD_DEFINITION (mutation field)
+      parameters:
+        - name: boolean
+          in: query
+          schema:
+            type: boolean
+          deprecated: true # On ARGUMENT_DEFINITION
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                example:
+                  type: boolean
+                  deprecated: true # On INPUT_FIELD_DEFINITION
+      responses:
+        200:
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  example:
+                    type: boolean
+                    deprecated: true # On FIELD_DEFINITION (object field)

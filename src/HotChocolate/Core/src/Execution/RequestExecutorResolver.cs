@@ -10,13 +10,11 @@ using HotChocolate.Configuration;
 #if NET6_0_OR_GREATER
 using HotChocolate.Execution;
 #endif
-using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -250,23 +248,28 @@ internal sealed partial class RequestExecutorResolver
         serviceCollection.AddSingleton<IApplicationServiceProvider>(
             _ => new DefaultApplicationServiceProvider(_applicationServices));
 
-        serviceCollection.AddSingleton(_ => lazy.Schema);
+        serviceCollection.AddSingleton(
+            new SchemaSetupInfo(
+                context.SchemaName,
+                version,
+                setup.DefaultPipelineFactory,
+                setup.Pipeline));
+
         serviceCollection.AddSingleton(typeModuleChangeMonitor);
         serviceCollection.AddSingleton(executorOptions);
         serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
+            static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
+            static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
+            static s => s.GetRequiredService<RequestExecutorOptions>());
         serviceCollection.AddSingleton<IPersistedQueryOptionsAccessor>(
-            s => s.GetRequiredService<RequestExecutorOptions>());
+            static s => s.GetRequiredService<RequestExecutorOptions>());
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 
         serviceCollection.TryAddDiagnosticEvents();
         serviceCollection.TryAddOperationExecutors();
-        serviceCollection.TryAddTimespanProvider();
 
         // register global error filters
         foreach (var errorFilter in _applicationServices.GetServices<IErrorFilter>())
@@ -275,32 +278,34 @@ internal sealed partial class RequestExecutorResolver
         }
 
         // register global diagnostic listener
-        foreach (var diagnosticEventListener in
-            _applicationServices.GetServices<IExecutionDiagnosticEventListener>())
+        foreach (var diagnosticEventListener in _applicationServices.GetServices<IExecutionDiagnosticEventListener>())
         {
             serviceCollection.AddSingleton(diagnosticEventListener);
         }
 
         serviceCollection.AddSingleton(
-            sp => CreatePipeline(
-                context.SchemaName,
-                setup.DefaultPipelineFactory,
-                setup.Pipeline,
-                sp,
-                sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
+            static sp =>
+            {
+                var appServices = sp.GetRequiredService<IApplicationServiceProvider>();
+                var schemaInfo = sp.GetRequiredService<SchemaSetupInfo>();
 
-        serviceCollection.AddSingleton(
-            sp => new BatchExecutor(
-                sp.GetRequiredService<IErrorHandler>(),
-                _applicationServices.GetRequiredService<ITypeConverter>(),
-                _applicationServices.GetRequiredService<InputFormatter>()));
+                return CreatePipeline(
+                    schemaInfo.SchemaName,
+                    schemaInfo.DefaultPipelineFactory,
+                    schemaInfo.Pipeline,
+                    sp,
+                    appServices,
+                    sp.GetRequiredService<IRequestExecutorOptionsAccessor>());
+            });
 
         serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
 
         serviceCollection.TryAddSingleton(
-            sp =>
+            static sp =>
             {
+                var version = sp.GetRequiredService<SchemaSetupInfo>().Version;
                 var provider = sp.GetRequiredService<ObjectPoolProvider>();
+
                 var policy = new RequestContextPooledObjectPolicy(
                     sp.GetRequiredService<ISchema>(),
                     sp.GetRequiredService<IErrorHandler>(),
@@ -315,12 +320,13 @@ internal sealed partial class RequestExecutorResolver
                 _applicationServices,
                 sp,
                 sp.GetRequiredService<RequestDelegate>(),
-                sp.GetRequiredService<BatchExecutor>(),
                 sp.GetRequiredService<ObjectPool<RequestContext>>(),
                 sp.GetApplicationService<DefaultRequestContextAccessor>(),
                 version));
 
         OnConfigureSchemaServices(context, serviceCollection, setup);
+
+        SchemaBuilder.AddCoreSchemaServices(serviceCollection, lazy);
 
         var schemaServices = serviceCollection.BuildServiceProvider();
 
@@ -351,20 +357,17 @@ internal sealed partial class RequestExecutorResolver
             return setup.Schema;
         }
 
-        var complexitySettings = executorOptions.Complexity;
-
         context
             .SchemaBuilder
             .AddServices(schemaServices)
-            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
-            .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
+            .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions);
 
         var descriptorContext = context.SchemaBuilder.CreateContext();
 
         await foreach (var member in
-            typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
-                .WithCancellation(cancellationToken)
-                .ConfigureAwait(false))
+                       typeModuleChangeMonitor.CreateTypesAsync(descriptorContext)
+                           .WithCancellation(cancellationToken)
+                           .ConfigureAwait(false))
         {
             switch (member)
             {
@@ -398,11 +401,12 @@ internal sealed partial class RequestExecutorResolver
         }
     }
 
-    private RequestDelegate CreatePipeline(
+    private static RequestDelegate CreatePipeline(
         string schemaName,
         Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
         IList<RequestCoreMiddleware> pipeline,
         IServiceProvider schemaServices,
+        IServiceProvider applicationServices,
         IRequestExecutorOptionsAccessor options)
     {
         if (pipeline.Count == 0)
@@ -413,7 +417,7 @@ internal sealed partial class RequestExecutorResolver
 
         var factoryContext = new RequestCoreMiddlewareContext(
             schemaName,
-            _applicationServices,
+            applicationServices,
             schemaServices,
             options);
 
@@ -711,6 +715,21 @@ internal sealed partial class RequestExecutorResolver
                 }
             }
         }
+    }
+
+    private sealed class SchemaSetupInfo(
+        string schemaName,
+        ulong version,
+        Action<IList<RequestCoreMiddleware>>? defaultPipelineFactory,
+        IList<RequestCoreMiddleware> pipeline)
+    {
+        public string SchemaName { get; } = schemaName;
+
+        public ulong Version { get; } = version;
+
+        public Action<IList<RequestCoreMiddleware>>? DefaultPipelineFactory { get; } = defaultPipelineFactory;
+
+        public IList<RequestCoreMiddleware> Pipeline { get; } = pipeline;
     }
 
 #if NET6_0_OR_GREATER

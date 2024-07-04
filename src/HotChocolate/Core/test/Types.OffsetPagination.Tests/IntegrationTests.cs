@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -560,10 +561,7 @@ namespace HotChocolate.Types.Pagination
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
                         .UseOffsetPaging(
-                            options: new PagingOptions
-                            {
-                                InferCollectionSegmentNameFromField = false,
-                            }))
+                            options: new PagingOptions { InferCollectionSegmentNameFromField = false, }))
                     .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
@@ -765,36 +763,52 @@ namespace HotChocolate.Types.Pagination
         }
     }
 
-    public class MockExecutable<T> : IExecutable<T>
+    public class MockExecutable<T>(IQueryable<T> source) : IExecutable<T>
     {
-        private readonly IQueryable<T> _source;
+        public object Source => source;
 
-        public MockExecutable(IQueryable<T> source)
+        ValueTask<IList> IExecutable.ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
+            => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            _source = source;
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public object Source => _source;
-
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return new ValueTask<IList>(_source.ToList());
+            var queryable = await new ValueTask<IQueryable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
         }
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.FirstOrDefault());
-        }
+        ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new ValueTask<object?>(_source.SingleOrDefault());
-        }
+        public ValueTask<T?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.FirstOrDefault());
+
+        ValueTask<object?> IExecutable.SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
+
+        public ValueTask<T?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            => new(source.SingleOrDefault());
 
         public string Print()
-        {
-            return _source.ToString()!;
-        }
+            => source.ToString()!;
     }
 
     public class CustomCollectionSegmentQuery

@@ -27,7 +27,7 @@ public sealed class TaskCache : ITaskCache
     public TaskCache(int size)
     {
         _size = size < _minimumSize ? _minimumSize : size;
-        _order = Convert.ToInt32(size * 0.7);
+        _order = Convert.ToInt32(size * 0.9);
     }
 
     /// <inheritdoc />
@@ -37,7 +37,7 @@ public sealed class TaskCache : ITaskCache
     public int Usage => _usage;
 
     /// <inheritdoc />
-    public T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task
+    public Task<T> GetOrAddTask<T>(TaskCacheKey key, Func<TaskCacheKey, Promise<T>> createTask)
     {
         if (key.Type is null)
         {
@@ -54,7 +54,7 @@ public sealed class TaskCache : ITaskCache
         var entry = _map.GetOrAdd(key, k =>
         {
             read = false;
-            return AddNewEntry(k, createTask());
+            return AddNewEntry(k, createTask(k));
         });
 
         if (read)
@@ -62,18 +62,18 @@ public sealed class TaskCache : ITaskCache
             TouchEntryUnsafe(entry);
         }
 
-        return (T)entry.Value;
+        return ((Promise<T>)entry.Value).Task;
     }
 
     /// <inheritdoc />
-    public bool TryAdd<T>(TaskCacheKey key, T value) where T : Task
+    public bool TryAdd<T>(TaskCacheKey key, Promise<T> value)
     {
         if (key.Type is null)
         {
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (value is null)
+        if (value.Task is null)
         {
             throw new ArgumentNullException(nameof(value));
         }
@@ -90,7 +90,7 @@ public sealed class TaskCache : ITaskCache
     }
 
     /// <inheritdoc />
-    public bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task
+    public bool TryAdd<T>(TaskCacheKey key, Func<Promise<T>> createTask)
     {
         if (key.Type is null)
         {
@@ -134,17 +134,28 @@ public sealed class TaskCache : ITaskCache
     {
         lock (_sync)
         {
+            var current = _head;
+
+            if (current is not null)
+            {
+                do
+                {
+                    current.Value.TryCancel();
+                    current = current.Next;
+                } while (current is not null && !ReferenceEquals(_head, current));
+            }
+
             _map.Clear();
             _head = null;
             _usage = 0;
         }
     }
 
-    private Entry AddNewEntry(TaskCacheKey key, Task value)
+    private Entry AddNewEntry(TaskCacheKey key, IPromise promise)
     {
         lock (_sync)
         {
-            var entry = new Entry { Key = key, Value = value, };
+            var entry = new Entry(key, promise);
             AppendEntryUnsafe(entry);
             ClearSpaceForNewEntryUnsafe();
             return entry;
@@ -228,10 +239,10 @@ public sealed class TaskCache : ITaskCache
         return true;
     }
 
-    private sealed class Entry
+    private sealed class Entry(TaskCacheKey key, IPromise value)
     {
-        public TaskCacheKey Key;
-        public Task Value = default!;
+        public readonly TaskCacheKey Key = key;
+        public readonly IPromise Value = value;
         public Entry? Next;
         public Entry? Previous;
     }

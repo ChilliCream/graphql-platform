@@ -4,7 +4,7 @@ using System;
 
 namespace HotChocolate.Types.Pagination;
 
-public class PagingObjectFieldDescriptorExtensionsTests
+public static class PagingObjectFieldDescriptorExtensionsTests
 {
     [Fact]
     public static void ObjectFieldDescriptor_UseOffsetPaging_Descriptor_Is_Null()

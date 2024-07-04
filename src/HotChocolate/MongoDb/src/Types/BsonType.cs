@@ -18,18 +18,6 @@ public class BsonType : ScalarType
     /// <summary>
     /// Initializes a new instance of the <see cref="BsonType"/> class.
     /// </summary>
-    [ActivatorUtilitiesConstructor]
-    public BsonType()
-        : this(
-            MongoDbScalarNames.Bson,
-            MongoDbTypesResources.Bson_Type_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BsonType"/> class.
-    /// </summary>
     public BsonType(
         string name,
         string? description = null,
@@ -38,6 +26,18 @@ public class BsonType : ScalarType
     {
         SpecifiedBy = new Uri("https://bsonspec.org/spec.html");
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BsonType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public BsonType()
+        : this(
+            MongoDbScalarNames.Bson,
+            MongoDbTypesResources.Bson_Type_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     /// <inheritdoc />

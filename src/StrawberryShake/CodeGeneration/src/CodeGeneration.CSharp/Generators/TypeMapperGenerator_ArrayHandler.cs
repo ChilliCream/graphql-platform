@@ -38,8 +38,8 @@ public partial class TypeMapperGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"var {listVarName}")
-                .SetRighthandSide(
+                .SetLeftHandSide($"var {listVarName}")
+                .SetRightHandSide(
                     CodeBlockBuilder
                         .New()
                         .AddCode("new ")

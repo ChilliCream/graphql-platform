@@ -31,7 +31,7 @@ internal class InterfaceTypeSelectionSetAnalyzer : SelectionSetAnalyzer
         IDocumentAnalyzerContext context,
         SelectionSetVariants selectionSetVariants)
     {
-        Path rootSelectionPath = Path.Root.Append(context.OperationName);
+        var rootSelectionPath = Path.Root.Append(context.OperationName);
 
         var returnTypeFragment =
             FragmentHelper.CreateFragmentNode(

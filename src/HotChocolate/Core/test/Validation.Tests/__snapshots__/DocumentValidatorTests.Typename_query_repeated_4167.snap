@@ -13,54 +13,6 @@
       "operations": 4167,
       "specifiedBy": "https://spec.graphql.org/October2021/#sec-Lone-Anonymous-Operation"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 49992,
-        "End": 50005,
-        "Line": 1,
-        "Column": 49993
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 49992,
-          "End": 50005,
-          "Line": 1,
-          "Column": 49993
-        },
-        "Selections": [
-          {
-            "Kind": "Field",
-            "Alias": null,
-            "Arguments": [],
-            "Required": null,
-            "SelectionSet": null,
-            "Location": {
-              "Start": 49993,
-              "End": 50004,
-              "Line": 1,
-              "Column": 49994
-            },
-            "Name": {
-              "Kind": "Name",
-              "Location": {
-                "Start": 49993,
-                "End": 50004,
-                "Line": 1,
-                "Column": 49994
-              },
-              "Value": "__typename"
-            },
-            "Directives": []
-          }
-        ]
-      }
-    }
+    "Exception": null
   }
 ]

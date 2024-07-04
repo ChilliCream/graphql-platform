@@ -503,7 +503,7 @@ public class SchemaFirstTests
     }
 
     [Fact]
-    public async Task Ensure_Default_Values_With_Inputs_Can_Be_Overriden()
+    public async Task Ensure_Default_Values_With_Inputs_Can_Be_Overridden()
     {
         await new ServiceCollection()
             .AddGraphQL()

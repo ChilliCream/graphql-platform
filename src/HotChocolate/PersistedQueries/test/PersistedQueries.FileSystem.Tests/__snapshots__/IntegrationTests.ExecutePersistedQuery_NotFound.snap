@@ -1,5 +1,7 @@
 ﻿{
   "Kind": "SingleResult",
+  "RequestIndex": null,
+  "VariableIndex": null,
   "Label": null,
   "Path": null,
   "Data": null,
@@ -12,10 +14,12 @@
       "Locations": null,
       "Extensions": {
         "code": "HC0020",
-        "requestedKey": "does_not_exist"
+        "requestedKey": {
+          "IsEmpty": false,
+          "Value": "does_not_exist"
+        }
       },
-      "Exception": null,
-      "SyntaxNode": null
+      "Exception": null
     }
   ],
   "Extensions": null,

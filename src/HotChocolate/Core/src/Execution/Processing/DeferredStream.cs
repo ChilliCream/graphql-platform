@@ -109,7 +109,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         catch (Exception ex)
         {
             var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
-            var result = QueryResultBuilder.CreateError(builder.Build());
+            var result = OperationResultBuilder.CreateError(builder.Build());
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
         finally

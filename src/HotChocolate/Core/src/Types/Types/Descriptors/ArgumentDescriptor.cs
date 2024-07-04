@@ -80,6 +80,8 @@ public class ArgumentDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ArgumentDefinition definition)
     {
+        Context.Descriptors.Push(this);
+
         if (Definition is { AttributesAreApplied: false, Parameter: not null, })
         {
             Context.TypeInspector.ApplyAttributes(
@@ -90,6 +92,8 @@ public class ArgumentDescriptor
         }
 
         base.OnCreateDefinition(definition);
+        
+        Context.Descriptors.Pop();
     }
 
     /// <inheritdoc />

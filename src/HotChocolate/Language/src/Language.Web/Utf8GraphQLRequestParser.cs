@@ -24,6 +24,28 @@ public ref partial struct Utf8GraphQLRequestParser
         _hashProvider = hashProvider;
         _useCache = cache is not null;
     }
+    
+    public GraphQLRequest ParsePersistedOperation(string operationId)
+    {
+        _reader.MoveNext();
+
+        if (_reader.Kind == TokenKind.LeftBrace)
+        {
+            var request = ParseMutableRequest(operationId);
+            
+            return new GraphQLRequest
+            (
+                null,
+                request.QueryId,
+                null,
+                request.OperationName,
+                request.Variables,
+                request.Extensions
+            );
+        }
+
+        throw ThrowHelper.InvalidRequestStructure(_reader);
+    }
 
     public IReadOnlyList<GraphQLRequest> Parse()
     {
@@ -89,8 +111,23 @@ public ref partial struct Utf8GraphQLRequestParser
 
         return batch;
     }
-
+    
     private GraphQLRequest ParseRequest()
+    {
+        var request = ParseMutableRequest();
+
+        return new GraphQLRequest
+        (
+            request.Document,
+            request.QueryId,
+            request.QueryHash,
+            request.OperationName,
+            request.Variables,
+            request.Extensions
+        );
+    }
+    
+    private Request ParseMutableRequest(string? operationId = null)
     {
         var request = new Request();
 
@@ -99,6 +136,11 @@ public ref partial struct Utf8GraphQLRequestParser
         while (_reader.Kind != TokenKind.RightBrace)
         {
             ParseRequestProperty(ref request);
+        }
+        
+        if (operationId is not null)
+        {
+            request.QueryId = operationId;
         }
 
         if (!request.HasQuery && request.QueryId is null)
@@ -123,17 +165,9 @@ public ref partial struct Utf8GraphQLRequestParser
             throw ThrowHelper.NoIdAndNoQuery(_reader);
         }
 
-        return new GraphQLRequest
-        (
-            request.Document,
-            request.QueryId,
-            request.QueryHash,
-            request.OperationName,
-            request.Variables,
-            request.Extensions
-        );
+        return request;
     }
-
+    
     private void ParseRequestProperty(ref Request request)
     {
         var fieldName = _reader.Expect(TokenKind.String);

@@ -16,7 +16,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithDifferentDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -34,7 +34,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithDifferentDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()
@@ -52,7 +52,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
@@ -70,7 +70,7 @@ public class InlineBatchDataLoaderTests
     public async Task LoadWithSingleKeyDataLoader_ShortHand()
     {
         // arrange
-        IRequestExecutor executor =
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query2>()

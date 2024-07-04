@@ -1,11 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
-
-#nullable enable
 
 namespace HotChocolate.Execution;
 
@@ -23,6 +22,11 @@ public interface IRequestContext : IHasContextData
     /// Gets the request executor version.
     /// </summary>
     ulong ExecutorVersion { get; }
+    
+    /// <summary>
+    /// Gets the index of the request that corresponds to this context.
+    /// </summary>
+    int? RequestIndex { get; }
 
     /// <summary>
     /// Gets or sets the scoped request services.
@@ -43,7 +47,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the initial query request.
     /// </summary>
-    IQueryRequest Request { get; }
+    IOperationRequest Request { get; }
 
     /// <summary>
     /// Notifies when the connection underlying this request is aborted
@@ -54,7 +58,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets a unique identifier for a query document.
     /// </summary>
-    string? DocumentId { get; set; }
+    OperationDocumentId? DocumentId { get; set; }
 
     /// <summary>
     /// Gets or sets the document hash.
@@ -101,7 +105,7 @@ public interface IRequestContext : IHasContextData
     /// <summary>
     /// Gets or sets the coerced variable values.
     /// </summary>
-    IVariableValueCollection? Variables { get; set; }
+    IReadOnlyList<IVariableValueCollection>? Variables { get; set; }
 
     /// <summary>
     /// Gets or sets the execution result.

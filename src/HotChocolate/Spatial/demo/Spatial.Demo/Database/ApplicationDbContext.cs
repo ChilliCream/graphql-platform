@@ -82,7 +82,7 @@ namespace Spatial.Demo
                     .HasColumnType("geometry(Point,26912)");
 
                     entity.Property(e => e.StoreNumber)
-                    .HasColumnName("storenumber")
+                    .HasColumnName("store_number")
                     .HasColumnType("numeric(5,0)");
 
                 entity.Property(e => e.Zip)

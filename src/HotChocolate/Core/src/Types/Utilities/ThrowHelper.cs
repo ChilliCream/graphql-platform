@@ -277,7 +277,7 @@ internal static class ThrowHelper
             .SetMessage(ThrowHelper_OneOfFieldIsNull, field.Name, type.Name)
             .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
-            .SetExtension(nameof(field), field.Coordinate.ToString());
+            .SetFieldCoordinate(field.Coordinate);
 
         return new(builder.Build(), type, path);
     }
@@ -294,7 +294,7 @@ internal static class ThrowHelper
 
         if (field is not null)
         {
-            builder.SetExtension(nameof(field), field.Coordinate.ToString());
+            builder.SetFieldCoordinate(field.Coordinate);
         }
 
         return new(builder.Build(), type, path);
@@ -539,7 +539,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_MissingDirectiveIfArgument,
                 directive.Name.Value)
-            .AddLocation(directive)
+            .SetLocations([directive])
             .Build());
 
     public static InvalidOperationException Flags_Enum_Shape_Unknown(Type type)
@@ -589,12 +589,4 @@ internal static class ThrowHelper
                 .SetExtension("type", type.Print())
                 .Build());
     }
-    
-    public static SchemaException PooledServicesNotAllowed(ParameterInfo parameter)
-        => throw new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_PooledServicesNotAllowed,
-                    parameter.ParameterType.FullName ?? parameter.ParameterType.Name)
-                .Build());
 }

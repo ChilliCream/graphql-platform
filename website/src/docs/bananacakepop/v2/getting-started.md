@@ -1,6 +1,7 @@
 ---
 title: "Getting Started"
 ---
+
 Ready to explore the delicious features of Banana Cake Pop? In this getting started guide, we'll show you how to get up and running with Banana Cake Pop.
 You have the option to choose between the convenience of the web app or the enhanced capabilities of the desktop version. We'll guide you through the setup process, so you can start enjoying all that Banana Cake Pop has to offer.
 
@@ -24,16 +25,16 @@ brew install --cask banana-cake-pop
 
 2. **Windows Package Manager**: For Windows 11 or a supported version of Windows 10 with the [Windows Package Manager](https://docs.microsoft.com/en-us/windows/package-manager/) installed, use:
 
-    ```powershell
-    winget install banana-cake-pop
-    ```
+   ```powershell
+   winget install banana-cake-pop
+   ```
 
 3. **Scoop**: To install on Windows 7, 10, or 11 using [Scoop](https://scoop.sh/), run these commands:
 
-    ```powershell
-    scoop bucket add extras
-    scoop install banana-cake-pop
-    ```
+   ```powershell
+   scoop bucket add extras
+   scoop install banana-cake-pop
+   ```
 
 Upon successful installation, follow the steps in the [Your first Query](#your-first-query) guide to execute your first GraphQL query using Banana Cake Pop.
 
@@ -92,3 +93,5 @@ Sign in to your account by clicking the 'Sign In' button on the user icon in the
 **Step 10:** Great job! You've successfully created, executed, and saved your first GraphQL query using Banana Cake Pop. To learn more about the Banana Cake Pop User Interface, head over to the [Explore the UI](/docs/bananacakepop/v2/explore-the-ui) guide.
 
 Happy querying!
+
+<!-- spell-checker:ignore lvbgpp -->

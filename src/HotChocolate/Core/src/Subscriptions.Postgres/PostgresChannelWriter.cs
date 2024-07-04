@@ -63,7 +63,7 @@ internal sealed class PostgresChannelWriter : IAsyncDisposable
 
         _task = null;
 
-        _diagnosticEvents.ProviderInfo(ChannelWriter_Disconnectd);
+        _diagnosticEvents.ProviderInfo(ChannelWriter_Disconnected);
     }
 
     private async Task HandleMessage(NpgsqlConnection connection, CancellationToken ct)

@@ -13,13 +13,12 @@ namespace HotChocolate;
 public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds a file system read and write query storage to the
-    /// services collection.
+    /// Adds an in-memory operation document storage to the service collection.
     /// </summary>
     /// <param name="services">
     /// The service collection to which the services are added.
     /// </param>
-    public static IServiceCollection AddInMemoryQueryStorage(
+    public static IServiceCollection AddInMemoryOperationDocumentStorage(
         this IServiceCollection services)
     {
         if (services is null)
@@ -28,33 +27,10 @@ public static class HotChocolateInMemoryPersistedQueriesServiceCollectionExtensi
         }
 
         return services
-            .AddReadOnlyInMemoryQueryStorage()
-            .AddSingleton<IWriteStoredQueries>(
-                sp => sp.GetRequiredService<InMemoryQueryStorage>());
-    }
-
-    /// <summary>
-    /// Adds a file system read-only query storage to the
-    /// services collection.
-    /// </summary>
-    /// <param name="services">
-    /// The service collection to which the services are added.
-    /// </param>
-    public static IServiceCollection AddReadOnlyInMemoryQueryStorage(
-        this IServiceCollection services)
-    {
-        if (services is null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        return services
-            .RemoveService<IReadStoredQueries>()
-            .RemoveService<IWriteStoredQueries>()
-            .AddSingleton(c => new InMemoryQueryStorage(
-                c.GetService<IMemoryCache>() ??
-                c.GetApplicationService<IMemoryCache>()))
-            .AddSingleton<IReadStoredQueries>(
-                sp => sp.GetRequiredService<InMemoryQueryStorage>());
+            .RemoveService<IOperationDocumentStorage>()
+            .AddSingleton<IOperationDocumentStorage>(
+                c => new InMemoryQueryStorage(
+                    c.GetService<IMemoryCache>() ??
+                    c.GetApplicationService<IMemoryCache>()));
     }
 }

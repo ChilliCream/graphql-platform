@@ -69,7 +69,7 @@ public class ResolverTaskNullTests
         {
             if (name is null)
             {
-                return null;
+                return null!;
             }
             return Task.FromResult(name);
         }
@@ -81,7 +81,7 @@ public class ResolverTaskNullTests
         {
             if (name is null)
             {
-                return null;
+                return null!;
             }
             return Task.FromResult(name);
         }

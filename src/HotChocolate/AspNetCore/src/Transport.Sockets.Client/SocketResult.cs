@@ -51,22 +51,13 @@ public sealed class SocketResult : IDisposable
         }
     }
 
-    private sealed class ResultEnumerable : IAsyncEnumerable<OperationResult>, IDisposable
+    private sealed class ResultEnumerable(
+        DataMessageObserver observer,
+        IDisposable subscription,
+        IDataCompletion completion)
+        : IAsyncEnumerable<OperationResult>, IDisposable
     {
-        private readonly DataMessageObserver _observer;
-        private readonly IDisposable _subscription;
-        private readonly IDataCompletion _completion;
         private bool _started;
-
-        public ResultEnumerable(
-            DataMessageObserver observer,
-            IDisposable subscription,
-            IDataCompletion completion)
-        {
-            _observer = observer;
-            _subscription = subscription;
-            _completion = completion;
-        }
 
         public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
@@ -81,7 +72,7 @@ public sealed class SocketResult : IDisposable
 
             do
             {
-                message = await _observer.TryReadNextAsync(cancellationToken);
+                message = await observer.TryReadNextAsync(cancellationToken);
 
                 switch (message)
                 {
@@ -92,24 +83,24 @@ public sealed class SocketResult : IDisposable
                     case ErrorMessage error:
                         yield return error.Payload;
                         message = null;
-                        _completion.MarkDataStreamCompleted();
+                        completion.MarkDataStreamCompleted();
                         break;
 
                     case CompleteMessage:
                         message = null;
-                        _completion.MarkDataStreamCompleted();
+                        completion.MarkDataStreamCompleted();
                         break;
                 }
             } while (!cancellationToken.IsCancellationRequested && message is not null);
 
-            _completion.TrySendCompleteMessage();
+            completion.TrySendCompleteMessage();
         }
 
         public void Dispose()
         {
-            _completion.TrySendCompleteMessage();
-            _subscription.Dispose();
-            _observer.Dispose();
+            completion.TrySendCompleteMessage();
+            subscription.Dispose();
+            observer.Dispose();
         }
     }
 }

@@ -13,14 +13,5 @@
     "*.targets": "xml",
     "*.tasks": "xml"
   },
-  "markdownlint.config": {
-    "MD028": false,
-    "MD025": {
-      "front_matter_title": ""
-    }
-  },
-  "cSpell.words": [
-    "Nats"
-  ],
   "dotnet.defaultSolution": "src/All.sln"
 }

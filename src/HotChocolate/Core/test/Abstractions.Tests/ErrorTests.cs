@@ -82,7 +82,8 @@ public class ErrorTests
             new Dictionary<string, object> { { "a", "b" }, });
 
         // assert
-        Assert.Collection(error.Extensions,
+        Assert.Collection(
+            error.Extensions!,
             t =>
             {
                 Assert.Equal("a", t.Key);
@@ -100,7 +101,8 @@ public class ErrorTests
         error = error.SetExtension("a", "b").SetExtension("c", "d");
 
         // assert
-        Assert.Collection(error.Extensions.OrderBy(t => t.Key),
+        Assert.Collection(
+            error.Extensions!.OrderBy(t => t.Key),
             t =>
             {
                 Assert.Equal("a", t.Key);
@@ -129,7 +131,8 @@ public class ErrorTests
         error = error.RemoveExtension("a");
 
         // assert
-        Assert.Collection(error.Extensions,
+        Assert.Collection(
+            error.Extensions!,
             t =>
             {
                 Assert.Equal("c", t.Key);
@@ -144,11 +147,11 @@ public class ErrorTests
         IError error = new Error("123");
 
         // act
-        error = error.WithLocations(
-            new List<Location> { new Location(1, 2), });
+        error = error.WithLocations(new List<Location> { new(1, 2), });
 
         // assert
-        Assert.Collection(error.Locations,
+        Assert.Collection(
+            error.Locations!,
             t =>
             {
                 Assert.Equal(1, t.Line);
@@ -176,7 +179,7 @@ public class ErrorTests
         IError error = new Error("123");
 
         // act
-        Action action = () => error.WithMessage(null);
+        Action action = () => error.WithMessage(null!);
 
         // assert
         Assert.Throws<ArgumentException>(action);
@@ -205,43 +208,6 @@ public class ErrorTests
         error = error.WithPath(Path.FromList("foo"));
 
         // assert
-        Assert.Equal("/foo", error.Path.Print());
-    }
-
-    [Fact]
-    public void WithSyntaxNode()
-    {
-        // arrange
-        IError error = new Error("123");
-
-        // act
-        error = error.WithSyntaxNode(new StringValueNode("Foo"));
-
-        // assert
-        error.MatchSnapshot();
-    }
-
-    [Fact]
-    public void Constructor_WithSyntaxNode()
-    {
-        // arrange
-        // act
-        IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
-
-        // assert
-        error.MatchSnapshot();
-    }
-
-    [Fact]
-    public void RemoveSyntaxNode()
-    {
-        // arrange
-        IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
-
-        // act
-        error = error.RemoveSyntaxNode();
-
-        // assert
-        error.MatchSnapshot();
+        Assert.Equal("/foo", error.Path!.Print());
     }
 }

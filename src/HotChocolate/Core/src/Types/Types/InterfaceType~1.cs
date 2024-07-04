@@ -11,12 +11,12 @@ public class InterfaceType<T> : InterfaceType
 {
     private Action<IInterfaceTypeDescriptor<T>>? _configure;
 
+    public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure) =>
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+
     [ActivatorUtilitiesConstructor]
     public InterfaceType() =>
         _configure = Configure;
-
-    public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure) =>
-        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
 
     protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
     {

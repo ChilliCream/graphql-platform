@@ -22,8 +22,8 @@ public partial class JsonResultBuilderGenerator
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {listVarName}")
-                    .SetRighthandSide(
+                    .SetLeftHandSide($"var {listVarName}")
+                    .SetRightHandSide(
                         CodeBlockBuilder
                             .New()
                             .AddCode("new ")

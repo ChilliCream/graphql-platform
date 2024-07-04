@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -147,7 +144,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        return input is QueryableExecutable<TEntityType> { InMemory: var inMemory, }
+        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, }
             ? inMemory
             : input is not IQueryable or EnumerableQuery;
     }
@@ -166,7 +163,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         {
             IQueryable<TEntityType> q => q.Where(where),
             IEnumerable<TEntityType> q => q.AsQueryable().Where(where),
-            QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
+            IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
             _ => input,
         };
 

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Language.Utilities;
 
 public sealed partial class SyntaxSerializer

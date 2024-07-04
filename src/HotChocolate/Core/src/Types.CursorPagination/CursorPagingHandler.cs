@@ -70,11 +70,27 @@ public abstract class CursorPagingHandler : IPagingHandler
                 context.Path);
         }
 
+        if (first < 0)
+        {
+            throw ThrowHelper.PagingHandler_MinPageSize(
+                (int)first,
+                context.Selection.Field,
+                context.Path);
+        }
+
         if (first > MaxPageSize)
         {
             throw ThrowHelper.PagingHandler_MaxPageSize(
                 (int)first,
                 MaxPageSize,
+                context.Selection.Field,
+                context.Path);
+        }
+
+        if (last < 0)
+        {
+            throw ThrowHelper.PagingHandler_MinPageSize(
+                (int)last,
                 context.Selection.Field,
                 context.Path);
         }
@@ -89,9 +105,7 @@ public abstract class CursorPagingHandler : IPagingHandler
         }
     }
 
-    async ValueTask<IPage> IPagingHandler.SliceAsync(
-        IResolverContext context,
-        object source)
+    public void PublishPagingArguments(IResolverContext context)
     {
         var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
         var last = AllowBackwardPagination
@@ -110,7 +124,15 @@ public abstract class CursorPagingHandler : IPagingHandler
             AllowBackwardPagination
                 ? context.ArgumentValue<string?>(CursorPagingArgumentNames.Before)
                 : null);
+        
+        context.SetLocalState(WellKnownContextData.PagingArguments, arguments);
+    }
 
+    async ValueTask<IPage> IPagingHandler.SliceAsync(
+        IResolverContext context,
+        object source)
+    {
+        var arguments = context.GetLocalState<CursorPagingArguments>(WellKnownContextData.PagingArguments);   
         return await SliceAsync(context, source, arguments).ConfigureAwait(false);
     }
 
