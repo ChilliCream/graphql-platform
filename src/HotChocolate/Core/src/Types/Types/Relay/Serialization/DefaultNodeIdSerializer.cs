@@ -10,13 +10,22 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
-internal sealed class DefaultNodeIdSerializer(INodeIdValueSerializer[] serializers, int maxIdLength) : INodeIdSerializer
+internal sealed class DefaultNodeIdSerializer(INodeIdValueSerializer[]? serializers = null, int maxIdLength = 1024)
+    : INodeIdSerializer
 {
     private const byte _delimiter = (byte)':';
     private const byte _legacyDelimiter = (byte)'\n';
     private const int _stackallocThreshold = 256;
     private static readonly Encoding _utf8 = Encoding.UTF8;
     private readonly ConcurrentDictionary<string, byte[]> _names = new();
+    private readonly INodeIdValueSerializer[] _serializers = serializers ??
+    [
+        new StringNodeIdValueSerializer(),
+        new Int16NodeIdValueSerializer(),
+        new Int32NodeIdValueSerializer(),
+        new Int64NodeIdValueSerializer(),
+        new GuidNodeIdValueSerializer()
+    ];
 
     public string Format(string typeName, object internalId)
     {
@@ -227,8 +236,8 @@ internal sealed class DefaultNodeIdSerializer(INodeIdValueSerializer[] serialize
 
     private INodeIdValueSerializer? TryResolveSerializer(Type type)
     {
-        ref var serializer = ref MemoryMarshal.GetReference(serializers.AsSpan());
-        ref var end = ref Unsafe.Add(ref serializer, serializers.Length);
+        ref var serializer = ref MemoryMarshal.GetReference(_serializers.AsSpan());
+        ref var end = ref Unsafe.Add(ref serializer, _serializers.Length);
 
         while (Unsafe.IsAddressLessThan(ref serializer, ref end))
         {
