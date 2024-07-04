@@ -123,6 +123,174 @@ public class PagingTests
     }
 
     [Fact]
+    public async Task Require_Paging_Boundaries_Single_Boundary_With_Literal()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                {
+                    books(first: 1) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Single_Boundary_With_Variable()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                query($first: Int) {
+                    books(first: $first) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Two_Boundaries_With_Variable()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                query($first: Int, $last: Int) {
+                    books(first: $first, last: $last) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Require_Paging_Boundaries_Two_Boundaries_Mixed()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var operation =
+            Utf8GraphQLParser.Parse(
+                """
+                query($first: Int) {
+                    books(first: $first, last: 1) {
+                        nodes {
+                            title
+                        }
+                    }
+                }
+                """);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(operation)
+                .ReportCost()
+                .Build();
+
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddFiltering()
+                .AddSorting()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var response = await executor.ExecuteAsync(request);
+
+        // assert
+        await snapshot
+            .Add(operation, "Operation")
+            .Add(response, "Response")
+            .MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Require_Paging_Nested_Boundaries()
     {
         // arrange
