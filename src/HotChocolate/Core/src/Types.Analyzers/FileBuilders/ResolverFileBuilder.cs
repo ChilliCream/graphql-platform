@@ -459,7 +459,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         _writer.WriteLine();
 
         _writer.WriteIndentedLine(
-            "public static global::{0}? {1}_{2}(global::{3} context)",
+            "private static global::{0}? {1}_{2}_Resolver(global::{3} context)",
             WellKnownTypes.Object,
             resolver.TypeName,
             resolver.Member.Name,
@@ -693,7 +693,7 @@ public sealed class ResolverFileBuilder(StringBuilder sb)
         }
     }
 
-    private string GetResolverArguments(int parameterCount)
+    private static string GetResolverArguments(int parameterCount)
     {
         if (parameterCount == 0)
         {

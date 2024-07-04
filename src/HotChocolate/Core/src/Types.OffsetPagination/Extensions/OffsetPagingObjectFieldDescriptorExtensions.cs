@@ -3,6 +3,7 @@ using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Types.Pagination.PagingDefaults;
@@ -115,6 +116,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Flags |= FieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -204,6 +207,8 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
                             ? EnsureCollectionSegmentNameCasing(d.Name)
                             : null;
                 }
+                d.State = d.State.Add(WellKnownContextData.PagingOptions, pagingOptions);
+                d.Flags |= FieldFlags.CollectionSegment;
 
                 TypeReference? typeRef = itemType is not null
                     ? c.TypeInspector.GetTypeRef(itemType)
@@ -234,8 +239,10 @@ public static class OffsetPagingObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
+        var skip = descriptor.Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>());
+        skip.Extend().Definition.Flags |= FieldFlags.SkipArgument;
+
         return descriptor
-            .Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>())
             .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
     }
 

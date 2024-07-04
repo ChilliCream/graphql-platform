@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration.CSharp" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
 
     <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />

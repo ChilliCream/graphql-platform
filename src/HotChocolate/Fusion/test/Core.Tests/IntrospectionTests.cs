@@ -41,7 +41,7 @@ public class IntrospectionTests(ITestOutputHelper output)
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 

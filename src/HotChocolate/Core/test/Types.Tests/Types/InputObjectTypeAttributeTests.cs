@@ -87,7 +87,7 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument("{ foo(a: { }) { foo bar baz qux quux } }")
                     .Build())
             .MatchSnapshotAsync();
@@ -111,7 +111,7 @@ public class InputObjectTypeAttributeTests
             .Create()
             .MakeExecutable()
             .ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(@"
                             query($q: InputWithDefaultsInput) {
                                 foo(a: $q) {

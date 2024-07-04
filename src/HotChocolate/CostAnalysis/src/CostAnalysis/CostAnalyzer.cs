@@ -265,7 +265,7 @@ internal sealed class CostAnalyzer(CostOptions options) : TypeDocumentValidatorV
                     .FirstOrDefault<ListSizeDirective>()
                     ?.AsValue<ListSizeDirective>();
 
-                listSizeDirective.ValidateRequireOneSlicingArgument(fieldNode);
+                listSizeDirective.ValidateRequireOneSlicingArgument(fieldNode, context.Path);
 
                 if (fieldNode.Arguments.Count > 0)
                 {

@@ -22,6 +22,12 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
     private readonly ImmutableArray<string> _sizedFields
         = ImmutableArray.Create<string>("edges", "nodes");
 
+    private readonly ImmutableArray<string> _offSetSlicingArgs
+        = ImmutableArray.Create<string>("take");
+
+    private readonly ImmutableArray<string> _offsetSizedFields
+        = ImmutableArray.Create<string>("items");
+
     private CostOptions _options = default!;
 
     internal override uint Position => int.MaxValue;
@@ -45,14 +51,23 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                 if (fieldDef.State.Count > 0
                     && fieldDef.State.TryGetValue(WellKnownContextData.PagingOptions, out var value)
                     && value is PagingOptions options
-                    && !fieldDef.HasListSizeDirective())
+                    && !fieldDef.HasListSizeDirective()
+                    && ((fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
+                        || (fieldDef.Flags & FieldFlags.CollectionSegment) == FieldFlags.CollectionSegment))
                 {
                     var assumedSize = options.MaxPageSize ?? MaxPageSize;
 
                     var slicingArgs =
-                        options.AllowBackwardPagination ?? AllowBackwardPagination
-                            ? _forwardAndBackwardSlicingArgs
-                            : _forwardSlicingArgs;
+                        (fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
+                            ? options.AllowBackwardPagination ?? AllowBackwardPagination
+                                ? _forwardAndBackwardSlicingArgs
+                                : _forwardSlicingArgs
+                            : _offSetSlicingArgs;
+
+                    var sizeFields =
+                        (fieldDef.Flags & FieldFlags.Connection) == FieldFlags.Connection
+                            ? _sizedFields
+                            : _offsetSizedFields;
 
                     // https://ibm.github.io/graphql-specs/cost-spec.html#sec-requireOneSlicingArgument
                     // Per default, requireOneSlicingArgument is enabled,
@@ -64,7 +79,7 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                         new ListSizeDirective(
                             assumedSize,
                             slicingArgs,
-                            _sizedFields,
+                            sizeFields,
                             requirePagingBoundaries),
                         completionContext.DescriptorContext.TypeInspector);
                 }
@@ -130,7 +145,8 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
         {
             foreach (var fieldDef in objectTypeDef.Fields)
             {
-                if (fieldDef.PureResolver is null
+                if ((fieldDef.PureResolver is null
+                        || (fieldDef.Flags & FieldFlags.TotalCount) == FieldFlags.TotalCount)
                     && _options.DefaultResolverCost.HasValue
                     && !fieldDef.HasCostDirective())
                 {

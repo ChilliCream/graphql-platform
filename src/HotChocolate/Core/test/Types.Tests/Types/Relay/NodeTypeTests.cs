@@ -162,7 +162,7 @@ public class NodeTypeTests : TypeTestBase
         var id = serializer.Format("Bar", 123);
 
         await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {
@@ -218,7 +218,7 @@ public class NodeTypeTests : TypeTestBase
         var id = serializer.Format("Foo1", "123");
 
         await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"query ($id: ID!) {
                             node(id: $id) {

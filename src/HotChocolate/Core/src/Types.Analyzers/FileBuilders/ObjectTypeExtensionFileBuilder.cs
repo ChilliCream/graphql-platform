@@ -86,7 +86,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                     _writer.WriteIndentedLine(".ImplementsNode()");
                     _writer.WriteIndentedLine(
                         ".ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
-                        objectTypeExtension.Type.ToDisplayString(),
+                        objectTypeExtension.Type.ToFullyQualified(),
                         objectTypeExtension.Type.Name,
                         objectTypeExtension.NodeResolver.Member.Name);
                 }
@@ -105,11 +105,28 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                             ".Field(thisType.GetMember(\"{0}\", bindingFlags)[0])",
                             resolver.Member.Name);
 
-                        _writer.WriteIndentedLine(
-                            ".Extend().Definition.Resolvers = {0}Resolvers.{1}_{2}();",
-                            objectTypeExtension.Type.ToDisplayString(),
-                            objectTypeExtension.Type.Name,
-                            resolver.Member.Name);
+                        _writer.WriteIndentedLine(".ExtendWith(c =>");
+                        _writer.WriteIndentedLine("{");
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+                            _writer.WriteIndentedLine(
+                                "c.Definition.Resolvers = {0}Resolvers.{1}_{2}();",
+                                objectTypeExtension.Type.ToFullyQualified(),
+                                objectTypeExtension.Type.Name,
+                                resolver.Member.Name);
+
+                            if (resolver.ResultKind is not ResolverResultKind.Pure
+                                && !resolver.Member.HasPostProcessorAttribute()
+                                && resolver.Member.IsListType(out var elementType))
+                            {
+                                _writer.WriteIndentedLine(
+                                    "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
+                                    WellKnownTypes.ListPostProcessor,
+                                    elementType);
+                            }
+                        }
+                        _writer.WriteIndentedLine("});");
                     }
                 }
             }

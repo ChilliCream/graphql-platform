@@ -35,17 +35,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Build());
 
@@ -69,17 +69,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { neq: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { neq: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Build());
 
@@ -103,22 +103,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: null}}){ barShort}}")
                 .Build());
 
@@ -144,22 +144,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: null}}){ barShort}}")
                 .Build());
 
@@ -186,22 +186,22 @@ public class QueryableFilterVisitorComparableTests
 
         // assert
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: null}}){ barShort}}")
                 .Build());
 
@@ -227,22 +227,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: null}}){ barShort}}")
                 .Build());
 
@@ -268,22 +268,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: null}}){ barShort}}")
                 .Build());
 
@@ -309,22 +309,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: null}}){ barShort}}")
                 .Build());
 
@@ -351,22 +351,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: null}}){ barShort}}")
                 .Build());
 
@@ -392,22 +392,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: null}}){ barShort}}")
                 .Build());
 
@@ -433,17 +433,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
                 .Build());
 
@@ -467,17 +467,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
                 .Build());
 
@@ -501,17 +501,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Build());
 
@@ -535,17 +535,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { neq: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { neq: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Build());
 
@@ -570,22 +570,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gt: null}}){ barShort}}")
                 .Build());
 
@@ -611,22 +611,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngt: null}}){ barShort}}")
                 .Build());
 
@@ -653,22 +653,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { gte: null}}){ barShort}}")
                 .Build());
 
@@ -694,22 +694,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { ngte: null}}){ barShort}}")
                 .Build());
 
@@ -735,22 +735,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lt: null}}){ barShort}}")
                 .Build());
 
@@ -776,22 +776,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlt: null}}){ barShort}}")
                 .Build());
 
@@ -818,22 +818,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { lte: null}}){ barShort}}")
                 .Build());
 
@@ -859,22 +859,22 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
                 .Build());
 
         var res4 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nlte: null}}){ barShort}}")
                 .Build());
 
@@ -900,17 +900,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { in: [ 13, null ]}}){ barShort}}")
                 .Build());
 
@@ -934,17 +934,17 @@ public class QueryableFilterVisitorComparableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
                 .Build());
 
         var res3 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { barShort: { nin: [ 13, null ]}}){ barShort}}")
                 .Build());
 

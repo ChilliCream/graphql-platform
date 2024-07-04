@@ -29,12 +29,12 @@ public class QueryableSortVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(order: { bar: ASC}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(order: { bar: DESC}){ bar}}")
                 .Build());
 
@@ -58,12 +58,12 @@ public class QueryableSortVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(order: [{ bar: ASC}]){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(order: [{ bar: DESC}]){ bar}}")
                 .Build());
 
@@ -81,12 +81,12 @@ public class QueryableSortVisitorExecutableTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(order: { bar: ASC}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ rootExecutable(order: { bar: DESC}){ bar}}")
                 .Build());
 

@@ -12,15 +12,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
-    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
-    <InternalsVisibleTo Include="HotChocolate.Data" />
-    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion" />
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
-    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
     <InternalsVisibleTo Include="HotChocolate.Caching" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Raven" />
+    <InternalsVisibleTo Include="HotChocolate.Data" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="StrawberryShake.CodeGeneration" />
   </ItemGroup>
 
   <ItemGroup>

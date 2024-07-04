@@ -11,7 +11,7 @@ public class OutputFieldBase : FieldBase, IOutputField
 {
     private Type _runtimeType = default!;
 
-    internal OutputFieldBase(OutputFieldDefinitionBase definition, int index) 
+    internal OutputFieldBase(OutputFieldDefinitionBase definition, int index)
         : base(definition, index)
     {
         DeprecationReason = definition.DeprecationReason;
@@ -36,7 +36,7 @@ public class OutputFieldBase : FieldBase, IOutputField
     /// </summary>
     public bool IsIntrospectionField
         => (Flags & FieldFlags.Introspection) == FieldFlags.Introspection;
-    
+
     internal bool IsTypeNameField
         => (Flags & FieldFlags.TypeNameField) == FieldFlags.TypeNameField;
 
@@ -52,7 +52,7 @@ public class OutputFieldBase : FieldBase, IOutputField
         ITypeSystemMember declaringMember,
         FieldDefinitionBase definition)
         => OnCompleteField(context, declaringMember, (OutputFieldDefinitionBase)definition);
-    
+
     protected virtual void OnCompleteField(
         ITypeCompletionContext context,
         ITypeSystemMember declaringMember,

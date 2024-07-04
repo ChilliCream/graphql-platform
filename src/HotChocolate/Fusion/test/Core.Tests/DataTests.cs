@@ -51,7 +51,7 @@ public class DataTests(ITestOutputHelper output)
         // act
         await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(request)
                 .Build());
 

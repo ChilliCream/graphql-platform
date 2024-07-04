@@ -40,7 +40,7 @@ public class IntegrationTests : IAsyncLifetime
 
         await using (var scope = services.CreateAsyncScope())
         {
-            var request = OperationRequestBuilder.Create()
+            var request = OperationRequestBuilder.New()
                 .SetServices(scope.ServiceProvider)
                 .SetDocument("{ foos { nodes { id } } }")
                 .Build();
