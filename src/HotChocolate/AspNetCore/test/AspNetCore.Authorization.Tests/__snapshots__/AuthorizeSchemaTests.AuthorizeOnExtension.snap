@@ -12,7 +12,7 @@
         "bar"
       ],
       "extensions": {
-        "code": "AUTH_NOT_AUTHORIZED"
+        "code": "AUTH_NOT_AUTHENTICATED"
       }
     }
   ],

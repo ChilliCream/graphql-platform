@@ -379,10 +379,8 @@ public class FilterInputTypeTest : FilterTestBase
     }
 
     [Fact]
-    public void Execute_CoerceWhereArgument_MatchesSnapshot()
+    public async Task Execute_CoerceWhereArgument_MatchesSnapshot()
     {
-        object? where = null;
-
         // arrange
         var builder = SchemaBuilder.New()
             .AddFiltering()
@@ -392,7 +390,10 @@ public class FilterInputTypeTest : FilterTestBase
                     .UseFiltering()
                     .Use(next => async context =>
                     {
-                        where = context.ArgumentValue<object>("where");
+                        context.OperationResult.SetExtension(
+                            "where",
+                            context.ArgumentValue<object>("where"));
+
                         await next(context);
                     })
                     .Resolve(new List<Bar>()));
@@ -400,11 +401,11 @@ public class FilterInputTypeTest : FilterTestBase
         var schema = builder.Create();
 
         // act
-        schema.MakeExecutable().Execute(
+        var result = await schema.MakeExecutable().ExecuteAsync(
             """{ bars(where: { baz: { contains: "test" } }) { baz } }""");
 
         // assert
-        where.MatchSnapshot(extension: ".json");
+        result.MatchSnapshot();
     }
 
     public class FooDirectiveType
