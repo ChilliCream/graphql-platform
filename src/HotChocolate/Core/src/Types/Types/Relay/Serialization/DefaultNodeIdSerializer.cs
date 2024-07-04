@@ -10,7 +10,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay;
 
-internal sealed class DefaultNodeIdSerializer(INodeIdValueSerializer[]? serializers = null, int maxIdLength = 1024)
+public sealed class DefaultNodeIdSerializer(
+    INodeIdValueSerializer[]? serializers = null,
+    int maxIdLength = 1024)
     : INodeIdSerializer
 {
     private const byte _delimiter = (byte)':';
