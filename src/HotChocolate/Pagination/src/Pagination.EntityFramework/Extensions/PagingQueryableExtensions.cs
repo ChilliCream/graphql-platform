@@ -2,9 +2,8 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query;
-using HotChocolate.Pagination;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 /// <summary>
 /// Provides extension methods to page a queryable.

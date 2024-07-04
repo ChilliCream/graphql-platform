@@ -4,12 +4,7 @@
     <PackageId>HotChocolate.Pagination.Core</PackageId>
     <AssemblyName>HotChocolate.Pagination.Core</AssemblyName>
     <RootNamespace>HotChocolate.Pagination</RootNamespace>
-    <Description>Contains primitives for implementing paging.</Description>
-
-    <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
-
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Description>Contains primitives for implementing keyset pagination.</Description>
   </PropertyGroup>
 
 </Project>

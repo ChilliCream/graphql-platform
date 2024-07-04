@@ -1,7 +1,6 @@
 using HotChocolate.Types.Pagination;
-using HotChocolate.Pagination;
 
-namespace HotChocolate.Data;
+namespace HotChocolate.Pagination;
 
 /// <summary>
 /// Extensions for <see cref="Page{T}"/>.
@@ -17,7 +16,9 @@ public static class PagingResultExtensions
     /// <typeparam name="T">
     /// The type of the items in the page.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// Returns a relay connection.
+    /// </returns>
     public static async Task<Connection<T>> ToConnectionAsync<T>(
         this Task<Page<T>> resultPromise)
         where T : class
@@ -35,7 +36,9 @@ public static class PagingResultExtensions
     /// <typeparam name="T">
     /// The type of the items in the page.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// Returns a relay connection.
+    /// </returns>
     public static async ValueTask<Connection<T>> ToConnectionAsync<T>(
         this ValueTask<Page<T>> resultPromise)
         where T : class
@@ -43,6 +46,23 @@ public static class PagingResultExtensions
         var result = await resultPromise;
         return CreateConnection(result);
     }
+
+    /// <summary>
+    /// Converts a <see cref="Page{T}"/> to a <see cref="Connection{T}"/>.
+    /// </summary>
+    /// <param name="result">
+    /// The page result.
+    /// </param>
+    /// <typeparam name="T">
+    /// The type of the items in the page.
+    /// </typeparam>
+    /// <returns>
+    /// Returns a relay connection.
+    /// </returns>
+    public static Connection<T> ToConnection<T>(
+        this Page<T> result)
+        where T : class
+        => CreateConnection(result);
 
     private static Connection<T> CreateConnection<T>(Page<T> page) where T : class
     {
