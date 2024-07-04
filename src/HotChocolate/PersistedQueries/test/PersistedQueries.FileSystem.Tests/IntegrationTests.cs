@@ -22,7 +22,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddFileSystemQueryStorage(cacheDirectory)
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
@@ -60,7 +60,7 @@ public class IntegrationTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(c => c.Name("Query").Field("a").Resolve("b"))
-                .AddFileSystemQueryStorage(cacheDirectory)
+                .AddFileSystemOperationDocumentStorage(cacheDirectory)
                 .UseRequest(n => async c =>
                 {
                     await n(c);
