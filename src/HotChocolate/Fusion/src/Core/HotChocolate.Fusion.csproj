@@ -15,7 +15,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.CommandLine" />
-    <InternalsVisibleTo Include="BananaCakePop.Services" />
+    <InternalsVisibleTo Include="BananaCakePop.Services.Fusion" />
     <InternalsVisibleTo Include="CookieCrumble" />
   </ItemGroup>
 
