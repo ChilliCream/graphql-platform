@@ -16,13 +16,14 @@ public class EntityFrameworkResolverCompilerIntegrationTests
         var contextFactory = new Mock<IDbContextFactory<BookContext>>();
 
         contextFactory
-            .Setup(t => t.CreateDbContextAsync(It.IsAny<CancellationToken>()))
-            .Returns(Task.FromResult(authorFixture.Context));
+            .Setup(t => t.CreateDbContext())
+            .Returns(authorFixture.Context);
 
         var result = await new ServiceCollection()
             .AddSingleton(contextFactory.Object)
             .AddGraphQL()
             .AddQueryType<Query>()
+            .RegisterDbContextFactory<BookContext>()
             .ExecuteRequestAsync("{ books { title } }");
 
         result.MatchSnapshot();
