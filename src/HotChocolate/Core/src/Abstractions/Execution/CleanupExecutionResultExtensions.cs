@@ -7,7 +7,7 @@ namespace HotChocolate.Execution;
 /// <summary>
 /// Helper methods for <see cref="IExecutionResult"/>.
 /// </summary>
-public static class ExecutionResultExtensions
+public static class CleanupExecutionResultExtensions
 {
     /// <summary>
     /// Registers a cleanup task for execution resources bound to this execution result.
