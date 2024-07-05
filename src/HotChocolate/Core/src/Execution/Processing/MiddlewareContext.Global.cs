@@ -209,9 +209,32 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
     public async ValueTask ExecuteCleanupTasksAsync()
     {
-        foreach (var task in _cleanupTasks)
+        var count = _cleanupTasks.Count;
+
+        if (count == 1)
         {
-            await task.Invoke().ConfigureAwait(false);
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 2)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        if (count == 3)
+        {
+            await _cleanupTasks[0].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[1].Invoke().ConfigureAwait(false);
+            await _cleanupTasks[3].Invoke().ConfigureAwait(false);
+            return;
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            await _cleanupTasks[i].Invoke().ConfigureAwait(false);
         }
     }
 
