@@ -353,6 +353,49 @@ public class IdAttributeTests
     }
 
     [Fact]
+    public async Task Id_On_Objects_Legacy_StringAndIntId()
+    {
+        // arrange
+        var legacySomeStringId = Convert.ToBase64String("Some\ndtest"u8);;
+        var legacySomeIntId = Convert.ToBase64String("Some\ni123"u8);;
+
+        // act
+        var result =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query foo ($someId: ID! $someIntId: ID!) {
+                                foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                    someId
+                                    ... on FooPayload {
+                                        someIds
+                                    }
+                                }
+                            }
+                            """)
+                        .SetVariableValues(new Dictionary<string, object?>
+                        {
+                            {"someId", legacySomeStringId},
+                            {"someIntId", legacySomeIntId},
+                        })
+                        .Build());
+
+        // assert
+        new
+        {
+            result = result.ToJson(),
+            legacySomeStringId,
+            legacySomeIntId
+        }.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Id_Type_Is_Correctly_Inferred()
     {
         var schema =

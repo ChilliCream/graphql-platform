@@ -177,6 +177,12 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
         var index = span.IndexOf(_delimiter);
         if (index == -1)
         {
+            if (TryParseLegacyFormat(span, out var nodeId))
+            {
+                Clear(rentedBuffer);
+                return nodeId;
+            }
+
             Clear(rentedBuffer);
             throw new NodeIdInvalidFormatException(formattedId);
         }
