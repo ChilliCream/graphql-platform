@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using HotChocolate.Execution;
+using System;
 
 namespace HotChocolate.Types
 {
@@ -44,20 +45,21 @@ namespace HotChocolate.Types
             Snapshot.FullName();
 
             await ExpectValid(
-                "{ foo(input: { id: 42 }) { id name } }",
+                "{ foo(input: { bar: 42 }) { bar baz qux } }",
                 b => b.AddQueryType(type =>
                 {
                     type.Field("foo")
-                        .Type(new ObjectType<DefaultValueTest>())
+                        .Type(new ObjectType<Foo>())
                         .Argument(
                             "input",
                             argument =>
                             {
-                                argument.Type(new InputObjectType<DefaultValueTest>(type =>
-                                    type.Ignore(x => x.Name)));
+                                argument.Type(new InputObjectType<Foo>(type =>
+                                    type.Ignore(x => x.Baz)
+                                        .Ignore(x => x.Qux)));
                             })
                         .Resolve(context =>
-                            context.ArgumentValue<DefaultValueTest>("input"));
+                            context.ArgumentValue<Foo>("input"));
                 }))
                 .MatchSnapshotAsync();
         }
@@ -88,5 +90,7 @@ namespace HotChocolate.Types
         }
 
         public record DefaultValueTest([property: ID] int Id, string Name = "ShouldBeDefaultValue");
+
+        public record Foo(int Bar, int? Baz = 84, DateTimeOffset Qux = default);
     }
 }
