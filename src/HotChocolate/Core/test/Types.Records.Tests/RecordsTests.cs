@@ -45,7 +45,7 @@ namespace HotChocolate.Types
             Snapshot.FullName();
 
             await ExpectValid(
-                "{ foo(input: { bar: 42 }) { bar baz qux } }",
+                "{ foo(input: { bar: 42 }) { bar baz qux quux } }",
                 b => b.AddQueryType(type =>
                 {
                     type.Field("foo")
@@ -55,8 +55,8 @@ namespace HotChocolate.Types
                             argument =>
                             {
                                 argument.Type(new InputObjectType<Foo>(type =>
-                                    type.Ignore(x => x.Baz)
-                                        .Ignore(x => x.Qux)));
+                                    type.BindFieldsExplicitly()
+                                        .Field(x => x.Bar)));
                             })
                         .Resolve(context =>
                             context.ArgumentValue<Foo>("input"));
@@ -91,6 +91,8 @@ namespace HotChocolate.Types
 
         public record DefaultValueTest([property: ID] int Id, string Name = "ShouldBeDefaultValue");
 
-        public record Foo(int Bar, int? Baz = 84, DateTimeOffset Qux = default);
+        public record Foo(int Bar, int? Baz = 84, DateTimeOffset Qux = default, int[]? Quux = default) {
+            public int[] Quux { get; init; } = Quux ?? [1];
+        }
     }
 }
