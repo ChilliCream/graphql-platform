@@ -209,7 +209,14 @@ internal static class InputObjectCompiler
             }
             else if (parameter.HasDefaultValue)
             {
-                expressions[i] = Expression.Constant(parameter.DefaultValue, parameter.ParameterType);
+                if (parameter.ParameterType.IsAssignableFrom(parameter.DefaultValue?.GetType()))
+                {
+                    expressions[i] = Expression.Constant(parameter.DefaultValue, parameter.ParameterType);
+                }
+                else
+                {
+                    expressions[i] = Expression.Default(parameter.ParameterType);
+                }
             }
             else
             {
