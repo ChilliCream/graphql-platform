@@ -1,0 +1,8 @@
+﻿{
+  "data": {
+    "foo": {
+      "id": "42",
+      "name": "ShouldBeDefaultValue"
+    }
+  }
+}
