@@ -39,6 +39,30 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task Records_Input_Ignored_Default_Value_Is_Respected()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(
+                "{ foo(input: { id: 42 }) { id name } }",
+                b => b.AddQueryType(type =>
+                {
+                    type.Field("foo")
+                        .Type(new ObjectType<DefaultValueTest>())
+                        .Argument(
+                            "input",
+                            argument =>
+                            {
+                                argument.Type(new InputObjectType<DefaultValueTest>(type =>
+                                    type.Ignore(x => x.Name)));
+                            })
+                        .Resolve(context =>
+                            context.ArgumentValue<DefaultValueTest>("input"));
+                }))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Relay_Id_Middleware_Is_Correctly_Applied()
         {
             Snapshot.FullName();
