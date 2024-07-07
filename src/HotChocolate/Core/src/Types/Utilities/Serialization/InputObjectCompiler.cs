@@ -207,6 +207,10 @@ internal static class InputObjectCompiler
 
                 expressions[i] = Expression.Convert(value, parameter.ParameterType);
             }
+            else if (parameter.HasDefaultValue)
+            {
+                expressions[i] = Expression.Constant(parameter.DefaultValue, parameter.ParameterType);
+            }
             else
             {
                 throw new InvalidOperationException("Could not resolver parameter.");
