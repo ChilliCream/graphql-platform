@@ -44,5 +44,7 @@ public interface IResolverResultPostProcessor
     /// <returns>
     /// Returns an IAsyncEnumerable that represents the result stream.
     /// </returns>
-    IAsyncEnumerable<object?> ToStreamResult(object result, CancellationToken cancellationToken);
+    IAsyncEnumerable<object?> ToStreamResultAsync(
+        object result,
+        CancellationToken cancellationToken);
 }

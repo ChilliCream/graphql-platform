@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0"/>
-    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)"/>
+    <PackageReference Include="BananaCakePop.Middleware" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" />
   </ItemGroup>
 
   <ItemGroup>

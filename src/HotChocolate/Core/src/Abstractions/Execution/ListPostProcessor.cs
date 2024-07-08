@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,21 +28,55 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
                 return await Executable.From(queryable).ToListAsync(cancellationToken);
 
             case IExecutable<T> executable:
-                return await executable.ToListAsync(cancellationToken);
+                try
+                {
+                    return await executable.ToListAsync(cancellationToken);
+                }
+                finally
+                {
+                    if (result is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.DisposeAsync();
+                    }
+                    else if (result is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
 
             case IExecutable executable:
-                return await executable.ToListAsync(cancellationToken);
+                try
+                {
+                    return await executable.ToListAsync(cancellationToken);
+                }
+                finally
+                {
+                    if (result is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.DisposeAsync();
+                    }
+                    else if (result is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                }
 
             default:
                 return result;
         }
     }
 
-    public IAsyncEnumerable<object?> ToStreamResult(object result, CancellationToken cancellationToken)
+    public IAsyncEnumerable<object?> ToStreamResultAsync(object result, CancellationToken cancellationToken)
     {
         if(result is IAsyncEnumerable<object?> asyncEnumerable)
         {
             return asyncEnumerable;
+        }
+
+        if (result is IExecutable executable
+            && result is IDisposable or IAsyncDisposable)
+        {
+            return DisposableStream(executable, result, cancellationToken);
         }
 
         return ToExecutable(result).ToAsyncEnumerable(cancellationToken);
@@ -66,6 +101,33 @@ public sealed class ListPostProcessor<T> : IResolverResultPostProcessor
             default:
                 throw new NotSupportedException(
                     "The result type is not supported by the list post processor.");
+        }
+    }
+
+    private static async IAsyncEnumerable<object?> DisposableStream(
+        IExecutable executable,
+        object result,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        try
+        {
+            await foreach(var item in executable.ToAsyncEnumerable(cancellationToken))
+            {
+                yield return item;
+            }
+        }
+        finally
+        {
+            switch (result)
+            {
+                case IAsyncDisposable asyncDisposable:
+                    await asyncDisposable.DisposeAsync();
+                    break;
+
+                case IDisposable disposable:
+                    disposable.Dispose();
+                    break;
+            }
         }
     }
 
