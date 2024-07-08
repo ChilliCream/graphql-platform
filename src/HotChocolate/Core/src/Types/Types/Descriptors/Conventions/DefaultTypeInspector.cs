@@ -319,6 +319,19 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
                 }
             }
 
+            // check interfaces
+            var interfaceMembers = nodeType
+                .GetInterfaces()
+                .SelectMany(i => i.GetMembers(Static | Public | FlattenHierarchy));
+
+            foreach (var member in interfaceMembers)
+            {
+                if (member is MethodInfo m && IsPossibleNodeResolver(m, nodeType))
+                {
+                    return m;
+                }
+            }
+
             return null;
         }
 
