@@ -48,7 +48,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root(where: {
@@ -75,7 +75,7 @@ public class QueryableFilterVisitorWithinTests : SchemaCache
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(
                     @"{
                         root(where: {

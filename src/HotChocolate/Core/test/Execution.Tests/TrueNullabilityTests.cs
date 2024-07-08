@@ -64,7 +64,7 @@ public class TrueNullabilityTests
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.EnableTrueNullability = true)
                 .ExecuteRequestAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             """
                             query {

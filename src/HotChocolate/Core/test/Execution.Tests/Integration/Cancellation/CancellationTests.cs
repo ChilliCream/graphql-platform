@@ -24,7 +24,7 @@ public class CancellationTests
 
         // act
         await executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ task1 task2 }")
                 .Build(),
                 cts.Token);

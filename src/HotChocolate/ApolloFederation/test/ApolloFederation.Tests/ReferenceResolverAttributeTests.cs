@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CookieCrumble;
 using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
@@ -193,6 +194,31 @@ public class ReferenceResolverAttributeTests
         Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
+    [Fact]
+    public async Task InClassRefResolver_WithGuid()
+    {
+        // arrange
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddType<Product>()
+            .AddQueryType()
+            .BuildSchemaAsync();
+
+        // act
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            """
+            query {
+                _entities(representations: [
+                    { id: "00000000-0000-0000-0000-000000000000", __typename: "Product" }
+                ]) { ... on Product { id } }
+            }
+            """);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
     private ValueTask<object?> ResolveRef(ISchema schema, ObjectType type)
         => ResolveRef(schema, type, new ObjectValueNode(new ObjectFieldNode("id", "abc")));
 
@@ -375,4 +401,19 @@ public class ReferenceResolverAttributeTests
         }
     }
 
+    public sealed class Product
+    {
+        [Key]
+        [GraphQLType<NonNullType<IdType>>]
+        public Guid Id { get; set; }
+
+        [ReferenceResolver]
+        public static Product ResolveProduct(Guid id)
+        {
+            return new Product
+            {
+                Id = id
+            };
+        }
+    }
 }

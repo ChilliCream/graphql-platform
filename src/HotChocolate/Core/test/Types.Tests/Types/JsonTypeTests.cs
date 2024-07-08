@@ -275,7 +275,7 @@ public class JsonTypeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument(
                             """
                             query($input: JSON!) {

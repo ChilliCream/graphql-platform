@@ -4,13 +4,11 @@ using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
-public class SchemaCache : ProjectionVisitorTestBase, IDisposable
+public class SchemaCache(PostgreSqlResource<PostgisConfig> resource)
+    : ProjectionVisitorTestBase(resource)
+    , IDisposable
 {
     private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache = new();
-
-    public SchemaCache(PostgreSqlResource<PostgisConfig> resource) : base(resource)
-    {
-    }
 
     public Task<IRequestExecutor> CreateSchemaAsync<T>(T[] entities)
         where T : class
@@ -19,7 +17,5 @@ public class SchemaCache : ProjectionVisitorTestBase, IDisposable
         return _cache.GetOrAdd(key, _ => base.CreateSchemaAsync(entities));
     }
 
-    public void Dispose()
-    {
-    }
+    public void Dispose() { }
 }

@@ -77,7 +77,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02" }, })
                         .Build());
@@ -90,7 +90,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13+02:35" }, })
                         .Build());
@@ -103,7 +103,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: OffsetDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(new Dictionary<string, object?> { { "arg", "2020-12-31T18:30:13" }, })
                         .Build());
@@ -117,7 +117,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02\") }")
                         .Build());
 
@@ -129,7 +129,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13+02:35\") }")
                         .Build());
 
@@ -141,7 +141,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T18:30:13\") }")
                         .Build());
 

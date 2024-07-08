@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AlterNats.Hosting" Version="1.0.6" />
+    <PackageReference Include="AlterNats.Hosting" />
   </ItemGroup>
 
   <ItemGroup>

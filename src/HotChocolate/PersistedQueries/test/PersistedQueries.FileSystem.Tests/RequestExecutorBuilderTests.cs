@@ -11,21 +11,8 @@ public class RequestExecutorBuilderTests
         // act
         void Action()
             => HotChocolateFileSystemPersistedQueriesRequestExecutorBuilderExtensions
-                .AddFileSystemQueryStorage(null!);
+                .AddFileSystemOperationDocumentStorage(null!);
 
-        Assert.Throws<ArgumentNullException>(Action);
-    }
-
-    [Fact]
-    public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
-    {
-        // arrange
-        // act
-        void Action()
-            => HotChocolateFileSystemPersistedQueriesRequestExecutorBuilderExtensions
-                .AddReadOnlyFileSystemQueryStorage(null!);
-
-        // assert
         Assert.Throws<ArgumentNullException>(Action);
     }
 }

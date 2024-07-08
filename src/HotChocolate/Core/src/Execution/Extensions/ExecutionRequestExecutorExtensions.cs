@@ -52,7 +52,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create().SetDocument(query).Build(),
+            OperationRequestBuilder.New().SetDocument(query).Build(),
             CancellationToken.None);
     }
 
@@ -78,7 +78,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create().SetDocument(query).Build(),
+            OperationRequestBuilder.New().SetDocument(query).Build(),
             cancellationToken);
     }
 
@@ -109,7 +109,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(variableValues)
                 .Build(),
@@ -144,7 +144,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(variableValues)
                 .Build(),
@@ -193,7 +193,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .Build());
     }
@@ -225,7 +225,7 @@ public static class ExecutionRequestExecutorExtensions
         }
 
         return executor.Execute(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .SetVariableValues(variableValues)
                 .Build());
