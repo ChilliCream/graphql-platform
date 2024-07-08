@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BananaCakePop.Middleware" Version="$(BananaCakePopVersion)" />
+    <PackageReference Include="BananaCakePop.Middleware" />
   </ItemGroup>
 
   <ItemGroup>

@@ -27,14 +27,10 @@
     <ProjectReference Include="..\Abstractions\HotChocolate.Fusion.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
   <ItemGroup>
@@ -59,10 +55,6 @@
     <Compile Update="Planning\Nodes\ResolverNodeBase.Config.cs">
       <DependentUpon>ResolverNodeBase.cs</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Reactive" Version="5.0.0" />
   </ItemGroup>
 
 

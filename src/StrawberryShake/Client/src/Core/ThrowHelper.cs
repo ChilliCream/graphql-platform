@@ -40,10 +40,6 @@ internal static class ThrowHelper
         new(new ClientError(
             $"The URL serializer could not parse value{value}. Invalid format. "));
 
-    internal static GraphQLClientException UrlFormatter_DoesNotStartWithSlash(string uri) =>
-        new(new ClientError(
-            $"The relative uri {uri} does not start with '/'"));
-
     internal static GraphQLClientException TimeSpanSerializer_CouldNotParseValue(
         string value,
         TimeSpanFormat format) =>

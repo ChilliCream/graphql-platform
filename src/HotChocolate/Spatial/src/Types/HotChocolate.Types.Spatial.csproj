@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetTopologySuite" Version="2.0.0" />
-    <PackageReference Include="ProjNET" Version="2.0.0" />
+    <PackageReference Include="NetTopologySuite" />
+    <PackageReference Include="ProjNET" />
   </ItemGroup>
 
   <ItemGroup>

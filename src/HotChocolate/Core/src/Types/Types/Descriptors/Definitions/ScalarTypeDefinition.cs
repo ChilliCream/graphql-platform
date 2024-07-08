@@ -1,5 +1,7 @@
 #nullable enable
 
+using System;
+
 namespace HotChocolate.Types.Descriptors.Definitions;
 
 /// <summary>
@@ -7,4 +9,5 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// </summary>
 public sealed class ScalarTypeDefinition : TypeDefinitionBase
 {
+    public Uri? SpecifiedBy { get; set; }
 }

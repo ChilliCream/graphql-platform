@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
       <AssemblyName>HotChocolate.OpenApi</AssemblyName>
@@ -18,17 +18,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="JsonPointer.Net" Version="5.0.0" />
-      <PackageReference Include="Microsoft.OpenApi" Version="1.6.14" />
-      <PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.14" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-      <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-      <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+      <PackageReference Include="JsonPointer.Net" />
+      <PackageReference Include="Microsoft.Extensions.Http" />
+      <PackageReference Include="Microsoft.OpenApi" />
+      <PackageReference Include="Microsoft.OpenApi.Readers" />
     </ItemGroup>
 
     <ItemGroup>
