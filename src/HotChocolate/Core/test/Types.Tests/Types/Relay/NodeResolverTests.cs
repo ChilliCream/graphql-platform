@@ -161,6 +161,34 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task NodeResolver_ResolveNode_WithInterface()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddGlobalObjectIdentification()
+            .AddQueryType<Query>()
+            .AddType<Entity3>()
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                node(id: "RW50aXR5Mzox") {
+                    ... on Entity3 {
+                        id
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
     public async Task NodeAttribute_On_Extension()
     {
         Snapshot.FullName();
@@ -266,6 +294,22 @@ public class NodeResolverTests
         public string Name { get; set; }
 
         public static Entity2 Get(string id) => new() { Name = id, };
+    }
+
+    [Node]
+    public class Entity3 : EntityBase, IResolvable<Entity3>
+    {
+        public string Message { get; set; }
+    }
+
+    public class EntityBase
+    {
+        public int Id { get; set; }
+    }
+
+    public interface IResolvable<T> where T : EntityBase, new()
+    {
+        static Task<T> GetAsync(int id) => Task.FromResult(new T { Id = id });
     }
 
     [Node]

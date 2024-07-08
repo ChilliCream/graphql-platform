@@ -5,8 +5,8 @@ using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;
 
-public class QueryableProjectionVisitorTests
-    : SchemaCache
+public class QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> resource)
+    : SchemaCache(resource)
     , IClassFixture<PostgreSqlResource<PostgisConfig>>
 {
     private static readonly Polygon _truePolygon =
@@ -35,34 +35,30 @@ public class QueryableProjectionVisitorTests
         new() { Id = 2, Bar = _falsePolygon, },
     ];
 
-    public QueryableProjectionVisitorTests(PostgreSqlResource<PostgisConfig> resource)
-        : base(resource)
-    {
-    }
-
     [Fact]
-
     public async Task Create_Expression()
     {
         // arrange
         var tester = await CreateSchemaAsync(_fooEntities);
 
         // act
-        var res1 = await tester.ExecuteAsync(
+        var result = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
-                    @"{
+                    """
+                    {
                         root {
                             id
                             bar { coordinates }
                         }
-                    }")
+                    }
+                    """)
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                Snapshot
-                    .Create(), res1)
+        await Snapshot
+            .Create()
+            .AddResult(result)
             .MatchAsync();
     }
 
