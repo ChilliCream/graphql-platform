@@ -108,6 +108,7 @@ internal sealed partial class ResolverTask
                         _context.ReportError(argument.Error!);
                     }
                 }
+
                 return false;
             }
 
@@ -166,16 +167,15 @@ internal sealed partial class ResolverTask
             return;
         }
 
-        if(_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
+        if (_selection.IsList && _selection.HasStreamDirective(_operationContext.IncludeFlags))
         {
-            var stream = postProcessor.ToStreamResult(result, cancellationToken);
+            var stream = postProcessor.ToStreamResultAsync(result, cancellationToken);
             _context.Result = await CreateStreamResultAsync(stream).ConfigureAwait(false);
             return;
         }
 
         _context.Result = await postProcessor.ToCompletionResultAsync(result, cancellationToken).ConfigureAwait(false);
     }
-
 
     private async ValueTask<List<object?>> CreateStreamResultAsync(IAsyncEnumerable<object?> stream)
     {
