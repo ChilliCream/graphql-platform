@@ -82,7 +82,15 @@ public sealed class ModuleFileBuilder : IDisposable
     public void WriteRegisterObjectTypeExtension(string runtimeTypeName, string extensionType)
     {
         _writer.WriteIndentedLine(
-            "AddTypeExtension_8734371<{0}>(builder, {1}.Initialize);",
+            "AddObjectTypeExtension_8734371<{0}>(builder, {1}.Initialize);",
+            runtimeTypeName,
+            extensionType);
+    }
+
+    public void WriteRegisterInterfaceTypeExtension(string runtimeTypeName, string extensionType)
+    {
+        _writer.WriteIndentedLine(
+            "AddInterfaceTypeExtension_8734371<{0}>(builder, {1}.Initialize);",
             runtimeTypeName,
             extensionType);
     }
@@ -90,7 +98,7 @@ public sealed class ModuleFileBuilder : IDisposable
     public void WriteRegisterObjectTypeExtensionHelpers()
     {
         _writer.WriteLine();
-        _writer.WriteIndentedLine("private static void AddTypeExtension_8734371<T>(");
+        _writer.WriteIndentedLine("private static void AddObjectTypeExtension_8734371<T>(");
 
         using (_writer.IncreaseIndent())
         {
@@ -162,6 +170,90 @@ public sealed class ModuleFileBuilder : IDisposable
                 _writer.WriteLine();
                 _writer.WriteIndentedLine(
                     "((System.Collections.Generic.List<Action<IObjectTypeDescriptor<T>>>)value!)" +
+                    ".Add(initialize);");
+            }
+
+            _writer.WriteIndentedLine("});");
+        }
+
+        _writer.WriteIndentedLine("}");
+    }
+
+    public void WriteRegisterInterfaceTypeExtensionHelpers()
+    {
+        _writer.WriteLine();
+        _writer.WriteIndentedLine("private static void AddInterfaceTypeExtension_8734371<T>(");
+
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine("global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder,");
+            _writer.WriteIndentedLine("Action<IInterfaceTypeDescriptor<T>> initialize)");
+        }
+
+        _writer.WriteIndentedLine("{");
+
+        using (_writer.IncreaseIndent())
+        {
+            _writer.WriteIndentedLine("builder.ConfigureSchema(sb =>");
+            _writer.WriteIndentedLine("{");
+
+            using (_writer.IncreaseIndent())
+            {
+                _writer.WriteIndentedLine("string typeName = typeof(T).FullName!;");
+                _writer.WriteIndentedLine("string typeKey = $\"8734371_Type_InterfaceType<{typeName}>\";");
+                _writer.WriteIndentedLine("string hooksKey = $\"8734371_Hooks_InterfaceType<{typeName}>\";");
+                _writer.WriteLine();
+                _writer.WriteIndentedLine("if (!sb.ContextData.ContainsKey(typeKey))");
+                _writer.WriteIndentedLine("{");
+
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine("sb.AddInterfaceType<T>(");
+                    using (_writer.IncreaseIndent())
+                    {
+                        _writer.WriteIndentedLine("descriptor =>");
+                        _writer.WriteIndentedLine("{");
+
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine(
+                                "var hooks = (global::System.Collections.Generic.List<" +
+                                "Action<IInterfaceTypeDescriptor<T>>>)" +
+                                "descriptor.Extend().Context.ContextData[hooksKey]!;");
+                            _writer.WriteIndentedLine("foreach (var configure in hooks)");
+                            _writer.WriteIndentedLine("{");
+
+                            using (_writer.IncreaseIndent())
+                            {
+                                _writer.WriteIndentedLine("configure(descriptor);");
+                            }
+
+                            _writer.WriteIndentedLine("};");
+                        }
+
+                        _writer.WriteIndentedLine("});");
+                    }
+
+                    _writer.WriteIndentedLine("sb.ContextData.Add(typeKey, null);");
+                }
+
+                _writer.WriteIndentedLine("}");
+                _writer.WriteLine();
+
+                _writer.WriteIndentedLine("if (!sb.ContextData.TryGetValue(hooksKey, out var value))");
+                _writer.WriteIndentedLine("{");
+
+                using (_writer.IncreaseIndent())
+                {
+                    _writer.WriteIndentedLine(
+                        "value = new System.Collections.Generic.List<Action<IInterfaceTypeDescriptor<T>>>();");
+                    _writer.WriteIndentedLine("sb.ContextData.Add(hooksKey, value);");
+                }
+
+                _writer.WriteIndentedLine("}");
+                _writer.WriteLine();
+                _writer.WriteIndentedLine(
+                    "((System.Collections.Generic.List<Action<IInterfaceTypeDescriptor<T>>>)value!)" +
                     ".Add(initialize);");
             }
 

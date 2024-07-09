@@ -38,12 +38,12 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { displayName: DESC}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { displayName: ASC}){ name lastName}}")
             .Build());
 
@@ -88,12 +88,12 @@ public class QueryableSortVisitorExpressionTests : IClassFixture<SchemaCache>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { barLength: ASC}){ name lastName}}")
             .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
             .SetDocument("{ root(order: { barLength: DESC}){ name lastName}}")
             .Build());
 

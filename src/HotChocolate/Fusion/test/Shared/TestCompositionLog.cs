@@ -3,15 +3,8 @@ using Xunit.Abstractions;
 
 namespace HotChocolate.Fusion.Shared;
 
-public sealed class TestCompositionLog : ICompositionLog
+public sealed class TestCompositionLog(ITestOutputHelper output) : ICompositionLog
 {
-    private readonly ITestOutputHelper _output;
-
-    public TestCompositionLog(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     public bool HasErrors { get; private set; }
 
     public void Write(LogEntry entry)
@@ -21,6 +14,6 @@ public sealed class TestCompositionLog : ICompositionLog
             HasErrors = true;
         }
 
-        _output.WriteLine(entry.Message);
+        output.WriteLine(entry.Message);
     }
 }

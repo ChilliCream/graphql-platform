@@ -144,7 +144,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     /// </returns>
     protected virtual bool IsInMemoryQuery<TEntityType>(object? input)
     {
-        return input is QueryableExecutable<TEntityType> { InMemory: var inMemory, }
+        return input is IQueryableExecutable<TEntityType> { IsInMemory: var inMemory, }
             ? inMemory
             : input is not IQueryable or EnumerableQuery;
     }
@@ -163,7 +163,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         {
             IQueryable<TEntityType> q => q.Where(where),
             IEnumerable<TEntityType> q => q.AsQueryable().Where(where),
-            QueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
+            IQueryableExecutable<TEntityType> q => q.WithSource(q.Source.Where(where)),
             _ => input,
         };
 
@@ -207,11 +207,14 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                 }
                 else
                 {
-                    input = Array.Empty<TEntityType>();
+                    var exceptions = new List<GraphQLException>(visitorContext.Errors.Count);
+
                     foreach (var error in visitorContext.Errors)
                     {
-                        context.ReportError(error.WithPath(context.Path));
+                        exceptions.Add(new GraphQLException(error));
                     }
+
+                    throw new AggregateException(exceptions);
                 }
             }
 

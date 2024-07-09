@@ -40,12 +40,12 @@ public class MongoDbSortVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
                 .Build());
 
@@ -66,12 +66,12 @@ public class MongoDbSortVisitorEnumTests
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
                 .Build());
 

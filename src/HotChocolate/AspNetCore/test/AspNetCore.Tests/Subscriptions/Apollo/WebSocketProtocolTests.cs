@@ -319,6 +319,7 @@ public class WebSocketProtocolTests : SubscriptionTestBase
             async ct =>
             {
                 // arrange
+                snapshot.Clear();
                 using var testServer = CreateStarWarsServer();
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await ConnectToServerAsync(client, ct);

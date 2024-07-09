@@ -47,12 +47,12 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Build());
 
@@ -83,20 +83,20 @@ public class MongoDbAggregateFluentTests : IClassFixture<MongoResource>
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
-                .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\"}}){ baz}}")
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { baz: { eq: \"2020-01-11T00:00:00Z\" } }){ baz } }")
                 .Build());
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
-                .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\"}}){ baz}}")
+            OperationRequestBuilder.New()
+                .SetDocument("{ root(where: { baz: { eq: \"2020-01-12T00:00:00Z\" } }){ baz } }")
                 .Build());
 
         // assert
-        await SnapshotExtensions.AddResult(
-                SnapshotExtensions.AddResult(
-                    Snapshot
-                        .Create(), res1, "2020-01-11"), res2, "2020-01-12")
+        await Snapshot
+            .Create()
+            .AddResult(res1, "2020-01-11")
+            .AddResult(res2, "2020-01-12")
             .MatchAsync();
     }
 

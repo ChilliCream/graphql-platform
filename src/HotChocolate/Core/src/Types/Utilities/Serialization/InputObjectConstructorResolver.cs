@@ -122,7 +122,7 @@ internal static class InputObjectConstructorResolver
                     return false;
                 }
             }
-            else
+            else if (!parameter.HasDefaultValue)
             {
                 return false;
             }

@@ -133,7 +133,14 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
         }
     }
 
-    public NodeId Parse(string formattedId)
+    public NodeId Parse(string formattedId, INodeIdRuntimeTypeLookup runtimeTypeLookup)
+    {
+        // the older implementation had no way to convert ...
+        // so we just call the standard parse.
+        return Parse(formattedId);
+    }
+
+    private static NodeId Parse(string formattedId)
     {
         if (formattedId is null)
         {
@@ -233,6 +240,11 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
     private static unsafe string CreateString(ReadOnlySpan<byte> serialized)
     {
+        if (serialized.Length == 0)
+        {
+            return "";
+        }
+
         fixed (byte* bytePtr = serialized)
         {
             return _utf8.GetString(bytePtr, serialized.Length);

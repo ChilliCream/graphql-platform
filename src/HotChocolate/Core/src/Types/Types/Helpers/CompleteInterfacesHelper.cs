@@ -19,7 +19,7 @@ internal static class CompleteInterfacesHelper
     {
         if (interfaceReferences.Count == 0)
         {
-            return Array.Empty<InterfaceType>();
+            return [];
         }
 
         var implements = new InterfaceType[interfaceReferences.Count];

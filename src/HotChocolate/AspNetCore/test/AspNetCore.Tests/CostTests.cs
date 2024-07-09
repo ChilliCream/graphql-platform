@@ -26,7 +26,6 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
             """;
 
         var content = new StringContent(requestBody, Encoding.UTF8, "application/json");
-        content.Headers.Add(HttpHeaderKeys.Cost, HttpHeaderValues.ReportCost);
 
         // act
         using var httpClient = server.CreateClient();

@@ -24,6 +24,18 @@ public abstract class DescriptorBase<T>(IDescriptorContext context)
 
     public IDescriptorExtension<T> Extend() => this;
 
+    public IDescriptorExtension<T> ExtendWith(
+        Action<IDescriptorExtension<T>> configure)
+    {
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        configure(this);
+        return this;
+    }
+
     public T CreateDefinition()
     {
         OnCreateDefinition(Definition);

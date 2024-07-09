@@ -1,0 +1,294 @@
+schema
+  @fusion(version: 1)
+  @transport(subgraph: "Accounts", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Accounts", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Reviews", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Reviews", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Products", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Products", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket")
+  @transport(subgraph: "Shipping2", location: "http:\/\/localhost:5000\/graphql", kind: "HTTP")
+  @transport(subgraph: "Shipping2", location: "ws:\/\/localhost:5000\/graphql", kind: "WebSocket") {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  authorById(id: ID!): Author
+    @variable(subgraph: "Reviews", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews", select: "{ authorById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  errorField: String
+    @resolver(subgraph: "Accounts", select: "{ errorField }")
+  productBookmarkByUsername(username: ID!): ProductBookmark
+    @variable(subgraph: "Products", name: "username", argument: "username")
+    @resolver(subgraph: "Products", select: "{ productBookmarkByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
+  productById(id: ID!): Product
+    @variable(subgraph: "Reviews", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+    @variable(subgraph: "Products", name: "id", argument: "id")
+    @resolver(subgraph: "Products", select: "{ productById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  productConfigurationByUsername(username: ID!): ProductConfiguration
+    @variable(subgraph: "Products", name: "username", argument: "username")
+    @resolver(subgraph: "Products", select: "{ productConfigurationByUsername(username: $username) }", arguments: [ { name: "username", type: "ID!" } ])
+  reviewById(id: ID!): Review
+    @variable(subgraph: "Reviews", name: "id", argument: "id")
+    @resolver(subgraph: "Reviews", select: "{ reviewById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  reviewOrAuthor: ReviewOrAuthor!
+    @resolver(subgraph: "Reviews", select: "{ reviewOrAuthor }")
+  reviews: [Review!]!
+    @resolver(subgraph: "Reviews", select: "{ reviews }")
+  topProducts(first: Int!): [Product!]!
+    @variable(subgraph: "Products", name: "first", argument: "first")
+    @resolver(subgraph: "Products", select: "{ topProducts(first: $first) }", arguments: [ { name: "first", type: "Int!" } ])
+  userById(id: ID!): User
+    @variable(subgraph: "Accounts", name: "id", argument: "id")
+    @resolver(subgraph: "Accounts", select: "{ userById(id: $id) }", arguments: [ { name: "id", type: "ID!" } ])
+  users: [User!]!
+    @resolver(subgraph: "Accounts", select: "{ users }")
+  usersById(ids: [ID!]!): [User!]!
+    @variable(subgraph: "Accounts", name: "ids", argument: "ids")
+    @resolver(subgraph: "Accounts", select: "{ usersById(ids: $ids) }", arguments: [ { name: "ids", type: "[ID!]!" } ])
+  viewer: Viewer!
+    @resolver(subgraph: "Accounts", select: "{ viewer }")
+}
+
+type Mutation {
+  addReview(input: AddReviewInput!): AddReviewPayload!
+    @variable(subgraph: "Reviews", name: "input", argument: "input")
+    @resolver(subgraph: "Reviews", select: "{ addReview(input: $input) }", arguments: [ { name: "input", type: "AddReviewInput!" } ])
+  addUser(input: AddUserInput!): AddUserPayload!
+    @variable(subgraph: "Accounts", name: "input", argument: "input")
+    @resolver(subgraph: "Accounts", select: "{ addUser(input: $input) }", arguments: [ { name: "input", type: "AddUserInput!" } ])
+  uploadMultipleProductPictures(input: UploadMultipleProductPicturesInput!): UploadMultipleProductPicturesPayload!
+    @variable(subgraph: "Products", name: "input", argument: "input")
+    @resolver(subgraph: "Products", select: "{ uploadMultipleProductPictures(input: $input) }", arguments: [ { name: "input", type: "UploadMultipleProductPicturesInput!" } ])
+  uploadProductPicture(input: UploadProductPictureInput!): UploadProductPicturePayload!
+    @variable(subgraph: "Products", name: "input", argument: "input")
+    @resolver(subgraph: "Products", select: "{ uploadProductPicture(input: $input) }", arguments: [ { name: "input", type: "UploadProductPictureInput!" } ])
+}
+
+type Subscription {
+  onError: Review!
+    @resolver(subgraph: "Reviews", select: "{ onError }", kind: "SUBSCRIBE")
+  onNewReview: Review!
+    @resolver(subgraph: "Reviews", select: "{ onNewReview }", kind: "SUBSCRIBE")
+}
+
+type AddReviewPayload {
+  review: Review
+    @source(subgraph: "Reviews")
+}
+
+type AddUserPayload {
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+type Author implements Node
+  @variable(subgraph: "Reviews", name: "Author_id", select: "id")
+  @resolver(subgraph: "Reviews", select: "{ authorById(id: $Author_id) }", arguments: [ { name: "Author_id", type: "ID!" } ])
+  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Author_id) { ... on Author { ... Author } } }", arguments: [ { name: "Author_id", type: "[ID!]!" } ], kind: "BATCH") {
+  id: ID!
+    @source(subgraph: "Reviews")
+  name: String!
+    @source(subgraph: "Reviews")
+  reviews: [Review!]!
+    @source(subgraph: "Reviews")
+}
+
+type DeliveryEstimate {
+  max: Int!
+    @source(subgraph: "Shipping2")
+  min: Int!
+    @source(subgraph: "Shipping2")
+}
+
+type Product implements Node
+  @variable(subgraph: "Reviews", name: "Product_id", select: "id")
+  @variable(subgraph: "Products", name: "Product_id", select: "id")
+  @variable(subgraph: "Shipping2", name: "Product_id", select: "id")
+  @resolver(subgraph: "Shipping2", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
+  @resolver(subgraph: "Reviews", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ productById(id: $Product_id) }", arguments: [ { name: "Product_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $Product_id) { ... on Product { ... Product } } }", arguments: [ { name: "Product_id", type: "[ID!]!" } ], kind: "BATCH") {
+  deliveryEstimate(zip: String!): DeliveryEstimate!
+    @source(subgraph: "Shipping2")
+    @variable(subgraph: "Shipping2", name: "zip", argument: "zip")
+    @variable(subgraph: "Products", name: "Product_dimension_size", select: "dimension { size }")
+    @variable(subgraph: "Products", name: "Product_dimension_weight", select: "dimension { weight }")
+    @resolver(subgraph: "Shipping2", select: "{ deliveryEstimate(size: $Product_dimension_size, weight: $Product_dimension_weight, zip: $zip) }", arguments: [ { name: "Product_dimension_size", type: "Int!" }, { name: "Product_dimension_weight", type: "Int!" }, { name: "zip", type: "String!" } ])
+  dimension: ProductDimension!
+    @source(subgraph: "Products")
+  id: ID!
+    @source(subgraph: "Reviews")
+    @source(subgraph: "Products")
+    @source(subgraph: "Shipping2")
+  name: String!
+    @source(subgraph: "Products")
+  price: Int!
+    @source(subgraph: "Products")
+  repeat(num: Int!): Int!
+    @source(subgraph: "Products")
+    @variable(subgraph: "Products", name: "num", argument: "num")
+  repeatData(data: SomeDataInput!): SomeData!
+    @source(subgraph: "Products")
+    @variable(subgraph: "Products", name: "data", argument: "data")
+  reviews: [Review!]!
+    @source(subgraph: "Reviews")
+  weight: Int!
+    @source(subgraph: "Products")
+}
+
+type ProductBookmark implements Node
+  @variable(subgraph: "Products", name: "ProductBookmark_id", select: "id")
+  @resolver(subgraph: "Products", select: "{ node(id: $ProductBookmark_id) { ... on ProductBookmark { ... ProductBookmark } } }", arguments: [ { name: "ProductBookmark_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $ProductBookmark_id) { ... on ProductBookmark { ... ProductBookmark } } }", arguments: [ { name: "ProductBookmark_id", type: "[ID!]!" } ], kind: "BATCH") {
+  id: ID!
+    @source(subgraph: "Products")
+  note: String!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+  username: String!
+    @source(subgraph: "Products")
+}
+
+type ProductConfiguration implements Node
+  @variable(subgraph: "Products", name: "ProductConfiguration_id", select: "id")
+  @resolver(subgraph: "Products", select: "{ node(id: $ProductConfiguration_id) { ... on ProductConfiguration { ... ProductConfiguration } } }", arguments: [ { name: "ProductConfiguration_id", type: "ID!" } ])
+  @resolver(subgraph: "Products", select: "{ nodes(ids: $ProductConfiguration_id) { ... on ProductConfiguration { ... ProductConfiguration } } }", arguments: [ { name: "ProductConfiguration_id", type: "[ID!]!" } ], kind: "BATCH") {
+  configurationName: String!
+    @source(subgraph: "Products")
+  id: ID!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+  username: String!
+    @source(subgraph: "Products")
+}
+
+type ProductDimension {
+  size: Int!
+    @source(subgraph: "Products")
+  weight: Int!
+    @source(subgraph: "Products")
+}
+
+type ProductNotFoundError implements Error {
+  message: String!
+    @source(subgraph: "Products")
+  productId: Int!
+    @source(subgraph: "Products")
+}
+
+type Review implements Node
+  @variable(subgraph: "Reviews", name: "Review_id", select: "id")
+  @resolver(subgraph: "Reviews", select: "{ reviewById(id: $Review_id) }", arguments: [ { name: "Review_id", type: "ID!" } ])
+  @resolver(subgraph: "Reviews", select: "{ nodes(ids: $Review_id) { ... on Review { ... Review } } }", arguments: [ { name: "Review_id", type: "[ID!]!" } ], kind: "BATCH") {
+  author: Author!
+    @source(subgraph: "Reviews")
+  body: String!
+    @source(subgraph: "Reviews")
+  id: ID!
+    @source(subgraph: "Reviews")
+  product: Product!
+    @source(subgraph: "Reviews")
+}
+
+type SomeData {
+  accountValue: String!
+    @source(subgraph: "Accounts")
+  data: SomeData
+    @source(subgraph: "Products")
+  num: Int
+    @source(subgraph: "Products")
+}
+
+type UploadMultipleProductPicturesPayload {
+  boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadMultipleProductPicturesError!]
+    @source(subgraph: "Products")
+}
+
+type UploadProductPicturePayload {
+  boolean: Boolean
+    @source(subgraph: "Products")
+  errors: [UploadProductPictureError!]
+    @source(subgraph: "Products")
+}
+
+type User implements Node
+  @variable(subgraph: "Accounts", name: "User_id", select: "id")
+  @resolver(subgraph: "Accounts", select: "{ userById(id: $User_id) }", arguments: [ { name: "User_id", type: "ID!" } ])
+  @resolver(subgraph: "Accounts", select: "{ usersById(ids: $User_id) }", arguments: [ { name: "User_id", type: "[ID!]!" } ], kind: "BATCH") {
+  birthdate: Date!
+    @source(subgraph: "Accounts")
+  errorField: String
+    @source(subgraph: "Accounts")
+  id: ID!
+    @source(subgraph: "Accounts")
+  name: String!
+    @source(subgraph: "Accounts")
+  username: String!
+    @source(subgraph: "Accounts")
+}
+
+type Viewer {
+  data: SomeData!
+    @source(subgraph: "Accounts")
+  user: User
+    @source(subgraph: "Accounts")
+}
+
+interface Error {
+  message: String!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+union ReviewOrAuthor = Author | Review
+
+union UploadMultipleProductPicturesError = ProductNotFoundError
+
+union UploadProductPictureError = ProductNotFoundError
+
+input AddReviewInput {
+  authorId: Int!
+  body: String!
+  upc: Int!
+}
+
+input AddUserInput {
+  birthdate: Date!
+  name: String!
+  username: String!
+}
+
+input ProductIdWithUploadInput {
+  file: Upload!
+  productId: Int!
+}
+
+input SomeDataInput {
+  data: SomeDataInput
+  num: Int
+}
+
+input UploadMultipleProductPicturesInput {
+  products: [ProductIdWithUploadInput!]!
+}
+
+input UploadProductPictureInput {
+  file: Upload!
+  productId: Int!
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `Upload` scalar type represents a file upload."
+scalar Upload

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Data.MongoDb;
 
@@ -52,6 +53,18 @@ public abstract class MongoDbExecutable<T> : IExecutable<T>, IMongoDbExecutable
 
     /// <inheritdoc />
     public abstract ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken);
+
+    async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        await foreach(var item in ToAsyncEnumerable(cancellationToken))
+        {
+            yield return item;
+        }
+    }
+
+    /// <inheritdoc />
+    public abstract IAsyncEnumerable<T> ToAsyncEnumerable(CancellationToken cancellationToken);
 
     /// <inheritdoc />
     async ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)

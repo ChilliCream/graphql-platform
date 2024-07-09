@@ -25,7 +25,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "P-17DT-23H-59M-59.9999861S" }, })
                     .Build());
@@ -36,7 +36,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Period!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "-P-17DT-23H-59M-59.9999861S" }, })
                     .Build());
@@ -48,7 +48,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"P-17DT-23H-59M-59.9999861S\") }")
                     .Build());
             Assert.Equal("P-18DT-9M-59.9999861S", result.ExpectQueryResult().Data!["test"]);
@@ -58,7 +58,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"-P-17DT-23H-59M-59.9999861S\") }")
                     .Build());
             Assert.Null(result.ExpectQueryResult().Data);
