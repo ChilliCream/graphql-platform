@@ -70,19 +70,23 @@ public static class CostAnalyzerRequestContextExtensions
 
         if (context.ContextData.ContainsKey(WellKnownContextData.ValidateCost))
         {
-            return CostAnalyzerMode.ValidateAndReport;
+            return CostAnalyzerMode.Analyze | CostAnalyzerMode.Report;
         }
 
-        if (!options.EnforceCostLimits)
+        var flags = CostAnalyzerMode.Analyze;
+
+        if (options.EnforceCostLimits)
         {
-            return CostAnalyzerMode.Analysis;
+            flags |= CostAnalyzerMode.Enforce;
         }
+
+        flags |= CostAnalyzerMode.Execute;
 
         if (context.ContextData.ContainsKey(WellKnownContextData.ReportCost))
         {
-            return CostAnalyzerMode.EnforceAndReport;
+            flags |= CostAnalyzerMode.Report;
         }
 
-        return CostAnalyzerMode.Enforce;
+        return flags;
     }
 }
