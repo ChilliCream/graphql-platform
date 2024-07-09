@@ -54,6 +54,8 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
         generator.WriteBeginRegistrationMethod();
 
         var operations = OperationType.No;
+        var hasObjectTypeExtensions = false;
+        var hasInterfaceTypes = false;
 
         foreach (var syntaxInfo in syntaxInfos)
         {
@@ -119,9 +121,22 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                         ModuleOptions.RegisterTypes &&
                         objectTypeExtension.Diagnostics.Length == 0)
                     {
+                        hasObjectTypeExtensions = true;
                         generator.WriteRegisterObjectTypeExtension(
                             objectTypeExtension.RuntimeType.ToFullyQualified(),
                             objectTypeExtension.Type.ToFullyQualified());
+                    }
+                    break;
+
+                case InterfaceTypeInfo interfaceType:
+                    if ((module.Options & ModuleOptions.RegisterTypes) ==
+                        ModuleOptions.RegisterTypes &&
+                        interfaceType.Diagnostics.Length == 0)
+                    {
+                        hasInterfaceTypes = true;
+                        generator.WriteRegisterInterfaceTypeExtension(
+                            interfaceType.RuntimeType.ToFullyQualified(),
+                            interfaceType.Type.ToFullyQualified());
                     }
                     break;
             }
@@ -144,9 +159,14 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
 
         generator.WriteEndRegistrationMethod();
 
-        if (syntaxInfos.OfType<ObjectTypeExtensionInfo>().Any())
+        if (hasObjectTypeExtensions)
         {
             generator.WriteRegisterObjectTypeExtensionHelpers();
+        }
+
+        if (hasInterfaceTypes)
+        {
+            generator.WriteRegisterInterfaceTypeExtensionHelpers();
         }
 
         generator.WriteEndClass();

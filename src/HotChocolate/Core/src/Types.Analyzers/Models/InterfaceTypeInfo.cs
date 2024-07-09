@@ -5,10 +5,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class ObjectTypeExtensionInfo(
+public sealed class InterfaceTypeInfo(
     INamedTypeSymbol type,
     INamedTypeSymbol runtimeType,
-    Resolver? nodeResolver,
     ClassDeclarationSyntax classDeclarationSyntax,
     ImmutableArray<Resolver> resolvers)
     : SyntaxInfo
@@ -19,8 +18,6 @@ public sealed class ObjectTypeExtensionInfo(
     public INamedTypeSymbol Type { get; } = type;
 
     public INamedTypeSymbol RuntimeType { get; } = runtimeType;
-
-    public Resolver? NodeResolver { get; } = nodeResolver;
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; } = classDeclarationSyntax;
 
