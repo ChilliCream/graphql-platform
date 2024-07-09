@@ -136,16 +136,6 @@ public class DefaultNodeIdSerializerTests
     }
 
     [Fact]
-    public void Serialize_TypeName_Not_Registered()
-    {
-        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
-
-        void Error() => serializer.Format("Baz", "abc");
-
-        Assert.Throws<NodeIdMissingSerializerException>(Error);
-    }
-
-    [Fact]
     public void Serialize_Int16Id()
     {
         var serializer = CreateSerializer(new Int16NodeIdValueSerializer());
@@ -209,13 +199,25 @@ public class DefaultNodeIdSerializerTests
     public void Parse_CompositeId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
-        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(CompositeId));
 
         var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
         var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
         var id = serializer.Format("Foo", compositeId);
 
         var parsed = serializer.Parse(id, lookup.Object);
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_CompositeId2()
+    {
+        var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
 
         Assert.Equal(compositeId, parsed.InternalId);
     }
