@@ -92,6 +92,11 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 continue;
             }
 
+            if (field.ContainsInternalDirective())
+            {
+                continue;
+            }
+
             if (targetRootType.Fields.TryGetField(field.Name, out var targetField))
             {
                 context.MergeField(field, targetField, targetRootType.Name);
@@ -113,7 +118,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 arguments,
                 null);
 
-            var selectionSet = new SelectionSetNode(new[] { selection, });
+            var selectionSet = new SelectionSetNode([selection]);
 
             foreach (var arg in field.Arguments)
             {
