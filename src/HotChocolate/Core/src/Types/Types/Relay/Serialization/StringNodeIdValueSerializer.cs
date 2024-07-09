@@ -36,7 +36,7 @@ internal sealed class StringNodeIdValueSerializer : INodeIdValueSerializer
     {
         if (buffer.Length == 0)
         {
-            value = "";
+            value = string.Empty;
             return true;
         }
 
