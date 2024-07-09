@@ -211,8 +211,8 @@ public static class FieldInitHelper
         {
            context.ReportError(
                DuplicateFieldName(
-                   context.Type, 
-                   declaringMember, 
+                   context.Type,
+                   declaringMember,
                    duplicateFieldNames));
         }
 

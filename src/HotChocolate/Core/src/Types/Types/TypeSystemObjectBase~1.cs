@@ -116,7 +116,6 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
         OnCompleteType(context, definition);
 
         _contextData = definition.GetContextData();
-        _definition = null;
 
         OnAfterCompleteType(context, definition);
         ExecuteConfigurations(context, definition, ApplyConfigurationOn.AfterCompletion);
@@ -128,6 +127,9 @@ public abstract class TypeSystemObjectBase<TDefinition> : TypeSystemObjectBase
 
     internal sealed override void FinalizeType(ITypeCompletionContext context)
     {
+        // we will release the definition here so that it can be collected by the GC.
+        _definition = null;
+
         // if the ExtensionData object has no data we will release it so it can be
         // collected by the GC.
         if (_contextData!.Count == 0 && _contextData is not ImmutableDictionary<string, object?>)

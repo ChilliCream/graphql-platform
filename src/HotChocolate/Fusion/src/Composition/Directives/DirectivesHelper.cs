@@ -11,12 +11,17 @@ internal static class DirectivesHelper
     public const string RequireDirectiveName = "require";
     public const string RemoveDirectiveName = "remove";
     public const string RenameDirectiveName = "rename";
+    public const string InternalDirectiveName = "internal";
     public const string CoordinateArg = "coordinate";
     public const string NewNameArg = "newName";
     public const string FieldArg = "field";
 
+
     public static bool ContainsIsDirective(this IDirectivesProvider member)
         => member.Directives.ContainsName(IsDirectiveName);
+
+    public static bool ContainsInternalDirective(this IDirectivesProvider member)
+        => member.Directives.ContainsName(InternalDirectiveName);
 
     public static IsDirective GetIsDirective(this IDirectivesProvider member)
     {

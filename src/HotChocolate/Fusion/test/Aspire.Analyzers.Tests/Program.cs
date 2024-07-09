@@ -5,7 +5,7 @@ using HotChocolate.Fusion.Aspire;
 
 namespace HotChocolate.Fusion.Analyzers.Tests;
 
-public class Program
+public static class Program
 {
     public static void Foo(string[] args)
     {

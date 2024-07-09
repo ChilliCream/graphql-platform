@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,8 +18,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
-                    new Func<IResolverContext, object>(c => new object()));
+                    null!,
+                    new Func<IResolverContext, object>(
+                        _ => new object()));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -34,7 +37,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(Func<IResolverContext, object>));
+                    default(Func<IResolverContext, object?>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -44,7 +47,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public async Task Resolver_IResolverContextObject_ResolverIsSet()
     {
         // arrange
-        FieldResolverDelegate resolver = null;
+        FieldResolverDelegate resolver = null!;
         var resolverFunc = new Func<IResolverContext, object>(c => "foo");
         var descriptor = new Mock<IObjectFieldDescriptor>();
         descriptor.Setup(t => t.Resolve(It.IsAny<FieldResolverDelegate>()))
@@ -73,9 +76,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
-                    new Func<IResolverContext, Task<object>>(c =>
-                        Task.FromResult(new object())));
+                    null!,
+                    new Func<IResolverContext, Task<object?>?>(
+                        async _ => await Task.FromResult(new object())));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -92,7 +95,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(Func<IResolverContext, Task<object>>));
+                    default(Func<IResolverContext, Task<object?>?>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -106,8 +109,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
-                    null,
-                    new Func<IResolverContext, object>(c => new object()));
+                    null!,
+                    new Func<IResolverContext, object>(
+                        _ => new object()));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -124,7 +128,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
-                    default(Func<IResolverContext, object>));
+                    default(Func<IResolverContext, object>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -138,9 +142,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
-                    null,
-                    new Func<IResolverContext, Task<object>>(c =>
-                        Task.FromResult(new object())));
+                    null!,
+                    new Func<IResolverContext, Task<object>>(
+                        _ => Task.FromResult(new object())));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -157,7 +161,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
-                    default(Func<IResolverContext, Task<object>>));
+                    default(Func<IResolverContext, Task<object>>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -171,7 +175,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
+                    null!,
                     new Func<object>(() => new object()));
 
         // assert
@@ -189,7 +193,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(Func<object>));
+                    default(Func<object>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -203,9 +207,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
-                    new Func<Task<object>>(() =>
-                        Task.FromResult(new object())));
+                    null!,
+                    new Func<Task<object>>(
+                        () => Task.FromResult(new object()))!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -222,7 +226,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(Func<Task<object>>));
+                    default(Func<Task<object>>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -236,7 +240,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
-                    null,
+                    null!,
                     new Func<object>(() => new object()));
 
         // assert
@@ -254,7 +258,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
-                    default(Func<object>));
+                    default(Func<object>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -268,9 +272,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
-                    null,
-                    new Func<Task<object>>(() =>
-                        Task.FromResult(new object())));
+                    null!,
+                    new Func<Task<object>>(
+                        () => Task.FromResult(new object())));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -287,7 +291,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
-                    default(Func<Task<object>>));
+                    default(Func<Task<object>>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -301,9 +305,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
+                    null!,
                     new Func<IResolverContext, CancellationToken, object>(
-                        (c, ct) => new object()));
+                        (_, _) => new object()));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -320,8 +324,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(
-                        Func<IResolverContext, CancellationToken, object>));
+                    default(Func<IResolverContext, CancellationToken, object>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -335,9 +338,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
+                    null!,
                     new Func<IResolverContext, CancellationToken,
-                        Task<object>>((c, ct) =>
+                        Task<object>>((_, _) =>
                         Task.FromResult(new object())));
 
         // assert
@@ -355,8 +358,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(Func<IResolverContext, CancellationToken,
-                        Task<object>>));
+                    default(Func<IResolverContext, CancellationToken, Task<object>?>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -370,9 +372,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
-                    null,
+                    null!,
                     new Func<IResolverContext, CancellationToken, object>(
-                        (c, ct) => new object()));
+                        (_, _) => new object()));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -389,8 +391,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
-                    default(
-                        Func<IResolverContext, CancellationToken, object>));
+                    default(Func<IResolverContext, CancellationToken, object>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -404,10 +405,9 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
-                    null,
-                    new Func<IResolverContext, CancellationToken,
-                        Task<object>>((c, ct) =>
-                        Task.FromResult(new object())));
+                    null!,
+                    new Func<IResolverContext, CancellationToken, Task<object>>(
+                        (_, _) => Task.FromResult(new object())));
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -424,8 +424,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
             ResolveObjectFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
-                    default(Func<IResolverContext, CancellationToken,
-                        Task<object>>));
+                    default(Func<IResolverContext, CancellationToken, Task<object>>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -438,7 +437,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // act
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
-                .Resolve(null, new object());
+                .Resolve(null!, new object());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);
@@ -451,7 +450,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // act
         Action action = () =>
             ResolveObjectFieldDescriptorExtensions
-                .Resolve<object>(null, new object());
+                .Resolve<object>(null!, new object());
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

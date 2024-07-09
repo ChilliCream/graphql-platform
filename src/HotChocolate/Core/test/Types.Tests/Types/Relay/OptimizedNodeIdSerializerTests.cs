@@ -10,6 +10,17 @@ namespace HotChocolate.Types.Relay;
 public class OptimizedNodeIdSerializerTests
 {
     [Fact]
+    public void Format_Empty_StringId()
+    {
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "");
+
+        Assert.Equal("Rm9vOg==", id);
+    }
+
+
+    [Fact]
     public void Format_Small_StringId()
     {
         var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
@@ -31,6 +42,31 @@ public class OptimizedNodeIdSerializerTests
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOg==", lookup.Object);
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_StringId2()
+    {
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOg==", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
     }
 
     [Fact]

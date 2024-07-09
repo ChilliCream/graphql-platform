@@ -69,8 +69,7 @@ public sealed class ObjectTypeAttribute
 /// This class is used by the Hot Chocolate source generator.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class ObjectTypeAttribute<T>
-    : Attribute
+public sealed class ObjectTypeAttribute<T> : Attribute
 {
     public Type Type => typeof(T);
 }
