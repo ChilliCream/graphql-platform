@@ -216,14 +216,7 @@ internal sealed class OptimizedNodeIdSerializer : INodeIdSerializer
             throw SerializerMissing(typeName, rentedBuffer);
         }
 
-        var valueSpan = span.Slice(index + 1);
-        if (valueSpan.IsEmpty)
-        {
-            Clear(rentedBuffer);
-            throw new NodeIdInvalidFormatException(formattedId);
-        }
-
-        var value = ParseValue(valueSerializer, serializer.TypeName, valueSpan);
+        var value = ParseValue(valueSerializer, serializer.TypeName, span.Slice(index + 1));
         Clear(rentedBuffer);
         return value;
     }
