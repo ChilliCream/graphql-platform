@@ -115,7 +115,7 @@ public static partial class RequestExecutorBuilderExtensions
         builder.ConfigureSchemaServices(
             services =>
             {
-                builder.Services.RemoveService<INodeIdSerializer>();
+                services.RemoveService<INodeIdSerializer>();
                 services.TryAddSingleton<INodeIdSerializer, LegacyNodeIdSerializer>();
             });
         return builder;
