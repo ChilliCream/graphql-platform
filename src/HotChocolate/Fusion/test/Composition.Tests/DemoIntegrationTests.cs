@@ -1,4 +1,3 @@
-using CookieCrumble;
 using HotChocolate.Fusion.Composition.Features;
 using HotChocolate.Fusion.Shared;
 using Xunit.Abstractions;
@@ -19,11 +18,10 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-            });
+        [
+            demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl)
+        ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
     }
@@ -37,11 +35,10 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(),
-                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-            });
+        [
+            demoProject.Accounts.ToConfiguration(),
+                demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl)
+        ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
     }
@@ -55,12 +52,11 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
+        [
+            demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            });
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+        ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
     }
@@ -74,12 +70,11 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
+            [
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Reviews.ToConfiguration(ReviewsExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            },
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            ],
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
@@ -94,12 +89,11 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
+            [
                 demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Products.ToConfiguration(ProductsExtensionSdl),
-            },
+                demoProject.Products.ToConfiguration(ProductsExtensionSdl)
+            ],
             new FusionFeatureCollection(FusionFeatures.NodeField));
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
@@ -114,12 +108,30 @@ public sealed class DemoIntegrationTests(ITestOutputHelper output)
         var composer = new FusionGraphComposer(logFactory: _logFactory);
 
         var fusionConfig = await composer.ComposeAsync(
-            new[]
-            {
-                demoProject.Accounts.ToConfiguration(),
+        [
+            demoProject.Accounts.ToConfiguration(),
                 demoProject.Reviews.ToConfiguration(),
-                demoProject.Products.ToConfiguration(),
-            });
+                demoProject.Products.ToConfiguration()
+        ]);
+
+        fusionConfig.MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public async Task Compose_With_SourceSchema_Lib()
+    {
+        // arrange
+        using var demoProject = await DemoProject.CreateAsync();
+
+        var composer = new FusionGraphComposer(logFactory: _logFactory);
+
+        var fusionConfig = await composer.ComposeAsync(
+        [
+            demoProject.Accounts.ToConfiguration(),
+            demoProject.Reviews.ToConfiguration(),
+            demoProject.Products.ToConfiguration(),
+            demoProject.Shipping2.ToConfiguration()
+        ]);
 
         fusionConfig.MatchSnapshot(extension: ".graphql");
     }

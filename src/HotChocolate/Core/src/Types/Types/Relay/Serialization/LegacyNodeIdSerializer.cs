@@ -240,6 +240,11 @@ internal sealed class LegacyNodeIdSerializer : INodeIdSerializer
 
     private static unsafe string CreateString(ReadOnlySpan<byte> serialized)
     {
+        if (serialized.Length == 0)
+        {
+            return "";
+        }
+
         fixed (byte* bytePtr = serialized)
         {
             return _utf8.GetString(bytePtr, serialized.Length);

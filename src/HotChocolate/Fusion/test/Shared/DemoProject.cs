@@ -9,6 +9,7 @@ using HotChocolate.Fusion.Shared.Shipping;
 using HotChocolate.Fusion.Shared.Books;
 using HotChocolate.Fusion.Shared.Authors;
 using HotChocolate.Fusion.Shared.Resale;
+using HotChocolate.Language;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities.Introspection;
@@ -30,6 +31,7 @@ public sealed class DemoProject : IDisposable
         DemoSubgraph reviews2,
         DemoSubgraph products,
         DemoSubgraph shipping,
+        DemoSubgraph shipping2,
         DemoSubgraph appointment,
         DemoSubgraph patient1,
         DemoSubgraph books,
@@ -44,6 +46,7 @@ public sealed class DemoProject : IDisposable
         Reviews2 = reviews2;
         Products = products;
         Shipping = shipping;
+        Shipping2 = shipping2;
         Appointment = appointment;
         Patient1 = patient1;
         Books = books;
@@ -66,6 +69,8 @@ public sealed class DemoProject : IDisposable
     public DemoSubgraph Accounts { get; }
 
     public DemoSubgraph Shipping { get; }
+
+    public DemoSubgraph Shipping2 { get; }
 
     public DemoSubgraph Appointment { get; }
 
@@ -190,6 +195,24 @@ public sealed class DemoProject : IDisposable
             .IntrospectServerAsync(shippingClient, ct)
             .ConfigureAwait(false);
 
+        var shipping2 = testServerFactory.Create(
+            s => s
+                .AddRouting()
+                .AddGraphQLServer(disableCostAnalyzer: true)
+                .AddQueryType<Shipping2.ShippingQuery>()
+                .ConfigureSchema(b => b.SetContextData(GlobalIdSupportEnabled, 1))
+                .AddConvention<INamingConventions>(_ => new DefaultNamingConventions()),
+            c => c
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapGraphQL()));
+        disposables.Add(shipping2);
+
+        var shipping2Client = shipping2.CreateClient();
+        shipping2Client.BaseAddress = new Uri("http://localhost:5000/graphql");
+        var response = await shipping2Client.GetAsync("http://localhost:5000/graphql?sdl", ct);
+        var buffer = await response.Content.ReadAsByteArrayAsync(ct);
+        var shipping2Schema = Utf8GraphQLParser.Parse(buffer);
+
         var appointment = testServerFactory.Create(
             s => s
                 .AddRouting()
@@ -245,7 +268,7 @@ public sealed class DemoProject : IDisposable
             .IntrospectServerAsync(booksClient, ct)
             .ConfigureAwait(false);
 
-         var authors = testServerFactory.Create(
+        var authors = testServerFactory.Create(
             s => s
                 .AddRouting()
                 .AddGraphQLServer(disableCostAnalyzer: true)
@@ -335,6 +358,16 @@ public sealed class DemoProject : IDisposable
                 }
             },
             {
+                "Shipping2", () =>
+                {
+                    // ReSharper disable once AccessToDisposedClosure
+                    var httpClient = shipping2.CreateClient();
+                    httpClient.BaseAddress = new Uri("http://localhost:5000/graphql");
+                    httpClient.DefaultRequestHeaders.AddGraphQLPreflight();
+                    return httpClient;
+                }
+            },
+            {
                 "Appointment", () =>
                 {
                     // ReSharper disable once AccessToDisposedClosure
@@ -354,7 +387,7 @@ public sealed class DemoProject : IDisposable
                     return httpClient;
                 }
             },
-             {
+            {
                 "Books", () =>
                 {
                     // ReSharper disable once AccessToDisposedClosure
@@ -388,36 +421,16 @@ public sealed class DemoProject : IDisposable
 
         var webSocketClients = new Dictionary<string, Func<IWebSocketConnection>>
         {
-            {
-                "Reviews", () => new MockWebSocketConnection(reviews.CreateWebSocketClient())
-            },
-            {
-                "Reviews2", () => new MockWebSocketConnection(reviews2.CreateWebSocketClient())
-            },
-            {
-                "Accounts", () => new MockWebSocketConnection(accounts.CreateWebSocketClient())
-            },
-            {
-                "Products", () => new MockWebSocketConnection(products.CreateWebSocketClient())
-            },
-            {
-                "Shipping", () => new MockWebSocketConnection(shipping.CreateWebSocketClient())
-            },
-            {
-                "Appointment", () => new MockWebSocketConnection(appointment.CreateWebSocketClient())
-            },
-            {
-                "Patient1", () => new MockWebSocketConnection(patient1.CreateWebSocketClient())
-            },
-            {
-                "Books", () => new MockWebSocketConnection(books.CreateWebSocketClient())
-            },
-            {
-                "Authors", () => new MockWebSocketConnection(authors.CreateWebSocketClient())
-            },
-            {
-                "Resale", () => new MockWebSocketConnection(resale.CreateWebSocketClient())
-            },
+            { "Reviews", () => new MockWebSocketConnection(reviews.CreateWebSocketClient()) },
+            { "Reviews2", () => new MockWebSocketConnection(reviews2.CreateWebSocketClient()) },
+            { "Accounts", () => new MockWebSocketConnection(accounts.CreateWebSocketClient()) },
+            { "Products", () => new MockWebSocketConnection(products.CreateWebSocketClient()) },
+            { "Shipping", () => new MockWebSocketConnection(shipping.CreateWebSocketClient()) },
+            { "Appointment", () => new MockWebSocketConnection(appointment.CreateWebSocketClient()) },
+            { "Patient1", () => new MockWebSocketConnection(patient1.CreateWebSocketClient()) },
+            { "Books", () => new MockWebSocketConnection(books.CreateWebSocketClient()) },
+            { "Authors", () => new MockWebSocketConnection(authors.CreateWebSocketClient()) },
+            { "Resale", () => new MockWebSocketConnection(resale.CreateWebSocketClient()) },
         };
 
         return new DemoProject(
@@ -452,6 +465,12 @@ public sealed class DemoProject : IDisposable
                 new Uri("ws://localhost:5000/graphql"),
                 shippingSchema,
                 shipping),
+            new DemoSubgraph(
+                "Shipping2",
+                shipping2Client.BaseAddress,
+                new Uri("ws://localhost:5000/graphql"),
+                shipping2Schema,
+                shipping2),
             new DemoSubgraph(
                 "Appointment",
                 appointmentClient.BaseAddress,
@@ -494,6 +513,7 @@ public sealed class DemoProject : IDisposable
             {
                 disposable.Dispose();
             }
+
             _disposed = true;
         }
     }
