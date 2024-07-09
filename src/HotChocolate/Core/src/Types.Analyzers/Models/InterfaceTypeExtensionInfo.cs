@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.Types.Analyzers.Models;
 
-public sealed class InterfaceTypeInfo(
+public sealed class InterfaceTypeExtensionInfo(
     INamedTypeSymbol type,
     INamedTypeSymbol runtimeType,
     ClassDeclarationSyntax classDeclarationSyntax,

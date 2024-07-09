@@ -65,7 +65,7 @@ public sealed class TypesSyntaxGenerator : ISyntaxGenerator
 
                 var classGenerator = typeInfo is ObjectTypeExtensionInfo
                     ? (IOutputTypeFileBuilder)new ObjectTypeExtensionFileBuilder(sb, group.Key)
-                    : new InterfaceTypeFileBuilder(sb, group.Key);
+                    : new InterfaceTypeExtensionFileBuilder(sb, group.Key);
 
                 if (!firstClass)
                 {

@@ -128,7 +128,7 @@ public sealed class TypeModuleSyntaxGenerator : ISyntaxGenerator
                     }
                     break;
 
-                case InterfaceTypeInfo interfaceType:
+                case InterfaceTypeExtensionInfo interfaceType:
                     if ((module.Options & ModuleOptions.RegisterTypes) ==
                         ModuleOptions.RegisterTypes &&
                         interfaceType.Diagnostics.Length == 0)

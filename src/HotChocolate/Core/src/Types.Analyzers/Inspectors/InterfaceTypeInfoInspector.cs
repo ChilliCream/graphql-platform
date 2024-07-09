@@ -69,7 +69,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             Array.Resize(ref resolvers, i);
         }
 
-        syntaxInfo = new InterfaceTypeInfo(
+        syntaxInfo = new InterfaceTypeExtensionInfo(
             classSymbol,
             runtimeType,
             possibleType,

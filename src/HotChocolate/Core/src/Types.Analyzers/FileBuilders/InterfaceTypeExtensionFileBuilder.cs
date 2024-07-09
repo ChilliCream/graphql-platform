@@ -4,7 +4,7 @@ using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class InterfaceTypeFileBuilder(StringBuilder sb, string ns) : IOutputTypeFileBuilder
+public sealed class InterfaceTypeExtensionFileBuilder(StringBuilder sb, string ns) : IOutputTypeFileBuilder
 {
     private readonly CodeWriter _writer = new(sb);
 
