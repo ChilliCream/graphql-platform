@@ -12,6 +12,7 @@ public sealed class ObjectTypeExtensionInfo(
     ClassDeclarationSyntax classDeclarationSyntax,
     ImmutableArray<Resolver> resolvers)
     : SyntaxInfo
+    , IOutputTypeInfo
 {
     public string Name { get; } = type.ToFullyQualified();
 

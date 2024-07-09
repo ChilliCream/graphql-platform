@@ -128,7 +128,7 @@ public class StreamTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(
                     """
                     query ($stream: Boolean!) {
@@ -152,7 +152,7 @@ public class StreamTests
         // act
         var result = await executor.ExecuteAsync(
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument(
                     """
                     {

@@ -37,7 +37,7 @@ public sealed class CachingTests
             """;
 
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(operation)
                 .ReportCost()
                 .Build();

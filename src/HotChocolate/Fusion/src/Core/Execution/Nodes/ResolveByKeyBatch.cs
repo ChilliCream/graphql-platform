@@ -258,7 +258,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
             foreach (var element in data.EnumerateArray())
             {
-                if (element.TryGetProperty(key, out var keyValue))
+                if (element.ValueKind is not JsonValueKind.Null &&
+                    element.TryGetProperty(key, out var keyValue))
                 {
                     result.TryAdd(FormatKeyValue(keyValue), element);
                 }

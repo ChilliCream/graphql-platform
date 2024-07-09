@@ -1,4 +1,5 @@
 using System;
+using Moq;
 
 namespace HotChocolate.Types.Relay;
 
@@ -17,9 +18,12 @@ public class LegacyNodeIdSerializerTests
     [Fact]
     public void Parse_Small_StringId()
     {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
         var serializer = CreateSerializer();
 
-        var id = serializer.Parse("Rm9vCmRhYmM=");
+        var id = serializer.Parse("Rm9vCmRhYmM=", lookup.Object);
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
@@ -53,6 +57,9 @@ public class LegacyNodeIdSerializerTests
     [Fact]
     public void Parse_480_Byte_Long_StringId()
     {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
         var serializer = CreateSerializer();
 
         var id = serializer.Parse(
@@ -69,7 +76,8 @@ public class LegacyNodeIdSerializerTests
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYWE=");
+            "YWFhYWFhYWFhYWFhYWFhYWE=",
+            lookup.Object);
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal(new string('a', 480), id.InternalId);

@@ -5,17 +5,12 @@ using static HotChocolate.Transport.Sockets.WellKnownProtocols;
 
 namespace HotChocolate.Fusion.Shared;
 
-public class MockWebSocketConnectionFactory : IWebSocketConnectionFactory
+public class MockWebSocketConnectionFactory(
+    Dictionary<string, Func<IWebSocketConnection>> clients)
+    : IWebSocketConnectionFactory
 {
-    private readonly Dictionary<string, Func<IWebSocketConnection>> _clients;
-
-    public MockWebSocketConnectionFactory(Dictionary<string, Func<IWebSocketConnection>> clients)
-    {
-        _clients = clients;
-    }
-
     public IWebSocketConnection CreateConnection(string name)
-        => _clients[name].Invoke();
+        => clients[name].Invoke();
 }
 
 public sealed class MockWebSocketConnection : IWebSocketConnection
@@ -27,7 +22,7 @@ public sealed class MockWebSocketConnection : IWebSocketConnection
         _client = client ?? throw new ArgumentNullException(nameof(client));
 
         _client.ConfigureRequest =
-            r => r.Headers.Add("Sec-WebSocket-Protocol", GraphQL_Transport_WS);
+            r => r.Headers.SecWebSocketProtocol = GraphQL_Transport_WS;
     }
 
     public WebSocket? WebSocket { get; private set; }

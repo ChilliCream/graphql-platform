@@ -4,7 +4,7 @@ using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
-public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
+public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns) : IOutputTypeFileBuilder
 {
     private readonly CodeWriter _writer = new(sb);
 
@@ -43,8 +43,13 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteInitializeMethod(ObjectTypeExtensionInfo objectTypeExtension)
+    public void WriteInitializeMethod(IOutputTypeInfo typeInfo)
     {
+        if (typeInfo is not ObjectTypeExtensionInfo objectTypeExtension)
+        {
+            return;
+        }
+
         _writer.WriteIndentedLine(
             "internal static void Initialize(global::HotChocolate.Types.IObjectTypeDescriptor<{0}> descriptor)",
             objectTypeExtension.RuntimeType.ToFullyQualified());
@@ -86,7 +91,7 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                     _writer.WriteIndentedLine(".ImplementsNode()");
                     _writer.WriteIndentedLine(
                         ".ResolveNode({0}Resolvers.{1}_{2}().Resolver!);",
-                        objectTypeExtension.Type.ToDisplayString(),
+                        objectTypeExtension.Type.ToFullyQualified(),
                         objectTypeExtension.Type.Name,
                         objectTypeExtension.NodeResolver.Member.Name);
                 }
@@ -105,11 +110,29 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
                             ".Field(thisType.GetMember(\"{0}\", bindingFlags)[0])",
                             resolver.Member.Name);
 
-                        _writer.WriteIndentedLine(
-                            ".Extend().Definition.Resolvers = {0}Resolvers.{1}_{2}();",
-                            objectTypeExtension.Type.ToDisplayString(),
-                            objectTypeExtension.Type.Name,
-                            resolver.Member.Name);
+                        _writer.WriteIndentedLine(".ExtendWith(c =>");
+                        _writer.WriteIndentedLine("{");
+                        using (_writer.IncreaseIndent())
+                        {
+                            _writer.WriteIndentedLine("c.Definition.SetSourceGeneratorFlags();");
+                            _writer.WriteIndentedLine(
+                                "c.Definition.Resolvers = {0}Resolvers.{1}_{2}();",
+                                objectTypeExtension.Type.ToFullyQualified(),
+                                objectTypeExtension.Type.Name,
+                                resolver.Member.Name);
+
+                            if (resolver.ResultKind is not ResolverResultKind.Pure
+                                && !resolver.Member.HasPostProcessorAttribute()
+                                && resolver.Member.IsListType(out var elementType))
+                            {
+                                _writer.WriteIndentedLine(
+                                    "c.Definition.ResultPostProcessor = global::{0}<{1}>.Default;",
+                                    WellKnownTypes.ListPostProcessor,
+                                    elementType);
+                            }
+                        }
+
+                        _writer.WriteIndentedLine("});");
                     }
                 }
             }
@@ -121,10 +144,10 @@ public sealed class ObjectTypeExtensionFileBuilder(StringBuilder sb, string ns)
         _writer.WriteIndentedLine("}");
     }
 
-    public void WriteConfigureMethod(ObjectTypeExtensionInfo objectTypeExtension)
+    public void WriteConfigureMethod(IOutputTypeInfo typeInfo)
     {
         _writer.WriteIndentedLine(
             "static partial void Configure(global::HotChocolate.Types.IObjectTypeDescriptor<{0}> descriptor);",
-            objectTypeExtension.RuntimeType.ToFullyQualified());
+            typeInfo.RuntimeType.ToFullyQualified());
     }
 }

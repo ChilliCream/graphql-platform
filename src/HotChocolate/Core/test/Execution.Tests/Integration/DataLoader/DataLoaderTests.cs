@@ -195,7 +195,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withDataLoader(key: ""a"")
@@ -207,7 +207,7 @@ public class DataLoaderTests
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withDataLoader(key: ""a"")
@@ -215,7 +215,7 @@ public class DataLoaderTests
                     .Build()));
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             c: withDataLoader(key: ""c"")
@@ -349,7 +349,7 @@ public class DataLoaderTests
         // act
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withStackedDataLoader(key: ""a"")
@@ -359,7 +359,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: withStackedDataLoader(key: ""a"")
@@ -368,7 +368,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             c: withStackedDataLoader(key: ""c"")
@@ -407,7 +407,7 @@ public class DataLoaderTests
         // act
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
@@ -417,7 +417,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             a: dataLoaderWithInterface(key: ""a"")
@@ -426,7 +426,7 @@ public class DataLoaderTests
 
         snapshot.Add(
             await executor.ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"{
                             c: dataLoaderWithInterface(key: ""c"")

@@ -8,17 +8,17 @@ public class QueryType : ObjectType<Query>
     {
         descriptor.Field("arguments")
             .Type<ArgumentsType>()
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field("invalidArg")
             .Type<StringType>()
             .Argument("arg", a => a.Type<InvalidScalar>())
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field("anyArg")
             .Type<StringType>()
             .Argument("arg", a => a.Type<AnyType>())
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field("field")
             .Type<StringType>()
@@ -27,7 +27,7 @@ public class QueryType : ObjectType<Query>
             .Argument("c", a => a.Type<StringType>())
             .Argument("d", a => a.Type<StringType>())
             .Type<QueryType>()
-            .Resolve(() => null);
+            .Resolve(() => null!);
 
         descriptor.Field(t => t.GetCatOrDog())
             .Type<CatOrDogType>();

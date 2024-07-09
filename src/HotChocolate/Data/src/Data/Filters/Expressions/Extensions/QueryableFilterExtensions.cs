@@ -42,10 +42,10 @@ public static class QueryableFilterExtensions
     /// The resolver context of the resolver that is annotated with UseFiltering
     /// </param>
     /// <returns>The filtered enumerable</returns>
-    public static QueryableExecutable<T> Filter<T>(
-        this QueryableExecutable<T> enumerable,
+    public static IQueryableExecutable<T> Filter<T>(
+        this IQueryableExecutable<T> enumerable,
         IResolverContext context) =>
-        ExecuteFilter(enumerable, context, typeof(QueryableExecutable<T>));
+        ExecuteFilter(enumerable, context, typeof(IQueryableExecutable<T>));
 
     private static T ExecuteFilter<T>(
         this T input,

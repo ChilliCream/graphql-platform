@@ -120,6 +120,20 @@ public class InterfaceTypeDescriptor<T>
             nameof(propertyOrMethod));
     }
 
+    public IInterfaceFieldDescriptor Field(MemberInfo propertyOrMethod)
+    {
+        if (propertyOrMethod is not { MemberType: MemberTypes.Property or MemberTypes.Method })
+        {
+            throw new ArgumentException(
+                InterfaceTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var fieldDescriptor = new InterfaceFieldDescriptor(Context, propertyOrMethod);
+        Fields.Add(fieldDescriptor);
+        return fieldDescriptor;
+    }
+
     public new IInterfaceTypeDescriptor<T> ResolveAbstractType(
         ResolveAbstractType typeResolver)
     {

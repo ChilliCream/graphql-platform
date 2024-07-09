@@ -52,10 +52,10 @@ public class FilterInputAttributeTests
         [FilterFieldAttributeTest] public string? Field { get; set; }
     }
 
-    public class GenericTypeFilterAttribute
-        : DescriptorAttribute
+    [AttributeUsage(AttributeTargets.All)]
+    public class GenericTypeFilterAttribute : DescriptorAttribute
     {
-        public static string TypeName { get; } = "ThisIsATest";
+        public static string TypeName => "ThisIsATest";
 
         protected internal override void TryConfigure(
             IDescriptorContext context,

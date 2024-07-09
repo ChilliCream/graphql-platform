@@ -96,6 +96,8 @@ public abstract class FieldDefinitionBase
         return _directives;
     }
 
+    public void SetSourceGeneratorFlags() => Flags |= FieldFlags.SourceGenerator;
+
     protected void CopyTo(FieldDefinitionBase target)
     {
         base.CopyTo(target);

@@ -9,7 +9,7 @@ using System.IO;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
 
-public class TestHttpContextHelper
+public static class TestHttpContextHelper
 {
     public static Uri DefaultAzFuncGraphQLUri { get; } = new(
         new Uri("https://localhost/"),

@@ -14,7 +14,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .Build();
 
@@ -30,7 +30,7 @@ public class OperationRequestBuilderTests
 
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .Build();
 
@@ -44,7 +44,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         Action action = () =>
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .Build();
 
         // assert
@@ -59,7 +59,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         void Action() =>
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument(query)
                 .Build();
 
@@ -75,7 +75,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
                 .Build();
@@ -91,7 +91,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetVariableValues(new Dictionary<string, object> { ["one"] = "bar", })
                 .SetVariableValues(null)
@@ -108,7 +108,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
@@ -124,7 +124,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
@@ -146,7 +146,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .SetGlobalState("one", "bar")
@@ -163,7 +163,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetGlobalState("one", "bar")
                 .Build();
@@ -179,7 +179,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .AddGlobalState("two", "bar")
@@ -197,7 +197,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetGlobalState(WellKnownContextData.InitialValue, new { a = "123", })
                 .Build();
@@ -212,7 +212,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetOperationName("bar")
                 .Build();
@@ -227,7 +227,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetOperationName("bar")
                 .SetOperationName(null)
@@ -246,7 +246,7 @@ public class OperationRequestBuilderTests
 
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetServices(
                     new DictionaryServiceProvider(
@@ -266,7 +266,7 @@ public class OperationRequestBuilderTests
 
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .SetOperationName("bar")
                 .AddGlobalState("one", "foo")
@@ -284,7 +284,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .TryAddGlobalState("one", "bar")
                 .Build();
@@ -299,7 +299,7 @@ public class OperationRequestBuilderTests
         // arrange
         // act
         var request =
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ foo }")
                 .AddGlobalState("one", "foo")
                 .TryAddGlobalState("one", "bar")

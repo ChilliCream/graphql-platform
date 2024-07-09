@@ -20,7 +20,7 @@ public class DocumentParserMiddlewareTests
             hashProvider,
             new ParserOptions());
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -50,7 +50,7 @@ public class DocumentParserMiddlewareTests
             hashProvider,
             new ParserOptions());
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{ a }")
             .SetDocumentId("a")
             .Build();
@@ -80,7 +80,7 @@ public class DocumentParserMiddlewareTests
             hashProvider,
             new ParserOptions());
 
-        var request = OperationRequestBuilder.Create()
+        var request = OperationRequestBuilder.New()
             .SetDocument("{")
             .SetDocumentId("a")
             .Build();

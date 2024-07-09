@@ -22,5 +22,6 @@ internal enum FieldFlags
     Connection = 8192,
     CollectionSegment = 16384,
     SkipArgument = 32768,
-    TotalCount = 65536
+    TotalCount = 65536,
+    SourceGenerator = 131072,
 }

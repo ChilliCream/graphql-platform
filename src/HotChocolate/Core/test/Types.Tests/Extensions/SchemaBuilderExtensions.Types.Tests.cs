@@ -1129,7 +1129,7 @@ public class SchemaBuilderExtensionsTypeTests
 
     public class Bar
     {
-        public string Baz { get; }
+        public string Baz { get; init; }
     }
 
     public class MySchema
