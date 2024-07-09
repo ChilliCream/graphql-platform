@@ -207,11 +207,14 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                 }
                 else
                 {
-                    input = Array.Empty<TEntityType>();
+                    var exceptions = new List<GraphQLException>(visitorContext.Errors.Count);
+
                     foreach (var error in visitorContext.Errors)
                     {
-                        context.ReportError(error.WithPath(context.Path));
+                        exceptions.Add(new GraphQLException(error));
                     }
+
+                    throw new AggregateException(exceptions);
                 }
             }
 
