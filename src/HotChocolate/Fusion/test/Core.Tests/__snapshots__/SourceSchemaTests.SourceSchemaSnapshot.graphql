@@ -16,16 +16,10 @@ type ShippingQuery {
   productById(id: ID! @is(field: "id")): Product! @lookup @internal
 }
 
-"directive @internal on FIELD_DEFINITION"
 directive @internal on FIELD_DEFINITION
 
 directive @is(field: String!) on ARGUMENT_DEFINITION
 
-"""
-The `@lookup` directive is used within a _source schema_ to specify output
-fields that can be used by the _distributed GraphQL executor_ to resolve an
-entity by a stable key.
-"""
 directive @lookup on FIELD_DEFINITION
 
 directive @require(field: String!) on ARGUMENT_DEFINITION
