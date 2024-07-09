@@ -30,6 +30,20 @@ public class LegacyNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
+        var serializer = CreateSerializer();
+
+        var id = serializer.Parse("Rm9vCmQ=", lookup.Object);
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
     public void Format_480_Byte_Long_StringId()
     {
         var serializer = CreateSerializer();

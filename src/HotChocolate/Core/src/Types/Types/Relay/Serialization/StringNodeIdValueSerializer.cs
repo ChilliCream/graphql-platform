@@ -34,6 +34,12 @@ internal sealed class StringNodeIdValueSerializer : INodeIdValueSerializer
 
     public unsafe bool TryParse(ReadOnlySpan<byte> buffer, [NotNullWhen(true)] out object? value)
     {
+        if (buffer.Length == 0)
+        {
+            value = "";
+            return true;
+        }
+
         fixed (byte* b = buffer)
         {
             value = _utf8.GetString(b, buffer.Length);

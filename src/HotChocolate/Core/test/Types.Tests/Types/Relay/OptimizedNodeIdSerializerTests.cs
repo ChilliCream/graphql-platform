@@ -34,6 +34,20 @@ public class OptimizedNodeIdSerializerTests
     }
 
     [Fact]
+    public void Parse_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
+        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOg==", lookup.Object);
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
     public void Parse_Small_Legacy_StringId()
     {
         var lookup = new Mock<INodeIdRuntimeTypeLookup>();
