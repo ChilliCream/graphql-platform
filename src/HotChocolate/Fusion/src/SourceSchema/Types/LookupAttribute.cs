@@ -10,5 +10,5 @@ public sealed class LookupAttribute : ObjectFieldDescriptorAttribute
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
-        =>descriptor.Directive(LookupDirective.Instance);
+        => descriptor.Directive(LookupDirective.Instance);
 }
