@@ -19,7 +19,7 @@ public class GraphQLServerGenerator : IIncrementalGenerator
         new DataLoaderDefaultsInspector(),
         new OperationInspector(),
         new ObjectTypeExtensionInfoInspector(),
-        new ObjectTypeExtensionInfoInspector(),
+        new InterfaceTypeInfoInspector(),
         new RequestMiddlewareInspector(),
     ];
 

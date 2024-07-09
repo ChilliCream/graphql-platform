@@ -4,6 +4,7 @@ schema {
 }
 
 interface Entity {
+  idString: String!
   id: ID!
 }
 
@@ -32,6 +33,7 @@ type Author implements Entity & Node {
   id: ID!
   name: String!
   address: Address
+  idString: String!
 }
 
 "A connection to a list of items."
@@ -60,6 +62,7 @@ type Book implements Node & Entity {
   bookUri: String!
   title: String!
   genre: BookGenre!
+  idString: String!
 }
 
 "A connection to a list of items."

@@ -1,5 +1,4 @@
 #nullable enable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +7,7 @@ using Moq;
 
 namespace HotChocolate.Types;
 
-public class ResolveObjectFieldDescriptorExtensionsTests
+public class ResolveInterfaceFieldDescriptorExtensionsTests
 {
     [Fact]
     public void Resolver_IResolverContextObject_DescNull_ArgExc()
@@ -16,7 +15,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<IResolverContext, object>(
@@ -30,11 +29,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverContextObject_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<IResolverContext, object?>)!);
@@ -49,10 +48,10 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         FieldResolverDelegate resolver = null!;
         var resolverFunc = new Func<IResolverContext, object>(c => "foo");
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
         descriptor.Setup(t => t.Resolve(It.IsAny<FieldResolverDelegate>()))
             .Returns(
-                new Func<FieldResolverDelegate, IObjectFieldDescriptor>(
+                new Func<FieldResolverDelegate, IInterfaceFieldDescriptor>(
                     r =>
                     {
                         resolver = r;
@@ -60,7 +59,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
                     }));
 
         // act
-        ResolveObjectFieldDescriptorExtensions
+        ResolveInterfaceFieldDescriptorExtensions
             .Resolve(descriptor.Object, resolverFunc);
 
         // assert
@@ -74,7 +73,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<IResolverContext, Task<object?>?>(
@@ -88,11 +87,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverContextTaskOfObject_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<IResolverContext, Task<object?>?>)!);
@@ -107,7 +106,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     null!,
                     new Func<IResolverContext, object>(
@@ -121,11 +120,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverContextT_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
                     default(Func<IResolverContext, object>)!);
@@ -140,7 +139,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     null!,
                     new Func<IResolverContext, Task<object>>(
@@ -154,11 +153,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverContextTaskOfT_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
                     default(Func<IResolverContext, Task<object>>)!);
@@ -173,7 +172,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<object>(() => new object()));
@@ -186,11 +185,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_Object_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<object>)!);
@@ -205,7 +204,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<Task<object>>(
@@ -219,11 +218,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_TaskOfObject_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<Task<object>>)!);
@@ -238,7 +237,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     null!,
                     new Func<object>(() => new object()));
@@ -251,11 +250,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_T_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
                     default(Func<object>)!);
@@ -270,7 +269,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     null!,
                     new Func<Task<object>>(
@@ -284,11 +283,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_TaskOfT_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
                     default(Func<Task<object>>)!);
@@ -303,7 +302,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<IResolverContext, CancellationToken, object>(
@@ -317,11 +316,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverContextCtObject_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<IResolverContext, CancellationToken, object>)!);
@@ -336,7 +335,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<IResolverContext, CancellationToken,
@@ -351,11 +350,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverCtxCtTaskOfObject_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<IResolverContext, CancellationToken, Task<object>?>)!);
@@ -370,7 +369,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     null!,
                     new Func<IResolverContext, CancellationToken, object>(
@@ -384,11 +383,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverContextCtT_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(
                     descriptor.Object,
                     default(Func<IResolverContext, CancellationToken, object>)!);
@@ -403,7 +402,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     null!,
                     new Func<IResolverContext, CancellationToken, Task<object>>(
@@ -417,11 +416,11 @@ public class ResolveObjectFieldDescriptorExtensionsTests
     public void Resolver_IResolverCtxCtTaskOfT_ResolverNull_ArgExc()
     {
         // arrange
-        var descriptor = new Mock<IObjectFieldDescriptor>();
+        var descriptor = new Mock<IInterfaceFieldDescriptor>();
 
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(
                     descriptor.Object,
                     default(Func<IResolverContext, CancellationToken, Task<object>>)!);
@@ -436,7 +435,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve(null!, new object());
 
         // assert
@@ -449,7 +448,7 @@ public class ResolveObjectFieldDescriptorExtensionsTests
         // arrange
         // act
         Action action = () =>
-            ResolveObjectFieldDescriptorExtensions
+            ResolveInterfaceFieldDescriptorExtensions
                 .Resolve<object>(null!, new object());
 
         // assert

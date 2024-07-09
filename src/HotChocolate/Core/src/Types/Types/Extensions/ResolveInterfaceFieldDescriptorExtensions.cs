@@ -1,18 +1,18 @@
+#nullable enable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-#nullable enable
-
 namespace HotChocolate.Types;
 
-public static class ResolveObjectFieldDescriptorExtensions
+public static class ResolveInterfaceFieldDescriptorExtensions
 {
     // Resolve(IResolverContext)
 
-    public static IObjectFieldDescriptor Resolve(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, object?> resolver)
     {
         if (descriptor is null)
@@ -28,8 +28,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(ctx => new ValueTask<object?>(resolver(ctx)));
     }
 
-    public static IObjectFieldDescriptor Resolve(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, Task<object?>?> resolver)
     {
         if (descriptor is null)
@@ -55,8 +55,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         });
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, TResult> resolver)
     {
         if (descriptor is null)
@@ -71,13 +71,11 @@ public static class ResolveObjectFieldDescriptorExtensions
 
         return descriptor
             .Type<NativeType<TResult>>()
-            .Resolve(
-                ctx => new ValueTask<object?>(resolver(ctx)),
-                typeof(NativeType<TResult>));
+            .Resolve(ctx => new ValueTask<object?>(resolver(ctx)), typeof(NativeType<TResult>));
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, Task<TResult>?> resolver)
     {
         if (descriptor is null)
@@ -94,6 +92,7 @@ public static class ResolveObjectFieldDescriptorExtensions
             async ctx =>
             {
                 var resolverTask = resolver(ctx);
+
                 if (resolverTask is null)
                 {
                     return default;
@@ -106,8 +105,8 @@ public static class ResolveObjectFieldDescriptorExtensions
 
     // Resolve()
 
-    public static IObjectFieldDescriptor Resolve(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve(
+        this IInterfaceFieldDescriptor descriptor,
         Func<object?> resolver)
     {
         if (descriptor is null)
@@ -123,8 +122,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(_ => new ValueTask<object?>(resolver()));
     }
 
-    public static IObjectFieldDescriptor Resolve(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve(
+        this IInterfaceFieldDescriptor descriptor,
         Func<Task<object?>> resolver)
     {
         if (descriptor is null)
@@ -140,8 +139,8 @@ public static class ResolveObjectFieldDescriptorExtensions
         return descriptor.Resolve(async _ => await resolver().ConfigureAwait(false));
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         Func<TResult> resolver)
     {
         if (descriptor is null)
@@ -159,8 +158,8 @@ public static class ResolveObjectFieldDescriptorExtensions
             typeof(NativeType<TResult>));
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         Func<Task<TResult>?> resolver)
     {
         if (descriptor is null)
@@ -190,8 +189,8 @@ public static class ResolveObjectFieldDescriptorExtensions
 
     // Resolve(IResolverContext, CancellationToken)
 
-    public static IObjectFieldDescriptor Resolve(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, CancellationToken, object?> resolver)
     {
         if (descriptor is null)
@@ -208,8 +207,8 @@ public static class ResolveObjectFieldDescriptorExtensions
             ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, CancellationToken, TResult> resolver)
     {
         if (descriptor is null)
@@ -227,8 +226,8 @@ public static class ResolveObjectFieldDescriptorExtensions
             typeof(NativeType<TResult>));
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         Func<IResolverContext, CancellationToken, Task<TResult>?> resolver)
     {
         if (descriptor is null)
@@ -245,7 +244,6 @@ public static class ResolveObjectFieldDescriptorExtensions
             async ctx =>
             {
                 var resolverTask = resolver(ctx, ctx.RequestAborted);
-
                 if (resolverTask is null)
                 {
                     return default;
@@ -258,8 +256,8 @@ public static class ResolveObjectFieldDescriptorExtensions
 
     // Constant
 
-    public static IObjectFieldDescriptor Resolve(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve(
+        this IInterfaceFieldDescriptor descriptor,
         object constantResult)
     {
         if (descriptor is null)
@@ -271,8 +269,8 @@ public static class ResolveObjectFieldDescriptorExtensions
             _ => new ValueTask<object?>(constantResult));
     }
 
-    public static IObjectFieldDescriptor Resolve<TResult>(
-        this IObjectFieldDescriptor descriptor,
+    public static IInterfaceFieldDescriptor Resolve<TResult>(
+        this IInterfaceFieldDescriptor descriptor,
         TResult constantResult)
     {
         if (descriptor is null)
