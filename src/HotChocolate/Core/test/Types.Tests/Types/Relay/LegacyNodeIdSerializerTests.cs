@@ -6,6 +6,16 @@ namespace HotChocolate.Types.Relay;
 public class LegacyNodeIdSerializerTests
 {
     [Fact]
+    public void Format_Empty_StringId()
+    {
+        var serializer = CreateSerializer();
+
+        var id = serializer.Format("Foo", "");
+
+        Assert.Equal("Rm9vCmQ=", id);
+    }
+
+    [Fact]
     public void Format_Small_StringId()
     {
         var serializer = CreateSerializer();
@@ -27,6 +37,31 @@ public class LegacyNodeIdSerializerTests
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
+        var serializer = CreateSerializer();
+
+        var id = serializer.Parse("Rm9vCmQ=", lookup.Object);
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_StringId2()
+    {
+        var serializer = CreateSerializer();
+
+        var id = serializer.Parse("Rm9vCmQ=", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
     }
 
     [Fact]
