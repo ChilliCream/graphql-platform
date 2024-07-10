@@ -108,15 +108,16 @@ internal class GlobalIdInputValueFormatter(
                 var i = 0;
                 foreach (var formattedId in formattedIds)
                 {
-                    if (formattedId is null)
+                    if (formattedId is not null)
+                    {
+                        var nodeId = _serializer.Parse(formattedId, runtimeType);
+                        ValidateTypeName(nodeId.TypeName);
+                        tempIds[i++] = nodeId.InternalId;
+                    }
+                    else
                     {
                         i++;
-                        continue;
                     }
-
-                    var nodeId = _serializer.Parse(formattedId, runtimeType);
-                    ValidateTypeName(nodeId.TypeName);
-                    tempIds[i++] = nodeId.InternalId;
 
                     if (i == tempIds.Length)
                     {
