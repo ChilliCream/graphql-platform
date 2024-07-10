@@ -152,6 +152,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             if (first)
             {
                 ExtractErrors(
+                    context.Operation.Document,
+                    context.Operation.Definition,
                     context.Result,
                     response.Errors,
                     batchState.SelectionSetResult,
