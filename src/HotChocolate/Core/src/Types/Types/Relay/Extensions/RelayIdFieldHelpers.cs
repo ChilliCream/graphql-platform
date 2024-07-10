@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Relay;
 internal static class RelayIdFieldHelpers
 {
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -48,7 +48,7 @@ internal static class RelayIdFieldHelpers
     }
 
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -79,7 +79,7 @@ internal static class RelayIdFieldHelpers
     }
 
     /// <summary>
-    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to a argument
+    /// Applies the <see cref="RelayIdFieldExtensions"><c>.ID()</c></see> to an argument
     /// descriptor
     /// </summary>
     /// <remarks>
@@ -259,14 +259,13 @@ internal static class RelayIdFieldHelpers
         string? typeName,
         bool validateType)
     {
-        var resultTypeInfo =
-            completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
+        var resultTypeInfo = completionContext.DescriptorContext.TypeInspector.CreateTypeInfo(resultType);
 
         return new GlobalIdInputValueFormatter(
-            typeName ?? completionContext.Type.Name,
             completionContext.DescriptorContext.NodeIdSerializerAccessor,
-            resultType,
             resultTypeInfo.NamedType,
+            resultType.ElementType?.Type ?? resultTypeInfo.NamedType,
+            typeName ?? completionContext.Type.Name,
             validateType);
     }
 
