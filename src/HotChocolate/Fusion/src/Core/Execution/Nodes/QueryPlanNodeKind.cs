@@ -48,5 +48,5 @@ internal enum QueryPlanNodeKind
     /// <summary>
     /// The <see cref="If"/> node executes its child nodes based on a condition.
     /// </summary>
-    If
+    If,
 }

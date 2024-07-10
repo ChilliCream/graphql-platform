@@ -136,6 +136,8 @@ public class ObjectFieldDescriptor
     /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         var member = definition.ResolverMember ?? definition.Member;
 
         if (!Definition.AttributesAreApplied && member is not null)
@@ -154,6 +156,8 @@ public class ObjectFieldDescriptor
         {
             definition.HasStreamResult = true;
         }
+
+        Context.Descriptors.Pop();
     }
 
     private void CompleteArguments(ObjectFieldDefinition definition)
@@ -213,13 +217,6 @@ public class ObjectFieldDescriptor
 
             _argumentsInitialized = true;
         }
-    }
-
-    /// <inheritdoc />
-    public new IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode? fieldDefinition)
-    {
-        base.SyntaxNode(fieldDefinition);
-        return this;
     }
 
     /// <inheritdoc />
@@ -302,16 +299,6 @@ public class ObjectFieldDescriptor
         base.Ignore(ignore);
         return this;
     }
-
-    /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver)
-        => Resolve(fieldResolver);
-
-    /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(
-        FieldResolverDelegate fieldResolver,
-        Type? resultType) =>
-        Resolve(fieldResolver, resultType);
 
     /// <inheritdoc />
     public IObjectFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)

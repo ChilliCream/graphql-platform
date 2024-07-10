@@ -53,7 +53,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
 
         if (typeReference is not null)
         {
-            _dependencies = new List<TypeDependency>(1) { new(typeReference, fulfilled) };
+            _dependencies = [new(typeReference, fulfilled),];
         }
     }
 
@@ -76,7 +76,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         Owner = owner ?? throw new ArgumentNullException(nameof(owner));
         On = on;
-        _dependencies = new(dependencies);
+        _dependencies = [..dependencies,];
     }
 
     public IDefinition Owner { get; }
@@ -93,7 +93,7 @@ public class CompleteConfiguration : ITypeSystemMemberConfiguration
             throw new ArgumentNullException(nameof(dependency));
         }
 
-        _dependencies ??= new List<TypeDependency>();
+        _dependencies ??= [];
         _dependencies.Add(dependency);
     }
 

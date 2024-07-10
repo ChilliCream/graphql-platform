@@ -31,16 +31,6 @@ public class HslType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="HslType"/> class.
     /// </summary>
-    public HslType()
-        : this(
-            WellKnownScalarTypes.Hsl,
-            ScalarResources.HslType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="HslType"/> class.
-    /// </summary>
     public HslType(
         string name,
         string? description = null,
@@ -50,6 +40,17 @@ public class HslType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HslType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public HslType()
+        : this(
+            WellKnownScalarTypes.Hsl,
+            ScalarResources.HslType_Description)
     {
     }
 

@@ -1,37 +1,36 @@
-using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Filters;
 
-internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
+internal class FilterGlobalIdInputValueFormatter(
+    INodeIdSerializerAccessor serializerAccessor,
+    Type namedType)
+    : IInputValueFormatter
 {
-    private readonly IIdSerializer _idSerializer;
+    private INodeIdSerializer? _serializer;
 
-    public FilterGlobalIdInputValueFormatter(IIdSerializer idSerializer)
+    public object? Format(object? originalValue)
     {
-        _idSerializer = idSerializer;
-    }
-
-    public object? Format(object? runtimeValue)
-    {
-        if (runtimeValue is null)
+        if (originalValue is null)
         {
             return null;
         }
 
-        if (runtimeValue is IdValue id)
+        if (originalValue is NodeId id)
         {
-            return id.Value;
+            return id.InternalId;
         }
 
-        if (runtimeValue is string s)
+        _serializer ??= serializerAccessor.Serializer;
+
+        if (originalValue is string s)
         {
             try
             {
-                return _idSerializer.Deserialize(s).Value;
+                return _serializer.Parse(s, namedType).InternalId;
             }
-            catch
+            catch (Exception ex) when (ex is not GraphQLException)
             {
                 throw new GraphQLException(
                     ErrorBuilder.New()
@@ -40,9 +39,9 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
             }
         }
 
-        if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
+        if (originalValue is IEnumerable<NodeId?> nullableIdEnumerable)
         {
-            List<object?> list = new();
+            List<object?> list = [];
             foreach (var idv in nullableIdEnumerable)
             {
                 if (!idv.HasValue)
@@ -51,30 +50,30 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
                 }
                 else
                 {
-                    list.Add(idv.Value.Value);
+                    list.Add(idv.Value.InternalId);
                 }
             }
 
             return list;
         }
 
-        if (runtimeValue is IEnumerable<IdValue> idEnumerable)
+        if (originalValue is IEnumerable<NodeId> idEnumerable)
         {
-            List<object?> list = new();
+            List<object?> list = [];
 
             foreach (var idv in idEnumerable)
             {
-                list.Add(idv.Value);
+                list.Add(idv.InternalId);
             }
 
             return list;
         }
 
-        if (runtimeValue is IEnumerable<string?> stringEnumerable)
+        if (originalValue is IEnumerable<string?> stringEnumerable)
         {
             try
             {
-                List<object?> list = new();
+                List<object?> list = [];
 
                 foreach (var sv in stringEnumerable)
                 {
@@ -84,17 +83,15 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
                         continue;
                     }
 
-                    id = _idSerializer.Deserialize(sv);
-
-                    list.Add(id.Value);
+                    id = _serializer.Parse(sv, namedType);
+                    list.Add(id.InternalId);
                 }
 
                 return list;
             }
-            catch
+            catch (Exception ex) when (ex is not GraphQLException)
             {
-                throw ThrowHelper
-                    .GlobalIdInputValueFormatter_IdsHaveInvalidFormat(stringEnumerable);
+                throw ThrowHelper.GlobalIdInputValueFormatter_IdsHaveInvalidFormat(stringEnumerable);
             }
         }
 

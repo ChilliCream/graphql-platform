@@ -1,6 +1,4 @@
 using System;
-using System.Linq.Expressions;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -10,16 +8,6 @@ public interface IDirectiveTypeDescriptor
     : IDescriptor<DirectiveTypeDefinition>
     , IFluent
 {
-    /// <summary>
-    /// Associates the specified <paramref name="directiveDefinitionNode"/>
-    /// with the <see cref="DirectiveType"/>.
-    /// </summary>
-    /// <param name="directiveDefinitionNode">
-    /// The <see cref="DirectiveDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IDirectiveTypeDescriptor SyntaxNode(
-        DirectiveDefinitionNode directiveDefinitionNode);
-
     /// <summary>
     /// Defines the name of the <see cref="DirectiveType"/>.
     /// </summary>

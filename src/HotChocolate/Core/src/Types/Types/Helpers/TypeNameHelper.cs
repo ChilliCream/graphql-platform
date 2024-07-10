@@ -31,7 +31,7 @@ public static class TypeNameHelper
         if (!typeof(ITypeSystemMember).IsAssignableFrom(dependency))
         {
             throw new ArgumentException(
-                TypeResources.TypeNameHelper_OnlyTsosAreAllowed,
+                TypeResources.TypeNameHelper_OnlyTypeSystemObjectsAreAllowed,
                 nameof(dependency));
         }
 

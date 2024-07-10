@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Spatial;
 
-internal class WellKnownFields
+internal static class WellKnownFields
 {
     public const string TypeFieldName = "type";
 

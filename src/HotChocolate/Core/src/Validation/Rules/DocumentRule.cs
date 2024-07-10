@@ -16,7 +16,7 @@ namespace HotChocolate.Validation.Rules;
 /// GraphQL documents not intended to be directly executed may
 /// include TypeSystemDefinition.
 ///
-/// http://spec.graphql.org/June2018/#sec-Executable-Definitions
+/// https://spec.graphql.org/June2018/#sec-Executable-Definitions
 /// </summary>
 internal sealed class DocumentRule : IDocumentValidatorRule
 {

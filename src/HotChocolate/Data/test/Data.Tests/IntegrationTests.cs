@@ -4,9 +4,6 @@
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable MoveLocalFunctionAfterJumpStatement
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -237,7 +234,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
-            .AddObjectType<Book>(o => 
+            .AddObjectType<Book>(o =>
                 o.ImplementsNode()
                     .IdField(f => f.Id)
                     .ResolveNode(_ => default!))
@@ -331,7 +328,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            
+
             fragment Test on Book {
                 title
                 id
@@ -369,7 +366,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            
+
             fragment Test on Book {
                 title
                 id
@@ -411,7 +408,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            
+
             fragment Test on Author {
                 name
             }
@@ -450,7 +447,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            
+
             fragment Test on Author {
                 name
             }
@@ -487,7 +484,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            
+
             fragment Test on Book {
                 title
                 author {
@@ -528,7 +525,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     }
                 }
             }
-            
+
             fragment Test on Book {
                 title
                 author {
@@ -667,7 +664,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 }
             }
             """,
-            new Dictionary<string, object?> { ["title"] = "BookTitle" });
+            new Dictionary<string, object?> { ["title"] = "BookTitle", });
 
         // assert
         await Snapshot
@@ -703,7 +700,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 }
             }
             """,
-            new Dictionary<string, object?> { ["title"] = "BookTitle" });
+            new Dictionary<string, object?> { ["title"] = "BookTitle", });
 
         // assert
         await Snapshot
@@ -795,12 +792,12 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         // assert
         result.MatchSnapshot();
     }
-    
+
     [Fact]
     public async Task Duplicate_Filter_Attribute_Throws()
     {
         // arrange
-        async Task Error() 
+        async Task Error()
             => await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<DuplicateAttribute>()
@@ -814,13 +811,13 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
             The field `DuplicateAttribute.addBook` declares the data middleware `UseFiltering` more than once.
             """);
     }
-    
+
     [QueryType]
     public static class StaticQuery
     {
         [UseOffsetPaging]
-        public static IEnumerable<Bar> GetBars() 
-            => new[] { Bar.Create("tox") };
+        public static IEnumerable<Bar> GetBars()
+            => new[] { Bar.Create("tox"), };
     }
 
     public class FooType : ObjectType
@@ -835,7 +832,7 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                     var data = new[]
                     {
                         Bar.Create("a"),
-                        Bar.Create("b")
+                        Bar.Create("b"),
                     }.AsQueryable();
                     return Task.FromResult(data);
                 })
@@ -847,22 +844,22 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         public string Qux { get; set; } = default!;
 
-        public static Bar Create(string qux) => new() { Qux = qux };
+        public static Bar Create(string qux) => new() { Qux = qux, };
     }
 
     public class PagingAndProjection
     {
         [UsePaging]
         [UseProjection]
-        public IQueryable<Book> GetBooks() 
+        public IQueryable<Book> GetBooks()
             => new[]
             {
                 new Book
                 {
                     Id = 1,
                     Title = "BookTitle",
-                    Author = new Author { Name = "Author" }
-                }
+                    Author = new Author { Name = "Author", },
+                },
             }.AsQueryable();
     }
 
@@ -873,15 +870,15 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public IQueryable<Book> GetBooks() 
+        public IQueryable<Book> GetBooks()
             => new[]
             {
                 new Book
                 {
                     Id = 1,
                     Title = "BookTitle",
-                    Author = new Author { Name = "Author" }
-                }
+                    Author = new Author { Name = "Author", },
+                },
             }.AsQueryable();
     }
 
@@ -891,21 +888,21 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         [UseProjection(Scope = "Foo")]
         [UseFiltering(Scope = "Foo")]
         [UseSorting(Scope = "Foo")]
-        public IQueryable<Book> GetBooks() 
+        public IQueryable<Book> GetBooks()
             => new[]
             {
                 new Book
                 {
-                    Id = 1, 
-                    Title = "BookTitle", 
+                    Id = 1,
+                    Title = "BookTitle",
                     Author = new Author
                     {
-                        Name = "Author"
-                    }
-                }
+                        Name = "Author",
+                    },
+                },
             }.AsQueryable();
     }
-    
+
     public class FirstOrDefaultQuery
     {
         [UseFirstOrDefault]
@@ -914,22 +911,22 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
         {
             new Book
             {
-                Id = 1, 
-                Title = "BookTitle", 
+                Id = 1,
+                Title = "BookTitle",
                 Author = new Author
                 {
-                    Name = "Author"
-                }
+                    Name = "Author",
+                },
             },
             new Book
             {
-                Id = 2, 
-                Title = "BookTitle2", 
+                Id = 2,
+                Title = "BookTitle2",
                 Author = new Author
                 {
-                    Name = "Author2"
-                }
-            }
+                    Name = "Author2",
+                },
+            },
         }.AsQueryable().Where(x => x.Id == book.Id);
     }
 
@@ -937,17 +934,17 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         [UseFirstOrDefault]
         [UseProjection]
-        public IQueryable<Author> AddPublisher(Publisher publisher) 
+        public IQueryable<Author> AddPublisher(Publisher publisher)
             => new[]
             {
                 new Author
                 {
-                    Name = "Author", 
+                    Name = "Author",
                     Publishers = new List<Publisher>
                     {
-                        publisher
-                    }
-                }
+                        publisher,
+                    },
+                },
             }.AsQueryable();
     }
 
@@ -955,29 +952,29 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     {
         [UseFirstOrDefault]
         [UseProjection]
-        public IQueryable<Author> AddBook(Book book) 
+        public IQueryable<Author> AddBook(Book book)
             => new[]
             {
                 new Author
                 {
-                    Name = "Author", 
-                    Books = new List<Book> { book }
-                }
+                    Name = "Author",
+                    Books = new List<Book> { book, },
+                },
             }.AsQueryable();
     }
-    
+
     public class DuplicateAttribute
     {
         [UseFiltering]
         [UseFiltering]
-        public IQueryable<Author> AddBook(Book book) 
+        public IQueryable<Author> AddBook(Book book)
             => new[]
             {
                 new Author
                 {
-                    Name = "Author", 
-                    Books = new List<Book> { book }
-                }
+                    Name = "Author",
+                    Books = new List<Book> { book, },
+                },
             }.AsQueryable();
     }
 }

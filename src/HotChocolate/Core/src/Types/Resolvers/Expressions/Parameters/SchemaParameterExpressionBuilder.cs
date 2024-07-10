@@ -7,10 +7,13 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class SchemaParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private static readonly PropertyInfo _schema =
-        PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
+        ContextType.GetProperty(nameof(IResolverContext.Schema))!;
 
     public ArgumentKind Kind => ArgumentKind.Schema;
 
@@ -26,4 +29,10 @@ internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBui
         => Expression.Convert(
             Expression.Property(context.ResolverContext, _schema),
             context.Parameter.ParameterType);
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)context.Schema;
 }

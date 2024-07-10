@@ -21,7 +21,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 internal sealed class QueryPlan
 {
-    private static readonly JsonWriterOptions _jsonOptions = new() { Indented = true };
+    private static readonly JsonWriterOptions _jsonOptions = new() { Indented = true, };
     private readonly IOperation _operation;
     private readonly Dictionary<ISelectionSet, string[]> _exportKeysLookup = new();
     private readonly Dictionary<(ISelectionSet, string), string[]> _exportPathsLookup = new();
@@ -125,14 +125,10 @@ internal sealed class QueryPlan
         => _selectionSets.Contains(selectionSet);
 
     public IReadOnlyList<string> GetExportKeys(ISelectionSet selectionSet)
-        => _exportKeysLookup.TryGetValue(selectionSet, out var keys)
-            ? keys
-            : Array.Empty<string>();
+        => _exportKeysLookup.TryGetValue(selectionSet, out var keys) ? keys : [];
 
     public IReadOnlyList<string> GetExportPath(ISelectionSet selectionSet, string key)
-        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path)
-            ? path
-            : Array.Empty<string>();
+        => _exportPathsLookup.TryGetValue((selectionSet, key), out var path) ? path : [];
 
     /// <summary>
     /// Executes the query plan.
@@ -150,7 +146,7 @@ internal sealed class QueryPlan
     /// The query plan represents a subscription request
     /// and cannot be executed but must be subscribed to.
     /// </exception>
-    public async Task<IQueryResult> ExecuteAsync(
+    public async Task<IOperationResult> ExecuteAsync(
         FusionExecutionContext context,
         CancellationToken cancellationToken = default)
     {
@@ -163,7 +159,7 @@ internal sealed class QueryPlan
 
         var operationContext = context.OperationContext;
 
-        if (operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
+        if (context.AllowQueryPlan && operationContext.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan))
         {
             var bufferWriter = new ArrayBufferWriter<byte>();
             context.QueryPlan.Format(bufferWriter);
@@ -188,25 +184,10 @@ internal sealed class QueryPlan
         {
             await RootNode.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
         }
-        catch (NonNullPropagateException ex)
-        {
-            context.Result.SetData(null);
-
-            // TODO : REMOVE after non-null prop is good.
-            if (context.Result.Errors.Count == 0)
-            {
-                var error =
-                    context.OperationContext.ErrorHandler.Handle(
-                        ErrorBuilder.New()
-                            .SetMessage("NON NULL PROPAGATION")
-                            .SetException(ex)
-                            .Build());
-
-                context.Result.AddError(error);
-            }
-        }
         catch (Exception ex)
         {
+            context.DiagnosticEvents.QueryPlanExecutionError(ex);
+
             if (context.Result.Errors.Count == 0)
             {
                 var errorHandler = context.OperationContext.ErrorHandler;
@@ -337,7 +318,7 @@ internal sealed class QueryPlan
         public static ExportPathVisitor Instance { get; } = new();
     }
 
-    private sealed class ExportPathVisitorContext : ISyntaxVisitorContext
+    private sealed class ExportPathVisitorContext
     {
         public Queue<string> Path { get; } = new();
     }

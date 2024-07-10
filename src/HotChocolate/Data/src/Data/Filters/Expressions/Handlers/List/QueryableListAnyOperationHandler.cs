@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -38,7 +37,7 @@ public class QueryableListAnyOperationHandler
         object? parsedValue)
     {
         if (context.RuntimeTypes.Count > 0 &&
-            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args &&
+            context.RuntimeTypes.Peek().TypeArguments is { Count: > 0, } args &&
             parsedValue is bool parsedBool)
         {
             var property = context.GetInstance();

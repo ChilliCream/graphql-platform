@@ -408,3 +408,5 @@ If there were more directives in the query, they would be appended to the direct
 So, now the order would be like the following: `a, b, c, d, e, f`.
 
 Every middleware can execute the original resolver function by calling `ResolveAsync()` on the `IDirectiveContext`.
+
+<!-- spell-checker:ignore VXNlcgox -->

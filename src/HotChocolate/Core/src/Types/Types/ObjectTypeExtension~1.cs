@@ -22,20 +22,21 @@ public class ObjectTypeExtension<T> : ObjectTypeExtension
     private Action<IObjectTypeDescriptor<T>>? _configure;
 
     /// <summary>
-    /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
-    /// </summary>
-    public ObjectTypeExtension()
-    {
-        _configure = Configure;
-    }
-
-    /// <summary>
     /// Initializes a new  instance of <see cref="ObjectTypeExtension{T}"/>.
     /// </summary>
     public ObjectTypeExtension(Action<IObjectTypeDescriptor<T>> configure)
     {
         _configure = configure
             ?? throw new ArgumentNullException(nameof(configure));
+    }
+
+    /// <summary>
+    /// Initializes a new  instance of <see cref="ObjectType{T}"/>.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public ObjectTypeExtension()
+    {
+        _configure = Configure;
     }
 
     protected override ObjectTypeDefinition CreateDefinition(

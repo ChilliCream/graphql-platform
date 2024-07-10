@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace HotChocolate.Execution;
 
 /// <summary>
@@ -15,7 +13,7 @@ public interface IVariableValueCollection : IEnumerable<VariableValue>
     /// </summary>
     /// <param name="name">The variable name.</param>
     /// <returns></returns>
-    /// <exception cref="QueryException">
+    /// <exception cref="GraphQLException">
     /// A GraphQL execution error is thrown when the
     /// requested variable cannot be found or cannot
     /// be converted to the request type.

@@ -94,7 +94,7 @@ public sealed class SocketOperation : ISocketOperation
             while (!_operation._disposed && !reader.Completion.IsCompleted)
             {
                 if (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false) &&
-                    reader.TryRead(out OperationMessage? message))
+                    reader.TryRead(out var message))
                 {
                     yield return message;
                 }

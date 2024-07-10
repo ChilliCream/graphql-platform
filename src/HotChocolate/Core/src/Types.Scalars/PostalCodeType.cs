@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 using static HotChocolate.Types.RegexType;
@@ -18,7 +19,7 @@ public class PostalCodeType : StringType
     /// Different validation patterns for postal codes.
     /// </summary>
     private static readonly Regex[] _validationPatterns =
-    {
+    [
         CreateRegexUs(),
         CreateRegexUk(),
         CreateRegexDe(),
@@ -36,7 +37,7 @@ public class PostalCodeType : StringType
         CreateRegexPt(),
         CreateRegexCh(),
         CreateRegexLu(),
-    };
+    ];
 
 #if DISABLED_DUE_TO_COMPILER_ISSUE
     [GeneratedRegex(PostalCodePatterns.US, RegexOptions.IgnoreCase, DefaultRegexTimeoutInMs)]
@@ -151,21 +152,22 @@ public class PostalCodeType : StringType
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
     /// </summary>
-    public PostalCodeType()
-        : this(
-            WellKnownScalarTypes.PostalCode,
-            ScalarResources.PostalCodeType_Description)
+    public PostalCodeType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, description, bind)
     {
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PostalCodeType"/> class.
     /// </summary>
-    public PostalCodeType(
-        string name,
-        string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, description, bind)
+    [ActivatorUtilitiesConstructor]
+    public PostalCodeType()
+        : this(
+            WellKnownScalarTypes.PostalCode,
+            ScalarResources.PostalCodeType_Description)
     {
     }
 
@@ -246,6 +248,7 @@ public class PostalCodeType : StringType
         return false;
     }
 
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     private static class PostalCodePatterns
     {
         public const string US =

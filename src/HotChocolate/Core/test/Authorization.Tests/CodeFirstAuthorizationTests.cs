@@ -1,5 +1,4 @@
 using CookieCrumble;
-using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -7,7 +6,7 @@ using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.AspNetCore.Authorization;
+namespace HotChocolate.Authorization;
 
 public class CodeFirstAuthorizationTests
 {
@@ -579,7 +578,7 @@ public class CodeFirstAuthorizationTests
 
     private sealed record City(string? Value) : ICityOrStreet;
 
-    private interface ICityOrStreet { }
+    private interface ICityOrStreet;
 
     private sealed class AuthHandler : IAuthorizationHandler
     {

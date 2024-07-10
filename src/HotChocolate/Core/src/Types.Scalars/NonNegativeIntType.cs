@@ -11,21 +11,22 @@ public class NonNegativeIntType : IntType
     /// <summary>
     /// Initializes a new instance of the <see cref="NonNegativeIntType"/> class.
     /// </summary>
-    public NonNegativeIntType()
-        : this(
-            WellKnownScalarTypes.NonNegativeInt,
-            ScalarResources.NonNegativeIntType_Description)
+    public NonNegativeIntType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, description, 0, int.MaxValue, bind)
     {
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NonNegativeIntType"/> class.
     /// </summary>
-    public NonNegativeIntType(
-        string name,
-        string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, description, 0, int.MaxValue, bind)
+    [ActivatorUtilitiesConstructor]
+    public NonNegativeIntType()
+        : this(
+            WellKnownScalarTypes.NonNegativeInt,
+            ScalarResources.NonNegativeIntType_Description)
     {
     }
 

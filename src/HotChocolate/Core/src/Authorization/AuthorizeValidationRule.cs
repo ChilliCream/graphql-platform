@@ -6,15 +6,10 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Authorization;
 
-internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
+internal sealed class AuthorizeValidationRule(AuthorizationCache cache) : IDocumentValidatorRule
 {
     private readonly AuthorizeValidationVisitor _visitor = new();
-    private readonly AuthorizationCache _cache;
-
-    public AuthorizeValidationRule(AuthorizationCache cache)
-    {
-        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-    }
+    private readonly AuthorizationCache _cache = cache ?? throw new ArgumentNullException(nameof(cache));
 
     public bool IsCacheable => false;
 
@@ -22,12 +17,12 @@ internal sealed class AuthorizeValidationRule : IDocumentValidatorRule
     {
         if (context.Schema.ContextData.ContainsKey(WellKnownContextData.AuthorizationRequestPolicy))
         {
-            if (!_cache.TryGetDirectives(context.DocumentId, out var directives))
+            if (!_cache.TryGetDirectives(context.DocumentId.Value, out var directives))
             {
                 _visitor.Visit(document, context);
                 directives = ((HashSet<AuthorizeDirective>)
                     context.ContextData[AuthContextData.Directives]!).ToArray();
-                _cache.TryAddDirectives(context.DocumentId, directives);
+                _cache.TryAddDirectives(context.DocumentId.Value, directives);
             }
 
             // update context data with the array result.

@@ -22,37 +22,8 @@
       "type": "Arguments",
       "field": "nonNullIntArgField",
       "argument": "intArg",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 94,
-        "End": 107,
-        "Line": 4,
-        "Column": 44
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 94,
-          "End": 101,
-          "Line": 4,
-          "Column": 44
-        },
-        "Value": "intArg"
-      },
-      "Value": {
-        "Kind": "NullValue",
-        "Location": {
-          "Start": 102,
-          "End": 107,
-          "Line": 4,
-          "Column": 52
-        },
-        "Value": null
-      }
-    }
+    "Exception": null
   }
 ]

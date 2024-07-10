@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Helpers;
 internal static class TypeMemHelper
 {
     private static Dictionary<string, ObjectFieldDefinition>? _objectFieldDefinitionMap;
+    private static Dictionary<string, InterfaceFieldDefinition>? _interfaceFieldDefinitionMap;
     private static Dictionary<string, InputFieldDefinition>? _inputFieldDefinitionMap;
     private static Dictionary<string, InputField>? _inputFieldMap;
     private static Dictionary<string, InputField>? _inputFieldMapOrdinalIgnoreCase;
@@ -33,6 +34,16 @@ internal static class TypeMemHelper
     {
         map.Clear();
         Interlocked.CompareExchange(ref _objectFieldDefinitionMap, map, null);
+    }
+
+    public static Dictionary<string, InterfaceFieldDefinition> RentInterfaceFieldDefinitionMap()
+        => Interlocked.Exchange(ref _interfaceFieldDefinitionMap, null) ??
+            new Dictionary<string, InterfaceFieldDefinition>(StringComparer.Ordinal);
+
+    public static void Return(Dictionary<string, InterfaceFieldDefinition> map)
+    {
+        map.Clear();
+        Interlocked.CompareExchange(ref _interfaceFieldDefinitionMap, map, null);
     }
 
     public static Dictionary<string, InputFieldDefinition> RentInputFieldDefinitionMap()
@@ -93,7 +104,7 @@ internal static class TypeMemHelper
 
     public static HashSet<MemberInfo> RentMemberSet()
         => Interlocked.Exchange(ref _memberSet, null) ??
-            new HashSet<MemberInfo>();
+            [];
 
     public static void Return(HashSet<MemberInfo> set)
     {
@@ -141,6 +152,7 @@ internal static class TypeMemHelper
     public static void Clear()
     {
         Interlocked.Exchange(ref _objectFieldDefinitionMap, null);
+        Interlocked.Exchange(ref _interfaceFieldDefinitionMap, null);
         Interlocked.Exchange(ref _inputFieldDefinitionMap, null);
         Interlocked.Exchange(ref _inputFieldMap, null);
         Interlocked.Exchange(ref _inputFieldMapOrdinalIgnoreCase, null);

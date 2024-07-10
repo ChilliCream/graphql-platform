@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
@@ -6,9 +5,9 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Type Definition section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<EnumValueDefinitionNode> _emptyEnumValues = new();
-    private static readonly List<InputValueDefinitionNode> _emptyInputValues = new();
-    private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions = new();
+    private static readonly List<EnumValueDefinitionNode> _emptyEnumValues = [];
+    private static readonly List<InputValueDefinitionNode> _emptyInputValues = [];
+    private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions = [];
 
     /// <summary>
     /// Parses a description.
@@ -17,7 +16,7 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private StringValueNode? ParseDescription()
     {
-        if (TokenHelper.IsDescription(in _reader))
+        if (TokenHelper.IsDescription(ref _reader))
         {
             return ParseStringLiteral();
         }
@@ -43,7 +42,7 @@ public ref partial struct Utf8GraphQLParser
             throw new SyntaxException(_reader,
                 ParseMany_InvalidOpenToken,
                 TokenKind.LeftBrace,
-                TokenPrinter.Print(in _reader));
+                TokenPrinter.Print(ref _reader));
         }
 
         var operationTypeDefinitions =

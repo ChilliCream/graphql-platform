@@ -55,7 +55,7 @@ namespace HotChocolate.Types;
 /// </code>
 /// results in
 /// <code>
-/// VXNlcgppMQ==
+/// VXNlcjox
 /// </code>
 /// </para>
 /// </example>

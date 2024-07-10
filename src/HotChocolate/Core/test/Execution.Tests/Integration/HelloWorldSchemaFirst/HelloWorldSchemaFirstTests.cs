@@ -1,9 +1,7 @@
-﻿using System.Threading.Tasks;
-using HotChocolate.Resolvers;
+﻿using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst;

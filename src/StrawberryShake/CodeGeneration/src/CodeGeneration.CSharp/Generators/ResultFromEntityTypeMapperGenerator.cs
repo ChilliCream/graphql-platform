@@ -81,8 +81,8 @@ public class ResultFromEntityTypeMapperGenerator : ClassBaseGenerator<ResultFrom
                 .SetCondition($"{_snapshot} is null")
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide(_snapshot)
-                    .SetRighthandSide($"{GetFieldName(_entityStore)}.CurrentSnapshot")))
+                    .SetLeftHandSide(_snapshot)
+                    .SetRightHandSide($"{GetFieldName(_entityStore)}.CurrentSnapshot")))
             .AddEmptyLine();
 
         // creates the instance of the model that is being mapped.

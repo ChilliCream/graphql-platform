@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 
 namespace HotChocolate.Validation;
@@ -10,7 +9,7 @@ namespace HotChocolate.Validation;
 /// This interface represents the document validation context that can
 /// be used by validation visitors to build up state.
 /// </summary>
-public interface IDocumentValidatorContext : ISyntaxVisitorContext
+public interface IDocumentValidatorContext
 {
     /// <summary>
     /// Gets the schema on which the validation is executed.
@@ -20,7 +19,7 @@ public interface IDocumentValidatorContext : ISyntaxVisitorContext
     /// <summary>
     /// Gets the unique document identifier.
     /// </summary>
-    string DocumentId { get; }
+    OperationDocumentId DocumentId { get; }
 
     /// <summary>
     /// Gets the current operation type.

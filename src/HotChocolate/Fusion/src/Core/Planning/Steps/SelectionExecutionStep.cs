@@ -89,17 +89,17 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// <summary>
     /// Gets the root selections of this execution step.
     /// </summary>
-    public List<RootSelection> RootSelections { get; } = new();
+    public List<RootSelection> RootSelections { get; } = [];
 
     /// <summary>
     /// Gets all selections that are part of this execution step.
     /// </summary>
-    public HashSet<ISelection> AllSelections { get; } = new();
+    public HashSet<ISelection> AllSelections { get; } = [];
 
     /// <summary>
     /// Gets all selection sets that are part of this execution step.
     /// </summary>
-    public HashSet<ISelectionSet> AllSelectionSets { get; } = new();
+    public HashSet<ISelectionSet> AllSelectionSets { get; } = [];
 
     /// <summary>
     /// Gets the selection resolvers.
@@ -120,7 +120,7 @@ internal sealed class SelectionExecutionStep : ExecutionStep
     /// <summary>
     /// The variable requirements by this task.
     /// </summary>
-    public HashSet<string> Requires { get; } = new();
+    public HashSet<string> Requires { get; } = [];
 
     private string GetDebuggerDisplay()
     {

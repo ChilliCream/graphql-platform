@@ -25,7 +25,7 @@ interface Service {
   readonly perks: string[];
 }
 
-const AvisoryPage: FC = () => {
+const AdvisoryPage: FC = () => {
   const areaTitle = "Advisory";
 
   const services: Service[] = [
@@ -100,7 +100,7 @@ const AvisoryPage: FC = () => {
   );
 };
 
-export default AvisoryPage;
+export default AdvisoryPage;
 
 const CardsContainer = styled.div`
   display: grid;

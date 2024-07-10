@@ -22,5 +22,5 @@ public enum ArgumentKind
     ScopedState,
     LocalState,
     EventMessage,
-    Custom
+    Custom,
 }

@@ -185,7 +185,7 @@ internal sealed class WebSocketConnection : ISocketConnection
             ConnectionCloseReason.NormalClosure => WebSocketCloseStatus.NormalClosure,
             ConnectionCloseReason.PolicyViolation => WebSocketCloseStatus.PolicyViolation,
             ConnectionCloseReason.ProtocolError => WebSocketCloseStatus.ProtocolError,
-            _ => WebSocketCloseStatus.Empty
+            _ => WebSocketCloseStatus.Empty,
         };
 
     public void Dispose()

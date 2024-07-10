@@ -80,9 +80,9 @@ public sealed class ArgumentValue : IInputFieldInfo
     public string Name => _argument.Name;
 
     /// <summary>
-    /// Gets the argument field coordinate.
+    /// Gets the argument schema coordinate.
     /// </summary>
-    public FieldCoordinate Coordinate => _argument.Coordinate;
+    public SchemaCoordinate Coordinate => _argument.Coordinate;
 
     /// <summary>
     /// Gets the argument type.

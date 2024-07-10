@@ -22,6 +22,6 @@ public sealed class UseDataLoaderAttribute : ObjectFieldDescriptorAttribute
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
     {
-        descriptor.UseDataloader(_dataLoaderType);
+        descriptor.UseDataLoader(_dataLoaderType);
     }
 }

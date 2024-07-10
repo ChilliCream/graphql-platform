@@ -5,5 +5,5 @@ public enum Inheritance
     None,
     Sealed,
     Override,
-    Virtual
+    Virtual,
 }

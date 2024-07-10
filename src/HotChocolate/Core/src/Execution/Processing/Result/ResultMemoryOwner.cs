@@ -15,9 +15,9 @@ internal sealed class ResultMemoryOwner : IDisposable
 
     public ObjectResult? Data { get; set; }
 
-    public List<ResultBucket<ObjectResult>> ObjectBuckets { get; } = new();
+    public List<ResultBucket<ObjectResult>> ObjectBuckets { get; } = [];
 
-    public List<ResultBucket<ListResult>> ListBuckets { get; } = new();
+    public List<ResultBucket<ListResult>> ListBuckets { get; } = [];
 
     public void Dispose()
     {

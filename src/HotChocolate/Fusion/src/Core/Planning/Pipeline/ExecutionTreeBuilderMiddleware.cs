@@ -103,7 +103,7 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
 
             if (batch.Length > 0)
             {
-                backlog.Enqueue(next with { Batch = batch });
+                backlog.Enqueue(next with { Batch = batch, });
             }
         }
 
@@ -129,7 +129,7 @@ internal sealed class ExecutionTreeBuilderMiddleware(ISchema schema) : IQueryPla
 
             if (!map.TryGetValue(selectionSet, out var set))
             {
-                set = new HashSet<ExecutionStep>();
+                set = [];
                 map.Add(selectionSet, set);
             }
 

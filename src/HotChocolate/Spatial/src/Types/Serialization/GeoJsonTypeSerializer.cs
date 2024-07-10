@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using static HotChocolate.Types.Spatial.GeoJsonGeometryType;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -17,7 +15,7 @@ internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType
                 { nameof(MultiLineString), MultiLineString },
                 { nameof(Polygon), Polygon },
                 { nameof(MultiPolygon), MultiPolygon },
-                { nameof(GeometryCollection), GeometryCollection }
+                { nameof(GeometryCollection), GeometryCollection },
         };
 
     private static readonly IDictionary<GeoJsonGeometryType, string> _valueLookup =

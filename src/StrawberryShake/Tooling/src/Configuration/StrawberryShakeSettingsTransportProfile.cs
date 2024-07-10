@@ -16,7 +16,7 @@ public class StrawberryShakeSettingsTransportProfile
 
     public IEnumerable<TransportType> GetUsedTransports()
     {
-        var set = new HashSet<TransportType> { Default };
+        var set = new HashSet<TransportType> { Default, };
 
         if (Query is not null)
         {

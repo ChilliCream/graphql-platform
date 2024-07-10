@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Introspection;
 
 internal sealed class IntrospectionTypeInterceptor : TypeInterceptor
 {
-    private readonly List<ObjectTypeDefinition> _objectTypeDefinitions = new();
+    private readonly List<ObjectTypeDefinition> _objectTypeDefinitions = [];
     private IDescriptorContext _context = default!;
     private ObjectTypeDefinition? _queryTypeDefinition;
 

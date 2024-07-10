@@ -24,18 +24,20 @@ public abstract class TypeInterceptor
     /// A weight to order interceptors.
     /// </summary>
     internal virtual uint Position => _defaultPosition;
-    
+
     internal virtual bool IsEnabled(IDescriptorContext context) => true;
-    
+
     internal virtual bool IsMutationAggregator(IDescriptorContext context) => false;
-    
+
     internal virtual void SetSiblings(TypeInterceptor[] all) { }
-    
+
     [Obsolete("This hook is deprecated and will be removed in the next release.")]
     internal virtual void OnBeforeCreateSchema(
         IDescriptorContext context,
-        ISchemaBuilder schemaBuilder) { }
-    
+        ISchemaBuilder schemaBuilder)
+    {
+    }
+
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked before anything else any allows for additional modification
@@ -61,7 +63,9 @@ public abstract class TypeInterceptor
         TypeInitializer typeInitializer,
         TypeRegistry typeRegistry,
         TypeLookup typeLookup,
-        TypeReferenceResolver typeReferenceResolver) { }
+        TypeReferenceResolver typeReferenceResolver)
+    {
+    }
 
     /// <summary>
     /// This method is called before the type discovery is started.
@@ -81,7 +85,9 @@ public abstract class TypeInterceptor
     /// The type discovery context.
     /// </param>
     public virtual void OnBeforeInitialize(
-        ITypeDiscoveryContext discoveryContext) { }
+        ITypeDiscoveryContext discoveryContext)
+    {
+    }
 
     /// <summary>
     /// This event is triggered after the type type definition was initialized and
@@ -96,7 +102,9 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterInitialize(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     /// <summary>
     /// If all types are registered you can analyze them and add more new types at this point.
@@ -115,7 +123,9 @@ public abstract class TypeInterceptor
         => Enumerable.Empty<TypeReference>();
 
     public virtual void OnTypeRegistered(
-        ITypeDiscoveryContext discoveryContext) { }
+        ITypeDiscoveryContext discoveryContext)
+    {
+    }
 
     public virtual void OnTypesInitialized() { }
 
@@ -131,7 +141,9 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     /// <summary>
     /// This event is called after the type dependencies are reported to the
@@ -145,7 +157,9 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     /// <summary>
     /// This method is called before the type names are completed.
@@ -168,7 +182,9 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     /// <summary>
     /// This event is called after the type name is assigned.
@@ -181,14 +197,17 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteName(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     internal virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition,
         OperationType operationType)
-    { }
-    
+    {
+    }
+
     public virtual void OnTypesCompletedName() { }
 
     /// <summary>
@@ -200,7 +219,7 @@ public abstract class TypeInterceptor
     /// This method is called after the type extensions are merged.
     /// </summary>
     public virtual void OnAfterMergeTypeExtensions() { }
-    
+
     internal virtual void OnBeforeCompleteMutation(
         ITypeCompletionContext completionContext,
         ObjectTypeDefinition definition)
@@ -210,14 +229,13 @@ public abstract class TypeInterceptor
             OnBeforeCompleteMutationField(completionContext, field);
         }
     }
-    
+
     public virtual void OnBeforeCompleteMutationField(
         ITypeCompletionContext completionContext,
         ObjectFieldDefinition mutationField)
     {
     }
-
-
+    
     /// <summary>
     /// This method is called before the types are completed.
     /// </summary>
@@ -239,7 +257,9 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnBeforeCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     /// <summary>
     /// This event is called after the type system member is fully completed.
@@ -252,7 +272,9 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     /// <summary>
     /// This event is called after the type system member is fully completed and is
@@ -267,13 +289,32 @@ public abstract class TypeInterceptor
     /// </param>
     public virtual void OnValidateType(
         ITypeSystemObjectContext validationContext,
-        DefinitionBase definition) { }
+        DefinitionBase definition)
+    {
+    }
 
     public virtual void OnTypesCompleted() { }
-    
+
+    // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
+    /// <summary>
+    /// This hook is invoked after schema is fully created and gives access
+    /// to the created schema object.
+    /// </summary>
+    /// <param name="context">
+    /// The descriptor context.
+    /// </param>
+    /// <param name="schemaTypesDefinition">
+    /// The schema types definition.
+    /// </param>
+    internal virtual void OnBeforeRegisterSchemaTypes(
+        IDescriptorContext context,
+        SchemaTypesDefinition schemaTypesDefinition)
+    {
+    }
+
     [Obsolete("This hook is deprecated and will be removed in the next release.")]
     public virtual void OnAfterCreateSchema(IDescriptorContext context, ISchema schema) { }
-    
+
     // note: this hook is a legacy hook and will be removed once the new schema building API is completed.
     /// <summary>
     /// This hook is invoked after schema is fully created and gives access
@@ -293,7 +334,7 @@ public abstract class TypeInterceptor
     }
 
     /// <summary>
-    /// This hook is invoked if an error occured during schema creation.
+    /// This hook is invoked if an error occurred during schema creation.
     /// </summary>
     /// <param name="context">
     /// The descriptor context.

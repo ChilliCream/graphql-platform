@@ -27,7 +27,7 @@ public static class JsonUtils
             TypeNames.TimeSpan => nameof(JsonElement.GetString),
             TypeNames.Boolean => nameof(JsonElement.GetBoolean),
             TypeNames.Guid => nameof(JsonElement.GetGuid),
-            _ => throw new NotSupportedException("Serialization format not supported.")
+            _ => throw new NotSupportedException("Serialization format not supported."),
         };
     }
 
@@ -53,7 +53,7 @@ public static class JsonUtils
             TypeNames.TimeSpan => nameof(Utf8JsonWriter.WriteString),
             TypeNames.Boolean => nameof(Utf8JsonWriter.WriteBoolean),
             TypeNames.Guid => nameof(Utf8JsonWriter.WriteString),
-            _ => throw new NotSupportedException("Serialization format not supported.")
+            _ => throw new NotSupportedException("Serialization format not supported."),
         };
     }
 }

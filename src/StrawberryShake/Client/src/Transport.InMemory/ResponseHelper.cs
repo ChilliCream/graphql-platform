@@ -21,6 +21,6 @@ internal static class ResponseHelper
         jsonWriter.WriteEndObject();
         jsonWriter.Flush();
 
-        return JsonDocument.Parse(bufferWriter.Body);
+        return JsonDocument.Parse(bufferWriter.GetWrittenMemory());
     }
 }

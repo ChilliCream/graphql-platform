@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -18,13 +17,6 @@ public class EnumTypeDescriptor<T>
         EnumTypeDefinition definition)
         : base(context, definition)
     {
-    }
-
-    public new IEnumTypeDescriptor<T> SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition)
-    {
-        base.SyntaxNode(enumTypeDefinition);
-        return this;
     }
 
     public new IEnumTypeDescriptor<T> Name(string value)

@@ -22,8 +22,8 @@ public partial class JsonResultBuilderGenerator
         methodBuilder.AddCode(
             AssignmentBuilder
                 .New()
-                .SetLefthandSide($"{TypeNames.EntityId} {_entityId}")
-                .SetRighthandSide(
+                .SetLeftHandSide($"{TypeNames.EntityId} {_entityId}")
+                .SetRightHandSide(
                     MethodCallBuilder
                         .Inline()
                         .SetMethodName(GetFieldName(_idSerializer), "Parse")

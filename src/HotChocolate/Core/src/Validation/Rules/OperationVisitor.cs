@@ -11,29 +11,29 @@ namespace HotChocolate.Validation.Rules;
 /// GraphQL allows a short‐hand form for defining query operations
 /// when only that one operation exists in the document.
 ///
-/// http://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation
+/// https://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation
 ///
 /// AND
 ///
 /// Each named operation definition must be unique within a document
 /// when referred to by its name.
 ///
-/// http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
+/// https://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness
 ///
 /// AND
 ///
 /// Subscription operations must have exactly one root field.
 ///
-/// http://spec.graphql.org/June2018/#sec-Single-root-field
+/// https://spec.graphql.org/June2018/#sec-Single-root-field
 ///
 /// AND
 ///
 /// Defer And Stream Directives Are Used On Valid Root Field
 ///
-/// http://spec.graphql.org/draft/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field
+/// https://spec.graphql.org/draft/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field
 /// </summary>
 /// <remarks>
-/// http://spec.graphql.org/draft/#sec-Validation.Operations
+/// https://spec.graphql.org/draft/#sec-Validation.Operations
 /// </remarks>
 public class OperationVisitor : DocumentValidatorVisitor
 {

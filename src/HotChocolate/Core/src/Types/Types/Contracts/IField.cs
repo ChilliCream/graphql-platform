@@ -8,9 +8,8 @@ namespace HotChocolate.Types;
 public interface IField
     : IHasName
     , IHasDescription
-    , IHasFieldCoordinate
+    , IHasSchemaCoordinate
     , IHasDirectives
-    , IHasSyntaxNode
     , IHasRuntimeType
     , IHasReadOnlyContextData
     , ITypeSystemMember

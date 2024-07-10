@@ -96,7 +96,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
             var result = operationContext
                 .SetLabel(Label)
                 .SetPath(Path.Append(Index))
-                .SetItems(new[] { item })
+                .SetItems(new[] { item, })
                 .SetPatchId(patchId)
                 .BuildResult();
 
@@ -109,7 +109,7 @@ internal sealed class DeferredStream : DeferredExecutionTask
         catch (Exception ex)
         {
             var builder = operationContext.ErrorHandler.CreateUnexpectedError(ex);
-            var result = QueryResultBuilder.CreateError(builder.Build());
+            var result = OperationResultBuilder.CreateError(builder.Build());
             operationContext.DeferredScheduler.Complete(new(resultId, parentResultId, result));
         }
         finally

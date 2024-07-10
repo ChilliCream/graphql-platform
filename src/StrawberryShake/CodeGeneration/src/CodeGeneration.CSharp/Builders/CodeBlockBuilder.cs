@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CodeBlockBuilder : ICode
 {
-    private readonly List<ICodeBuilder> _blockParts = new List<ICodeBuilder>();
+    private readonly List<ICodeBuilder> _blockParts = [];
 
     public static CodeBlockBuilder New() => new CodeBlockBuilder();
 

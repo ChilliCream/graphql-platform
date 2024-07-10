@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -26,7 +25,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
     private const string _ct = "ct";
 
     private static readonly string[] _builtInSerializers =
-    {
+    [
         StringSerializer,
         BooleanSerializer,
         ByteSerializer,
@@ -42,8 +41,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         DateSerializer,
         ByteArraySerializer,
         TimeSpanSerializer,
-        JsonSerializer
-    };
+        JsonSerializer,
+    ];
 
     private static readonly Dictionary<string, string> _alternativeTypeNames = new()
     {
@@ -51,7 +50,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Guid"] = UUIDSerializer,
         ["URL"] = UrlSerializer,
         ["Uri"] = UrlSerializer,
-        ["URI"] = UrlSerializer
+        ["URI"] = UrlSerializer,
+        ["JSON"] = JsonSerializer,
+        ["Json"] = JsonSerializer,
     };
 
     protected override void Generate(
@@ -202,8 +203,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             .AddCode(
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {_serviceCollection}")
-                    .SetRighthandSide(MethodCallBuilder
+                    .SetLeftHandSide($"var {_serviceCollection}")
+                    .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetNew()
                         .SetMethodName(ServiceCollection)))
@@ -532,7 +533,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 SubscriptionOperationDescriptor => profile.Subscription,
                 QueryOperationDescriptor => profile.Query,
                 MutationOperationDescriptor => profile.Mutation,
-                _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation)
+                _ => throw ThrowHelper.DependencyInjection_InvalidOperationKind(operation),
             };
 
             var connectionKind = operationKind switch
@@ -540,7 +541,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                 TransportType.Http => IHttpConnection,
                 TransportType.WebSocket => IWebSocketConnection,
                 TransportType.InMemory => IInMemoryConnection,
-                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+                var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v),
             };
 
             var operationName = operation.Name;
@@ -759,8 +760,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_clientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IHttpClientFactory)
@@ -786,7 +787,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
             TransportType.WebSocket => RegisterWebSocketConnection(clientName),
             TransportType.Http => RegisterHttpConnection(clientName),
             TransportType.InMemory => RegisterInMemoryConnection(clientName),
-            var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+            var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v),
         };
     }
 
@@ -805,8 +806,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_clientFactory}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_clientFactory}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(IInMemoryClientFactory)
@@ -842,8 +843,8 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
                     .New()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide($"var {_sessionPool}")
-                        .SetRighthandSide(MethodCallBuilder
+                        .SetLeftHandSide($"var {_sessionPool}")
+                        .SetRightHandSide(MethodCallBuilder
                             .Inline()
                             .SetMethodName(GetRequiredService)
                             .AddGeneric(ISessionPool)

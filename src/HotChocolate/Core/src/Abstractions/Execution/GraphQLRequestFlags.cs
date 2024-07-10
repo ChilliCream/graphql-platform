@@ -41,5 +41,5 @@ public enum GraphQLRequestFlags
     /// <summary>
     /// Everything is allowed.
     /// </summary>
-    AllowAll = AllowQuery | AllowMutation | AllowSubscription | AllowStreams
+    AllowAll = AllowQuery | AllowMutation | AllowSubscription | AllowStreams,
 }

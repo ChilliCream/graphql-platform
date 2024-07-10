@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing.Tasks;
 
 internal static class ResolverTaskFactory
 {
-    private static List<ResolverTask>? _pooled = new();
+    private static List<ResolverTask>? _pooled = [];
 
     static ResolverTaskFactory() { }
 
@@ -33,7 +33,7 @@ internal static class ResolverTaskFactory
         var includeFlags = operationContext.IncludeFlags;
         var final = !selectionSet.IsConditional;
 
-        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         try
@@ -107,7 +107,7 @@ internal static class ResolverTaskFactory
         IImmutableDictionary<string, object?> scopedContext)
     {
         var parentResult = operationContext.Result.RentObject(1);
-        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+        var bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? [];
         Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
         var resolverTask =

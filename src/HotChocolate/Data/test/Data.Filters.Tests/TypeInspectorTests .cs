@@ -1,7 +1,5 @@
 using HotChocolate.Data.Filters;
-using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Data.Tests;
 

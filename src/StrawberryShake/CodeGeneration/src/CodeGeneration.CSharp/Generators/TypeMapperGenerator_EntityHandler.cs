@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
@@ -110,19 +109,19 @@ public partial class TypeMapperGenerator
                     .Inline()
                     .SetMethodName(
                         isNonNullable
-                            ? new[]
-                            {
+                            ?
+                            [
                                 _entityId,
                                 "Name",
-                                nameof(string.Equals)
-                            }
-                            : new[]
-                            {
+                                nameof(string.Equals),
+                            ]
+                            :
+                            [
                                 _entityId,
                                 "Value",
                                 "Name",
-                                nameof(string.Equals)
-                            })
+                                nameof(string.Equals),
+                            ])
                     .AddArgument(objectTypeDescriptor.Name.AsStringToken())
                     .AddArgument(TypeNames.OrdinalStringComparison));
 

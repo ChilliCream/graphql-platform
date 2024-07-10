@@ -99,7 +99,7 @@ internal sealed class RavenPagingContainer<TEntity>
         }
         finally
         {
-            if (totalCountCompletionSource is { Task.IsCompleted: false })
+            if (totalCountCompletionSource is { Task.IsCompleted: false, })
             {
                 totalCountCompletionSource.SetCanceled(cancellationToken);
             }

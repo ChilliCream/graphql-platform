@@ -1,0 +1,11 @@
+{
+  "data": {
+    "usersWithFilter": {
+      "nodes": [
+        {
+          "name": "Foo"
+        }
+      ]
+    }
+  }
+}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace HotChocolate.StarWars.Models;
 
@@ -31,4 +32,9 @@ public interface ICharacter
     /// The height of the character.
     /// </summary>
     double Height { get; }
+
+    /// <summary>
+    /// The traits of this character.
+    /// </summary>
+    JsonElement? Traits { get; }
 }

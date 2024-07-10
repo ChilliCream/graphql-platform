@@ -33,7 +33,7 @@ ASC Result:
 
 ASC SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer)
+select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer);
 ---------------
 
 13 Result:
@@ -71,5 +71,5 @@ select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullab
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) desc
+select d.id, d.data from public.mt_doc_queryablesortvisitorobjecttests_barnullable as d order by CAST(d.data -> 'Foo' ->> 'BarEnum' as integer) desc;
 ---------------

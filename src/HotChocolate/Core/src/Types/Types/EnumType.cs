@@ -35,11 +35,6 @@ public partial class EnumType
     public override TypeKind Kind => TypeKind.Enum;
 
     /// <summary>
-    /// Gets the associated syntax node from the GraphQL SDL.
-    /// </summary>
-    public EnumTypeDefinitionNode? SyntaxNode { get; private set; }
-
-    /// <summary>
     /// Gets the enum values of this type.
     /// </summary>
     public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;

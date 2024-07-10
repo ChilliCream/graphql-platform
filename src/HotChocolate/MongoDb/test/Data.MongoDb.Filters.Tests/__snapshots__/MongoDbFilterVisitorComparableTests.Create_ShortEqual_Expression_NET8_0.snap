@@ -42,7 +42,7 @@ null
       "message": "The provided value for filter `eq` of type ShortOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
-          "line": 1,
+          "line": 2,
           "column": 33
         }
       ],
@@ -57,7 +57,7 @@ null
     }
   ],
   "data": {
-    "root": []
+    "root": null
   }
 }
 ---------------

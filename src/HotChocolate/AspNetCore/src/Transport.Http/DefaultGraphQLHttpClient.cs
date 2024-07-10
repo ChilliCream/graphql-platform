@@ -107,7 +107,9 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
 #endif
-        var responseMessage = await _http.SendAsync(requestMessage, ResponseHeadersRead, ct).ConfigureAwait(false);
+        var responseMessage = await _http
+            .SendAsync(requestMessage, ResponseHeadersRead, ct)
+            .ConfigureAwait(false);
         return new GraphQLHttpResponse(responseMessage);
     }
 
@@ -118,6 +120,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     {
         var method = request.Method;
 
+        if(method == GraphQLHttpMethod.Get)
+        {
+            if (request.Body is not OperationRequest)
+            {
+                throw new InvalidOperationException(
+                    HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
+            }
+
+            if (request.EnableFileUploads)
+            {
+                throw new NotSupportedException(
+                    HttpResources.DefaultGraphQLHttpClient_FileUploadNotAllowed);
+            }
+        }
+
         var message = new HttpRequestMessage
         {
             Method = method,
@@ -127,21 +144,28 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
                 {
                     new MediaTypeWithQualityHeaderValue(ContentType.GraphQL),
                     new MediaTypeWithQualityHeaderValue(ContentType.Json),
-                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream)
-                }
-            }
+                    new MediaTypeWithQualityHeaderValue(ContentType.EventStream),
+                },
+            },
         };
 
         if (method == GraphQLHttpMethod.Post)
         {
-            message.Content = request.EnableFileUploads
-                ? CreateMultipartContent(arrayWriter, request)
-                : CreatePostContent(arrayWriter, request);
+            if (request.EnableFileUploads)
+            {
+                message.Content = CreateMultipartContent(arrayWriter, request);
+                message.Headers.AddGraphQLPreflight();
+            }
+            else
+            {
+                message.Content = CreatePostContent(arrayWriter, request);
+            }
+
             message.RequestUri = requestUri;
         }
         else if (method == GraphQLHttpMethod.Get)
         {
-            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Operation);
+            message.RequestUri = CreateGetRequestUri(arrayWriter, requestUri, request.Body);
         }
         else
         {
@@ -153,128 +177,144 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         return message;
     }
 
-    private static HttpContent CreatePostContent(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static HttpContent CreatePostContent(
+        ArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        request.Operation.WriteTo(jsonWriter);
+        request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
 
         var content = new ByteArrayContent(arrayWriter.GetInternalBuffer(), 0, arrayWriter.Length);
 #if NET7_0_OR_GREATER
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+        content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         return content;
     }
 
-    private static HttpContent CreateMultipartContent(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static HttpContent CreateMultipartContent(
+        ArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
     {
         var fileInfos = WriteFileMapJson(arrayWriter, request);
 
         if (fileInfos.Count == 0)
         {
             arrayWriter.Reset();
-            return CreatePostContent(arrayWriter, request);    
+            return CreatePostContent(arrayWriter, request);
         }
-        
+
         var start = arrayWriter.Length;
         WriteOperationJson(arrayWriter, request);
         var buffer = arrayWriter.GetInternalBuffer();
 
         var form = new MultipartFormDataContent();
-        
+
         var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
 #if NET7_0_OR_GREATER
         operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        operation.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+        operation.Headers.ContentType =
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         form.Add(operation, "operations");
-        
+
         var fileMap = new ByteArrayContent(buffer, 0, start);
 #if NET7_0_OR_GREATER
         fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
 #else
-        fileMap.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8" };
+        fileMap.Headers.ContentType =
+            new MediaTypeHeaderValue(ContentType.Json) { CharSet = "utf-8", };
 #endif
         form.Add(fileMap, "map");
-        
+
         foreach (var fileInfo in fileInfos)
         {
             var file = new StreamContent(fileInfo.File.OpenRead());
             form.Add(file, fileInfo.Name, fileInfo.File.FileName);
         }
-        
+
         return form;
     }
 
     private static void WriteOperationJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        request.Operation.WriteTo(jsonWriter);
+        request.Body.WriteTo(jsonWriter);
     }
 
-    private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(ArrayWriter arrayWriter, GraphQLHttpRequest request)
+    private static IReadOnlyList<FileReferenceInfo> WriteFileMapJson(
+        ArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
     {
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
-        return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Operation);
+        return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Body);
     }
 
-
-    private static Uri CreateGetRequestUri(ArrayWriter arrayWriter, Uri baseAddress, OperationRequest request)
+    private static Uri CreateGetRequestUri(
+        ArrayWriter arrayWriter,
+        Uri baseAddress,
+        IRequestBody body)
     {
+        if(body is not OperationRequest or)
+        {
+            throw new InvalidOperationException(
+                HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
+        }
+
         var sb = new StringBuilder();
         var appendAmpersand = false;
 
         sb.Append(baseAddress);
         sb.Append('?');
 
-        if (!string.IsNullOrWhiteSpace(request.Id))
+        if (!string.IsNullOrWhiteSpace(or.Id))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(request.Id!));
+            sb.Append(Uri.EscapeDataString(or.Id!));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Query))
+        if (!string.IsNullOrWhiteSpace(or.Query))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(request.Query!));
+            sb.Append(Uri.EscapeDataString(or.Query!));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.OperationName))
+        if (!string.IsNullOrWhiteSpace(or.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(request.OperationName!));
+            sb.Append(Uri.EscapeDataString(or.OperationName!));
         }
 
-        if (request.VariablesNode is not null)
+        if (or.VariablesNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.VariablesNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.VariablesNode)));
         }
-        else if (request.Variables is not null)
+        else if (or.Variables is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("variables=");
-            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(request.Variables)));
+            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(or.Variables)));
         }
 
-        if (request.ExtensionsNode is not null)
+        if (or.ExtensionsNode is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, request.ExtensionsNode)));
+            sb.Append(Uri.EscapeDataString(FormatDocumentAsJson(arrayWriter, or.ExtensionsNode)));
         }
-        else if (request.Extensions is not null)
+        else if (or.Extensions is not null)
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("extensions=");
-            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(request.Extensions)));
+            sb.Append(Uri.EscapeDataString(JsonSerializer.Serialize(or.Extensions)));
         }
 
         return new Uri(sb.ToString());

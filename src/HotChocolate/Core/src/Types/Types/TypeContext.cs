@@ -4,5 +4,5 @@ public enum TypeContext
 {
     None = 0,
     Output = 2,
-    Input = 4
+    Input = 4,
 }

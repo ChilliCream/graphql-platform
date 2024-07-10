@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 
 #nullable enable
@@ -22,6 +23,11 @@ public interface IObjectField : IOutputField
     bool IsParallelExecutable { get; }
 
     /// <summary>
+    /// Defines in which DI scope this field is executed.
+    /// </summary>
+    DependencyInjectionScope DependencyInjectionScope { get; }
+
+    /// <summary>
     /// Defines that the resolver pipeline returns an
     /// <see cref="IAsyncEnumerable{T}"/> as its result.
     /// </summary>
@@ -39,7 +45,7 @@ public interface IObjectField : IOutputField
 
     /// <summary>
     /// Gets the pure field resolver. The pure field resolver is only available if this field
-    /// can be resolved without side-effects. The execution engine will prefer this resolver
+    /// can be resolved without side effects. The execution engine will prefer this resolver
     /// variant if it is available and there are no executable directives that add a middleware
     /// to this field.
     /// </summary>
@@ -49,6 +55,11 @@ public interface IObjectField : IOutputField
     /// Gets the subscription resolver.
     /// </summary>
     SubscribeResolverDelegate? SubscribeResolver { get; }
+
+    /// <summary>
+    /// Gets the result post processor.
+    /// </summary>
+    IResolverResultPostProcessor? ResultPostProcessor { get; }
 
     /// <summary>
     /// Gets the associated member of the runtime type for this field.

@@ -9,12 +9,6 @@ public interface IInputFieldDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the argument with a syntax node of the parsed GraphQL SDL.
-    /// </summary>
-    /// <param name="inputValueDefinition">The syntax node</param>
-    IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
-    /// <summary>
     /// Sets the name of the argument
     /// <example>
     /// <code lang="csharp">
@@ -33,7 +27,7 @@ public interface IInputFieldDescriptor
     /// <summary>
     /// Marks the field as deprecated
     /// <remarks>
-    /// The field must be nullable. Non-Nullable field cannot be deprecated
+    /// The field must be nullable or have a default value. Otherwise the field cannot be deprecated
     /// </remarks>
     /// <example>
     /// <code lang="csharp">

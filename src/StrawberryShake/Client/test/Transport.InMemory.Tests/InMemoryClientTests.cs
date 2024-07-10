@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
@@ -84,9 +83,10 @@ public class InMemoryClientTests
         await client.ExecuteAsync(operationRequest);
 
         // assert
-        Assert.Equal(operationRequest.Name, executor.Request!.OperationName);
-        Assert.Equal(variables, executor.Request!.VariableValues);
-        Assert.Equal("{ foo }", Encoding.UTF8.GetString(executor.Request.Query!.AsSpan()));
+        var request = Assert.IsType<HotChocolate.Execution.OperationRequest>(executor.Request);
+        Assert.Equal(operationRequest.Name, request.OperationName);
+        Assert.Equal(variables, request.VariableValues);
+        Assert.Equal("{ foo }", Encoding.UTF8.GetString(request.Document!.AsSpan()));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class InMemoryClientTests
                 .OnCreateAsync(
                     StubExecutor.ApplicationServiceProvider,
                     operationRequest,
-                    It.IsAny<IQueryRequestBuilder>(),
+                    It.IsAny<OperationRequestBuilder>(),
                     It.IsAny<CancellationToken>()));
 
         // act
@@ -118,19 +118,19 @@ public class InMemoryClientTests
                     .OnCreateAsync(
                         StubExecutor.ApplicationServiceProvider,
                         operationRequest,
-                        It.IsAny<IQueryRequestBuilder>(),
+                        It.IsAny<OperationRequestBuilder>(),
                         It.IsAny<CancellationToken>()),
                 Times.Exactly(2));
     }
 
     private sealed class StubExecutor : IRequestExecutor
     {
-        public IQueryRequest? Request { get; private set; }
+        public IOperationRequest? Request { get; private set; }
 
         public ulong Version { get; }
 
         public Task<IExecutionResult> ExecuteAsync(
-            IQueryRequest request,
+            IOperationRequest request,
             CancellationToken cancellationToken = default)
         {
             Request = request;
@@ -138,7 +138,7 @@ public class InMemoryClientTests
         }
 
         public Task<IResponseStream> ExecuteBatchAsync(
-            IReadOnlyList<IQueryRequest> requestBatch,
+            OperationRequestBatch requestBatch,
             CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 

@@ -13,7 +13,7 @@ internal static class HttpResponseExtensions
     private static readonly JsonSerializerOptions _serializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
     internal static Task WriteAsJsonAsync<TValue>(

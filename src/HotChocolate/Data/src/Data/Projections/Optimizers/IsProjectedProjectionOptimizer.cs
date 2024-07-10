@@ -1,7 +1,5 @@
-using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Data.Projections.ProjectionConvention;
 
@@ -18,8 +16,8 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
         Selection selection)
     {
         if (!(context.Type is ObjectType type &&
-                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
-                fieldsObj is string[] fields))
+            type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
+            fieldsObj is string[] fields))
         {
             return selection;
         }

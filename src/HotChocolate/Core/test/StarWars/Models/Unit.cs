@@ -6,5 +6,5 @@ namespace HotChocolate.StarWars.Models;
 public enum Unit
 {
     Foot,
-    Meters
+    Meters,
 }

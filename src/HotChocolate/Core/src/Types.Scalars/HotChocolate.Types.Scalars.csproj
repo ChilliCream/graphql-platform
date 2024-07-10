@@ -11,6 +11,10 @@
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>Adds additional scalars for better data integrity and validation</Description>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />

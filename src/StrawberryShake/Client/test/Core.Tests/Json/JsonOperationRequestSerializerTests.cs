@@ -24,21 +24,21 @@ public class JsonOperationRequestSerializerTests
                     new KeyValuePair<string, object?>[]
                     {
                         new("s", "def"),
-                    }
+                    },
                 }),
-                new("sl", new List<string> { "a", "b", "c" }),
-                new("il", new[] { 1, 2, 3 })
+                new("sl", new List<string> { "a", "b", "c", }),
+                new("il", new[] { 1, 2, 3, }),
         };
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(
             new OperationRequest(
                 "abc",
                 new Document(),
-                new Dictionary<string, object?> { { "abc", inputObject } }),
+                new Dictionary<string, object?> { { "abc", inputObject }, }),
             jsonWriter);
         jsonWriter.Flush();
 
@@ -54,13 +54,37 @@ public class JsonOperationRequestSerializerTests
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(
             new OperationRequest(
                 "abc",
                 new Document(),
-                new Dictionary<string, object?> { { "abc", json.RootElement } }),
+                new Dictionary<string, object?> { { "abc", json.RootElement }, }),
+            jsonWriter);
+        jsonWriter.Flush();
+
+        // assert
+        Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
+    }
+
+    [Fact]
+    public void Serialize_Request_With_Id_And_Empty_Query()
+    {
+        // arrange
+        var json = JsonDocument.Parse(@"{ ""abc"": { ""def"": ""def"" } }");
+
+        // act
+        using var stream = new MemoryStream();
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
+        var serializer = new JsonOperationRequestSerializer();
+        serializer.Serialize(
+            new OperationRequest(
+                "123",
+                "abc",
+                new EmptyDocument(),
+                new Dictionary<string, object?> { { "abc", json.RootElement }, },
+                strategy: RequestStrategy.PersistedQuery),
             jsonWriter);
         jsonWriter.Flush();
 
@@ -98,15 +122,15 @@ public class JsonOperationRequestSerializerTests
                     new KeyValuePair<string, object?>[]
                     {
                         new("s", "def"),
-                    }
+                    },
             });
-        operationRequest.Extensions.Add("sl", new List<string> { "a", "b", "c" });
-        operationRequest.Extensions.Add("il", new[] { 1, 2, 3 });
+        operationRequest.Extensions.Add("sl", new List<string> { "a", "b", "c", });
+        operationRequest.Extensions.Add("il", new[] { 1, 2, 3, });
         operationRequest.Extensions.Add("tuple", ("a", "b"));
 
         // act
         using var stream = new MemoryStream();
-        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
+        using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true, });
         var serializer = new JsonOperationRequestSerializer();
         serializer.Serialize(operationRequest, jsonWriter);
         jsonWriter.Flush();
@@ -120,6 +144,15 @@ public class JsonOperationRequestSerializerTests
         public OperationKind Kind => OperationKind.Query;
 
         public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ __typename }");
+
+        public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
+    }
+
+    private sealed class EmptyDocument : IDocument
+    {
+        public OperationKind Kind => OperationKind.Query;
+
+        public ReadOnlySpan<byte> Body => Array.Empty<byte>();
 
         public DocumentHash Hash { get; } = new("MD5", "ABCDEF");
     }

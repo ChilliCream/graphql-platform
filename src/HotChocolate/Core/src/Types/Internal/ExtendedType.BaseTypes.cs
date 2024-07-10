@@ -10,8 +10,8 @@ internal sealed partial class ExtendedType
 {
     private static class BaseTypes
     {
-        private static readonly HashSet<Type> _baseTypes = new()
-        {
+        private static readonly HashSet<Type> _baseTypes =
+        [
             typeof(ScalarType),
             typeof(InputObjectType),
             typeof(InputObjectTypeExtension),
@@ -30,8 +30,8 @@ internal sealed partial class ExtendedType
             typeof(UnionTypeExtension),
             typeof(UnionType<>),
             typeof(DirectiveType),
-            typeof(DirectiveType<>)
-        };
+            typeof(DirectiveType<>),
+        ];
 
         /// <summary>
         /// Defines if the specified type is a named type that can be instantiated.

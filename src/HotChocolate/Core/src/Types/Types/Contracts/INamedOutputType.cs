@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -5,6 +7,4 @@ namespace HotChocolate.Types;
 /// </summary>
 public interface INamedOutputType
     : INamedType
-    , IOutputType
-{
-}
+    , IOutputType;

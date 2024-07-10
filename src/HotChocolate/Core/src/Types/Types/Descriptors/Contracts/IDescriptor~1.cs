@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -19,4 +20,11 @@ public interface IDescriptor<out T> : IDescriptor where T : DefinitionBase
     /// </summary>
     /// <returns></returns>
     IDescriptorExtension<T> Extend();
+
+
+    /// <summary>
+    /// Provides access to the underlying configuration. This is useful for extensions.
+    /// </summary>
+    /// <returns></returns>
+    IDescriptorExtension<T> ExtendWith(Action<IDescriptorExtension<T>> configure);
 }

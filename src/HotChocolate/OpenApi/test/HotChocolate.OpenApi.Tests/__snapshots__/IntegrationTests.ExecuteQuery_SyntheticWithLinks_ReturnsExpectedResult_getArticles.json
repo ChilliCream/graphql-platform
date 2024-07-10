@@ -1,0 +1,40 @@
+{
+  "data": {
+    "a": [
+      {
+        "id": 1,
+        "title": "title",
+        "author": {
+          "id": 1,
+          "username": "username"
+        }
+      },
+      {
+        "id": 2,
+        "title": "title",
+        "author": {
+          "id": 1,
+          "username": "username"
+        }
+      }
+    ],
+    "b": [
+      {
+        "id": 1,
+        "title": "title",
+        "author": {
+          "id": 1,
+          "username": "username"
+        }
+      },
+      {
+        "id": 2,
+        "title": "title",
+        "author": {
+          "id": 1,
+          "username": "username"
+        }
+      }
+    ]
+  }
+}

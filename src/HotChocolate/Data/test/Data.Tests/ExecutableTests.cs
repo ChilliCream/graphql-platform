@@ -1,18 +1,10 @@
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
-using Xunit;
 
 namespace HotChocolate.Data;
 
-public class ExecutableTests : IClassFixture<AuthorFixture>
+public class ExecutableTests(AuthorFixture authorFixture) : IClassFixture<AuthorFixture>
 {
-    private readonly Author[] _authors;
-
-    public ExecutableTests(AuthorFixture authorFixture)
-    {
-        _authors = authorFixture.Authors;
-    }
+    private readonly Author[] _authors = authorFixture.Authors;
 
     [Fact]
     public void Extensions_Should_ReturnExecutable_When_DBSet()
@@ -22,7 +14,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         IExecutable<Author> executable = _authors.AsExecutable();
 
         // assert
-        Assert.IsType<QueryableExecutable<Author>>(executable);
+        Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();
     }
 
@@ -36,7 +28,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
             .AsExecutable();
 
         // assert
-        Assert.IsType<QueryableExecutable<Author>>(executable);
+        Assert.True(executable is IQueryableExecutable<Author>);
         executable.MatchSnapshot();
     }
 
@@ -51,7 +43,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         object result = await executable.ToListAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 
     [Fact]
@@ -64,7 +56,7 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         var result = await executable.SingleOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 
     [Fact]
@@ -77,6 +69,6 @@ public class ExecutableTests : IClassFixture<AuthorFixture>
         var result = await executable.FirstOrDefaultAsync(default);
 
         // assert
-        new { result, executable = executable.Print() }.MatchSnapshot();
+        new { result, executable = executable.Print(), }.MatchSnapshot();
     }
 }

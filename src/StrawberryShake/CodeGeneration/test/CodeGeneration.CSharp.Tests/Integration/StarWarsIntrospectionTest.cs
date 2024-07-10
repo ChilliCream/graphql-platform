@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospection
 {
@@ -40,7 +34,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsIntrospectio
             var result = await client.IntrospectionQuery.ExecuteAsync(ct);
 
             // assert
+#if NET7_0_OR_GREATER
             result.MatchSnapshot();
+#else
+            result.MatchSnapshot("NET6");
+#endif
         }
     }
 }

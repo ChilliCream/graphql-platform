@@ -19,7 +19,7 @@ public static class TestDataHelper
             new GraphQLFile[]
             {
                 new(Utf8GraphQLParser.Parse(Open(schemaResource))),
-                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
             });
 
         var document = Utf8GraphQLParser.Parse(Open(queryResource));
@@ -45,7 +45,7 @@ public static class TestDataHelper
             new GraphQLFile[]
             {
                 new(schema.ToDocument()),
-                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")"))
+                new(Utf8GraphQLParser.Parse("extend schema @key(fields: \"id\")")),
             });
 
         var document = Utf8GraphQLParser.Parse(query);

@@ -13,5 +13,5 @@ internal enum MergeStatus
     /// <summary>
     /// The merge operation completed successfully.
     /// </summary>
-    Completed
+    Completed,
 }

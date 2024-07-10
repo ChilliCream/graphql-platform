@@ -14,7 +14,7 @@
       "extensions": {
         "typeCondition": "Foo",
         "selectionSetType": "RootCollectionSegment",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
       }
     }
   ]

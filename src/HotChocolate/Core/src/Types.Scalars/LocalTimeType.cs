@@ -16,16 +16,6 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
     /// </summary>
-    public LocalTimeType()
-        : this(
-            WellKnownScalarTypes.LocalTime,
-            ScalarResources.LocalTimeType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
-    /// </summary>
     public LocalTimeType(
         string name,
         string? description = null,
@@ -33,6 +23,17 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
         : base(name, bind)
     {
         Description = description;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LocalTimeType()
+        : this(
+            WellKnownScalarTypes.LocalTime,
+            ScalarResources.LocalTimeType_Description)
+    {
     }
 
     public override IValueNode ParseResult(object? resultValue)
@@ -43,13 +44,13 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
             string s => new StringValueNode(s),
             DateTimeOffset d => ParseValue(d),
             DateTime dt => ParseValue(dt),
-            _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this),
         };
     }
 
     protected override DateTime ParseLiteral(StringValueNode valueSyntax)
     {
-        if (TryDeserializeFromString(valueSyntax.Value, out DateTime? value))
+        if (TryDeserializeFromString(valueSyntax.Value, out var value))
         {
             return value.Value;
         }
@@ -88,7 +89,7 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
             case null:
                 runtimeValue = null;
                 return true;
-            case string s when TryDeserializeFromString(s, out DateTime? d):
+            case string s when TryDeserializeFromString(s, out var d):
                 runtimeValue = d;
                 return true;
             case DateTimeOffset d:
@@ -117,7 +118,7 @@ public class LocalTimeType : ScalarType<DateTime, StringValueNode>
                 serialized,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
-                out DateTime dt))
+                out var dt))
         {
             value = dt;
             return true;

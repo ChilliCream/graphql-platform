@@ -129,7 +129,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
         bool authenticated,
         object context)
     {
-        var checkRoles = roles is { Count: > 0 };
+        var checkRoles = roles is { Count: > 0, };
         var checkPolicy = !string.IsNullOrWhiteSpace(policyName);
 
         // if the current directive has neither roles nor policies specified we will check if there
@@ -151,7 +151,7 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
             var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
             return result.Succeeded
                 ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed;
+                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
         }
 
         // We first check if the user fulfills any of the specified roles.
@@ -176,10 +176,10 @@ internal sealed class DefaultAuthorizationHandler : IAuthorizationHandler
             var result = await _authSvc.AuthorizeAsync(user, context, policy).ConfigureAwait(false);
             return result.Succeeded
                 ? AuthorizeResult.Allowed
-                : AuthorizeResult.NotAllowed;
+                : authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
         }
 
-        return AuthorizeResult.NotAllowed;
+        return authenticated ? AuthorizeResult.NotAllowed : AuthorizeResult.NotAuthenticated;
     }
 
     private static UserState GetUserState(IDictionary<string, object?> contextData)

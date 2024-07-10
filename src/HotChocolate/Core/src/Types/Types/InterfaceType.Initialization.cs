@@ -55,9 +55,8 @@ public partial class InterfaceType
     {
         base.OnCompleteType(context, definition);
 
-        SyntaxNode = definition.SyntaxNode;
         Fields = OnCompleteFields(context, definition);
-        context.DescriptorContext.SchemaCompleted += (_, args) => _schema = args.Schema;
+        context.DescriptorContext.OnSchemaCreated(schema => _schema = schema);
 
         CompleteAbstractTypeResolver(definition.ResolveAbstractType);
         _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);

@@ -10,8 +10,8 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeTrimmer
 {
-    private readonly HashSet<TypeSystemObjectBase> _touched = new();
-    private readonly List<ObjectType> _rootTypes = new();
+    private readonly HashSet<TypeSystemObjectBase> _touched = [];
+    private readonly List<ObjectType> _rootTypes = [];
     private readonly List<TypeSystemObjectBase> _discoveredTypes;
 
     public TypeTrimmer(IEnumerable<TypeSystemObjectBase> discoveredTypes)

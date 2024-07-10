@@ -12,31 +12,8 @@
     "Extensions": {
       "operation": "Unnamed",
       "type": "Query",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "OperationDefinition",
-      "Location": {
-        "Start": 17,
-        "End": 33,
-        "Line": 2,
-        "Column": 17
-      },
-      "Name": null,
-      "Operation": "Query",
-      "VariableDefinitions": [],
-      "Directives": [],
-      "SelectionSet": {
-        "Kind": "SelectionSet",
-        "Location": {
-          "Start": 17,
-          "End": 33,
-          "Line": 2,
-          "Column": 17
-        },
-        "Selections": []
-      }
-    }
+    "Exception": null
   }
 ]

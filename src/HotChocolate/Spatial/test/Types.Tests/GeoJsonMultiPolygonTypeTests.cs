@@ -7,24 +7,24 @@ namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonMultiPolygonTypeTests
 {
-    private readonly MultiPolygon _geom = new(new[]
-    {
-        new Polygon(new LinearRing(new[]
-        {
+    private readonly MultiPolygon _geom = new(
+    [
+        new Polygon(new LinearRing(
+        [
             new Coordinate(30, 20),
             new Coordinate(45, 40),
             new Coordinate(10, 40),
-            new Coordinate(30, 20)
-        })),
-        new Polygon(new LinearRing(new[]
-        {
+            new Coordinate(30, 20),
+        ])),
+        new Polygon(new LinearRing(
+        [
             new Coordinate(15, 5),
             new Coordinate(40, 10),
             new Coordinate(10, 20),
             new Coordinate(5, 15),
-            new Coordinate(15, 5)
-        }))
-    });
+            new Coordinate(15, 5),
+        ])),
+    ]);
 
     [Fact]
     public async Task MultiPolygon_Execution_Output()

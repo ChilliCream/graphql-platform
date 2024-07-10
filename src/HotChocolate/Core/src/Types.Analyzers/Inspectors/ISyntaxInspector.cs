@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types.Analyzers.Inspectors;
@@ -10,6 +12,11 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 public interface ISyntaxInspector
 {
     /// <summary>
+    /// Gets the filters that is used to determine in what kinds of syntax nodes the inspector is interested.
+    /// </summary>
+    IReadOnlyList<ISyntaxFilter> Filters { get; }
+
+    /// <summary>
     /// <para>
     /// Inspects the current syntax node and if the current inspector can handle
     /// the syntax will produce a syntax info.
@@ -18,5 +25,6 @@ public interface ISyntaxInspector
     /// </summary>
     bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo);
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo);
 }
+

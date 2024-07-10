@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -17,7 +16,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     private const string _useFiltering = "UseFiltering";
     private const string _useSorting = "UseSorting";
     
-    private readonly HashSet<string> _names = new();
+    private readonly HashSet<string> _names = [];
     
     public override void OnValidateType(
         ITypeSystemObjectContext validationContext,
@@ -32,8 +31,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                 {
                     ValidatePipeline(
                         validationContext.Type,
-                        new FieldCoordinate(validationContext.Type.Name, field.Name),
-                        field.SyntaxNode,
+                        new SchemaCoordinate(validationContext.Type.Name, field.Name),
                         field.MiddlewareDefinitions);
                 }
             }
@@ -42,8 +40,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
     private void ValidatePipeline(
         ITypeSystemObject type,
-        FieldCoordinate field,
-        ISyntaxNode? syntaxNode,
+        SchemaCoordinate fieldCoordinate,
         IList<FieldMiddlewareDefinition> middlewareDefinitions)
     {
         _names.Clear();
@@ -69,7 +66,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= new HashSet<string>()).Add(_useDbContext);
+                            (duplicates ??= []).Add(_useDbContext);
                         }
                         break;
 
@@ -82,7 +79,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                         
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= new HashSet<string>()).Add(_usePaging);
+                            (duplicates ??= []).Add(_usePaging);
                         }
                         
                         usePaging = true;
@@ -97,7 +94,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                         
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= new HashSet<string>()).Add(_useProjection);
+                            (duplicates ??= []).Add(_useProjection);
                         }
                         
                         useProjections = true;
@@ -106,7 +103,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.Filtering:
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= new HashSet<string>()).Add(_useFiltering);
+                            (duplicates ??= []).Add(_useFiltering);
                         }
                         useFiltering = true;
                         break;
@@ -114,7 +111,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                     case WellKnownMiddleware.Sorting:
                         if (!_names.Add(definition.Key))
                         {
-                            (duplicates ??= new HashSet<string>()).Add(_useSorting);
+                            (duplicates ??= []).Add(_useSorting);
                         }
                         useSorting = true;
                         break;
@@ -126,9 +123,8 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         {
             throw new SchemaException(
                 ErrorHelper.DuplicateDataMiddlewareDetected(
-                    field,
+                    fieldCoordinate,
                     type,
-                    syntaxNode,
                     duplicates));
         }
 
@@ -136,9 +132,8 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
         {
             throw new SchemaException(
                 ErrorHelper.MiddlewareOrderInvalid(
-                    field,
+                    fieldCoordinate,
                     type,
-                    syntaxNode,
                     PrintPipeline(middlewareDefinitions)));
         }
     }

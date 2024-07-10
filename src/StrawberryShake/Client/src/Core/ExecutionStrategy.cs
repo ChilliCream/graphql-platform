@@ -4,5 +4,5 @@ public enum ExecutionStrategy
 {
     CacheFirst,
     CacheAndNetwork,
-    NetworkOnly
+    NetworkOnly,
 }

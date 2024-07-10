@@ -30,7 +30,6 @@ public static class Scalars
         { typeof(Guid), typeof(UuidType) },
         { typeof(DateTime), typeof(DateTimeType) },
         { typeof(DateTimeOffset), typeof(DateTimeType) },
-        { typeof(MultiplierPathString), typeof(MultiplierPathType) },
         { typeof(byte[]), typeof(ByteArrayType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
 
@@ -60,13 +59,9 @@ public static class Scalars
         { ScalarNames.Date, typeof(DateType) },
         { ScalarNames.TimeSpan, typeof(TimeSpanType) },
         { ScalarNames.Any, typeof(AnyType) },
-
-        { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
+        
         { ScalarNames.ByteArray, typeof(ByteArrayType) },
-        { ScalarNames.JSON, typeof(JsonType) },
-
-        // legacy support
-        { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
+        { ScalarNames.JSON, typeof(JsonType) }
     };
 
     private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()
@@ -95,7 +90,7 @@ public static class Scalars
         { typeof(double?), ValueKind.Float },
         { typeof(decimal?), ValueKind.Float },
         { typeof(bool), ValueKind.Float },
-        { typeof(bool?), ValueKind.Float }
+        { typeof(bool?), ValueKind.Float },
     };
 
     internal static bool TryGetScalar(

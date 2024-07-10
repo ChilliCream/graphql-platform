@@ -12,7 +12,7 @@ public class TestChannel : IDisposable
     private readonly Func<NpgsqlConnection> _connectionFactory;
     private readonly object _lock = new();
 
-    public List<string> ReceivedMessages { get; } = new();
+    public List<string> ReceivedMessages { get; } = [];
 
     public TestChannel(Func<NpgsqlConnection> connectionFactory, string channelName)
     {

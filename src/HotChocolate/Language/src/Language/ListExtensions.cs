@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Language;
@@ -74,6 +73,22 @@ public static class ListExtensions
         {
             var lastIndex = list.Count - 1;
             return list[lastIndex];
+        }
+
+        return defaultValue;
+    }
+
+    public static TSearch? PeekOrDefault<T, TSearch>(this IList<T> list, TSearch? defaultValue = default)
+    {
+        if (list.Count > 0)
+        {
+            for (var i = list.Count - 1; i >= 0; i--)
+            {
+                if (list[i] is TSearch item)
+                {
+                    return item;
+                }
+            }
         }
 
         return defaultValue;

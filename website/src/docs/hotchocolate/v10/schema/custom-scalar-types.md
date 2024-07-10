@@ -73,7 +73,7 @@ This will ensure that the type inference works predictable and will by default i
 
 As I said before in most cases we do not need to do anything since Hot Chocolate has default bindings.
 
-# Any Type
+# Any Type
 
 The `Any` scalar is a special type that can be compared to `object` in c#. Any allows us to specify any literal or return any output type.
 

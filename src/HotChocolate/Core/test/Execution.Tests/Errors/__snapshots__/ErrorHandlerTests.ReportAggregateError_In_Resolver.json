@@ -1,0 +1,31 @@
+{
+  "errors": [
+    {
+      "message": "abc",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "foo"
+      ]
+    },
+    {
+      "message": "def",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "foo"
+      ]
+    }
+  ],
+  "data": {
+    "foo": "Hello"
+  }
+}

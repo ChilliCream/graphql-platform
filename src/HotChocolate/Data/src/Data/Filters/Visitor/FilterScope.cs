@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Data.Filters;
@@ -24,7 +23,7 @@ public class FilterScope<T>
 
     ///<summary>
     /// Contains a queue for each level of the AST. The queues contain all operations of a level
-    /// A new queue is neeeded when entering new <see cref="ObjectValueNode"/>
+    /// A new queue is needed when entering new <see cref="ObjectValueNode"/>
     ///</summary>
     public Stack<Queue<T>> Level { get; }
 

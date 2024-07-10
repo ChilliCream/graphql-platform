@@ -6,7 +6,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -129,7 +128,7 @@ public class UsePagingAttributeTests
             new
             {
                 ex.Errors[0].Message,
-                ex.Errors[0].Code
+                ex.Errors[0].Code,
             }.MatchSnapshot();
         }
     }
@@ -159,8 +158,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new Foo { Bar = "first", },
+                new Foo { Bar = "second", },
             }.AsQueryable();
         }
     }
@@ -171,8 +170,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new Foo { Bar = "first", },
+                new Foo { Bar = "second", },
             }.AsQueryable();
         }
     }
@@ -187,8 +186,8 @@ public class UsePagingAttributeTests
         {
             return new List<Foo>
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
+                new Foo { Bar = "first", },
+                new Foo { Bar = "second", },
             }.AsQueryable();
         }
 

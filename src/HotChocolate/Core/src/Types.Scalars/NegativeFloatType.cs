@@ -10,21 +10,22 @@ public class NegativeFloatType : FloatType
     /// <summary>
     /// Initializes a new instance of <see cref="NegativeFloatType"/>
     /// </summary>
-    public NegativeFloatType()
-        : this(
-            WellKnownScalarTypes.NegativeFloat,
-            ScalarResources.NegativeFloatType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of <see cref="NegativeFloatType"/>
-    /// </summary>
     public NegativeFloatType(
         string name,
         string? description = null,
         BindingBehavior bind = BindingBehavior.Explicit)
         : base(name, description, double.MinValue, 0, bind)
+    {
+    }
+    
+    /// <summary>
+    /// Initializes a new instance of <see cref="NegativeFloatType"/>
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public NegativeFloatType()
+        : this(
+            WellKnownScalarTypes.NegativeFloat,
+            ScalarResources.NegativeFloatType_Description)
     {
     }
 

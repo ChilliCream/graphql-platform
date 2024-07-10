@@ -1,4 +1,5 @@
-using System;
+#pragma warning disable RCS1102 // Make class static
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -748,6 +749,49 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
+    [Fact]
+    public async Task AddObjectTypeExtension1_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2>(
+                    d => d.ExtendsType<QueryType>().Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension2_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2, QueryType>(
+                    d => d.Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension3_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2>(
+                    "Query",
+                    d => d.Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -931,14 +975,14 @@ public class ObjectTypeExtensionTests
     public class BindResolver_With_Property_PersonResolvers
     {
         [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
-        public List<BindResolver_With_Property_PersonDto?> Friends() => new();
+        public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 
     [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
     public class BindResolver_With_Field_PersonResolvers
     {
         [BindFieldAttribute("friendId")]
-        public List<BindResolver_With_Property_PersonDto?> Friends() => new();
+        public List<BindResolver_With_Property_PersonDto?> Friends() => [];
     }
 
     public class Remove_Properties_Globally_PersonDto
@@ -950,7 +994,7 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Properties_Globally_PersonDto),
-        IgnoreProperties = new[] { nameof(Remove_Properties_Globally_PersonDto.InternalId) })]
+        IgnoreProperties = [nameof(Remove_Properties_Globally_PersonDto.InternalId),])]
     public class Remove_Properties_Globally_PersonResolvers
     {
     }
@@ -964,7 +1008,7 @@ public class ObjectTypeExtensionTests
 
     [ExtendObjectType(
         typeof(Remove_Fields_Globally_PersonDto),
-        IgnoreProperties = new[] { "internalId" })]
+        IgnoreProperties = ["internalId",])]
     public class Remove_Fields_Globally_PersonResolvers
     {
     }
@@ -1146,4 +1190,11 @@ public class ObjectTypeExtensionTests
     {
         public string Bar() => "baz";
     }
+
+    public class QueryExtensions2
+    {
+        public int AddedField { get; set; }
+    }
 }
+
+#pragma warning restore RCS1102 // Make class static

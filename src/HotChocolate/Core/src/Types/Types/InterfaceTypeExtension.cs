@@ -53,7 +53,7 @@ public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefini
     /// Returns the newly created interface type extension.
     /// </returns>
     public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Interface;

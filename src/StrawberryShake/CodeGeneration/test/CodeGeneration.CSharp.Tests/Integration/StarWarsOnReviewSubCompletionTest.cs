@@ -4,7 +4,6 @@ using System.Reflection;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Transport.WebSockets.Protocols;
@@ -53,7 +52,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary" });
+                    new Review { Stars = 1, Commentary = "Commentary", });
                 await Task.Delay(1_000);
             }
 
@@ -112,7 +111,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubC
             {
                 await topicEventSender.SendAsync(
                     $"{OnReview}_{topic}",
-                    new Review { Stars = 1, Commentary = "Commentary" });
+                    new Review { Stars = 1, Commentary = "Commentary", });
                 await Task.Delay(1_000);
             }
 

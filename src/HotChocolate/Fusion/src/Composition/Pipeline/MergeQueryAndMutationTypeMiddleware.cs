@@ -26,17 +26,16 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
                 if (context.FusionGraph.QueryType is null)
                 {
-                    targetType = context.FusionGraph.QueryType = new ObjectType(schema.QueryType.Name);
+                    targetType = context.FusionGraph.QueryType = new ObjectTypeDefinition(schema.QueryType.Name);
                     targetType.MergeDescriptionWith(schema.QueryType);
-                    context.FusionGraph.Types.Add(targetType);
                 }
 
                 MergeRootFields(
-                    context, 
-                    schema, 
-                    schema.QueryType, 
-                    targetType, 
-                    OperationType.Query, 
+                    context,
+                    schema,
+                    schema.QueryType,
+                    targetType,
+                    OperationType.Query,
                     skipOnQuery);
             }
 
@@ -46,7 +45,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
                 if (context.FusionGraph.MutationType is null)
                 {
-                    targetType = context.FusionGraph.MutationType = new ObjectType(schema.MutationType.Name);
+                    targetType = context.FusionGraph.MutationType = new ObjectTypeDefinition(schema.MutationType.Name);
                     targetType.MergeDescriptionWith(schema.MutationType);
                     context.FusionGraph.Types.Add(targetType);
                 }
@@ -69,9 +68,9 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
 
     private static void MergeRootFields(
         CompositionContext context,
-        Schema sourceSchema,
-        ObjectType sourceRootType,
-        ObjectType targetRootType,
+        SchemaDefinition sourceSchema,
+        ObjectTypeDefinition sourceRootType,
+        ObjectTypeDefinition targetRootType,
         OperationType operationType,
         HashSet<string> skip)
     {
@@ -89,6 +88,11 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
         foreach (var field in sourceRootType.Fields)
         {
             if (skip.Contains(field.Name))
+            {
+                continue;
+            }
+
+            if (field.ContainsInternalDirective())
             {
                 continue;
             }
@@ -114,7 +118,7 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 arguments,
                 null);
 
-            var selectionSet = new SelectionSetNode(new[] { selection });
+            var selectionSet = new SelectionSetNode([selection]);
 
             foreach (var arg in field.Arguments)
             {
@@ -131,7 +135,7 @@ file static class MergeQueryTypeMiddlewareExtensions
 {
     public static void ApplyResolvers(
         this CompositionContext context,
-        OutputField field,
+        OutputFieldDefinition field,
         SelectionSetNode selectionSet,
         string subgraphName)
     {
@@ -153,8 +157,8 @@ file static class MergeQueryTypeMiddlewareExtensions
 
     public static void ApplyVariable(
         this CompositionContext context,
-        OutputField field,
-        InputField argument,
+        OutputFieldDefinition field,
+        InputFieldDefinition argument,
         string subgraphName)
     {
         field.Directives.Add(

@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public class OutputFieldDefinitionBase
-    : FieldDefinitionBase<FieldDefinitionNode>
-    , ICanBeDeprecated
+public class OutputFieldDefinitionBase : FieldDefinitionBase, ICanBeDeprecated
 {
     private List<ArgumentDefinition>? _arguments;
 
     public IList<ArgumentDefinition> Arguments
-        => _arguments ??= new List<ArgumentDefinition>();
+        => _arguments ??= [];
 
     /// <summary>
     /// Specifies if this field has any arguments.
@@ -37,7 +34,7 @@ public class OutputFieldDefinitionBase
 
         if (_arguments?.Count > 0)
         {
-            target._arguments = new List<ArgumentDefinition>();
+            target._arguments = [];
 
             foreach (var argument in _arguments)
             {
@@ -54,9 +51,9 @@ public class OutputFieldDefinitionBase
     {
         base.MergeInto(target);
 
-        if (_arguments is { Count: > 0 })
+        if (_arguments is { Count: > 0, })
         {
-            target._arguments ??= new List<ArgumentDefinition>();
+            target._arguments ??= [];
 
             foreach (var argument in _arguments)
             {

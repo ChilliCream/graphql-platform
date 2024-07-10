@@ -6,5 +6,5 @@ namespace HotChocolate.Data.Filters;
 public enum FilterCombinator
 {
     And,
-    Or
+    Or,
 }

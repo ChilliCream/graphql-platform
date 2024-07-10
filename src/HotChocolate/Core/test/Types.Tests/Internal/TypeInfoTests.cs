@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using Xunit;
 
 namespace HotChocolate.Internal;
 
@@ -619,5 +618,5 @@ public class TypeInfoTests
 
 #nullable disable
 
-    public class Foo { }
+    public class Foo;
 }

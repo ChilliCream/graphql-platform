@@ -1,4 +1,3 @@
-using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Validation;

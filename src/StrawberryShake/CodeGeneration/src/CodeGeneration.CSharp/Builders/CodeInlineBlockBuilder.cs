@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class CodeInlineBlockBuilder : ICode
 {
-    private readonly List<ICode> _lineParts = new();
+    private readonly List<ICode> _lineParts = [];
 
     public static CodeInlineBlockBuilder New() => new();
 

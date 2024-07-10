@@ -28,7 +28,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            MaxDirectivesPerLine = 0,
         };
 
     private readonly Package _package;
@@ -525,7 +525,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         PackagePart schemaPart,
         CancellationToken ct)
     {
-        var options = new JsonDocumentOptions { MaxDepth = 16, CommentHandling = JsonCommentHandling.Skip };
+        var options = new JsonDocumentOptions { MaxDepth = 16, CommentHandling = JsonCommentHandling.Skip, };
         await using var stream = schemaPart.GetStream(FileMode.Open, FileAccess.Read);
         return await JsonDocument.ParseAsync(stream, options, ct);
     }
@@ -540,7 +540,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         var uri = PackUriHelper.CreatePartUri(new Uri(fileName, UriKind.Relative));
         var part = _package.CreatePart(uri, JsonMediaType);
 
-        var options = new JsonWriterOptions { Indented = true, MaxDepth = 16 };
+        var options = new JsonWriterOptions { Indented = true, MaxDepth = 16, };
         await using var stream = part.GetStream(FileMode.Create);
         await using var writer = new Utf8JsonWriter(stream, options);
         document.WriteTo(writer);

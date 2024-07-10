@@ -9,5 +9,5 @@ public enum OutputModelKind
     Interface = 1,
     Fragment = 2,
     FragmentInterface = Fragment | Interface,
-    FragmentObject = Fragment | Object
+    FragmentObject = Fragment | Object,
 }

@@ -16,8 +16,8 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
     private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
     private readonly Dictionary<string, List<IConfigureRequestExecutorSetup>> _configs =
         new();
-    private readonly List<IDisposable> _disposables = new();
-    private readonly List<Action<string>> _listeners = new();
+    private readonly List<IDisposable> _disposables = [];
+    private readonly List<Action<string>> _listeners = [];
     private bool _initialized;
     private bool _disposed;
 
@@ -73,7 +73,7 @@ internal sealed class DefaultRequestExecutorOptionsMonitor
                             configuration.SchemaName,
                             out var configurations))
                         {
-                            configurations = new List<IConfigureRequestExecutorSetup>();
+                            configurations = [];
                             _configs.Add(configuration.SchemaName, configurations);
                         }
 

@@ -8,9 +8,6 @@ public interface IDirectiveArgumentDescriptor
     : IDescriptor<DirectiveArgumentDefinition>
     , IFluent
 {
-    /// <inheritdoc cref="IArgumentDescriptor.SyntaxNode(InputValueDefinitionNode)"/>
-    IDirectiveArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
-
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated(string)"/>
     IDirectiveArgumentDescriptor  Deprecated(string reason);
 

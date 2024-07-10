@@ -11,7 +11,7 @@ public sealed class SocketMessageWriter
     : RequestWriter,
         IAsyncDisposable
 {
-    private static readonly JsonWriterOptions _options = new() { SkipValidation = true };
+    private static readonly JsonWriterOptions _options = new() { SkipValidation = true, };
 
     /// <summary>
     /// The underlying json writer

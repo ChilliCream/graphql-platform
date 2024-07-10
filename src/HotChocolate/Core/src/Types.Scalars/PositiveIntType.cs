@@ -11,21 +11,22 @@ public class PositiveIntType : IntType
     /// <summary>
     /// Initializes a new instance of the <see cref="PositiveIntType"/> class.
     /// </summary>
-    public PositiveIntType()
-        : this(
-            WellKnownScalarTypes.PositiveInt,
-            ScalarResources.PositiveIntType_Description)
+    public PositiveIntType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, description, min: 1, bind: bind)
     {
     }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PositiveIntType"/> class.
     /// </summary>
-    public PositiveIntType(
-        string name,
-        string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
-        : base(name, description, min: 1, bind: bind)
+    [ActivatorUtilitiesConstructor]
+    public PositiveIntType()
+        : this(
+            WellKnownScalarTypes.PositiveInt,
+            ScalarResources.PositiveIntType_Description)
     {
     }
 

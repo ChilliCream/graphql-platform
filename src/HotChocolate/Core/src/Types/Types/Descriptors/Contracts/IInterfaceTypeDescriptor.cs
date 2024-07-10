@@ -9,17 +9,6 @@ public interface IInterfaceTypeDescriptor
     , IFluent
 {
     /// <summary>
-    /// Associates the specified
-    /// <paramref name="interfaceTypeDefinition"/>
-    /// with the <see cref="InterfaceType"/>.
-    /// </summary>
-    /// <param name="interfaceTypeDefinition">
-    /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
-    /// </param>
-    IInterfaceTypeDescriptor SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition);
-
-    /// <summary>
     /// Defines the name of the <see cref="InterfaceType"/>.
     /// </summary>
     /// <param name="value">The interface type name.</param>

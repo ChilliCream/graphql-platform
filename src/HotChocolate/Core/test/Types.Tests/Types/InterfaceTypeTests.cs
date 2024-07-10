@@ -10,7 +10,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -533,7 +532,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         SchemaBuilder.New()
             .AddQueryType<PetQuery>()
-            .AddType<Canina>()
+            .AddType<Canine>()
             .AddType<Dog>()
             .Create()
             .Print()
@@ -740,7 +739,7 @@ public class InterfaceTypeTests : TypeTestBase
                 .Name("Query")
                 .Field("foo")
                 .Type<InterfaceType<IFooNaming>>()
-                .Resolve(() => null))
+                .Resolve(() => null!))
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
@@ -756,7 +755,7 @@ public class InterfaceTypeTests : TypeTestBase
                 .Name("Query")
                 .Field("foo")
                 .Type<InterfaceType<IFooNaming>>()
-                .Resolve(() => null))
+                .Resolve(() => null!))
             .AddResolver("Foo", "bar", x => 1)
             .ModifyOptions(o => o.StrictValidation = false)
             .ModifyOptions(o => o.StripLeadingIFromInterface = true)
@@ -835,7 +834,7 @@ public class InterfaceTypeTests : TypeTestBase
     {
         public string Hello => "World!";
 
-        public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple() };
+        public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple(), };
     }
 
     [InterfaceType]
@@ -878,7 +877,7 @@ public class InterfaceTypeTests : TypeTestBase
 
     public class PetQuery
     {
-        public Pet GetDog() => new Dog { Name = "Foo" };
+        public Pet GetDog() => new Dog { Name = "Foo", };
     }
 
     [InterfaceType(Inherited = true)]
@@ -887,12 +886,12 @@ public class InterfaceTypeTests : TypeTestBase
         public string Name { get; set; }
     }
 
-    public class Canina : Pet
+    public class Canine : Pet
     {
     }
 
     [ObjectType]
-    public class Dog : Canina
+    public class Dog : Canine
     {
     }
 }

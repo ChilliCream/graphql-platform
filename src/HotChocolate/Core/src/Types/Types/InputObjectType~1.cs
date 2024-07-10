@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 
 #nullable enable
 
@@ -12,14 +11,15 @@ public class InputObjectType<T> : InputObjectType
 {
     private Action<IInputObjectTypeDescriptor<T>>? _configure;
 
-    public InputObjectType()
-    {
-        _configure = Configure;
-    }
-
     public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
     {
         _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public InputObjectType()
+    {
+        _configure = Configure;
     }
 
     protected override InputObjectTypeDefinition CreateDefinition(

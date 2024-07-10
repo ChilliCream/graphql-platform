@@ -7,7 +7,7 @@ using IO = System.IO;
 
 namespace HotChocolate.AzureFunctions.IsolatedProcess.Tests.Helpers;
 
-public class TestHttpRequestDataHelper
+public static class TestHttpRequestDataHelper
 {
     public static HttpRequestData NewGraphQLHttpRequestData(
         IServiceProvider serviceProvider,

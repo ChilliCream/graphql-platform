@@ -1,6 +1,10 @@
+using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.AspNetCore.Tests.Utilities.TestServerExtensions;
 
 namespace HotChocolate.Transport.Http.Tests;
@@ -20,10 +24,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query { 
-              hero(episode: JEDI) { 
-                name 
-              } 
+            query {
+              hero(episode: JEDI) {
+                name
+              }
             }
             """;
 
@@ -36,11 +40,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
-    
+
     [Fact]
     public async Task Post_GraphQL_Query_With_RequestUriString()
     {
@@ -51,10 +54,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query { 
-              hero(episode: JEDI) { 
-                name 
-              } 
+            query {
+              hero(episode: JEDI) {
+                name
+              }
             }
             """;
 
@@ -67,8 +70,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -83,10 +85,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query { 
-              hero(episode: JEDI) { 
-                name 
-              } 
+            query {
+              hero(episode: JEDI) {
+                name
+              }
             }
             """;
 
@@ -99,8 +101,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -115,16 +116,16 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query($episode: Episode!) { 
+            query($episode: Episode!) {
               hero(episode: $episode) {
-                name 
-              } 
+                name
+              }
             }
             """;
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI"
+            ["episode"] = "JEDI",
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -136,11 +137,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
-    
+
     [Fact]
     public async Task Post_GraphQL_Query_With_Variables_With_RequestUriString()
     {
@@ -152,16 +152,16 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query($episode: Episode!) { 
+            query($episode: Episode!) {
               hero(episode: $episode) {
-                name 
-              } 
+                name
+              }
             }
             """;
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI"
+            ["episode"] = "JEDI",
         };
 
         var requestUri = CreateUrl("/graphql");
@@ -173,11 +173,46 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
-    
+
+    [Fact]
+    public async Task Post_GraphQL_Query_With_JsonElement_Variable()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        using var testServer = CreateStarWarsServer();
+        var httpClient = testServer.CreateClient();
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        var query =
+            """
+            query($traits: JSON!) {
+              heroByTraits(traits: $traits) {
+                name
+              }
+            }
+            """;
+
+        var variables = new Dictionary<string, object?>
+        {
+            ["traits"] = JsonSerializer.SerializeToElement(new { lastJedi = true, }),
+        };
+
+        var requestUri = CreateUrl("/graphql");
+
+        // act
+        var response = await client.PostAsync(query, variables, requestUri, cts.Token);
+
+        // assert
+        using var body = await response.ReadAsResultAsync(cts.Token);
+        body.MatchInlineSnapshot(
+            """
+            Data: {"heroByTraits":{"name":"Luke Skywalker"}}
+            """);
+    }
+
     [Fact]
     public async Task Post_GraphQL_Query_With_Variables_With_BaseAddress()
     {
@@ -190,16 +225,16 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query($episode: Episode!) { 
+            query($episode: Episode!) {
               hero(episode: $episode) {
-                name 
-              } 
+                name
+              }
             }
             """;
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI"
+            ["episode"] = "JEDI",
         };
 
         // act
@@ -209,8 +244,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -225,21 +259,21 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var operation = new OperationRequest(
             """
-            query A($episode: Episode!) { 
+            query A($episode: Episode!) {
               hero(episode: $episode) {
-                A: name 
-              } 
+                A: name
+              }
             }
 
-            query B($episode: Episode!) { 
+            query B($episode: Episode!) {
               hero(episode: $episode) {
-                B: name 
-              } 
+                B: name
+              }
             }
             """,
             variables: new Dictionary<string, object?>
             {
-                ["episode"] = "JEDI"
+                ["episode"] = "JEDI",
             },
             operationName: "B");
 
@@ -252,11 +286,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"B":"R2-D2"}}
+            Data: {"hero":{"B":"R2-D2"}}
             """);
     }
-    
+
     [Fact]
     public async Task Get_GraphQL_Query_With_RequestUri()
     {
@@ -267,10 +300,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query { 
-              hero(episode: JEDI) { 
-                name 
-              } 
+            query {
+              hero(episode: JEDI) {
+                name
+              }
             }
             """;
 
@@ -283,8 +316,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -298,10 +330,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query { 
-              hero(episode: JEDI) { 
-                name 
-              } 
+            query {
+              hero(episode: JEDI) {
+                name
+              }
             }
             """;
 
@@ -314,8 +346,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -330,10 +361,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query { 
-              hero(episode: JEDI) { 
-                name 
-              } 
+            query {
+              hero(episode: JEDI) {
+                name
+              }
             }
             """;
 
@@ -346,8 +377,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -362,16 +392,16 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query($episode: Episode!) { 
+            query($episode: Episode!) {
               hero(episode: $episode) {
-                name 
-              } 
+                name
+              }
             }
             """;
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI"
+            ["episode"] = "JEDI",
         };
 
         var requestUri = new Uri(CreateUrl("/graphql"));
@@ -383,11 +413,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
-    
+
     [Fact]
     public async Task Get_GraphQL_Query_With_Variables_With_RequestUriString()
     {
@@ -399,16 +428,16 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query($episode: Episode!) { 
+            query($episode: Episode!) {
               hero(episode: $episode) {
-                name 
-              } 
+                name
+              }
             }
             """;
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI"
+            ["episode"] = "JEDI",
         };
 
         var requestUri = CreateUrl("/graphql");
@@ -420,11 +449,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
-    
+
     [Fact]
     public async Task Get_GraphQL_Query_With_Variables_With_BaseAddress()
     {
@@ -437,16 +465,16 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var query =
             """
-            query($episode: Episode!) { 
+            query($episode: Episode!) {
               hero(episode: $episode) {
-                name 
-              } 
+                name
+              }
             }
             """;
 
         var variables = new Dictionary<string, object?>
         {
-            ["episode"] = "JEDI"
+            ["episode"] = "JEDI",
         };
 
         // act
@@ -456,8 +484,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"name":"R2-D2"}}
+            Data: {"hero":{"name":"R2-D2"}}
             """);
     }
 
@@ -472,21 +499,21 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var operation = new OperationRequest(
             """
-            query A($episode: Episode!) { 
+            query A($episode: Episode!) {
               hero(episode: $episode) {
-                A: name 
-              } 
+                A: name
+              }
             }
 
-            query B($episode: Episode!) { 
+            query B($episode: Episode!) {
               hero(episode: $episode) {
-                B: name 
-              } 
+                B: name
+              }
             }
             """,
             variables: new Dictionary<string, object?>
             {
-                ["episode"] = "JEDI"
+                ["episode"] = "JEDI",
             },
             operationName: "B");
 
@@ -499,8 +526,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"hero":{"B":"R2-D2"}}
+            Data: {"hero":{"B":"R2-D2"}}
             """);
     }
 
@@ -515,10 +541,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var subscriptionRequest =
             """
-            subscription { 
-              onReview(episode: JEDI) { 
-                stars 
-              } 
+            subscription {
+              onReview(episode: JEDI) {
+                stars
+              }
             }
             """;
 
@@ -538,8 +564,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["review"] = new Dictionary<string, object?>
                 {
                     ["stars"] = 5,
-                    ["commentary"] = "This is a great movie!"
-                }
+                    ["commentary"] = "This is a great movie!",
+                },
             });
 
         var client = new DefaultGraphQLHttpClient(httpClient);
@@ -555,13 +581,12 @@ public class GraphQLHttpClientTests : ServerTestBase
         {
             result.MatchInlineSnapshot(
                 """
-                Data:
-                {"onReview":{"stars":5}}
+                Data: {"onReview":{"stars":5}}
                 """);
             cts.Cancel();
         }
     }
-    
+
     [Fact]
     public async Task Get_Subscription_Over_SSE()
     {
@@ -573,10 +598,10 @@ public class GraphQLHttpClientTests : ServerTestBase
 
         var subscriptionRequest =
             """
-            subscription { 
-              onReview(episode: JEDI) { 
-                stars 
-              } 
+            subscription {
+              onReview(episode: JEDI) {
+                stars
+              }
             }
             """;
 
@@ -596,8 +621,8 @@ public class GraphQLHttpClientTests : ServerTestBase
                 ["review"] = new Dictionary<string, object?>
                 {
                     ["stars"] = 5,
-                    ["commentary"] = "This is a great movie!"
-                }
+                    ["commentary"] = "This is a great movie!",
+                },
             });
 
         var client = new DefaultGraphQLHttpClient(httpClient);
@@ -613,13 +638,61 @@ public class GraphQLHttpClientTests : ServerTestBase
         {
             result.MatchInlineSnapshot(
                 """
-                Data:
-                {"onReview":{"stars":5}}
+                Data: {"onReview":{"stars":5}}
                 """);
             cts.Cancel();
         }
     }
-    
+
+    [Fact]
+    public async Task Get_Subscription_Over_SSE_With_Errors()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        using var cts = TestEnvironment.CreateCancellationTokenSource();
+        using var server = ServerFactory.Create(
+            services => services
+                .AddRouting()
+                .AddHttpResponseFormatter()
+                .AddGraphQLServer()
+                .AddQueryType(desc =>
+                {
+                    desc.Name("Query");
+
+                    desc.Field("foo")
+                        .Type<StringType>()
+                        .Resolve(_ => new ValueTask<object?>("bar"));
+                })
+                .AddSubscriptionType<ErrorSubscription>(),
+            app => app
+                .UseRouting()
+                .UseEndpoints(e => e.MapGraphQL()));
+
+        var httpClient = server.CreateClient();
+        httpClient.BaseAddress = new Uri(CreateUrl("/graphql"));
+
+        const string subscriptionRequest =
+            """
+            subscription {
+              onError
+            }
+            """;
+
+        var client = new DefaultGraphQLHttpClient(httpClient);
+
+        // act
+        var subscriptionResponse = await client.PostAsync(subscriptionRequest, cts.Token);
+
+        // assert
+        await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
+        {
+            snapshot.Add(result);
+        }
+
+        await snapshot.MatchMarkdownAsync(cts.Token);
+    }
+
     [Fact]
     public async Task Post_GraphQL_FileUpload()
     {
@@ -639,7 +712,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             """,
             variables: new Dictionary<string, object?>
             {
-                ["upload"] = new FileReference(() => stream, "test.txt")
+                ["upload"] = new FileReference(() => stream, "test.txt"),
             });
 
         var requestUri = new Uri(CreateUrl("/upload"));
@@ -648,7 +721,6 @@ public class GraphQLHttpClientTests : ServerTestBase
         {
             Method = GraphQLHttpMethod.Post,
             EnableFileUploads = true,
-            OnMessageCreated = (_, m) => m.Headers.AddGraphQLPreflight()
         };
 
         // act
@@ -658,11 +730,10 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"singleUpload":"abc"}
+            Data: {"singleUpload":"abc"}
             """);
     }
-    
+
     [Fact]
     public async Task Post_GraphQL_FileUpload_With_ObjectValueNode()
     {
@@ -684,7 +755,7 @@ public class GraphQLHttpClientTests : ServerTestBase
             null,
             variables: new ObjectValueNode(
                 new ObjectFieldNode(
-                    "upload", 
+                    "upload",
                     new FileReferenceNode(() => stream, "test.txt"))),
             extensions: null);
 
@@ -694,7 +765,6 @@ public class GraphQLHttpClientTests : ServerTestBase
         {
             Method = GraphQLHttpMethod.Post,
             EnableFileUploads = true,
-            OnMessageCreated = (_, m) => m.Headers.AddGraphQLPreflight()
         };
 
         // act
@@ -704,8 +774,25 @@ public class GraphQLHttpClientTests : ServerTestBase
         using var body = await response.ReadAsResultAsync(cts.Token);
         body.MatchInlineSnapshot(
             """
-            Data:
-            {"singleUpload":"abc"}
+            Data: {"singleUpload":"abc"}
             """);
+    }
+
+    public class ErrorSubscription
+    {
+        public async IAsyncEnumerable<string> CreateStream()
+        {
+            yield return "hello1";
+
+            yield return "hello2";
+
+            await Task.Delay(1000);
+
+            throw new Exception("Boom!");
+        }
+
+        [Subscribe(With = nameof(CreateStream))]
+        public string OnError([EventMessage] string message)
+            => message;
     }
 }

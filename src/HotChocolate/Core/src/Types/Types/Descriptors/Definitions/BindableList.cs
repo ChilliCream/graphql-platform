@@ -24,13 +24,13 @@ public sealed class BindableList<T> : IBindableList<T>
 
     public void Add(T item)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.Add(item);
     }
 
     public void AddRange(IEnumerable<T> items)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.AddRange(items);
     }
 
@@ -75,7 +75,7 @@ public sealed class BindableList<T> : IBindableList<T>
 
     public void Insert(int index, T item)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.Insert(index, item);
     }
 
@@ -93,7 +93,7 @@ public sealed class BindableList<T> : IBindableList<T>
 
         set
         {
-            _list ??= new List<T>();
+            _list ??= [];
             _list[index] = value;
         }
     }

@@ -149,7 +149,7 @@ public class QueryType
                     ? (bool)d
                     : ctx.Argument<bool>("descending");
 
-                // set the curosr sorting property.
+                // set the cursor sorting property.
                 cursorProperties["descending"] = descending;
 
                 IEnumerable<string> strings = ctx.Parent<Query>().Strings;

@@ -41,6 +41,8 @@ public class EnumTypeDescriptor
     protected override void OnCreateDefinition(
         EnumTypeDefinition definition)
     {
+        Context.Descriptors.Push(this);
+        
         if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
         {
             Context.TypeInspector.ApplyAttributes(
@@ -61,6 +63,8 @@ public class EnumTypeDescriptor
         }
 
         base.OnCreateDefinition(definition);
+        
+        Context.Descriptors.Pop();
     }
 
     protected void AddImplicitValues(
@@ -82,13 +86,6 @@ public class EnumTypeDescriptor
                 }
             }
         }
-    }
-
-    public IEnumTypeDescriptor SyntaxNode(
-        EnumTypeDefinitionNode enumTypeDefinition)
-    {
-        Definition.SyntaxNode = enumTypeDefinition;
-        return this;
     }
 
     public IEnumTypeDescriptor Name(string value)

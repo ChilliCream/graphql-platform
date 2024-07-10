@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
@@ -53,7 +51,7 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
                         Expression.Call(
                             typeof(Enumerable),
                             nameof(Enumerable.Where),
-                            new[] { filterInputType.EntityType.Source },
+                            [filterInputType.EntityType.Source,],
                             instance,
                             expression));
                 }

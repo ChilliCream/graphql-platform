@@ -17,6 +17,7 @@ public class CacheControlDirectiveTypeTests
                 .Field("field")
                 .Type<StringType>())
             .AddDirectiveType<CacheControlDirectiveType>()
+            .ModifyOptions(o => o.RemoveUnusedTypeSystemDirectives = false)
             .Use(_ => _)
             .Create();
         var directive =

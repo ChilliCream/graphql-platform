@@ -27,27 +27,8 @@
       "variable": "booleanList",
       "variableType": "[Boolean]",
       "locationType": "[Boolean]!",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-All-Variable-Usages-are-Allowed"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Variable",
-      "Location": {
-        "Start": 171,
-        "End": 184,
-        "Line": 4,
-        "Column": 72
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 172,
-          "End": 184,
-          "Line": 4,
-          "Column": 73
-        },
-        "Value": "booleanList"
-      }
-    }
+    "Exception": null
   }
 ]

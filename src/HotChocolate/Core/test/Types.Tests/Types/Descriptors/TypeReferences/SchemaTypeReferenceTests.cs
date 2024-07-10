@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
 // ReSharper disable once CheckNamespace

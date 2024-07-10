@@ -1,4 +1,7 @@
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
@@ -29,6 +32,8 @@ public partial class Schema
         var descriptor = SchemaTypeDescriptor.New(context.DescriptorContext, GetType());
 
         _configure(descriptor);
+
+        context.DescriptorContext.ApplySchemaConfigurations(descriptor);
 
         return descriptor.CreateDefinition();
     }
@@ -74,10 +79,7 @@ public partial class Schema
     {
         base.OnCompleteType(context, definition);
 
-        Directives = DirectiveCollection.CreateAndComplete(
-            context,
-            this,
-            definition.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
         Services = context.Services;
     }
 
@@ -102,7 +104,11 @@ public partial class Schema
 
         DirectiveTypes = schemaTypesDefinition.DirectiveTypes;
         _types = new SchemaTypes(schemaTypesDefinition);
-        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name);
+#if NET8_0_OR_GREATER
+        _directiveTypes = DirectiveTypes.ToFrozenDictionary(t => t.Name, StringComparer.Ordinal);
+#else
+        _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name, StringComparer.Ordinal);
+#endif
         _sealed = true;
     }
 }

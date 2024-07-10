@@ -1,4 +1,3 @@
-using System;
 using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial;

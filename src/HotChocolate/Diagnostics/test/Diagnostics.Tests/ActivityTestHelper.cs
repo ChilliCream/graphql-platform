@@ -56,7 +56,7 @@ public static class ActivityTestHelper
     {
         if (!(parent.TryGetValue("activities", out var value) && value is List<object> children))
         {
-            children = new List<object>();
+            children = [];
             parent["activities"] = children;
         }
 
@@ -79,7 +79,7 @@ public static class ActivityTestHelper
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
         data["tags"] = activity.Tags;
-        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
+        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags, });
     }
 
     private sealed class Session : IDisposable

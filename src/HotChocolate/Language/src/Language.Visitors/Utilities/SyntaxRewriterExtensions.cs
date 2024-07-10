@@ -2,20 +2,16 @@ namespace HotChocolate.Language.Visitors;
 
 public static class SyntaxRewriterExtensions
 {
-    private static readonly EmptySyntaxVisitorContext _empty = new();
+    private static readonly object? _empty = new();
 
     public static ISyntaxNode? Rewrite(
-        this ISyntaxRewriter<ISyntaxVisitorContext> rewriter,
+        this ISyntaxRewriter<object?> rewriter,
         ISyntaxNode node)
         => rewriter.Rewrite(node, _empty);
 
     public static T? Rewrite<T>(
-        this ISyntaxRewriter<ISyntaxVisitorContext> rewriter,
+        this ISyntaxRewriter<object?> rewriter,
         T node)
         where T : ISyntaxNode
         => (T?)rewriter.Rewrite(node, _empty);
-
-    private sealed class EmptySyntaxVisitorContext : ISyntaxVisitorContext
-    {
-    }
 }

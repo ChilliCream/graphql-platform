@@ -11,7 +11,7 @@ internal static class ContextDataExtensions
             return list;
         }
 
-        list = new List<MutationContextData>();
+        list = [];
         contextData[MutationContextDataKeys.Fields] = list;
         return list;
     }

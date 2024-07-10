@@ -22,10 +22,7 @@
   <data name="ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded" xml:space="preserve">
     <value>Could not load the type inspector while building type {0}</value>
   </data>
-  <data name="ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError" xml:space="preserve">
-    <value>Error while building type {0}. The runtime type {1} does not defined a property `Message`</value>
-  </data>
-  <data name="ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch" xml:space="preserve">
+  <data name="ThrowHelper_InputMiddleware_ArgumentTypeNameMismatch" xml:space="preserve">
     <value>Could not find a unique type name for input type of the argument {0} on field {1}. The type name {2} collides with {3}.
 Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "{2}")` on type {4} for naming collisions.</value>
   </data>
@@ -41,7 +38,7 @@ Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "
   <data name="ThrowHelper_MutationPayloadMustBeObject" xml:space="preserve">
     <value>The mutation payload type `{0}` must be an object type.</value>
   </data>
-  <data name="ThrowHelper_MutationConvDirective_In_Wrong_Location" xml:space="preserve">
+  <data name="ThrowHelper_MutationConventionDirective_In_Wrong_Location" xml:space="preserve">
     <value>The schema building directive `@mutation` can only be applied on object fields.</value>
   </data>
   <data name="ThrowHelper_DirectiveArgument_Unexpected_Value" xml:space="preserve">

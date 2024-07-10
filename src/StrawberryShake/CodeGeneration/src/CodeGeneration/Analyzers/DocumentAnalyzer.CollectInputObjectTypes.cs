@@ -80,7 +80,7 @@ public partial class DocumentAnalyzer
             detected = false;
             foreach (var namedInputType in analyzer.InputTypes)
             {
-                if (namedInputType is not INamedType { Name: { } typeName } ||
+                if (namedInputType is not INamedType { Name: { } typeName, } ||
                     namesOfInputTypesWithUploadScalar.Contains(typeName))
                 {
                     continue;
@@ -98,7 +98,7 @@ public partial class DocumentAnalyzer
                         }
                     }
                 }
-                else if (namedInputType is ScalarType { Name: "Upload" })
+                else if (namedInputType is ScalarType { Name: "Upload", })
                 {
                     detected = true;
                     namesOfInputTypesWithUploadScalar.Add("Upload");

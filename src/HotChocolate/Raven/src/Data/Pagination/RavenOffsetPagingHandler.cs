@@ -31,7 +31,7 @@ internal sealed class RavenOffsetPagingHandler<TEntity> : OffsetPagingHandler
             RavenAsyncDocumentQueryExecutable<TEntity> e => e.Query,
             IRavenQueryable<TEntity> e => e.ToAsyncDocumentQuery(),
             IAsyncDocumentQuery<TEntity> f => f,
-            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
+            _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType()),
         });
     }
 }

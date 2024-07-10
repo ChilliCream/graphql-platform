@@ -34,7 +34,6 @@ public class IntegrationTests : ServerTestBase
         serviceCollection
             .AddGraphQLServer()
             .AddStarWarsTypes()
-            .AddExportDirectiveType()
             .AddStarWarsRepositories()
             .AddInMemorySubscriptions();
 
@@ -44,7 +43,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<JsonDocument> results = new();
+        List<JsonDocument> results = [];
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -52,8 +51,7 @@ public class IntegrationTests : ServerTestBase
             .GetRequiredService<IInMemoryClientFactory>();
 
         // act
-        var connection =
-            new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
+        var connection = new InMemoryConnection(async abort => await factory.CreateAsync("Foo", abort));
 
         await foreach (var response in
             connection.ExecuteAsync(request).WithCancellation(ct))
@@ -78,7 +76,6 @@ public class IntegrationTests : ServerTestBase
         serviceCollection
             .AddGraphQLServer("Foo")
             .AddStarWarsTypes()
-            .AddExportDirectiveType()
             .AddStarWarsRepositories()
             .AddInMemorySubscriptions();
 
@@ -90,7 +87,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<JsonDocument> results = new();
+        List<JsonDocument> results = [];
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -125,7 +122,6 @@ public class IntegrationTests : ServerTestBase
         serviceCollection
             .AddGraphQLServer()
             .AddStarWarsTypes()
-            .AddExportDirectiveType()
             .AddStarWarsRepositories()
             .AddInMemorySubscriptions()
             .UseField(next => context =>
@@ -142,7 +138,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<string> results = new();
+        List<string> results = [];
         MockDocument document = new("query Foo { hero { name } }");
         OperationRequest request = new("Foo", document);
 
@@ -178,7 +174,6 @@ public class IntegrationTests : ServerTestBase
             .AddGraphQLServer()
             .AddStarWarsTypes()
             .AddTypeExtension<StringSubscriptionExtensions>()
-            .AddExportDirectiveType()
             .AddStarWarsRepositories()
             .AddInMemorySubscriptions();
 
@@ -189,7 +184,7 @@ public class IntegrationTests : ServerTestBase
         IServiceProvider services =
             serviceCollection.BuildServiceProvider();
 
-        List<string> results = new();
+        List<string> results = [];
         MockDocument document = new("subscription Test { onTest(id:1) }");
         OperationRequest request = new("Test", document);
 
@@ -234,7 +229,7 @@ public class IntegrationTests : ServerTestBase
         public ValueTask OnCreateAsync(
             IServiceProvider serviceProvider,
             OperationRequest request,
-            IQueryRequestBuilder requestBuilder,
+            OperationRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             requestBuilder.AddGlobalState("Foo", "bar");

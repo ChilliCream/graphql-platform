@@ -1,8 +1,19 @@
 namespace HotChocolate.Types;
 
-internal static class MarkerObjects
+/// <summary>
+/// The null success marker is to signal to the execution engine
+/// that the result is actually an success result although
+/// the result is null.
+/// </summary>
+internal sealed class NullMarker
 {
-    public static object ErrorObject { get; } = new();
-
-    public static object Null { get; } = new();
+    private NullMarker()
+    {
+        // intentionally left empty
+    }
+ 
+    /// <summary>
+    /// Gets the null success result marker.
+    /// </summary>
+    public static NullMarker Instance { get; } = new();
 }

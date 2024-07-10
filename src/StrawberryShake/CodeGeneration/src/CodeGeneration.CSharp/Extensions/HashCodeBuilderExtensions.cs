@@ -43,9 +43,9 @@ internal static class HashCodeBuilderExtensions
                     BuildPropertyInternal(d.InnerType, variableName, false),
                 INamedTypeDescriptor => AssignmentBuilder
                     .New()
-                    .SetLefthandSide(HashCodeBuilder.VariableName)
+                    .SetLeftHandSide(HashCodeBuilder.VariableName)
                     .SetOperator("^=")
-                    .SetRighthandSide(MethodCallBuilder
+                    .SetRightHandSide(MethodCallBuilder
                         .Inline()
                         .SetPrefix($"{HashCodeBuilder.Prime} * ")
                         .SetMethodName(variableName, nameof(GetHashCode))),
@@ -53,7 +53,7 @@ internal static class HashCodeBuilderExtensions
                     .New()
                     .SetLoopHeader($"var {variableName}_elm in {variableName}")
                     .AddCode(BuildPropertyInternal(d.InnerType, variableName + "_elm", true)),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(),
             };
 
             if (isNullable && currentType is not NonNullTypeDescriptor)

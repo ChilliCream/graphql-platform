@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CookieCrumble;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -378,6 +376,36 @@ public class FilterInputTypeTest : FilterTestBase
 
         // assert
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Execute_CoerceWhereArgument_MatchesSnapshot()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Field("bars")
+                    .UseFiltering()
+                    .Use(next => async context =>
+                    {
+                        context.OperationResult.SetExtension(
+                            "where",
+                            context.ArgumentValue<object>("where"));
+
+                        await next(context);
+                    })
+                    .Resolve(new List<Bar>()));
+
+        var schema = builder.Create();
+
+        // act
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            """{ bars(where: { baz: { contains: "test" } }) { baz } }""");
+
+        // assert
+        result.MatchSnapshot();
     }
 
     public class FooDirectiveType

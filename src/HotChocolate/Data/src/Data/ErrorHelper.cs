@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
@@ -40,7 +38,7 @@ internal static class ErrorHelper
     public static IError SortingVisitor_ListValues(ISortField field, ListValueNode node) =>
         ErrorBuilder.New()
             .SetMessage(
-                DataResources.SortingVisitor_ListInput_AreNotSuported,
+                DataResources.SortingVisitor_ListInput_AreNotSupported,
                 field.DeclaringType.Name,
                 field.Name)
             .AddLocation(node)
@@ -109,8 +107,7 @@ internal static class ErrorHelper
 
     public static IError ProjectionVisitor_NodeFieldWasNotFound(IPageType pageType) =>
         ErrorBuilder.New()
-            .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
-                pageType.Name)
+            .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound, pageType.Name)
             .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
             .Build();
 }

@@ -42,7 +42,7 @@ public class DefaultInMemoryClientFactory
             throw ThrowHelper.Argument_IsNullOrEmpty(nameof(name));
         }
 
-        InMemoryClientFactoryOptions options = _optionsMonitor.Get(name);
+        var options = _optionsMonitor.Get(name);
         var client = new InMemoryClient(name);
 
         for (var i = 0; i < options.InMemoryClientActions.Count; i++)

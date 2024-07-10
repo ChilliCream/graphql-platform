@@ -15,10 +15,10 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
         [Authorize("HasAgeDefined", ApplyPolicy.BeforeResolver)]
         public string? GetAge() => "foo";
 
-        [Authorize(ApplyPolicy.BeforeResolver, Roles = new[] { "a" })]
+        [Authorize(ApplyPolicy.BeforeResolver, Roles = ["a",])]
         public string? GetRoles() => "foo";
 
-        [Authorize(ApplyPolicy.BeforeResolver, Roles = new[] { "a", "b" })]
+        [Authorize(ApplyPolicy.BeforeResolver, Roles = ["a", "b",])]
         [GraphQLName("roles_ab")]
         public string? GetRolesAb() => "foo";
 
@@ -37,7 +37,7 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
 
     public IEnumerator<object[]> GetEnumerator()
     {
-        yield return new object[] { CreateSchema() };
+        yield return [CreateSchema(),];
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

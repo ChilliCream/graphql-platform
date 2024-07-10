@@ -2,7 +2,6 @@
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 

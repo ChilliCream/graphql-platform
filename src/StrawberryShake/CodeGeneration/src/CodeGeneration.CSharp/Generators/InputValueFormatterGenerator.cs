@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -65,7 +64,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                 var propertyName = GetFieldName(name) + "Formatter";
 
                 initialize
-                    .AddAssigment(propertyName)
+                    .AddAssignment(propertyName)
                     .AddMethodCall()
                     .SetMethodName(serializerResolver, "GetInputValueFormatter")
                     .AddArgument(name.AsStringToken());
@@ -107,18 +106,18 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                 .AddEmptyLine()
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {input}")
-                    .SetRighthandSide($"{runtimeValue} as {descriptor.RuntimeType}"))
+                    .SetLeftHandSide($"var {input}")
+                    .SetRightHandSide($"{runtimeValue} as {descriptor.RuntimeType}"))
                 .AddCode(AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"var {inputInfo}")
-                    .SetRighthandSide($"{runtimeValue} as {infoInterfaceType}"))
+                    .SetLeftHandSide($"var {inputInfo}")
+                    .SetRightHandSide($"{runtimeValue} as {infoInterfaceType}"))
                 .ArgumentException(runtimeValue, $"{input} is null || {inputInfo} is null")
                 .AddEmptyLine();
 
         codeBlock
-            .AddAssigment($"var {fields}")
-            .SetRighthandSide($"new {TypeNames.List.WithGeneric(_keyValuePair)}()");
+            .AddAssignment($"var {fields}")
+            .SetRightHandSide($"new {TypeNames.List.WithGeneric(_keyValuePair)}()");
 
         codeBlock.AddEmptyLine();
 
@@ -226,8 +225,8 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                         .New()
                         .AddCode(AssignmentBuilder
                             .New()
-                            .SetLefthandSide($"var {variable}_list")
-                            .SetRighthandSide(MethodCallBuilder.Inline()
+                            .SetLeftHandSide($"var {variable}_list")
+                            .SetRightHandSide(MethodCallBuilder.Inline()
                                 .SetNew()
                                 .SetMethodName(TypeNames.List)
                                 .AddGeneric(TypeNames.Object.MakeNullable())))
@@ -247,7 +246,7 @@ public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescrip
                                 assignment == @return
                                     ? $"return {variable}_list;"
                                     : $"{assignment}.Add({variable}_list);")),
-                _ => throw new InvalidOperationException()
+                _ => throw new InvalidOperationException(),
             };
 
             if (isNullable && currentType is not NonNullTypeDescriptor)

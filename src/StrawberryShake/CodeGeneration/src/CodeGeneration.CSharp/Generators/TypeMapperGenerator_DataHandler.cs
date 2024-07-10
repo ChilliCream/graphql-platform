@@ -114,7 +114,7 @@ public partial class TypeMapperGenerator
             .SetCondition(ifCondition)
             .AddCode(AssignmentBuilder
                 .New()
-                .SetLefthandSide(variableName)
-                .SetRighthandSide(constructorCall));
+                .SetLeftHandSide(variableName)
+                .SetRightHandSide(constructorCall));
     }
 }

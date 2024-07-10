@@ -146,7 +146,7 @@
   <data name="ErrorHelper_FieldIsRequiredButNull" xml:space="preserve">
     <value>`{0}` is a required field and cannot be null.</value>
   </data>
-  <data name="ErrorHelper_FieldsAreNotMergable" xml:space="preserve">
+  <data name="ErrorHelper_FieldsAreNotMergeable" xml:space="preserve">
     <value>Encountered fields for the same object that cannot be merged.</value>
   </data>
   <data name="ErrorHelper_FragmentNameNotUnique" xml:space="preserve">

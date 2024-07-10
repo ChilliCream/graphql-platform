@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
@@ -8,8 +6,8 @@ namespace HotChocolate.Language;
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
-    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = new();
-    private static readonly List<ArgumentNode> _emptyArguments = new();
+    private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = [];
+    private static readonly List<ArgumentNode> _emptyArguments = [];
 
     /// <summary>
     /// Parses an operation definition.
@@ -27,15 +25,13 @@ public ref partial struct Utf8GraphQLParser
         var selectionSet = ParseSelectionSet();
         var location = CreateLocation(in start);
 
-        return new OperationDefinitionNode
-        (
+        return new OperationDefinitionNode(
             location,
             name,
             operation,
             variableDefinitions,
             directives,
-            selectionSet
-        );
+            selectionSet);
     }
 
     /// <summary>
@@ -49,15 +45,13 @@ public ref partial struct Utf8GraphQLParser
         var selectionSet = ParseSelectionSet();
         var location = CreateLocation(in start);
 
-        return new OperationDefinitionNode
-        (
+        return new OperationDefinitionNode(
             location,
-            null,
+            name: null,
             OperationType.Query,
             Array.Empty<VariableDefinitionNode>(),
             Array.Empty<DirectiveNode>(),
-            selectionSet
-        );
+            selectionSet);
     }
 
     /// <summary>
@@ -133,18 +127,16 @@ public ref partial struct Utf8GraphQLParser
             ? ParseValueLiteral(true)
             : null;
         var directives =
-            ParseDirectives(true);
+            ParseDirectives(isConstant: true);
 
         var location = CreateLocation(in start);
 
-        return new VariableDefinitionNode
-        (
+        return new VariableDefinitionNode(
             location,
             variable,
             type,
             defaultValue,
-            directives
-        );
+            directives);
     }
 
     /// <summary>
@@ -159,11 +151,9 @@ public ref partial struct Utf8GraphQLParser
         var name = ParseName();
         var location = CreateLocation(in start);
 
-        return new VariableNode
-        (
+        return new VariableNode(
             location,
-            name
-        );
+            name);
     }
 
     /// <summary>
@@ -182,7 +172,7 @@ public ref partial struct Utf8GraphQLParser
                     CultureInfo.InvariantCulture,
                     ParseMany_InvalidOpenToken,
                     TokenKind.LeftBrace,
-                    TokenPrinter.Print(in _reader)));
+                    TokenPrinter.Print(ref _reader)));
         }
 
         var selections = new List<ISelectionNode>();
@@ -200,11 +190,9 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new SelectionSetNode
-        (
+        return new SelectionSetNode(
             location,
-            selections
-        );
+            selections);
     }
 
     /// <summary>
@@ -259,16 +247,14 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new FieldNode
-        (
+        return new FieldNode(
             location,
             name,
             alias,
             required,
             directives,
             arguments,
-            selectionSet
-        );
+            selectionSet);
     }
 
     private INullabilityNode? ParseRequiredStatus()
@@ -357,11 +343,9 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
-        return new ArgumentNode
-        (
+        return new ArgumentNode(
             location,
             name,
-            value
-        );
+            value);
     }
 }

@@ -1,4 +1,3 @@
-using Xunit;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -11,7 +10,7 @@ public class PersistedQueryGeneratorTests
         AssertResult(
             new AssertSettings
             {
-                RequestStrategy = RequestStrategyGen.PersistedQuery
+                RequestStrategy = RequestStrategyGen.PersistedQuery,
             },
             "query GetPerson { person { name email } }",
             "type Query { person: Person }",

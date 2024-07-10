@@ -1,5 +1,3 @@
-using HotChocolate.Types.Relay;
-
 namespace HotChocolate.ApolloFederation.CertificationSchema.CodeFirst.Types;
 
 public class User

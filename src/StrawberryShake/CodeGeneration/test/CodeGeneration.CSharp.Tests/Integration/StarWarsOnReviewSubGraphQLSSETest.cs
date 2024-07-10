@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.StarWars.Models;
 using HotChocolate.Subscriptions;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 using static HotChocolate.StarWars.Types.Subscriptions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsOnReviewSubGraphQLSSE;
@@ -55,7 +49,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review { Stars = 1, Commentary = "Commentary" },
+                new Review { Stars = 1, Commentary = "Commentary", },
                 ct);
             await Task.Delay(1_000, ct);
         }

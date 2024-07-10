@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Configuration;
 
@@ -42,6 +41,16 @@ public class TypeDiscoveryTests
     {
         SchemaBuilder.New()
             .AddQueryType<QueryTypeWithInputStruct>()
+            .Create()
+            .Print()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void InferInputTypeWithComputedProperty()
+    {
+        SchemaBuilder.New()
+            .AddQueryType<QueryTypeWithComputedProperty>()
             .Create()
             .Print()
             .MatchSnapshot();
@@ -131,5 +140,19 @@ public class TypeDiscoveryTests
     public class QueryTypeWithInputStruct
     {
         public int Foo(InputStructWithCtor arg) => default;
+    }
+
+    public class InputTypeWithReadOnlyProperties(int property2)
+    {
+        public int Property1 { get; set; }
+
+        public int Property2 { get; } = property2;
+
+        public int Property3 => Property2 / 2;
+    }
+
+    public class QueryTypeWithComputedProperty
+    {
+        public int Foo(InputTypeWithReadOnlyProperties arg) => arg.Property1;
     }
 }

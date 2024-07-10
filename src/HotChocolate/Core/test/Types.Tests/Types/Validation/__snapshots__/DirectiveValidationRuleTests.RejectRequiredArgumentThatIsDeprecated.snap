@@ -3,7 +3,7 @@
   "extensions": {
     "argument": "badArg",
     "rfc": "https://github.com/graphql/graphql-spec/pull/805",
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Type-System.Directives.Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Type-System.Directives.Validation"
   }
 }
 

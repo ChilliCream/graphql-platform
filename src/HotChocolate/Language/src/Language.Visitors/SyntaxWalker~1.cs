@@ -1,8 +1,6 @@
 namespace HotChocolate.Language.Visitors;
 
-public partial class SyntaxWalker<TContext>
-    : SyntaxVisitor<TContext>
-    where TContext : ISyntaxVisitorContext
+public partial class SyntaxWalker<TContext> : SyntaxVisitor<TContext>
 {
     protected SyntaxWalker(SyntaxVisitorOptions options = default)
         : base(Continue, options)

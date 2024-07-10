@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using IdentityModel.Client;
 
 namespace StrawberryShake.Tools.OAuth;
@@ -22,7 +18,7 @@ public static class TokenClient
                 Address = tokenEndpoint,
                 ClientId = clientId,
                 ClientSecret = clientSecret,
-                Scope = string.Join(" ", scopes)
+                Scope = string.Join(" ", scopes),
             },
             cancellationToken).ConfigureAwait(false);
         return tokenRes.AccessToken;

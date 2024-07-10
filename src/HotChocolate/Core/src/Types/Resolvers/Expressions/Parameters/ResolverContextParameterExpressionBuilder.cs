@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -6,7 +7,10 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class ResolverContextParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class ResolverContextParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     public ArgumentKind Kind => ArgumentKind.Context;
 
@@ -19,4 +23,10 @@ internal sealed class ResolverContextParameterExpressionBuilder : IParameterExpr
 
     public Expression Build(ParameterExpressionBuilderContext context)
         => context.ResolverContext;
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => (T)context;
 }

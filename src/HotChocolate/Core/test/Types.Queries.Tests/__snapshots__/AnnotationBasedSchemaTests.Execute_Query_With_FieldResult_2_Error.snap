@@ -1,0 +1,7 @@
+{
+  "data": {
+    "userById2": {
+      "__typename": "UserNotFound"
+    }
+  }
+}

@@ -1,8 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using HotChocolate.StarWars;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace HotChocolate.Execution;
 

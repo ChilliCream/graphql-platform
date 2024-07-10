@@ -11,8 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FsCheck.Xunit" Version="3.0.0-beta2" />
-    <PackageReference Include="Unquote" Version="6.1.0" />
+    <PackageReference Include="FsCheck.Xunit" />
+    <PackageReference Include="FSharp.Core" />
+    <PackageReference Include="Unquote" />
   </ItemGroup>
 
   <ItemGroup>

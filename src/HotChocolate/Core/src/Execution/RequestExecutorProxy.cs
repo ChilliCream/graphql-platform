@@ -15,7 +15,7 @@ public sealed class RequestExecutorProxy : IDisposable
     private readonly IRequestExecutorResolver _executorResolver;
     private readonly string _schemaName;
     private IRequestExecutor? _executor;
-    private IDisposable? _eventSubscription;
+    private readonly IDisposable? _eventSubscription;
     private bool _disposed;
 
     public event EventHandler<RequestExecutorUpdatedEventArgs>? ExecutorUpdated;
@@ -34,8 +34,10 @@ public sealed class RequestExecutorProxy : IDisposable
         _schemaName = schemaName;
         _eventSubscription =
             _executorResolver.Events.Subscribe(
-                new ExecutorObserver(name => EvictRequestExecutor(name)));
+                new ExecutorObserver(EvictRequestExecutor));
     }
+
+    public IRequestExecutor? CurrentExecutor => _executor;
 
     /// <summary>
     /// Executes the given GraphQL <paramref name="request" />.
@@ -50,19 +52,19 @@ public sealed class RequestExecutorProxy : IDisposable
     /// Returns the execution result of the given GraphQL <paramref name="request" />.
     ///
     /// If the request operation is a simple query or mutation the result is a
-    /// <see cref="IQueryResult" />.
+    /// <see cref="IOperationResult" />.
     ///
     /// If the request operation is a query or mutation where data is deferred, streamed or
     /// includes live data the result is a <see cref="IResponseStream" /> where each result
-    /// that the <see cref="IResponseStream" /> yields is a <see cref="IQueryResult" />.
+    /// that the <see cref="IResponseStream" /> yields is a <see cref="IOperationResult" />.
     ///
     /// If the request operation is a subscription the result is a
     /// <see cref="IResponseStream" /> where each result that the
     /// <see cref="IResponseStream" /> yields is a
-    /// <see cref="IQueryResult" />.
+    /// <see cref="IOperationResult" />.
     /// </returns>
     public async Task<IExecutionResult> ExecuteAsync(
-        IQueryRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken = default)
     {
         if (request == null)
@@ -95,7 +97,7 @@ public sealed class RequestExecutorProxy : IDisposable
     /// Returns a stream of query results.
     /// </returns>
     public async Task<IResponseStream> ExecuteBatchAsync(
-        IReadOnlyList<IQueryRequest> requestBatch,
+        OperationRequestBatch requestBatch,
         CancellationToken cancellationToken = default)
     {
         if (requestBatch == null)
@@ -147,33 +149,35 @@ public sealed class RequestExecutorProxy : IDisposable
     {
         var executor = _executor;
 
-        if (executor is null)
+        if (executor is not null)
         {
-            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            return executor;
+        }
 
-            try
+        await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (_executor is null)
             {
-                if (_executor is null)
-                {
-                    executor = await _executorResolver
-                        .GetRequestExecutorAsync(_schemaName, cancellationToken)
-                        .ConfigureAwait(false);
+                executor = await _executorResolver
+                    .GetRequestExecutorAsync(_schemaName, cancellationToken)
+                    .ConfigureAwait(false);
 
-                    _executor = executor;
+                _executor = executor;
 
-                    ExecutorUpdated?.Invoke(
-                        this,
-                        new RequestExecutorUpdatedEventArgs(executor));
-                }
-                else
-                {
-                    executor = _executor;
-                }
+                ExecutorUpdated?.Invoke(
+                    this,
+                    new RequestExecutorUpdatedEventArgs(executor));
             }
-            finally
+            else
             {
-                _semaphore.Release();
+                executor = _executor;
             }
+        }
+        finally
+        {
+            _semaphore.Release();
         }
 
         return executor;
@@ -208,20 +212,13 @@ public sealed class RequestExecutorProxy : IDisposable
         }
     }
 
-    private sealed class ExecutorObserver : IObserver<RequestExecutorEvent>
+    private sealed class ExecutorObserver(Action<string> evicted) : IObserver<RequestExecutorEvent>
     {
-        public ExecutorObserver(Action<string> evicted)
-        {
-            Evicted = evicted;
-        }
-
-        public Action<string> Evicted { get; }
-
         public void OnNext(RequestExecutorEvent value)
         {
             if (value.Type is RequestExecutorEventType.Evicted)
             {
-                Evicted(value.Name);
+                evicted(value.Name);
             }
         }
 

@@ -32,7 +32,7 @@ public abstract partial class ScalarType
     public BindingBehavior Bind { get; }
 
     /// <summary>
-    /// The .net type representation of this scalar.
+    /// The .NET type representation of this scalar.
     /// </summary>
     public abstract Type RuntimeType { get; }
 
@@ -54,10 +54,6 @@ public abstract partial class ScalarType
     }
 
     public IDirectiveCollection Directives { get; private set; }
-
-    public ScalarTypeDefinitionNode? SyntaxNode { get; private set; }
-
-    ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
     protected ITypeConverter Converter => _converter;
 
@@ -96,12 +92,13 @@ public abstract partial class ScalarType
         {
             return true;
         }
+
         return RuntimeType.IsInstanceOfType(runtimeValue);
     }
 
     /// <summary>
     /// Parses the specified <paramref name="valueSyntax" />
-    /// to the .net representation of this type.
+    /// to the .NET representation of this type.
     /// </summary>
     /// <param name="valueSyntax">
     ///     The literal that shall be parsed.
@@ -117,13 +114,13 @@ public abstract partial class ScalarType
     public abstract object? ParseLiteral(IValueNode valueSyntax);
 
     /// <summary>
-    /// Parses the .net value representation to a value literal.
+    /// Parses the .NET value representation to a value literal.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <returns>
-    /// Returns a GraphQL literal representing the .net value.
+    /// Returns a GraphQL literal representing the .NET value.
     /// </returns>
     /// <exception cref="SerializationException">
     /// The specified <paramref name="runtimeValue" /> cannot be parsed
@@ -132,7 +129,7 @@ public abstract partial class ScalarType
     public abstract IValueNode ParseValue(object? runtimeValue);
 
     /// <summary>
-    /// Parses a result value of this into a GraphQL value syntax representation.
+    /// Parses a result value of this scalar into a GraphQL value syntax representation.
     /// </summary>
     /// <param name="resultValue">
     /// A result value representation of this type.
@@ -147,10 +144,10 @@ public abstract partial class ScalarType
     public abstract IValueNode ParseResult(object? resultValue);
 
     /// <summary>
-    /// Serializes the .net value representation.
+    /// Serializes the .NET value representation.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <returns>
     /// Returns the serialized value.
@@ -176,10 +173,10 @@ public abstract partial class ScalarType
     }
 
     /// <summary>
-    /// Tries to serializes the .net value representation to the output format.
+    /// Tries to serializes the .NET value representation to the output format.
     /// </summary>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <param name="resultValue">
     /// The serialized value.
@@ -190,13 +187,13 @@ public abstract partial class ScalarType
     public abstract bool TrySerialize(object? runtimeValue, out object? resultValue);
 
     /// <summary>
-    /// Deserializes the serialized value to it`s .net value representation.
+    /// Deserializes the serialized value to it`s .NET value representation.
     /// </summary>
     /// <param name="resultValue">
     /// The serialized value representation.
     /// </param>
     /// <returns>
-    /// Returns the .net value representation.
+    /// Returns the .NET value representation.
     /// </returns>
     /// <exception cref="SerializationException">
     /// The specified <paramref name="resultValue" /> cannot be deserialized
@@ -215,13 +212,13 @@ public abstract partial class ScalarType
     }
 
     /// <summary>
-    /// Tries to deserializes the value from the output format to the .net value representation.
+    /// Tries to deserializes the value from the output format to the .NET value representation.
     /// </summary>
     /// <param name="resultValue">
     /// The serialized value.
     /// </param>
     /// <param name="runtimeValue">
-    /// The .net value representation.
+    /// The .NET value representation.
     /// </param>
     /// <returns>
     /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.

@@ -25,7 +25,7 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
                 TransactionScopeOption.Required,
                 new TransactionOptions
                 {
-                    IsolationLevel = IsolationLevel.ReadCommitted
+                    IsolationLevel = IsolationLevel.ReadCommitted,
                 },
                 TransactionScopeAsyncFlowOption.Enabled));
     }

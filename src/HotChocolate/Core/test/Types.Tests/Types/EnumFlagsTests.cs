@@ -77,8 +77,6 @@ public class EnumFlagsTests
               isBar: Boolean
               isBaz: Boolean
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 
@@ -93,6 +91,6 @@ public class EnumFlagsTests
     {
         Foo = 1,
         Bar = 2,
-        Baz = 4
+        Baz = 4,
     }
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace HotChocolate.Language;
 
 internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
@@ -991,7 +987,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxKind.ListNullability => GetHashCode((ListNullabilityNode)node),
             SyntaxKind.RequiredModifier => GetHashCode((RequiredModifierNode)node),
             SyntaxKind.OptionalModifier => GetHashCode((OptionalModifierNode)node),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(),
         };
     }
 
@@ -1013,7 +1009,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxKind.ListValue => GetHashCode((ListValueNode)node),
             SyntaxKind.NullValue => GetHashCode((NullValueNode)node),
             SyntaxKind.Variable => GetHashCode((VariableNode)node),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(),
         };
     }
 

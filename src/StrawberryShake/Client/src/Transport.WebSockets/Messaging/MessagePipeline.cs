@@ -88,6 +88,5 @@ internal sealed class MessagePipeline : IAsyncDisposable
     {
         public static readonly int Stopped = 0;
         public static readonly int Running = 1;
-        public static readonly int Blocked = 2;
     }
 }

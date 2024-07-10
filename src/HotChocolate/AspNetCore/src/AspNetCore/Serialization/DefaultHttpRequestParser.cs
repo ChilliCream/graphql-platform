@@ -1,3 +1,5 @@
+// ReSharper disable RedundantSuppressNullableWarningExpression
+
 using System.Buffers;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
@@ -38,12 +40,54 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             throw new ArgumentNullException(nameof(parserOptions));
     }
 
-    public ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
-        Stream stream,
-        CancellationToken cancellationToken) =>
-        ReadAsync(stream, false, cancellationToken);
+    public ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
+        Stream requestBody,
+        CancellationToken cancellationToken) 
+        => ReadAsync(requestBody, cancellationToken);
 
-    public GraphQLRequest ReadParamsRequest(IQueryCollection parameters)
+    public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
+        string operationId,
+        Stream requestBody,
+        CancellationToken cancellationToken)
+    {
+        EnsureValidQueryId(operationId);
+        
+        try
+        {
+            GraphQLRequest Parse(byte[] buffer, int length)
+                => ParsePersistedOperationRequest(buffer, length, operationId);
+
+            return await BufferHelper.ReadAsync(
+                requestBody,
+                Parse,
+                _maxRequestSize,
+                static (buffer, bytesBuffered, p) =>
+                {
+                    if (bytesBuffered == 0)
+                    {
+                        throw DefaultHttpRequestParser_RequestIsEmpty();
+                    }
+
+                    return p(buffer, bytesBuffered);
+                },
+                static () => throw DefaultHttpRequestParser_MaxRequestSizeExceeded(),
+                cancellationToken);
+        }
+        catch (GraphQLRequestException)
+        {
+            throw;
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
+        }
+        catch (Exception ex)
+        {
+            throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
+
+    public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
     {
         // next we deserialize the GET request with the query request builder ...
         string? query = parameters[QueryKey];
@@ -52,12 +96,12 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         IReadOnlyDictionary<string, object?>? extensions = null;
 
         // if we have no query or query id we cannot execute anything.
-        if (string.IsNullOrEmpty(query) && string.IsNullOrEmpty(queryId))
+        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(queryId))
         {
             // so, if we do not find a top-level query or top-level id we will try to parse
             // the extensions and look in the extensions for Apollo`s active persisted
             // query extensions.
-            if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+            if ((string?)parameters[ExtensionsKey] is { Length: > 0, } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -75,28 +119,31 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             queryId = hash;
         }
 
+        if (!string.IsNullOrWhiteSpace(queryId))
+        {
+            EnsureValidQueryId(queryId);
+        }
+
         try
         {
             string? queryHash = null;
             DocumentNode? document = null;
 
-            if (query is { Length: > 0 })
+            if (query is { Length: > 0, })
             {
                 var result = ParseQueryString(query);
                 queryHash = result.QueryHash;
                 document = result.Document;
             }
 
-            IReadOnlyDictionary<string, object?>? variables = null;
-
-            // if we find variables we do need to parse them
-            if ((string?)parameters[_variablesKey] is { Length: > 0 } sv)
+            IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
+            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
             {
-                variables = ParseVariables(sv);
+                variableSet = ParseVariables(sv);
             }
 
             if (extensions is null &&
-                (string?)parameters[ExtensionsKey] is { Length: > 0 } se)
+                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
             {
                 extensions = ParseJsonObject(se);
             }
@@ -106,7 +153,45 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 queryId,
                 queryHash,
                 operationName,
-                variables,
+                variableSet,
+                extensions);
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
+        }
+        catch (Exception ex)
+        {
+            throw DefaultHttpRequestParser_UnexpectedError(ex);
+        }
+    }
+    
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(string operationId, IQueryCollection parameters)
+    {
+        string? operationName = parameters[_operationNameKey];
+        EnsureValidQueryId(operationId);
+        
+        try
+        {
+            IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableSet = null;
+            if ((string?)parameters[_variablesKey] is { Length: > 0, } sv)
+            {
+                variableSet = ParseVariables(sv);
+            }
+            
+            IReadOnlyDictionary<string, object?>? extensions = null;
+            if (extensions is null &&
+                (string?)parameters[ExtensionsKey] is { Length: > 0, } se)
+            {
+                extensions = ParseJsonObject(se);
+            }
+
+            return new GraphQLRequest(
+                null,
+                operationId,
+                null,
+                operationName,
+                variableSet,
                 extensions);
         }
         catch (SyntaxException ex)
@@ -141,19 +226,17 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         return (queryHash, document);
     }
 
-    public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
-        string operations) =>
-        Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
+    public IReadOnlyList<GraphQLRequest> ParseRequest(
+        string operations)
+        => EnsureValidQueryId(Parse(operations, _parserOptions, _documentCache, _documentHashProvider));
 
     private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
         Stream stream,
-        bool isGraphQLQuery,
         CancellationToken cancellationToken)
     {
         try
         {
-            Func<byte[], int, IReadOnlyList<GraphQLRequest>> parse =
-                isGraphQLQuery ? ParseQuery : ParseRequest;
+            Func<byte[], int, IReadOnlyList<GraphQLRequest>> parse = ParseRequest;
 
             return await BufferHelper.ReadAsync(
                 stream,
@@ -171,6 +254,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 static () => throw DefaultHttpRequestParser_MaxRequestSizeExceeded(),
                 cancellationToken);
         }
+        catch (GraphQLRequestException)
+        {
+            throw;
+        }
         catch (SyntaxException ex)
         {
             throw DefaultHttpRequestParser_SyntaxError(ex);
@@ -186,7 +273,24 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         int bytesBuffered)
     {
         var graphQLData = new ReadOnlySpan<byte>(buffer);
-        graphQLData = graphQLData.Slice(0, bytesBuffered);
+        graphQLData = graphQLData[..bytesBuffered];
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            graphQLData,
+            _parserOptions,
+            _documentCache,
+            _documentHashProvider);
+        
+        return EnsureValidQueryId(requestParser.Parse());
+    }
+    
+    private GraphQLRequest ParsePersistedOperationRequest(
+        byte[] buffer,
+        int bytesBuffered,
+        string operationId)
+    {
+        var graphQLData = new ReadOnlySpan<byte>(buffer);
+        graphQLData = graphQLData[..bytesBuffered];
 
         var requestParser = new Utf8GraphQLRequestParser(
             graphQLData,
@@ -194,21 +298,36 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             _documentCache,
             _documentHashProvider);
 
-        return requestParser.Parse();
+        return requestParser.ParsePersistedOperation(operationId);
     }
 
-    private IReadOnlyList<GraphQLRequest> ParseQuery(
-        byte[] buffer,
-        int bytesBuffered)
+    internal static IReadOnlyList<GraphQLRequest> EnsureValidQueryId(IReadOnlyList<GraphQLRequest> requests)
     {
-        var graphQLData = new ReadOnlySpan<byte>(buffer);
-        graphQLData = graphQLData.Slice(0, bytesBuffered);
+        if (requests.Count == 1)
+        {
+            var request = requests[0];
+            if (!string.IsNullOrWhiteSpace(request.QueryId))
+            {
+                EnsureValidQueryId(request.QueryId);
+            }
+            return requests;
+        }
 
-        var requestParser = new Utf8GraphQLParser(graphQLData, _parserOptions);
+        foreach (var request in requests)
+        {
+            if (!string.IsNullOrWhiteSpace(request.QueryId))
+            {
+                EnsureValidQueryId(request.QueryId);
+            }
+        }
+        return requests;
+    }
 
-        var queryHash = _documentHashProvider.ComputeHash(graphQLData);
-        var document = requestParser.Parse();
-
-        return new[] { new GraphQLRequest(document, queryHash) };
+    private static void EnsureValidQueryId(string queryId)
+    {
+        if (!OperationDocumentId.IsValidId(queryId))
+        {
+            throw ErrorHelper.InvalidQueryIdFormat();
+        }
     }
 }

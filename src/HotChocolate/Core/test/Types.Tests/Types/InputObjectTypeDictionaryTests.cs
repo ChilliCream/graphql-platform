@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 
@@ -43,7 +42,7 @@ public class InputObjectTypeNonNullTests
     {
         public string GetFoo(FooInput input)
         {
-            if (input.ContextData is { Count: 1 })
+            if (input.ContextData is { Count: 1, })
             {
                 return input.ContextData.First().Value;
             }

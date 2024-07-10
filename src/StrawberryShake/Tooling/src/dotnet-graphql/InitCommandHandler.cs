@@ -135,9 +135,9 @@ public class InitCommandHandler : CommandHandler<InitCommandArguments>
                 {
                     Name = context.ClientName,
                     Namespace = context.CustomNamespace,
-                    Url = context.Uri
-                }
-            }
+                    Url = context.Uri,
+                },
+            },
         };
 
         await FileSystem.WriteTextAsync(configFilePath, configuration.ToString()).ConfigureAwait(false);

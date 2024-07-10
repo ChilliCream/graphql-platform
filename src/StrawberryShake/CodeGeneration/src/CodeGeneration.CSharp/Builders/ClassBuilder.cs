@@ -13,10 +13,10 @@ public class ClassBuilder : AbstractTypeBuilder
     private bool _isAbstract;
     private string? _name;
     private XmlCommentBuilder? _xmlComment;
-    private readonly List<FieldBuilder> _fields = new();
-    private readonly List<ConstructorBuilder> _constructors = new();
-    private readonly List<MethodBuilder> _methods = new();
-    private readonly List<ICodeBuilder> _classes = new();
+    private readonly List<FieldBuilder> _fields = [];
+    private readonly List<ConstructorBuilder> _constructors = [];
+    private readonly List<MethodBuilder> _methods = [];
+    private readonly List<ICodeBuilder> _classes = [];
 
     public static ClassBuilder New() => new();
 

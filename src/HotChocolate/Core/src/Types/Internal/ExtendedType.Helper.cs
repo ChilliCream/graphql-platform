@@ -86,7 +86,7 @@ internal sealed partial class ExtendedType
                     return new ExtendedType(
                         itemType,
                         ExtendedTypeKind.Runtime,
-                        new[] { (ExtendedType)key, (ExtendedType)value },
+                        new[] { (ExtendedType)key, (ExtendedType)value, },
                         isNullable: false);
                 });
             }

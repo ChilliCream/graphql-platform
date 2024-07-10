@@ -16,15 +16,15 @@ public class EvictSchemaTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }" });
+            new ClientQueryRequest { Query = "{ time }", });
 
         // act
         await server.GetAsync(
-            new ClientQueryRequest { Query = "{ evict }" });
+            new ClientQueryRequest { Query = "{ evict }", });
 
         // assert
         var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }" });
+            new ClientQueryRequest { Query = "{ time }", });
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }
 
@@ -35,17 +35,17 @@ public class EvictSchemaTests : ServerTestBase
         var server = CreateStarWarsServer();
 
         var time1 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }" },
+            new ClientQueryRequest { Query = "{ time }", },
             "/evict");
 
         // act
         await server.GetAsync(
-            new ClientQueryRequest { Query = "{ evict }" },
+            new ClientQueryRequest { Query = "{ evict }", },
             "/evict");
 
         // assert
         var time2 = await server.GetAsync(
-            new ClientQueryRequest { Query = "{ time }" },
+            new ClientQueryRequest { Query = "{ time }", },
             "/evict");
         Assert.False(((long)time1.Data!["time"]!).Equals((long)time2.Data!["time"]!));
     }

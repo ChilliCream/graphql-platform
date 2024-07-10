@@ -2,5 +2,5 @@
 
 public enum CatCommand
 {
-    JUMP
+    JUMP,
 }

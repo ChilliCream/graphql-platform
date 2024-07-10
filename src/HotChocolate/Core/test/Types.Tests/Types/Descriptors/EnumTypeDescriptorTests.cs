@@ -158,6 +158,6 @@ public class EnumTypeDescriptorTests : DescriptorTestBase
     private enum FooEnum
     {
         Bar1,
-        Bar2
+        Bar2,
     }
 }

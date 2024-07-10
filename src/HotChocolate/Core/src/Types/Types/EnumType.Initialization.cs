@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
@@ -48,7 +47,7 @@ public partial class EnumType
     /// Returns the newly created enum type.
     /// </returns>
     public static EnumType CreateUnsafe(EnumTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <summary>
     /// Override this in order to specify the type configuration explicitly.
@@ -101,12 +100,13 @@ public partial class EnumType
         _valueLookup = new Dictionary<object, IEnumValue>(definition.ValueComparer);
 
         _naming = context.DescriptorContext.Naming;
-        SyntaxNode = definition.SyntaxNode;
 
         foreach (var enumValueDefinition in definition.Values)
         {
             if (enumValueDefinition.Ignore)
+            {
                 continue;
+            }
 
             if (TryCreateEnumValue(context, enumValueDefinition, out var enumValue))
             {
@@ -115,14 +115,13 @@ public partial class EnumType
             }
         }
 
-        if (!Values.Any())
+        if (Values.Count == 0)
         {
             context.ReportError(
                 SchemaErrorBuilder.New()
                     .SetMessage(TypeResources.EnumType_NoValues, Name)
                     .SetCode(ErrorCodes.Schema.NoEnumValues)
                     .SetTypeSystemObject(this)
-                    .AddSyntaxNode(SyntaxNode)
                     .Build());
         }
     }

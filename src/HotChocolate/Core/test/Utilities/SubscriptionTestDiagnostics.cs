@@ -12,7 +12,7 @@ public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsLi
 
     private readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
     public SubscriptionTestDiagnostics(ITestOutputHelper output)

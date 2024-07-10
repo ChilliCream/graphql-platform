@@ -11,15 +11,15 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class ResultBuilder
 {
     private static readonly Func<ValueTask>[] _emptyCleanupTasks = Array.Empty<Func<ValueTask>>();
-    private readonly List<IError> _errors = new();
-    private readonly HashSet<ISelection> _fieldErrors = new();
-    private readonly List<NonNullViolation> _nonNullViolations = new();
-    private readonly HashSet<uint> _removedResults = new();
-    private readonly HashSet<uint> _patchIds = new();
+    private readonly List<IError> _errors = [];
+    private readonly HashSet<ISelection> _fieldErrors = [];
+    private readonly List<NonNullViolation> _nonNullViolations = [];
+    private readonly HashSet<uint> _removedResults = [];
+    private readonly HashSet<uint> _patchIds = [];
 
     private readonly Dictionary<string, object?> _extensions = new();
     private readonly Dictionary<string, object?> _contextData = new();
-    private readonly List<Func<ValueTask>> _cleanupTasks = new();
+    private readonly List<Func<ValueTask>> _cleanupTasks = [];
 
     private ResultMemoryOwner _resultOwner = default!;
     private ObjectResult? _data;
@@ -27,6 +27,8 @@ internal sealed partial class ResultBuilder
     private Path? _path;
     private string? _label;
     private bool? _hasNext;
+    private int? _requestIndex;
+    private int? _variableIndex;
 
     public IReadOnlyList<IError> Errors => _errors;
 
@@ -203,9 +205,15 @@ internal sealed partial class ResultBuilder
             _patchIds.Add(patchId);
         }
     }
+    
+    public void SetRequestIndex(int requestIndex)
+        => _requestIndex = requestIndex;
+    
+    public void SetVariableIndex(int variableIndex)
+        => _variableIndex = variableIndex;
 
     // ReSharper disable InconsistentlySynchronizedField
-    public IQueryResult BuildResult()
+    public IOperationResult BuildResult()
     {
         ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors);
         
@@ -221,7 +229,7 @@ internal sealed partial class ResultBuilder
             throw new InvalidOperationException(Resources.ResultHelper_BuildResult_InvalidResult);
         }
 
-        if (_errors.Count > 0)
+        if (_errors.Count > 1)
         {
             _errors.Sort(ErrorComparer.Default);
         }
@@ -240,7 +248,7 @@ internal sealed partial class ResultBuilder
             _contextData.Add(WellKnownContextData.ExpectedPatches, _patchIds.ToArray());
         }
 
-        var result = new QueryResult(
+        var result = new OperationResult(
             _data,
             _errors.Count == 0 ? null : _errors.ToArray(),
             CreateExtensionData(_extensions),
@@ -252,7 +260,10 @@ internal sealed partial class ResultBuilder
             hasNext: _hasNext,
             cleanupTasks: _cleanupTasks.Count == 0 
                 ? _emptyCleanupTasks 
-                : _cleanupTasks.ToArray());
+                : _cleanupTasks.ToArray(),
+            isDataSet: true,
+            requestIndex: _requestIndex,
+            variableIndex: _variableIndex);
 
         if (_data is not null)
         {

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Projections;
-using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Raven.Projections;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -108,10 +104,10 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
                         context.Result =
-                            QueryResultBuilder
+                            OperationResultBuilder
                                 .FromResult(context.Result!.ExpectQueryResult())
                                 .SetContextData("sql", queryString)
-                                .Create();
+                                .Build();
                     }
                 })
             .UseDefaultPipeline();

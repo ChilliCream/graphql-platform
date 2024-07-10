@@ -51,15 +51,16 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
-    bool PreserveSyntaxNodes { get; }
-
-    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
     bool RemoveUnreachableTypes { get; }
+    
+    /// <summary>
+    /// Defines if unused type system directives shall
+    /// be removed from the schema.
+    /// </summary>
+    bool RemoveUnusedTypeSystemDirectives { get; }
 
     /// <summary>
     /// Defines the default binding behavior.
@@ -184,4 +185,14 @@ public interface IReadOnlySchemaOptions
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     bool EnableTag { get; }
+    
+    /// <summary>
+    /// Specifies the default dependency injection scope for query fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
+    
+    /// <summary>
+    /// Specifies the default dependency injection scope for mutation fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; }
 }

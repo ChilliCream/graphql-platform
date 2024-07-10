@@ -16,20 +16,44 @@ public sealed class ProductQuery
         int id,
         [Service] ProductRepository repository)
         => repository.GetProductById(id);
+
+    [NodeResolver]
+    public ProductConfiguration? GetProductConfigurationByUsername(
+        string username,
+        [Service] ProductRepository repository)
+        => repository.GetProductConfigurationByUsername(username);
+
+    [NodeResolver]
+    public ProductBookmark? GetProductBookmarkByUsername(
+        string username,
+        [Service] ProductRepository repository)
+        => repository.GetProductBookmarkByUsername(username);
 }
 
 [GraphQLName("Mutation")]
 public sealed class ProductMutation
 {
-    public MutationResult<bool, ProductNotFoundError> UploadProductPicture(int productId, IFile file)
+    public FieldResult<bool, ProductNotFoundError> UploadProductPicture(int productId, IFile file)
     {
         if (productId is 0)
         {
             return new ProductNotFoundError(0, "broken");
         }
-        
+
+        return true;
+    }
+
+    public FieldResult<bool, ProductNotFoundError> UploadMultipleProductPictures(IList<ProductIdWithUpload> products)
+    {
+        if (products.Any(x => x.productId is 0))
+        {
+            return new ProductNotFoundError(0, "broken");
+        }
+
         return true;
     }
 }
 
 public sealed record ProductNotFoundError(int ProductId, string Message);
+
+public sealed record ProductIdWithUpload(int productId, IFile file);

@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 
 namespace StrawberryShake.CodeGeneration.Utilities;
 
-internal sealed class ExtractOperationContext : ISyntaxVisitorContext
+internal sealed class ExtractOperationContext
 {
     private readonly DocumentNode _document;
     private int _index = -1;
@@ -27,11 +26,11 @@ internal sealed class ExtractOperationContext : ISyntaxVisitorContext
 
     public OperationDefinitionNode Operation { get; private set; } = default!;
 
-    public List<FragmentDefinitionNode> ExportedFragments { get; } = new();
+    public List<FragmentDefinitionNode> ExportedFragments { get; } = [];
 
     public Dictionary<string, FragmentDefinitionNode> AllFragments { get; }
 
-    public HashSet<string> VisitedFragments { get; } = new();
+    public HashSet<string> VisitedFragments { get; } = [];
 
     public bool Next()
     {

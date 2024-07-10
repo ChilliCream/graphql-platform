@@ -1,9 +1,6 @@
 using System;
-using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Internal;
 using static StrawberryShake.Properties.Resources;
 
 namespace StrawberryShake;
@@ -47,7 +44,18 @@ public partial class OperationExecutor<TData, TResult>
         _strategy = strategy;
     }
 
-    /// <inheritdocs />
+    /// <summary>
+    /// Executes the result and returns the result.
+    /// </summary>
+    /// <param name="request">
+    /// The operation request.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the operation result.
+    /// </returns>
     public async Task<IOperationResult<TResult>> ExecuteAsync(
         OperationRequest request,
         CancellationToken cancellationToken = default)
@@ -88,7 +96,18 @@ public partial class OperationExecutor<TData, TResult>
         return result;
     }
 
-    /// <inheritdocs />
+    /// <summary>
+    /// Registers a requests and subscribes to updates on the request results.
+    /// </summary>
+    /// <param name="request">
+    /// The operation request.
+    /// </param>
+    /// <param name="strategy">
+    /// The request execution strategy.
+    /// </param>
+    /// <returns>
+    /// The observable that can be used to subscribe to results.
+    /// </returns>
     public IObservable<IOperationResult<TResult>> Watch(
         OperationRequest request,
         ExecutionStrategy? strategy = null)

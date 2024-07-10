@@ -9,9 +9,7 @@ export const BlogPostGraphQLFusion: FC = () => {
   const data = useStaticQuery<GetBlogPostGraphQLFusionImageQuery>(graphql`
     query getBlogPostGraphQLFusionImage {
       file(
-        relativePath: {
-          eq: "2023-08-15-fusion/fusion-banner.png"
-        }
+        relativePath: { eq: "2023-08-15-fusion/fusion-banner.png" }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {

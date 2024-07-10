@@ -22,12 +22,12 @@ internal sealed partial class AuthorizationTypeInterceptor
         /// <summary>
         ///  Gets the types to which authorization middleware need to be applied.
         /// </summary>
-        public HashSet<TypeReference> NeedsAuth { get; } = new();
+        public HashSet<TypeReference> NeedsAuth { get; } = [];
 
         /// <summary>
         /// Gets the types to which are annotated with the @authorize directive.
         /// </summary>
-        public HashSet<TypeReference> AuthTypes { get; } = new();
+        public HashSet<TypeReference> AuthTypes { get; } = [];
 
         /// <summary>
         /// Gets a lookup table from abstract types to concrete types that need authorization.
@@ -37,11 +37,11 @@ internal sealed partial class AuthorizationTypeInterceptor
         /// <summary>
         /// Gets a helper queue for processing types.
         /// </summary>
-        public List<TypeReference> Queue { get; } = new();
+        public List<TypeReference> Queue { get; } = [];
 
         /// <summary>
         /// Gets a helper set for tracking process completion.
         /// </summary>
-        public HashSet<TypeReference> Completed { get; } = new();
+        public HashSet<TypeReference> Completed { get; } = [];
     }
 }

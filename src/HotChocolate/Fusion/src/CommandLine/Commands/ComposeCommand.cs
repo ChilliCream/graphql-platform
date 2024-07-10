@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -22,7 +23,7 @@ internal sealed class ComposeCommand : Command
         "List<String>, List<String>, FileInfo, DirectoryInfo, Boolean?, CancellationToken)")]
     public ComposeCommand() : base("compose")
     {
-        var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true };
+        var fusionPackageFile = new Option<FileInfo>("--package-file") { IsRequired = true, };
         fusionPackageFile.AddAlias("--package");
         fusionPackageFile.AddAlias("-p");
 
@@ -44,6 +45,7 @@ internal sealed class ComposeCommand : Command
 
         AddOption(fusionPackageFile);
         AddOption(subgraphPackageFile);
+        AddOption(fusionPackageSettingsFile);
         AddOption(workingDirectory);
         AddOption(enableNodes);
         AddOption(removeSubgraphs);
@@ -62,7 +64,7 @@ internal sealed class ComposeCommand : Command
 
     [RequiresUnreferencedCode(
         "Calls System.Text.Json.JsonSerializer.SerializeToDocument<TValue>(TValue, JsonSerializerOptions)")]
-    private static async Task ExecuteAsync(
+    private static async Task<int> ExecuteAsync(
         IConsole console,
         FileInfo packageFile,
         List<string>? subgraphPackageFiles,
@@ -100,7 +102,7 @@ internal sealed class ComposeCommand : Command
 
         await using var package = FusionGraphPackage.Open(packageFile.FullName);
 
-        if(removeSubgraphs is not null)
+        if (removeSubgraphs is not null)
         {
             foreach (var subgraph in removeSubgraphs)
             {
@@ -110,8 +112,8 @@ internal sealed class ComposeCommand : Command
 
         var configs = (await package.GetSubgraphConfigurationsAsync(cancellationToken)).ToDictionary(t => t.Name);
 
-        // resolve subraph packages will scan the directory for fsp's. In case of remove we don't want to do that.
-        if (removeSubgraphs is not { Count: > 0 } || subgraphPackageFiles is { Count: > 0 })
+        // resolve subgraph packages will scan the directory for FSPs. In case of remove we don't want to do that.
+        if (removeSubgraphs is not { Count: > 0, } || subgraphPackageFiles is { Count: > 0, })
         {
             await ResolveSubgraphPackagesAsync(workingDirectory, subgraphPackageFiles, configs, cancellationToken);
         }
@@ -124,7 +126,7 @@ internal sealed class ComposeCommand : Command
         if (settings is null)
         {
             console.WriteLine("Fusion graph settings are invalid.");
-            return;
+            return 1;
         }
 
         if (enableNodes.HasValue && enableNodes.Value)
@@ -144,13 +146,13 @@ internal sealed class ComposeCommand : Command
         if (fusionGraph is null)
         {
             console.WriteLine("Fusion graph composition failed.");
-            return;
+            return 1;
         }
 
         var fusionGraphDoc = Utf8GraphQLParser.Parse(SchemaFormatter.FormatAsString(fusionGraph));
         var typeNames = FusionTypeNames.From(fusionGraphDoc);
         var rewriter = new Metadata.FusionGraphConfigurationToSchemaRewriter();
-        var schemaDoc = (DocumentNode) rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
+        var schemaDoc = (DocumentNode)rewriter.Rewrite(fusionGraphDoc, new(typeNames))!;
         using var updateSettingsJson = JsonSerializer.SerializeToDocument(settings, new JsonSerializerOptions(Web));
 
         await package.SetFusionGraphAsync(fusionGraphDoc, cancellationToken);
@@ -163,6 +165,8 @@ internal sealed class ComposeCommand : Command
         }
 
         console.WriteLine("Fusion graph composed.");
+
+        return 0;
     }
 
     private static FusionFeatureCollection CreateFeatures(
@@ -173,7 +177,7 @@ internal sealed class ComposeCommand : Command
         features.Add(
             new TransportFeature
             {
-                DefaultClientName = settings.Transport.DefaultClientName
+                DefaultClientName = settings.Transport.DefaultClientName,
             });
 
         if (settings.NodeField.Enabled)
@@ -244,10 +248,16 @@ internal sealed class ComposeCommand : Command
 
                             if (File.Exists(extensionFile))
                             {
-                                extensions = new[] { await File.ReadAllTextAsync(extensionFile, cancellationToken) };
+                                extensions = [await File.ReadAllTextAsync(extensionFile, cancellationToken),];
                             }
 
-                            temp.Add(new SubgraphConfiguration(conf.Name, schema, extensions, conf.Clients, conf.Extensions));
+                            temp.Add(
+                                new SubgraphConfiguration(
+                                    conf.Name,
+                                    schema,
+                                    extensions,
+                                    conf.Clients,
+                                    conf.Extensions));
                         }
                     }
                     else
@@ -273,15 +283,8 @@ internal sealed class ComposeCommand : Command
         }
     }
 
-    private sealed class ConsoleLog : ICompositionLog
+    private sealed class ConsoleLog(IConsole console) : ICompositionLog
     {
-        private readonly IConsole _console;
-
-        public ConsoleLog(IConsole console)
-        {
-            _console = console;
-        }
-
         public bool HasErrors { get; private set; }
 
         public void Write(LogEntry e)
@@ -291,17 +294,23 @@ internal sealed class ComposeCommand : Command
                 HasErrors = true;
             }
 
+            var writer = console.Out;
+            if (e.Severity == LogSeverity.Error)
+            {
+                writer = console.Error;
+            }
+
             if (e.Code is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Message}");
             }
             else if (e.Coordinate is null)
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message}");
             }
             else
             {
-                _console.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
+                writer.WriteLine($"{e.Severity}: {e.Code} {e.Message} {e.Coordinate}");
             }
         }
     }

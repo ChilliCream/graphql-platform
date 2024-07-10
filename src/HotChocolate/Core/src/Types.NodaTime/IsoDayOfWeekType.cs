@@ -13,6 +13,7 @@ public class IsoDayOfWeekType : IntToStructBaseType<IsoDayOfWeek>
     /// <summary>
     /// Initializes a new instance of <see cref="IsoDayOfWeekType"/>.
     /// </summary>
+    [ActivatorUtilitiesConstructor]
     public IsoDayOfWeekType() : base("IsoDayOfWeek")
     {
         Description = NodaTimeResources.IsoDayOfWeekType_Description;

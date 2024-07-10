@@ -4,14 +4,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Caching;
 
-internal sealed class DefaultPreparedOperationCache : IPreparedOperationCache
+internal sealed class DefaultPreparedOperationCache(int capacity = 100) : IPreparedOperationCache
 {
-    private readonly Cache<IOperation> _cache;
-
-    public DefaultPreparedOperationCache(int capacity = 100)
-    {
-        _cache = new Cache<IOperation>(capacity);
-    }
+    private readonly Cache<IOperation> _cache = new(capacity);
 
     public int Capacity => _cache.Capacity;
 

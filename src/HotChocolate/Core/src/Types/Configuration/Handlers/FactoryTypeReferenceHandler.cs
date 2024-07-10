@@ -4,15 +4,11 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class FactoryTypeReferenceHandler : ITypeRegistrarHandler
+internal sealed class FactoryTypeReferenceHandler(IDescriptorContext context) 
+    : ITypeRegistrarHandler
 {
-    private readonly HashSet<string> _handled = new();
-    private readonly IDescriptorContext _context;
-
-    public FactoryTypeReferenceHandler(IDescriptorContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-    }
+    private readonly HashSet<string> _handled = [];
+    private readonly IDescriptorContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     public TypeReferenceKind Kind => TypeReferenceKind.Factory;
 

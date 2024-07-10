@@ -38,5 +38,5 @@ public enum ActivityScopes
         CompileOperation |
         ExecuteOperation |
         ResolveFieldValue |
-        DataLoaderBatch
+        DataLoaderBatch,
 }

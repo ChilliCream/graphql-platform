@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+<PropertyGroup>
+    <PackageId>HotChocolate.Utilities.DependencyInjection</PackageId>
+    <AssemblyName>HotChocolate.Utilities.DependencyInjection</AssemblyName>
+    <RootNamespace>HotChocolate.Utilities</RootNamespace>
+    <Description>Contains internal helper classes for Microsoft's dependency injection used by the Hot Chocolate GraphQL type system and the GraphQL query execution engine.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.Types" />
+    <InternalsVisibleTo Include="HotChocolate.PersistedQueries.FileSystem" />
+    <InternalsVisibleTo Include="HotChocolate.PersistedQueries.InMemory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+</Project>

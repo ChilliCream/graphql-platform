@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,7 +10,10 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressionBuilder
+internal sealed class GlobalStateParameterExpressionBuilder
+    : IParameterExpressionBuilder
+    , IParameterBindingFactory
+    , IParameterBinding
 {
     private static readonly PropertyInfo _contextData =
         typeof(IHasContextData).GetProperty(
@@ -53,7 +57,7 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
             : BuildGetter(parameter, key, contextData);
     }
 
-    private Expression BuildSetter(
+    private static Expression BuildSetter(
         ParameterInfo parameter,
         ConstantExpression key,
         MemberExpression contextData)
@@ -70,7 +74,7 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
             key);
     }
 
-    private Expression BuildGetter(
+    private static Expression BuildGetter(
         ParameterInfo parameter,
         ConstantExpression key,
         MemberExpression contextData)
@@ -96,4 +100,10 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
                         .GetFlags(parameter).FirstOrDefault() ?? false,
                     typeof(bool)));
     }
+
+    public IParameterBinding Create(ParameterBindingContext context)
+        => this;
+
+    public T Execute<T>(IResolverContext context)
+        => throw new NotSupportedException();
 }

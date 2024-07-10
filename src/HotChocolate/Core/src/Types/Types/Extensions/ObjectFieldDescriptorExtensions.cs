@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
@@ -111,21 +110,20 @@ public static class ObjectFieldDescriptorExtensions
 
         return descriptor.Type(Utf8GraphQLParser.Syntax.ParseTypeReference(typeSyntax));
     }
-
+    
     /// <summary>
-    /// Wraps a middleware around the field that creates a service scope
-    /// for the wrapped pipeline.
-    ///
-    /// Middleware order matters, so in most cases this should be the most outer middleware.
+    /// Specifies that the resolver of this field shall use services from the request service scope. 
     /// </summary>
     /// <param name="descriptor">
-    /// The field descriptor.
+    /// The object field descriptor.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// Returns the object field descriptor for configuration chaining.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>
-    public static IObjectFieldDescriptor UseServiceScope(
+    public static IObjectFieldDescriptor UseRequestScope(
         this IObjectFieldDescriptor descriptor)
     {
         if (descriptor is null)
@@ -133,28 +131,31 @@ public static class ObjectFieldDescriptorExtensions
             throw new ArgumentNullException(nameof(descriptor));
         }
 
-        return descriptor.Use(next => async context =>
+        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Request;
+        return descriptor;
+    }
+    
+    /// <summary>
+    /// Specifies that the resolver of this field shall use services from the resolver service scope.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The object field descriptor.
+    /// </param>
+    /// <returns>
+    /// Returns the object field descriptor for configuration chaining.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectFieldDescriptor UseResolverScope(
+        this IObjectFieldDescriptor descriptor)
+    {
+        if (descriptor is null)
         {
-            // first we preserve the original services so that we can restore them once
-            // we have executed the inner pipeline.
-            var services = context.Services;
+            throw new ArgumentNullException(nameof(descriptor));
+        }
 
-            // now we create the service scope that we will wrap around the execution of next.
-            using var scope = services.CreateScope();
-            context.Services = scope.ServiceProvider;
-
-            try
-            {
-                // We execute the inner pipeline by invoking next.
-                // Next will now use the service provider from the scope that we have created.
-                await next(context).ConfigureAwait(false);
-            }
-            finally
-            {
-                // once we are finished, even in the case of an exception caused by next
-                // we will restore the services so that the outer pipeline is not effected.
-                context.Services = services;
-            }
-        });
+        descriptor.Extend().Definition.DependencyInjectionScope = DependencyInjectionScope.Resolver;
+        return descriptor;
     }
 }

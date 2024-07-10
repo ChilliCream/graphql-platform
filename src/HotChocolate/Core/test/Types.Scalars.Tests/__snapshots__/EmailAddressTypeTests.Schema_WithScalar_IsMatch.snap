@@ -6,7 +6,5 @@ type Query {
   scalar: EmailAddress
 }
 
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
 "The EmailAddress scalar type constitutes a valid email address, represented as a UTF-8 character sequence. The scalar follows the specification defined by the HTML Spec https:\/\/html.spec.whatwg.org\/multipage\/input.html#valid-e-mail-address."
 scalar EmailAddress

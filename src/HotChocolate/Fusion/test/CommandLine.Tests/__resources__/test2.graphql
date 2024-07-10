@@ -1,0 +1,40 @@
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+  userById(id: ID!): User
+  userByName(name: String!): User
+  users(first: Int, after: String, last: Int, before: String): UsersConnection
+}
+
+type User implements Node {
+  id: ID!
+  name: String! @tag(name: "internal")
+  displayName: String!
+  birthdate: String!
+}
+
+interface Node {
+  id: ID!
+}
+
+type UsersConnection {
+  pageInfo: PageInfo!
+  edges: [UsersEdge!]
+  nodes: [User!]
+}
+
+type UsersEdge {
+  cursor: String!
+  node: User!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+scalar DateTime
+
+directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

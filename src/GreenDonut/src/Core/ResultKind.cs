@@ -18,5 +18,5 @@ public enum ResultKind
     /// <summary>
     /// The result is an error.
     /// </summary>
-    Error
+    Error,
 }

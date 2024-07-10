@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 
@@ -114,7 +111,7 @@ public class QueryableSortVisitorDescObjectTests
 
         // assert
         var inputs =
-            data.Select(x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
+            data.Select(x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x, }, })
                 .ToArray();
         var sorted = func(inputs);
 
@@ -140,8 +137,8 @@ public class QueryableSortVisitorDescObjectTests
 
         // assert
         var inputs =
-            data.Select(x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x } })
-                .Append(new FooNullable<string> { Bar = null })
+            data.Select(x => new FooNullable<string> { Bar = new BarNullable<string> { Baz = x, }, })
+                .Append(new FooNullable<string> { Bar = null, })
                 .ToArray();
         var sorted = func(inputs);
 
@@ -163,7 +160,7 @@ public class QueryableSortVisitorDescObjectTests
         var func = tester.Build<Foo<T>>(value);
 
         // assert
-        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x } }).ToArray();
+        var inputs = data.Select(x => new Foo<T> { Bar = new Bar<T> { Baz = x, }, }).ToArray();
         var sorted = func(inputs);
 
         for (var i = 0; i < expected.Length; i++)
@@ -203,7 +200,7 @@ public class QueryableSortVisitorDescObjectTests
     {
         Foo = 0,
         Bar = 1,
-        Baz = 2
+        Baz = 2,
     }
 
     public class FooNullableSortType<T>

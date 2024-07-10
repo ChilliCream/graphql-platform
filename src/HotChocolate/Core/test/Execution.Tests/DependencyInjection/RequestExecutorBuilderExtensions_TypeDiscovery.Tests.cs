@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;

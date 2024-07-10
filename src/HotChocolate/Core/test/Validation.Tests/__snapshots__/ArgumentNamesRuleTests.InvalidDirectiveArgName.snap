@@ -26,38 +26,9 @@
     "Extensions": {
       "directive": "include",
       "argument": "unless",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Argument",
-      "Location": {
-        "Start": 248,
-        "End": 262,
-        "Line": 9,
-        "Column": 65
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 248,
-          "End": 255,
-          "Line": 9,
-          "Column": 65
-        },
-        "Value": "unless"
-      },
-      "Value": {
-        "Kind": "BooleanValue",
-        "Location": {
-          "Start": 256,
-          "End": 262,
-          "Line": 9,
-          "Column": 73
-        },
-        "Value": false
-      }
-    }
+    "Exception": null
   },
   {
     "Message": "The argument `if` is required.",
@@ -86,58 +57,8 @@
     "Extensions": {
       "directive": "include",
       "argument": "if",
-      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
-    "Exception": null,
-    "SyntaxNode": {
-      "Kind": "Directive",
-      "Location": {
-        "Start": 239,
-        "End": 280,
-        "Line": 9,
-        "Column": 56
-      },
-      "Name": {
-        "Kind": "Name",
-        "Location": {
-          "Start": 240,
-          "End": 248,
-          "Line": 9,
-          "Column": 57
-        },
-        "Value": "include"
-      },
-      "Arguments": [
-        {
-          "Kind": "Argument",
-          "Location": {
-            "Start": 248,
-            "End": 262,
-            "Line": 9,
-            "Column": 65
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 248,
-              "End": 255,
-              "Line": 9,
-              "Column": 65
-            },
-            "Value": "unless"
-          },
-          "Value": {
-            "Kind": "BooleanValue",
-            "Location": {
-              "Start": 256,
-              "End": 262,
-              "Line": 9,
-              "Column": 73
-            },
-            "Value": false
-          }
-        }
-      ]
-    }
+    "Exception": null
   }
 ]

@@ -28,5 +28,5 @@ public enum ResponseContentType
     /// <summary>
     /// text/event-stream
     /// </summary>
-    EventStream
+    EventStream,
 }

@@ -7,5 +7,3 @@ type Query @foo {
 }
 
 directive @foo(argument1: String = "abc" argument2: String) on OBJECT
-
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

@@ -21,6 +21,9 @@ public class CharacterType : InterfaceType<ICharacter>
         descriptor.Field(f => f.AppearsIn)
             .Type<ListType<EpisodeType>>();
 
+        descriptor.Field(f => f.Traits)
+            .Type<JsonType>();
+
         descriptor.Field(f => f.Height)
             .Type<FloatType>()
             .Argument("unit", a => a.Type<EnumType<Unit>>());

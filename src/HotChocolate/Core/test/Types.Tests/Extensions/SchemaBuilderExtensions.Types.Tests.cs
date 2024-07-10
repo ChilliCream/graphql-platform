@@ -1,6 +1,5 @@
 using System;
 using Snapshooter.Xunit;
-using Xunit;
 using HotChocolate.Types;
 using HotChocolate.Language;
 
@@ -1130,7 +1129,7 @@ public class SchemaBuilderExtensionsTypeTests
 
     public class Bar
     {
-        public string Baz { get; }
+        public string Baz { get; init; }
     }
 
     public class MySchema
@@ -1161,6 +1160,6 @@ public class SchemaBuilderExtensionsTypeTests
     public enum MyEnum
     {
         A,
-        B
+        B,
     }
 }

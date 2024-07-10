@@ -171,7 +171,7 @@ public static class GenerateCommand
             CancellationToken cancellationToken)
         {
             var deleteList = Directory.Exists(outputDir)
-                ? new HashSet<string>(Directory.GetFiles(outputDir, $"{clientName}.*.cs"))
+                ? [..Directory.GetFiles(outputDir, $"{clientName}.*.cs"),]
                 : new HashSet<string>();
 
             foreach (var doc in result.Documents)
@@ -209,7 +209,7 @@ public static class GenerateCommand
         {
             if (relayFormat)
             {
-                var map = new Dictionary<string, string>();
+                var map = new SortedDictionary<string, string>();
 
                 foreach (var doc in result.Documents)
                 {

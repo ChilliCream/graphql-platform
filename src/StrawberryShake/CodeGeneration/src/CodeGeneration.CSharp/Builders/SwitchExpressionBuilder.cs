@@ -5,7 +5,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 public class SwitchExpressionBuilder : ICode
 {
-    private readonly List<(ICode, ICode)> _cases = new();
+    private readonly List<(ICode, ICode)> _cases = [];
     private string? _expression;
     private bool _determineStatement = true;
     private bool _setReturn;

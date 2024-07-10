@@ -7,7 +7,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Protocols;
 internal static class MessageUtilities
 {
     public static JsonWriterOptions WriterOptions { get; } =
-        new() { Indented = false };
+        new() { Indented = false, };
 
     public static JsonSerializerOptions SerializerOptions { get; } =
         new(JsonSerializerDefaults.Web);

@@ -16,7 +16,7 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null);
 ---------------
 
 FOO Result:
@@ -34,7 +34,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null)
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foo as d where (CAST(d.data ->> 'BarEnum' as integer) = ANY(:p0) AND CAST(d.data ->> 'BarEnum' as integer) is not null);
 ---------------
 
 nullAndFoo Result:
@@ -56,7 +56,7 @@ nullAndFoo Result:
         "fieldName": "in",
         "fieldType": "[FooEnum!]",
         "locationType": "[FooEnum!]",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

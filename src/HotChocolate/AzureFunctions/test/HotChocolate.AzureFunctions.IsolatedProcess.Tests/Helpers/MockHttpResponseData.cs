@@ -15,7 +15,7 @@ public class MockHttpResponseData : HttpResponseData, IDisposable
 
     public override HttpStatusCode StatusCode { get; set; }
 
-    public override HttpHeadersCollection Headers { get; set; } = new();
+    public override HttpHeadersCollection Headers { get; set; } = [];
 
     public override Stream Body { get; set; } = new MemoryStream();
 

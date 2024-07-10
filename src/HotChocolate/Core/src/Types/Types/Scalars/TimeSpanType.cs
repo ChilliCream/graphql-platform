@@ -16,11 +16,6 @@ public class TimeSpanType
 {
     private readonly TimeSpanFormat _format;
 
-    public TimeSpanType()
-        : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description)
-    {
-    }
-
     public TimeSpanType(
         TimeSpanFormat format = TimeSpanFormat.Iso8601,
         BindingBehavior bind = BindingBehavior.Implicit)
@@ -37,6 +32,12 @@ public class TimeSpanType
     {
         _format = format;
         Description = description;
+    }
+
+    [ActivatorUtilitiesConstructor]
+    public TimeSpanType()
+        : this(ScalarNames.TimeSpan, TypeResources.TimeSpanType_Description)
+    {
     }
 
     protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)

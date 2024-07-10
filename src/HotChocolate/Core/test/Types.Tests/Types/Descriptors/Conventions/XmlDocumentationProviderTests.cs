@@ -2,7 +2,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Descriptors;
 
@@ -59,6 +58,25 @@ public class XmlDocumentationProviderTests
         Assert.Equal(
             "null for the default Record.\nSee this and\nthis" +
             " at\nhttps://foo.com/bar/baz.",
+            description);
+    }
+
+    [Fact]
+    public void When_description_has_paramref_tag_then_it_is_converted()
+    {
+        // arrange
+        var documentationProvider = new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(
+            typeof(WithParamrefTagInXmlDoc)
+                .GetMethod(nameof(WithParamrefTagInXmlDoc.Foo))!);
+
+        // assert
+        Assert.Equal(
+            "This is a parameter reference to id.",
             description);
     }
 

@@ -10,5 +10,5 @@ public enum ValueKind
     Object,
     List,
     Null,
-    Unknown
+    Unknown,
 }

@@ -294,7 +294,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Too_Many_Elements()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { "1", "2", "3", "4" };
+        var input = new List<object> { "1", "2", "3", "4", };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -306,7 +306,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Too_Few_Elements()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1 };
+        var input = new List<object> { 1, };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -318,7 +318,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Invalid_Element_Type()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, "a" };
+        var input = new List<object> { 1, "a", };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -330,7 +330,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Invalid_Element_Type2()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, DateTime.Now };
+        var input = new List<object> { 1, DateTime.Now, };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -342,7 +342,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Invalid_Element_Type3()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, double.PositiveInfinity };
+        var input = new List<object> { 1, double.PositiveInfinity, };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -354,7 +354,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Invalid_3rdElement_Type()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, 2, "a" };
+        var input = new List<object> { 1, 2, "a", };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -366,7 +366,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Invalid_3rdElement_Type2()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, 2, 'a' };
+        var input = new List<object> { 1, 2, 'a', };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -378,7 +378,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Invalid_3rdElement_Type3()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, 2, double.NegativeInfinity };
+        var input = new List<object> { 1, 2, double.NegativeInfinity, };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -390,7 +390,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Valid_2Elements()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, 2 };
+        var input = new List<object> { 1, 2, };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -403,7 +403,7 @@ public class GeoJsonPositionScalarTest
     public void TryDeserialize_With_Valid_3Elements()
     {
         var type = new GeoJsonPositionType();
-        var input = new List<object> { 1, 2, 0 };
+        var input = new List<object> { 1, 2, 0, };
 
         var result = type.TryDeserialize(input, out var value);
 
@@ -435,7 +435,7 @@ public class GeoJsonPositionScalarTest
 
         Assert.True(result);
         Assert.Equal(2, Assert.IsType<double[]>(value).Length);
-        Assert.Equal(new[] { 1D, 2D }, Assert.IsType<double[]>(value));
+        Assert.Equal([1D, 2D,], Assert.IsType<double[]>(value));
     }
 
     [Fact]
@@ -448,7 +448,7 @@ public class GeoJsonPositionScalarTest
 
         Assert.True(result);
         Assert.Equal(3, Assert.IsType<double[]>(value).Length);
-        Assert.Equal(new[] { 1D, 2D, 100D }, Assert.IsType<double[]>(value));
+        Assert.Equal([1D, 2D, 100D,], Assert.IsType<double[]>(value));
     }
 
     [Fact]
@@ -461,6 +461,6 @@ public class GeoJsonPositionScalarTest
 
         Assert.True(result);
         Assert.Equal(2, Assert.IsType<double[]>(value).Length);
-        Assert.Equal(new[] { 1D, 2D }, Assert.IsType<double[]>(value));
+        Assert.Equal([1D, 2D,], Assert.IsType<double[]>(value));
     }
 }

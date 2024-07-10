@@ -1,75 +1,106 @@
-﻿namespace HotChocolate.Types.FSharp
+namespace HotChocolate.Types.FSharp
 
 open System
+open System.Collections.Concurrent
+open System.Collections.Generic
 open HotChocolate.Utilities
 open Microsoft.FSharp.Reflection
 
+
+[<AutoOpen>]
+module private Helpers =
+
+    let private memoizeRefEq (f: 'a -> 'b) =
+        let equalityComparer =
+            { new IEqualityComparer<'a> with
+                member _.Equals(a, b) = LanguagePrimitives.PhysicalEquality a b
+                member _.GetHashCode(a) = LanguagePrimitives.PhysicalHash a
+            }
+
+        let cache = new ConcurrentDictionary<'a, 'b>(equalityComparer)
+        fun a -> cache.GetOrAdd(a, f)
+
+    let private getCachedSomeReader =
+        memoizeRefEq (fun ty ->
+            let cases = FSharpType.GetUnionCases ty
+            let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
+            let read = FSharpValue.PreComputeUnionReader someCase
+            fun x -> read x |> Array.head
+        )
+
+    let private getCachedSomeConstructor =
+        memoizeRefEq (fun innerType ->
+            let optionType = typedefof<_ option>.MakeGenericType([| innerType |])
+            let cases = FSharpType.GetUnionCases optionType
+            let someCase = cases |> Array.find (fun ci -> ci.Name = "Some")
+            let create = FSharpValue.PreComputeUnionConstructor(someCase)
+            fun x -> create [| x |]
+        )
+
+    let fastGetInnerOptionValueAssumingSome (optionValue: obj) : obj =
+        getCachedSomeReader (optionValue.GetType()) optionValue
+
+    let fastCreateSome (innerValue: obj) : obj =
+        getCachedSomeConstructor (innerValue.GetType()) innerValue
+
+    let fastGetInnerOptionType =
+        memoizeRefEq (fun (ty: Type) ->
+            if ty.IsGenericType && ty.GetGenericTypeDefinition() = typedefof<_ option> then
+                Some(ty.GetGenericArguments()[0])
+            else
+                None
+        )
+
+
 type OptionTypeConverter() =
-  let optionTypedef = typedefof<option<_>>
 
-  let isOptionType (t: Type) =
-    t.IsGenericType && t.GetGenericTypeDefinition() = optionTypedef
+    let mapInner (convertInner: obj -> obj) (optionValue: obj) =
+        if isNull optionValue then
+            null
+        else
+            optionValue
+            |> fastGetInnerOptionValueAssumingSome
+            |> convertInner
+            |> fastCreateSome
 
-  let getUnderlyingType (t: Type) =
-    if isOptionType t then
-      t.GetGenericArguments() |> Array.tryHead
-    else
-      None
+    let optionToObj (convertInner: obj -> obj) (optionValue: obj) =
+        if isNull optionValue then
+            null
+        else
+            optionValue |> fastGetInnerOptionValueAssumingSome |> convertInner
 
-  let (|SomeObj|_|) (value: obj) =
-    value
-    |> Option.ofObj
-    |> Option.map (fun x -> x.GetType())
-    |> Option.filter isOptionType
-    |> Option.map (fun x -> FSharpValue.GetUnionFields(value, x))
-    |> Option.filter (fun (case, _) -> case.Name = "Some")
-    |> Option.bind (fun (_, xs) -> Array.tryHead xs)
+    let objToOption (convertInner: obj -> obj) (value: obj) =
+        if isNull value then
+            null
+        else
+            value |> convertInner |> fastCreateSome
 
+    interface IChangeTypeProvider with
 
-
-  let convertToNullable inner (value: obj) =
-    match value with
-    | SomeObj value -> inner value
-    | _ -> null
-
-  let createTypedSome value =
-    let optionalType = optionTypedef.MakeGenericType(value.GetType())
-    let case = FSharpType.GetUnionCases optionalType |> Array.find (fun x -> x.Name = "Some")
-    FSharpValue.MakeUnion(case, [| value |])
-
-  let mapInner inner (value: obj) =
-    match value with
-    | SomeObj value -> createTypedSome (inner value) |> box
-    | _ -> box None
-
-  let convertToOption inner (value: obj) =
-    match value with
-    | null -> box None
-    | value -> createTypedSome (inner value)
-
-  interface IChangeTypeProvider with
-
-    member this.TryCreateConverter(source: Type, target: Type, root: ChangeTypeProvider, converter: byref<ChangeType>) =
-      let innerSource = getUnderlyingType source
-      let innerTarget = getUnderlyingType target
-
-      match innerSource, innerTarget with
-      | Some source, Some target ->
-        match root.Invoke(source, target) with
-        | true, innerConverter ->
-          converter <- ChangeType(mapInner innerConverter.Invoke)
-          true
-        | false, _ -> false
-      | Some source, None ->
-        match root.Invoke(source, target) with
-        | true, innerConverter ->
-          converter <- ChangeType(convertToNullable innerConverter.Invoke)
-          true
-        | _ -> false
-      | None, Some target ->
-        match root.Invoke(source, target) with
-        | true, innerConverter ->
-          converter <- ChangeType(convertToOption innerConverter.Invoke)
-          true
-        | _ -> false
-      | _ -> false
+        member this.TryCreateConverter
+            (
+                source: Type,
+                target: Type,
+                root: ChangeTypeProvider,
+                converter: byref<ChangeType>
+            ) =
+            match fastGetInnerOptionType source, fastGetInnerOptionType target with
+            | Some source, Some target ->
+                match root.Invoke(source, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(mapInner innerConverter.Invoke)
+                    true
+                | false, _ -> false
+            | Some source, None ->
+                match root.Invoke(source, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(optionToObj innerConverter.Invoke)
+                    true
+                | _ -> false
+            | None, Some target ->
+                match root.Invoke(source, target) with
+                | true, innerConverter ->
+                    converter <- ChangeType(objToOption innerConverter.Invoke)
+                    true
+                | _ -> false
+            | _ -> false

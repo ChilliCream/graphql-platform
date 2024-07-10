@@ -18,5 +18,5 @@ public enum ExecutionTaskKind
     /// <summary>
     /// Tasks that have no side-effects and are synchronous.
     /// </summary>
-    Pure
+    Pure,
 }

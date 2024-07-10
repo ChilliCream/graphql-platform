@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
 public static class Keywords
 {
-    private static readonly HashSet<string> _keywords = new()
-    {
+    private static readonly HashSet<string> _keywords =
+    [
         "abstract",
         "as",
         "base",
@@ -118,8 +117,8 @@ public static class Keywords
         "when",
         "where",
         "with",
-        "yield"
-    };
+        "yield",
+    ];
 
     public static string ToSafeName(string name)
     {

@@ -6,5 +6,5 @@ public enum ValueKind
     Integer,
     Float,
     Boolean,
-    Enum
+    Enum,
 }

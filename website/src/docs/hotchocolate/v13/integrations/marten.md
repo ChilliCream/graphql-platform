@@ -26,6 +26,7 @@ services
     .AddQueryType<Query>()
     .AddMartenFiltering();
 ```
+
 [Learn more about filtering](/docs/hotchocolate/v13/fetching-data/filtering).
 
 # Sorting
@@ -38,6 +39,7 @@ services
     .AddQueryType<Query>()
     .AddMartenSorting();
 ```
+
 [Learn more about sorting](/docs/hotchocolate/v13/fetching-data/sorting).
 
 # Projections

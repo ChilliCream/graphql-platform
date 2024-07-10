@@ -14,7 +14,7 @@ namespace HotChocolate.Configuration;
 
 internal sealed class AggregateTypeInterceptor : TypeInterceptor
 {
-    private readonly List<TypeReference> _typeReferences = new();
+    private readonly List<TypeReference> _typeReferences = [];
     private TypeInterceptor[] _typeInterceptors = Array.Empty<TypeInterceptor>();
     private TypeInterceptor? _mutationAggregator;
 
@@ -430,6 +430,19 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
         for (var i = 0; i < length; i++)
         {
             Unsafe.Add(ref first, i).OnTypesCompleted();
+        }
+    }
+
+    internal override void OnBeforeRegisterSchemaTypes(
+        IDescriptorContext context, 
+        SchemaTypesDefinition schemaTypesDefinition)
+    {
+        ref var first = ref GetReference();
+        var length = _typeInterceptors.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Unsafe.Add(ref first, i).OnBeforeRegisterSchemaTypes(context, schemaTypesDefinition);
         }
     }
 

@@ -5,8 +5,8 @@ namespace StrawberryShake.CodeGeneration;
 
 public static class BuiltInScalarNames
 {
-    private static readonly HashSet<string> _typeNames = new()
-    {
+    private static readonly HashSet<string> _typeNames =
+    [
         ScalarNames.String,
         ScalarNames.ID,
         ScalarNames.Boolean,
@@ -25,12 +25,12 @@ public static class BuiltInScalarNames
         "Guid",
         ScalarNames.DateTime,
         ScalarNames.Date,
-        ScalarNames.MultiplierPath,
         ScalarNames.Name,
         ScalarNames.ByteArray,
         ScalarNames.Any,
-        ScalarNames.TimeSpan
-    };
+        ScalarNames.JSON,
+        ScalarNames.TimeSpan,
+    ];
 
     public static bool IsBuiltInScalar(string typeName) => _typeNames.Contains(typeName);
 }

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 using static ChilliCream.Testing.FileResource;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.OperationDocumentHelper;
@@ -19,7 +15,7 @@ public class OperationDocumentHelperTests
     {
         // arrange
         var query = Parse(Open("simple.query1.graphql"));
-        List<DocumentNode> queries = new() { query };
+        List<DocumentNode> queries = [query,];
 
         // act
         var operations = CreateOperationDocumentsAsync(queries).Result;
@@ -39,7 +35,7 @@ public class OperationDocumentHelperTests
         // arrange
         var query1 = Parse(Open("simple.query1.graphql"));
         var query2 = Parse(Open("simple.query2.graphql"));
-        List<DocumentNode> queries = new() { query1, query2 };
+        List<DocumentNode> queries = [query1, query2,];
 
         // act
         var operations = CreateOperationDocumentsAsync(queries).Result;
@@ -59,7 +55,7 @@ public class OperationDocumentHelperTests
     {
         // arrange
         DocumentNode query = new(new List<IDefinitionNode>());
-        List<DocumentNode> queries = new() { query };
+        List<DocumentNode> queries = [query,];
 
         // act
         async Task Error() => await CreateOperationDocumentsAsync(queries);
@@ -75,7 +71,7 @@ public class OperationDocumentHelperTests
         // arrange
         var query1 = Parse(Open("simple.query2.graphql"));
         var query2 = Parse(Open("simple.query2.graphql"));
-        List<DocumentNode> queries = new() { query1, query2 };
+        List<DocumentNode> queries = [query1, query2,];
 
         // act
         async Task Error() => await CreateOperationDocumentsAsync(queries);
@@ -91,7 +87,7 @@ public class OperationDocumentHelperTests
         // arrange
         var query1 = Parse(Open("simple.query1.graphql"));
         var query2 = query1.WithDefinitions(query1.Definitions.Skip(2).ToArray());
-        List<DocumentNode> queries = new() { query1, query2 };
+        List<DocumentNode> queries = [query1, query2,];
 
         // act
         async Task Error() => await CreateOperationDocumentsAsync(queries);

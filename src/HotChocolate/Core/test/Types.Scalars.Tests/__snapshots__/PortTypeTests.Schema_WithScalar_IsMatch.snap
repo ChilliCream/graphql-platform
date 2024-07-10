@@ -6,7 +6,5 @@ type Query {
   scalar: Port
 }
 
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-
 "The Port scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535: https:\/\/en.wikipedia.org\/wiki\/Transmission_Control_Protocol#TCP_ports."
 scalar Port

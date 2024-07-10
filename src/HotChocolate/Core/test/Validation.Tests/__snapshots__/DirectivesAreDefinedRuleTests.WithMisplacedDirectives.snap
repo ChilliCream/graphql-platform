@@ -11,7 +11,7 @@
     ],
     "Exception": null,
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
     }
   },
   {
@@ -28,7 +28,7 @@
     ],
     "Exception": null,
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
     }
   },
   {
@@ -45,7 +45,7 @@
     ],
     "Exception": null,
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
     }
   },
   {
@@ -62,7 +62,7 @@
     ],
     "Exception": null,
     "Extensions": {
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+      "specifiedBy": "https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
     }
   }
 ]

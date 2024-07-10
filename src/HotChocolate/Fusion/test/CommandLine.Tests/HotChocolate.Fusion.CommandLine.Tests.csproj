@@ -17,13 +17,9 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="__resources__\test2.subgraph-config.json">
+    <None Update="__resources__\test2.gateway-config.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__\__MISMATCH__\" />
-  </ItemGroup>
-
+  
 </Project>

@@ -7,24 +7,24 @@ namespace HotChocolate.Validation;
 internal sealed class FieldInfoListBuffer
 {
     private readonly List<FieldInfo>[] _buffer =
-    {
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-            new List<FieldInfo>(),
-        };
+    [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+    ];
     private readonly int _max = 16;
     private int _index = 0;
 

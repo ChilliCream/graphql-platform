@@ -53,9 +53,14 @@ public interface ISelection : IOptionalSelection
     ISelectionSet DeclaringSelectionSet { get; }
 
     /// <summary>
-    /// Gets the field selection syntax node.
+    /// Gets the merged field selection syntax node.
     /// </summary>
     FieldNode SyntaxNode { get; }
+
+    /// <summary>
+    /// Gets the field selection syntax node.
+    /// </summary>
+    IReadOnlyList<FieldNode> SyntaxNodes { get; }
 
     /// <summary>
     /// If this selection selects a field that returns a composite type

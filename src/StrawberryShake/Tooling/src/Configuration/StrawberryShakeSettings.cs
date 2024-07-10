@@ -74,11 +74,11 @@ public class StrawberryShakeSettings
         new()
         {
             Inputs = false,
-            Entities = false
+            Entities = false,
         };
 
     /// <summary>
     /// Gets the transport profiles.
     /// </summary>
-    public List<StrawberryShakeSettingsTransportProfile> TransportProfiles { get; } = new();
+    public List<StrawberryShakeSettingsTransportProfile> TransportProfiles { get; } = [];
 }

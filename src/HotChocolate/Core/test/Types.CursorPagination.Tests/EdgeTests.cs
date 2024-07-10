@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -88,7 +87,7 @@ public class EdgeTests
     public class Query
     {
         [UsePaging]
-        public IEnumerable<User> GetUsers() => new[] { new User { Name = "Hello" } };
+        public IEnumerable<User> GetUsers() => new[] { new User { Name = "Hello", }, };
     }
 
     [ExtendObjectType("UsersEdge")]

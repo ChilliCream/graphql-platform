@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Pagination;
 /// <summary>
 /// The connection type.
 /// </summary>
-internal class ConnectionType
+internal sealed class ConnectionType
     : ObjectType
     , IConnectionType
     , IPageType
@@ -145,6 +145,17 @@ internal class ConnectionType
         base.OnBeforeRegisterDependencies(context, definition);
     }
 
+    protected override void OnBeforeCompleteType(ITypeCompletionContext context, DefinitionBase definition)
+    {
+        Definition!.IsOfType = IsOfTypeWithRuntimeType;
+        base.OnBeforeCompleteType(context, definition);
+    }
+
+    private bool IsOfTypeWithRuntimeType(
+        IResolverContext context,
+        object? result) =>
+        result is null || RuntimeType.IsInstanceOfType(result);
+
     private static ObjectTypeDefinition CreateTypeDefinition(
         bool withTotalCount,
         TypeReference? edgesType = null)
@@ -180,7 +191,10 @@ internal class ConnectionType
                 Names.TotalCount,
                 ConnectionType_TotalCount_Description,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync));
+                resolver: GetTotalCountAsync)
+            {
+                Flags = FieldFlags.TotalCount
+            });
         }
 
         return definition;
@@ -194,13 +208,13 @@ internal class ConnectionType
         => field.CustomSettings.Count > 0 &&
            field.CustomSettings[0].Equals(ContextDataKeys.Nodes);
 
-    private static IPageInfo GetPagingInfo(IPureResolverContext context)
+    private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<Connection>().Info;
 
-    private static IReadOnlyCollection<IEdge> GetEdges(IPureResolverContext context)
+    private static IReadOnlyCollection<IEdge> GetEdges(IResolverContext context)
         => context.Parent<Connection>().Edges;
 
-    private static IEnumerable<object?> GetNodes(IPureResolverContext context)
+    private static IEnumerable<object?> GetNodes(IResolverContext context)
         => context.Parent<Connection>().Edges.Select(t => t.Node);
 
     private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)

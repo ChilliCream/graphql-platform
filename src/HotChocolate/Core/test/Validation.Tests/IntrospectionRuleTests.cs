@@ -32,7 +32,7 @@ public class IntrospectionRuleTests
                 }",
             new KeyValuePair<string, object>[]
             {
-                new(WellKnownContextData.IntrospectionMessage, new Func<string>(() => "Bar"))
+                new(WellKnownContextData.IntrospectionMessage, new Func<string>(() => "Bar")),
             });
     }
 
@@ -48,7 +48,7 @@ public class IntrospectionRuleTests
                 }",
             new KeyValuePair<string, object>[]
             {
-                new(WellKnownContextData.IntrospectionMessage, "Baz")
+                new(WellKnownContextData.IntrospectionMessage, "Baz"),
             });
     }
 
@@ -89,7 +89,7 @@ public class IntrospectionRuleTests
             }",
             new KeyValuePair<string, object>[]
             {
-                new(WellKnownContextData.IntrospectionAllowed, null)
+                new(WellKnownContextData.IntrospectionAllowed, null),
             });
     }
 
@@ -105,7 +105,7 @@ public class IntrospectionRuleTests
                 }",
             new KeyValuePair<string, object>[]
             {
-                new(WellKnownContextData.IntrospectionAllowed, null)
+                new(WellKnownContextData.IntrospectionAllowed, null),
             });
     }
 
@@ -114,7 +114,6 @@ public class IntrospectionRuleTests
     {
         return SchemaBuilder.New()
             .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
-            .AddCostDirectiveType()
             .Use(_ => _ => default)
             .Create();
     }

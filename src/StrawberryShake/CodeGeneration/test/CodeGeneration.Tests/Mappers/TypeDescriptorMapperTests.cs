@@ -1,10 +1,6 @@
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Language;
-using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using Xunit;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
@@ -31,7 +27,7 @@ public class TypeDescriptorMapperTests
             RequestStrategyGen.Default,
             new[]
             {
-                TransportProfile.Default
+                TransportProfile.Default,
             });
         TypeDescriptorMapper.Map(clientModel, context);
 

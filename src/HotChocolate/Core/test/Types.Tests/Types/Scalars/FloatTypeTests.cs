@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Types;
 

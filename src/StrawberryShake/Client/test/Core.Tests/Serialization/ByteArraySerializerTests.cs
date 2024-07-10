@@ -10,7 +10,7 @@ public class ByteArraySerializerTests
     public void Parse()
     {
         // arrange
-        byte[] buffer = { 1 };
+        byte[] buffer = [1,];
 
         // act
         var result = Serializer.Parse(buffer);
@@ -35,7 +35,7 @@ public class ByteArraySerializerTests
     public void Format_Value()
     {
         // arrange
-        byte[] buffer = { 1 };
+        byte[] buffer = [1,];
 
         // act
         var result = Serializer.Format(buffer);

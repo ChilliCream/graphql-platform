@@ -13,6 +13,10 @@ public class QueryType : ObjectType<Query>
             .Argument("episode", a => a.DefaultValue(Episode.NewHope));
 
         descriptor
+            .Field(t => t.GetHeroByTraits(default))
+            .Type<CharacterType>();
+
+        descriptor
             .Field(t => t.GetHeroes(default))
             .Type<ListType<NonNullType<CharacterType>>>();
 

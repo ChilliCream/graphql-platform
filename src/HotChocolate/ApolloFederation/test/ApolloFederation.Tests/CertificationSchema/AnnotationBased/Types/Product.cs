@@ -1,4 +1,6 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Resolvers;
+using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Types;
@@ -6,29 +8,21 @@ namespace HotChocolate.ApolloFederation.CertificationSchema.AnnotationBased.Type
 [Key("id")]
 [Key("sku package")]
 [Key("sku variation { id }")]
-public class Product
+public class Product(string id, string sku, string package, string variation)
 {
-    public Product(string id, string sku, string package, string variation)
-    {
-        Id = id;
-        Sku = sku;
-        Package = package;
-        Variation = new(variation);
-    }
-
     [ID]
-    public string Id { get; }
+    public string Id { get; } = id;
 
-    public string? Sku { get; }
+    public string? Sku { get; } = sku;
 
-    public string? Package { get; }
+    public string? Package { get; } = package;
 
-    public ProductVariation? Variation { get; }
+    public ProductVariation? Variation { get; } = new(variation);
 
     public ProductDimension? Dimensions { get; } = new("1", 1);
 
     [Provides("totalProductsCreated")]
-    public User? CreatedBy { get; } = new("support@apollographql.com", 1337);
+    public User? CreatedBy { get; } = new("contact@chillicream.com", 1337);
 
     [ReferenceResolver]
     public static Product? GetProductById(

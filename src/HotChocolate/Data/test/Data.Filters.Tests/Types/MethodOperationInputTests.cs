@@ -1,4 +1,3 @@
-using System.Linq;
 using CookieCrumble;
 
 namespace HotChocolate.Data.Filters;

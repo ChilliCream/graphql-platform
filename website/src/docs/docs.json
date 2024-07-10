@@ -42,7 +42,26 @@
           },
           {
             "path": "apis",
-            "title": "Apis"
+            "title": "Apis",
+            "items": [
+              { "path": "overview", "title": "Overview" },
+              { "path": "stages", "title": "Stages" },
+              { "path": "deployments", "title": "Deployments" },
+              { "path": "fusion", "title": "Fusion" },
+              {
+                "path": "schema-registry",
+                "title": "Schema Registry"
+              },
+              {
+                "path": "client-registry",
+                "title": "Client Registry"
+              },
+              {
+                "path": "operation-reporting",
+                "title": "Operation Reporting"
+              },
+              { "path": "open-telemetry", "title": "Open Telemetry" }
+            ]
           },
           {
             "path": "environments",
@@ -57,12 +76,8 @@
             "title": "Organizations"
           },
           {
-            "path": "schema-client-registry",
-            "title": "Schema & Client Registry"
-          },
-          {
             "path": "bcp-services",
-            "title": "Connect you API"
+            "title": "Connect your API"
           },
           {
             "path": "subscriptions",
@@ -1477,6 +1492,10 @@
               { "path": "logout", "title": "logout" },
               { "path": "schema", "title": "schema" },
               { "path": "stage", "title": "stage" },
+              {
+                "path": "fusion-configuration",
+                "title": "fusion-configuration"
+              },
               { "path": "workspace", "title": "workspace" }
             ]
           }

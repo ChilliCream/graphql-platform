@@ -7,7 +7,7 @@ namespace GreenDonut;
 /// error.
 /// </summary>
 /// <typeparam name="TValue">A value type.</typeparam>
-public readonly struct Result<TValue> : IEquatable<Result<TValue>>
+public readonly record struct Result<TValue>
 {
     /// <summary>
     /// Creates a new value result.
@@ -49,29 +49,7 @@ public readonly struct Result<TValue> : IEquatable<Result<TValue>>
     /// otherwise <c>null</c>.
     /// </summary>
     public Exception? Error { get; }
-
-    /// <inheritdoc />
-    public bool Equals(Result<TValue> other)
-        => Error == other.Error &&
-            Equals(Value, other.Value);
-
-    /// <inheritdoc />
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(null, obj))
-        {
-            return false;
-        }
-
-        return obj is Result<TValue> result && Equals(result);
-    }
-
-    /// <inheritdoc />
-    public override int GetHashCode()
-        => Error is not null
-            ? Error.GetHashCode()
-            : Value?.GetHashCode() ?? 0;
-
+    
     /// <summary>
     /// Creates a new error result.
     /// </summary>

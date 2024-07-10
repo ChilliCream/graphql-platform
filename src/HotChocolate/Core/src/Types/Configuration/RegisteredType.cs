@@ -55,11 +55,11 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             ? hasClrType.RuntimeType
             : typeof(object);
 
-    public List<TypeReference> References { get; } = new();
+    public List<TypeReference> References { get; } = [];
 
-    public List<TypeDependency> Dependencies { get; } = new();
+    public List<TypeDependency> Dependencies { get; } = [];
 
-    public List<TypeDependency> Conditionals => _conditionals ??= new();
+    public List<TypeDependency> Conditionals => _conditionals ??= [];
 
     public bool IsInferred { get; }
 
@@ -77,13 +77,13 @@ internal sealed partial class RegisteredType : IHasRuntimeType
 
     public bool IsDirective => IsDirectiveType;
 
-    public List<ISchemaError> Errors => _errors ??= new();
+    public List<ISchemaError> Errors => _errors ??= [];
 
-    public bool HasErrors => _errors is { Count: > 0 };
+    public bool HasErrors => _errors is { Count: > 0, };
 
     public void ClearConditionals()
     {
-        if (_conditionals is { Count: > 0 })
+        if (_conditionals is { Count: > 0, })
         {
             _conditionals.Clear();
         }
@@ -96,7 +96,7 @@ internal sealed partial class RegisteredType : IHasRuntimeType
             return "Schema";
         }
 
-        if (Type is IHasName { Name: { Length: > 0 } name })
+        if (Type is IHasName { Name: { Length: > 0, } name, })
         {
             return IsDirective ? $"@{name}" : name;
         }

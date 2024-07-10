@@ -2,12 +2,12 @@ namespace HotChocolate.Subscriptions.Postgres;
 
 internal sealed class ContinuousTask : IAsyncDisposable
 {
-    private const int _waitOnFailureinMs = 1000;
+    private const int _waitOnFailureInMs = 1000;
 
     private readonly CancellationTokenSource _completion = new();
     private readonly Func<CancellationToken, Task> _handler;
     private readonly Task _task;
-    private bool disposed;
+    private bool _disposed;
 
     public ContinuousTask(Func<CancellationToken, Task> handler)
     {
@@ -38,7 +38,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
             {
                 if (!_completion.IsCancellationRequested)
                 {
-                    await Task.Delay(_waitOnFailureinMs, _completion.Token);
+                    await Task.Delay(_waitOnFailureInMs, _completion.Token);
                 }
             }
         }
@@ -47,7 +47,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
-        if(disposed)
+        if(_disposed)
         {
             return;
         }
@@ -62,7 +62,7 @@ internal sealed class ContinuousTask : IAsyncDisposable
         }
 
         _completion.Dispose();
-        disposed = true;
+        _disposed = true;
 
         await ValueTask.CompletedTask;
     }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Sorting;
 
 public static class SortVisitorContextExtensions

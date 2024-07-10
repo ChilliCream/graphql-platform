@@ -25,7 +25,7 @@ internal sealed class PipelineBuilder
             nameof(CompileInvoke),
             BindingFlags.Static | BindingFlags.NonPublic)!;
 
-    private readonly List<(Type, object[])> _components = new();
+    private readonly List<(Type, object[])> _components = [];
 
     public PipelineBuilder UseMiddleware<T>(params object[] args)
     {

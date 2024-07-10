@@ -23,6 +23,87 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Types\Directives\ProvidesAttribute.cs">
+      <DependentUpon>ProvidesDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ProvidesDescriptorExtensions.cs">
+      <DependentUpon>ProvidesDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresAttribute.cs">
+      <DependentUpon>RequiresDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresDescriptorExtensions.cs">
+      <DependentUpon>RequiresDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\KeyAttribute.cs">
+      <DependentUpon>KeyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\KeyDescriptorExtensions.cs">
+      <DependentUpon>KeyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExternalAttribute.cs">
+      <DependentUpon>ExternalDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExternalDescriptorExtensions.cs">
+      <DependentUpon>ExternalDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExtendServiceTypeAttribute.cs">
+      <DependentUpon>ExtendServiceTypeDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ExtendServiceTypeDescriptorExtensions.cs">
+      <DependentUpon>ExtendServiceTypeDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ContactDescriptorExtensions.cs">
+      <DependentUpon>ContactDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\OverrideAttribute.cs">
+      <DependentUpon>OverrideDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\OverrideDescriptorExtensions.cs">
+      <DependentUpon>OverrideDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ShareableAttribute.cs">
+      <DependentUpon>ShareableDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ShareableDescriptorExtensions.cs">
+      <DependentUpon>ShareableDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InterfaceObjectAttribute.cs">
+      <DependentUpon>InterfaceObjectDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InterfaceObjectDescriptorExtensions.cs">
+      <DependentUpon>InterfaceObjectDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\KeyLegacySupportAttribute.cs">
+      <DependentUpon>KeyDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\LinkDescriptorExtensions.cs">
+      <DependentUpon>LinkDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\PackageAttribute.cs">
+      <DependentUpon>LinkDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InaccessibleAttribute.cs">
+      <DependentUpon>InaccessibleDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\InaccessibleDescriptorExtensions.cs">
+      <DependentUpon>InaccessibleDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\ComposeDirectiveDescriptorExtensions.cs">
+      <DependentUpon>ComposeDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\FieldSetAttribute.cs">
+      <DependentUpon>FieldSetType.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\AuthenticatedDescriptionExtensions.cs">
+      <DependentUpon>AuthenticatedDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\AuthenticatedAttribute.cs">
+      <DependentUpon>AuthenticatedDirective.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Types\Directives\RequiresScopesDescriptorExtensions.cs">
+      <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
+    </Compile>
     <Compile Update="Properties\FederationResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -32,6 +113,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>FederationResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Compile Update="Types\Directives\RequiresScopesAttribute.cs">
+      <DependentUpon>RequiresScopesDirective.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -159,6 +159,9 @@
   <data name="UnexpectedCharacter" xml:space="preserve">
     <value>Unexpected character `{0}` ({1}).</value>
   </data>
+  <data name="DisallowedNameCharacterAfterNumber" xml:space="preserve">
+    <value>Found a NameStart character `{0}` ({1}) following a number, which is disallowed.</value>
+  </data>
   <data name="InvalidCharacterEscapeSequence" xml:space="preserve">
     <value>Invalid character escape sequence: \{0}.</value>
   </data>

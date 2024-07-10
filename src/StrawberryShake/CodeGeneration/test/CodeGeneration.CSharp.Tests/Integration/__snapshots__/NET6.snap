@@ -1,0 +1,17 @@
+﻿{
+  "Data": null,
+  "DataInfo": null,
+  "DataFactory": {},
+  "Errors": [
+    {
+      "Message": "A task was canceled.",
+      "Code": null,
+      "Path": null,
+      "Locations": null,
+      "Exception": null,
+      "Extensions": null
+    }
+  ],
+  "Extensions": {},
+  "ContextData": {}
+}

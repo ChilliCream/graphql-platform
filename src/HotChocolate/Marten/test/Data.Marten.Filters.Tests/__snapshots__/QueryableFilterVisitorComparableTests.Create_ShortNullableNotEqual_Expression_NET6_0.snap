@@ -16,7 +16,7 @@
 
 12 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) != :p0;
 ---------------
 
 13 Result:
@@ -37,7 +37,7 @@ select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foo
 
 13 SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where CAST(d.data ->> 'BarShort' as smallint) != :p0;
 ---------------
 
 null Result:
@@ -61,5 +61,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where d.data ->> 'BarShort' is not null
+select d.id, d.data from public.mt_doc_queryablefiltervisitorcomparabletests_foonullable as d where d.data ->> 'BarShort' is not null;
 ---------------

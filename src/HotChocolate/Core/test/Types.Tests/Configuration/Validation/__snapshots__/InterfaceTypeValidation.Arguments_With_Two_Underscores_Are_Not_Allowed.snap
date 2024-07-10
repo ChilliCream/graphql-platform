@@ -4,7 +4,7 @@
   "extensions": {
     "argument": "__bar",
     "field": "foo",
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Objects.Type-Validation"
   }
 }
 
@@ -14,7 +14,7 @@
   "extensions": {
     "argument": "__bar",
     "field": "foo",
-    "specifiedBy": "http://spec.graphql.org/October2021/#sec-Interfaces.Type-Validation"
+    "specifiedBy": "https://spec.graphql.org/October2021/#sec-Interfaces.Type-Validation"
   }
 }
 

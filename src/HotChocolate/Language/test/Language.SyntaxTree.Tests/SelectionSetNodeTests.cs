@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -30,7 +29,7 @@ public class SelectionSetNodeTests
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0)))
+                        new List<ISelectionNode>(0))),
             });
 
         // act
@@ -68,7 +67,7 @@ public class SelectionSetNodeTests
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0)))
+                        new List<ISelectionNode>(0))),
             });
 
         // act
@@ -100,7 +99,7 @@ public class SelectionSetNodeTests
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0)))
+                        new List<ISelectionNode>(0))),
             });
         var b = new SelectionSetNode(
             new Location(2, 2, 2, 2),
@@ -114,7 +113,7 @@ public class SelectionSetNodeTests
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0)))
+                        new List<ISelectionNode>(0))),
             });
         var c = new SelectionSetNode(
             new Location(1, 1, 1, 1),
@@ -128,7 +127,7 @@ public class SelectionSetNodeTests
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0)))
+                        new List<ISelectionNode>(0))),
             });
         var d = new SelectionSetNode(
             new Location(2, 2, 2, 2),
@@ -142,7 +141,7 @@ public class SelectionSetNodeTests
                     new List<ArgumentNode>(0),
                     new SelectionSetNode(
                         TestLocations.Location1,
-                        new List<ISelectionNode>(0)))
+                        new List<ISelectionNode>(0))),
             });
 
         // act
@@ -162,7 +161,7 @@ public class SelectionSetNodeTests
     public void CreateSelectionSet()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -174,7 +173,7 @@ public class SelectionSetNodeTests
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
-                )
+                ),
             };
 
         // act
@@ -192,7 +191,7 @@ public class SelectionSetNodeTests
     public void WithLocation()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -204,7 +203,7 @@ public class SelectionSetNodeTests
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
-                )
+                ),
             };
 
         var selectionSet = new SelectionSetNode
@@ -224,7 +223,7 @@ public class SelectionSetNodeTests
     public void WithSelections()
     {
         // arrange
-        Location location = AstTestHelper.CreateDummyLocation();
+        var location = AstTestHelper.CreateDummyLocation();
         var selections = new List<ISelectionNode>
             {
                 new FieldNode
@@ -236,7 +235,7 @@ public class SelectionSetNodeTests
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
-                )
+                ),
             };
 
         var selectionSet = new SelectionSetNode
@@ -258,7 +257,7 @@ public class SelectionSetNodeTests
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null
-                    )
+                    ),
             });
 
         // assert

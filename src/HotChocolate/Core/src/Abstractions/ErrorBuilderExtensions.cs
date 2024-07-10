@@ -1,43 +1,14 @@
-using System;
 using System.Globalization;
-using HotChocolate.Language;
-
-#nullable enable
 
 namespace HotChocolate;
 
 public static class ErrorBuilderExtensions
 {
-    public static IErrorBuilder AddLocation(
+    public static IErrorBuilder SetFieldCoordinate(
         this IErrorBuilder builder,
-        ISyntaxNode? syntaxNode)
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        SchemaCoordinate fieldCoordinate)
+        => builder.SetExtension(nameof(fieldCoordinate), fieldCoordinate.ToString());
 
-        if (syntaxNode is { Location: not null })
-        {
-            builder.SetSyntaxNode(syntaxNode);
-
-            if (syntaxNode.Location is not null)
-            {
-                return builder.AddLocation(
-                    syntaxNode.Location.Line,
-                    syntaxNode.Location.Column);
-            }
-        }
-
-        return builder;
-    }
-
-    public static IErrorBuilder SetMessage(
-        this IErrorBuilder builder,
-        string format,
-        params object[] args) =>
-        builder.SetMessage(string.Format(
-            CultureInfo.InvariantCulture,
-            format,
-            args));
+    public static IErrorBuilder SetMessage(this IErrorBuilder builder, string format, params object[] args)
+        => builder.SetMessage(string.Format(CultureInfo.InvariantCulture, format, args));
 }

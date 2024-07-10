@@ -249,7 +249,7 @@ There are also specific arguments that will be automatically populated by Hot Ch
 
 # Injecting Services
 
-Resolvers integrate nicely with `Microsoft.Extensions.DependecyInjection`.
+Resolvers integrate nicely with `Microsoft.Extensions.DependencyInjection`.
 We can access all registered services in our resolvers.
 
 Let's assume we have created a `UserService` and registered it as a service.

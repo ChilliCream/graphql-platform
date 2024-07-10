@@ -31,17 +31,17 @@ internal sealed class SelectionVariants : ISelectionVariants
         {
             return _map.ContainsKey(typeContext);
         }
-        
+
         if (ReferenceEquals(_firstType, typeContext))
         {
             return true;
         }
-        
+
         if (ReferenceEquals(_secondType, typeContext))
         {
             return true;
         }
-        
+
         return false;
     }
 
@@ -138,7 +138,7 @@ internal sealed class SelectionVariants : ISelectionVariants
                 {
                     { _firstType, _firstSelectionSet! },
                     { _secondType, _secondSelectionSet! },
-                    { typeContext, selectionSet }
+                    { typeContext, selectionSet },
                 };
 
                 _firstType = null;

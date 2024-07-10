@@ -14,11 +14,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
   </ItemGroup>  
 
   <ItemGroup>
-    <PackageReference Include="NodaTime" Version="3.0.0" />
+    <PackageReference Include="NodaTime" />
   </ItemGroup>  
 
   <ItemGroup>

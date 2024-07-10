@@ -53,7 +53,7 @@ export const Promo: FC = () => {
               <Description>{workshop.teaser}</Description>
             </Message>
             <Actions>
-              <Tickets to={workshop.url}>Get tickets!</Tickets>
+              <Tickets to={workshop.url}>Check it out!</Tickets>
               <Dismiss
                 aria-label="dismiss promo message"
                 onClick={handleDismiss}

@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using Moq;
-using Xunit;
 
 namespace HotChocolate.Execution.Processing;
 

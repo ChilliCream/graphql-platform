@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -11,7 +10,7 @@ namespace HotChocolate.Types.Descriptors.Definitions;
 /// <summary>
 /// Defines the properties of a GraphQL input object type.
 /// </summary>
-public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefinitionNode>
+public class InputObjectTypeDefinition : TypeDefinitionBase
 {
     /// <summary>
     /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
@@ -53,7 +52,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
 
         if (HasConfigurations)
         {
-            configs ??= new();
+            configs ??= [];
             configs.AddRange(Configurations);
         }
 
@@ -61,7 +60,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
         {
             if (field.HasConfigurations)
             {
-                configs ??= new();
+                configs ??= [];
                 configs.AddRange(field.Configurations);
             }
         }
@@ -73,7 +72,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     {
         base.CopyTo(target);
 
-        if (Fields is { Count: > 0 })
+        if (Fields is { Count: > 0, })
         {
             target.Fields.Clear();
 

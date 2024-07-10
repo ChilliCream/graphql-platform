@@ -1,0 +1,22 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "error14"
+      ],
+      "extensions": {
+        "foo": "bar"
+      }
+    }
+  ],
+  "data": {
+    "error14": null
+  }
+}

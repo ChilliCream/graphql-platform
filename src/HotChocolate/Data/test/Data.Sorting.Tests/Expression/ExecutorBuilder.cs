@@ -1,8 +1,4 @@
-using System;
-using System.Linq;
-using System.Linq.Expressions;
 using HotChocolate.Language;
-using Xunit;
 
 namespace HotChocolate.Data.Sorting.Expressions;
 

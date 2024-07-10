@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -20,7 +18,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeDiscoveryContext discoveryContext,
         DefinitionBase definition)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
             return;
         }
@@ -39,17 +37,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
 
         discoveryContext.RegisterDependencies(extensionDefinition);
 
-        foreach (var field in def.Fields)
-        {
-            if (field is FilterFieldDefinition filterField &&
-                filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
-            {
-                filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
-                    typeof(IdOperationFilterInputType),
-                    TypeContext.Input,
-                    discoveryContext.Scope);
-            }
-        }
+        ApplyIdAttributesToFields(discoveryContext, def);
     }
 
     public override void OnBeforeCompleteName(
@@ -84,7 +72,7 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         ITypeCompletionContext completionContext,
         DefinitionBase definition)
     {
-        if (definition is not FilterInputTypeDefinition { EntityType: { } } def)
+        if (definition is not FilterInputTypeDefinition { EntityType: { }, } def)
         {
             return;
         }
@@ -149,5 +137,49 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
                 field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
         }
+    }
+
+    private static void ApplyIdAttributesToFields(
+        ITypeDiscoveryContext discoveryContext,
+        FilterInputTypeDefinition def)
+    {
+        foreach (var field in def.Fields)
+        {
+            if (field.HasIdAttribute())
+            {
+                field.Type = discoveryContext.TypeInspector.GetTypeRef(
+                    typeof(IdOperationFilterInputType),
+                    TypeContext.Input,
+                    discoveryContext.Scope);
+            }
+        }
+    }
+}
+
+file static class Extensions
+{
+    public static bool HasIdAttribute(this InputFieldDefinition? definition)
+    {
+        if (definition is not FilterFieldDefinition { Member: { } member })
+        {
+            return false;
+        }
+
+        var attributes = member.GetCustomAttributesData();
+        foreach (var attribute in attributes)
+        {
+            if (attribute.AttributeType == typeof(IDAttribute))
+            {
+                return true;
+            }
+
+            if (attribute.AttributeType.IsGenericType &&
+                attribute.AttributeType.GetGenericTypeDefinition() == typeof(IDAttribute<>))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

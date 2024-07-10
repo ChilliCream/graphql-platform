@@ -23,17 +23,6 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="DateTimeType"/> class.
     /// </summary>
-    public DateTimeType()
-        : this(
-            ScalarNames.DateTime,
-            TypeResources.DateTimeType_Description,
-            BindingBehavior.Implicit)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
-    /// </summary>
     public DateTimeType(
         string name,
         string? description = null,
@@ -42,6 +31,18 @@ public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         Description = description;
         SpecifiedBy = new Uri(_specifiedBy);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public DateTimeType()
+        : this(
+            ScalarNames.DateTime,
+            TypeResources.DateTimeType_Description,
+            BindingBehavior.Implicit)
+    {
     }
 
     protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)

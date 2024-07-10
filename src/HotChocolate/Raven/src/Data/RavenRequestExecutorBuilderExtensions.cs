@@ -1,6 +1,5 @@
 using HotChocolate.Data.Raven;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Session;
 

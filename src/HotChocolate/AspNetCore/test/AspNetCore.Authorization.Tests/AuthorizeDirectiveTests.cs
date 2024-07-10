@@ -15,7 +15,7 @@ public class AuthorizeDirectiveTests
         // act
         var authorizeDirective = new AuthorizeDirective(
             null,
-            new[] { "a", "b" });
+            new[] { "a", "b", });
 
         // assert
         Assert.Null(authorizeDirective.Policy);
@@ -71,7 +71,7 @@ public class AuthorizeDirectiveTests
         // arrange
         // act
         var authorizeDirective = new AuthorizeDirective(
-            new[] { "a", "b" });
+            new[] { "a", "b", });
 
         // assert
         Assert.Null(authorizeDirective.Policy);
@@ -153,7 +153,7 @@ public class AuthorizeDirectiveTests
             .AddQueryType(
                 c => c
                     .Name("Query")
-                    .Authorize(new[] { "MyRole" })
+                    .Authorize(["MyRole",])
                     .Field("foo")
                     .Resolve("bar"))
             .AddAuthorizeDirectiveType()
@@ -169,7 +169,7 @@ public class AuthorizeDirectiveTests
         // arrange
         // act
         void Action()
-            => AuthorizeObjectTypeDescriptorExtensions.Authorize(null!, new[] { "MyRole" });
+            => AuthorizeObjectTypeDescriptorExtensions.Authorize(null!, ["MyRole",]);
 
         // assert
         Assert.Throws<ArgumentNullException>(Action);
@@ -399,7 +399,7 @@ public class AuthorizeDirectiveTests
                     c => c
                         .Name("Query")
                         .Field("foo")
-                        .Authorize(new[] { "MyRole" })
+                        .Authorize(["MyRole",])
                         .Resolve("bar"))
                 .AddAuthorization()
                 .BuildSchemaAsync();
@@ -415,7 +415,7 @@ public class AuthorizeDirectiveTests
         // act
         Action action = () =>
             AuthorizeObjectFieldDescriptorExtensions
-                .Authorize(null!, new[] { "MyRole" });
+                .Authorize(null!, ["MyRole",]);
 
         // assert
         Assert.Throws<ArgumentNullException>(action);

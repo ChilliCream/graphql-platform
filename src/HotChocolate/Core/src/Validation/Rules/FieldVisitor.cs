@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+#if NET6_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -14,18 +16,18 @@ namespace HotChocolate.Validation.Rules;
 /// The target field of a field selection must be defined on the scoped
 /// type of the selection set. There are no limitations on alias names.
 ///
-/// http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+/// https://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
 ///
 /// AND
 ///
 /// Field selections on scalars or enums are never allowed,
 /// because they are the leaf nodes of any GraphQL query.
 ///
-/// Conversely the leaf field selections of GraphQL queries
+/// Conversely, the leaf field selections of GraphQL queries
 /// must be of type scalar or enum. Leaf selections on objects,
 /// interfaces, and unions without subfields are disallowed.
 ///
-/// http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
+/// https://spec.graphql.org/June2018/#sec-Leaf-Field-Selections
 /// </summary>
 internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 {
@@ -152,7 +154,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union } unionType &&
+            type.NamedType() is { Kind: TypeKind.Union, } unionType &&
             HasFields(node))
         {
             context.ReportError(context.UnionFieldError(node, (UnionType) unionType));
@@ -233,7 +235,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         {
             if (fields.Count == 1)
             {
-                if (fields[0].Field.SelectionSet is { } selectionSet &&
+                if (fields[0].SyntaxNode.SelectionSet is { } selectionSet &&
                     context.FieldSets.TryGetValue(selectionSet, out var fieldSet))
                 {
                     fields = fieldSet;
@@ -252,15 +254,15 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             {
                 var fieldB = fields[j];
 
-                if (ReferenceEquals(fieldA.Field, fieldB.Field) ||
+                if (ReferenceEquals(fieldA.SyntaxNode, fieldB.SyntaxNode) ||
                     !fieldA.ResponseName.EqualsOrdinal(fieldB.ResponseName))
                 {
                     continue;
                 }
 
                 if (SameResponseShape(
-                        fieldA.Type.RewriteNullability(fieldA.Field.Required),
-                        fieldB.Type.RewriteNullability(fieldB.Field.Required)) &&
+                        fieldA.Type.RewriteNullability(fieldA.SyntaxNode.Required),
+                        fieldB.Type.RewriteNullability(fieldB.SyntaxNode.Required)) &&
                     SameStreamDirective(fieldA, fieldB))
                 {
                     if (!IsParentTypeAligned(fieldA, fieldB))
@@ -268,8 +270,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                         continue;
                     }
 
-                    if (BySyntax.Equals(fieldA.Field.Name, fieldB.Field.Name) &&
-                        AreArgumentsIdentical(fieldA.Field, fieldB.Field))
+                    if (BySyntax.Equals(fieldA.SyntaxNode.Name, fieldB.SyntaxNode.Name) &&
+                        AreArgumentsIdentical(fieldA.SyntaxNode, fieldB.SyntaxNode))
                     {
                         var pair = new FieldInfoPair(fieldA, fieldB);
                         if (context.ProcessedFieldPairs.Add(pair))
@@ -277,12 +279,12 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             context.NextFieldPairs.Add(pair);
                         }
                     }
-                    else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
+                    else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                     {
                         context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                     }
                 }
-                else if (context.FieldTuples.Add((fieldA.Field, fieldB.Field)))
+                else if (context.FieldTuples.Add((fieldA.SyntaxNode, fieldB.SyntaxNode)))
                 {
                     context.ReportError(context.FieldsAreNotMergeable(fieldA, fieldB));
                 }
@@ -295,8 +297,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         FieldInfo fieldA,
         FieldInfo fieldB)
     {
-        if (fieldA.Field.SelectionSet is { } a &&
-            fieldB.Field.SelectionSet is { } b &&
+        if (fieldA.SyntaxNode.SelectionSet is { } a &&
+            fieldB.SyntaxNode.SelectionSet is { } b &&
             context.FieldSets.TryGetValue(a, out var al) &&
             context.FieldSets.TryGetValue(b, out var bl))
         {
@@ -331,7 +333,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static bool IsParentTypeAligned(FieldInfo fieldA, FieldInfo fieldB)
         => ReferenceEquals(fieldA.DeclaringType, fieldB.DeclaringType) ||
-            !fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType();
+            (!fieldA.DeclaringType.IsObjectType() && !fieldB.DeclaringType.IsObjectType());
 
     private static bool AreArgumentsIdentical(FieldNode fieldA, FieldNode fieldB)
     {
@@ -401,7 +403,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return ReferenceEquals(typeA, typeB);
         }
 
-        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union) && 
+        if (typeA.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union) &&
             typeB.IsType(TypeKind.Object, TypeKind.Interface, TypeKind.Union))
         {
             return true;
@@ -412,8 +414,8 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
 
     private static bool SameStreamDirective(FieldInfo fieldA, FieldInfo fieldB)
     {
-        var streamA = fieldA.Field.GetStreamDirectiveNode();
-        var streamB = fieldB.Field.GetStreamDirectiveNode();
+        var streamA = fieldA.SyntaxNode.GetStreamDirectiveNode();
+        var streamB = fieldB.SyntaxNode.GetStreamDirectiveNode();
 
         // if both fields do not have any stream directive they are mergeable.
         if (streamA is null)
@@ -421,7 +423,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return streamB is null;
         }
 
-        // if stream a is not nullable and stream b is null then we cannot merge.
+        // if stream A is not nullable and stream b is null then we cannot merge.
         if (streamB is null)
         {
             return false;
@@ -435,13 +437,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     {
         var next = context.NextFieldPairs;
         var current = context.CurrentFieldPairs;
-        
+
 #if NETSTANDARD2_0
         foreach (var pair in next)
         {
             current.Add(pair);
         }
-        
+
         next.Clear();
 #else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(next));
@@ -462,13 +464,13 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
     private static void ProcessCurrentFieldPairs(IDocumentValidatorContext context)
     {
         var current = context.CurrentFieldPairs;
-        
+
 #if NETSTANDARD2_0
         foreach (var pair in current)
         {
             TryMergeFieldsInSet(context, pair.FieldA, pair.FieldB);
         }
-        
+
         current.Clear();
 #else
         ref var pair = ref MemoryMarshal.GetReference(CollectionsMarshal.AsSpan(current));

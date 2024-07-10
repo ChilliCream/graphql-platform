@@ -157,3 +157,5 @@ OK that’s it.
 
 > We are currently working on enabling this flow with _Relay_. Stay tuned for updates on this one.
 > Read more about how to do active persisted queries with [Apollo](https://medium.com/open-graphql/graphql-dynamic-persisted-queries-eb259700f1d3).
+
+<!-- spell-checker:ignore Cbnia, Yero -->

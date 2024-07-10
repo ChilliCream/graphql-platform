@@ -12,9 +12,9 @@ namespace HotChocolate.Configuration;
 
 internal sealed class TypeDiscoverer
 {
-    private readonly List<TypeReference> _unregistered = new();
-    private readonly List<ISchemaError> _errors = new();
-    private readonly List<TypeReference> _resolved = new();
+    private readonly List<TypeReference> _unregistered = [];
+    private readonly List<ISchemaError> _errors = [];
+    private readonly List<TypeReference> _resolved = [];
     private readonly IDescriptorContext _context;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeRegistrar _typeRegistrar;
@@ -68,15 +68,15 @@ internal sealed class TypeDiscoverer
 
         _typeRegistrar = new TypeRegistrar(context, typeRegistry, typeLookup, interceptor);
 
-        _handlers = new ITypeRegistrarHandler[]
-        {
+        _handlers =
+        [
             new ExtendedTypeReferenceHandler(context.TypeInspector),
             new SchemaTypeReferenceHandler(),
             new SyntaxTypeReferenceHandler(context.TypeInspector),
             new FactoryTypeReferenceHandler(context),
             new DependantFactoryTypeReferenceHandler(context),
-            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector)
-        };
+            new ExtendedTypeDirectiveReferenceHandler(context.TypeInspector),
+        ];
 
         _interceptor = interceptor;
     }

@@ -1,5 +1,4 @@
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types.SDL;
 

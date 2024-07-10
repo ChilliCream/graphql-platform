@@ -1,6 +1,5 @@
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 #nullable enable
 

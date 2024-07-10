@@ -44,9 +44,6 @@ public abstract class OutputFieldDescriptorBase<TDefinition>
         }
     }
 
-    protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
-        => Definition.SyntaxNode = syntaxNode;
-
     protected void Name(string name)
         => Definition.Name = name;
 

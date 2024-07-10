@@ -47,13 +47,6 @@ public class InterfaceTypeDescriptor<T>
         base.OnCompleteFields(fields, handledMembers);
     }
 
-    public new IInterfaceTypeDescriptor<T> SyntaxNode(
-        InterfaceTypeDefinitionNode interfaceTypeDefinition)
-    {
-        base.SyntaxNode(interfaceTypeDefinition);
-        return this;
-    }
-
     public new IInterfaceTypeDescriptor<T> Name(string value)
     {
         base.Name(value);
@@ -125,6 +118,20 @@ public class InterfaceTypeDescriptor<T>
         throw new ArgumentException(
             InterfaceTypeDescriptor_MustBePropertyOrMethod,
             nameof(propertyOrMethod));
+    }
+
+    public IInterfaceFieldDescriptor Field(MemberInfo propertyOrMethod)
+    {
+        if (propertyOrMethod is not { MemberType: MemberTypes.Property or MemberTypes.Method })
+        {
+            throw new ArgumentException(
+                InterfaceTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
+        var fieldDescriptor = new InterfaceFieldDescriptor(Context, propertyOrMethod);
+        Fields.Add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public new IInterfaceTypeDescriptor<T> ResolveAbstractType(

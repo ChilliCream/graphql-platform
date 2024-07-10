@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.DataResources;
 
@@ -53,8 +52,8 @@ public abstract class SortProviderExtensions<TContext>
     public override void Merge(IConventionContext context, Convention convention)
     {
         if (Definition is { } &&
-            convention is SortProvider<TContext> conv &&
-            conv.Definition is { } target)
+            convention is SortProvider<TContext> sortProvider &&
+            sortProvider.Definition is { } target)
         {
             // Provider extensions should be applied by default before the default handlers, as
             // the interceptor picks up the first handler. A provider extension should adds more

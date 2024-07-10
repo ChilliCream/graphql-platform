@@ -192,10 +192,9 @@ public static class TypeDependencyHelper
         }
     }
 
-    internal static void CollectDirectiveDependencies<T>(
-        TypeDefinitionBase<T> definition,
+    internal static void CollectDirectiveDependencies(
+        TypeDefinitionBase definition,
         ICollection<TypeDependency> dependencies)
-        where T : class, ISyntaxNode
     {
         if (definition.HasDirectives)
         {

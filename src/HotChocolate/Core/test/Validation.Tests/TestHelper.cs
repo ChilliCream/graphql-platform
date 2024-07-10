@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Validation;
 

@@ -1,5 +1,4 @@
 using HotChocolate.Configuration.Validation;
-using Xunit;
 
 namespace HotChocolate.Types.Validation;
 

@@ -46,7 +46,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             SetUpHttpContext);
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -74,7 +74,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
+        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -82,7 +82,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
@@ -111,7 +111,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
             }));
 
         var hasAgeDefinedPolicy = await File.ReadAllTextAsync("policies/has_age_defined.rego");
-        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181") };
+        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8181"), };
 
         var putPolicyResponse = await client.PutAsync(
             "/v1/policies/has_age_defined",
@@ -119,7 +119,7 @@ public class AuthorizationTests : ServerTestBase, IAsyncLifetime
         putPolicyResponse.EnsureSuccessStatusCode();
 
         // act
-        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }" });
+        var result = await server.PostAsync(new ClientQueryRequest { Query = "{ age }", });
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);

@@ -3,7 +3,6 @@ using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -58,8 +57,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         // the Host Process & the Isolated Process Worker!
         // 2) Currently only String values are supported (obviously due to above complexities).
         // More Info. here (using Blob binding docs):
-        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-
-        // blob-input?tabs=isolated-process%2Cextensionv5&pivots=programming-language-csharp#usage
+        // https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-input#usage
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
 

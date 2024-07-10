@@ -19,7 +19,7 @@ public static class OperationCompilerOptimizerHelper
             return;
         }
 
-        optimizers = new List<IOperationCompilerOptimizer> { optimizer };
+        optimizers = [optimizer,];
         contextData[_key] = optimizers;
     }
 

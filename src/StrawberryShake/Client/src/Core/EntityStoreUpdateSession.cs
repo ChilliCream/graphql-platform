@@ -28,7 +28,7 @@ internal sealed class EntityStoreUpdateSession : IEntityStoreUpdateSession
 
     public EntityStoreSnapshot CurrentSnapshot { get; }
 
-    public HashSet<EntityId> UpdatedEntityIds { get; } = new();
+    public HashSet<EntityId> UpdatedEntityIds { get; } = [];
 
     IEntityStoreSnapshot IEntityStoreUpdateSession.CurrentSnapshot => CurrentSnapshot;
 

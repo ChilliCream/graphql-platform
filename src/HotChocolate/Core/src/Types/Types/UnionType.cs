@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -88,13 +88,10 @@ public class UnionType
     /// Returns the newly created union type.
     /// </returns>
     public static UnionType CreateUnsafe(UnionTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Union;
-
-    /// <inheritdoc />
-    public UnionTypeDefinitionNode? SyntaxNode { get; private set; }
 
     /// <summary>
     /// Gets the <see cref="IObjectType" /> set of this union type.
@@ -226,8 +223,6 @@ public class UnionType
     {
         base.OnCompleteType(context, definition);
 
-        SyntaxNode = definition.SyntaxNode;
-
         CompleteTypeSet(context, definition);
         CompleteResolveAbstractType(definition.ResolveAbstractType);
     }
@@ -251,7 +246,6 @@ public class UnionType
                 .SetMessage(TypeResources.UnionType_MustHaveTypes)
                 .SetCode(ErrorCodes.Schema.MissingType)
                 .SetTypeSystemObject(this)
-                .AddSyntaxNode(SyntaxNode)
                 .Build());
         }
     }
@@ -263,9 +257,27 @@ public class UnionType
     {
         foreach (var typeReference in definition.Types)
         {
-            if (context.TryGetType(typeReference, out ObjectType? ot))
+            if (context.TryGetType(typeReference, out IType? type))
             {
-                typeSet.Add(ot);
+                if (type is NonNullType nonNullType)
+                {
+                    type = nonNullType.Type;
+                }
+
+                if (type is not ObjectType objectType)
+                {
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            "The provided type `{0}` is not an object type and cannot be part of a union type.",
+                            type.ToTypeNode().Print())
+                        .SetCode(ErrorCodes.Schema.MissingType)
+                        .SetTypeSystemObject(this)
+                        .SetExtension(_typeReference, typeReference)
+                        .Build());
+                    continue;
+                }
+                
+                typeSet.Add(objectType);
             }
             else
             {
@@ -274,7 +286,6 @@ public class UnionType
                     .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(this)
                     .SetExtension(_typeReference, typeReference)
-                    .AddSyntaxNode(SyntaxNode)
                     .Build());
             }
         }

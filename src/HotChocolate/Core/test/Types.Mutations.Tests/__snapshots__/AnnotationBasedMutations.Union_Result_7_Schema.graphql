@@ -40,5 +40,3 @@ union DoSomethingError = CustomError | Custom2Error | Custom4Error | Custom5 | C
 input DoSomethingInput {
   something: String!
 }
-
-directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION

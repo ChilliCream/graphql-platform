@@ -87,7 +87,9 @@ public class MockInvocationFeatures : Dictionary<Type, object>, IInvocationFeatu
     public void Set<T>(T instance)
     {
         if (instance == null)
+        {
             return;
+        }
 
         TryAdd(typeof(T), instance);
     }

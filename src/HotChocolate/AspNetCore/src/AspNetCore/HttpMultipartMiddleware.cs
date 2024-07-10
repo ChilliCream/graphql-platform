@@ -6,6 +6,8 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static System.Net.HttpStatusCode;
+using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -16,6 +18,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     private const string _operations = "operations";
     private const string _map = "map";
     private readonly FormOptions _formOptions;
+    private readonly IOperationResult _multipartRequestError = MultiPartRequestPreflightRequired();
 
     public HttpMultipartMiddleware(
         HttpRequestDelegate next,
@@ -40,10 +43,16 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
     {
         if (HttpMethods.IsPost(context.Request.Method) &&
             GetOptions(context).EnableMultipartRequests &&
-            ParseContentType(context) == RequestContentType.Form &&
-            (context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) ||
-                !GetOptions(context).EnforceMultipartRequestsPreflightHeader))
+            ParseContentType(context) == RequestContentType.Form)
         {
+            if (!context.Request.Headers.ContainsKey(HttpHeaderKeys.Preflight) &&
+                GetOptions(context).EnforceMultipartRequestsPreflightHeader)
+            {
+                var headerResult = HeaderUtilities.GetAcceptHeader(context.Request);
+                await WriteResultAsync(context, _multipartRequestError, headerResult.AcceptMediaTypes, BadRequest);
+                return;
+            }
+            
             if (!IsDefaultSchema)
             {
                 context.Items[WellKnownContextData.SchemaName] = SchemaName;
@@ -62,7 +71,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         }
     }
 
-    protected override async ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+    protected override async ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestsFromBodyAsync(
         HttpRequest httpRequest,
         CancellationToken cancellationToken)
     {
@@ -80,7 +89,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
 
         // Parse the string values of interest from the IFormCollection
         var multipartRequest = ParseMultipartRequest(form);
-        var requests = RequestParser.ReadOperationsRequest(
+        var requests = RequestParser.ParseRequest(
             multipartRequest.Operations);
 
         foreach (var graphQLRequest in requests)
@@ -154,7 +163,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
                 throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
             }
 
-            var file = filename is { Length: > 0 }
+            var file = filename is { Length: > 0, }
                 ? files.GetFile(filename)
                 : null;
 
@@ -176,7 +185,7 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         GraphQLRequest request,
         IDictionary<string, IFile> fileMap)
     {
-        if (!(request.Variables is Dictionary<string, object?> mutableVariables))
+        if (request.Variables is not [Dictionary<string, object?> mutableVariables,])
         {
             throw new InvalidOperationException(
                 HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);

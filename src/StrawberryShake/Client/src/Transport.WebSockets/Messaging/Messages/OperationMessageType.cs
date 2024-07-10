@@ -8,5 +8,5 @@ public enum OperationMessageType
     Error,
     Data,
     Cancelled,
-    Complete
+    Complete,
 }

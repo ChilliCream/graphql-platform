@@ -19,7 +19,7 @@ BAR Result:
 
 BAR SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where CAST(d.data ->> 'BarEnum' as integer) != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where CAST(d.data ->> 'BarEnum' as integer) != :p0;
 ---------------
 
 FOO Result:
@@ -43,7 +43,7 @@ FOO Result:
 
 FOO SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where CAST(d.data ->> 'BarEnum' as integer) != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where CAST(d.data ->> 'BarEnum' as integer) != :p0;
 ---------------
 
 null Result:
@@ -70,5 +70,5 @@ null Result:
 
 null SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where d.data ->> 'BarEnum' is not null
+select d.id, d.data from public.mt_doc_queryablefiltervisitorenumtests_foonullable as d where d.data ->> 'BarEnum' is not null;
 ---------------

@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Types;
 
@@ -124,8 +123,8 @@ public class UnsignedIntTypeTests : ScalarTypeTestBase
     }
 
     [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 1)]
+    [InlineData(0, (uint)0)]
+    [InlineData(1, (uint)1)]
     [InlineData(uint.MaxValue, uint.MaxValue)]
     [InlineData(uint.MinValue, uint.MinValue)]
     [InlineData(null, null)]

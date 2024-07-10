@@ -36,16 +36,6 @@ public class IsbnType : RegexType
     /// <summary>
     /// Initializes a new instance of the <see cref="IsbnType"/> class.
     /// </summary>
-    public IsbnType()
-        : this(
-            WellKnownScalarTypes.Isbn,
-            ScalarResources.IsbnType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="IsbnType"/> class.
-    /// </summary>
     public IsbnType(
         string name,
         string? description = null,
@@ -55,6 +45,17 @@ public class IsbnType : RegexType
             CreateRegex(),
             description,
             bind)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IsbnType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public IsbnType()
+        : this(
+            WellKnownScalarTypes.Isbn,
+            ScalarResources.IsbnType_Description)
     {
     }
 

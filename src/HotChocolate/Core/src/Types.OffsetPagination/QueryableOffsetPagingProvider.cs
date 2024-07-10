@@ -31,7 +31,7 @@ public class QueryableOffsetPagingProvider
 
         return (OffsetPagingHandler)_createHandler
             .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-            .Invoke(null, new object[] { options })!;
+            .Invoke(null, [options,])!;
     }
 
     private static QueryableOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(

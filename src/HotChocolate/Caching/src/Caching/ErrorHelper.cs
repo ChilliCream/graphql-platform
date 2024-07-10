@@ -22,7 +22,6 @@ internal static class ErrorHelper
                 field.Coordinate.ToString(),
                 type.Name)
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(field.SyntaxNode)
             .Build();
 
     public static ISchemaError CacheControlOnInterfaceField(
@@ -33,7 +32,6 @@ internal static class ErrorHelper
                 ErrorHelper_CacheControlOnInterfaceField,
                 field.Coordinate.ToString())
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(field.SyntaxNode)
             .Build();
 
     public static ISchemaError CacheControlNegativeMaxAge(
@@ -44,7 +42,6 @@ internal static class ErrorHelper
                 ErrorHelper_CacheControlNegativeMaxAge,
                 field.Coordinate.ToString())
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(field.SyntaxNode)
             .Build();
 
     public static ISchemaError CacheControlBothMaxAgeAndInheritMaxAge(
@@ -55,6 +52,5 @@ internal static class ErrorHelper
                 ErrorHelper_CacheControlBothMaxAgeAndInheritMaxAge,
                 field.Coordinate.ToString())
             .SetTypeSystemObject(type)
-            .AddSyntaxNode(field.SyntaxNode)
             .Build();
 }

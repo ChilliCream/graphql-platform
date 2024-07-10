@@ -1,18 +1,10 @@
 using CookieCrumble;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Fusion.Composition;
 using HotChocolate.Fusion.Metadata;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Shared;
-using HotChocolate.Language;
 using HotChocolate.Skimmed.Serialization;
-using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit.Abstractions;
 using static HotChocolate.Fusion.Shared.DemoProjectSchemaExtensions;
-using static HotChocolate.Language.Utf8GraphQLParser;
-using static HotChocolate.Fusion.TestHelper;
 using HttpClientConfiguration = HotChocolate.Fusion.Metadata.HttpClientConfiguration;
 
 namespace HotChocolate.Fusion;
@@ -36,7 +28,7 @@ public class ConfigurationRewriterTests
             new[]
             {
                 demoProject.Reviews2.ToConfiguration(Reviews2ExtensionSdl),
-                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl)
+                demoProject.Accounts.ToConfiguration(AccountsExtensionSdl),
             });
 
         var configuration = SchemaFormatter.FormatAsDocument(fusionGraph);
@@ -49,7 +41,12 @@ public class ConfigurationRewriterTests
         var snapshot = new Snapshot();
         snapshot.Add(configuration, "Original:");
         snapshot.Add(rewritten, "Rewritten:");
-        await snapshot.MatchAsync();
+        await snapshot.MatchMarkdownAsync();
+
+        // this should not throw
+        var reader = new FusionGraphConfigurationReader();
+        var config = reader.Read(rewritten);
+        Assert.Contains(config.HttpClients, t => t.EndpointUri == new Uri("http://client"));
     }
 
     private class CustomRewriter : ConfigurationRewriter
@@ -59,7 +56,7 @@ public class ConfigurationRewriterTests
             CancellationToken cancellationToken)
         {
             return base.RewriteAsync(
-                configuration with { EndpointUri = new Uri("http://client") },
+                configuration with { EndpointUri = new Uri("http://client"), },
                 cancellationToken);
         }
     }

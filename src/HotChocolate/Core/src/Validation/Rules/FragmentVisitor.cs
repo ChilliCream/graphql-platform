@@ -12,13 +12,13 @@ namespace HotChocolate.Validation.Rules;
 /// To avoid ambiguity, each fragment’s name must be unique within a
 /// document.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
+/// https://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness
 ///
 /// AND
 ///
 /// Defined fragments must be used within a document.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used
+/// https://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used
 ///
 /// AND
 ///
@@ -27,7 +27,7 @@ namespace HotChocolate.Validation.Rules;
 /// They can only be applied on non‐leaf fields.
 /// This rule applies to both inline and named fragments.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types
+/// https://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types
 ///
 /// AND
 ///
@@ -39,7 +39,7 @@ namespace HotChocolate.Validation.Rules;
 /// A fragment spread is only valid if its type condition could ever
 /// apply within the parent type.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible
+/// https://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible
 ///
 /// AND
 ///
@@ -48,7 +48,7 @@ namespace HotChocolate.Validation.Rules;
 ///
 /// It is a validation error if the target of a spread is not defined.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined
+/// https://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined
 ///
 /// AND
 ///
@@ -56,7 +56,7 @@ namespace HotChocolate.Validation.Rules;
 /// spreading itself. Otherwise an operation could infinitely spread or
 /// infinitely execute on cycles in the underlying data.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles
+/// https://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles
 ///
 /// AND
 ///
@@ -64,7 +64,7 @@ namespace HotChocolate.Validation.Rules;
 /// This applies for both named and inline fragments.
 /// If they are not defined in the schema, the query does not validate.
 ///
-/// http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
+/// https://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence
 /// </summary>
 internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
 {

@@ -22,7 +22,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
     private readonly Channel<TMessage> _incoming;
     private readonly BoundedChannelOptions _channelOptions;
     private readonly ISubscriptionDiagnosticEvents _diagnosticEvents;
-    private readonly List<Channel<TMessage>> _subscribers = new();
+    private readonly List<Channel<TMessage>> _subscribers = [];
     private bool _completed;
     private bool _disposed;
 
@@ -37,7 +37,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode
+            FullMode = (BoundedChannelFullMode) (int) fullMode,
         };
         _incoming = CreateUnbounded<TMessage>();
         _diagnosticEvents = diagnosticEvents;
@@ -53,7 +53,7 @@ public abstract class DefaultTopic<TMessage> : ITopic
         Name = name ?? throw new ArgumentNullException(nameof(name));
         _channelOptions = new BoundedChannelOptions(capacity)
         {
-            FullMode = (BoundedChannelFullMode) (int) fullMode
+            FullMode = (BoundedChannelFullMode) (int) fullMode,
         };
         _incoming = incomingMessages;
         _diagnosticEvents = diagnosticEvents;

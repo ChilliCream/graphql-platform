@@ -32,8 +32,6 @@ public class JsonTypeTests
               jsonFromString: JSON!
             }
 
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-            
             scalar JSON
             """);
     }
@@ -277,15 +275,15 @@ public class JsonTypeTests
                 .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .ExecuteRequestAsync(
-                    QueryRequestBuilder.New()
-                        .SetQuery(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
                             """
                             query($input: JSON!) {
                                 inputJson(input: $input)
                             }
                             """)
-                        .SetVariableValue("input", input)
-                        .Create());
+                        .SetVariableValues(new Dictionary<string, object> { {"input", input }, })
+                        .Build());
 
         result.MatchInlineSnapshot(
             """

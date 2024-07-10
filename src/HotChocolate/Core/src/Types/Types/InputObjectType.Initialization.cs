@@ -57,7 +57,6 @@ public partial class InputObjectType
     {
         base.OnCompleteType(context, definition);
 
-        SyntaxNode = definition.SyntaxNode;
         Fields = OnCompleteFields(context, definition);
 
         _createInstance = OnCompleteCreateInstance(context, definition);

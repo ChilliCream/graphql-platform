@@ -21,9 +21,9 @@ public static class IntrospectionClient
     private static readonly JsonSerializerOptions _serializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter(), },
     };
-    
+
     internal static JsonSerializerOptions SerializerOptions => _serializerOptions;
 
     /// <summary>
@@ -41,7 +41,7 @@ public static class IntrospectionClient
         HttpClient client,
         CancellationToken cancellationToken = default)
         => IntrospectServerAsync(client, default, cancellationToken);
-    
+
     /// <summary>
     /// Downloads the schema information from a GraphQL server
     /// and returns the schema syntax tree.
@@ -57,7 +57,7 @@ public static class IntrospectionClient
     /// </param>
     /// <returns>Returns a parsed GraphQL schema syntax tree.</returns>
     public static Task<DocumentNode> IntrospectServerAsync(
-        HttpClient client, 
+        HttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
@@ -68,9 +68,9 @@ public static class IntrospectionClient
 
         return IntrospectServerInternalAsync(client, options, cancellationToken);
     }
-    
+
     private static async Task<DocumentNode> IntrospectServerInternalAsync(
-        HttpClient client, 
+        HttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
@@ -120,7 +120,7 @@ public static class IntrospectionClient
 
         return IntrospectServerInternalAsync(client, options, cancellationToken);
     }
-    
+
     private static async Task<DocumentNode> IntrospectServerInternalAsync(
         GraphQLHttpClient client,
         IntrospectionOptions options,
@@ -128,7 +128,7 @@ public static class IntrospectionClient
     {
         var capabilities = await InspectServerAsync(client, options, cancellationToken).ConfigureAwait(false);
         var result = await IntrospectAsync(client, capabilities, options, cancellationToken).ConfigureAwait(false);
-        
+
         EnsureNoGraphQLErrors(result);
 
         return IntrospectionFormatter.Format(result).RemoveBuiltInTypes();
@@ -148,8 +148,8 @@ public static class IntrospectionClient
         HttpClient client,
         CancellationToken cancellationToken = default)
         => InspectServerAsync(client, default, cancellationToken);
-        
-    
+
+
     /// <summary>
     /// Gets the supported GraphQL server capabilities from the server by doing an introspection query.
     /// </summary>
@@ -164,7 +164,7 @@ public static class IntrospectionClient
     /// </param>
     /// <returns>Returns an object that indicates what capabilities the GraphQL server has.</returns>
     public static Task<ServerCapabilities> InspectServerAsync(
-        HttpClient client, 
+        HttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
@@ -175,9 +175,9 @@ public static class IntrospectionClient
 
         return InspectServerInternalAsync(client, options, cancellationToken);
     }
-    
+
     private static async Task<ServerCapabilities> InspectServerInternalAsync(
-        HttpClient client, 
+        HttpClient client,
         IntrospectionOptions options,
         CancellationToken cancellationToken = default)
     {
@@ -232,7 +232,7 @@ public static class IntrospectionClient
         {
             return;
         }
-        
+
         var message = new StringBuilder();
 
         for (var i = 0; i < result.Errors.Count; i++)
@@ -257,7 +257,7 @@ public static class IntrospectionClient
 
         using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
         using var result = await response.ReadAsResultAsync(cancellationToken).ConfigureAwait(false);
-        
+
         IntrospectionData? data = null;
         IReadOnlyList<IntrospectionError>? errors = null;
 
@@ -265,7 +265,7 @@ public static class IntrospectionClient
         {
             data = result.Data.Deserialize<IntrospectionData>(_serializerOptions);
         }
-        
+
         if (result.Errors.ValueKind is JsonValueKind.Array)
         {
             errors = result.Errors.Deserialize<IntrospectionError[]>(_serializerOptions);

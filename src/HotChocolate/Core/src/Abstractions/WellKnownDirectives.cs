@@ -69,8 +69,4 @@ public static class WellKnownDirectives
     /// The name of the @tag argument name.
     /// </summary>
     public const string Name = "name";
-    
-    public const string NullBubbling = "nullBubbling";
-    
-    public const string Enable = "enable";
 }

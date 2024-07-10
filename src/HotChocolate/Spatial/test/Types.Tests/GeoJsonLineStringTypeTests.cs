@@ -7,12 +7,12 @@ namespace HotChocolate.Types.Spatial;
 
 public class GeoJsonLineStringTypeTests
 {
-    private readonly LineString _geom = new(new[]
-    {
+    private readonly LineString _geom = new(
+    [
         new Coordinate(30, 10),
         new Coordinate(10, 30),
-        new Coordinate(40, 40)
-    });
+        new Coordinate(40, 40),
+    ]);
 
     [Fact]
     public async Task LineString_Execution_Output()

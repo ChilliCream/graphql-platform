@@ -10,5 +10,5 @@ public enum ConnectionCloseReason
     PolicyViolation,
     MessageTooBig,
     MandatoryExtension,
-    InternalServerError
+    InternalServerError,
 }

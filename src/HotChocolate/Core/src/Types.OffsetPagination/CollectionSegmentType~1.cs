@@ -83,7 +83,7 @@ internal class CollectionSegmentType
         var definition = new ObjectTypeDefinition
         {
             Description = CollectionSegmentType_Description,
-            RuntimeType = typeof(CollectionSegment)
+            RuntimeType = typeof(CollectionSegment),
         };
 
         definition.Fields.Add(new(
@@ -95,23 +95,26 @@ internal class CollectionSegmentType
         definition.Fields.Add(new(
             Names.Items,
             CollectionSegmentType_Items_Description,
-            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items}});
+            pureResolver: GetItems) {CustomSettings = {ContextDataKeys.Items, }, });
 
         if (withTotalCount)
         {
             definition.Fields.Add(new(
                 Names.TotalCount,
                 type: TypeReference.Parse($"{ScalarNames.Int}!"),
-                resolver: GetTotalCountAsync));
+                resolver: GetTotalCountAsync)
+            {
+                Flags = FieldFlags.TotalCount
+            });
         }
 
         return definition;
     }
 
-    private static IPageInfo GetPagingInfo(IPureResolverContext context)
+    private static IPageInfo GetPagingInfo(IResolverContext context)
         => context.Parent<CollectionSegment>().Info;
 
-    private static IEnumerable<object?> GetItems(IPureResolverContext context)
+    private static IEnumerable<object?> GetItems(IResolverContext context)
         => context.Parent<CollectionSegment>().Items;
 
     private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)

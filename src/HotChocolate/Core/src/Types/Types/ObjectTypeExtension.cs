@@ -59,7 +59,7 @@ public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
     /// Returns the newly created object type.
     /// </returns>
     public static ObjectTypeExtension CreateUnsafe(ObjectTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;

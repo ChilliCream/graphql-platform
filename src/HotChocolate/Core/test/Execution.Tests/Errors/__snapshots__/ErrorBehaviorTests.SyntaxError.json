@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "message": "Expected a `Name`-token, but found a `EndOfFile`-token.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 9
+        }
+      ],
+      "extensions": {
+        "code": "HC0014"
+      }
+    }
+  ]
+}

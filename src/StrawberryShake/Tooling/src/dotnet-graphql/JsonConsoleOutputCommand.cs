@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,7 +21,7 @@ public class JsonConsoleOutputCommand  : IDisposable
 #else
                 IgnoreNullValues = true,
 #endif
-            IgnoreReadOnlyProperties = false
+            IgnoreReadOnlyProperties = false,
         });
         Console.WriteLine(json);
     }

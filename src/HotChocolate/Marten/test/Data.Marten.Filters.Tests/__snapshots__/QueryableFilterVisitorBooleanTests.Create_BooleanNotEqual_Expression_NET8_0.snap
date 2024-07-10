@@ -13,7 +13,7 @@ true Result:
 
 true SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foo as d where CAST(d.data ->> 'Bar' as boolean) != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foo as d where CAST(d.data ->> 'Bar' as boolean) != :p0;
 ---------------
 
 false Result:
@@ -31,5 +31,5 @@ false Result:
 
 false SQL:
 ---------------
-select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foo as d where CAST(d.data ->> 'Bar' as boolean) != :p0
+select d.id, d.data from public.mt_doc_queryablefiltervisitorbooleantests_foo as d where CAST(d.data ->> 'Bar' as boolean) != :p0;
 ---------------

@@ -1,6 +1,5 @@
 using CookieCrumble;
 using HotChocolate.Data.Raven.Filters;
-using HotChocolate.Data.Raven.Pagination;
 using HotChocolate.Data.Raven.Paging;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -16,14 +15,14 @@ namespace HotChocolate.Data;
 [Collection(SchemaCacheCollectionFixture.DefinitionName)]
 public class RavenQueryableTests
 {
-    private readonly List<Foo> foos = new()
-    {
-        new Foo { Bar = "a" },
-        new Foo { Bar = "b" },
-        new Foo { Bar = "d" },
-        new Foo { Bar = "e" },
-        new Foo { Bar = "f" }
-    };
+    private readonly List<Foo> foos =
+    [
+        new Foo { Bar = "a", },
+        new Foo { Bar = "b", },
+        new Foo { Bar = "d", },
+        new Foo { Bar = "e", },
+        new Foo { Bar = "f", },
+    ];
 
     private readonly SchemaCache _resource;
 
@@ -394,7 +393,7 @@ public class RavenQueryableTests
                                 }
                             })
                         .UsePaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
 
                     descriptor
                         .Field("foosOffset")
@@ -420,7 +419,7 @@ public class RavenQueryableTests
                                 }
                             })
                         .UseOffsetPaging<ObjectType<Foo>>(
-                            options: new PagingOptions { IncludeTotalCount = true });
+                            options: new PagingOptions { IncludeTotalCount = true, });
                 })
             .UseRequest(
                 next => async context =>
@@ -428,10 +427,10 @@ public class RavenQueryableTests
                     await next(context);
                     if (context.ContextData.TryGetValue("query", out var queryString))
                     {
-                        context.Result = QueryResultBuilder
+                        context.Result = OperationResultBuilder
                             .FromResult(context.Result!.ExpectQueryResult())
                             .SetContextData("query", queryString)
-                            .Create();
+                            .Build();
                     }
                 })
             .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)

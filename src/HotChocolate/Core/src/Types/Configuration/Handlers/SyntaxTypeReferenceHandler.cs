@@ -7,16 +7,11 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration;
 
-internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
+internal sealed class SyntaxTypeReferenceHandler(ITypeInspector typeInspector) : ITypeRegistrarHandler
 {
-    private readonly HashSet<string> _handled = new();
-    private readonly ITypeInspector _typeInspector;
-
-    public SyntaxTypeReferenceHandler(ITypeInspector typeInspector)
-    {
-        _typeInspector = typeInspector ??
-            throw new ArgumentNullException(nameof(typeInspector));
-    }
+    private readonly HashSet<string> _handled = [];
+    private readonly ITypeInspector _typeInspector = typeInspector ??
+        throw new ArgumentNullException(nameof(typeInspector));
 
     public TypeReferenceKind Kind => TypeReferenceKind.Syntax;
 

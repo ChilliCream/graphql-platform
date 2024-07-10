@@ -9,7 +9,7 @@ using System.IO;
 
 namespace HotChocolate.AzureFunctions.Tests.Helpers;
 
-public class TestHttpContextHelper
+public static class TestHttpContextHelper
 {
     public static Uri DefaultAzFuncGraphQLUri { get; } = new(
         new Uri("https://localhost/"),
@@ -47,9 +47,7 @@ public class TestHttpContextHelper
         request.QueryString = new QueryString(uri.Query);
 
         // Ensure we accept Text/Html for BCP requests...
-        httpContext.Request.Headers.Add(
-            HeaderNames.Accept,
-            TestConstants.DefaultBcpContentType);
+        httpContext.Request.Headers[HeaderNames.Accept] = TestConstants.DefaultBcpContentType;
 
         httpContext.Response.Body = new MemoryStream();
 
@@ -57,5 +55,5 @@ public class TestHttpContextHelper
     }
 
     public static string CreateRequestBody(string query)
-        => JObject.FromObject(new { query = query }).ToString(Formatting.Indented);
+        => JObject.FromObject(new { query = query, }).ToString(Formatting.Indented);
 }

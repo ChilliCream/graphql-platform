@@ -13,5 +13,5 @@ public class ResolverCompositionTests(ITestOutputHelper output) : CompositionTes
     public async Task Merge_Meta_Data_Correctly()
         => await Succeed(
             FileResource.Open("test1.graphql"),
-            new[] { FileResource.Open("test1.extensions.graphql") });
+            [FileResource.Open("test1.extensions.graphql"),]);
 }

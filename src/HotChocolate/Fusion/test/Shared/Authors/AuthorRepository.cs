@@ -8,7 +8,7 @@ public sealed class AuthorRepository
     {
         _authors = new[]
         {
-            new Author("1", "First author", "The first author")
+            new Author("1", "First author", "The first author"),
         }.ToDictionary(t => t.Id);
     }
 

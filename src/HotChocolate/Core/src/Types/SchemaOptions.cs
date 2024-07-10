@@ -15,16 +15,11 @@ public class SchemaOptions : IReadOnlySchemaOptions
 {
     private BindingBehavior _defaultBindingBehavior = BindingBehavior.Implicit;
     private FieldBindingFlags _defaultFieldBindingFlags = FieldBindingFlags.Instance;
-    private string? _queryTypeName;
 
     /// <summary>
     /// Gets or sets the name of the query type.
     /// </summary>
-    public string? QueryTypeName
-    {
-        get => _queryTypeName;
-        set => _queryTypeName = value;
-    }
+    public string? QueryTypeName { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the mutation type.
@@ -59,15 +54,16 @@ public class SchemaOptions : IReadOnlySchemaOptions
     public bool SortFieldsByName { get; set; }
 
     /// <summary>
-    /// Defines if syntax nodes shall be preserved on the type system objects
-    /// </summary>
-    public bool PreserveSyntaxNodes { get; set; }
-
-    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
     public bool RemoveUnreachableTypes { get; set; }
+
+    /// <summary>
+    /// Defines if unused type system directives shall
+    /// be removed from the schema.
+    /// </summary>
+    public bool RemoveUnusedTypeSystemDirectives { get; set; } = true;
 
     /// <summary>
     /// Defines the default binding behavior.
@@ -208,17 +204,29 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
-    public bool StripLeadingIFromInterface { get; set; } = false;
+    public bool StripLeadingIFromInterface { get; set; }
 
     /// <summary>
     /// Specifies that the true nullability proto type shall be enabled.
     /// </summary>
-    public bool EnableTrueNullability { get; set; } = false;
+    public bool EnableTrueNullability { get; set; }
 
     /// <summary>
     /// Specifies that the @tag directive shall be registered with the type system.
     /// </summary>
     public bool EnableTag { get; set; } = true;
+
+    /// <summary>
+    /// Defines the default dependency injection scope for query fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
+        DependencyInjectionScope.Resolver;
+
+    /// <summary>
+    /// Defines the default dependency injection scope for mutation fields.
+    /// </summary>
+    public DependencyInjectionScope DefaultMutationDependencyInjectionScope { get; set; } =
+        DependencyInjectionScope.Request;
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -237,13 +245,13 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName,
             FieldMiddleware = options.FieldMiddleware,
             DefaultBindingBehavior = options.DefaultBindingBehavior,
-            PreserveSyntaxNodes = options.PreserveSyntaxNodes,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
             ValidatePipelineOrder = options.ValidatePipelineOrder,
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
+            RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableOneOf = options.EnableOneOf,
@@ -255,7 +263,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
             MaxAllowedNodeBatchSize = options.MaxAllowedNodeBatchSize,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTrueNullability = options.EnableTrueNullability,
-            EnableTag = options.EnableTag
+            EnableTag = options.EnableTag,
+            DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
+            DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
         };
     }
 }

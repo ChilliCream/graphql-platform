@@ -3,11 +3,13 @@ using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Fusion.Clients;
+using HotChocolate.Fusion.Execution.Diagnostic;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
 using HotChocolate.Fusion.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using ErrorHelper = HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
@@ -15,10 +17,12 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class DistributedOperationExecutionMiddleware(
     RequestDelegate next,
     IFactory<OperationContextOwner> contextFactory,
-    IIdSerializer idSerializer,
+    [SchemaService] INodeIdSerializer nodeIdSerializer,
     [SchemaService] FusionGraphConfiguration serviceConfig,
     [SchemaService] GraphQLClientFactory clientFactory,
-    [SchemaService] NodeIdParser nodeIdParser)
+    [SchemaService] NodeIdParser nodeIdParser,
+    [SchemaService] FusionOptions options,
+    [SchemaService] IFusionDiagnosticEvents diagnosticEvents)
 {
     private static readonly object _queryRoot = new();
     private static readonly object _mutationRoot = new();
@@ -30,17 +34,22 @@ internal sealed class DistributedOperationExecutionMiddleware(
         ?? throw new ArgumentNullException(nameof(serviceConfig));
     private readonly IFactory<OperationContextOwner> _contextFactory = contextFactory
         ?? throw new ArgumentNullException(nameof(contextFactory));
-    private readonly IIdSerializer _idSerializer = idSerializer
-        ?? throw new ArgumentNullException(nameof(idSerializer));
+    private readonly INodeIdSerializer _nodeIdSerializer = nodeIdSerializer
+        ?? throw new ArgumentNullException(nameof(nodeIdSerializer));
     private readonly GraphQLClientFactory _clientFactory = clientFactory
         ?? throw new ArgumentNullException(nameof(clientFactory));
     private readonly NodeIdParser _nodeIdParser = nodeIdParser
         ?? throw new ArgumentNullException(nameof(nodeIdParser));
+    private readonly FusionOptions _fusionOptionsAccessor = options
+        ?? throw new ArgumentNullException(nameof(options));
+    private readonly IFusionDiagnosticEvents _diagnosticEvents = diagnosticEvents
+        ?? throw new ArgumentNullException(nameof(diagnosticEvents));
 
     public async ValueTask InvokeAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher)
     {
+        // todo: we do need to add variable batching.
         if (context.Operation is not null &&
             context.Variables is not null &&
             context.Operation.ContextData.TryGetValue(PipelineProps.QueryPlan, out var value) &&
@@ -54,7 +63,7 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 context.Services,
                 batchDispatcher,
                 context.Operation,
-                context.Variables,
+                context.Variables[0],
                 GetRootObject(context.Operation),
                 () => _queryRoot);
 
@@ -64,14 +73,19 @@ internal sealed class DistributedOperationExecutionMiddleware(
                     queryPlan,
                     operationContextOwner,
                     _clientFactory,
-                    _idSerializer,
-                    _nodeIdParser);
+                    _nodeIdSerializer,
+                    _nodeIdParser,
+                    _fusionOptionsAccessor,
+                    diagnosticEvents);
 
-            context.Result =
-                await FederatedQueryExecutor.ExecuteAsync(
-                    federatedQueryContext,
-                    context.RequestAborted)
-                    .ConfigureAwait(false);
+            using (federatedQueryContext.DiagnosticEvents.ExecuteFederatedQuery(context))
+            {
+                context.Result =
+                    await FederatedQueryExecutor.ExecuteAsync(
+                            federatedQueryContext,
+                            context.RequestAborted)
+                        .ConfigureAwait(false);
+            }
 
             await _next(context).ConfigureAwait(false);
         }
@@ -91,5 +105,31 @@ internal sealed class DistributedOperationExecutionMiddleware(
             OperationType.Mutation => _mutationRoot,
             OperationType.Subscription => _subscriptionRoot,
             _ => throw new NotSupportedException(),
+        };
+
+    public static RequestCoreMiddleware Create()
+        => (core, next) =>
+        {
+            var contextFactory = core.Services.GetRequiredService<IFactory<OperationContextOwner>>();
+            var idSerializer = core.SchemaServices.GetRequiredService<INodeIdSerializer>();
+            var serviceConfig = core.SchemaServices.GetRequiredService<FusionGraphConfiguration>();
+            var clientFactory = core.SchemaServices.GetRequiredService<GraphQLClientFactory>();
+            var nodeIdParser = core.SchemaServices.GetRequiredService<NodeIdParser>();
+            var fusionOptionsAccessor = core.SchemaServices.GetRequiredService<FusionOptions>();
+            var diagnosticEvents = core.SchemaServices.GetRequiredService<IFusionDiagnosticEvents>();
+            var middleware = new DistributedOperationExecutionMiddleware(
+                next,
+                contextFactory,
+                idSerializer,
+                serviceConfig,
+                clientFactory,
+                nodeIdParser,
+                fusionOptionsAccessor,
+                diagnosticEvents);
+            return async context =>
+            {
+                var batchDispatcher = context.Services.GetRequiredService<IBatchDispatcher>();
+                await middleware.InvokeAsync(context, batchDispatcher);
+            };
         };
 }

@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 using static HotChocolate.Utilities.ThrowHelper;
-using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -476,7 +475,8 @@ public static class TypeExtensions
             return (INamedType) current;
         }
 
-        for (var i = 0; i < 6; i++)
+        const int maxDepth = 6;
+        for (var i = 0; i < maxDepth; i++)
         {
             current = current.InnerType();
 
@@ -521,7 +521,7 @@ public static class TypeExtensions
             NonNullType xnn when y is NonNullType ynn => xnn.Type.IsEqualTo(ynn.Type),
             ListType xl when y is ListType yl => xl.ElementType.IsEqualTo(yl.ElementType),
             INamedType xnt when y is INamedType ynt => xnt.Name.EqualsOrdinal(ynt.Name),
-            _ => false
+            _ => false,
         };
     }
 
@@ -548,7 +548,7 @@ public static class TypeExtensions
             return ToRuntimeType(type.InnerType());
         }
 
-        if (type is IHasRuntimeType { RuntimeType: { } } t)
+        if (type is IHasRuntimeType { RuntimeType: { }, } t)
         {
             return t.RuntimeType;
         }
@@ -582,19 +582,20 @@ public static class TypeExtensions
             throw new ArgumentNullException(nameof(type));
         }
 
-        if (type is NonNullType nnt && ToTypeNode(nnt.Type) is INullableTypeNode nntn)
+        if (type is NonNullType nonNullType &&
+            ToTypeNode(nonNullType.Type) is INullableTypeNode nullableTypeNode)
         {
-            return new NonNullTypeNode(null, nntn);
+            return new NonNullTypeNode(null, nullableTypeNode);
         }
 
-        if (type is ListType lt)
+        if (type is ListType listType)
         {
-            return new ListTypeNode(null, ToTypeNode(lt.ElementType));
+            return new ListTypeNode(null, ToTypeNode(listType.ElementType));
         }
 
-        if (type is INamedType nt)
+        if (type is INamedType namedType)
         {
-            return new NamedTypeNode(null, new NameNode(nt.Name));
+            return new NamedTypeNode(null, new NameNode(namedType.Name));
         }
 
         throw new NotSupportedException(
@@ -605,17 +606,17 @@ public static class TypeExtensions
         this IType original,
         INamedType namedType)
     {
-        if (original is NonNullType nnt &&
-            ToTypeNode(nnt.Type, namedType) is INullableTypeNode nntn)
+        if (original is NonNullType nonNullType &&
+            ToTypeNode(nonNullType.Type, namedType) is INullableTypeNode nullableTypeNode)
         {
-            return new NonNullTypeNode(null, nntn);
+            return new NonNullTypeNode(null, nullableTypeNode);
         }
 
-        if (original is ListType lt)
+        if (original is ListType listType)
         {
             return new ListTypeNode(
                 null,
-                ToTypeNode(lt.ElementType, namedType));
+                ToTypeNode(listType.ElementType, namedType));
         }
 
         if (original is INamedType)
@@ -631,14 +632,14 @@ public static class TypeExtensions
         this ITypeNode typeNode,
         INamedType namedType)
     {
-        if (typeNode is NonNullTypeNode nntn)
+        if (typeNode is NonNullTypeNode nonNullTypeNode)
         {
-            return new NonNullType(ToType(nntn.Type, namedType));
+            return new NonNullType(ToType(nonNullTypeNode.Type, namedType));
         }
 
-        if (typeNode is ListTypeNode ltn)
+        if (typeNode is ListTypeNode listTypeNode)
         {
-            return new ListType(ToType(ltn.Type, namedType));
+            return new ListType(ToType(listTypeNode.Type, namedType));
         }
 
         if (typeNode is NamedTypeNode)
@@ -656,7 +657,7 @@ public static class TypeExtensions
             NonNullTypeNode nonNull => new NonNullTypeNode((INullableTypeNode)RenameName(nonNull.Type, name)),
             ListTypeNode list => new ListTypeNode(RenameName(list.Type, name)),
             NamedTypeNode named => named.WithName(named.Name.WithValue(name)),
-            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported)
+            _ => throw new NotSupportedException(TypeResources.TypeExtensions_KindIsNotSupported),
         };
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
@@ -763,7 +764,7 @@ public static class TypeExtensions
                 throw RewriteNullability_InvalidNullabilityStructure();
         }
     }
-    
+
     public static IType RewriteToNullableType(this IType type)
         => type.Kind is TypeKind.NonNull
             ? type.InnerType()

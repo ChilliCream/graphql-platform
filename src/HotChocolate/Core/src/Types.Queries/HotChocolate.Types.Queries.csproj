@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Queries</PackageId>
+  <AssemblyName>HotChocolate.Types.Queries</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>This package provides helpers for creating GraphQL queries.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="HotChocolate.Configuration" />
+    <Using Include="HotChocolate.Language" />
+    <Using Include="HotChocolate.Internal" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Descriptors" />
+    <Using Include="HotChocolate.Types.Descriptors.Definitions" />
+    <Using Include="HotChocolate.Resolvers" />
+    <Using Include="HotChocolate.Utilities" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types.Errors\HotChocolate.Types.Errors.csproj" />
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+</Project>

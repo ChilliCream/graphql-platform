@@ -16,9 +16,14 @@ BarAndFoo Result:
 
 BarAndFoo SQL:
 ---------------
+.param set @__p_0 '[1,0]'
+
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" IN (1, 0)
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 FOO Result:
@@ -36,9 +41,14 @@ FOO Result:
 
 FOO SQL:
 ---------------
+.param set @__p_0 '[0]'
+
 SELECT "d"."Id", "d"."BarEnum"
 FROM "Data" AS "d"
-WHERE "d"."BarEnum" = 0
+WHERE "d"."BarEnum" IN (
+    SELECT "p"."value"
+    FROM json_each(@__p_0) AS "p"
+)
 ---------------
 
 nullAndFoo Result:
@@ -60,7 +70,7 @@ nullAndFoo Result:
         "fieldName": "in",
         "fieldType": "[FooEnum!]",
         "locationType": "[FooEnum!]",
-        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
       }
     }
   ]

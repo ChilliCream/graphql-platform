@@ -15,16 +15,6 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
     /// </summary>
-    public LocalCurrencyType()
-        : this(
-            WellKnownScalarTypes.LocalCurrency,
-            description: ScalarResources.LocalCurrencyType_Description)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
-    /// </summary>
     public LocalCurrencyType(
         string name,
         string culture = "en-US",
@@ -38,6 +28,17 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
         Description = description;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public LocalCurrencyType()
+        : this(
+            WellKnownScalarTypes.LocalCurrency,
+            description: ScalarResources.LocalCurrencyType_Description)
+    {
+    }
+
     /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue)
     {
@@ -46,7 +47,7 @@ public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
             null => NullValueNode.Default,
             string s => new StringValueNode(s),
             decimal d => ParseValue(d),
-            _ => throw ThrowHelper.LocalCurrencyType_ParseValue_IsInvalid(this)
+            _ => throw ThrowHelper.LocalCurrencyType_ParseValue_IsInvalid(this),
         };
     }
 

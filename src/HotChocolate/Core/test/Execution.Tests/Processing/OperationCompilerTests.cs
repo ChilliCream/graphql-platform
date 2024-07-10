@@ -1181,7 +1181,7 @@ public class OperationCompilerTests
     {
         public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
         {
-            if (context.Path is { Name: "bar" })
+            if (context.Path is { Name: "bar", })
             {
                 var baz = context.Type.Fields["baz"];
                 var bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");

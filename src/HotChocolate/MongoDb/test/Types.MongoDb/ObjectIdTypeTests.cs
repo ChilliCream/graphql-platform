@@ -26,17 +26,17 @@ public class ObjectIdTypeTests
     {
         // arrange
         var executor = await CreateSchema();
-        var query = @"
+        const string query = 
+            """
             {
-                foo {
-                    id
-                }
+              foo {
+                id
+              }
             }
-            ";
+            """;
 
         // act
-        var request = QueryRequestBuilder.Create(query);
-        var result = await executor.ExecuteAsync(request, CancellationToken.None);
+        var result = await executor.ExecuteAsync(query, CancellationToken.None);
 
         // assert
         result.MatchSnapshot();
@@ -53,15 +53,14 @@ public class ObjectIdTypeTests
             }";
 
         // act
-        var request = QueryRequestBuilder.Create(query);
-        var result = await executor.ExecuteAsync(request, CancellationToken.None);
+        var result = await executor.ExecuteAsync(query, CancellationToken.None);
 
         // assert
         result.MatchSnapshot();
     }
 
-    private ValueTask<IRequestExecutor> CreateSchema() =>
-        new ServiceCollection()
+    private static ValueTask<IRequestExecutor> CreateSchema() 
+        => new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddType<ObjectIdType>()
@@ -69,7 +68,7 @@ public class ObjectIdTypeTests
 
     public class Query
     {
-        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b") };
+        public Foo GetFoo() => new() { Id = new ObjectId("6124e80f3f5fc839830c1f6b"), };
 
         public ObjectId Loopback(ObjectId objectId) => objectId;
     }

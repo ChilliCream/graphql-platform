@@ -16,10 +16,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -34,10 +34,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.False(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.True(func(b));
     }
 
@@ -53,10 +53,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -71,10 +71,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.False(func(b));
     }
 
@@ -90,10 +90,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "a" };
+        var a = new Foo { Bar = "a", };
         Assert.False(func(a));
 
-        var b = new Foo { Bar = "b" };
+        var b = new Foo { Bar = "b", };
         Assert.True(func(b));
     }
 
@@ -109,10 +109,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "testatest" };
+        var a = new Foo { Bar = "testatest", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "testbtest" };
+        var b = new Foo { Bar = "testbtest", };
         Assert.False(func(b));
     }
 
@@ -127,10 +127,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "testatest" };
+        var a = new Foo { Bar = "testatest", };
         Assert.False(func(a));
 
-        var b = new Foo { Bar = "testbtest" };
+        var b = new Foo { Bar = "testbtest", };
         Assert.True(func(b));
     }
 
@@ -146,10 +146,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "ab" };
+        var a = new Foo { Bar = "ab", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "ba" };
+        var b = new Foo { Bar = "ba", };
         Assert.False(func(b));
     }
 
@@ -165,10 +165,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "ab" };
+        var a = new Foo { Bar = "ab", };
         Assert.False(func(a));
 
-        var b = new Foo { Bar = "ba" };
+        var b = new Foo { Bar = "ba", };
         Assert.True(func(b));
     }
 
@@ -184,10 +184,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "ab" };
+        var a = new Foo { Bar = "ab", };
         Assert.False(func(a));
 
-        var b = new Foo { Bar = "ba" };
+        var b = new Foo { Bar = "ba", };
         Assert.True(func(b));
     }
 
@@ -203,10 +203,10 @@ public class QueryableFilterVisitorStringTests
         var func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Bar = "ab" };
+        var a = new Foo { Bar = "ab", };
         Assert.True(func(a));
 
-        var b = new Foo { Bar = "ba" };
+        var b = new Foo { Bar = "ba", };
         Assert.False(func(b));
     }
 

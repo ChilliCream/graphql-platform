@@ -21,10 +21,12 @@ jobs:
 
     steps:
       - name: Checkout to repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             7.x
@@ -48,22 +50,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Install .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             6.x
             7.x
             8.x
-
-      - uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
 
       - name: Run Build
         id: run-build
@@ -80,14 +77,14 @@ jobs:
 
       - name: Upload Test Results as Artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.name }}
           path: ./.test-results/*.trx
 
       - name: Upload mismatch files as Artifacts
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: mismatch-files-${{ matrix.name }}
           path: |
@@ -100,7 +97,7 @@ jobs:
           cp "${{ matrix.directoryPath }}/.coverage/${{ matrix.name }}.net7.0.xml" ./output/coverage/
 
       - name: Upload Individual Coverage Files as Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.name }}
           path: ./output/coverage/*.xml
@@ -118,23 +115,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           6.x
           7.x
           8.x
-
-    - uses: actions/cache@v3
-      if: ${{ !cancelled() }}
-      with:
-        path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nuget-
 
     - name: Create All.sln
       if: ${{ !cancelled() }}
@@ -145,7 +136,7 @@ jobs:
       run: dotnet build ./src/All.sln
 
     - name: Download all coverage artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: ./output/download
 
@@ -160,7 +151,7 @@ jobs:
 
     - name: Upload Combined Coverage to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v4
       timeout-minutes: 10
       with:
         file: ./output/coverage/merged/OpenCover.xml

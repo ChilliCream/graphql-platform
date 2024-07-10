@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using CookieCrumble;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +13,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -30,14 +27,10 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
-        {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.SaveChangesAsync();
-        }
+        await using var scope = services.CreateAsyncScope();
+        await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+        await context.Authors.AddAsync(new Author { Name = "foo", });
+        await context.SaveChangesAsync();
 
         // act
         var result = await executor.ExecuteAsync("{ authors { name } }");
@@ -52,7 +45,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -66,12 +59,10 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -88,7 +79,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -102,12 +93,10 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -124,7 +113,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -138,13 +127,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -173,7 +160,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -187,13 +174,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -222,7 +207,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -236,13 +221,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -271,7 +254,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -285,30 +268,30 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    authorOffsetPaging {
-                        items {
-                            name
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                        totalCount
+            """
+            query Test {
+                authorOffsetPaging {
+                    items {
+                        name
                     }
-                }");
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                    totalCount
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -320,7 +303,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -334,13 +317,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -368,7 +349,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -382,13 +363,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -416,7 +395,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -430,29 +409,29 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
         // act
         var result = await executor.ExecuteAsync(
-            @"query Test {
-                    authorOffsetPaging {
-                        items {
-                            name
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
+            """
+            query Test {
+                authorOffsetPaging {
+                    items {
+                        name
                     }
-                }");
+                    pageInfo {
+                        hasNextPage
+                        hasPreviousPage
+                    }
+                }
+            }
+            """);
 
         // assert
         result.MatchSnapshot();
@@ -464,7 +443,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -478,12 +457,10 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
             await context.SaveChangesAsync();
         }
 
@@ -495,34 +472,13 @@ public class UseDbContextTests
     }
 
     [Fact]
-    public async Task DbContextType_Is_Object()
-    {
-        // arrange
-        // act
-        async Task CreateSchema() =>
-            await new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
-                    b => b.UseInMemoryDatabase(CreateConnectionString()))
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<InvalidQuery>()
-                .BuildSchemaAsync();
-
-        // assert
-        var exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
-        exception.Errors.First().Message.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Infer_Schema_From_IQueryable_Fields()
     {
         // arrange
         // act
         var schema =
             await new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -542,7 +498,7 @@ public class UseDbContextTests
         // act
         var schema =
             await new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -562,7 +518,7 @@ public class UseDbContextTests
         // act
         var schema =
             await new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -581,7 +537,7 @@ public class UseDbContextTests
         // arrange
         var executor =
             await new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
@@ -600,37 +556,12 @@ public class UseDbContextTests
     }
 
     [Fact]
-    public async Task DbContext_ResolverExtension_Missing_DbContext()
-    {
-        // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
-                    b => b.UseInMemoryDatabase(CreateConnectionString()))
-                .AddGraphQL()
-                .AddQueryType<QueryType>()
-                .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            @"query Test {
-                    booksWithMissingContext {
-                        id
-                    }
-                }");
-
-        // assert
-        result.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Execute_Queryable_CursorPaging_TotalCount()
     {
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -644,13 +575,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -679,7 +608,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -693,13 +622,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -728,7 +655,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -742,13 +669,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -777,7 +702,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -791,13 +716,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -826,7 +749,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -840,13 +763,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -874,7 +795,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -888,13 +809,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 
@@ -922,7 +841,7 @@ public class UseDbContextTests
         // arrange
         IServiceProvider services =
             new ServiceCollection()
-                .AddPooledDbContextFactory<BookContext>(
+                .AddDbContextPool<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
                 .AddFiltering()
@@ -936,13 +855,11 @@ public class UseDbContextTests
             await services.GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync();
 
-        var contextFactory =
-            services.GetRequiredService<IDbContextFactory<BookContext>>();
-
-        await using (var context = await contextFactory.CreateDbContextAsync())
+        await using (var scope = services.CreateAsyncScope())
         {
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
+            await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
+            await context.Authors.AddAsync(new Author { Name = "foo", });
+            await context.Authors.AddAsync(new Author { Name = "bar", });
             await context.SaveChangesAsync();
         }
 

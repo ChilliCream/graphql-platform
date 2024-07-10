@@ -1,7 +1,8 @@
-using System.Linq;
-using HotChocolate.ApolloFederation.Constants;
+using System.Threading.Tasks;
+using HotChocolate.ApolloFederation.Types;
+using HotChocolate.Execution;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives;
@@ -9,99 +10,95 @@ namespace HotChocolate.ApolloFederation.Directives;
 public class ExternalDirectiveTests : FederationTypesTestBase
 {
     [Fact]
-    public void AddExternalDirective_EnsureAvailableInSchema()
-    {
-        // arrange
-        var schema = CreateSchema(b => b.AddDirectiveType<ExternalDirectiveType>());
-
-        // act
-        var directive =
-            schema.DirectiveTypes.FirstOrDefault(
-                t => t.Name.EqualsOrdinal(WellKnownTypeNames.External));
-
-        // assert
-        Assert.NotNull(directive);
-        Assert.IsType<ExternalDirectiveType>(directive);
-        Assert.Equal(WellKnownTypeNames.External, directive!.Name);
-        Assert.Empty(directive.Arguments);
-        Assert.Equal(DirectiveLocation.FieldDefinition, directive.Locations);
-    }
-
-    [Fact]
-    public void AnnotateExternalToTypeFieldCodeFirst()
+    public async Task AnnotateExternalToTypeFieldCodeFirst()
     {
         // arrange
         Snapshot.FullName();
 
-        var schema = SchemaBuilder.New()
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
             .AddQueryType(o => o
                 .Name("Query")
-                .Field("field")
-                .Argument("a", a => a.Type<StringType>())
-                .Type<StringType>()
-                .External())
-            .AddDirectiveType<ExternalDirectiveType>()
-            .Use(next => next)
-            .Create();
-
-        // act
-        var query = schema.GetType<ObjectType>("Query");
-
-        // assert
-        Assert.Collection(
-            query.Fields["field"].Directives,
-            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
-        schema.ToString().MatchSnapshot();
-    }
-
-
-    [Fact]
-    public void AnnotateExternalToTypeFieldSchemaFirst()
-    {
-        // arrange
-        Snapshot.FullName();
-
-        var schema = SchemaBuilder.New()
-            .AddDocumentFromString(
-                @"
-                    type Query {
-                        field(a: Int): String
-                            @external
-                    }
-                    "
+                .Field("entity")
+                .Argument("id", a => a.Type<IntType>())
+                .Type("User")
+                .Resolve(_ => new { Id = 1 })
             )
-            .AddDirectiveType<ExternalDirectiveType>()
-            .Use(_ => _ => default)
-            .Create();
-
-        // act
-        var queryInterface = schema.GetType<ObjectType>("Query");
-
-        // assert
-        Assert.Collection(
-            queryInterface.Fields["field"].Directives,
-            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
-        schema.ToString().MatchSnapshot();
-    }
-
-    [Fact]
-    public void AnnotateExternalToTypeFieldPureCodeFirst()
-    {
-        // arrange
-        Snapshot.FullName();
-
-        var schema = SchemaBuilder.New()
-            .AddApolloFederation()
-            .AddQueryType<Query>()
-            .Create();
+            .AddObjectType(
+                o =>
+                {
+                    o.Name("User")
+                        .Key("id");
+                    o.Field("id")
+                        .Type<IntType>()
+                        .Resolve(_ => 1);
+                    o.Field("idCode")
+                        .Type<StringType>()
+                        .Resolve(_ => default!)
+                        .External();
+                    o.Field("address")
+                        .Type("Address")
+                        .Resolve(_ => default!)
+                        .External();
+                })
+            .AddObjectType(
+                o =>
+                {
+                    o.Name("Address");
+                    o.External();
+                    o.Field("street")
+                        .Type<StringType>()
+                        .Resolve(_ => default!);
+                    o.Field("city")
+                        .Type<StringType>()
+                        .Resolve(_ => default!);
+                })
+            .BuildSchemaAsync();
 
         // act
         var query = schema.GetType<ObjectType>("User");
+        var address = schema.GetType<ObjectType>("Address");
 
         // assert
         Assert.Collection(
             query.Fields["idCode"].Directives,
-            item => Assert.Equal(WellKnownTypeNames.External, item.Type.Name));
+            item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
+        Assert.Collection(
+            query.Fields["address"].Directives,
+            item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
+        Assert.Collection(
+            address.Directives,
+            item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task AnnotateExternalToTypeFieldAnnotationBased()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        var schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .BuildSchemaAsync();
+
+        // act
+        var query = schema.GetType<ObjectType>("User");
+        var address = schema.GetType<ObjectType>("Address");
+
+        // assert
+        Assert.Collection(
+            query.Fields["idCode"].Directives,
+            item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
+        Assert.Collection(
+            query.Fields["address"].Directives,
+            item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
+        Assert.Collection(
+            address.Directives,
+            item => Assert.Equal(FederationTypeNames.ExternalDirective_Name, item.Type.Name));
         schema.ToString().MatchSnapshot();
     }
 }
@@ -117,4 +114,13 @@ public class User
     public int Id { get; set; }
     [External]
     public string IdCode { get; set; } = default!;
+    [External]
+    public Address Address { get; set; } = default!;
+}
+
+[External]
+public class Address
+{
+    public string Street { get; } = default!;
+    public string City { get; } = default!;
 }

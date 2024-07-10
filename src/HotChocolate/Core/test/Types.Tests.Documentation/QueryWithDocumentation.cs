@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors
     public class QueryWithDocumentation
     {
         /// <summary>
-        /// Foo Documentation-
+        /// Foo Documentation.
         /// </summary>
         /// <param name="bar">
         /// Bar Documentation.
@@ -14,9 +14,21 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Bar Returns Documentation.
         /// </returns>
-        public string Foo(string bar)
-        {
-            return null;
-        }
+        public string Foo(string bar) => default;
+
+        /// <summary>
+        /// This is a
+        /// multiline summary
+        ///
+        /// with a newline in between.
+        /// </summary>
+        /// Note: The returns is left intentionally empty
+        /// <returns></returns>
+        public string Baz() => default;
+
+        /// <summary>
+        /// This is a single line summary.
+        /// </summary>
+        public string Qux() => default;
     }
 }

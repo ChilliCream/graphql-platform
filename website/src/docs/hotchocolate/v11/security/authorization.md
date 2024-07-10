@@ -345,7 +345,7 @@ Hot Chocolate provides the ability to register an `IHttpRequestInterceptor`, all
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
     public override ValueTask OnCreateAsync(HttpContext context,
-        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
+        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
         var identity = new ClaimsIdentity();

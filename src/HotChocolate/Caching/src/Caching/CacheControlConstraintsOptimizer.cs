@@ -35,7 +35,7 @@ internal sealed class CacheControlConstraintsOptimizer : IOperationOptimizer
             {
                 CacheControlScope.Private => _cacheControlPrivateScope,
                 CacheControlScope.Public => _cacheControlPublicScope,
-                _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope)
+                _ => throw ThrowHelper.UnexpectedCacheControlScopeValue(constraints.Scope),
             };
 
             var headerValue = string.Format(

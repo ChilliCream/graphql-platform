@@ -1,7 +1,5 @@
-using System;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors;
-using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators;

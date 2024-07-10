@@ -52,12 +52,6 @@ public struct PagingOptions
     public string? ProviderName { get; set; }
 
     /// <summary>
-    /// Specifies if the GraphQL server shall emulate the PaginationAmount scalar for
-    /// the paging navigation arguments.
-    /// </summary>
-    public bool? LegacySupport { get; set; }
-
-    /// <summary>
     /// Merges the <paramref name="other"/> options into this options instance wherever
     /// a property is not set.
     /// </summary>
@@ -74,7 +68,6 @@ public struct PagingOptions
         InferConnectionNameFromField ??= other.InferConnectionNameFromField;
         InferCollectionSegmentNameFromField ??= other.InferCollectionSegmentNameFromField;
         ProviderName ??= other.ProviderName;
-        LegacySupport ??= other.LegacySupport;
     }
 
     /// <summary>
@@ -90,7 +83,6 @@ public struct PagingOptions
             RequirePagingBoundaries = RequirePagingBoundaries,
             InferConnectionNameFromField = InferConnectionNameFromField,
             InferCollectionSegmentNameFromField = InferCollectionSegmentNameFromField,
-            ProviderName = ProviderName,
-            LegacySupport = LegacySupport
+            ProviderName = ProviderName
         };
 }

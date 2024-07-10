@@ -7,7 +7,10 @@ public sealed class CacheControlOptions : ICacheControlOptions
     public bool Enable { get; set; } = true;
 
     /// <inheritdoc />
-    public int DefaultMaxAge { get; set; } = 0;
+    public int DefaultMaxAge { get; set; } = CacheControlDefaults.MaxAge;
+
+    /// <inheritdoc />
+    public CacheControlScope DefaultScope { get; set; } = CacheControlDefaults.Scope;
 
     /// <inheritdoc />
     public bool ApplyDefaults { get; set; } = true;

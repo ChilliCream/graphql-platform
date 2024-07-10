@@ -7,7 +7,7 @@ public class LambdaBuilder : ICode
 {
     private bool _block;
     private bool _isAsync;
-    private readonly List<string> _arguments = new();
+    private readonly List<string> _arguments = [];
     private ICode? _code;
 
     public LambdaBuilder AddArgument(string value)

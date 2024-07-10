@@ -43,5 +43,5 @@ public enum TypeKind
     /// <summary>
     /// A preserved fragment.
     /// </summary>
-    Fragment
+    Fragment,
 }

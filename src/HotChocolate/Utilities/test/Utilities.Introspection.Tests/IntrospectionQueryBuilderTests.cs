@@ -15,11 +15,11 @@ public class IntrospectionQueryBuilderTests
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
-        
+
         //assert
         document.Print().MatchSnapshot();
     }
-    
+
     [Fact]
     public void Create_Query_With_ArgumentDeprecation()
     {
@@ -27,16 +27,16 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasArgumentDeprecation = true
+            HasArgumentDeprecation = true,
         };
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
-        
+
         //assert
         document.Print().MatchSnapshot();
     }
-    
+
     [Fact]
     public void Create_Query_With_DirectiveLocations()
     {
@@ -44,16 +44,16 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasDirectiveLocations = true
+            HasDirectiveLocations = true,
         };
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
-        
+
         //assert
         document.Print().MatchSnapshot();
     }
-    
+
     [Fact]
     public void Create_Query_With_RepeatableDirectives()
     {
@@ -61,16 +61,16 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasRepeatableDirectives = true
+            HasRepeatableDirectives = true,
         };
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
-        
+
         //assert
         document.Print().MatchSnapshot();
     }
-    
+
     [Fact]
     public void Create_Query_With_SchemaDescription()
     {
@@ -78,16 +78,16 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasSchemaDescription = true
+            HasSchemaDescription = true,
         };
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
-        
+
         //assert
         document.Print().MatchSnapshot();
     }
-    
+
     [Fact]
     public void Create_Query_With_SubscriptionSupport()
     {
@@ -95,12 +95,12 @@ public class IntrospectionQueryBuilderTests
         var options = new IntrospectionOptions();
         var features = new ServerCapabilities
         {
-            HasSubscriptionSupport = true
+            HasSubscriptionSupport = true,
         };
 
         // act
         var document = IntrospectionQueryBuilder.Build(features, options);
-        
+
         //assert
         document.Print().MatchSnapshot();
     }

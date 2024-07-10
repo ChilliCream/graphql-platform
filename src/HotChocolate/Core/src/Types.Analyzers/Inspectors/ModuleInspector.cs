@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Analyzers.Filters;
+using HotChocolate.Types.Analyzers.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.StringComparison;
@@ -8,9 +10,11 @@ namespace HotChocolate.Types.Analyzers.Inspectors;
 
 public class ModuleInspector : ISyntaxInspector
 {
+    public IReadOnlyList<ISyntaxFilter> Filters => [AssemblyAttributeList.Instance];
+
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is AttributeListSyntax attributeList)
         {
@@ -26,7 +30,7 @@ public class ModuleInspector : ISyntaxInspector
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
                 if (fullName.Equals(ModuleAttribute, Ordinal) &&
-                    attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
+                    attributeSyntax.ArgumentList is { Arguments.Count: > 0, })
                 {
                     var nameExpr = attributeSyntax.ArgumentList.Arguments[0].Expression;
                     var name = context.SemanticModel.GetConstantValue(nameExpr).ToString();

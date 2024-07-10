@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -31,8 +30,7 @@ public sealed class EnumValue : IEnumValue
                 TypeResources.EnumValue_ValueIsNull,
                 nameof(enumValueDefinition));
         }
-
-        SyntaxNode = enumValueDefinition.SyntaxNode;
+        
         Name = string.IsNullOrEmpty(enumValueDefinition.Name)
             ? enumValueDefinition.RuntimeValue.ToString()!
             : enumValueDefinition.Name;
@@ -47,8 +45,6 @@ public sealed class EnumValue : IEnumValue
             this,
             enumValueDefinition.GetDirectives());
     }
-
-    public EnumValueDefinitionNode? SyntaxNode { get; }
 
     public string Name { get; }
 

@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
-using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSerialization
 {
@@ -47,14 +41,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.AnyScalarDefaultSeri
 
             // assert
             Assert.Empty(result.Errors);
-            result.Data?.Json.RootElement.ToString().MatchSnapshot();
+            result.Data?.Json.ToString().MatchSnapshot();
         }
 
         [ExtendObjectType(OperationTypeNames.Query)]
         public class QueryResolvers
         {
             [GraphQLType(typeof(NonNullType<AnyType>))]
-            public Dictionary<string, object> GetJson() => new() { { "abc", "def" } };
+            public Dictionary<string, object> GetJson() => new() { { "abc", "def" }, };
         }
     }
 }

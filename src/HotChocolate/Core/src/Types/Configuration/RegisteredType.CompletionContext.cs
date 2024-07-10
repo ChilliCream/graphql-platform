@@ -33,7 +33,7 @@ internal sealed partial class RegisteredType : ITypeCompletionContext
 
     /// <inheritdoc />
     IReadOnlyList<FieldMiddleware> ITypeCompletionContext.GlobalComponents
-        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)Array.Empty<FieldMiddleware>();
+        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)[];
 
     /// <inheritdoc />
     public IsOfTypeFallback? IsOfType { get; private set; }

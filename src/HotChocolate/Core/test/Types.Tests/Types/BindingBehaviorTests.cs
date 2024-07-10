@@ -38,8 +38,6 @@ public class BindingBehaviorTests
               B
               C
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 
@@ -57,7 +55,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     [Fact]
@@ -95,7 +93,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     [Fact]
@@ -128,8 +126,6 @@ public class BindingBehaviorTests
             enum BookCategory3 {
               A
             }
-            
-            directive @tag(name: String!) repeatable on SCHEMA | SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
             """);
     }
 
@@ -146,7 +142,7 @@ public class BindingBehaviorTests
     {
         A,
         B,
-        C
+        C,
     }
 
     public class BookCategory3Type : EnumType<BookCategory3>

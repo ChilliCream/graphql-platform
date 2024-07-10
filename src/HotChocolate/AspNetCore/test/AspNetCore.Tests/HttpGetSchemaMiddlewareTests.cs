@@ -26,7 +26,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -43,7 +48,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -60,7 +70,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -128,7 +143,12 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -145,7 +165,11 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
+#if NET7_0_OR_GREATER
         result.MatchSnapshot();
+#else
+        result.MatchSnapshot("NET6");
+#endif
     }
 
     [Fact]
@@ -157,7 +181,7 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
                 new GraphQLServerOptions
                 {
                     EnableSchemaRequests = false,
-                    Tool = { Enable = false }
+                    Tool = { Enable = false, },
                 }));
         var url = TestServerExtensions.CreateUrl("/graphql?sdl");
         var request = new HttpRequestMessage(HttpMethod.Get, url);

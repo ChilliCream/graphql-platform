@@ -18,7 +18,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         if (!context.ContextData.TryGetValue(AuthContextData.Directives, out var value) ||
             value is not HashSet<AuthorizeDirective> authDirectives)
         {
-            authDirectives = new HashSet<AuthorizeDirective>();
+            authDirectives = [];
             context.ContextData[AuthContextData.Directives] = authDirectives;
         }
 
@@ -135,7 +135,7 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         IDocumentValidatorContext context)
     {
         if (context.Types.TryPeek(out var type) &&
-            type.NamedType() is { Kind: TypeKind.Union } &&
+            type.NamedType() is { Kind: TypeKind.Union, } &&
             HasFields(node))
         {
             return Skip;

@@ -50,7 +50,7 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
     /// Returns the newly created enum type extension.
     /// </returns>
     public static EnumTypeExtension CreateUnsafe(EnumTypeDefinition definition)
-        => new() { Definition = definition };
+        => new() { Definition = definition, };
 
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Enum;

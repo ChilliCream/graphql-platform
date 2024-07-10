@@ -1,11 +1,6 @@
-#nullable enable
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using HotChocolate.Execution;
-using HotChocolate.Utilities;
 
 namespace HotChocolate;
 
@@ -21,7 +16,7 @@ public abstract class Path : IEquatable<Path>
         _parent = null;
         Length = 0;
     }
-    
+
     protected Path(Path parent)
     {
         _parent = parent ?? throw new ArgumentNullException(nameof(parent));
@@ -68,7 +63,7 @@ public abstract class Path : IEquatable<Path>
             throw new InvalidOperationException(
                 "Appending a indexer on the root segment is not allowed.");
         }
-        
+
         return new IndexerPathSegment(this, index);
     }
 
@@ -84,7 +79,7 @@ public abstract class Path : IEquatable<Path>
         {
             return "/";
         }
-        
+
         var sb = new StringBuilder();
         var current = this;
 
@@ -107,7 +102,7 @@ public abstract class Path : IEquatable<Path>
                 default:
                     throw new NotSupportedException();
             }
-            
+
             current = current.Parent;
         }
 
@@ -177,7 +172,7 @@ public abstract class Path : IEquatable<Path>
         {
             null => false,
             Path p => Equals(p),
-            _ => false
+            _ => false,
         };
 
     /// <summary>
@@ -189,7 +184,7 @@ public abstract class Path : IEquatable<Path>
     public override int GetHashCode()
         => HashCode.Combine(Parent, Length);
 
-    internal static Path FromList(params object[] elements) 
+    internal static Path FromList(params object[] elements)
         => FromList((IReadOnlyList<object>)elements);
 
     internal static Path FromList(IReadOnlyList<object> path)
@@ -212,7 +207,7 @@ public abstract class Path : IEquatable<Path>
             {
                 string n => segment.Append(n),
                 int n => segment.Append(n),
-                _ => throw new NotSupportedException()
+                _ => throw new NotSupportedException(),
             };
         }
 

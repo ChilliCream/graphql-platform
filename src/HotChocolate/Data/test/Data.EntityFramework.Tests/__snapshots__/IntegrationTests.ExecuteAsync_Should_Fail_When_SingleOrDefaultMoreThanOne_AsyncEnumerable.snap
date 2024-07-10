@@ -2,6 +2,15 @@
   "errors": [
     {
       "message": "Sequence contains more than one element.",
+      "locations": [
+        {
+          "line": 3,
+          "column": 21
+        }
+      ],
+      "path": [
+        "executable"
+      ],
       "extensions": {
         "code": "HC0022"
       }

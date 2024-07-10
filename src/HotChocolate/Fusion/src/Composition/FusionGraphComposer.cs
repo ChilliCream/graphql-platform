@@ -32,19 +32,17 @@ public sealed class FusionGraphComposer
         bool fusionTypeSelf = false,
         Func<ICompositionLog>? logFactory = null)
         : this(
-            new IEntityEnricher[]
-            {
+            [
                 new RefResolverEntityEnricher(),
                 new PatternEntityEnricher(),
                 new RequireEnricher(),
-                new NodeEntityEnricher()
-            },
-            new ITypeMergeHandler[]
-            {
+                new NodeEntityEnricher(),
+            ],
+            [
                 new InterfaceTypeMergeHandler(), new UnionTypeMergeHandler(),
                 new InputObjectTypeMergeHandler(), new EnumTypeMergeHandler(),
-                new ScalarTypeMergeHandler()
-            },
+                new ScalarTypeMergeHandler(),
+            ],
             fusionTypePrefix,
             fusionTypeSelf,
             logFactory)
@@ -95,7 +93,7 @@ public sealed class FusionGraphComposer
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
-    public async ValueTask<Schema> ComposeAsync(
+    public async ValueTask<SchemaDefinition> ComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
         FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
@@ -111,7 +109,7 @@ public sealed class FusionGraphComposer
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Abort = cancellationToken
+            Abort = cancellationToken,
         };
 
         // Run the merge pipeline on the composition context.
@@ -141,7 +139,7 @@ public sealed class FusionGraphComposer
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
-    public async ValueTask<Schema?> TryComposeAsync(
+    public async ValueTask<SchemaDefinition?> TryComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
         FusionFeatureCollection? features = null,
         CancellationToken cancellationToken = default)
@@ -157,7 +155,7 @@ public sealed class FusionGraphComposer
             _fusionTypePrefix,
             _fusionTypeSelf)
         {
-            Abort = cancellationToken
+            Abort = cancellationToken,
         };
 
         // Run the merge pipeline on the composition context.
@@ -189,7 +187,7 @@ public sealed class FusionGraphComposer
     /// A cancellation token that can be used to cancel the operation.
     /// </param>
     /// <returns>The fusion gateway configuration.</returns>
-    public static async ValueTask<Schema> ComposeAsync(
+    public static async ValueTask<SchemaDefinition> ComposeAsync(
         IEnumerable<SubgraphConfiguration> configurations,
         FusionFeatureCollection? features = null,
         string? fusionTypePrefix = null,

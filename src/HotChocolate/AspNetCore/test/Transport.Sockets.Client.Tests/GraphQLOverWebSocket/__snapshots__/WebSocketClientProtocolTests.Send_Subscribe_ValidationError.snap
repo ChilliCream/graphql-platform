@@ -1,23 +1,20 @@
----------------
-{
-  "ValueKind": "Array"
-}
----------------
-
----------------
-{
-  "ValueKind": "Array"
-}
----------------
-
----------------
-{
-  "ValueKind": "Array"
-}
----------------
-
----------------
-{
-  "ValueKind": "Array"
-}
----------------
+[
+  {
+    "message": "The field `____` does not exist on the type `Review`.",
+    "locations": [
+      {
+        "line": 1,
+        "column": 46
+      }
+    ],
+    "path": [
+      "onReview"
+    ],
+    "extensions": {
+      "type": "Review",
+      "field": "____",
+      "responseName": "____",
+      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    }
+  }
+]

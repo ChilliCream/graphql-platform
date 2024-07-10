@@ -1,7 +1,4 @@
-using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Language.Utilities;
 
@@ -10,8 +7,8 @@ namespace HotChocolate.Language.Utilities;
 /// </summary>
 public static class SyntaxPrinter
 {
-    private static readonly SyntaxSerializer _serializer = new(new() { Indented = true });
-    private static readonly SyntaxSerializer _serializerNoIndent = new(new() { Indented = false});
+    private static readonly SyntaxSerializer _serializer = new(new() { Indented = true, });
+    private static readonly SyntaxSerializer _serializerNoIndent = new(new() { Indented = false, });
 
     /// <summary>
     /// Prints a GraphQL syntax node`s string representation.
@@ -61,9 +58,13 @@ public static class SyntaxPrinter
         CancellationToken cancellationToken = default)
     {
 #if NETSTANDARD2_0
-        using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        using var streamWriter = new StreamWriter(
+            stream,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
 #else
-        await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        await using var streamWriter = new StreamWriter(
+            stream,
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
 #endif
 
         var syntaxWriter = StringSyntaxWriter.Rent();

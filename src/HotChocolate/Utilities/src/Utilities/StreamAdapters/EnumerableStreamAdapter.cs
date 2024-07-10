@@ -17,16 +17,19 @@ internal sealed class EnumerableStreamAdapter : IAsyncEnumerable<object?>
 
     public IAsyncEnumerator<object?> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
-        => new Enumerator(_enumerable.GetEnumerator(), cancellationToken);
+        => new Enumerator(_enumerable, cancellationToken);
 
-    private sealed class Enumerator : IAsyncEnumerator<object?>
+    private sealed class Enumerator : IAsyncEnumerator<object?>, IDisposable
     {
         private readonly IEnumerator _enumerator;
+        private readonly IDisposable? _disposable;
         private readonly CancellationToken _cancellationToken;
+        private bool _disposed;
 
-        public Enumerator(IEnumerator enumerator, CancellationToken cancellationToken)
+        public Enumerator(IEnumerable enumerable, CancellationToken cancellationToken)
         {
-            _enumerator = enumerator;
+            _enumerator = enumerable.GetEnumerator();
+            _disposable = _enumerator as IDisposable;
             _cancellationToken = cancellationToken;
         }
 
@@ -39,11 +42,19 @@ internal sealed class EnumerableStreamAdapter : IAsyncEnumerable<object?>
 
         public ValueTask DisposeAsync()
         {
-            if (_enumerator is IDisposable d)
-            {
-                d.Dispose();
-            }
+            Dispose();
             return default;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            
+            _disposable?.Dispose();
+            _disposed = true;
         }
     }
 }
@@ -59,16 +70,20 @@ internal sealed class EnumerableStreamAdapter<T> : IAsyncEnumerable<object?>
 
     public IAsyncEnumerator<object?> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
-        => new Enumerator(_enumerable.GetEnumerator(), cancellationToken);
+        => new Enumerator(_enumerable, cancellationToken);
 
-    private sealed class Enumerator : IAsyncEnumerator<object?>
+    private sealed class Enumerator : IAsyncEnumerator<object?>, IDisposable
     {
-        private readonly IEnumerator<T> _enumerator;
+        private readonly IEnumerator _enumerator;
+        private readonly IDisposable? _disposable;
         private readonly CancellationToken _cancellationToken;
+        private bool _disposed;
 
-        public Enumerator(IEnumerator<T> enumerator, CancellationToken cancellationToken)
+
+        public Enumerator(IEnumerable<T> enumerator, CancellationToken cancellationToken)
         {
-            _enumerator = enumerator;
+            _enumerator = enumerator.GetEnumerator();
+            _disposable = _enumerator as IDisposable;
             _cancellationToken = cancellationToken;
         }
 
@@ -81,8 +96,19 @@ internal sealed class EnumerableStreamAdapter<T> : IAsyncEnumerable<object?>
 
         public ValueTask DisposeAsync()
         {
-            _enumerator.Dispose();
+            Dispose();
             return default;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            
+            _disposable?.Dispose();
+            _disposed = true;
         }
     }
 }

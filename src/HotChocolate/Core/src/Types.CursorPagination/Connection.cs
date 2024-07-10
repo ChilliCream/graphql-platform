@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Types.Pagination.Utilities;
 
 namespace HotChocolate.Types.Pagination;
 
@@ -92,4 +93,14 @@ public class Connection : IPage
     /// </returns>
     public ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken) =>
         _getTotalCount(cancellationToken);
+
+    /// <summary>
+    /// Gets an cashed empty connection object.
+    /// </summary>
+    public static Connection Empty() => EmptyConnectionHolder.Empty;
+    
+    /// <summary>
+    /// Gets an cashed empty connection object.
+    /// </summary>
+    public static Connection<T> Empty<T>() => EmptyConnectionHolder<T>.Empty;
 }

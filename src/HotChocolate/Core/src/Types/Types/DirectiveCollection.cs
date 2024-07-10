@@ -83,8 +83,35 @@ public sealed class DirectiveCollection : IDirectiveCollection
     }
 
     /// <inheritdoc />
+    public Directive? FirstOrDefault<TRuntimeType>()
+    {
+        var span = _directives.AsSpan();
+        ref var start = ref MemoryMarshal.GetReference(span);
+        ref var end = ref Unsafe.Add(ref start, span.Length);
+
+        while (Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if (start.AsValue<object>() is TRuntimeType)
+            {
+                return start;
+            }
+
+            // move pointer
+#pragma warning disable CS8619
+            start = ref Unsafe.Add(ref start, 1);
+#pragma warning restore CS8619
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
     public bool ContainsDirective(string directiveName)
         => FirstOrDefault(directiveName) is not null;
+
+    /// <inheritdoc />
+    public bool ContainsDirective<TRuntimeType>()
+        => FirstOrDefault<TRuntimeType>() is not null;
 
     internal static DirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,
@@ -203,7 +230,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
 
         // If we had any errors while building the directives list we will
         // clean the null entries out so that the list is consistent.
-        // We only do that so we can collect other schema errors as well and do
+        // We only do that, so we can collect other schema errors as well and do
         // not have to fully fail here but have one SchemaException at the end of
         // the schema creation that contains a list of errors.
         if (hasErrors)

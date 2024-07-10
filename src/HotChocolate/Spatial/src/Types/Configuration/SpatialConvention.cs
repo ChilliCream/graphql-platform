@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Spatial.Transformation;
 using NetTopologySuite;
@@ -51,7 +50,7 @@ public class SpatialConvention
 
     /// <summary>
     /// This method is called on initialization of the convention but before the convention is
-    /// completed. The default implementation of this method does nothing. It can be overriden
+    /// completed. The default implementation of this method does nothing. It can be overridden
     /// by a derived class such that the convention can be further configured before it is
     /// completed
     /// </summary>

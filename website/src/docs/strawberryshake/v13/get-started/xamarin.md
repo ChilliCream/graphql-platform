@@ -14,7 +14,7 @@ In this tutorial, we will teach you:
 
 ## Step 1: Add the Strawberry Shake CLI tools
 
-The Strawberry Shake tool will help you to setup your project to create a GraphQL client.
+The Strawberry Shake tool will help you to set up your project to create a GraphQL client.
 
 Open your preferred terminal and select a directory where you want to add the code of this tutorial.
 
@@ -54,37 +54,29 @@ dotnet sln add ./Demo
 
 ## Step 3: Install the required packages
 
-Strawberry Shake supports multiple GraphQL transport protocols. In this example we will use the standard GraphQL over HTTP protocol to interact with our GraphQL server.
+Strawberry Shake has meta packages, that will help pulling in all necessary dependencies in your project. Choose between either of these:
 
-1. Add the `StrawberryShake.Transport.Http` package to your project.
+a. For Blazor add the `StrawberryShake.Blazor` package to your project.
 
 ```bash
-dotnet add Demo package StrawberryShake.Transport.Http
+dotnet add Demo package StrawberryShake.Blazor
 ```
 
-2. Add the `StrawberryShake.CodeGeneration.CSharp.Analyzers` package to your project in order to add our code generation.
+b. For MAUI add the `StrawberryShake.Maui` package to your project.
 
 ```bash
-dotnet add Demo package StrawberryShake.CodeGeneration.CSharp.Analyzers
+dotnet add Demo package StrawberryShake.Maui
 ```
 
-When using the HTTP protocol we also need the HttpClientFactory and the Microsoft dependency injection.
-
-3. Add the `Microsoft.Extensions.DependencyInjection` package to your project in order to add our code generation.
+c. For Console apps add the `StrawberryShake.Server` package to your project.
 
 ```bash
-dotnet add Demo package Microsoft.Extensions.DependencyInjection
-```
-
-3. Add the `Microsoft.Extensions.Http` package to your project in order to add our code generation.
-
-```bash
-dotnet add Demo package Microsoft.Extensions.Http
+dotnet add Demo package StrawberryShake.Server
 ```
 
 ## Step 4: Add a GraphQL client to your project using the CLI tools
 
-To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
+To add a client to your project, you need to run `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
 In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our Blazor application.
 
@@ -178,7 +170,7 @@ public class Program
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
 @using Demo
-@using Demo.Shared
+@using Demo.Shared // (from .NET 8, `Demo.Layout`)
 @using Demo.GraphQL
 ```
 
@@ -186,7 +178,7 @@ public class Program
 
 In this section we will perform a simple fetch with our `ConferenceClient`. We will not yet look at state or other things that come with our client but just perform a simple fetch.
 
-1. Head over to `Pages/Index.razor`.
+1. Head over to `Pages/Index.razor` (from .NET 8, `Home.razor`).
 
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
@@ -208,7 +200,7 @@ Welcome to your new app.
 @code { }
 ```
 
-4. Now lets fetch the titles with our client.
+4. Now let's fetch the titles with our client.
 
 ```html
 @page "/" @inject ConferenceClient ConferenceClient;
@@ -229,7 +221,7 @@ Welcome to your new app.
 >
 ```
 
-5. Last, lets render the titles on our page as a list.
+5. Last, let's render the titles on our page as a list.
 
 ```html
 @page "/" @inject ConferenceClient ConferenceClient;
@@ -260,9 +252,9 @@ Welcome to your new app.
 
 ![Started Blazor application in Microsoft Edge](../shared/berry_session_list.png)
 
-## Step 6: Using the built-in store with reactive APIs.
+## Step 6: Using the built-in store with reactive APIs
 
-The simple fetch of our data works. But every time we visit the index page it will fetch the data again although the data does not change often. Strawberry Shake also comes with state management where you can control the entity store and update it when you need to. In order to best interact with the store we will use `System.Reactive` from Microsoft. Lets get started :)
+The simple fetch of our data works. But every time we visit the index page it will fetch the data again although the data does not change often. Strawberry Shake also comes with state management where you can control the entity store and update it when you need to. In order to best interact with the store we will use `System.Reactive` from Microsoft. Let's get started :)
 
 1. Install the package `System.Reactive`.
 
@@ -285,12 +277,12 @@ dotnet add Demo package System.Reactive
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
 @using Demo
-@using Demo.Shared
+@using Demo.Shared // (from .NET 8, `Demo.Layout`)
 @using Demo.GraphQL
 @using StrawberryShake
 ```
 
-3. Head back to `Pages/Index.razor` and replace the code section with the following code:
+3. Head back to `Pages/Index.razor` (from .NET 8, `Home.razor`) and replace the code section with the following code:
 
 ```csharp
 private string[] titles = Array.Empty<string>();
@@ -401,4 +393,4 @@ fragment SessionInfo on Session {
 }
 ```
 
-2. Next we need to restructure the `Index.razor` page.
+2. Next we need to restructure the `Index.razor` (from .NET 8, `Home.razor`) page.

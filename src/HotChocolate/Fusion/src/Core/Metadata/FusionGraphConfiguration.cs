@@ -45,7 +45,7 @@ internal sealed class FusionGraphConfiguration
             {
                 if (!_entitySubgraphMap.TryGetValue(entityName, out var availableOnSubgraphs))
                 {
-                    availableOnSubgraphs = new List<string>();
+                    availableOnSubgraphs = [];
                     _entitySubgraphMap.Add(entityName, availableOnSubgraphs);
                 }
                 availableOnSubgraphs.Add(subgraph.Name);

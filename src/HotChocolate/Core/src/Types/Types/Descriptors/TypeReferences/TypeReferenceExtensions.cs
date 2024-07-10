@@ -15,6 +15,6 @@ public static class TypeReferenceExtensions
         SchemaTypeReference schema => schema.With(context: context, scope: scope),
         SyntaxTypeReference syntax => syntax.With(context: context, scope: scope),
         DependantFactoryTypeReference d => d.With(context: context, scope: scope),
-        _ => throw new NotSupportedException()
+        _ => throw new NotSupportedException(),
     };
 }

@@ -14,12 +14,12 @@ internal static class CompleteInterfacesHelper
         ITypeCompletionContext context,
         IReadOnlyList<TypeReference> interfaceReferences,
         TInterfaceOrObject interfaceOrObject)
-        where TInterfaceOrObject : ITypeSystemObject, IHasSyntaxNode
+        where TInterfaceOrObject : ITypeSystemObject
 
     {
         if (interfaceReferences.Count == 0)
         {
-            return Array.Empty<InterfaceType>();
+            return [];
         }
 
         var implements = new InterfaceType[interfaceReferences.Count];
@@ -31,8 +31,7 @@ internal static class CompleteInterfacesHelper
             {
                 context.ReportError(
                     CompleteInterfacesHelper_UnableToResolveInterface(
-                        interfaceOrObject,
-                        interfaceOrObject.SyntaxNode));
+                        interfaceOrObject));
             }
 
             if (index == 0 || Array.IndexOf(implements, type, 0, index) == -1)

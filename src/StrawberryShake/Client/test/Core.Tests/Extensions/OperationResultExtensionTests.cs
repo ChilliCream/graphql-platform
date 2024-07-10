@@ -130,7 +130,7 @@ public class OperationResultExtensionTests
 
         public ResultMock(IClientError error)
         {
-            Errors = new[] { error };
+            Errors = new[] { error, };
         }
 
         public object? Data => default!;

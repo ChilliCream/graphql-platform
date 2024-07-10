@@ -18,6 +18,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
 {
     private readonly string _subgraphName;
     private readonly string _document;
+    private readonly ISelection? _parent;
     private readonly SelectionSet _selectionSet;
     private readonly string[] _provides;
     private readonly string[] _requires;
@@ -41,6 +42,7 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         config.ThrowIfNotInitialized();
         _subgraphName = config.SubgraphName;
         _document = config.Document;
+        _parent = config.Parent;
         _selectionSet = config.SelectionSet;
         _provides = config.Provides;
         _requires = config.Requires;
@@ -54,6 +56,11 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
     /// Gets the name of the subgraph that is targeted by this resolver.
     /// </summary>
     protected string SubgraphName => _subgraphName;
+
+    /// <summary>
+    /// Gets the parent selection from which the selection set was composed.
+    /// </summary>
+    protected ISelection? Parent => _parent;
 
     /// <summary>
     /// Gets the selection set for which data is being resolved.
@@ -133,6 +140,51 @@ internal abstract partial class ResolverNodeBase : QueryPlanNode
         }
 
         return new SubgraphGraphQLRequest(_subgraphName, _document, vars, null, _transportFeatures);
+    }
+
+    protected bool CanBeSkipped(FusionExecutionContext context)
+    {
+        // TODO : we should do an initial traversal of the query plan. For now we just include it when there is a provides.
+        // if we need to provide data for other execution node we need to execute.
+        if (_provides.Length > 0)
+        {
+            return false;
+        }
+
+        // if the parent selection is skipped we do not need to execute this node
+        // as all child selection are also skipped.
+        if (Parent is { IsConditional: true } parent &&
+            !parent.IsIncluded(context.OperationContext.IncludeFlags))
+        {
+            return true;
+        }
+
+        // if the selection set is not conditional (has no conditional selections)
+        // we need to execute this node as all selections are required for the result.
+        if (!SelectionSet.IsConditional)
+        {
+            return false;
+        }
+
+        // if the selection set is condition we need to check if at least one selection is included
+        // for execution or if all are skipped.
+        // We can only skip this node if all selections are skipped.
+        ref var start = ref SelectionSet.GetSelectionsReference();
+        ref var end = ref Unsafe.Add(ref start, SelectionSet.Selections.Count);
+
+        while(Unsafe.IsAddressLessThan(ref start, ref end))
+        {
+            if(start.IsIncluded(context.OperationContext.IncludeFlags))
+            {
+                // we found a selection that is included so we need to execute this node.
+                return false;
+            }
+
+            start = ref Unsafe.Add(ref start, 1)!;
+        }
+
+        // all selections are skipped so we can skip this node.
+        return true;
     }
 
     /// <summary>

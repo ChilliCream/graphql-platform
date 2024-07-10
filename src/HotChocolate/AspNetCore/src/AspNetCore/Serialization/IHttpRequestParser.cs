@@ -20,20 +20,29 @@ public interface IHttpRequestParser
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
+    ValueTask<IReadOnlyList<GraphQLRequest>> ParseRequestAsync(
         Stream requestBody,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
+    /// Parses a JSON GraphQL request from the request body.
     /// </summary>
-    /// <param name="parameters">
-    /// The HTTP query parameter collection.
+    /// <param name="operationId">
+    /// The operation id.
+    /// </param>
+    /// <param name="requestBody">
+    /// A stream representing the HTTP request body.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The request cancellation token.
     /// </param>
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    GraphQLRequest ReadParamsRequest(IQueryCollection parameters);
+    ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
+        string operationId,
+        Stream requestBody,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Parses the operations string from an GraphQL HTTP MultiPart request.
@@ -44,5 +53,32 @@ public interface IHttpRequestParser
     /// <returns>
     /// Returns the parsed GraphQL request.
     /// </returns>
-    IReadOnlyList<GraphQLRequest> ReadOperationsRequest(string operations);
+    IReadOnlyList<GraphQLRequest> ParseRequest(string operations);
+
+    /// <summary>
+    /// Parses a GraphQL HTTP GET request from the HTTP query parameters.
+    /// </summary>
+    /// <param name="parameters">
+    /// The HTTP query parameter collection.
+    /// </param>
+    /// <returns>
+    /// Returns the parsed GraphQL request.
+    /// </returns>
+    GraphQLRequest ParseRequestFromParams(IQueryCollection parameters);
+    
+    /// <summary>
+    /// Parses the variables and extensions from the HTTP query parameters.
+    /// </summary>
+    /// <param name="operationId">
+    /// The operation id.
+    /// </param>
+    /// <param name="parameters">
+    /// The HTTP query parameter collection.
+    /// </param>
+    /// <returns>
+    /// Returns the parsed variables and extensions.
+    /// </returns>
+    GraphQLRequest ParsePersistedOperationRequestFromParams(
+        string operationId, 
+        IQueryCollection parameters);
 }

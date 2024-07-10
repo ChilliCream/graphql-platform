@@ -1,5 +1,3 @@
-using System;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace GreenDonut;
@@ -13,14 +11,12 @@ public class DataLoaderOptionsTests
         var options = new DataLoaderOptions
         {
             Cache = new TaskCache(1),
-            Caching = true,
             MaxBatchSize = 1,
-            DiagnosticEvents = new DataLoaderDiagnosticEventListener()
+            DiagnosticEvents = new DataLoaderDiagnosticEventListener(),
         };
 
         // assert
         Assert.NotNull(options.Cache);
-        Assert.True(options.Caching);
         Assert.Equal(1, options.MaxBatchSize);
         Assert.NotNull(options.DiagnosticEvents);
     }
@@ -32,14 +28,12 @@ public class DataLoaderOptionsTests
         var options = new DataLoaderOptions
         {
             Cache = null,
-            Caching = false,
             MaxBatchSize = 10,
-            DiagnosticEvents = null
+            DiagnosticEvents = null,
         };
 
         // assert
         Assert.Null(options.Cache);
-        Assert.False(options.Caching);
         Assert.Equal(10, options.MaxBatchSize);
         Assert.Null(options.DiagnosticEvents);
     }
@@ -52,7 +46,6 @@ public class DataLoaderOptionsTests
 
         // assert
         Assert.Null(options.Cache);
-        Assert.True(options.Caching);
         Assert.Equal(1024, options.MaxBatchSize);
         Assert.Null(options.DiagnosticEvents);
     }
@@ -64,9 +57,8 @@ public class DataLoaderOptionsTests
         var options = new DataLoaderOptions
         {
             Cache = new TaskCache(1),
-            Caching = true,
             MaxBatchSize = 1,
-            DiagnosticEvents = new DataLoaderDiagnosticEventListener()
+            DiagnosticEvents = new DataLoaderDiagnosticEventListener(),
         };
 
         // act
@@ -74,7 +66,6 @@ public class DataLoaderOptionsTests
 
         // assert
         Assert.NotNull(copy.Cache);
-        Assert.True(copy.Caching);
         Assert.Equal(1, copy.MaxBatchSize);
         Assert.NotNull(copy.DiagnosticEvents);
     }

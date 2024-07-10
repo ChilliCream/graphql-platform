@@ -1,10 +1,14 @@
 using System;
+#if NET8_0_OR_GREATER
+using System.Collections.Frozen;
+#endif
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -19,8 +23,13 @@ public partial class Schema
     : TypeSystemObjectBase<SchemaTypeDefinition>
     , ISchema
 {
+    private readonly DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
     private SchemaTypes _types = default!;
+#if NET8_0_OR_GREATER
+    private FrozenDictionary<string, DirectiveType> _directiveTypes = default!;
+#else
     private Dictionary<string, DirectiveType> _directiveTypes = default!;
+#endif
 
     /// <summary>
     /// Gets the schema directives.
@@ -59,6 +68,11 @@ public partial class Schema
     /// Gets all the directives that are supported by this schema.
     /// </summary>
     public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; } = default!;
+
+    /// <summary>
+    /// Specifies the time the schema was created.
+    /// </summary>
+    public DateTimeOffset CreatedAt => _createdAt;
 
     /// <summary>
     /// Gets the default schema name.
@@ -205,6 +219,18 @@ public partial class Schema
         }
 
         return _directiveTypes.TryGetValue(directiveName, out directiveType);
+    }
+
+    Type? INodeIdRuntimeTypeLookup.GetNodeIdRuntimeType(string typeName)
+    {
+        if (TryGetType<ObjectType>(typeName, out var type)
+            && type.IsImplementing("Node")
+            && type.Fields.TryGetField("id", out var field))
+        {
+            return field.RuntimeType;
+        }
+
+        return null;
     }
 
     /// <summary>
