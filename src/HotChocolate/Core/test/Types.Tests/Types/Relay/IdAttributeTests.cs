@@ -509,12 +509,12 @@ public class IdAttributeTests
 
         private sealed class InterceptingFormatter(string typeName) : IInputValueFormatter
         {
-            public object Format(object? runtimeValue)
+            public object Format(object? originalValue)
             {
-                return runtimeValue switch
+                return originalValue switch
                 {
                     IEnumerable<string> list => list.Select(x => new NodeId(typeName, int.Parse(x))).ToArray(),
-                    _ => new NodeId(typeName, int.Parse((string)runtimeValue!)),
+                    _ => new NodeId(typeName, int.Parse((string)originalValue!)),
                 };
             }
         }

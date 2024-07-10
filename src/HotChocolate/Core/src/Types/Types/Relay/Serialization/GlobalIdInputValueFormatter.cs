@@ -1,167 +1,155 @@
 using System;
-using System.Collections;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using HotChocolate.Internal;
-using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Types.Relay;
 
-internal class GlobalIdInputValueFormatter : IInputValueFormatter
+internal class GlobalIdInputValueFormatter(
+    INodeIdSerializerAccessor serializerAccessor,
+    Type runtimeType,
+    Type elementType,
+    string name,
+    bool validateTypeName)
+    : IInputValueFormatter
 {
-    private readonly INodeIdSerializerAccessor _serializerAccessor;
-    private readonly string _typeName;
-    private readonly bool _validateType;
-    private readonly Func<IList> _createList;
-    private readonly Type _namedRuntimeType;
     private INodeIdSerializer? _serializer;
 
-    public GlobalIdInputValueFormatter(
-        string typeName,
-        INodeIdSerializerAccessor serializerAccessor,
-        IExtendedType resultType,
-        Type namedRuntimeType,
-        bool validateType)
+    public object? Format(object? originalValue)
     {
-        _typeName = typeName;
-        _serializerAccessor = serializerAccessor;
-        _validateType = validateType;
-        _createList = CreateListFactory(resultType);
-        _namedRuntimeType = namedRuntimeType;
-    }
-
-    public object? Format(object? runtimeValue)
-    {
-        if (runtimeValue is null)
+        if (originalValue is null)
         {
             return null;
         }
 
-        _serializer ??= _serializerAccessor.Serializer;
+        return FormatInternal(originalValue);
+    }
 
-        if (runtimeValue is NodeId id &&
-            (!_validateType || _typeName.EqualsOrdinal(id.TypeName)))
-        {
-            return id.InternalId;
-        }
+    private object FormatInternal(object originalValue)
+    {
+        _serializer ??= serializerAccessor.Serializer;
 
-        if (runtimeValue is string s)
+        switch (originalValue)
         {
-            try
+            case NodeId nodeId:
             {
-                id = _serializer.Parse(s, _namedRuntimeType);
-                if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
-                {
-                    return id.InternalId;
-                }
-            }
-            catch(Exception ex) when (ex is not GraphQLException)
-            {
-                // todo : resources
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage("The ID `{0}` has an invalid format.", s)
-                        .Build());
+                ValidateTypeName(nodeId.TypeName);
+                return nodeId.InternalId;
             }
 
-            // todo : resources
-            throw new GraphQLException(
-                ErrorBuilder.New()
-                    .SetMessage("The ID `{0}` is not an ID of `{1}`.", s, _typeName)
-                    .Build());
-        }
-
-        if (runtimeValue is IEnumerable<NodeId?> nullableIdEnumerable)
-        {
-            var list = _createList();
-
-            foreach (var idv in nullableIdEnumerable)
+            case string formattedId:
             {
-                if (!idv.HasValue)
-                {
-                    list.Add(null);
-                    continue;
-                }
-
-                if (!_validateType || _typeName.EqualsOrdinal(idv.Value.TypeName))
-                {
-                    list.Add(idv.Value.InternalId);
-                }
+                var nodeId = _serializer.Parse(formattedId, runtimeType);
+                ValidateTypeName(nodeId.TypeName);
+                return nodeId.InternalId;
             }
 
-            return list;
-        }
-
-        if (runtimeValue is IEnumerable<NodeId> idEnumerable)
-        {
-            var list = _createList();
-
-            foreach (var idv in idEnumerable)
+            case IReadOnlyList<NodeId> nodeIds:
             {
-                if (!_validateType || _typeName.EqualsOrdinal(idv.TypeName))
+                var internalIds = Array.CreateInstance(elementType, nodeIds.Count);
+
+                for (var i = 0; i < nodeIds.Count; i++)
                 {
-                    list.Add(idv.InternalId);
+                    var nodeId = nodeIds[i];
+                    ValidateTypeName(nodeId.TypeName);
+                    internalIds.SetValue(nodeId.InternalId, i);
                 }
+
+                return internalIds;
             }
 
-            return list;
-        }
-
-        if (runtimeValue is IEnumerable<string?> stringEnumerable)
-        {
-            try
+            case IReadOnlyList<string?> formattedIds:
             {
-                var list = _createList();
+                var internalIds = Array.CreateInstance(elementType, formattedIds.Count);
 
-                foreach (var sv in stringEnumerable)
+                for (var i = 0; i < formattedIds.Count; i++)
                 {
-                    if (sv is null)
+                    if (formattedIds[i] is { } formattedId)
                     {
-                        list.Add(null);
+                        var nodeId = _serializer.Parse(formattedId, runtimeType);
+                        ValidateTypeName(nodeId.TypeName);
+                        internalIds.SetValue(nodeId.InternalId, i);
+                    }
+                }
+
+                return internalIds;
+            }
+
+            case IEnumerable<NodeId> nodeIds:
+            {
+                var tempIds = ArrayPool<object>.Shared.Rent(128);
+
+                var i = 0;
+                foreach (var nodeId in nodeIds)
+                {
+                    ValidateTypeName(nodeId.TypeName);
+                    tempIds[i++] = nodeId.InternalId;
+
+                    if (i == tempIds.Length)
+                    {
+                        var buffer = ArrayPool<object>.Shared.Rent(tempIds.Length * 2);
+                        Array.Copy(tempIds, buffer, tempIds.Length);
+                        ArrayPool<object>.Shared.Return(tempIds);
+                        tempIds = buffer;
+                    }
+                }
+
+                var internalIds = Array.CreateInstance(elementType, i);
+                Array.Copy(tempIds, internalIds, i);
+                ArrayPool<object>.Shared.Return(tempIds);
+                return internalIds;
+            }
+
+            case IEnumerable<string?> formattedIds:
+            {
+                var tempIds = ArrayPool<object>.Shared.Rent(128);
+
+                var i = 0;
+                foreach (var formattedId in formattedIds)
+                {
+                    if (formattedId is null)
+                    {
+                        i++;
                         continue;
                     }
 
-                    id = _serializer.Parse(sv, _namedRuntimeType);
+                    var nodeId = _serializer.Parse(formattedId, runtimeType);
+                    ValidateTypeName(nodeId.TypeName);
+                    tempIds[i++] = nodeId.InternalId;
 
-                    if (!_validateType || _typeName.EqualsOrdinal(id.TypeName))
+                    if (i == tempIds.Length)
                     {
-                        list.Add(id.InternalId);
+                        var buffer = ArrayPool<object>.Shared.Rent(tempIds.Length * 2);
+                        Array.Copy(tempIds, buffer, tempIds.Length);
+                        ArrayPool<object>.Shared.Return(tempIds);
+                        tempIds = buffer;
                     }
                 }
 
-                return list;
-            }
-            catch(Exception ex) when (ex is not GraphQLException)
-            {
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "The IDs `{0}` have an invalid format.",
-                            string.Join(", ", stringEnumerable))
-                        .Build());
+                var internalIds = Array.CreateInstance(elementType, i);
+                Array.Copy(tempIds, internalIds, i);
+                ArrayPool<object>.Shared.Return(tempIds);
+                return internalIds;
             }
         }
 
-        throw new GraphQLException(
-            ErrorBuilder.New()
-                .SetMessage("The specified value is not a valid ID value.")
-                .Build());
+        throw new ArgumentException("The format of the originalValue cannot be handled.", nameof(originalValue));
     }
 
-    // TODO : AOT once we have the new serializer in we should be able to get rid of this.
-    private static Func<IList> CreateListFactory(IExtendedType resultType)
+    private void ValidateTypeName(string typeName)
     {
-        if (resultType.IsArrayOrList)
+        if(validateTypeName && !string.Equals(name, typeName, StringComparison.Ordinal))
         {
-            var listType = typeof(List<>).MakeGenericType(resultType.ElementType!.Source);
-            var constructor = listType.GetConstructors().Single(t => t.GetParameters().Length == 0);
-            Expression create = Expression.New(constructor);
-            return Expression.Lambda<Func<IList>>(create).Compile();
-        }
+            var error =
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The node id type name `{0}` does not match the expected type name `{1}`.",
+                        typeName,
+                        name)
+                    .Build();
 
-        return () => throw new NotSupportedException("Lists are not supported!");
+            throw new GraphQLException(error);
+        }
     }
 }
