@@ -88,17 +88,11 @@ internal class GlobalIdInputValueFormatter(
 
                     if (i == tempIds.Length)
                     {
-                        var buffer = ArrayPool<object>.Shared.Rent(tempIds.Length * 2);
-                        Array.Copy(tempIds, buffer, tempIds.Length);
-                        ArrayPool<object>.Shared.Return(tempIds);
-                        tempIds = buffer;
+                        ResizeTempIds(ref tempIds);
                     }
                 }
 
-                var internalIds = Array.CreateInstance(elementType, i);
-                Array.Copy(tempIds, internalIds, i);
-                ArrayPool<object>.Shared.Return(tempIds);
-                return internalIds;
+                return CreateResultArray(tempIds, i, elementType);
             }
 
             case IEnumerable<string?> formattedIds:
@@ -108,34 +102,44 @@ internal class GlobalIdInputValueFormatter(
                 var i = 0;
                 foreach (var formattedId in formattedIds)
                 {
-                    if (formattedId is not null)
+                    if (formattedId is null)
+                    {
+                        i++;
+                    }
+                    else
                     {
                         var nodeId = _serializer.Parse(formattedId, runtimeType);
                         ValidateTypeName(nodeId.TypeName);
                         tempIds[i++] = nodeId.InternalId;
                     }
-                    else
-                    {
-                        i++;
-                    }
 
                     if (i == tempIds.Length)
                     {
-                        var buffer = ArrayPool<object>.Shared.Rent(tempIds.Length * 2);
-                        Array.Copy(tempIds, buffer, tempIds.Length);
-                        ArrayPool<object>.Shared.Return(tempIds);
-                        tempIds = buffer;
+                        ResizeTempIds(ref tempIds);
                     }
                 }
 
-                var internalIds = Array.CreateInstance(elementType, i);
-                Array.Copy(tempIds, internalIds, i);
-                ArrayPool<object>.Shared.Return(tempIds);
-                return internalIds;
+                return CreateResultArray(tempIds, i, elementType);
             }
         }
 
         throw new ArgumentException("The format of the originalValue cannot be handled.", nameof(originalValue));
+
+        static void ResizeTempIds(ref object[] tempIds)
+        {
+            var buffer = ArrayPool<object>.Shared.Rent(tempIds.Length * 2);
+            Array.Copy(tempIds, buffer, tempIds.Length);
+            ArrayPool<object>.Shared.Return(tempIds);
+            tempIds = buffer;
+        }
+
+        static Array CreateResultArray(object[] tempIds, int size, Type elementType)
+        {
+            var internalIds = Array.CreateInstance(elementType, size);
+            Array.Copy(tempIds, internalIds, size);
+            ArrayPool<object>.Shared.Return(tempIds);
+            return internalIds;
+        }
     }
 
     private void ValidateTypeName(string typeName)
