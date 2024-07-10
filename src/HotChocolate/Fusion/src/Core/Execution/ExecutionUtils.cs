@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Metadata;
@@ -24,6 +25,8 @@ internal static class ExecutionUtils
 
     private const CustomOptionsFlags _typeNameFlag =
         (CustomOptionsFlags)ObjectFieldFlags.TypeName;
+
+    private static readonly ErrorPathVisitor _errorPathVisitor = new();
 
     public static void ComposeResult(
         FusionExecutionContext context,
@@ -547,8 +550,7 @@ internal static class ExecutionUtils
                 var path = PathHelper.CombinePath(parentPath, remotePath, pathDepth);
                 errorBuilder.SetPath(path);
 
-                var errorPathVisitor = new ErrorPathVisitor();
-                field = errorPathVisitor.GetFieldForPath(document, operation, path);
+                field = _errorPathVisitor.GetFieldForPath(document, operation, path);
 
                 if (addDebugInfo)
                 {
@@ -671,32 +673,27 @@ internal static class ExecutionUtils
 
     private sealed class ErrorPathContext
     {
-        private Stack<string> _path;
-
         public string Current { get; set; } = string.Empty;
 
-        public required Stack<string> Path
-        {
-            get => _path;
+        public Stack<string> Path { get; } = new();
 
-            [MemberNotNull(nameof(_path))]
-            init
-            {
-                _path = value;
-                if (value.Count > 0)
-                {
-                    Current = value.Pop();
-                }
-            }
-        }
-
-        public required Dictionary<string, FragmentDefinitionNode> Fragments { get; set; }
+        public Dictionary<string, FragmentDefinitionNode> Fragments { get; } = new();
 
         public FieldNode? Field { get; set; }
+
+        public void Reset()
+        {
+            Path.Clear();
+            Fragments.Clear();
+            Current = string.Empty;
+            Field = null;
+        }
     }
 
     private sealed class ErrorPathVisitor : SyntaxWalker<ErrorPathContext>
     {
+        private static ErrorPathContext? _errorPathContext = null;
+
         public FieldNode? GetFieldForPath(
             DocumentNode document,
             OperationDefinitionNode operation,
@@ -707,18 +704,30 @@ internal static class ExecutionUtils
                 return null;
             }
 
-            var context = new ErrorPathContext { Path = CreatePath(path), Fragments = CreateFragmentMap(document), };
+            var context = Interlocked.Exchange(ref _errorPathContext, null) ?? new ErrorPathContext();
+
+            InitializePath(path, context.Path);
+            InitializeFragments(document, context.Fragments);
+
+            if (context.Path.Count > 0)
+            {
+                context.Current = context.Path.Pop();
+            }
 
             Visit(operation, context);
 
-            return context.Field;
+            var field =  context.Field;
+
+            context.Reset();
+            Interlocked.Exchange(ref _errorPathContext, context);
+
+            return field;
         }
 
-        private static Dictionary<string, FragmentDefinitionNode> CreateFragmentMap(
-            DocumentNode document)
+        private static void InitializeFragments(
+            DocumentNode document,
+            Dictionary<string, FragmentDefinitionNode> fragments)
         {
-            var fragments = new Dictionary<string, FragmentDefinitionNode>();
-
             foreach (var definition in document.Definitions)
             {
                 if (definition is FragmentDefinitionNode fragment)
@@ -726,27 +735,22 @@ internal static class ExecutionUtils
                     fragments.TryAdd(fragment.Name.Value, fragment);
                 }
             }
-
-            return fragments;
         }
 
-        private static Stack<string> CreatePath(Path path)
+        private static void InitializePath(
+            Path path,
+            Stack<string> pathStack)
         {
-            var stack = new Stack<string>();
-
             while (!path.IsRoot)
             {
                 if (path is NamePathSegment namePath)
                 {
-                    stack.Push(namePath.Name);
+                    pathStack.Push(namePath.Name);
                 }
 
                 path = path.Parent;
             }
-
-            return stack;
         }
-
 
         protected override ISyntaxVisitorAction Enter(
             FieldNode node,
