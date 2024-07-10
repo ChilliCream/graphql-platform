@@ -10,7 +10,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
 {
     #region Parallel, Shared Entry Field
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_SharedEntryField_Nullable_Both_Services_Error_SharedEntryField()
     {
         // arrange
@@ -54,7 +54,7 @@ public class SubgraphErrorTests(ITestOutputHelper output)
         MatchMarkdownSnapshot(request, result);
     }
 
-    [Fact(Skip = "errors are wrong")]
+    [Fact]
     public async Task Resolve_Parallel_SharedEntryField_NonNull_Both_Services_Error_SharedEntryField()
     {
         // arrange

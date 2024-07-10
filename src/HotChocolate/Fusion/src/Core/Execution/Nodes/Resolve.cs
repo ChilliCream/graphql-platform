@@ -145,7 +145,14 @@ internal sealed class Resolve(int id, Config config) : ResolverNodeBase(id, conf
             var exportKeys = state.Requires;
             var variableValues = state.VariableValues;
 
-            ExtractErrors(context.Result, response.Errors, selectionSetResult, pathLength, context.ShowDebugInfo);
+            ExtractErrors(
+                context.Operation.Document,
+                context.Operation.Definition,
+                context.Result,
+                response.Errors,
+                selectionSetResult,
+                pathLength,
+                context.ShowDebugInfo);
 
             // we extract the selection data from the request and add it to the
             // workItem results.
