@@ -36,36 +36,48 @@ public class IdAttributeTests
                 .AddGlobalObjectIdentification(false)
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
-                        .SetDocument(@"query foo (
+                        .SetDocument(
+                            """
+                            query foo(
                                 $intId: ID!
                                 $nullIntId: ID = null
                                 $stringId: ID!
                                 $nullStringId: ID = null
                                 $guidId: ID!
-                                $nullGuidId: ID = null)
-                            {
+                                $nullGuidId: ID = null
+                            ) {
                                 intId(id: $intId)
                                 nullableIntId(id: $intId)
                                 nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                                optionalIntId(id: $intId)
+                                optionalIntIdGivenNothing: optionalIntId
                                 intIdList(id: [$intId])
                                 nullableIntIdList(id: [$intId, $nullIntId])
+                                optionalIntIdList(id: [$intId])
                                 stringId(id: $stringId)
                                 nullableStringId(id: $stringId)
                                 nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
+                                optionalStringId(id: $stringId)
+                                optionalStringIdGivenNothing: optionalStringId
                                 stringIdList(id: [$stringId])
                                 nullableStringIdList(id: [$stringId, $nullStringId])
+                                optionalStringIdList(id: [$stringId])
                                 guidId(id: $guidId)
                                 nullableGuidId(id: $guidId)
                                 nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
+                                optionalGuidId(id: $guidId)
+                                optionalGuidIdGivenNothing: optionalGuidId
                                 guidIdList(id: [$guidId $guidId])
                                 nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                            }")
+                                optionalGuidIdList(id: [$guidId $guidId])
+                            }
+                            """)
                         .SetVariableValues(
                             new Dictionary<string, object?>
                             {
-                                {"intId", intId },
-                                {"stringId", stringId },
-                                {"guidId", guidId },
+                                { "intId", intId },
+                                { "stringId", stringId },
+                                { "guidId", guidId }
                             })
                         .Build());
 
@@ -113,11 +125,18 @@ public class IdAttributeTests
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID! $someIntId: ID!) {
-                                foo(input: {
-                                    someId: $someId someIds: [$someIntId]
-                                    someNullableId: $someId someNullableIds: [$someIntId] })
-                                {
+                            """
+                            query foo($someId: ID!, $someIntId: ID!) {
+                                foo(
+                                    input: {
+                                        someId: $someId
+                                        someIds: [$someIntId]
+                                        someNullableId: $someId
+                                        someNullableIds: [$someIntId]
+                                        someOptionalId: $someId
+                                        someOptionalIds: [$someIntId]
+                                    }
+                                ) {
                                     someId
                                     someNullableId
                                     ... on FooPayload {
@@ -125,14 +144,13 @@ public class IdAttributeTests
                                         someNullableIds
                                     }
                                 }
-                            }")
+                            }
+                            """)
                         .SetVariableValues(
                             new Dictionary<string, object?>
                             {
-                                {"someId", someId },
-                                {"someNullableId", null},
-                                {"someIntId", someIntId},
-                                {"someNullableIntId", null},
+                                { "someId", someId },
+                                { "someIntId", someIntId }
                             })
                         .Build());
 
@@ -162,15 +180,21 @@ public class IdAttributeTests
                 .ExecuteRequestAsync(
                     OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo (
-                                $someId: ID! $someIntId: ID!
+                            """
+                            query foo(
+                                $someId: ID!
+                                $someIntId: ID!
                                 $someNullableId: ID
-                                $someNullableIntId: ID) {
-                                foo(input: {
-                                    someId: $someId someIds: [$someIntId]
-                                    someNullableId: $someNullableId
-                                    someNullableIds: [$someNullableIntId, $someIntId] })
-                                {
+                                $someNullableIntId: ID
+                            ) {
+                                foo(
+                                    input: {
+                                        someId: $someId
+                                        someIds: [$someIntId]
+                                        someNullableId: $someNullableId
+                                        someNullableIds: [$someNullableIntId, $someIntId]
+                                    }
+                                ) {
                                     someId
                                     someNullableId
                                     ... on FooPayload {
@@ -178,14 +202,15 @@ public class IdAttributeTests
                                         someNullableIds
                                     }
                                 }
-                            }")
+                            }
+                            """)
                         .SetVariableValues(
                             new Dictionary<string, object?>
                             {
-                                {"someId", someId},
-                                {"someNullableId", null},
-                                {"someIntId", someIntId},
-                                {"someNullableIntId", null},
+                                { "someId", someId },
+                                { "someNullableId", null },
+                                { "someIntId", someIntId },
+                                { "someNullableIntId", null }
                             })
                         .Build());
 
@@ -360,6 +385,11 @@ public class IdAttributeTests
         public string NullableIntIdList([ID] int?[] id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
+        public string OptionalIntId([DefaultValue("UXVlcnk6MA==")][ID] Optional<int> id) =>
+            id.HasValue ? id.Value.ToString() : "NO VALUE";
+        public string OptionalIntIdList([DefaultValue(new int[] {})][ID] Optional<int[]> id) =>
+            id.HasValue ? string.Join(", ", id.Value.Select(t => t.ToString())) : "NO VALUE";
+
         public string StringId([ID] string id) => id;
         public string StringIdList([ID] string[] id) =>
             string.Join(", ", id.Select(t => t.ToString()));
@@ -368,6 +398,13 @@ public class IdAttributeTests
         public string NullableStringIdList([ID] string?[] id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
+        public string OptionalStringId(
+            [DefaultValue("UXVlcnk6")][ID] Optional<string> id) =>
+            id.HasValue ? id.Value : "NO VALUE";
+        public string OptionalStringIdList(
+            [DefaultValue(new string[] {})][ID] Optional<string[]> id) =>
+            id.HasValue ? string.Join(", ", id.Value) : "NO VALUE";
+
         public string GuidId([ID] Guid id) => id.ToString();
         public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
             string.Join(", ", id.Select(t => t.ToString()));
@@ -375,6 +412,13 @@ public class IdAttributeTests
         public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
         public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+        public string OptionalGuidId(
+            [DefaultValue("UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA==")][ID] Optional<Guid> id) =>
+            id.HasValue ? id.Value.ToString() : "NO VALUE";
+        public string OptionalGuidIdList(
+            [DefaultValue(new object[] {})][ID] Optional<Guid[]> id) =>
+            id.HasValue ? string.Join(", ", id.Value.Select(t => t.ToString())) : "NO VALUE";
 
         public string InterceptedId([InterceptedID("Query")] [ID] int id) => id.ToString();
 
@@ -396,15 +440,19 @@ public class IdAttributeTests
         public FooInput(
             string someId,
             string? someNullableId,
+            Optional<string> someOptionalId,
             IReadOnlyList<int> someIds,
             IReadOnlyList<int?>? someNullableIds,
+            Optional<IReadOnlyList<int>> someOptionalIds,
             int? interceptedId,
             IReadOnlyList<int>? interceptedIds)
         {
             SomeId = someId;
             SomeNullableId = someNullableId;
+            SomeOptionalId = someOptionalId;
             SomeIds = someIds;
             SomeNullableIds = someNullableIds;
+            SomeOptionalIds = someOptionalIds;
             InterceptedId = interceptedId;
             InterceptedIds = interceptedIds;
         }
@@ -413,9 +461,17 @@ public class IdAttributeTests
 
         [ID("Some")] public string? SomeNullableId { get; }
 
+        [ID("Some")]
+        [DefaultValue("U29tZTo=")]
+        public Optional<string> SomeOptionalId { get; }
+
         [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
 
         [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
+
+        [ID("Some")]
+        [DefaultValue(new int[] {})]
+        public Optional<IReadOnlyList<int>> SomeOptionalIds { get; }
 
         [ID, InterceptedID("FooInput")]
         public int? InterceptedId { get; }
