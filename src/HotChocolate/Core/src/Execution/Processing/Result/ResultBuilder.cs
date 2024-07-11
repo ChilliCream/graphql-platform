@@ -12,6 +12,7 @@ internal sealed partial class ResultBuilder
 {
     private static readonly Func<ValueTask>[] _emptyCleanupTasks = Array.Empty<Func<ValueTask>>();
     private readonly List<IError> _errors = [];
+    private readonly HashSet<Path> _errorPaths = [];
     private readonly HashSet<ISelection> _fieldErrors = [];
     private readonly List<NonNullViolation> _nonNullViolations = [];
     private readonly HashSet<uint> _removedResults = [];
@@ -166,7 +167,10 @@ internal sealed partial class ResultBuilder
     {
         lock (_errors)
         {
-            _errors.Add(error);
+            if (error.Path is not null && _errorPaths.Add(error.Path))
+            {
+                _errors.Add(error);
+            }
 
             if (selection is not null)
             {
@@ -205,10 +209,10 @@ internal sealed partial class ResultBuilder
             _patchIds.Add(patchId);
         }
     }
-    
+
     public void SetRequestIndex(int requestIndex)
         => _requestIndex = requestIndex;
-    
+
     public void SetVariableIndex(int variableIndex)
         => _variableIndex = variableIndex;
 
@@ -216,7 +220,7 @@ internal sealed partial class ResultBuilder
     public IOperationResult BuildResult()
     {
         ApplyNonNullViolations(_errors, _nonNullViolations, _fieldErrors);
-        
+
         if (_data?.IsInvalidated == true)
         {
             // The non-null violation cased the whole result being deleted.
@@ -258,8 +262,8 @@ internal sealed partial class ResultBuilder
             label: _label,
             path: _path,
             hasNext: _hasNext,
-            cleanupTasks: _cleanupTasks.Count == 0 
-                ? _emptyCleanupTasks 
+            cleanupTasks: _cleanupTasks.Count == 0
+                ? _emptyCleanupTasks
                 : _cleanupTasks.ToArray(),
             isDataSet: true,
             requestIndex: _requestIndex,
@@ -272,7 +276,7 @@ internal sealed partial class ResultBuilder
 
         return result;
     }
-    
+
     // ReSharper restore InconsistentlySynchronizedField
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Dictionary<string, object?>? CreateExtensionData(Dictionary<string, object?> data)
