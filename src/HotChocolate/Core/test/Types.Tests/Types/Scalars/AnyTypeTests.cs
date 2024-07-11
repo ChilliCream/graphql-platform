@@ -46,7 +46,29 @@ public class AnyTypeTests
                     .Name("Query")
                     .Field("foo")
                     .Type<AnyType>()
-                    .Resolve(_ => new List<Foo> { new(), }))
+                    .Resolve(_ => new List<Foo> { new(), new() }))
+            .Create();
+
+        var executor = schema.MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }");
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Output_Return_RecordList()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Resolve(_ => new List<FooRecord> { new(), new() }))
             .Create();
 
         var executor = schema.MakeExecutable();
@@ -1001,7 +1023,30 @@ public class AnyTypeTests
         var type = schema.GetType<AnyType>("Any");
 
         // act
-        var literal = type.ParseValue(new List<Foo>());
+        var literal = type.ParseValue(new List<Foo> { new(), new() });
+
+        // assert
+        Assert.IsType<ListValueNode>(literal);
+    }
+
+    [Fact]
+    public void ParseValue_List_Of_FooRecord()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolve(ctx => ctx.ArgumentValue<object>("input")))
+            .Create();
+
+        var type = schema.GetType<AnyType>("Any");
+
+        // act
+        var literal = type.ParseValue(new List<FooRecord> { new(), new() });
 
         // assert
         Assert.IsType<ListValueNode>(literal);
@@ -1215,6 +1260,16 @@ public class AnyTypeTests
     }
 
     public class Bar
+    {
+        public string Baz { get; set; } = "Baz";
+    }
+
+    public record FooRecord
+    {
+        public BarRecord BarRecord { get; set; } = new BarRecord();
+    }
+
+    public record BarRecord
     {
         public string Baz { get; set; } = "Baz";
     }

@@ -106,7 +106,7 @@ public class AnyType : ScalarType
     {
         return value is null
             ? NullValueNode.Default
-            : ParseValue(value, new HashSet<object>());
+            : ParseValue(value, new HashSet<object>(ReferenceEqualityComparer.Instance));
     }
 
     private IValueNode ParseValue(object? value, ISet<object> set)

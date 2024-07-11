@@ -26,7 +26,7 @@ internal class ObjectToDictionaryConverter
 
         object value = null;
         void SetValue(object v) => value = v;
-        VisitValue(obj, SetValue, []);
+        VisitValue(obj, SetValue, new HashSet<object>(ReferenceEqualityComparer.Instance));
         return value;
     }
 
