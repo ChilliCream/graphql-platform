@@ -67,6 +67,8 @@ internal sealed class DistributedOperationExecutionMiddleware(
                 GetRootObject(context.Operation),
                 () => _queryRoot);
 
+            operationContext.Result.SetSingleErrorPerPath();
+
             var federatedQueryContext =
                 new FusionExecutionContext(
                     _serviceConfig,
