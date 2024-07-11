@@ -24,6 +24,7 @@ internal sealed partial class ResultBuilder
     public void Clear()
     {
         _errors.Clear();
+        _errorPaths.Clear();
         _fieldErrors.Clear();
         _nonNullViolations.Clear();
         _extensions.Clear();
@@ -43,6 +44,7 @@ internal sealed partial class ResultBuilder
         _hasNext = null;
         _requestIndex = null;
         _variableIndex = null;
+        _singleErrorPerPath = false;
     }
 
     private void InitializeResult()
