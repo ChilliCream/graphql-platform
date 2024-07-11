@@ -30,6 +30,7 @@ internal sealed partial class ResultBuilder
     private bool? _hasNext;
     private int? _requestIndex;
     private int? _variableIndex;
+    private bool _singleErrorPerPath;
 
     public IReadOnlyList<IError> Errors => _errors;
 
@@ -163,11 +164,16 @@ internal sealed partial class ResultBuilder
     public void SetHasNext(bool value)
         => _hasNext = value;
 
+    public void SetSingleErrorPerPath(bool value = true)
+    {
+        _singleErrorPerPath = value;
+    }
+
     public void AddError(IError error, ISelection? selection = null)
     {
         lock (_errors)
         {
-            if (error.Path is not null && _errorPaths.Add(error.Path))
+            if (!_singleErrorPerPath || error.Path is null || _errorPaths.Add(error.Path))
             {
                 _errors.Add(error);
             }
@@ -278,6 +284,7 @@ internal sealed partial class ResultBuilder
     }
 
     // ReSharper restore InconsistentlySynchronizedField
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Dictionary<string, object?>? CreateExtensionData(Dictionary<string, object?> data)
         => data.Count == 0 ? null : new Dictionary<string, object?>(data);
@@ -310,6 +317,7 @@ internal sealed partial class ResultBuilder
                 {
                     return x.Locations[0].CompareTo(y.Locations[0]);
                 }
+
                 return 1;
             }
 
