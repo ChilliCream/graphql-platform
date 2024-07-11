@@ -9,10 +9,30 @@
             },
             {
               "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "appliedDirectives": []
             },
             {
               "appliedDirectives": []
             },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            },
+            {
+              "appliedDirectives": []
+            }
+          ]
+        },
+        {
+          "fields": [
             {
               "appliedDirectives": []
             },
@@ -157,26 +177,6 @@
         },
         {
           "fields": null
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
-        },
-        {
-          "fields": [
-            {
-              "appliedDirectives": []
-            },
-            {
-              "appliedDirectives": []
-            }
-          ]
         },
         {
           "fields": [

@@ -21,6 +21,7 @@ internal sealed class SchemaTypes
     private readonly Dictionary<string, INamedType> _types;
     private readonly Dictionary<string, List<ObjectType>> _possibleTypes;
 #endif
+    private readonly IReadOnlyList<INamedType> _sortedTypes;
 
     public SchemaTypes(SchemaTypesDefinition definition)
     {
@@ -43,6 +44,7 @@ internal sealed class SchemaTypes
         _types = definition.Types.ToDictionary(t => t.Name, StringComparer.Ordinal);
         _possibleTypes = CreatePossibleTypeLookup(definition.Types);
 #endif
+        _sortedTypes = SortTypes(definition.Types);
         QueryType = definition.QueryType!;
         MutationType = definition.MutationType;
         SubscriptionType = definition.SubscriptionType;
@@ -83,7 +85,7 @@ internal sealed class SchemaTypes
 
     public IReadOnlyCollection<INamedType> GetTypes()
     {
-        return _types.Values;
+        return _sortedTypes;
     }
 
     public bool TryGetClrType(string typeName, [NotNullWhen(true)] out Type? clrType)
@@ -151,5 +153,27 @@ internal sealed class SchemaTypes
         }
 
         return possibleTypes;
+    }
+
+    private static IReadOnlyList<INamedType> SortTypes(IReadOnlyList<INamedType> types)
+    {
+        var internalTypes = types.Where(t => t.IsIntrospectionType());
+        var publicTypes = types.Where(t => !t.IsIntrospectionType());
+
+        return [..SortInternalTypes(internalTypes), ..SortRegularTypes(publicTypes)];
+    }
+
+    private static IEnumerable<INamedType> SortInternalTypes(IEnumerable<INamedType> types)
+    {
+        return types.OrderBy(t => t.Name, StringComparer.Ordinal);
+    }
+
+    private static IEnumerable<INamedType> SortRegularTypes(IEnumerable<INamedType> types)
+    {
+        return types
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
+            .GroupBy(t => (int)t.Kind)
+            .OrderBy(t => t.Key)
+            .SelectMany(t => t);
     }
 }

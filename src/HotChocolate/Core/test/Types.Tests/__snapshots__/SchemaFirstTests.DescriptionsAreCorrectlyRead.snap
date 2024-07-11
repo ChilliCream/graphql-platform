@@ -958,116 +958,6 @@
           "possibleTypes": null
         },
         {
-          "kind": "OBJECT",
-          "name": "Query",
-          "description": "Query\nLine 1\nLine 2",
-          "fields": [
-            {
-              "name": "translate",
-              "description": "translate\nLine 1\nLine 2",
-              "args": [
-                {
-                  "name": "fromLanguage",
-                  "description": "fromLanguage\nLine 1\nLine 2",
-                  "type": {
-                    "kind": "ENUM",
-                    "name": "Language",
-                    "ofType": null
-                  },
-                  "defaultValue": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "text",
-                  "description": "text\nLine 1\nLine 2",
-                  "type": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  },
-                  "defaultValue": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                },
-                {
-                  "name": "toLanguage",
-                  "description": "toLanguage\nLine 1\nLine 2",
-                  "type": {
-                    "kind": "ENUM",
-                    "name": "Language",
-                    "ofType": null
-                  },
-                  "defaultValue": null,
-                  "isDeprecated": false,
-                  "deprecationReason": null
-                }
-              ],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "inputFields": null,
-          "interfaces": [],
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
-          "kind": "ENUM",
-          "name": "Language",
-          "description": "Language\nLine 1\nLine 2",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": [
-            {
-              "name": "EN",
-              "description": "EN\nLine 1\nLine 2",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "FR",
-              "description": "FR\nLine 1\nLine 2",
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "CH",
-              "description": "CH\nLine 1\nLine 2",
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "possibleTypes": null
-        },
-        {
-          "kind": "UNION",
-          "name": "AandB",
-          "description": "AandB\nLine 1\nLine 2",
-          "fields": null,
-          "inputFields": null,
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": [
-            {
-              "kind": "OBJECT",
-              "name": "A",
-              "ofType": null
-            },
-            {
-              "kind": "OBJECT",
-              "name": "B",
-              "ofType": null
-            }
-          ]
-        },
-        {
           "kind": "INTERFACE",
           "name": "C",
           "description": "interface\nC\nLine 1\nLine 2",
@@ -1128,29 +1018,6 @@
           "possibleTypes": []
         },
         {
-          "kind": "INPUT_OBJECT",
-          "name": "Foo",
-          "description": "foo\nLine 1\nLine 2",
-          "fields": null,
-          "inputFields": [
-            {
-              "name": "bar",
-              "description": "bar\nLine 1\nLine 2",
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              },
-              "defaultValue": null,
-              "isDeprecated": false,
-              "deprecationReason": null
-            }
-          ],
-          "interfaces": null,
-          "enumValues": null,
-          "possibleTypes": null
-        },
-        {
           "kind": "OBJECT",
           "name": "A",
           "description": null,
@@ -1197,9 +1064,142 @@
           "possibleTypes": null
         },
         {
+          "kind": "OBJECT",
+          "name": "Query",
+          "description": "Query\nLine 1\nLine 2",
+          "fields": [
+            {
+              "name": "translate",
+              "description": "translate\nLine 1\nLine 2",
+              "args": [
+                {
+                  "name": "fromLanguage",
+                  "description": "fromLanguage\nLine 1\nLine 2",
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "Language",
+                    "ofType": null
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "text",
+                  "description": "text\nLine 1\nLine 2",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "toLanguage",
+                  "description": "toLanguage\nLine 1\nLine 2",
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "Language",
+                    "ofType": null
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "UNION",
+          "name": "AandB",
+          "description": "AandB\nLine 1\nLine 2",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": [
+            {
+              "kind": "OBJECT",
+              "name": "A",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "B",
+              "ofType": null
+            }
+          ]
+        },
+        {
+          "kind": "INPUT_OBJECT",
+          "name": "Foo",
+          "description": "foo\nLine 1\nLine 2",
+          "fields": null,
+          "inputFields": [
+            {
+              "name": "bar",
+              "description": "bar\nLine 1\nLine 2",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null,
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "ENUM",
+          "name": "Language",
+          "description": "Language\nLine 1\nLine 2",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": [
+            {
+              "name": "EN",
+              "description": "EN\nLine 1\nLine 2",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "FR",
+              "description": "FR\nLine 1\nLine 2",
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "CH",
+              "description": "CH\nLine 1\nLine 2",
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "possibleTypes": null
+        },
+        {
           "kind": "SCALAR",
-          "name": "String",
-          "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "name": "Boolean",
+          "description": "The `Boolean` scalar type represents `true` or `false`.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
@@ -1208,8 +1208,8 @@
         },
         {
           "kind": "SCALAR",
-          "name": "Boolean",
-          "description": "The `Boolean` scalar type represents `true` or `false`.",
+          "name": "String",
+          "description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
           "fields": null,
           "inputFields": null,
           "interfaces": null,

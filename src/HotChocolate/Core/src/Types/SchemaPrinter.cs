@@ -143,12 +143,7 @@ public static class SchemaPrinter
     private static IEnumerable<INamedType> GetNonScalarTypes(
         ISchema schema)
     {
-        return schema.Types
-           .Where(IsPublicAndNoScalar)
-           .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
-           .GroupBy(t => (int)t.Kind)
-           .OrderBy(t => t.Key)
-           .SelectMany(t => t);
+        return schema.Types.Where(IsPublicAndNoScalar);
     }
 
     private static bool IsPublicAndNoScalar(INamedType type)

@@ -76,11 +76,11 @@ internal static class IntrospectionFormatter
     {
         foreach (var type in types)
         {
-            yield return CreateTypes(type);
+            yield return CreateType(type);
         }
     }
 
-    private static ITypeDefinitionNode CreateTypes(FullType type)
+    private static ITypeDefinitionNode CreateType(FullType type)
     {
         switch (type.Kind)
         {
