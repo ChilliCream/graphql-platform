@@ -6,8 +6,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 

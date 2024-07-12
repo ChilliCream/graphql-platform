@@ -4,9 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(Library2TargetFrameworks)</TargetFrameworks>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <NeutralLanguage>en</NeutralLanguage>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
