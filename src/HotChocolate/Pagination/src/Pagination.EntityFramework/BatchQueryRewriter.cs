@@ -7,11 +7,11 @@ namespace HotChocolate.Pagination;
 internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : ExpressionVisitor
 {
     private PropertyInfo? _resultProperty;
-    private DataSetKey[]? _keys;
+    private CursorKey[]? _keys;
 
     public PropertyInfo ResultProperty => _resultProperty ?? throw new InvalidOperationException();
 
-    public DataSetKey[] Keys => _keys ?? throw new InvalidOperationException();
+    public CursorKey[] Keys => _keys ?? throw new InvalidOperationException();
 
     protected override Expression VisitExtension(Expression node)
         => node.CanReduce
@@ -38,7 +38,7 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
         var includeType = property.PropertyType.GetGenericArguments()[0];
         var lambda = (LambdaExpression)((UnaryExpression)node.Arguments[1]).Operand;
 
-        var parser = new DataSetKeyParser();
+        var parser = new CursorKeyParser();
         parser.Visit(lambda);
         var keys = _keys = parser.Keys.ToArray();
 
@@ -56,7 +56,7 @@ internal sealed class BatchQueryRewriter<T>(PagingArguments arguments) : Express
     private static Expression ApplyPaging(
         Expression enumerable,
         PagingArguments pagingArgs,
-        DataSetKey[] keys,
+        CursorKey[] keys,
         bool forward)
     {
         MethodInfo? where = null;

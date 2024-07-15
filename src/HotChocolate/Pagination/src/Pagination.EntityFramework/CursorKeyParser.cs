@@ -1,14 +1,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Pagination.Serialization;
 
 namespace HotChocolate.Pagination;
 
-internal sealed class DataSetKeyParser : ExpressionVisitor
+internal sealed class CursorKeyParser : ExpressionVisitor
 {
-    private readonly List<DataSetKey> _keys = new();
+    private readonly List<CursorKey> _keys = new();
 
-    public IReadOnlyList<DataSetKey> Keys => _keys;
+    public IReadOnlyList<CursorKey> Keys => _keys;
 
     protected override Expression VisitExtension(Expression node)
         => node.CanReduce ? base.VisitExtension(node) : node;
@@ -58,7 +59,8 @@ internal sealed class DataSetKeyParser : ExpressionVisitor
     {
         if (TryExtractProperty(node, out var property))
         {
-            _keys.Insert(0, new DataSetKey(property, ascending));
+            var serializer = CursorKeySerializerRegistration.Find(property.PropertyType);
+            _keys.Insert(0, new CursorKey(property, serializer, ascending));
         }
     }
 

@@ -8,7 +8,7 @@ internal static class CursorParser
 {
     private const byte _separator = (byte)':';
 
-    public static object[] Parse(string cursor, ReadOnlySpan<DataSetKey> keys)
+    public static object[] Parse(string cursor, ReadOnlySpan<CursorKey> keys)
     {
         if (cursor == null)
         {
