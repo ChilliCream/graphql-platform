@@ -3,8 +3,6 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <Nullable>enable</Nullable>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

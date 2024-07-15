@@ -66,7 +66,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            new bool?[] { true, },
+                            [true,],
                             cache);
 
                     list.Add((TypeComponentKind.List, rewritten));
@@ -78,7 +78,7 @@ internal sealed partial class TypeInfo
                         ? current
                         : ExtendedType.Tools.ChangeNullability(
                             current,
-                            new bool?[] { true, },
+                            [true,],
                             cache);
 
                     list.Add((TypeComponentKind.Named, rewritten));
