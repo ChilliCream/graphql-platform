@@ -6,5 +6,4 @@
     <RootNamespace>HotChocolate.Pagination</RootNamespace>
     <Description>Contains primitives for implementing keyset pagination.</Description>
   </PropertyGroup>
-
 </Project>

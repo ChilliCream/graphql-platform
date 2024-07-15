@@ -160,7 +160,7 @@ public static class PagingQueryableExtensions
         return result;
     }
 
-    private static Page<T> CreatePage<T>(IReadOnlyList<T> items, PagingArguments arguments, DataSetKey[] keys)
+    private static Page<T> CreatePage<T>(IReadOnlyList<T> items, PagingArguments arguments, CursorKey[] keys)
     {
         var hasPrevious = arguments.First is not null && items.Count > 0 ||
             arguments.Last is not null && items.Count > arguments.Last;
@@ -170,15 +170,15 @@ public static class PagingQueryableExtensions
         return new Page<T>(items, hasNext, hasPrevious, item => CursorFormatter.Format(item, keys));
     }
 
-    private static DataSetKey[] ParseDataSetKeys<T>(IQueryable<T> source)
+    private static CursorKey[] ParseDataSetKeys<T>(IQueryable<T> source)
     {
-        var parser = new DataSetKeyParser();
+        var parser = new CursorKeyParser();
         parser.Visit(source.Expression);
         return parser.Keys.ToArray();
     }
 
     internal static Expression<Func<T, bool>> BuildWhereExpression<T>(
-        DataSetKey[] keys,
+        CursorKey[] keys,
         object[] cursor,
         bool forward)
     {
@@ -208,7 +208,7 @@ public static class PagingQueryableExtensions
             cursorExpr[i] = CreateParameter(cursor[i], keys[i].Property.PropertyType);
         }
 
-        var handled = new List<DataSetKey>();
+        var handled = new List<CursorKey>();
         Expression? expression = null;
 
         var entity = Expression.Parameter(typeof(T), "t");
