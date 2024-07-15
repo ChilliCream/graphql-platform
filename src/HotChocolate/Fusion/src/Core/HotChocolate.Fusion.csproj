@@ -7,9 +7,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <!--EnableTrimAnalyzer>true</EnableTrimAnalyzer-->
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
