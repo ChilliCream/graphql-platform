@@ -80,6 +80,7 @@ type Query {
   time: Long!
   evict: Boolean!
   wait(m: Int!): Boolean!
+  someDeprecatedField(deprecatedArg: String! = "foo" @deprecated(reason: "use something else")): String! @deprecated(reason: "use something else")
 }
 
 type Review {
