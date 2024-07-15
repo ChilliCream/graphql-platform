@@ -109,6 +109,11 @@ public abstract class FieldDefinitionBase
 
         target.Type = Type;
         target.Ignore = Ignore;
+
+        if (IsDeprecated)
+        {
+            target.DeprecationReason = DeprecationReason;
+        }
     }
 
     protected void MergeInto(FieldDefinitionBase target)
@@ -127,5 +132,10 @@ public abstract class FieldDefinitionBase
         }
 
         target.Ignore = Ignore;
+
+        if (IsDeprecated)
+        {
+            target.DeprecationReason = DeprecationReason;
+        }
     }
 }
