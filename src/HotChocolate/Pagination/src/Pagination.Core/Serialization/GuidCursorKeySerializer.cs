@@ -26,14 +26,3 @@ internal sealed class GuidCursorKeySerializer : ICursorKeySerializer
     public bool TryFormat(object key, Span<byte> buffer, out int written)
         => Utf8Formatter.TryFormat((Guid)key, buffer, out written);
 }
-
-internal static class CompareToResolver
-{
-    private const string _compareTo = "CompareTo";
-
-    public static MethodInfo GetCompareToMethod<T>()
-        => GetCompareToMethod(typeof(T));
-
-    public static MethodInfo GetCompareToMethod(Type type)
-        => type.GetMethod(_compareTo, [type])!;
-}
