@@ -724,6 +724,8 @@ public static class TypeExtensions
     /// <paramref name="nullability"/> modifier does not match the
     /// <paramref name="type"/> structure.
     /// </exception>
+    // TODO : REMOVE THIS
+    [Obsolete("Remove", true)]
     public static IType RewriteNullability(this IType type, INullabilityNode? nullability)
     {
         if (nullability is null)

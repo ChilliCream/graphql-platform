@@ -212,6 +212,12 @@
     <Compile Update="DependencyInjection\RequestExecutorBuilderExtensions.Services.cs">
       <DependentUpon>RequestExecutorBuilderExtensions.cs</DependentUpon>
     </Compile>
+    <Compile Update="Processing\OperationCompiler2.ArgumentValues.cs">
+      <DependentUpon>OperationCompiler2.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Processing\OperationCompiler2.SelectionSetInfo.cs">
+      <DependentUpon>OperationCompiler2.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

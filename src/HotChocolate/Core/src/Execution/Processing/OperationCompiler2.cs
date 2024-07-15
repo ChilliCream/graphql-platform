@@ -7,10 +7,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
 
-internal class OperationCompiler2
+internal partial class OperationCompiler2
 {
     //private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers = null;
-    //private readonly InputParser _inputParser;
+    private readonly InputParser _inputParser;
 
     public IOperation Compile(
         string operationId,
@@ -24,89 +24,192 @@ internal class OperationCompiler2
         var selectionSetsWithPossibleTypes = possibleTypeInspector.Inspect(schema, document, operationDefinition);
 
 
-
         throw new NotImplementedException();
     }
 
     private void CollectFields(
-        INamedOutputType compositeType,
-        SelectionSetNode selectionSet)
-    {
-        throw new NotImplementedException();
-    }
-
-     private void ResolveField(
         CompilerContext context,
-        FieldNode selection,
+        SelectionSetNode selectionSet,
         long includeCondition)
     {
-        includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
+        var selections = selectionSet.Selections;
+        var selectionCount = selections.Count;
 
-        var fieldName = selection.Name.Value;
-        var responseName = selection.Alias?.Value ?? fieldName;
+        for (var i = 0; i < selectionCount; i++)
+        {
+            ResolveFields(context, selections[i], includeCondition);
+        }
+    }
+
+    private void ResolveFields(
+        CompilerContext context,
+        ISelectionNode selection,
+        long includeCondition)
+    {
+        switch (selection.Kind)
+        {
+            case SyntaxKind.Field:
+                ResolveField(
+                    context,
+                    (FieldNode)selection,
+                    includeCondition);
+                break;
+
+            case SyntaxKind.InlineFragment:
+                ResolveInlineFragment(
+                    context,
+                    (InlineFragmentNode)selection,
+                    includeCondition);
+                break;
+
+            case SyntaxKind.FragmentSpread:
+                ResolveFragmentSpread(
+                    context,
+                    (FragmentSpreadNode)selection,
+                    includeCondition);
+                break;
+        }
+    }
+
+    private void ResolveField(
+        CompilerContext context,
+        FieldNode fieldSelection,
+        long includeCondition)
+    {
+        includeCondition = GetSelectionIncludeCondition(fieldSelection, includeCondition);
+
+        var fieldName = fieldSelection.Name.Value;
+        var responseName = fieldSelection.Alias?.Value ?? fieldName;
 
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
             var fieldType = context.EnableNullBubbling
-                ? field.Type.RewriteNullability(selection.Required)
-                : field.Type.RewriteToNullableType();
+                ? field.Type.RewriteToNullableType()
+                : field.Type;
 
-            if (context.Fields.TryGetValue(responseName, out var preparedSelection))
+            if (context.Fields.TryGetValue(responseName, out var selection))
             {
-                preparedSelection.AddSelection(selection, includeCondition);
+                selection.AddSelection(fieldSelection, includeCondition);
 
-                if (selection.SelectionSet is not null)
+                if (fieldSelection.SelectionSet is not null)
                 {
                     var selectionSetInfo = new SelectionSetInfo(
-                        selection.SelectionSet!,
+                        fieldSelection.SelectionSet!,
                         includeCondition);
-                    var selectionInfos = _selectionLookup[preparedSelection];
-                    var next = selectionInfos.Length;
-                    Array.Resize(ref selectionInfos, next + 1);
-                    selectionInfos[next] = selectionSetInfo;
-                    _selectionLookup[preparedSelection] = selectionInfos;
+                    context.Enqueue(selection, selectionSetInfo);
                 }
             }
             else
             {
                 // if this is the first time we find a selection to this field we have to
                 // create a new prepared selection.
-                preparedSelection = new Selection.Sealed(
-                    GetNextSelectionId(),
+                selection = new Selection.Sealed(
+                    context.GetNextSelectionId(),
                     context.Type,
                     field,
                     fieldType,
-                    selection.SelectionSet is not null
-                        ? selection.WithSelectionSet(
-                            selection.SelectionSet.WithSelections(
-                                selection.SelectionSet.Selections))
-                        : selection,
+                    fieldSelection.SelectionSet is not null
+                        ? fieldSelection.WithSelectionSet(
+                            fieldSelection.SelectionSet.WithSelections(
+                                fieldSelection.SelectionSet.Selections))
+                        : fieldSelection,
                     responseName: responseName,
                     isParallelExecutable: field.IsParallelExecutable,
-                    arguments: CoerceArgumentValues(field, selection, responseName),
+                    arguments: CoerceArgumentValues(field, fieldSelection, responseName),
                     includeConditions: includeCondition == 0
                         ? null
                         : [includeCondition,]);
 
-                context.Fields.Add(responseName, preparedSelection);
+                context.Fields.Add(responseName, selection);
 
-                if (selection.SelectionSet is not null)
+                if (fieldSelection.SelectionSet is not null)
                 {
                     var selectionSetInfo = new SelectionSetInfo(
-                        selection.SelectionSet!,
+                        fieldSelection.SelectionSet!,
                         includeCondition);
-                    _selectionLookup.Add(preparedSelection, [selectionSetInfo,]);
+                    context.Enqueue(selection, selectionSetInfo);
                 }
             }
         }
         else
         {
-            throw ThrowHelper.FieldDoesNotExistOnType(selection, context.Type.Name);
+            throw ThrowHelper.FieldDoesNotExistOnType(fieldSelection, context.Type.Name);
         }
     }
 
+    private void ResolveInlineFragment(
+        CompilerContext context,
+        InlineFragmentNode inlineFragment,
+        long includeCondition)
+    {
+        ResolveFragment(
+            context,
+            inlineFragment,
+            inlineFragment.TypeCondition,
+            inlineFragment.SelectionSet,
+            inlineFragment.Directives,
+            includeCondition);
+    }
+
+    private void ResolveFragmentSpread(
+        CompilerContext context,
+        FragmentSpreadNode fragmentSpread,
+        long includeCondition)
+    {
+        var fragmentDef = context.GetFragmentDefinition(fragmentSpread);
+
+        ResolveFragment(
+            context,
+            fragmentSpread,
+            fragmentDef.TypeCondition,
+            fragmentDef.SelectionSet,
+            fragmentSpread.Directives,
+            includeCondition);
+    }
+
+    private void ResolveFragment(
+        CompilerContext context,
+        ISelectionNode selection,
+        NamedTypeNode? typeCondition,
+        SelectionSetNode selectionSet,
+        IReadOnlyList<DirectiveNode> directives,
+        long includeCondition)
+    {
+        if (typeCondition is null
+            || (context.Schema.TryGetTypeFromAst(typeCondition, out IType typeCon)
+                && DoesTypeApply(typeCon, context.Type)))
+        {
+            includeCondition = GetSelectionIncludeCondition(selection, includeCondition);
+
+            if (directives.IsDeferrable())
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                CollectFields(context, selectionSet, includeCondition);
+            }
+        }
+    }
+
+    private static bool DoesTypeApply(IType typeCondition, IObjectType current)
+        => typeCondition.Kind switch
+        {
+            TypeKind.Object => ReferenceEquals(typeCondition, current),
+            TypeKind.Interface => current.IsImplementing((InterfaceType)typeCondition),
+            TypeKind.Union => ((UnionType)typeCondition).Types.ContainsKey(current.Name),
+            _ => false,
+        };
+
     private long GetSelectionIncludeCondition(
-        ISelectionNode selectionSyntax,
+        ISelectionNode selection,
+        long parentIncludeCondition)
+    {
+        throw new NotImplementedException();
+    }
+
+    private long GetSelectionIncludeCondition(
+        IncludeCondition condition,
         long parentIncludeCondition)
     {
         throw new NotImplementedException();
@@ -123,6 +226,20 @@ internal class OperationCompiler2
         public Dictionary<string, Selection> Fields { get; } = default!;
 
         public bool EnableNullBubbling { get; } = default!;
+
+        public int GetNextSelectionId() => default!;
+
+        public int GetNextFragmentId() => default!;
+
+        public void Enqueue(Selection selection, SelectionSetInfo selectionSet)
+        {
+        }
+
+        public FragmentDefinitionNode GetFragmentDefinition(
+            FragmentSpreadNode fragmentSpread)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
@@ -134,7 +251,7 @@ public sealed class PossibleTypeInspector : SyntaxWalker<PossibleTypeInspector.C
         OperationDefinitionNode operation)
     {
         var context = new Context(schema);
-        context.Types.Push(schema.GetOperationType(operation.Operation));
+        context.Types.Push(schema.GetOperationType(operation.Operation)!);
         context.SelectionSets.Push(operation.SelectionSet);
 
         Visit(document, context);

@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing;
 
-public sealed partial class OperationCompiler
+internal sealed partial class OperationCompiler2
 {
     internal readonly struct SelectionSetInfo(SelectionSetNode selectionSet, long includeCondition)
     {

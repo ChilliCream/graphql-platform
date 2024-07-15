@@ -377,7 +377,7 @@ public sealed partial class OperationCompiler
                 // We are waiting for the latest stream and defer spec discussions to be codified
                 // before we change the overall stream handling.
                 //
-                // For now we only allow streams on lists of composite types.
+                // For now, we only allow streams on lists of composite types.
                 if (selection.SyntaxNode.IsStreamable())
                 {
                     var streamDirective = selection.SyntaxNode.GetStreamDirectiveNode();
@@ -484,8 +484,8 @@ public sealed partial class OperationCompiler
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
             var fieldType = context.EnableNullBubbling
-                ? field.Type.RewriteNullability(selection.Required)
-                : field.Type.RewriteToNullableType();
+                ? field.Type.RewriteToNullableType()
+                : field.Type;
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
@@ -847,17 +847,14 @@ public sealed partial class OperationCompiler
         }
     }
 
-    private readonly struct SelectionSetRef : IEquatable<SelectionSetRef>
+    private readonly struct SelectionSetRef(
+        SelectionSetNode selectionSet,
+        SelectionPath path)
+        : IEquatable<SelectionSetRef>
     {
-        public SelectionSetRef(SelectionSetNode selectionSet, SelectionPath path)
-        {
-            SelectionSet = selectionSet;
-            Path = path;
-        }
+        public SelectionSetNode SelectionSet { get; } = selectionSet;
 
-        public SelectionSetNode SelectionSet { get; }
-
-        public SelectionPath Path { get; }
+        public SelectionPath Path { get; } = path;
 
         public bool Equals(SelectionSetRef other)
             => SelectionSet.Equals(other.SelectionSet, SyntaxComparison.Syntax) &&
