@@ -60,7 +60,6 @@ public sealed class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             null,
             new NameNode(fieldName),
             new NameNode(CombinedEdgeField),
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));

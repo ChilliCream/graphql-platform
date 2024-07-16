@@ -141,7 +141,6 @@ internal static class OperationPrinter
             null,
             selection.SyntaxNode.Name,
             selection.SyntaxNode.Alias,
-            null,
             directives,
             selection.SyntaxNode.Arguments,
             selectionSet);

@@ -155,15 +155,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             case SyntaxKind.FloatValue:
                 return Equals((FloatValueNode)x, (FloatValueNode)y);
 
-            case SyntaxKind.ListNullability:
-                return Equals((ListNullabilityNode)x, (ListNullabilityNode)y);
-
-            case SyntaxKind.RequiredModifier:
-                return Equals((RequiredModifierNode)x, (RequiredModifierNode)y);
-
-            case SyntaxKind.OptionalModifier:
-                return Equals((OptionalModifierNode)x, (OptionalModifierNode)y);
-
             case SyntaxKind.SchemaCoordinate:
                 return Equals((SchemaCoordinateNode)x, (SchemaCoordinateNode)y);
 
@@ -221,7 +212,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             SyntaxComparer.BySyntax.Equals(x.Alias, y.Alias) &&
             Equals(x.Arguments, y.Arguments) &&
             Equals(x.Directives, y.Directives) &&
-            Equals(x.Required, y.Required) &&
             SyntaxComparer.BySyntax.Equals(x.SelectionSet, y.SelectionSet);
 
     private bool Equals(FloatValueNode x, FloatValueNode y)
@@ -319,9 +309,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         return ourMem.Span.SequenceEqual(otherMem.Span);
     }
 
-    private bool Equals(ListNullabilityNode x, ListNullabilityNode y)
-        => Equals(x.Element, y.Element);
-
     private bool Equals(ListTypeNode x, ListTypeNode y)
         => Equals(x.Type, y.Type);
 
@@ -382,12 +369,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
     private bool Equals(OperationTypeDefinitionNode x, OperationTypeDefinitionNode y)
         => Equals(x.Operation, y.Operation) &&
             Equals(x.Type, y.Type);
-
-    private bool Equals(OptionalModifierNode x, OptionalModifierNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Element, y.Element);
-
-    private bool Equals(RequiredModifierNode x, RequiredModifierNode y)
-        => SyntaxComparer.BySyntax.Equals(x.Element, y.Element);
 
     private bool Equals(ScalarTypeDefinitionNode x, ScalarTypeDefinitionNode y)
         => Equals(x.Name, y.Name) &&
@@ -603,15 +584,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             case SyntaxKind.FloatValue:
                 return GetHashCode((FloatValueNode)obj);
 
-            case SyntaxKind.ListNullability:
-                return GetHashCode((ListNullabilityNode)obj);
-
-            case SyntaxKind.RequiredModifier:
-                return GetHashCode((RequiredModifierNode)obj);
-
-            case SyntaxKind.OptionalModifier:
-                return GetHashCode((OptionalModifierNode)obj);
-
             case SyntaxKind.SchemaCoordinate:
                 return GetHashCode((SchemaCoordinateNode)obj);
 
@@ -770,7 +742,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             hashCode.Add(GetHashCode(directive));
         }
 
-        hashCode.Add(GetHashCode(node.Required));
         hashCode.Add(GetHashCode(node.SelectionSet));
 
         return hashCode.ToHashCode();
@@ -975,22 +946,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
         return hashCode.ToHashCode();
     }
 
-    private int GetHashCode(INullabilityNode? node)
-    {
-        if (node is null)
-        {
-            return 0;
-        }
-
-        return node.Kind switch
-        {
-            SyntaxKind.ListNullability => GetHashCode((ListNullabilityNode)node),
-            SyntaxKind.RequiredModifier => GetHashCode((RequiredModifierNode)node),
-            SyntaxKind.OptionalModifier => GetHashCode((OptionalModifierNode)node),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
-    }
-
     private int GetHashCode(IValueNode? node)
     {
         if (node is null)
@@ -1012,9 +967,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
             _ => throw new ArgumentOutOfRangeException(),
         };
     }
-
-    private int GetHashCode(ListNullabilityNode? node)
-        => node is null ? 0 : HashCode.Combine(node.Kind, GetHashCode(node.Element));
 
     private int GetHashCode(ListTypeNode node)
         => HashCode.Combine(node.Kind, GetHashCode(node.Type));
@@ -1143,12 +1095,6 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
     private int GetHashCode(OperationTypeDefinitionNode node)
         => HashCode.Combine(node.Kind, node.Operation, GetHashCode(node.Type));
-
-    private int GetHashCode(OptionalModifierNode? node)
-        => node is null ? 0 : HashCode.Combine(node.Kind, GetHashCode(node.Element));
-
-    private int GetHashCode(RequiredModifierNode? node)
-        => node is null ? 0 : HashCode.Combine(node.Kind, GetHashCode(node.Element));
 
     private int GetHashCode(ScalarTypeDefinitionNode node)
     {

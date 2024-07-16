@@ -72,11 +72,6 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.ObjectField:
                 writer.WriteObjectField((ObjectFieldNode)node);
                 break;
-            case SyntaxKind.OptionalModifier:
-            case SyntaxKind.RequiredModifier:
-            case SyntaxKind.ListNullability:
-                VisitNullability((INullabilityNode)node, writer);
-                break;
             case SyntaxKind.SchemaDefinition:
                 VisitSchemaDefinition((SchemaDefinitionNode)node, writer);
                 break;

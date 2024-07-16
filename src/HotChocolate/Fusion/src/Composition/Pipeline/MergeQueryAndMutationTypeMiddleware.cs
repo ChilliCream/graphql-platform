@@ -113,7 +113,6 @@ internal sealed class MergeQueryAndMutationTypeMiddleware : IMergeMiddleware
                 null,
                 new NameNode(field.GetOriginalName()),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
                 null);

@@ -15,6 +15,11 @@ internal static class ErrorHelper
     {
         var filterType = context.Types.OfType<IFilterInputType>().First();
 
+        IType expectedType =
+            isMemberInvalid && field.Type.IsListType()
+                ? new ListType(new NonNullType(field.Type.ElementType()))
+                : new NonNullType(field.Type);
+
         return ErrorBuilder.New()
             .SetMessage(
                 MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
@@ -22,7 +27,7 @@ internal static class ErrorHelper
                 filterType.Print())
             .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", field.Type.Print())
+            .SetExtension("expectedType", expectedType.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }

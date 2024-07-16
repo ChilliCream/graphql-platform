@@ -1128,22 +1128,24 @@ public class FieldSelectionMergingRuleTests
     [Fact]
     public void ConflictingDifferingResponse()
     {
-        ExpectErrors(@"
-                {
-                    catOrDog {
-                        ... conflictingDifferingResponses
-                    }
+        ExpectErrors(
+            """
+            {
+                catOrDog {
+                    ... conflictingDifferingResponses
                 }
+            }
 
-                fragment conflictingDifferingResponses on Pet {
-                    ... on Dog {
-                        someValue: nickname
-                    }
-                    ... on Cat {
-                        someValue: nickname!
-                    }
-                }");
-    }
+            fragment conflictingDifferingResponses on Pet {
+                ... on Dog {
+                    someValue: nickname
+                }
+                ... on Cat {
+                    someValue: nickname!
+                }
+            }
+            """);
+}
 
     [Fact]
     public void MergeableNullabilityChange()

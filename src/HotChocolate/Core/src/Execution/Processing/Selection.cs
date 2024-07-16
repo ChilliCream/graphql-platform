@@ -285,7 +285,6 @@ public class Selection : ISelection
             first.Location,
             first.Name,
             first.Alias,
-            first.Required,
             directives,
             first.Arguments,
             selectionSet);
