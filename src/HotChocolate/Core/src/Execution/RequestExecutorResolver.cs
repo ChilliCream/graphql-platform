@@ -742,13 +742,21 @@ internal sealed partial class RequestExecutorResolver
         private static readonly List<Action> _actions = [];
 
         public static void RegisterForApplicationUpdate(Action action)
-            => _actions.Add(action);
+        {
+            lock (_actions)
+            {
+                _actions.Add(action);
+            }
+        }
 
         public static void UpdateApplication(Type[]? updatedTypes)
         {
-            foreach (var action in _actions)
+            lock (_actions)
             {
-                action();
+                foreach (var action in _actions)
+                {
+                    action();
+                }
             }
         }
     }
