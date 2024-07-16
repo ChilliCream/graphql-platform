@@ -15,11 +15,6 @@ internal static class ErrorHelper
     {
         var filterType = context.Types.OfType<IFilterInputType>().First();
 
-        INullabilityNode nullability =
-            isMemberInvalid && field.Type.IsListType()
-            ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
-            : new RequiredModifierNode(null, null);
-
         return ErrorBuilder.New()
             .SetMessage(
                 MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
@@ -27,7 +22,7 @@ internal static class ErrorHelper
                 filterType.Print())
             .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
+            .SetExtension("expectedType", field.Type.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }

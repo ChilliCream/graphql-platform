@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -9,8 +10,14 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class OperationCompiler2
 {
-    //private readonly IReadOnlyList<IOperationCompilerOptimizer>? _optimizers = null;
     private readonly InputParser _inputParser;
+    public readonly IOperationCompilerOptimizer[]? _optimizers;
+
+    public OperationCompiler2(InputParser inputParser, IEnumerable<IOperationCompilerOptimizer>? optimizers)
+    {
+        _inputParser = inputParser;
+        _optimizers = optimizers?.ToArray();
+    }
 
     public IOperation Compile(
         string operationId,
@@ -26,6 +33,22 @@ internal partial class OperationCompiler2
 
         throw new NotImplementedException();
     }
+
+    private void CollectFields(CompilerContext context)
+    {
+        var selectionSets = context.SelectionSets;
+
+        for (var i = 0; i < selectionSets.Length; i++)
+        {
+            var selectionSet = selectionSets[i];
+
+            CollectFields(
+                context,
+                selectionSet.SelectionSet,
+                selectionSet.IncludeCondition);
+        }
+    }
+
 
     private void CollectFields(
         CompilerContext context,
@@ -93,10 +116,7 @@ internal partial class OperationCompiler2
 
                 if (fieldSelection.SelectionSet is not null)
                 {
-                    var selectionSetInfo = new SelectionSetInfo(
-                        fieldSelection.SelectionSet!,
-                        includeCondition);
-                    context.Enqueue(selection, selectionSetInfo);
+                    context.Enqueue(selection, fieldSelection.SelectionSet, includeCondition);
                 }
             }
             else
@@ -124,10 +144,7 @@ internal partial class OperationCompiler2
 
                 if (fieldSelection.SelectionSet is not null)
                 {
-                    var selectionSetInfo = new SelectionSetInfo(
-                        fieldSelection.SelectionSet!,
-                        includeCondition);
-                    context.Enqueue(selection, selectionSetInfo);
+                    context.Enqueue(selection, fieldSelection.SelectionSet, includeCondition);
                 }
             }
         }
@@ -225,13 +242,15 @@ internal partial class OperationCompiler2
 
         public Dictionary<string, Selection> Fields { get; } = default!;
 
+        public SelectionSetInfo[] SelectionSets { get; } = default!;
+
         public bool EnableNullBubbling { get; } = default!;
 
         public int GetNextSelectionId() => default!;
 
         public int GetNextFragmentId() => default!;
 
-        public void Enqueue(Selection selection, SelectionSetInfo selectionSet)
+        public void Enqueue(Selection selection, SelectionSetNode selectionSet, long includeCondition)
         {
         }
 

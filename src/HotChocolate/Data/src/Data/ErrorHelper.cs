@@ -30,7 +30,7 @@ internal static class ErrorHelper
                 filterType.Print())
             .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
+            .SetExtension("expectedType", field.Type.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }
