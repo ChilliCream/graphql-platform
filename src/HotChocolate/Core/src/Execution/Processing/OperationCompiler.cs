@@ -484,8 +484,8 @@ public sealed partial class OperationCompiler
         if (context.Type.Fields.TryGetField(fieldName, out var field))
         {
             var fieldType = context.EnableNullBubbling
-                ? field.Type.RewriteToNullableType()
-                : field.Type;
+                ? field.Type
+                : field.Type.RewriteToNullableType();
 
             if (context.Fields.TryGetValue(responseName, out var preparedSelection))
             {
