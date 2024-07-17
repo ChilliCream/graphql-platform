@@ -45,6 +45,7 @@ public sealed partial class OperationCompiler
     private int _nextSelectionSetId;
     private int _nextFragmentId;
     private bool _hasIncrementalParts;
+    private OperationCompilerMetrics _metrics;
 
     public OperationCompiler(InputParser parser)
     {
@@ -59,6 +60,8 @@ public sealed partial class OperationCompiler
                     _directiveNames,
                     _pipelineComponents);
     }
+
+    internal OperationCompilerMetrics Metrics => _metrics;
 
     public IOperation Compile(
         string operationId,
@@ -98,6 +101,8 @@ public sealed partial class OperationCompiler
 
         try
         {
+            var backlogMaxSize = 0;
+
             // prepare optimizers
             PrepareOptimizers(optimizers);
 
@@ -121,6 +126,8 @@ public sealed partial class OperationCompiler
             // process consecutive selections
             while (_backlog.Count > 0)
             {
+                backlogMaxSize = Math.Max(backlogMaxSize, _backlog.Count);
+
                 var current = _backlog.Pop();
                 var type = current.Type;
                 variants = GetOrCreateSelectionVariants(current.SelectionSetId);
@@ -134,12 +141,19 @@ public sealed partial class OperationCompiler
             }
 
             // create operation
-            return CreateOperation(
+            var operation = CreateOperation(
                 operationId,
                 operationDefinition,
                 operationType,
                 document,
                 schema);
+
+            _metrics = new OperationCompilerMetrics(
+                _nextSelectionId,
+                _selectionVariants.Count,
+                backlogMaxSize);
+
+            return operation;
         }
         finally
         {

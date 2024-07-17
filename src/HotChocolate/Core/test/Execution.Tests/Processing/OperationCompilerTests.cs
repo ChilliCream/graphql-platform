@@ -1149,6 +1149,70 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
+    [Fact]
+    public async Task Ensure_Selection_Backlog_Does_Not_Exponentially_Grow()
+    {
+        // arrange
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddDocumentFromString(
+                    """
+                    type Query {
+                      organizationUnits: [OrganizationUnit!]!
+                    }
+
+                    interface OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      children: [OrganizationUnit!]!
+                    }
+
+                    type OrganizationUnit1 implements OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      children: [OrganizationUnit!]!
+                    }
+
+                    type OrganizationUnit2 implements OrganizationUnit {
+                      id: ID!
+                      name: String!
+                      children: [OrganizationUnit!]!
+                    }
+                    """)
+                .UseField(next => next)
+                .BuildSchemaAsync();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                organizationUnits {
+                    id
+                    name
+                    children {
+                        id
+                        name
+                        children {
+                            id
+                            name
+                        }
+                    }
+                }
+            }
+            """);
+
+        var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+        // act
+        var compiler = new OperationCompiler(new InputParser());
+        compiler.Compile("opid", operationDefinition, schema.QueryType, document, schema);
+
+        // assert
+        Assert.Equal(35, compiler.Metrics.Selections);
+        Assert.Equal(8, compiler.Metrics.SelectionSetVariants);
+        Assert.Equal(4, compiler.Metrics.BacklogMaxSize);
+    }
+
     private static void MatchSnapshot(DocumentNode original, IOperation compiled)
     {
         var sb = new StringBuilder();
