@@ -1165,18 +1165,26 @@ public class OperationCompilerTests
                     interface OrganizationUnit {
                       id: ID!
                       name: String!
+                      someType: SomeType!
                       children: [OrganizationUnit!]!
+                    }
+
+                    type SomeType {
+                        id: ID!
+                        name: String!
                     }
 
                     type OrganizationUnit1 implements OrganizationUnit {
                       id: ID!
                       name: String!
+                      someType: SomeType!
                       children: [OrganizationUnit!]!
                     }
 
                     type OrganizationUnit2 implements OrganizationUnit {
                       id: ID!
                       name: String!
+                      someType: SomeType!
                       children: [OrganizationUnit!]!
                     }
                     """)
@@ -1189,12 +1197,24 @@ public class OperationCompilerTests
                 organizationUnits {
                     id
                     name
+                    someType {
+                        id
+                        name
+                    }
                     children {
                         id
                         name
+                        someType {
+                            id
+                            name
+                        }
                         children {
                             id
                             name
+                            someType {
+                                id
+                                name
+                            }
                         }
                     }
                 }
