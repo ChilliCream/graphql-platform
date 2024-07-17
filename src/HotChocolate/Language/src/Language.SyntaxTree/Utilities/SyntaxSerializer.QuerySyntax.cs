@@ -6,7 +6,7 @@ public sealed partial class SyntaxSerializer
         OperationDefinitionNode node,
         ISyntaxWriter writer)
     {
-        var writeOperation = node.Name is { }
+        var writeOperation = node.Name is not null
             || node.Operation != OperationType.Query
             || node.VariableDefinitions.Count > 0
             || node.Directives.Count > 0;
@@ -156,47 +156,12 @@ public sealed partial class SyntaxSerializer
             writer.Write(')');
         }
 
-        if (node.Required is not null)
-        {
-            VisitNullability(node.Required, writer);
-        }
-
         WriteDirectives(node.Directives, writer);
 
         if (node.SelectionSet is not null)
         {
             writer.WriteSpace();
             VisitSelectionSet(node.SelectionSet, writer);
-        }
-    }
-
-    private void VisitNullability(INullabilityNode node, ISyntaxWriter writer)
-    {
-        if (node.Kind == SyntaxKind.ListNullability)
-        {
-            writer.Write('[');
-        }
-
-        if (node.Element is not null)
-        {
-            VisitNullability(node.Element, writer);
-        }
-
-        if (node.Kind == SyntaxKind.OptionalModifier)
-        {
-            writer.Write('?');
-            return;
-        }
-
-        if (node.Kind == SyntaxKind.RequiredModifier)
-        {
-            writer.Write('!');
-            return;
-        }
-
-        if (node.Kind == SyntaxKind.ListNullability)
-        {
-            writer.Write(']');
         }
     }
 

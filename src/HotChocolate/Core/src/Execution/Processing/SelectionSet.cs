@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using HotChocolate.Types;
 
@@ -107,7 +106,6 @@ internal sealed class SelectionSet : ISelectionSet
     public override string ToString()
     {
         // this produces the rough structure of the selection set for debugging purposes.
-        
         var sb = new StringBuilder();
 
         foreach (var selection in _selections)

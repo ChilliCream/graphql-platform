@@ -28,12 +28,6 @@ public interface IObjectField : IOutputField
     DependencyInjectionScope DependencyInjectionScope { get; }
 
     /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    bool HasStreamResult { get; }
-
-    /// <summary>
     /// Gets the field resolver middleware.
     /// </summary>
     FieldDelegate Middleware { get; }

@@ -44,7 +44,6 @@ internal static class SchemaExtensions
                 null,
                 new NameNode(directive.Coordinate.Value.MemberName!),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null)
