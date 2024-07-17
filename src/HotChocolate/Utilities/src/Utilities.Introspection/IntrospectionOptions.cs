@@ -43,21 +43,21 @@ public struct IntrospectionOptions : IEquatable<IntrospectionOptions>
             if (value < 3)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(TypeDepth), 
-                    value, 
+                    nameof(TypeDepth),
+                    value,
                     IntrospectionOptions_MinTypeDepth);
-            } 
-            
+            }
+
             _typeDepth = value;
         }
     }
 
     public bool Equals(IntrospectionOptions other)
-        => Equals(_method, other._method) &&
-            Equals(_typeDepth, other._typeDepth) &&
-            Equals(Uri, other.Uri) &&
-            ReferenceEquals(OnMessageCreated, other.OnMessageCreated);
-    
+        => Equals(_method, other._method)
+            && Equals(_typeDepth, other._typeDepth)
+            && Equals(Uri, other.Uri)
+            && ReferenceEquals(OnMessageCreated, other.OnMessageCreated);
+
     public override bool Equals(object? obj)
         => obj is IntrospectionOptions options && Equals(options);
 
