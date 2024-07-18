@@ -9,10 +9,10 @@
 query foo($v: Boolean) {
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Human {
+      ... on Droid {
 
       }
-      ... on Droid {
+      ... on Human {
 
       }
     }

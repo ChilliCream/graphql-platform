@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing;
@@ -67,7 +68,12 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
                 return true;
             }
 
-            return Equals(Parent, other.Parent);
+            if (ReferenceEquals(Parent, null))
+            {
+                return false;
+            }
+
+            return Parent.Equals(other.Parent);
         }
 
         return false;
@@ -92,4 +98,25 @@ public sealed class SelectionPath : IEquatable<SelectionPath>
     /// <returns></returns>
     public override int GetHashCode()
         => HashCode.Combine(Name, Parent);
+
+    /// <summary>
+    /// Returns a string that represents the current path.
+    /// </summary>
+    /// <returns>
+    /// A string that represents the current path.
+    /// </returns>
+    public override string ToString()
+    {
+        var path = new StringBuilder();
+        var current = this;
+
+        do
+        {
+            path.Insert(0, current.Name);
+            path.Insert(0, '/');
+            current = current.Parent;
+        } while (current != null);
+
+        return path.ToString();
+    }
 }
