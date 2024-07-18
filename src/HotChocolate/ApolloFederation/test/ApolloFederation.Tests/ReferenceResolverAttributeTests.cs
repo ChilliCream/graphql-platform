@@ -16,7 +16,7 @@ namespace HotChocolate.ApolloFederation;
 public class ReferenceResolverAttributeTests
 {
     [Fact(Skip = "Needs to be fixed!")]
-    public async void InClassRefResolver_PureCodeFirst()
+    public async Task InClassRefResolver_PureCodeFirst()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -36,7 +36,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public async void ExternalRefResolver_PureCodeFirst()
+    public async Task ExternalRefResolver_PureCodeFirst()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -57,7 +57,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public async void SingleKey_CompiledResolver()
+    public async Task SingleKey_CompiledResolver()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -76,7 +76,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public async void ExternalFields_Set()
+    public async Task ExternalFields_Set()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -98,7 +98,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public async void ExternalFields_Not_Set()
+    public async Task ExternalFields_Not_Set()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -118,7 +118,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public async void MultiKey_CompiledResolver()
+    public async Task MultiKey_CompiledResolver()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -139,7 +139,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public async void ExternalRefResolver_RenamedMethod_PureCodeFirst()
+    public async Task ExternalRefResolver_RenamedMethod_PureCodeFirst()
     {
         // arrange
         var schema = await new ServiceCollection()
@@ -159,7 +159,7 @@ public class ReferenceResolverAttributeTests
     }
 
     [Fact]
-    public void InClassRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
+    public async Task InClassRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
     {
         // arrange
         async Task SchemaCreation()
@@ -173,11 +173,11 @@ public class ReferenceResolverAttributeTests
 
         // act
         // assert
-        Assert.ThrowsAsync<SchemaException>(SchemaCreation);
+        await Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
     [Fact]
-    public void ExternalRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
+    public async Task ExternalRefResolver_RenamedMethod_InvalidName_PureCodeFirst()
     {
         // arrange
         async Task SchemaCreation()
@@ -191,7 +191,7 @@ public class ReferenceResolverAttributeTests
 
         // act
         // assert
-        Assert.ThrowsAsync<SchemaException>(SchemaCreation);
+        await Assert.ThrowsAsync<SchemaException>(SchemaCreation);
     }
 
     [Fact]

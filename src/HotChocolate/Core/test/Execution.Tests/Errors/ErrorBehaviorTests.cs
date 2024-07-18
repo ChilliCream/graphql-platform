@@ -106,7 +106,7 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
-    public async void Resolver_InvalidParentCast()
+    public async Task Resolver_InvalidParentCast()
     {
         // arrange
         using var snapshot = StartResultSnapshot();
@@ -129,7 +129,7 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
-    public async void PureResolver_InvalidParentCast()
+    public async Task PureResolver_InvalidParentCast()
     {
         // arrange
         using var snapshot = StartResultSnapshot();
@@ -152,7 +152,7 @@ public class ErrorBehaviorTests
     }
 
     [Fact]
-    public async void SetMaxAllowedValidationErrors_To_1()
+    public async Task SetMaxAllowedValidationErrors_To_1()
     {
         // arrange
         using var snapshot = StartResultSnapshot();

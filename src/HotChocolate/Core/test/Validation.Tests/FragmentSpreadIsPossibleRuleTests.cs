@@ -24,9 +24,9 @@ public class FragmentSpreadIsPossibleRuleTests
                     name
                 }
             ",
-            t => Assert.Equal(t.Message,
-                "The parent type does not match the type condition on " +
-                "the fragment."));
+            t => Assert.Equal(
+                "The parent type does not match the type condition on the fragment.",
+                t.Message));
     }
 
     [Fact]

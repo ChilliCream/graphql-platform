@@ -39,12 +39,11 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            DocumentAnalyzer
+            await DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync()
-                .Result;
+                .AnalyzeAsync();
 
         // assert
         Assert.Empty(clientModel.InputObjectTypes);
@@ -115,16 +114,15 @@ public class DocumentAnalyzerTests
 
         // act
         var clientModel =
-            DocumentAnalyzer
+            await DocumentAnalyzer
                 .New()
                 .SetSchema(schema)
                 .AddDocument(document)
-                .AnalyzeAsync()
-                .Result;
+                .AnalyzeAsync();
 
         // assert
         var human = clientModel.OutputTypes.First(t => t.Name.EqualsOrdinal("GetHero_Hero_Human"));
-        Assert.Equal(1, human.Fields.Count);
+        Assert.Single(human.Fields);
 
         Assert.True(
             human.Deferred.ContainsKey("HeroAppearsIn"),

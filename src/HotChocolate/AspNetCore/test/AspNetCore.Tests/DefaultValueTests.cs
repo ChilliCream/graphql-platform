@@ -32,7 +32,7 @@ public class DefaultValueTests
 
 
     [Fact]
-    public void DefaultValueTests_Simple()
+    public async Task DefaultValueTests_Simple()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -43,10 +43,10 @@ public class DefaultValueTests
 
         var serviceProvider = services.BuildServiceProvider();
         var executorResolver = serviceProvider.GetRequiredService<IRequestExecutorResolver>();
-        var executor = executorResolver.GetRequestExecutorAsync().Result;
+        var executor = await executorResolver.GetRequestExecutorAsync();
 
         // Act
-        var result = executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }").Result;
+        var result = await executor.ExecuteAsync("mutation{ doSomething(input: { }) { result } }");
 
         // Extract the data from the result
         var jsonResult = result.ToJson();

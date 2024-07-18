@@ -8,7 +8,7 @@ public sealed class OpenApiParameterSerializerTests
     [MemberData(nameof(StringParameters))]
     public void SerializeParameter_String_ReturnsExpectedResult(
         OpenApiParameter parameter,
-        string value,
+        string? value,
         string result)
     {
         Assert.Equal(result, OpenApiParameterSerializer.SerializeParameter(parameter, value));
@@ -34,7 +34,7 @@ public sealed class OpenApiParameterSerializerTests
         Assert.Equal(result, OpenApiParameterSerializer.SerializeParameter(parameter, value));
     }
 
-    private static TheoryData<OpenApiParameter, string?, string> StringParameters()
+    public static TheoryData<OpenApiParameter, string?, string> StringParameters()
     {
         return new TheoryData<OpenApiParameter, string?, string>
         {
@@ -114,7 +114,7 @@ public sealed class OpenApiParameterSerializerTests
         };
     }
 
-    private static TheoryData<OpenApiParameter, List<object?>, string> ListParameters()
+    public static TheoryData<OpenApiParameter, List<object?>, string> ListParameters()
     {
         return new TheoryData<OpenApiParameter, List<object?>, string>
         {
@@ -322,7 +322,7 @@ public sealed class OpenApiParameterSerializerTests
         };
     }
 
-    private static TheoryData<OpenApiParameter, Dictionary<string, object?>, string> ObjectParameters()
+    public static TheoryData<OpenApiParameter, Dictionary<string, object?>, string> ObjectParameters()
     {
         return new TheoryData<OpenApiParameter, Dictionary<string, object?>, string>
         {
