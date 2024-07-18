@@ -42,7 +42,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -96,7 +96,7 @@ public class RgbaTypeTests : ScalarTypeTestBase
         object? expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

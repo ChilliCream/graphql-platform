@@ -72,7 +72,7 @@ public class UnsignedLongTypeTests : ScalarTypeTestBase
         object? expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

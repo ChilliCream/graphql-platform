@@ -32,7 +32,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -68,7 +68,7 @@ public class EmailAddressTypeTests : ScalarTypeTestBase
         object? expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

@@ -35,7 +35,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -74,7 +74,7 @@ public class SignedByteTypeTests : ScalarTypeTestBase
         object? expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert

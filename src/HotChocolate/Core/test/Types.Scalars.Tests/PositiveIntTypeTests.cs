@@ -35,7 +35,7 @@ public class PositiveIntTypeTests : ScalarTypeTestBase
         bool expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
@@ -71,7 +71,7 @@ public class PositiveIntTypeTests : ScalarTypeTestBase
         object? expected)
     {
         // arrange
-        var valueNode = CreateValueNode(type, value!);
+        var valueNode = CreateValueNode(type, value);
 
         // act
         // assert
