@@ -1188,8 +1188,7 @@ internal sealed class SyntaxEqualityComparer : IEqualityComparer<ISyntaxNode>
 
         for (var i = 0; i < node.Selections.Count; i++)
         {
-            var selection = node.Selections[i];
-            hashCode.Add(GetHashCode(selection));
+            hashCode.Add(GetHashCode(node.Selections[i]));
         }
 
         return hashCode.ToHashCode();

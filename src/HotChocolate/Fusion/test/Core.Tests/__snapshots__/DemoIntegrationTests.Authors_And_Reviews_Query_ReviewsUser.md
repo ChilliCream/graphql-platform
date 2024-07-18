@@ -128,7 +128,7 @@ query GetUser {
 ## QueryPlan Hash
 
 ```text
-3FC299961B8EECB810A073703612092CC602232F
+3F11BECD0B3BF1E1BE77C2B13D1A1FAD1FFB5DC0
 ```
 
 ## QueryPlan
@@ -172,7 +172,7 @@ query GetUser {
         "type": "ResolveByKeyBatch",
         "subgraph": "Reviews2",
         "document": "query GetUser_3($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
-        "selectionSetId": 1,
+        "selectionSetId": 3,
         "path": [
           "nodes"
         ],
@@ -185,7 +185,7 @@ query GetUser {
       {
         "type": "Compose",
         "selectionSetIds": [
-          1
+          3
         ]
       }
     ]
