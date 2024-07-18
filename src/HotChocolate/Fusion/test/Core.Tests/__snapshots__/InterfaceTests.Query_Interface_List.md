@@ -40,7 +40,7 @@ query Appointments {
 ## QueryPlan Hash
 
 ```text
-7FA915AFBA06ABAAF57A31CE4888B161285111C3
+3097238732BE7F08C83A6417B0AE8AE1E716E16D
 ```
 
 ## QueryPlan
@@ -55,7 +55,7 @@ query Appointments {
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient1 { id } ... on Patient2 { id } } } } }",
+        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient2 { id } ... on Patient1 { id } } } } }",
         "selectionSetId": 0
       },
       {
