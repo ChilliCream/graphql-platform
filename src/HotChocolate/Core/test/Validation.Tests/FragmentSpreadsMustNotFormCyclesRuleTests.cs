@@ -30,11 +30,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                     ...nameFragment
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]
@@ -67,11 +68,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                     ...nameFragment
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]
@@ -98,11 +100,12 @@ public class FragmentSpreadsMustNotFormCyclesRuleTests
                     }
                 }
             ",
-            t => Assert.Equal(t.Message,
+            t => Assert.Equal(
                 "The graph of fragment spreads must not form any " +
                 "cycles including spreading itself. Otherwise an " +
                 "operation could infinitely spread or infinitely " +
-                "execute on cycles in the underlying data."));
+                "execute on cycles in the underlying data.",
+                t.Message));
     }
 
     [Fact]

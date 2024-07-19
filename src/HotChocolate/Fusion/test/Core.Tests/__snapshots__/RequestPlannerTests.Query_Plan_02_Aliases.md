@@ -61,7 +61,7 @@ query GetUser {
             "type": "ResolveByKeyBatch",
             "subgraph": "Reviews",
             "document": "query GetUser_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on User { reviews { body author { name } } __fusion_exports__1: id } } }",
-            "selectionSetId": 4,
+            "selectionSetId": 1,
             "path": [
               "nodes"
             ],
@@ -75,7 +75,7 @@ query GetUser {
             "type": "ResolveByKeyBatch",
             "subgraph": "Reviews",
             "document": "query GetUser_3($__fusion_exports__2: [ID!]!) { nodes(ids: $__fusion_exports__2) { ... on User { reviews { body author { name } } __fusion_exports__2: id } } }",
-            "selectionSetId": 1,
+            "selectionSetId": 2,
             "path": [
               "nodes"
             ],
@@ -91,7 +91,7 @@ query GetUser {
         "type": "Compose",
         "selectionSetIds": [
           1,
-          4
+          2
         ]
       }
     ]
