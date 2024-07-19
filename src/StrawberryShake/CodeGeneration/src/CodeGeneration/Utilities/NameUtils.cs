@@ -71,6 +71,11 @@ public static class NameUtils
             if (enumValue[i] == '_')
             {
                 upper = true;
+
+                if (i == 0)
+                {
+                    value.Append('_');
+                }
             }
             else if (upper)
             {
