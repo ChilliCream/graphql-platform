@@ -726,7 +726,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -751,7 +751,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -776,7 +776,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }
@@ -801,7 +801,7 @@ public class DirectiveTypeTests : TypeTestBase
 
         // assert
         var errors = Assert.Throws<SchemaException>(Action).Errors;
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(ErrorCodes.Schema.InvalidArgument, errors[0].Code);
         errors[0].Message.MatchSnapshot();
     }

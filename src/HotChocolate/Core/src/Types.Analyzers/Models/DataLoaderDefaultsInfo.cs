@@ -5,8 +5,7 @@ public sealed class DataLoaderDefaultsInfo(
     bool? isPublic,
     bool? isInterfacePublic,
     bool registerServices)
-    : ISyntaxInfo
-    , IEquatable<DataLoaderDefaultsInfo>
+    : SyntaxInfo
 {
     public bool? Scoped { get; } = scoped;
 
@@ -16,49 +15,18 @@ public sealed class DataLoaderDefaultsInfo(
 
     public bool RegisterServices { get; } = registerServices;
 
-    public bool Equals(DataLoaderDefaultsInfo? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Scoped == other.Scoped &&
-            IsPublic == other.IsPublic &&
-            RegisterServices == other.RegisterServices;
-    }
-
-    public bool Equals(ISyntaxInfo other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return other is DataLoaderDefaultsInfo info && Equals(info);
-    }
-
     public override bool Equals(object? obj)
-        => ReferenceEquals(this, obj) ||
-            (obj is ModuleInfo other && Equals(other));
+        => obj is DataLoaderDefaultsInfo other && Equals(other);
+
+    public override bool Equals(SyntaxInfo other)
+        => other is DataLoaderDefaultsInfo info && Equals(info);
+
+    private bool Equals(DataLoaderDefaultsInfo other)
+        => Scoped.Equals(other.Scoped)
+            && IsPublic.Equals(other.IsPublic)
+            && IsInterfacePublic.Equals(other.IsInterfacePublic)
+            && RegisterServices.Equals(other.RegisterServices);
 
     public override int GetHashCode()
-    {
-        unchecked
-        {
-            return (Scoped.GetHashCode() * 397) ^
-                IsPublic.GetHashCode() ^
-                RegisterServices.GetHashCode();
-        }
-    }
+        => HashCode.Combine(Scoped, IsPublic, IsInterfacePublic, RegisterServices);
 }

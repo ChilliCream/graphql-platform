@@ -13,7 +13,7 @@ public sealed class MiddlewareGenerator : ISyntaxGenerator
     public void Generate(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<ISyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos)
     {
         if (syntaxInfos.IsEmpty)
         {

@@ -22,14 +22,6 @@ public class IdAttributeTests
     public async Task Id_On_Arguments()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
-
         var intId = Convert.ToBase64String("Query:1"u8);
         var stringId = Convert.ToBase64String("Query:abc"u8);
         var guidId = Convert.ToBase64String(
@@ -37,44 +29,55 @@ public class IdAttributeTests
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
-                        .SetDocument(@"query foo (
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
+                        .SetDocument(
+                            """
+                            query foo(
                                 $intId: ID!
                                 $nullIntId: ID = null
                                 $stringId: ID!
                                 $nullStringId: ID = null
                                 $guidId: ID!
-                                $nullGuidId: ID = null)
-                            {
+                                $nullGuidId: ID = null
+                            ) {
                                 intId(id: $intId)
                                 nullableIntId(id: $intId)
                                 nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                                optionalIntId(id: $intId)
+                                optionalIntIdGivenNothing: optionalIntId
                                 intIdList(id: [$intId])
                                 nullableIntIdList(id: [$intId, $nullIntId])
+                                optionalIntIdList(id: [$intId])
                                 stringId(id: $stringId)
                                 nullableStringId(id: $stringId)
                                 nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
+                                optionalStringId(id: $stringId)
+                                optionalStringIdGivenNothing: optionalStringId
                                 stringIdList(id: [$stringId])
                                 nullableStringIdList(id: [$stringId, $nullStringId])
+                                optionalStringIdList(id: [$stringId])
                                 guidId(id: $guidId)
                                 nullableGuidId(id: $guidId)
                                 nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
+                                optionalGuidId(id: $guidId)
+                                optionalGuidIdGivenNothing: optionalGuidId
                                 guidIdList(id: [$guidId $guidId])
                                 nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                            }")
+                                optionalGuidIdList(id: [$guidId $guidId])
+                            }
+                            """)
                         .SetVariableValues(
                             new Dictionary<string, object?>
                             {
-                                {"intId", intId },
-                                {"stringId", stringId },
-                                {"guidId", guidId },
+                                { "intId", intId },
+                                { "stringId", stringId },
+                                { "guidId", guidId }
                             })
                         .Build());
 
@@ -88,14 +91,13 @@ public class IdAttributeTests
         // arrange
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(@"query foo {
                                 interceptedId(id: 1)
                                 interceptedIds(id: [1, 2])
@@ -110,32 +112,31 @@ public class IdAttributeTests
     public async Task Id_On_Objects()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String("Some:1"u8);
         var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID! $someIntId: ID!) {
-                                foo(input: {
-                                    someId: $someId someIds: [$someIntId]
-                                    someNullableId: $someId someNullableIds: [$someIntId] })
-                                {
+                            """
+                            query foo($someId: ID!, $someIntId: ID!) {
+                                foo(
+                                    input: {
+                                        someId: $someId
+                                        someIds: [$someIntId]
+                                        someNullableId: $someId
+                                        someNullableIds: [$someIntId]
+                                        someOptionalId: $someId
+                                        someOptionalIds: [$someIntId]
+                                    }
+                                ) {
                                     someId
                                     someNullableId
                                     ... on FooPayload {
@@ -143,14 +144,13 @@ public class IdAttributeTests
                                         someNullableIds
                                     }
                                 }
-                            }")
+                            }
+                            """)
                         .SetVariableValues(
                             new Dictionary<string, object?>
                             {
-                                {"someId", someId },
-                                {"someNullableId", null},
-                                {"someIntId", someIntId},
-                                {"someNullableIntId", null},
+                                { "someId", someId },
+                                { "someIntId", someIntId }
                             })
                         .Build());
 
@@ -167,36 +167,34 @@ public class IdAttributeTests
     public async Task Id_On_Objects_Given_Nulls()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String("Some:1"u8);
         var someIntId = Convert.ToBase64String("Some:1"u8);
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo (
-                                $someId: ID! $someIntId: ID!
+                            """
+                            query foo(
+                                $someId: ID!
+                                $someIntId: ID!
                                 $someNullableId: ID
-                                $someNullableIntId: ID) {
-                                foo(input: {
-                                    someId: $someId someIds: [$someIntId]
-                                    someNullableId: $someNullableId
-                                    someNullableIds: [$someNullableIntId, $someIntId] })
-                                {
+                                $someNullableIntId: ID
+                            ) {
+                                foo(
+                                    input: {
+                                        someId: $someId
+                                        someIds: [$someIntId]
+                                        someNullableId: $someNullableId
+                                        someNullableIds: [$someNullableIntId, $someIntId]
+                                    }
+                                ) {
                                     someId
                                     someNullableId
                                     ... on FooPayload {
@@ -204,14 +202,15 @@ public class IdAttributeTests
                                         someNullableIds
                                     }
                                 }
-                            }")
+                            }
+                            """)
                         .SetVariableValues(
                             new Dictionary<string, object?>
                             {
-                                {"someId", someId},
-                                {"someNullableId", null},
-                                {"someIntId", someIntId},
-                                {"someNullableIntId", null},
+                                { "someId", someId },
+                                { "someNullableId", null },
+                                { "someIntId", someIntId },
+                                { "someNullableIntId", null }
                             })
                         .Build());
 
@@ -241,7 +240,7 @@ public class IdAttributeTests
         // act
         var result = await executor
             .ExecuteAsync(
-                OperationRequestBuilder.Create()
+                OperationRequestBuilder.New()
                     .SetDocument(
                         @"query foo($someId: ID! $someIntId: ID!) {
                                 foo(input: {
@@ -272,34 +271,28 @@ public class IdAttributeTests
     public async Task Id_On_Objects_InvalidType()
     {
         // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .BuildRequestExecutorAsync();
-
         var someId = Convert.ToBase64String(Combine("Query:"u8, Guid.Empty.ToByteArray()));
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
+                            """
+                            query foo ($someId: ID!) {
+                                foo(input: { someId: $someId someIds: [$someId] }) {
+                                    someId
+                                    ... on FooPayload {
+                                        someIds
                                     }
-                                }")
+                                }
+                            }
+                            """)
                         .SetVariableValues(new Dictionary<string, object?> { {"someId", someId }, })
                         .Build());
 
@@ -315,27 +308,28 @@ public class IdAttributeTests
     public async Task Id_On_Objects_InvalidId()
     {
         // arrange
-        var someId = "abc";
+        const string someId = "abc";
 
         // act
         var result =
-            await SchemaBuilder.New()
+            await new ServiceCollection()
+                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .AddType<FooPayload>()
                 .AddGlobalObjectIdentification(false)
-                .Create()
-                .MakeExecutable()
-                .ExecuteAsync(
-                    OperationRequestBuilder.Create()
+                .ExecuteRequestAsync(
+                    OperationRequestBuilder.New()
                         .SetDocument(
-                            @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
+                            """
+                            query foo ($someId: ID!) {
+                                foo(input: { someId: $someId someIds: [$someId] }) {
+                                    someId
+                                    ... on FooPayload {
+                                        someIds
                                     }
-                                }")
+                                }
+                            }
+                            """)
                         .SetVariableValues(new Dictionary<string, object?> { {"someId", someId}, })
                         .Build());
 
@@ -348,23 +342,26 @@ public class IdAttributeTests
     }
 
     [Fact]
-    public void Id_Type_Is_Correctly_Inferred()
+    public async Task Id_Type_Is_Correctly_Inferred()
     {
-        SchemaBuilder.New()
-            .AddQueryType<Query>()
-            .AddType<FooPayload>()
-            .AddGlobalObjectIdentification(false)
-            .Create()
-            .ToString()
-            .MatchSnapshot();
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .AddGlobalObjectIdentification(false)
+                .BuildSchemaAsync();
+
+        schema.ToString().MatchSnapshot();
     }
 
     [Fact]
-    public void EnsureIdIsOnlyAppliedOnce()
+    public async Task EnsureIdIsOnlyAppliedOnce()
     {
         var inspector = new TestTypeInterceptor();
 
-        SchemaBuilder.New()
+        await new ServiceCollection()
+            .AddGraphQLServer()
             .AddQueryType(d =>
             {
                 d.Name("Query");
@@ -372,7 +369,7 @@ public class IdAttributeTests
             })
             .AddGlobalObjectIdentification(false)
             .TryAddTypeInterceptor(inspector)
-            .Create();
+            .BuildSchemaAsync();
 
         Assert.Equal(1, inspector.Count);
     }
@@ -388,6 +385,11 @@ public class IdAttributeTests
         public string NullableIntIdList([ID] int?[] id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
+        public string OptionalIntId([DefaultValue("UXVlcnk6MA==")][ID] Optional<int> id) =>
+            id.HasValue ? id.Value.ToString() : "NO VALUE";
+        public string OptionalIntIdList([DefaultValue(new int[] {})][ID] Optional<int[]> id) =>
+            id.HasValue ? string.Join(", ", id.Value.Select(t => t.ToString())) : "NO VALUE";
+
         public string StringId([ID] string id) => id;
         public string StringIdList([ID] string[] id) =>
             string.Join(", ", id.Select(t => t.ToString()));
@@ -396,6 +398,13 @@ public class IdAttributeTests
         public string NullableStringIdList([ID] string?[] id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
+        public string OptionalStringId(
+            [DefaultValue("UXVlcnk6")][ID] Optional<string> id) =>
+            id.HasValue ? id.Value : "NO VALUE";
+        public string OptionalStringIdList(
+            [DefaultValue(new string[] {})][ID] Optional<string[]> id) =>
+            id.HasValue ? string.Join(", ", id.Value) : "NO VALUE";
+
         public string GuidId([ID] Guid id) => id.ToString();
         public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
             string.Join(", ", id.Select(t => t.ToString()));
@@ -403,6 +412,13 @@ public class IdAttributeTests
         public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
         public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
             string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+        public string OptionalGuidId(
+            [DefaultValue("UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA==")][ID] Optional<Guid> id) =>
+            id.HasValue ? id.Value.ToString() : "NO VALUE";
+        public string OptionalGuidIdList(
+            [DefaultValue(new object[] {})][ID] Optional<Guid[]> id) =>
+            id.HasValue ? string.Join(", ", id.Value.Select(t => t.ToString())) : "NO VALUE";
 
         public string InterceptedId([InterceptedID("Query")] [ID] int id) => id.ToString();
 
@@ -424,15 +440,19 @@ public class IdAttributeTests
         public FooInput(
             string someId,
             string? someNullableId,
+            Optional<string> someOptionalId,
             IReadOnlyList<int> someIds,
             IReadOnlyList<int?>? someNullableIds,
+            Optional<IReadOnlyList<int>> someOptionalIds,
             int? interceptedId,
             IReadOnlyList<int>? interceptedIds)
         {
             SomeId = someId;
             SomeNullableId = someNullableId;
+            SomeOptionalId = someOptionalId;
             SomeIds = someIds;
             SomeNullableIds = someNullableIds;
+            SomeOptionalIds = someOptionalIds;
             InterceptedId = interceptedId;
             InterceptedIds = interceptedIds;
         }
@@ -441,9 +461,17 @@ public class IdAttributeTests
 
         [ID("Some")] public string? SomeNullableId { get; }
 
+        [ID("Some")]
+        [DefaultValue("U29tZTo=")]
+        public Optional<string> SomeOptionalId { get; }
+
         [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
 
         [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
+
+        [ID("Some")]
+        [DefaultValue(new int[] {})]
+        public Optional<IReadOnlyList<int>> SomeOptionalIds { get; }
 
         [ID, InterceptedID("FooInput")]
         public int? InterceptedId { get; }
@@ -537,12 +565,12 @@ public class IdAttributeTests
 
         private sealed class InterceptingFormatter(string typeName) : IInputValueFormatter
         {
-            public object Format(object? runtimeValue)
+            public object Format(object? originalValue)
             {
-                return runtimeValue switch
+                return originalValue switch
                 {
                     IEnumerable<string> list => list.Select(x => new NodeId(typeName, int.Parse(x))).ToArray(),
-                    _ => new NodeId(typeName, int.Parse((string)runtimeValue!)),
+                    _ => new NodeId(typeName, int.Parse((string)originalValue!)),
                 };
             }
         }

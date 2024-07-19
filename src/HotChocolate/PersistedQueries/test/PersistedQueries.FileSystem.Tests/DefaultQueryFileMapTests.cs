@@ -57,13 +57,13 @@ public class DefaultQueryFileMapTests
     [InlineData(null)]
     [InlineData("")]
     [Theory]
-    public void MapToFilePath_QueryId_Is_Null(string queryId)
+    public void MapToFilePath_QueryId_Is_Null(string? queryId)
     {
         // arrange
         var map = new DefaultQueryFileMap();
 
         // act
-        void Action() => map.MapToFilePath(queryId);
+        void Action() => map.MapToFilePath(queryId!);
 
         // assert
         Assert.Throws<ArgumentNullException>((Action) Action);

@@ -46,7 +46,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void ParsesVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-21T17:42:59.000001234Z" }, })
                     .Build());
@@ -60,20 +60,20 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseAnIncorrectVariable()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Instant!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "2020-02-20T17:42:59" }, })
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void ParsesLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59.000001234Z\") }")
                     .Build());
 
@@ -86,12 +86,12 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void DoesntParseIncorrectLiteral()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"2020-02-20T17:42:59\") }")
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to Instant",

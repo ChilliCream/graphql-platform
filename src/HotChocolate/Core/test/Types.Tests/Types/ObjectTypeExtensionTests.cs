@@ -749,6 +749,49 @@ public class ObjectTypeExtensionTests
         SnapshotExtensions.MatchSnapshot(schema);
     }
 
+    [Fact]
+    public async Task AddObjectTypeExtension1_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2>(
+                    d => d.ExtendsType<QueryType>().Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension2_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2, QueryType>(
+                    d => d.Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
+    [Fact]
+    public async Task AddObjectTypeExtension3_Extends_SchemaType()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddObjectTypeExtension<QueryExtensions2>(
+                    "Query",
+                    d => d.Field("foo").Type<IntType>())
+                .BuildSchemaAsync();
+
+        SnapshotExtensions.MatchSnapshot(schema);
+    }
+
     public class FooType : ObjectType<Foo>
     {
         protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
@@ -1146,6 +1189,11 @@ public class ObjectTypeExtensionTests
     public class QueryExtensions
     {
         public string Bar() => "baz";
+    }
+
+    public class QueryExtensions2
+    {
+        public int AddedField { get; set; }
     }
 }
 

@@ -42,7 +42,7 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public object? this[Type key]
     {
-        get => _features[key];
+        get => _features.TryGetValue(key, out var value) ? value : null;
         set => throw new NotSupportedException("The feature collection is read-only.");
     }
 
@@ -66,8 +66,8 @@ public sealed class ReadOnlyFeatureCollection : IFeatureCollection
     }
 
     /// <inheritdoc />
-    public void Set<TFeature>(TFeature? instance) =>
-        throw new NotSupportedException("The feature collection is read-only.");
+    public void Set<TFeature>(TFeature? instance)
+        => throw new NotSupportedException("The feature collection is read-only.");
 
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<Type, object>> GetEnumerator() => _features.GetEnumerator();

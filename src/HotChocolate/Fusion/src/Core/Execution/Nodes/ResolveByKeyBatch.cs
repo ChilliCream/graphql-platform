@@ -152,6 +152,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
             if (first)
             {
                 ExtractErrors(
+                    context.Operation.Document,
+                    context.Operation.Definition,
                     context.Result,
                     response.Errors,
                     batchState.SelectionSetResult,
@@ -258,7 +260,8 @@ internal sealed class ResolveByKeyBatch : ResolverNodeBase
 
             foreach (var element in data.EnumerateArray())
             {
-                if (element.TryGetProperty(key, out var keyValue))
+                if (element.ValueKind is not JsonValueKind.Null &&
+                    element.TryGetProperty(key, out var keyValue))
                 {
                     result.TryAdd(FormatKeyValue(keyValue), element);
                 }

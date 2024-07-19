@@ -13,19 +13,19 @@ internal static class SchemaExtensions
     /// A helper to create a variable name from an @is directive.
     /// </summary>
     public static string CreateVariableName(
-        this ObjectType type,
+        this ObjectTypeDefinition type,
         IsDirective directive)
         => directive.IsCoordinate
             ? CreateVariableName(type, directive.Coordinate.Value)
             : CreateVariableName(type, directive.Field);
 
     public static string CreateVariableName(
-        this ObjectType type,
+        this ObjectTypeDefinition type,
         SchemaCoordinate coordinate)
         => $"{type.Name}_{coordinate.MemberName}";
 
     public static string CreateVariableName(
-        this ObjectType type,
+        this ObjectTypeDefinition type,
         FieldNode field)
     {
         var context = new FieldVariableNameContext();
@@ -33,9 +33,9 @@ internal static class SchemaExtensions
         context.Name.Insert(0, type.Name);
         return context.Name.ToString();
     }
-    
+
     public static VariableDefinition CreateVariableField(
-        this InputField argument,
+        this InputFieldDefinition argument,
         IsDirective directive,
         string variableName)
     {
@@ -43,7 +43,6 @@ internal static class SchemaExtensions
             ? new FieldNode(
                 null,
                 new NameNode(directive.Coordinate.Value.MemberName!),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),

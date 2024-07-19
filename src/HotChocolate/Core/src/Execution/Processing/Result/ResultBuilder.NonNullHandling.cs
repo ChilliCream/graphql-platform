@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using HotChocolate.Language;
 using static HotChocolate.Execution.ErrorHelper;
 
@@ -22,7 +23,12 @@ internal sealed partial class ResultBuilder
             {
                 continue;
             }
-            
+
+            if (_errorPaths.Contains(violation.Path))
+            {
+                continue;
+            }
+
             var error = NonNullOutputFieldViolation(violation.Path, violation.Selection.SyntaxNode);
             error = _context.ErrorHandler.Handle(error);
             _diagnosticEvents.ResolverError(_context, violation.Selection, error);
@@ -30,16 +36,10 @@ internal sealed partial class ResultBuilder
         }
     }
 
-    private sealed class NonNullViolation
+    private sealed class NonNullViolation(ISelection selection, Path path)
     {
-        public NonNullViolation(ISelection selection, Path path)
-        {
-            Selection = selection;
-            Path = path;
-        }
+        public ISelection Selection { get; } = selection;
 
-        public ISelection Selection { get; }
-
-        public Path Path { get; }
+        public Path Path { get; } = path;
     }
 }

@@ -28,13 +28,13 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         Parameter(typeof(IResolverContext), "context");
 
     private static readonly ParameterExpression _pureContext =
-        Parameter(typeof(IPureResolverContext), "context");
+        Parameter(typeof(IResolverContext), "context");
 
     private static readonly MethodInfo _parent =
-        typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Parent))!;
+        typeof(IResolverContext).GetMethod(nameof(IResolverContext.Parent))!;
 
     private static readonly MethodInfo _resolver =
-        typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Resolver))!;
+        typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
@@ -86,7 +86,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new DocumentParameterExpressionBuilder());
         expressionBuilders.Add(new CancellationTokenParameterExpressionBuilder());
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
-        expressionBuilders.Add(new PureResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
         expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());

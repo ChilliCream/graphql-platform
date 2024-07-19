@@ -4,7 +4,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Language;
 
-public class SchemaCoordinateVisitorTests
+public static class SchemaCoordinateVisitorTests
 {
     [Fact]
     public static void VisitAllNodes()
@@ -75,7 +75,7 @@ public class SchemaCoordinateVisitorTests
             s => Assert.Equal("ghi", s));
     }
 
-    public class CustomSyntaxWalker(List<string> list) 
+    public class CustomSyntaxWalker(List<string> list)
         : SyntaxWalker(new() { VisitNames = true, })
     {
         protected override ISyntaxVisitorAction Enter(NameNode node, object context)
@@ -85,7 +85,7 @@ public class SchemaCoordinateVisitorTests
         }
     }
 
-    public class CustomGenericSyntaxWalker() 
+    public class CustomGenericSyntaxWalker()
         : SyntaxWalker<CustomContext>(new SyntaxVisitorOptions { VisitNames = true, })
     {
         protected override ISyntaxVisitorAction Enter(NameNode node, CustomContext context)

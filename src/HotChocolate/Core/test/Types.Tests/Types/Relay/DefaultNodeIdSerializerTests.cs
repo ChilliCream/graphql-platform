@@ -1,19 +1,29 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using CookieCrumble;
-using HotChocolate.Language;
+using Moq;
 
 namespace HotChocolate.Types.Relay;
 
 public class DefaultNodeIdSerializerTests
 {
     [Fact]
+    public void Format_Empty_StringId()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Format("Foo", "");
+
+        Assert.Equal("Rm9vOg==", id);
+    }
+
+
+    [Fact]
     public void Format_Small_StringId()
     {
-        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", "abc");
 
@@ -23,20 +33,51 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Parse_Small_StringId()
     {
-        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
 
-        var id = serializer.Parse("Rm9vOmFiYw==");
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOmFiYw==", lookup.Object);
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
     }
 
     [Fact]
+    public void Parse_Empty_StringId()
+    {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOg==", lookup.Object);
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
+    public void Parse_Empty_StringId2()
+    {
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vOg==", typeof(string));
+
+        Assert.Equal("Foo", id.TypeName);
+        Assert.Equal("", id.InternalId);
+    }
+
+    [Fact]
     public void Parse_Small_Legacy_StringId()
     {
-        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
 
-        var id = serializer.Parse("Rm9vCmRhYmM=");
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
+
+        var id = serializer.Parse("Rm9vCmRhYmM=", lookup.Object);
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal("abc", id.InternalId);
@@ -45,7 +86,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Format_480_Byte_Long_StringId()
     {
-        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", new string('a', 480));
 
@@ -69,7 +110,10 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Parse_480_Byte_Long_StringId()
     {
-        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
+        var serializer = CreateSerializer(new StringNodeIdValueSerializer());
 
         var id = serializer.Parse(
             "Rm9vOmFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
@@ -84,26 +128,17 @@ public class DefaultNodeIdSerializerTests
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
             "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh" +
-            "YWFhYWFhYWFhYWFhYWFhYQ==");
+            "YWFhYWFhYWFhYWFhYWFhYQ==",
+            lookup.Object);
 
         Assert.Equal("Foo", id.TypeName);
         Assert.Equal(new string('a', 480), id.InternalId);
     }
 
     [Fact]
-    public void Serialize_TypeName_Not_Registered()
-    {
-        var serializer = CreateSerializer("Foo", new StringNodeIdValueSerializer());
-
-        void Error() => serializer.Format("Baz", "abc");
-
-        Assert.Throws<NodeIdMissingSerializerException>(Error);
-    }
-
-    [Fact]
     public void Serialize_Int16Id()
     {
-        var serializer = CreateSerializer("Foo", new Int16NodeIdValueSerializer());
+        var serializer = CreateSerializer(new Int16NodeIdValueSerializer());
 
         var id = serializer.Format("Foo", (short)6);
 
@@ -113,7 +148,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Int32Id()
     {
-        var serializer = CreateSerializer("Foo", new Int32NodeIdValueSerializer());
+        var serializer = CreateSerializer(new Int32NodeIdValueSerializer());
 
         var id = serializer.Format("Foo", 32);
 
@@ -123,7 +158,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Int64Id()
     {
-        var serializer = CreateSerializer("Foo", new Int64NodeIdValueSerializer());
+        var serializer = CreateSerializer(new Int64NodeIdValueSerializer());
 
         var id = serializer.Format("Foo", (long)64);
 
@@ -133,7 +168,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Guid()
     {
-        var serializer = CreateSerializer("Foo", new GuidNodeIdValueSerializer());
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", Guid.Empty);
 
@@ -143,7 +178,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Serialize_Guid_Normal()
     {
-        var serializer = CreateSerializer("Foo", new GuidNodeIdValueSerializer(false));
+        var serializer = CreateSerializer(new GuidNodeIdValueSerializer(false));
 
         var id = serializer.Format("Foo", Guid.Empty);
 
@@ -153,7 +188,7 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Format_CompositeId()
     {
-        var serializer = CreateSerializer("Foo", new CompositeIdNodeIdValueSerializer());
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
 
         var id = serializer.Format("Foo", new CompositeId("foo", 42, Guid.Empty, true));
 
@@ -163,11 +198,26 @@ public class DefaultNodeIdSerializerTests
     [Fact]
     public void Parse_CompositeId()
     {
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(It.IsAny<string>())).Returns(typeof(CompositeId));
+
         var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
-        var serializer = CreateSerializer("Foo", new CompositeIdNodeIdValueSerializer());
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
         var id = serializer.Format("Foo", compositeId);
 
-        var parsed = serializer.Parse(id);
+        var parsed = serializer.Parse(id, lookup.Object);
+
+        Assert.Equal(compositeId, parsed.InternalId);
+    }
+
+    [Fact]
+    public void Parse_CompositeId2()
+    {
+        var compositeId = new CompositeId("foo", 42, Guid.Empty, true);
+        var serializer = CreateSerializer(new CompositeIdNodeIdValueSerializer());
+        var id = serializer.Format("Foo", compositeId);
+
+        var parsed = serializer.Parse(id, typeof(CompositeId));
 
         Assert.Equal(compositeId, parsed.InternalId);
     }
@@ -228,21 +278,24 @@ public class DefaultNodeIdSerializerTests
             "WarehouseFilterInput,ApplyPolicy,MediaStorageProvider,MetadataType,SortEnumType,DateTime,Long," +
             "UUID,Upload";
 
+        var lookup = new Mock<INodeIdRuntimeTypeLookup>();
+        lookup.Setup(t => t.GetNodeIdRuntimeType(default)).Returns(default(Type));
+
         var names = new HashSet<string>(namesString.Split(','));
         var stringValueSerializer = new StringNodeIdValueSerializer();
         var mappings = names.Select(name => new BoundNodeIdValueSerializer(name, stringValueSerializer)).ToList();
-        var nodeIdSerializer = new DefaultNodeIdSerializer(mappings, [stringValueSerializer]);
+        var nodeIdSerializer = new OptimizedNodeIdSerializer(mappings, [stringValueSerializer]);
         var snapshot = new Snapshot();
         var sb = new StringBuilder();
 
         // act
         var formattedId = nodeIdSerializer.Format("VariantsEdge", "abc");
-        var internalId = nodeIdSerializer.Parse(formattedId);
+        var internalId = nodeIdSerializer.Parse(formattedId, lookup.Object);
 
         foreach (var name in names)
         {
             var a = nodeIdSerializer.Format(name, "abc");
-            var b = nodeIdSerializer.Parse(a);
+            var b = nodeIdSerializer.Parse(a, lookup.Object);
 
             sb.Clear();
             sb.AppendLine(a);
@@ -258,11 +311,10 @@ public class DefaultNodeIdSerializerTests
         snapshot.MatchMarkdownSnapshot();
     }
 
-    private static DefaultNodeIdSerializer CreateSerializer(string typeName, INodeIdValueSerializer serializer)
+    private static DefaultNodeIdSerializer CreateSerializer(INodeIdValueSerializer serializer)
     {
         return new DefaultNodeIdSerializer(
-            [new BoundNodeIdValueSerializer(typeName, serializer)],
-            [serializer]);
+            serializers: [serializer]);
     }
 
     private sealed class CompositeIdNodeIdValueSerializer : CompositeNodeIdValueSerializer<CompositeId>

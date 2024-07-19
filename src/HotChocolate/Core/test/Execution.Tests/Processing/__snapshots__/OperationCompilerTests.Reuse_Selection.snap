@@ -14,31 +14,31 @@
 query Hero($episode: Episode, $withFriends: Boolean!) @includeCondition(flag: 2) {
   ... on Query {
     hero(episode: $episode) @__execute(id: 0, kind: PURE, type: COMPOSITE) {
-      ... on Human {
+      ... on Droid {
         name @__execute(id: 1, kind: PURE, type: LEAF)
         friends @conditional @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @conditional @__execute(id: 3, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                id @conditional @__execute(id: 4, kind: PURE, type: LEAF)
-              }
+            nodes @conditional @__execute(id: 5, kind: PURE, type: COMPOSITE_LIST) {
               ... on Droid {
-                id @conditional @__execute(id: 5, kind: PURE, type: LEAF)
+                id @conditional @__execute(id: 6, kind: PURE, type: LEAF)
+              }
+              ... on Human {
+                id @conditional @__execute(id: 7, kind: PURE, type: LEAF)
               }
             }
           }
         }
       }
-      ... on Droid {
-        name @__execute(id: 6, kind: PURE, type: LEAF)
-        friends @conditional @__execute(id: 7, kind: DEFAULT, type: COMPOSITE) {
+      ... on Human {
+        name @__execute(id: 3, kind: PURE, type: LEAF)
+        friends @conditional @__execute(id: 4, kind: DEFAULT, type: COMPOSITE) {
           ... on FriendsConnection {
-            nodes @conditional @__execute(id: 8, kind: PURE, type: COMPOSITE_LIST) {
-              ... on Human {
-                id @conditional @__execute(id: 9, kind: PURE, type: LEAF)
-              }
+            nodes @conditional @__execute(id: 5, kind: PURE, type: COMPOSITE_LIST) {
               ... on Droid {
-                id @conditional @__execute(id: 10, kind: PURE, type: LEAF)
+                id @conditional @__execute(id: 6, kind: PURE, type: LEAF)
+              }
+              ... on Human {
+                id @conditional @__execute(id: 7, kind: PURE, type: LEAF)
               }
             }
           }

@@ -87,7 +87,7 @@ public class IntegrationTests : IClassFixture<RedisResource>
         await cache.SaveAsync(documentId, new OperationDocumentSourceText("{ __typename }"));
 
         // ... wait for query to expire
-        await Task.Delay(100).ConfigureAwait(false);
+        await Task.Delay(100);
 
         // act
         var result = await executor.ExecuteAsync(OperationRequest.FromId(documentId));

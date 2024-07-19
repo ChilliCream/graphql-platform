@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <Nullable>enable</Nullable>
-    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -22,7 +21,7 @@
   </ItemGroup>  
 
   <ItemGroup>
-    <PackageReference Include="NodaTime" Version="3.0.0" />
+    <PackageReference Include="NodaTime" />
   </ItemGroup>  
 
   <ItemGroup>

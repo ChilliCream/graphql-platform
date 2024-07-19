@@ -65,7 +65,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?>
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?>
@@ -101,7 +101,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation($arg: ZonedDateTime!) { test(arg: $arg) }")
                         .SetVariableValues(
                             new Dictionary<string, object?>
@@ -110,7 +110,7 @@ namespace HotChocolate.Types.NodaTime.Tests
                             })
                         .Build());
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation{test(arg:\"2020-12-31T19:30:13 Asia/Kathmandu +05:45\")}")
                         .Build());
             Assert.Equal(
@@ -131,7 +131,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC +00\") }")
                         .Build());
             Assert.Equal("2020-12-31T19:40:13 UTC +00", result.ExpectQueryResult().Data!["test"]);
@@ -142,11 +142,11 @@ namespace HotChocolate.Types.NodaTime.Tests
         {
             var result = _testExecutor
                 .Execute(
-                    OperationRequestBuilder.Create()
+                    OperationRequestBuilder.New()
                         .SetDocument("mutation { test(arg: \"2020-12-31T19:30:13 UTC\") }")
                         .Build());
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
             Assert.Null(result.ExpectQueryResult().Errors![0].Code);
             Assert.Equal(
                 "Unable to deserialize string to ZonedDateTime",

@@ -44,7 +44,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -64,7 +64,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -84,7 +84,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -104,7 +104,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -125,7 +125,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -145,7 +145,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -156,8 +156,7 @@ public class ReaderTests
     public void Read_String_SkipEscapes()
     {
         // arrange
-        var sourceText = Encoding.UTF8.GetBytes(
-            "abc \"def\\\"\" ghi");
+        var sourceText = "abc \"def\\\"\" ghi"u8.ToArray();
 
         // act
         var tokens = new List<SyntaxTokenInfo>();
@@ -165,7 +164,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert
@@ -192,7 +191,7 @@ public class ReaderTests
 
         while (reader.Read())
         {
-            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            tokens.Add(SyntaxTokenInfo.FromReader(reader));
         }
 
         // assert

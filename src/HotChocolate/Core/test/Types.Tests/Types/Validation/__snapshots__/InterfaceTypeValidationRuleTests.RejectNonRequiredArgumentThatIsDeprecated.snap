@@ -1,5 +1,5 @@
 ﻿{
-  "message": "Required argument Bar.field(arg) cannot be deprecated.",
+  "message": "Required argument Bar.field(arg:) cannot be deprecated.",
   "type": "Bar",
   "extensions": {
     "argument": "arg",
@@ -10,7 +10,7 @@
 }
 
 {
-  "message": "Required argument Foo.field(arg) cannot be deprecated.",
+  "message": "Required argument Foo.field(arg:) cannot be deprecated.",
   "type": "Foo",
   "extensions": {
     "argument": "arg",

@@ -1,0 +1,12 @@
+﻿schema {
+  query: QueryTypeWithComputedProperty
+}
+
+type QueryTypeWithComputedProperty {
+  foo(arg: InputTypeWithReadOnlyPropertiesInput): Int!
+}
+
+input InputTypeWithReadOnlyPropertiesInput {
+  property1: Int!
+  property2: Int!
+}

@@ -73,8 +73,15 @@ internal static class ArgumentParser
                     break;
                 }
 
-                value = (T)scalarType.ParseLiteral(valueNode)!;
-                return true;
+                var literal = scalarType.ParseLiteral(valueNode)!;
+
+                if (DefaultTypeConverter.Default.TryConvert(typeof(T), literal, out var converted))
+                {
+                    value = (T)converted;
+                    return true;
+                }
+
+                break;
             }
 
             case SyntaxKind.EnumValue:

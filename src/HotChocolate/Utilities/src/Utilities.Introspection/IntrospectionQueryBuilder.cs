@@ -22,7 +22,6 @@ internal static class IntrospectionQueryBuilder
             new FieldNode(
                 new NameNode("queryType"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 new SelectionSetNode(
@@ -34,7 +33,6 @@ internal static class IntrospectionQueryBuilder
         selections.Add(
             new FieldNode(
                 new NameNode("mutationType"),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -49,7 +47,6 @@ internal static class IntrospectionQueryBuilder
             selections.Add(
                 new FieldNode(
                     new NameNode("subscriptionType"),
-                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -82,7 +79,6 @@ internal static class IntrospectionQueryBuilder
                             new FieldNode(
                                 new NameNode("__schema"),
                                 null,
-                                null,
                                 Array.Empty<DirectiveNode>(),
                                 Array.Empty<ArgumentNode>(),
                                 new SelectionSetNode(selections)),
@@ -96,7 +92,6 @@ internal static class IntrospectionQueryBuilder
     private static FieldNode CreateTypesField()
         => new FieldNode(
             new NameNode("types"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -117,7 +112,6 @@ internal static class IntrospectionQueryBuilder
             new FieldNode("description"),
             new FieldNode(
                 new NameNode("args"),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
@@ -150,7 +144,6 @@ internal static class IntrospectionQueryBuilder
         return new FieldNode(
             new NameNode("directives"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));
@@ -180,7 +173,6 @@ internal static class IntrospectionQueryBuilder
         => new FieldNode(
             new NameNode("fields"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             new[]
             {
@@ -202,7 +194,6 @@ internal static class IntrospectionQueryBuilder
             ? new FieldNode(
                 new NameNode("args"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 new[]
                 {
@@ -221,7 +212,6 @@ internal static class IntrospectionQueryBuilder
             : new FieldNode(
                 new NameNode("args"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 new SelectionSetNode(
@@ -238,7 +228,6 @@ internal static class IntrospectionQueryBuilder
         => new FieldNode(
             new NameNode("type"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(
@@ -254,7 +243,6 @@ internal static class IntrospectionQueryBuilder
         => includeDeprecatedFields
             ? new FieldNode(
                 new NameNode("inputFields"),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 new[]
@@ -274,7 +262,6 @@ internal static class IntrospectionQueryBuilder
             : new FieldNode(
                 new NameNode("inputFields"),
                 null,
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 new SelectionSetNode(
@@ -290,7 +277,6 @@ internal static class IntrospectionQueryBuilder
         => new FieldNode(
             new NameNode("interfaces"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(
@@ -305,7 +291,6 @@ internal static class IntrospectionQueryBuilder
     private static FieldNode CreateEnumValuesField()
         => new FieldNode(
             new NameNode("enumValues"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             new[]
@@ -324,7 +309,6 @@ internal static class IntrospectionQueryBuilder
     private static FieldNode CreatePossibleTypesField()
         => new FieldNode(
             new NameNode("possibleTypes"),
-            null,
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -376,7 +360,6 @@ internal static class IntrospectionQueryBuilder
         => new(
             new NameNode("ofType"),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             CreateKindTypePair(ofType));
@@ -389,13 +372,11 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode(
                         new NameNode("kind"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null),
                     new FieldNode(
                         new NameNode("name"),
-                        null,
                         null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
@@ -407,13 +388,11 @@ internal static class IntrospectionQueryBuilder
                     new FieldNode(
                         new NameNode("kind"),
                         null,
-                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null),
                     new FieldNode(
                         new NameNode("name"),
-                        null,
                         null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),

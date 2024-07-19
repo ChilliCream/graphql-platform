@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -524,9 +525,6 @@ public class QueryableCursorPagingProviderTests
 
         public Path Path => throw new NotImplementedException();
 
-        IReadOnlyDictionary<string, object?> IPureResolverContext.ScopedContextData
-            => ScopedContextData;
-
         public T Parent<T>()
         {
             throw new NotImplementedException();
@@ -623,6 +621,28 @@ public class QueryableCursorPagingProviderTests
 
         public ValueTask<List<T>> ToListAsync(CancellationToken cancellationToken)
             => new(source.ToList());
+
+        public async IAsyncEnumerable<T> ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IEnumerable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
+
+        async IAsyncEnumerable<object?> IExecutable.ToAsyncEnumerable(
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var queryable = await new ValueTask<IEnumerable<T>>(source);
+
+            foreach (var item in queryable)
+            {
+                yield return item;
+            }
+        }
 
         ValueTask<object?> IExecutable.FirstOrDefaultAsync(CancellationToken cancellationToken)
             => new(source.FirstOrDefault());

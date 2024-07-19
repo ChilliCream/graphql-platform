@@ -19,7 +19,7 @@ public static class FieldInitHelper
         ITypeCompletionContext context,
         ArgumentDefinition argumentDefinition,
         IInputType argumentType,
-        FieldCoordinate argumentCoordinate)
+        SchemaCoordinate argumentCoordinate)
     {
         var defaultValue = argumentDefinition.DefaultValue;
 
@@ -211,8 +211,8 @@ public static class FieldInitHelper
         {
            context.ReportError(
                DuplicateFieldName(
-                   context.Type, 
-                   declaringMember, 
+                   context.Type,
+                   declaringMember,
                    duplicateFieldNames));
         }
 

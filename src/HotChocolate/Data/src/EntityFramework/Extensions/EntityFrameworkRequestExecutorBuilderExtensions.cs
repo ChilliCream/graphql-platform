@@ -1,33 +1,17 @@
-using HotChocolate;
+using HotChocolate.Data;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types.Pagination;
-using HotChocolate.Pagination;
+using HotChocolate.Internal;
+using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
-/// </summary>
 public static class EntityFrameworkRequestExecutorBuilderExtensions
 {
-    /// <summary>
-    /// Adds resolver compiler mapping for the <see cref="PagingArguments"/> from the EFCore helper lib.
-    /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IRequestExecutorBuilder"/>.
-    /// </param>
-    /// <returns>
-    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
-    /// and its execution.
-    /// </returns>
-    public static IRequestExecutorBuilder AddPagingArguments(
+    public static IRequestExecutorBuilder RegisterDbContextFactory<T>(
         this IRequestExecutorBuilder builder)
-        => builder.AddParameterExpressionBuilder(
-            context => MapArguments(
-                context.GetLocalState<CursorPagingArguments>(
-                    WellKnownContextData.PagingArguments)));
-
-    private static PagingArguments MapArguments(CursorPagingArguments arguments)
-        => new(arguments.First, arguments.After, arguments.Last, arguments.Before);
+        where T : DbContext
+    {
+        builder.Services.AddSingleton<IParameterExpressionBuilder, ContextFactoryParameterExpressionBuilder<T>>();
+        return builder;
+    }
 }
-

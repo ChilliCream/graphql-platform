@@ -14,7 +14,7 @@ public class ClassBaseClassInspector : ISyntaxInspector
 
     public bool TryHandle(
         GeneratorSyntaxContext context,
-        [NotNullWhen(true)] out ISyntaxInfo? syntaxInfo)
+        [NotNullWhen(true)] out SyntaxInfo? syntaxInfo)
     {
         if (context.Node is ClassDeclarationSyntax { BaseList.Types.Count: > 0, TypeParameterList: null, } possibleType)
         {

@@ -58,5 +58,5 @@ Result:
 
 SQL:
 ---------------
-from 'Bars' as _s1 select { Foo : { ObjectArray : _s1.Foo.ObjectArray.sort(function (a, b){ return a.Foo.BarShort - b.Foo.BarShort;}).map(function(p2){return {Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}};}) } }
+from 'Bars' as _s1 select { Foo : { ObjectArray : _s1.Foo.ObjectArray.sort((a, b) => a.Foo.BarShort - b.Foo.BarShort).map(p2=>({Foo:{BarString:p2.Foo.BarString,BarShort:p2.Foo.BarShort}})) } }
 ---------------

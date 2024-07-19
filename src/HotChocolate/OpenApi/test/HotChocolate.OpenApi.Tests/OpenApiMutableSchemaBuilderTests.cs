@@ -7,14 +7,14 @@ namespace HotChocolate.OpenApi.Tests;
 public sealed class OpenApiMutableSchemaBuilderTests
 {
     [Fact]
-    public async void CreateMutableSchema_WithoutMutationConventions_ReturnsExpectedResult()
+    public async Task CreateMutableSchema_WithoutMutationConventions_ReturnsExpectedResult()
     {
         // Arrange
         var input = await File.ReadAllTextAsync("__resources__/petstore-expanded.yaml");
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "PetStoreExpanded").Build();
 
@@ -24,14 +24,14 @@ public sealed class OpenApiMutableSchemaBuilderTests
     }
 
     [Fact]
-    public async void CreateMutableSchema_WithMutationConventions_ReturnsExpectedResult()
+    public async Task CreateMutableSchema_WithMutationConventions_ReturnsExpectedResult()
     {
         // Arrange
         var input = await File.ReadAllTextAsync("__resources__/petstore-expanded.yaml");
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "PetStoreExpanded").AddMutationConventions().Build();
 
@@ -41,14 +41,14 @@ public sealed class OpenApiMutableSchemaBuilderTests
     }
 
     [Fact]
-    public async void CreateMutableSchema_WithDefaultValues_ReturnsExpectedResult()
+    public async Task CreateMutableSchema_WithDefaultValues_ReturnsExpectedResult()
     {
         // Arrange
         var input = await File.ReadAllTextAsync("__resources__/synthetic-with-default-values.yaml");
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "SyntheticWithDefaultValues").Build();
 
@@ -58,14 +58,14 @@ public sealed class OpenApiMutableSchemaBuilderTests
     }
 
     [Fact]
-    public async void CreateMutableSchema_WithDeprecations_ReturnsExpectedResult()
+    public async Task CreateMutableSchema_WithDeprecations_ReturnsExpectedResult()
     {
         // Arrange
         var input = await File.ReadAllTextAsync("__resources__/synthetic-with-deprecations.yaml");
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "SyntheticWithDeprecations").Build();
 
@@ -75,14 +75,14 @@ public sealed class OpenApiMutableSchemaBuilderTests
     }
 
     [Fact]
-    public async void CreateMutableSchema_WithLinks_ReturnsExpectedResult()
+    public async Task CreateMutableSchema_WithLinks_ReturnsExpectedResult()
     {
         // Arrange
         var input = await File.ReadAllTextAsync("__resources__/synthetic-with-links.yaml");
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
+        var mutableSchema = OpenApiMutableSchemaBuilder.New(
             openApiDocument,
             httpClientName: "SyntheticWithLinks").Build();
 
@@ -92,16 +92,16 @@ public sealed class OpenApiMutableSchemaBuilderTests
     }
 
     [Fact]
-    public async void CreateMutableSchema_WithTags_ReturnsExpectedResult()
+    public async Task CreateMutableSchema_WithTags_ReturnsExpectedResult()
     {
         // Arrange
         var input = await File.ReadAllTextAsync("__resources__/synthetic-with-tags.yaml");
         var openApiDocument = new OpenApiStringReader().Read(input, out _);
 
         // Act
-        var mutableSchema = OpenApiMutableSchemaBuilder.Create(
-            openApiDocument,
-            httpClientName: "SyntheticWithTags").Build();
+        var mutableSchema = OpenApiMutableSchemaBuilder
+            .New(openApiDocument, httpClientName: "SyntheticWithTags")
+            .Build();
 
         // Assert
         var sdl = SchemaFormatter.FormatAsString(mutableSchema);

@@ -21,7 +21,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
                 .Build();
@@ -41,7 +41,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
                 .Build();
@@ -62,7 +62,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
                 .Build();
@@ -82,7 +82,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
                 .Build();
@@ -101,7 +101,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
                 .Build();
@@ -118,7 +118,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", null }, })
                 .Build();
@@ -135,7 +135,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .Build();
 
@@ -156,7 +156,7 @@ public class VariableCoercionIntegrationTests
 
         var request =
             OperationRequestBuilder
-                .Create()
+                .New()
                 .SetDocument("mutation($user: UserInput!) { addUser(user: $user) }")
                 .SetVariableValues(new Dictionary<string, object> { {"user", user }, })
                 .Build();

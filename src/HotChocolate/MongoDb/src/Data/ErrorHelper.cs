@@ -15,19 +15,19 @@ internal static class ErrorHelper
     {
         var filterType = context.Types.OfType<IFilterInputType>().First();
 
-        INullabilityNode nullability =
+        IType expectedType =
             isMemberInvalid && field.Type.IsListType()
-            ? new ListNullabilityNode(null, new RequiredModifierNode(null, null))
-            : new RequiredModifierNode(null, null);
+                ? new ListType(new NonNullType(field.Type.ElementType()))
+                : new NonNullType(field.Type);
 
         return ErrorBuilder.New()
             .SetMessage(
                 MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
                 context.Operations.Peek().Name,
                 filterType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
-            .SetExtension("expectedType", field.Type.RewriteNullability(nullability).Print())
+            .SetExtension("expectedType", expectedType.Print())
             .SetExtension("filterType", filterType.Print())
             .Build();
     }
@@ -44,7 +44,7 @@ internal static class ErrorHelper
                 MongoDbResources.ErrorHelper_Filtering_CreateNonNullError,
                 context.Fields.Peek().Name,
                 sortType.Print())
-            .AddLocation([value])
+            .AddLocation(value)
             .SetCode(ErrorCodes.Data.NonNullError)
             .SetExtension("expectedType", new NonNullType(field.Type).Print())
             .SetExtension("sortType", sortType.Print())

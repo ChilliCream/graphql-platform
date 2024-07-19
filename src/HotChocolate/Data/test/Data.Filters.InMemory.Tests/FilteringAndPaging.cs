@@ -22,13 +22,13 @@ public class FilteringAndPaging
 
         // act
         var res1 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
                 .Build());
         snapshot.Add(res1, "true");
 
         var res2 = await tester.ExecuteAsync(
-            OperationRequestBuilder.Create()
+            OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
                 .Build());
         snapshot.Add(res2, "true");

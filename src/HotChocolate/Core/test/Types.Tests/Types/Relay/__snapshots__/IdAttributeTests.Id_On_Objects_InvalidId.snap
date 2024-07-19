@@ -1,4 +1,4 @@
 ﻿{
-  "result": "{\n  \"errors\": [\n    {\n      \"message\": \"The node ID string has an invalid format.\",\n      \"locations\": [\n        {\n          \"line\": 2,\n          \"column\": 37\n        }\n      ],\n      \"path\": [\n        \"foo\"\n      ],\n      \"extensions\": {\n        \"originalValue\": \"abc\"\n      }\n    }\n  ],\n  \"data\": null\n}",
+  "result": "{\n  \"errors\": [\n    {\n      \"message\": \"The node ID string has an invalid format.\",\n      \"locations\": [\n        {\n          \"line\": 2,\n          \"column\": 5\n        }\n      ],\n      \"path\": [\n        \"foo\"\n      ],\n      \"extensions\": {\n        \"originalValue\": \"abc\"\n      }\n    }\n  ],\n  \"data\": null\n}",
   "someId": "abc"
 }

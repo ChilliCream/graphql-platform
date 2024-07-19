@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Nats" Version="0.18.0-preview.6" />
+    <PackageReference Include="Squadron.Nats" />
   </ItemGroup>
 
 </Project>

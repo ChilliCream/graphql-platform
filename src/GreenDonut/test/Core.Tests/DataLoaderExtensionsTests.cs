@@ -77,7 +77,7 @@ public class DataLoaderExtensionsTests
         loader.Set(key, value);
 
         // assert
-        var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
+        var loadResult = await loader.LoadAsync(key);
 
         Assert.Equal(value, loadResult);
     }
@@ -107,7 +107,7 @@ public class DataLoaderExtensionsTests
         loader.Set(key, second);
 
         // assert
-        var loadResult = await loader.LoadAsync(key).ConfigureAwait(false);
+        var loadResult = await loader.LoadAsync(key);
 
         Assert.Equal(first, loadResult);
     }

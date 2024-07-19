@@ -86,7 +86,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithDecimals()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00.019" }, })
                     .Build());
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithoutDecimals()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "09:22:01:00" }, })
                     .Build());
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithoutLeadingZero()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:22:01:00" }, })
                     .Build());
@@ -119,7 +119,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesInputWithNegativeValue()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "-9:22:01:00" }, })
                     .Build());
@@ -130,31 +130,31 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseInputWithPlusSign()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "+09:22:01:00" }, })
                     .Build());
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void MutationDoesntParseInputWithOverflownHours()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation($arg: Duration!) { test(arg: $arg) }")
                     .SetVariableValues(new Dictionary<string, object?> { {"arg", "9:26:01:00" }, })
                     .Build());
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void MutationParsesLiteralWithDecimals()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"09:22:01:00.019\") }")
                     .Build());
 
@@ -165,7 +165,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithoutDecimals()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
                     .Build());
 
@@ -176,7 +176,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithoutLeadingZero()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"09:22:01:00\") }")
                     .Build());
 
@@ -187,7 +187,7 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationParsesLiteralWithNegativeValue()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"-9:22:01:00\") }")
                     .Build());
 
@@ -198,24 +198,24 @@ namespace HotChocolate.Types.NodaTime.Tests
         public void MutationDoesntParseLiteralWithPlusSign()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"+09:22:01:00\") }")
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
         public void MutationDoesntParseLiteralWithOverflownHours()
         {
             var result = _testExecutor
-                .Execute(OperationRequestBuilder.Create()
+                .Execute(OperationRequestBuilder.New()
                     .SetDocument("mutation { test(arg: \"9:26:01:00\") }")
                     .Build());
 
             Assert.Null(result.ExpectQueryResult().Data);
-            Assert.Equal(1, result.ExpectQueryResult().Errors!.Count);
+            Assert.Single(result.ExpectQueryResult().Errors!);
         }
 
         [Fact]
