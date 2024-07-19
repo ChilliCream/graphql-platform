@@ -114,7 +114,7 @@ public class WebSocketClientProtocolTests(TestServerFactory serverFactory, ITest
             // ... try iterate
             await foreach (var unused in socketResult.ReadResultsAsync().WithCancellation(ct))
             {
-                Assert.True(false, "Stream should have been aborted");
+                Assert.Fail("Stream should have been aborted");
             }
         });
     }

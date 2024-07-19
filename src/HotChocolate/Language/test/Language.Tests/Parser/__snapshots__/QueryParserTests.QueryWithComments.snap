@@ -46,7 +46,6 @@ AST
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
-            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -60,7 +59,6 @@ AST
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
-                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 45,
@@ -202,7 +200,6 @@ AST
                       }
                     }
                   ],
-                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -216,7 +213,6 @@ AST
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
-                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 191,

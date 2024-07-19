@@ -134,7 +134,6 @@ static file class MergeEntitiesMiddlewareExtensions
             null,
             new NameNode(fieldName),
             null,
-            null,
             Array.Empty<DirectiveNode>(),
             arguments,
             null);

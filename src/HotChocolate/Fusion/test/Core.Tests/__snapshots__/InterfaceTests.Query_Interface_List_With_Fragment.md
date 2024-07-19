@@ -44,7 +44,7 @@ query Appointments {
 ## QueryPlan Hash
 
 ```text
-347001780000BC39AA06AB363EB4F49993793518
+5F5BF5AEEC7BF9B75984AF29704E92CE9B486168
 ```
 
 ## QueryPlan
@@ -59,7 +59,7 @@ query Appointments {
       {
         "type": "Resolve",
         "subgraph": "Appointment",
-        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient1 { id __fusion_exports__1: id } ... on Patient2 { id } } } } }",
+        "document": "query Appointments_1 { appointments { nodes { patient { __typename ... on Patient2 { id } ... on Patient1 { id __fusion_exports__1: id } } } } }",
         "selectionSetId": 0,
         "provides": [
           {
@@ -77,7 +77,7 @@ query Appointments {
         "type": "ResolveByKeyBatch",
         "subgraph": "Patient1",
         "document": "query Appointments_2($__fusion_exports__1: [ID!]!) { nodes(ids: $__fusion_exports__1) { ... on Patient1 { name __fusion_exports__1: id } } }",
-        "selectionSetId": 3,
+        "selectionSetId": 4,
         "path": [
           "nodes"
         ],
@@ -90,7 +90,7 @@ query Appointments {
       {
         "type": "Compose",
         "selectionSetIds": [
-          3
+          4
         ]
       }
     ]

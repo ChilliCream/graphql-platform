@@ -53,7 +53,6 @@ internal sealed class MergeSubscriptionTypeMiddleware : IMergeMiddleware
                     null,
                     new NameNode(field.GetOriginalName()),
                     null,
-                    null,
                     Array.Empty<DirectiveNode>(),
                     arguments,
                     null);

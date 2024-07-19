@@ -68,7 +68,7 @@ mutation AddReviewAndUser {
             "type": "Resolve",
             "subgraph": "Accounts",
             "document": "query AddReviewAndUser_3($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-            "selectionSetId": 6,
+            "selectionSetId": 5,
             "path": [
               "userById"
             ],
@@ -82,7 +82,7 @@ mutation AddReviewAndUser {
             "type": "Resolve",
             "subgraph": "Reviews",
             "document": "query AddReviewAndUser_4($__fusion_exports__2: ID!) { authorById(id: $__fusion_exports__2) { reviews { body } } }",
-            "selectionSetId": 2,
+            "selectionSetId": 4,
             "path": [
               "authorById"
             ],
@@ -97,8 +97,8 @@ mutation AddReviewAndUser {
       {
         "type": "Compose",
         "selectionSetIds": [
-          2,
-          6
+          4,
+          5
         ]
       }
     ]

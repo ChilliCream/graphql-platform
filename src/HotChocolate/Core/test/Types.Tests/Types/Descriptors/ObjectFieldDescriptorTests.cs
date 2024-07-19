@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
@@ -141,7 +142,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
     }
 
     [Fact]
-    public void SetResolverAndInferTypeFromResolver()
+    public async Task SetResolverAndInferTypeFromResolver()
     {
         // arrange
         var descriptor =
@@ -163,8 +164,7 @@ public class ObjectFieldDescriptorTests : DescriptorTestBase
         Assert.NotNull(description.Resolver);
 
         var context = new Mock<IResolverContext>(MockBehavior.Strict);
-        Assert.Equal("ThisIsAString",
-            description.Resolver(context.Object).Result);
+        Assert.Equal("ThisIsAString", await description.Resolver(context.Object));
     }
 
     [Fact]

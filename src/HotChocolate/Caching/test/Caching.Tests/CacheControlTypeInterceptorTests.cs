@@ -292,7 +292,7 @@ public class CacheControlTypeInterceptorTests
 
             builder.Create();
 
-            Assert.False(true, "Expected error!");
+            Assert.Fail("Expected error!");
         }
         catch (SchemaException ex)
         {

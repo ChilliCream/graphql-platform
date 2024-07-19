@@ -536,7 +536,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
 
         var sortedResults = new SortedList<(int?, int?), OperationResult>();
 
@@ -581,7 +581,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
 
         await foreach (var result in response.ReadAsResultStreamAsync())
         {
@@ -606,7 +606,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request);
 
         // assert
-        Assert.Equal(response.StatusCode, OK);
+        Assert.Equal(OK, response.StatusCode);
     }
 
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
