@@ -38,7 +38,7 @@ query FetchNode($id: ID!) {
 ## QueryPlan Hash
 
 ```text
-1F9F1C5519C133579571D04117F8B7727B84110B
+5D785409A20DB1C3613ACAA7F705728C826E966E
 ```
 
 ## QueryPlan
@@ -56,11 +56,11 @@ query FetchNode($id: ID!) {
         "responseName": "node",
         "branches": [
           {
-            "type": "Product",
+            "type": "User",
             "node": {
               "type": "Resolve",
-              "subgraph": "Products",
-              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on Product { __typename } } }",
+              "subgraph": "Reviews2",
+              "document": "query FetchNode_1($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -70,11 +70,11 @@ query FetchNode($id: ID!) {
             }
           },
           {
-            "type": "ProductBookmark",
+            "type": "Review",
             "node": {
               "type": "Resolve",
-              "subgraph": "Products",
-              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
+              "subgraph": "Reviews2",
+              "document": "query FetchNode_2($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -98,11 +98,11 @@ query FetchNode($id: ID!) {
             }
           },
           {
-            "type": "Review",
+            "type": "ProductBookmark",
             "node": {
               "type": "Resolve",
-              "subgraph": "Reviews2",
-              "document": "query FetchNode_4($id: ID!) { node(id: $id) { ... on Review { __typename } } }",
+              "subgraph": "Products",
+              "document": "query FetchNode_4($id: ID!) { node(id: $id) { ... on ProductBookmark { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -112,11 +112,11 @@ query FetchNode($id: ID!) {
             }
           },
           {
-            "type": "User",
+            "type": "Product",
             "node": {
               "type": "Resolve",
-              "subgraph": "Reviews2",
-              "document": "query FetchNode_5($id: ID!) { node(id: $id) { ... on User { reviews { body } __fusion_exports__1: id __typename } } }",
+              "subgraph": "Products",
+              "document": "query FetchNode_5($id: ID!) { node(id: $id) { ... on Product { __typename } } }",
               "selectionSetId": 0,
               "forwardedVariables": [
                 {
@@ -137,7 +137,7 @@ query FetchNode($id: ID!) {
         "type": "Resolve",
         "subgraph": "Accounts",
         "document": "query FetchNode_6($__fusion_exports__1: ID!) { userById(id: $__fusion_exports__1) { birthdate } }",
-        "selectionSetId": 5,
+        "selectionSetId": 1,
         "path": [
           "userById"
         ],
@@ -150,7 +150,7 @@ query FetchNode($id: ID!) {
       {
         "type": "Compose",
         "selectionSetIds": [
-          5
+          1
         ]
       }
     ]

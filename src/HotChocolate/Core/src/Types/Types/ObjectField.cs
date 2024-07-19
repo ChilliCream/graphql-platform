@@ -66,13 +66,6 @@ public sealed class ObjectField : OutputFieldBase, IObjectField
     public DependencyInjectionScope DependencyInjectionScope { get; private set; }
 
     /// <summary>
-    /// Defines that the resolver pipeline returns an
-    /// <see cref="IAsyncEnumerable{T}"/> as its result.
-    /// </summary>
-    public bool HasStreamResult
-        => (Flags & FieldFlags.Stream) == FieldFlags.Stream;
-
-    /// <summary>
     /// Gets the field resolver middleware.
     /// </summary>
     public FieldDelegate Middleware { get; private set; }

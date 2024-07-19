@@ -45,7 +45,6 @@ public class IsProjectedProjectionOptimizer : IProjectionOptimizer
                 null,
                 new NameNode(fields[i]),
                 new NameNode(alias),
-                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null);

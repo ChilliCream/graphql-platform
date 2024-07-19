@@ -13,7 +13,7 @@ public class FeatureCollectionExtensionsTests
         features.Set<IThing>(thing);
 
         // Act
-        var retrievedThing = features.GetRequiredFeature<IThing>();
+        var retrievedThing = features.GetRequired<IThing>();
 
         // Assert
         Assert.NotNull(retrievedThing);
@@ -29,6 +29,6 @@ public class FeatureCollectionExtensionsTests
         features.Set<IThing>(thing);
 
         // Assert
-        Assert.Throws<InvalidOperationException>(() => features.GetRequiredFeature<object>());
+        Assert.Throws<InvalidOperationException>(() => features.GetRequired<object>());
     }
 }

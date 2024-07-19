@@ -45,7 +45,6 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
                             null,
                             new NameNode(entityResolverField.GetOriginalName()),
                             null,
-                            null,
                             Array.Empty<DirectiveNode>(),
                             arguments,
                             null);
@@ -102,7 +101,6 @@ internal sealed class RefResolverEntityEnricher : IEntityEnricher
             var selection = new FieldNode(
                 null,
                 new NameNode(entityResolverField.GetOriginalName()),
-                null,
                 null,
                 Array.Empty<DirectiveNode>(),
                 arguments,
